@@ -7,7 +7,7 @@ extension DynamicSettings {
         @State var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -63,7 +63,7 @@ extension DynamicSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Activate Dynamic Sensitivity (ISF)"
                         }
                     ),
@@ -71,7 +71,7 @@ extension DynamicSettings {
                     type: .boolean,
                     label: "Activate Dynamic Sensitivity (ISF)",
                     miniHint: "Trio calculates insulin sensitivity (ISF) each loop cycle based on current blood sugar, daily insulin use, and an adjustment factor, within set limits.",
-                    verboseHint: "DynamicISF",
+                    verboseHint: Text("DynamicISF"),
                     headerText: "Dynamic Insulin Sensitivity"
                 )
 
@@ -83,7 +83,7 @@ extension DynamicSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Activate Dynamic Carb Ratio (CR)"
                             }
                         ),
@@ -91,7 +91,7 @@ extension DynamicSettings {
                         type: .boolean,
                         label: "Activate Dynamic Carb Ratio (CR)",
                         miniHint: "Similar to Dynamic Sensitivity, Trio calculates a dynamic carb ratio every loop cycle.",
-                        verboseHint: "Logarithmic Dynamic Insulin Sensitivity"
+                        verboseHint: Text("Logarithmic Dynamic Insulin Sensitivity")
                     )
 
                     SettingInputSection(
@@ -101,7 +101,7 @@ extension DynamicSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Use Sigmoid Formula"
                             }
                         ),
@@ -109,7 +109,7 @@ extension DynamicSettings {
                         type: .boolean,
                         label: "Use Sigmoid Formula",
                         miniHint: "Alternative formula for dynamic ISF, that alters ISF based on distance from target BG",
-                        verboseHint: "Sigmoid  Dynamic Insulin Sensitivity"
+                        verboseHint: Text("Sigmoid  Dynamic Insulin Sensitivity")
                     )
 
                     if !state.sigmoid {
@@ -120,7 +120,7 @@ extension DynamicSettings {
                             selectedVerboseHint: Binding(
                                 get: { selectedVerboseHint },
                                 set: {
-                                    selectedVerboseHint = $0
+                                    selectedVerboseHint = $0.map { AnyView($0) }
                                     hintLabel = "Adjustment Factor"
                                 }
                             ),
@@ -128,7 +128,7 @@ extension DynamicSettings {
                             type: .decimal("adjustmentFactor"),
                             label: "Adjustment Factor",
                             miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                            verboseHint: "Adjustment Factor for logarithmic dynamic sensitvity... bla bla bla"
+                            verboseHint: Text("Adjustment Factor for logarithmic dynamic sensitvity... bla bla bla")
                         )
                     } else {
                         SettingInputSection(
@@ -138,7 +138,7 @@ extension DynamicSettings {
                             selectedVerboseHint: Binding(
                                 get: { selectedVerboseHint },
                                 set: {
-                                    selectedVerboseHint = $0
+                                    selectedVerboseHint = $0.map { AnyView($0) }
                                     hintLabel = "Sigmoid Adjustment Factor"
                                 }
                             ),
@@ -146,7 +146,7 @@ extension DynamicSettings {
                             type: .decimal("adjustmentFactorSigmoid"),
                             label: "Sigmoid Adjustment Factor",
                             miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                            verboseHint: "Sigmoid Adjustment Factor… should be 0.5… bla bla ba"
+                            verboseHint: Text("Sigmoid Adjustment Factor… should be 0.5… bla bla ba")
                         )
                     }
 
@@ -157,7 +157,7 @@ extension DynamicSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Weighted Average of TDD"
                             }
                         ),
@@ -165,7 +165,7 @@ extension DynamicSettings {
                         type: .decimal("weightPercentage"),
                         label: "Weighted Average of TDD",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "Weight of past 24 hours"
+                        verboseHint: Text("Weight of past 24 hours")
                     )
 
                     SettingInputSection(
@@ -175,7 +175,7 @@ extension DynamicSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Adjust Basal"
                             }
                         ),
@@ -183,7 +183,7 @@ extension DynamicSettings {
                         type: .boolean,
                         label: "Adjust Basal",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "Adjust basal dynamically… bla bla"
+                        verboseHint: Text("Adjust basal dynamically… bla bla")
                     )
 
                     SettingInputSection(
@@ -193,7 +193,7 @@ extension DynamicSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Minimum Safety Threshold"
                             }
                         ),
@@ -201,7 +201,7 @@ extension DynamicSettings {
                         type: .decimal("threshold_setting"),
                         label: "Minimum Safety Threshold",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "Minimum Safety Threshold… bla bla bla"
+                        verboseHint: Text("Minimum Safety Threshold… bla bla bla")
                     )
                 }
             }
@@ -210,7 +210,7 @@ extension DynamicSettings {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

@@ -7,7 +7,7 @@ extension CalendarEventSettings {
         @StateObject var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -41,7 +41,7 @@ extension CalendarEventSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Create Events in Calendar"
                         }
                     ),
@@ -49,7 +49,7 @@ extension CalendarEventSettings {
                     type: .boolean,
                     label: "Create Events in Calendar",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Create Calendar Events… bla bla bla",
+                    verboseHint: Text("Create Calendar Events… bla bla bla"),
                     headerText: "Diabetes Data as Calendar Event"
                 )
 
@@ -71,7 +71,7 @@ extension CalendarEventSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Display Emojis as Labels"
                             }
                         ),
@@ -79,7 +79,7 @@ extension CalendarEventSettings {
                         type: .boolean,
                         label: "Display Emojis as Labels",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "Display Emojis as Labels… bla bla bla"
+                        verboseHint: Text("Display Emojis as Labels… bla bla bla")
                     )
 
                     SettingInputSection(
@@ -89,7 +89,7 @@ extension CalendarEventSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Display IOB and COB"
                             }
                         ),
@@ -97,7 +97,7 @@ extension CalendarEventSettings {
                         type: .boolean,
                         label: "Display IOB and COB",
                         miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "Display IOB and COB… bla bla bla"
+                        verboseHint: Text("Display IOB and COB… bla bla bla")
                     )
                 } else if state.useCalendar {
                     if #available(iOS 17.0, *) {
@@ -119,7 +119,7 @@ extension CalendarEventSettings {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

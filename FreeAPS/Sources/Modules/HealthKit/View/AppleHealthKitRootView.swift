@@ -8,7 +8,7 @@ extension AppleHealthKit {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -40,7 +40,7 @@ extension AppleHealthKit {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Connect to Apple Health"
                         }
                     ),
@@ -48,9 +48,11 @@ extension AppleHealthKit {
                     type: .boolean,
                     label: "Connect to Apple Health",
                     miniHint: "Allows Trio to read from and write to Apple Health.",
-                    verboseHint: NSLocalizedString(
-                        "This allows Trio to read from and write to Apple Health. You must also give permissions in iOS Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up.",
-                        comment: "Suspend Zeros IOB"
+                    verboseHint: Text(
+                        NSLocalizedString(
+                            "This allows Trio to read from and write to Apple Health. You must also give permissions in iOS Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up.",
+                            comment: "Suspend Zeros IOB"
+                        )
                     ),
                     headerText: "Apple Health Integration"
                 )
@@ -80,7 +82,7 @@ extension AppleHealthKit {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

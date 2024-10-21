@@ -10,7 +10,7 @@ extension GlucoseNotificationSettings {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -61,7 +61,7 @@ extension GlucoseNotificationSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Show Glucose App Badge"
                         }
                     ),
@@ -69,7 +69,7 @@ extension GlucoseNotificationSettings {
                     type: .boolean,
                     label: "Show Glucose App Badge",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    verboseHint: Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr."),
                     headerText: "Various Glucose Notifications"
                 )
 
@@ -80,7 +80,7 @@ extension GlucoseNotificationSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Always Notify Glucose"
                         }
                     ),
@@ -88,7 +88,7 @@ extension GlucoseNotificationSettings {
                     type: .boolean,
                     label: "Always Notify Glucose",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                    verboseHint: Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr.")
                 )
 
                 SettingInputSection(
@@ -98,7 +98,7 @@ extension GlucoseNotificationSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Play Alarm Sound"
                         }
                     ),
@@ -106,7 +106,7 @@ extension GlucoseNotificationSettings {
                     type: .boolean,
                     label: "Play Alarm Sound",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                    verboseHint: Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr.")
                 )
 
                 SettingInputSection(
@@ -116,7 +116,7 @@ extension GlucoseNotificationSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Add Glucose Source to Alarm"
                         }
                     ),
@@ -124,7 +124,7 @@ extension GlucoseNotificationSettings {
                     type: .boolean,
                     label: "Add Glucose Source to Alarm",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                    verboseHint: Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr.")
                 )
 
                 Section {
@@ -154,7 +154,9 @@ extension GlucoseNotificationSettings {
                             action: {
                                 hintLabel = "Low and High Glucose Alarm Limits"
                                 selectedVerboseHint =
-                                    "These two settings limit the range outside of which you will be notified via push notifications. If your CGM readings are below 'Low' or above 'High', you will receive a glucose alarm."
+                                    AnyView(Text(
+                                        "These two settings limit the range outside of which you will be notified via push notifications. If your CGM readings are below 'Low' or above 'High', you will receive a glucose alarm."
+                                    ))
                                 shouldDisplayHint.toggle()
                             },
                             label: {
@@ -172,7 +174,7 @@ extension GlucoseNotificationSettings {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }
