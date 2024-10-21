@@ -134,7 +134,9 @@ final class JavaScriptWorker {
             returnContext(context)
         }
         scripts.forEach { script in
+            logContext = URL(fileURLWithPath: script.name).lastPathComponent
             context.evaluateScript(script.body)
+            outputLogs()
         }
     }
 }
