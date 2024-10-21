@@ -135,6 +135,21 @@ extension MainChartView {
                 drawEndRuleMark()
                 drawCurrentTimeMarker()
 
+                OverrideView(
+                    state: state,
+                    overrides: state.overrides,
+                    overrideRunStored: state.overrideRunStored,
+                    units: state.units,
+                    viewContext: context
+                )
+
+                TempTargetView(
+                    tempTargetStored: state.tempTargetStored,
+                    tempTargetRunStored: state.tempTargetRunStored,
+                    units: state.units,
+                    viewContext: context
+                )
+
                 GlucoseChartView(
                     glucoseData: state.glucoseFromPersistence,
                     units: state.units,
@@ -157,21 +172,6 @@ extension MainChartView {
                     carbData: state.carbsFromPersistence,
                     fpuData: state.fpusFromPersistence,
                     minValue: state.minYAxisValue
-                )
-
-                OverrideView(
-                    state: state,
-                    overrides: state.overrides,
-                    overrideRunStored: state.overrideRunStored,
-                    units: state.units,
-                    viewContext: context
-                )
-
-                TempTargetView(
-                    tempTargetStored: state.tempTargetStored,
-                    tempTargetRunStored: state.tempTargetRunStored,
-                    units: state.units,
-                    viewContext: context
                 )
 
                 ForecastView(

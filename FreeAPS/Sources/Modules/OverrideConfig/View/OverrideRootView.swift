@@ -19,6 +19,8 @@ extension OverrideConfig {
         @State private var selectedTempTarget: TempTargetStored?
 
         // temp targets
+        @State private var isConfirmDeleteShown = false
+        @State private var isPromptPresented = false
         @State private var isRemoveAlertPresented = false
         @State private var removeAlert: Alert?
         @State private var isEditingTT = false
@@ -246,9 +248,8 @@ extension OverrideConfig {
                     overridesView(for: preset)
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .none) {
-                                Task {
-                                    await state.invokeOverridePresetDeletion(preset.objectID)
-                                }
+                                selectedOverride = preset
+                                isConfirmDeleteShown = true
                             } label: {
                                 Label("Delete", systemImage: "trash")
                                     .tint(.red)
@@ -264,6 +265,44 @@ extension OverrideConfig {
                         }
                 }
                 .onMove(perform: state.reorderOverride)
+                .confirmationDialog(
+                    "Delete the Override Preset \"\(selectedOverride?.name ?? "")\"?",
+                    isPresented: $isConfirmDeleteShown,
+                    titleVisibility: .visible
+                ) {
+                    if let itemToDelete = selectedOverride {
+                        Button(
+                            state.currentActiveOverride == selectedOverride ? "Stop and Delete" : "Delete",
+                            role: .destructive
+                        ) {
+                            if state.currentActiveOverride == selectedOverride {
+                                Task {
+                                    // Save cancelled Override in OverrideRunStored Entity
+                                    // Cancel ALL active Override
+                                    await state.disableAllActiveOverrides(createOverrideRunEntry: true)
+                                }
+                            }
+                            // Perform the delete action
+                            Task {
+                                await state.invokeOverridePresetDeletion(itemToDelete.objectID)
+                            }
+                            // Reset the selected item after deletion
+                            selectedOverride = nil
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {
+                        // Dismiss the dialog without action
+                        selectedOverride = nil
+                    }
+                } message: {
+                    if state.currentActiveOverride == selectedOverride {
+                        Text(
+                            state
+                                .currentActiveOverride == selectedOverride ?
+                                "This override preset is currently running. Deleting will stop it." : ""
+                        )
+                    }
+                }
                 .listRowBackground(Color.chart)
             } header: {
                 Text("Presets")
@@ -471,27 +510,61 @@ extension OverrideConfig {
             })
         }
 
+        private var overrideLabelDivider: some View {
+            Divider()
+                .frame(width: 1, height: 20)
+        }
+
         @ViewBuilder private func overridesView(for preset: OverrideStored) -> some View {
             let target = (state.units == .mgdL ? preset.target : preset.target?.decimalValue.asMmolL as NSDecimalNumber?) ?? 0
-
             let duration = (preset.duration ?? 0) as Decimal
-            let name = ((preset.name ?? "") == "") || (preset.name?.isEmpty ?? true) ? "" : preset.name!
+            let name = preset.name ?? ""
             let percent = preset.percentage / 100
             let perpetual = preset.indefinite
-            let durationString = perpetual ? "" : "\(formatter.string(from: duration as NSNumber)!)"
-            let scheduledSMBstring = (preset.smbIsOff && preset.smbIsAlwaysOff) ? "Scheduled SMBs" : ""
-            let smbString = (preset.smbIsOff && scheduledSMBstring == "") ? "SMBs are off" : ""
-            let targetString = target != 0 ? target.description : ""
+            let durationString = perpetual ? "" : "\(formatHrMin(Int(duration)))"
+            let scheduledSMBstring = preset.smbIsScheduledOff && preset.start != preset.end
+                ? " \(formatTimeRange(start: preset.start?.stringValue, end: preset.end?.stringValue))"
+                : ""
+            let smbString = (preset.smbIsOff || preset.smbIsScheduledOff) ? "SMBs Off\(scheduledSMBstring)" : ""
+            let targetString = target != 0 ? "\(target.description) \(state.units.rawValue)" : ""
             let maxMinutesSMB = (preset.smbMinutes as Decimal?) != nil ? (preset.smbMinutes ?? 0) as Decimal : 0
             let maxMinutesUAM = (preset.uamMinutes as Decimal?) != nil ? (preset.uamMinutes ?? 0) as Decimal : 0
-            let isfString = preset.isf ? "ISF" : ""
-            let crString = preset.cr ? "CR" : ""
-            let dash = crString != "" ? "/" : ""
-            let isfAndCRstring = isfString + dash + crString
+            let maxSmbMinsString = (
+                maxMinutesSMB != 0 && preset.advancedSettings && !preset.smbIsOff && maxMinutesSMB != state
+                    .defaultSmbMinutes
+            ) ?
+                "\(maxMinutesSMB.formatted()) min SMB" : ""
+            let maxUamMinsString = (
+                maxMinutesUAM != 0 && preset.advancedSettings && !preset.smbIsOff && maxMinutesUAM != state
+                    .defaultUamMinutes
+            ) ?
+                "\(maxMinutesUAM.formatted()) min UAM" : ""
+            let isfAndCRstring: String = {
+                switch (preset.isfAndCr, preset.isf, preset.cr) {
+                case (_, true, true),
+                     (true, _, _):
+                    return " ISF/CR"
+                case (false, true, false):
+                    return " ISF"
+                case (false, false, true):
+                    return " CR"
+                default:
+                    return ""
+                }
+            }()
             let isSelected = preset.id == selectedPresetID
 
-            if name != "" {
-                ZStack(alignment: .trailing, content: {
+            let labels: [String] = [
+                durationString,
+                percent != 1 ? "\(Int(percent * 100))%\(isfAndCRstring)" : "",
+                targetString,
+                smbString,
+                maxSmbMinsString,
+                maxUamMinsString
+            ].filter { !$0.isEmpty } // filter out empty labels
+
+            if !name.isEmpty {
+                ZStack(alignment: .trailing) {
                     HStack {
                         VStack {
                             HStack {
@@ -499,18 +572,11 @@ extension OverrideConfig {
                                 Spacer()
                             }
                             HStack(spacing: 5) {
-                                Text(percent.formatted(.percent.grouping(.never).rounded().precision(.fractionLength(0))))
-                                if targetString != "" {
-                                    Text(targetString)
-                                    Text(targetString != "" ? state.units.rawValue : "")
-                                }
-                                if durationString != "" { Text(durationString + (perpetual ? "" : "min")) }
-                                if smbString != "" { Text(smbString).foregroundColor(.secondary).font(.caption) }
-                                if scheduledSMBstring != "" { Text(scheduledSMBstring) }
-                                if preset.advancedSettings {
-                                    Text(maxMinutesSMB == 0 ? "" : maxMinutesSMB.formatted() + " SMB")
-                                    Text(maxMinutesUAM == 0 ? "" : maxMinutesUAM.formatted() + " UAM")
-                                    Text(isfAndCRstring)
+                                ForEach(labels, id: \.self) { label in
+                                    Text(label)
+                                    if label != labels.last { // Add divider between labels
+                                        overrideLabelDivider
+                                    }
                                 }
                                 Spacer()
                             }
@@ -527,7 +593,7 @@ extension OverrideConfig {
                                 showCheckmark.toggle()
                                 selectedPresetID = preset.id
 
-                                // deactivate showCheckmark after 3 seconds
+                                // Deactivate checkmark after 3 seconds
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                                     showCheckmark = false
                                 }
@@ -545,7 +611,7 @@ extension OverrideConfig {
                             .imageScale(.medium)
                             .foregroundStyle(.secondary)
                     }
-                })
+                }
             }
         }
     }

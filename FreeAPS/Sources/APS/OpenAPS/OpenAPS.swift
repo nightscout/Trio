@@ -411,7 +411,8 @@ final class OpenAPS {
             // Fetch data for the past two hours
             let twoHoursArray = uniqueEvents.filter { ($0["timestamp"] as? Date ?? Date()) >= twoHoursAgo }
             var nrOfIndices = twoHoursArray.count
-            let totalAmount = twoHoursArray.compactMap { ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue }.reduce(0, +)
+            let totalAmount = twoHoursArray.compactMap { ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue }
+                .reduce(0, +)
 
             var useOverride = overrideArray.first?.enabled ?? false
             var overridePercentage = Decimal(overrideArray.first?.percentage ?? 100)
@@ -502,6 +503,9 @@ final class OpenAPS {
                 isfAndCr: overrideArray.first?.isfAndCr ?? false,
                 isf: overrideArray.first?.isf ?? false,
                 cr: overrideArray.first?.cr ?? false,
+                smbIsScheduledOff: overrideArray.first?.smbIsScheduledOff ?? false,
+                start: (overrideArray.first?.start ?? 0) as Decimal,
+                end: (overrideArray.first?.end ?? 0) as Decimal,
                 smbMinutes: overrideArray.first?.smbMinutes?.decimalValue ?? smbMinutes,
                 uamMinutes: overrideArray.first?.uamMinutes?.decimalValue ?? uamMinutes
             )

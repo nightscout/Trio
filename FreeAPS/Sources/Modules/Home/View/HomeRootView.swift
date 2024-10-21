@@ -214,11 +214,10 @@ extension Home {
 
             if !indefinite {
                 if newDuration >= 1 {
-                    durationString =
-                        "\(newDuration.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) min"
+                    durationString = formatHrMin(Int(newDuration))
                 } else if newDuration > 0 {
-                    durationString =
-                        "\((newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) s"
+                    durationString = "\(Int(newDuration * 60)) s"
+
                 } else {
                     /// Do not show the Override anymore
                     Task {
@@ -228,9 +227,15 @@ extension Home {
                 }
             }
 
-            let smbToggleString = latestOverride.smbIsOff ? " \u{20e0}" : ""
+            let smbScheduleString = latestOverride
+                .smbIsScheduledOff && ((latestOverride.start?.stringValue ?? "") != (latestOverride.end?.stringValue ?? ""))
+                ? " \(formatTimeRange(start: latestOverride.start?.stringValue, end: latestOverride.end?.stringValue))"
+                : ""
 
-            let components = [percentString, targetString, durationString, smbToggleString].filter { !$0.isEmpty }
+            let smbToggleString = latestOverride.smbIsOff || latestOverride
+                .smbIsScheduledOff ? "SMBs Off\(smbScheduleString)" : ""
+
+            let components = [durationString, percentString, targetString, smbToggleString].filter { !$0.isEmpty }
             return components.isEmpty ? nil : components.joined(separator: ", ")
         }
 
@@ -681,7 +686,6 @@ extension Home {
                     } message: {
                         Text("Select Adjustment")
                     }
-
             }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
         }
 
@@ -1112,5 +1116,36 @@ extension UIScreen {
 
     static var screenWidth: CGFloat {
         UIScreen.main.bounds.width
+    }
+}
+
+// Helper function to convert a start and end hour to either 24-hour or AM/PM format
+func formatTimeRange(start: String?, end: String?) -> String {
+    guard let start = start, let end = end else {
+        return ""
+    }
+
+    // Check if the format is 24-hour or AM/PM
+    if is24HourFormat() {
+        // Return the original 24-hour format
+        return "\(start)-\(end)"
+    } else {
+        // Convert to AM/PM format using DateFormatter
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH"
+
+        if let startHour = Int(start), let endHour = Int(end) {
+            let startDate = Calendar.current.date(bySettingHour: startHour, minute: 0, second: 0, of: Date()) ?? Date()
+            let endDate = Calendar.current.date(bySettingHour: endHour, minute: 0, second: 0, of: Date()) ?? Date()
+
+            // Customize the format to "2p" or "2a"
+            formatter.dateFormat = "ha"
+            let startFormatted = formatter.string(from: startDate).lowercased().replacingOccurrences(of: "m", with: "")
+            let endFormatted = formatter.string(from: endDate).lowercased().replacingOccurrences(of: "m", with: "")
+
+            return "\(startFormatted)-\(endFormatted)"
+        } else {
+            return ""
+        }
     }
 }

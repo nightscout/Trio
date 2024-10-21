@@ -10,7 +10,7 @@ extension OverrideConfig {
         @ObservationIgnored @Injected() var apsManager: APSManager!
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
 
-        var overrideSliderPercentage: Double = 100
+        var overridePercentage: Double = 100
         var isEnabled = false
         var indefinite = true
         var overrideDuration: Decimal = 0
@@ -26,9 +26,9 @@ extension OverrideConfig {
         var isfAndCr: Bool = true
         var isf: Bool = true
         var cr: Bool = true
-        var smbIsAlwaysOff: Bool = false
+        var smbIsScheduledOff: Bool = false
         var start: Decimal = 0
-        var end: Decimal = 23
+        var end: Decimal = 0
         var smbMinutes: Decimal = 0
         var uamMinutes: Decimal = 0
         var defaultSmbMinutes: Decimal = 0
@@ -76,6 +76,9 @@ extension OverrideConfig {
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+
+        var isHelpSheetPresented: Bool = false
+        var helpSheetDetent = PresentationDetent.large
 
         var alertMessage: String {
             let target: String = units == .mgdL ? "70-270 mg/dl" : "4-15 mmol/l"
@@ -360,7 +363,7 @@ extension OverrideConfig.StateModel {
             date: Date(),
             duration: overrideDuration,
             indefinite: indefinite,
-            percentage: overrideSliderPercentage,
+            percentage: overridePercentage,
             smbIsOff: smbIsOff,
             isPreset: isPreset,
             id: id,
@@ -370,7 +373,7 @@ extension OverrideConfig.StateModel {
             isfAndCr: isfAndCr,
             isf: isf,
             cr: cr,
-            smbIsAlwaysOff: smbIsAlwaysOff,
+            smbIsScheduledOff: smbIsScheduledOff,
             start: start,
             end: end,
             smbMinutes: smbMinutes,
@@ -399,7 +402,7 @@ extension OverrideConfig.StateModel {
             date: Date(),
             duration: overrideDuration,
             indefinite: indefinite,
-            percentage: overrideSliderPercentage,
+            percentage: overridePercentage,
             smbIsOff: smbIsOff,
             isPreset: true,
             id: id,
@@ -409,7 +412,7 @@ extension OverrideConfig.StateModel {
             isfAndCr: isfAndCr,
             isf: isf,
             cr: cr,
-            smbIsAlwaysOff: smbIsAlwaysOff,
+            smbIsScheduledOff: smbIsScheduledOff,
             start: start,
             end: end,
             smbMinutes: smbMinutes,
@@ -547,8 +550,7 @@ extension OverrideConfig.StateModel {
 
         overrideDuration = 0
         indefinite = true
-        overrideSliderPercentage = 100
-
+        overridePercentage = 100
         advancedSettings = false
         smbIsOff = false
         overrideName = ""
@@ -556,12 +558,56 @@ extension OverrideConfig.StateModel {
         isf = true
         cr = true
         isfAndCr = true
-        smbIsAlwaysOff = false
+        smbIsScheduledOff = false
         start = 0
-        end = 23
+        end = 0
         smbMinutes = defaultSmbMinutes
         uamMinutes = defaultUamMinutes
         target = currentGlucoseTarget
+    }
+
+    static func roundTargetToStep(_ target: Decimal, _ step: Decimal) -> Decimal {
+        // Convert target and step to NSDecimalNumber
+        guard let targetValue = NSDecimalNumber(decimal: target).doubleValue as Double?,
+              let stepValue = NSDecimalNumber(decimal: step).doubleValue as Double?
+        else {
+            return target
+        }
+
+        // Perform the remainder check using truncatingRemainder
+        let remainder = Decimal(targetValue.truncatingRemainder(dividingBy: stepValue))
+
+        if remainder != 0 {
+            // Calculate how much to adjust (up or down) based on the remainder
+            let adjustment = step - remainder
+            return target + adjustment
+        }
+
+        // Return the original target if no adjustment is needed
+        return target
+    }
+
+    static func roundOverridePercentageToStep(_ percentage: Double, _ step: Int) -> Double {
+        let stepDouble = Double(step)
+        // Check if overridePercentage is not divisible by the selected step
+        if percentage.truncatingRemainder(dividingBy: stepDouble) != 0 {
+            let roundedValue: Double
+
+            if percentage > 100 {
+                // Round down to the nearest valid step away from 100
+                let stepCount = (percentage - 100) / stepDouble
+                roundedValue = 100 + floor(stepCount) * stepDouble
+            } else {
+                // Round up to the nearest valid step away from 100
+                let stepCount = (100 - percentage) / stepDouble
+                roundedValue = 100 - floor(stepCount) * stepDouble
+            }
+
+            // Ensure the value stays between 10 and 200
+            return max(10, min(roundedValue, 200))
+        }
+
+        return percentage
     }
 }
 
