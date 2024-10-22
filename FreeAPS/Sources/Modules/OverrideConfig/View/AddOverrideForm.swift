@@ -122,7 +122,7 @@ struct AddOverrideForm: View {
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                     }
                     .onTapGesture {
-                        displayPickerDuration.toggle()
+                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
                     }
 
                     if displayPickerDuration {
@@ -164,7 +164,7 @@ struct AddOverrideForm: View {
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
                 }
                 .onTapGesture {
-                    displayPickerPercentage.toggle()
+                    displayPickerPercentage = toggleScrollWheel(displayPickerPercentage)
                 }
 
                 if displayPickerPercentage {
@@ -251,7 +251,7 @@ struct AddOverrideForm: View {
                         .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
                     }
                     .onTapGesture {
-                        displayPickerTarget.toggle()
+                        displayPickerTarget = toggleScrollWheel(displayPickerTarget)
                     }
 
                     if displayPickerTarget {
@@ -348,7 +348,7 @@ struct AddOverrideForm: View {
                         Spacer()
                     }
                     .onTapGesture {
-                        displayPickerDisableSmbSchedule.toggle()
+                        displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
                     }
 
                     if displayPickerDisableSmbSchedule {
@@ -407,7 +407,7 @@ struct AddOverrideForm: View {
                                 .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
                         }
                         .onTapGesture {
-                            displayPickerSmbMinutes.toggle()
+                            displayPickerSmbMinutes = toggleScrollWheel(displayPickerSmbMinutes)
                         }
 
                         if displayPickerSmbMinutes {
@@ -491,6 +491,15 @@ struct AddOverrideForm: View {
                 isInvalid ? Color(.systemGray4) : Color.secondary
             )
         }
+    }
+
+    private func toggleScrollWheel(_ toggle: Bool) -> Bool {
+        displayPickerDuration = false
+        displayPickerPercentage = false
+        displayPickerTarget = false
+        displayPickerDisableSmbSchedule = false
+        displayPickerSmbMinutes = false
+        return !toggle
     }
 
     private func totalDurationInMinutes() -> Int {

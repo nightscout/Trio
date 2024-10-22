@@ -188,7 +188,7 @@ struct EditOverrideForm: View {
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                     }
                     .onTapGesture {
-                        displayPickerDuration.toggle()
+                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
                     }
 
                     if displayPickerDuration {
@@ -249,7 +249,7 @@ struct EditOverrideForm: View {
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
                 }
                 .onTapGesture {
-                    displayPickerPercentage.toggle()
+                    displayPickerPercentage = toggleScrollWheel(displayPickerPercentage)
                 }
 
                 if displayPickerPercentage {
@@ -336,7 +336,9 @@ struct EditOverrideForm: View {
                         options: generateTargetPickerValues(),
                         units: state.units,
                         hasChanges: $hasChanges,
-                        targetStep: $targetStep
+                        targetStep: $targetStep,
+                        displayPickerTarget: $displayPickerTarget,
+                        toggleScrollWheel: toggleScrollWheel
                     )
                 }
             }
@@ -391,7 +393,7 @@ struct EditOverrideForm: View {
                         .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
                     }
                     .onTapGesture {
-                        displayPickerDisableSmbSchedule.toggle()
+                        displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
                     }
 
                     if displayPickerDisableSmbSchedule {
@@ -469,7 +471,7 @@ struct EditOverrideForm: View {
                                 .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
                         }
                         .onTapGesture {
-                            displayPickerSmbMinutes.toggle()
+                            displayPickerSmbMinutes = toggleScrollWheel(displayPickerSmbMinutes)
                         }
 
                         if displayPickerSmbMinutes {
@@ -630,6 +632,15 @@ struct EditOverrideForm: View {
         uamMinutes = override.uamMinutes?.decimalValue ?? state.defaultUamMinutes
     }
 
+    private func toggleScrollWheel(_ toggle: Bool) -> Bool {
+        displayPickerDuration = false
+        displayPickerPercentage = false
+        displayPickerTarget = false
+        displayPickerDisableSmbSchedule = false
+        displayPickerSmbMinutes = false
+        return !toggle
+    }
+
     func generateTargetPickerValues() -> [Decimal] {
         var values: [Decimal] = []
         var currentValue: Double = 72
@@ -670,7 +681,8 @@ struct TargetPicker: View {
     let units: GlucoseUnits
     @Binding var hasChanges: Bool
     @Binding var targetStep: Decimal
-    @State private var isDisplayed: Bool = false
+    @Binding var displayPickerTarget: Bool
+    var toggleScrollWheel: (_ picker: Bool) -> Bool
 
     var body: some View {
         HStack {
@@ -679,12 +691,12 @@ struct TargetPicker: View {
             Text(
                 (units == .mgdL ? selection.description : selection.formattedAsMmolL) + " " + units.rawValue
             )
-            .foregroundColor(!isDisplayed ? .primary : .accentColor)
+            .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
         }
         .onTapGesture {
-            isDisplayed.toggle()
+            displayPickerTarget = toggleScrollWheel(displayPickerTarget)
         }
-        if isDisplayed {
+        if displayPickerTarget {
             HStack {
                 // Radio buttons and text on the left side
                 VStack(alignment: .leading) {
