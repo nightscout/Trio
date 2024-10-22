@@ -13,9 +13,11 @@ class TrioRemoteControl: Injectable {
     private let timeWindow: TimeInterval = 600 // Defines how old messages that are accepted, 10 minutes
 
     private let pumpHistoryFetchContext: NSManagedObjectContext
+    private let viewContext: NSManagedObjectContext
 
     private init() {
         pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
+        viewContext = CoreDataStack.shared.persistentContainer.viewContext
         injectServices(FreeAPSApp.resolver)
     }
 
@@ -297,8 +299,6 @@ class TrioRemoteControl: Injectable {
             return
         }
 
-        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-
         let presetIDs = await overrideStorage.fetchForOverridePresets()
 
         let presets = presetIDs.compactMap { id in
@@ -315,8 +315,6 @@ class TrioRemoteControl: Injectable {
 
     @MainActor private func enactOverridePreset(preset: OverrideStored) async {
         await disableAllActiveOverrides()
-
-        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         preset.enabled = true
         preset.date = Date()
@@ -335,19 +333,18 @@ class TrioRemoteControl: Injectable {
     }
 
     @MainActor func disableAllActiveOverrides() async {
-        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
         let ids = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 0) // 0 = no fetch limit
 
         let didPostNotification = await viewContext.perform { () -> Bool in
             do {
                 let results = try ids.compactMap { id in
-                    try viewContext.existingObject(with: id) as? OverrideStored
+                    try self.viewContext.existingObject(with: id) as? OverrideStored
                 }
 
                 guard !results.isEmpty else { return false }
 
                 for canceledOverride in results where canceledOverride.enabled {
-                    let newOverrideRunStored = OverrideRunStored(context: viewContext)
+                    let newOverrideRunStored = OverrideRunStored(context: self.viewContext)
                     newOverrideRunStored.id = UUID()
                     newOverrideRunStored.name = canceledOverride.name
                     newOverrideRunStored.startDate = canceledOverride.date ?? .distantPast
@@ -360,8 +357,8 @@ class TrioRemoteControl: Injectable {
                     canceledOverride.enabled = false
                 }
 
-                if viewContext.hasChanges {
-                    try viewContext.save()
+                if self.viewContext.hasChanges {
+                    try self.viewContext.save()
                     Foundation.NotificationCenter.default.post(name: .willUpdateOverrideConfiguration, object: nil)
                     return true
                 } else {
