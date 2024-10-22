@@ -9,7 +9,7 @@ extension RemoteControlConfig {
         override func subscribe() {
             units = settingsManager.settings.units
             isTrioRemoteControlEnabled = UserDefaults.standard.bool(forKey: "isTrioRemoteControlEnabled")
-            sharedSecret = UserDefaults.standard.string(forKey: "TRCsharedSecret") ?? generateInitialSharedSecret()
+            sharedSecret = UserDefaults.standard.string(forKey: "trioRemoteControlSharedSecret") ?? generateInitialSharedSecret()
 
             $isTrioRemoteControlEnabled
                 .receive(on: DispatchQueue.main)
@@ -21,7 +21,7 @@ extension RemoteControlConfig {
             $sharedSecret
                 .receive(on: DispatchQueue.main)
                 .sink { value in
-                    UserDefaults.standard.set(value, forKey: "TRCsharedSecret")
+                    UserDefaults.standard.set(value, forKey: "trioRemoteControlSharedSecret")
                 }
                 .store(in: &lifetime)
         }
@@ -29,12 +29,12 @@ extension RemoteControlConfig {
         func generateNewSharedSecret() {
             let newSecret = UUID().uuidString.replacingOccurrences(of: "-", with: "")
             sharedSecret = newSecret
-            UserDefaults.standard.set(newSecret, forKey: "TRCsharedSecret")
+            UserDefaults.standard.set(newSecret, forKey: "trioRemoteControlSharedSecret")
         }
 
         private func generateInitialSharedSecret() -> String {
             let secret = UUID().uuidString.replacingOccurrences(of: "-", with: "")
-            UserDefaults.standard.set(secret, forKey: "TRCsharedSecret")
+            UserDefaults.standard.set(secret, forKey: "trioRemoteControlSharedSecret")
             return secret
         }
     }

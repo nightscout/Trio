@@ -60,7 +60,7 @@ class TrioRemoteControl: Injectable {
 
             debug(.remoteControl, "Command received with acceptable time difference: \(Int(timeDifference)) seconds.")
 
-            let storedSecret = UserDefaults.standard.string(forKey: "TRCsharedSecret") ?? ""
+            let storedSecret = UserDefaults.standard.string(forKey: "trioRemoteControlSharedSecret") ?? ""
             guard !storedSecret.isEmpty else {
                 await logError(
                     "Command rejected: shared secret is missing in settings. Cannot authenticate the command.",
