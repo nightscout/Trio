@@ -240,8 +240,15 @@ struct AddTempTargetForm: View {
                                     ForEach(enabledAdjustSens.allCases, id: \.self) { option in
                                         Text(option.rawValue).tag(option)
                                     }
+                                    .pickerStyle(MenuPickerStyle())
+                                    .onChange(of: selectedAdjustSens) { newValue in
+                                        if newValue == .standard {
+                                            state.halfBasalTarget = state.settingHalfBasalTarget
+                                            state.percentage = Double(state.computeAdjustedPercentage() * 100)
+                                        }
+                                    }
                                 }
-                                .pickerStyle(MenuPickerStyle())
+
                                 if selectedAdjustSens == .slider {
                                     Text("\(Int(state.percentage)) % Insulin")
                                         .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
