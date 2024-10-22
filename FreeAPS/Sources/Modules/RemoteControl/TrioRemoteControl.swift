@@ -254,30 +254,30 @@ class TrioRemoteControl: Injectable {
     }
 
     private func fetchTotalRecentBolusAmount(since date: Date) async -> Decimal {
-        let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
-        fetchRequest.predicate = NSPredicate(
+        let predicate = NSPredicate(
             format: "type == %@ AND timestamp > %@",
             PumpEventStored.EventType.bolus.rawValue,
             date as NSDate
         )
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
 
-        do {
-            let totalAmount = try await pumpHistoryFetchContext.perform {
-                let results = try self.pumpHistoryFetchContext.fetch(fetchRequest)
-                var total = Decimal(0)
-                for pumpEvent in results {
-                    if let bolus = pumpEvent.bolus, let amount = bolus.amount?.decimalValue {
-                        total += amount
-                    }
-                }
-                return total
-            }
-            return totalAmount
-        } catch {
-            await logError("Failed to fetch recent bolus pump events: \(error.localizedDescription)")
-            return Decimal(0)
+        let results: Any = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: pumpHistoryFetchContext,
+            predicate: predicate,
+            key: "timestamp",
+            ascending: true,
+            fetchLimit: nil,
+            propertiesToFetch: ["bolus.amount"]
+        )
+
+        guard let bolusDictionaries = results as? [[String: Any]] else {
+            await logError("Failed to cast fetched bolus events. Fetched entities type: \(type(of: results))")
+            return 0
         }
+
+        let totalAmount = bolusDictionaries.compactMap { ($0["bolus.amount"] as? NSNumber)?.decimalValue }.reduce(0, +)
+
+        return totalAmount
     }
 
     private func handleTempTargetCommand(_ pushMessage: PushMessage) async {
