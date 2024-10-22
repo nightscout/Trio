@@ -642,7 +642,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     bundleIdentifier: bundleIdentifier,
                     deviceToken: deviceToken,
                     isAPNSProduction: isAPNSProduction,
-                    overrides: presetOverrides,
+                    overridePresets: presetOverrides,
                     teamID: teamID
                 )
 
