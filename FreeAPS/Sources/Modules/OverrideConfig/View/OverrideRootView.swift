@@ -321,7 +321,8 @@ extension OverrideConfig {
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .none) {
                                 Task {
-                                    await state.invokeTempTargetPresetDeletion(preset.objectID)
+                                    selectedTempTarget = preset
+                                    isConfirmDeleteShown = true
                                 }
                             } label: {
                                 Label("Delete", systemImage: "trash")
@@ -338,6 +339,43 @@ extension OverrideConfig {
                         }
                 }
                 .onMove(perform: state.reorderTempTargets)
+                .confirmationDialog(
+                    "Delete the Temp Target Preset \"\(selectedTempTarget?.name ?? "")\"?",
+                    isPresented: $isConfirmDeleteShown,
+                    titleVisibility: .visible
+                ) {
+                    if let itemToDelete = selectedTempTarget {
+                        Button(
+                            state.currentActiveTempTarget == selectedTempTarget ? "Stop and Delete" : "Delete",
+                            role: .destructive
+                        ) {
+                            if state.currentActiveTempTarget == selectedTempTarget {
+                                Task {
+                                    // Save cancelled Tem Target in Temp Target run Entity
+                                    await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
+                                }
+                            }
+                            // Perform the stop action
+                            Task {
+                                await state.invokeTempTargetPresetDeletion(itemToDelete.objectID)
+                            }
+                            // Reset the selected item after deletion
+                            selectedTempTarget = nil
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {
+                        // Dismiss the dialog without action
+                        selectedTempTarget = nil
+                    }
+                } message: {
+                    if state.currentActiveTempTarget == selectedTempTarget {
+                        Text(
+                            state
+                                .currentActiveTempTarget == selectedTempTarget ?
+                                "This Temp Target preset is currently running. Deleting will stop it." : ""
+                        )
+                    }
+                }
                 .listRowBackground(Color.chart)
             } header: {
                 Text("Presets")
@@ -443,7 +481,7 @@ extension OverrideConfig {
         }
 
         private func tempTargetView(for preset: TempTargetStored) -> some View {
-            var target = preset.target
+            let target = preset.target
             let presetTarget = Decimal(target as! Double.RawValue)
             let isSelected = preset.id?.uuidString == selectedTempTargetPresetID
             let presetHalfBasalTarget = Decimal(
