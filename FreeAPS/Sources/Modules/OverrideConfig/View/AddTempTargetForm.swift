@@ -207,7 +207,7 @@ struct AddTempTargetForm: View {
             }.listRowBackground(Color.chart)
 
             if state.tempTargetTarget != state.normalTarget {
-                let computedHalfBasalTarget = state.computeHalfBasalTarget()
+                let computedHalfBasalTarget = Decimal(state.computeHalfBasalTarget())
                 if state.isAdjustSensEnabled() {
                     Section(
                         header: HStack {
@@ -278,13 +278,7 @@ struct AddTempTargetForm: View {
                                             "Half Basal Exercise Target:"
                                         )
                                         Spacer()
-                                        Text(
-                                            (
-                                                state.units == .mgdL ? computedHalfBasalTarget
-                                                    .description : computedHalfBasalTarget
-                                                    .formattedAsMmolL
-                                            ) + " " + state.units.rawValue
-                                        )
+                                        Text(formattedGlucose(glucose: computedHalfBasalTarget))
                                     }.foregroundStyle(.primary)
                                 }
                             }.padding(.vertical, 10)
