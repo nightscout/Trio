@@ -7,6 +7,7 @@ struct AddTempTargetForm: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
     @State private var displayPickerDuration: Bool = false
+    @State private var selectedAdjustSens: enabledAdjustSens = .standard
     @State private var durationHours = 0
     @State private var durationMinutes = 0
     @State private var targetStep: Decimal = 5
@@ -22,6 +23,7 @@ struct AddTempTargetForm: View {
     @State var hintDetent = PresentationDetent.large
     @State var selectedVerboseHint: String?
     @State var hintLabel: String?
+    var isCustomizedAdjustSens: Bool = false
 
     var color: LinearGradient {
         colorScheme == .dark ? LinearGradient(
@@ -234,37 +236,46 @@ struct AddTempTargetForm: View {
                         .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
                         content: {
                             VStack {
-                                Text("\(Int(state.percentage)) % Insulin")
-                                    .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                Slider(
-                                    value: $state.percentage,
-                                    in: state.computeSliderLow() ... state.computeSliderHigh(),
-                                    step: 5
-                                ) {} minimumValueLabel: {
-                                    Text("\(state.computeSliderLow(), specifier: "%.0f")%")
-                                } maximumValueLabel: {
-                                    Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
-                                } onEditingChanged: { editing in
-                                    isUsingSlider = editing
-                                    state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
+                                Picker("Sensitivity Adjustment", selection: $selectedAdjustSens) {
+                                    ForEach(enabledAdjustSens.allCases, id: \.self) { option in
+                                        Text(option.rawValue).tag(option)
+                                    }
                                 }
+                                .pickerStyle(MenuPickerStyle())
+                                if selectedAdjustSens == .slider {
+                                    Text("\(Int(state.percentage)) % Insulin")
+                                        .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                                    Slider(
+                                        value: $state.percentage,
+                                        in: state.computeSliderLow() ... state.computeSliderHigh(),
+                                        step: 5
+                                    ) {} minimumValueLabel: {
+                                        Text("\(state.computeSliderLow(), specifier: "%.0f")%")
+                                    } maximumValueLabel: {
+                                        Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
+                                    } onEditingChanged: { editing in
+                                        isUsingSlider = editing
+                                        state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
+                                    }
 
-                                Divider()
+                                    Divider()
 
-                                HStack {
-                                    Text(
-                                        "Half Basal Exercise Target:"
-                                    )
-                                    Spacer()
-                                    Text(
-                                        (
-                                            state.units == .mgdL ? computedHalfBasalTarget.description : computedHalfBasalTarget
-                                                .formattedAsMmolL
-                                        ) + " " + state.units.rawValue
-                                    )
-                                }.foregroundStyle(.primary)
+                                    HStack {
+                                        Text(
+                                            "Half Basal Exercise Target:"
+                                        )
+                                        Spacer()
+                                        Text(
+                                            (
+                                                state.units == .mgdL ? computedHalfBasalTarget
+                                                    .description : computedHalfBasalTarget
+                                                    .formattedAsMmolL
+                                            ) + " " + state.units.rawValue
+                                        )
+                                    }.foregroundStyle(.primary)
+                                }
                             }.padding(.vertical, 10)
                         }
                     )
@@ -344,6 +355,11 @@ struct AddTempTargetForm: View {
                 isInvalid ? Color(.systemGray4) : Color.secondary
             )
         }
+    }
+
+    enum enabledAdjustSens: String, CaseIterable {
+        case standard = "default"
+        case slider = "customized"
     }
 
     private func totalDurationInMinutes() -> Int {
