@@ -40,7 +40,7 @@ extension RemoteControlConfig {
                 Section(header: Text("Trio Remote Control")) {
                     SettingInputSection(
                         decimalValue: $decimalPlaceholder,
-                        booleanValue: $state.isTRCEnabled,
+                        booleanValue: $state.isTrioRemoteControlEnabled,
                         shouldDisplayHint: $shouldDisplayHint,
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },

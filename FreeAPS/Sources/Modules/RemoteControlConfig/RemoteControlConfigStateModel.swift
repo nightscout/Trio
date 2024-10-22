@@ -3,18 +3,18 @@ import SwiftUI
 extension RemoteControlConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Published var units: GlucoseUnits = .mgdL
-        @Published var isTRCEnabled: Bool = false
+        @Published var isTrioRemoteControlEnabled: Bool = false
         @Published var sharedSecret: String = ""
 
         override func subscribe() {
             units = settingsManager.settings.units
-            isTRCEnabled = UserDefaults.standard.bool(forKey: "TRCenabled")
+            isTrioRemoteControlEnabled = UserDefaults.standard.bool(forKey: "isTrioRemoteControlEnabled")
             sharedSecret = UserDefaults.standard.string(forKey: "TRCsharedSecret") ?? generateInitialSharedSecret()
 
-            $isTRCEnabled
+            $isTrioRemoteControlEnabled
                 .receive(on: DispatchQueue.main)
                 .sink { value in
-                    UserDefaults.standard.set(value, forKey: "TRCenabled")
+                    UserDefaults.standard.set(value, forKey: "isTrioRemoteControlEnabled")
                 }
                 .store(in: &lifetime)
 

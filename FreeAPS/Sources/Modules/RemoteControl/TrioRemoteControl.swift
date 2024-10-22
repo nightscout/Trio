@@ -31,8 +31,8 @@ class TrioRemoteControl: Injectable {
     }
 
     func handleRemoteNotification(userInfo: [AnyHashable: Any]) async {
-        let enabled = UserDefaults.standard.bool(forKey: "TRCenabled")
-        guard enabled else {
+        let isTrioRemoteControlEnabled = UserDefaults.standard.bool(forKey: "isTrioRemoteControlEnabled")
+        guard isTrioRemoteControlEnabled else {
             await logError("Remote command received, but remote control is disabled in settings. Ignoring the command.")
             return
         }
