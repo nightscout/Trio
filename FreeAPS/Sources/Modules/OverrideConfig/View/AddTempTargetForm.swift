@@ -219,7 +219,7 @@ struct AddTempTargetForm: View {
                                         Text("Insulin")
                                         Image(systemName: "arrow.down.circle")
                                     }
-                                    Text("Using only \(formattedPercentage(state.percentage))% of regular Insulin for dosing.")
+                                    Text("Reducing all delivered insulin to \(formattedPercentage(state.percentage))%.")
                                 }
                             }
                             if state.tempTargetTarget < state.normalTarget {
@@ -231,7 +231,7 @@ struct AddTempTargetForm: View {
                                         Image(systemName: "arrow.up.circle")
                                     }
                                     Text(
-                                        "Using +\(formattedPercentage(state.percentage - 100))% of regular Insulin for dosing."
+                                        "Increasing all delivered insulin by \(formattedPercentage(state.percentage - 100))%."
                                     )
                                 }
                             }
