@@ -410,3 +410,33 @@ class TrioRemoteControl: Injectable {
         return false
     }
 }
+
+// MARK: - CommandType Enum
+
+extension TrioRemoteControl {
+    enum CommandType: String, Codable {
+        case bolus
+        case tempTarget = "temp_target"
+        case cancelTempTarget = "cancel_temp_target"
+        case meal
+        case startOverride = "start_override"
+        case cancelOverride = "cancel_override"
+
+        var description: String {
+            switch self {
+            case .bolus:
+                return "Bolus"
+            case .tempTarget:
+                return "Temporary Target"
+            case .cancelTempTarget:
+                return "Cancel Temporary Target"
+            case .meal:
+                return "Meal"
+            case .startOverride:
+                return "Start Override"
+            case .cancelOverride:
+                return "Cancel Override"
+            }
+        }
+    }
+}

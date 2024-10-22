@@ -1,34 +1,8 @@
 import Foundation
 
-enum TRCCommandType: String, Codable {
-    case bolus
-    case tempTarget = "temp_target"
-    case cancelTempTarget = "cancel_temp_target"
-    case meal
-    case startOverride = "start_override"
-    case cancelOverride = "cancel_override"
-
-    var description: String {
-        switch self {
-        case .bolus:
-            return "Bolus"
-        case .tempTarget:
-            return "Temporary Target"
-        case .cancelTempTarget:
-            return "Cancel Temporary Target"
-        case .meal:
-            return "Meal"
-        case .startOverride:
-            return "Start Override"
-        case .cancelOverride:
-            return "Cancel Override"
-        }
-    }
-}
-
 struct PushMessage: Codable {
     var user: String
-    var commandType: TRCCommandType
+    var commandType: TrioRemoteControl.CommandType
     var bolusAmount: Decimal?
     var target: Int?
     var duration: Int?
@@ -77,7 +51,7 @@ struct PushMessage: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         user = try container.decode(String.self, forKey: .user)
-        commandType = try container.decode(TRCCommandType.self, forKey: .commandType)
+        commandType = try container.decode(TrioRemoteControl.CommandType.self, forKey: .commandType)
         bolusAmount = try container.decodeIfPresent(Decimal.self, forKey: .bolusAmount)
         target = try container.decodeIfPresent(Int.self, forKey: .target)
         duration = try container.decodeIfPresent(Int.self, forKey: .duration)
@@ -92,7 +66,7 @@ struct PushMessage: Codable {
 
     init(
         user: String,
-        commandType: TRCCommandType,
+        commandType: TrioRemoteControl.CommandType,
         bolusAmount: Decimal? = nil,
         target: Int? = nil,
         duration: Int? = nil,

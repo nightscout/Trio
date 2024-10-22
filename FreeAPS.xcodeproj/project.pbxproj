@@ -1983,6 +1983,7 @@
 				DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */,
 				DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */,
 				DD6B7CB52C7B748B00B75029 /* TotalInsulinDisplayType.swift */,
+				DD9ECB692CA99F6C00AA7C45 /* PushMessage.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -2723,7 +2724,6 @@
 			isa = PBXGroup;
 			children = (
 				DD9ECB672CA99F4500AA7C45 /* TrioRemoteControl.swift */,
-				DD9ECB692CA99F6C00AA7C45 /* PushMessage.swift */,
 			);
 			path = RemoteControl;
 			sourceTree = "<group>";
