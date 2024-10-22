@@ -351,7 +351,7 @@ extension OverrideConfig {
                         ) {
                             if state.currentActiveTempTarget == selectedTempTarget {
                                 Task {
-                                    // Save cancelled Tem Target in Temp Target run Entity
+                                    // Save cancelled Temp Target in Temp Target run Entity
                                     await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
                                 }
                             }
@@ -382,7 +382,7 @@ extension OverrideConfig {
             } footer: {
                 HStack {
                     Image(systemName: "hand.draw.fill")
-                    Text("Swipe left to edit or delete an Temp Target preset. Hold, drag and drop to reorder a preset.")
+                    Text("Swipe left to edit or delete a Temp Target preset. Hold, drag and drop to reorder a preset.")
                 }
             }
         }
@@ -481,7 +481,7 @@ extension OverrideConfig {
         }
 
         private func tempTargetView(for preset: TempTargetStored) -> some View {
-            let target = preset.target
+            let target = preset.target ?? 100
             let presetTarget = Decimal(target as! Double.RawValue)
             let isSelected = preset.id?.uuidString == selectedTempTargetPresetID
             let presetHalfBasalTarget = Decimal(
