@@ -208,36 +208,14 @@ struct AddTempTargetForm: View {
 
             if state.tempTargetTarget != state.normalTarget {
                 let computedHalfBasalTarget = Decimal(state.computeHalfBasalTarget())
+                let sensHint = state.tempTargetTarget > state.normalTarget ?
+                    "Reducing all delivered insulin to \(formattedPercentage(state.percentage))%." :
+                    "Increasing all delivered insulin by \(formattedPercentage(state.percentage - 100))%."
                 if state.isAdjustSensEnabled() {
                     Section(
-                        header: HStack {
-                            if state.tempTargetTarget > state.normalTarget {
-                                VStack(alignment: .leading) {
-                                    HStack(spacing: 5) {
-                                        Text("Sensitivity")
-                                        Image(systemName: "arrow.up.circle")
-                                        Text("Insulin")
-                                        Image(systemName: "arrow.down.circle")
-                                    }
-                                    Text("Reducing all delivered insulin to \(formattedPercentage(state.percentage))%.")
-                                }
-                            }
-                            if state.tempTargetTarget < state.normalTarget {
-                                VStack(alignment: .leading) {
-                                    HStack(spacing: 5) {
-                                        Text("Sensitivity")
-                                        Image(systemName: "arrow.down.circle")
-                                        Text("Insulin")
-                                        Image(systemName: "arrow.up.circle")
-                                    }
-                                    Text(
-                                        "Increasing all delivered insulin by \(formattedPercentage(state.percentage - 100))%."
-                                    )
-                                }
-                            }
-                        }
-                        .textCase(.none)
-                        .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
+                        header: Text(sensHint)
+                            .textCase(.none)
+                            .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
                         content: {
                             VStack {
                                 Picker("Sensitivity Adjustment", selection: $selectedAdjustSens) {
