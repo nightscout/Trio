@@ -126,7 +126,7 @@ extension OverrideConfig.StateModel {
             setupOverridePresetsArray()
 
             Task {
-                await uploadProfiles()
+                await nightscoutManager.uploadProfiles()
             }
         } catch {
             debugPrint(
@@ -292,7 +292,7 @@ extension OverrideConfig.StateModel {
         // Update Presets View
         setupOverridePresetsArray()
 
-        await uploadProfiles()
+        await nightscoutManager.uploadProfiles()
     }
 
     // MARK: - Setup Override Presets Array
@@ -326,7 +326,7 @@ extension OverrideConfig.StateModel {
         // Update Presets View
         setupOverridePresetsArray()
 
-        await uploadProfiles()
+        await nightscoutManager.uploadProfiles()
     }
 
     // MARK: - Setup the State variables with the last Override configuration
@@ -629,10 +629,6 @@ extension OverrideConfig.StateModel {
             target = (c / ratio) - c + 100
         }
         return Decimal(Double(target))
-    }
-
-    func uploadProfiles() async {
-        await nightscoutManager.uploadProfiles()
     }
 }
 
