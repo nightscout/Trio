@@ -82,7 +82,7 @@ class TrioRemoteControl: Injectable {
             case .tempTarget:
                 await handleTempTargetCommand(pushMessage)
             case .cancelTempTarget:
-                await cancelTempTarget()
+                await cancelTempTarget(pushMessage)
             case .meal:
                 await handleMealCommand(pushMessage)
             case .startOverride:
@@ -96,21 +96,21 @@ class TrioRemoteControl: Injectable {
     }
 
     private func handleMealCommand(_ pushMessage: PushMessage) async {
-        guard
-            let carbs = pushMessage.carbs,
-            let fat = pushMessage.fat,
-            let protein = pushMessage.protein
-        else {
+        guard pushMessage.carbs != nil || pushMessage.fat != nil || pushMessage.protein != nil else {
             await logError("Command rejected: meal data is incomplete or invalid.", pushMessage: pushMessage)
             return
         }
+
+        let carbsDecimal = pushMessage.carbs != nil ? Decimal(pushMessage.carbs!) : nil
+        let fatDecimal = pushMessage.fat != nil ? Decimal(pushMessage.fat!) : nil
+        let proteinDecimal = pushMessage.protein != nil ? Decimal(pushMessage.protein!) : nil
 
         let settings = await FreeAPSApp.resolver.resolve(SettingsManager.self)?.settings
         let maxCarbs = settings?.maxCarbs ?? Decimal(0)
         let maxFat = settings?.maxFat ?? Decimal(0)
         let maxProtein = settings?.maxProtein ?? Decimal(0)
 
-        if Decimal(carbs) > maxCarbs {
+        if let carbs = carbsDecimal, carbs > maxCarbs {
             await logError(
                 "Command rejected: carbs amount (\(carbs)g) exceeds the maximum allowed (\(maxCarbs)g).",
                 pushMessage: pushMessage
@@ -118,7 +118,7 @@ class TrioRemoteControl: Injectable {
             return
         }
 
-        if Decimal(fat) > maxFat {
+        if let fat = fatDecimal, fat > maxFat {
             await logError(
                 "Command rejected: fat amount (\(fat)g) exceeds the maximum allowed (\(maxFat)g).",
                 pushMessage: pushMessage
@@ -126,7 +126,7 @@ class TrioRemoteControl: Injectable {
             return
         }
 
-        if Decimal(protein) > maxProtein {
+        if let protein = proteinDecimal, protein > maxProtein {
             await logError(
                 "Command rejected: protein amount (\(protein)g) exceeds the maximum allowed (\(maxProtein)g).",
                 pushMessage: pushMessage
@@ -157,9 +157,9 @@ class TrioRemoteControl: Injectable {
             id: UUID().uuidString,
             createdAt: Date(),
             actualDate: actualDate,
-            carbs: Decimal(carbs),
-            fat: Decimal(fat),
-            protein: Decimal(protein),
+            carbs: carbsDecimal ?? 0,
+            fat: fatDecimal,
+            protein: proteinDecimal,
             note: "Remote meal command",
             enteredBy: CarbsEntry.manual,
             isFPU: false,
@@ -167,20 +167,10 @@ class TrioRemoteControl: Injectable {
         )
 
         await carbsStorage.storeCarbs([mealEntry], areFetchedFromRemote: false)
-        debug(.remoteControl, "Meal command processed successfully with carbs: \(carbs)g, fat: \(fat)g, protein: \(protein)g.")
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .short
-        dateFormatter.timeStyle = .short
-        let dateString: String
-        if let actualDate = actualDate {
-            dateString = dateFormatter.string(from: actualDate)
-        } else {
-            dateString = dateFormatter.string(from: Date())
-        }
         debug(
             .remoteControl,
-            "Meal command processed successfully with carbs: \(carbs)g, fat: \(fat)g, protein: \(protein)g at \(dateString)."
+            "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
         )
     }
 
@@ -221,6 +211,11 @@ class TrioRemoteControl: Injectable {
         }
 
         await apsManager.enactBolus(amount: Double(truncating: bolusAmount as NSNumber), isSMB: false)
+
+        debug(
+            .remoteControl,
+            "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
+        )
     }
 
     private func fetchTotalRecentBolusAmount(since date: Date) async -> Decimal {
@@ -272,10 +267,14 @@ class TrioRemoteControl: Injectable {
         )
 
         tempTargetsStorage.storeTempTargets([tempTarget])
-        debug(.remoteControl, "Temp target set with target: \(targetValue), duration: \(durationInMinutes) minutes.")
+
+        debug(
+            .remoteControl,
+            "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
+        )
     }
 
-    func cancelTempTarget() async {
+    func cancelTempTarget(_ pushMessage: PushMessage) async {
         debug(.remoteControl, "Cancelling temp target.")
 
         guard tempTargetsStorage.current() != nil else {
@@ -285,12 +284,20 @@ class TrioRemoteControl: Injectable {
 
         let cancelEntry = TempTarget.cancel(at: Date())
         tempTargetsStorage.storeTempTargets([cancelEntry])
-        debug(.remoteControl, "Temp target cancelled successfully.")
+
+        debug(
+            .remoteControl,
+            "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
+        )
     }
 
-    @MainActor private func handleCancelOverrideCommand(_: PushMessage) async {
+    @MainActor private func handleCancelOverrideCommand(_ pushMessage: PushMessage) async {
         await disableAllActiveOverrides()
-        debug(.remoteControl, "Active override cancelled successfully.")
+
+        debug(
+            .remoteControl,
+            "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
+        )
     }
 
     @MainActor private func handleStartOverrideCommand(_ pushMessage: PushMessage) async {
@@ -306,14 +313,13 @@ class TrioRemoteControl: Injectable {
         }
 
         if let preset = presets.first(where: { $0.name == overrideName }) {
-            await enactOverridePreset(preset: preset)
-            debug(.remoteControl, "Override '\(overrideName)' started successfully.")
+            await enactOverridePreset(preset: preset, pushMessage: pushMessage)
         } else {
             await logError("Command rejected: override preset '\(overrideName)' not found.", pushMessage: pushMessage)
         }
     }
 
-    @MainActor private func enactOverridePreset(preset: OverrideStored) async {
+    @MainActor private func enactOverridePreset(preset: OverrideStored, pushMessage: PushMessage) async {
         await disableAllActiveOverrides()
 
         preset.enabled = true
@@ -326,6 +332,11 @@ class TrioRemoteControl: Injectable {
 
                 Foundation.NotificationCenter.default.post(name: .willUpdateOverrideConfiguration, object: nil)
                 await awaitNotification(.didUpdateOverrideConfiguration)
+
+                debug(
+                    .remoteControl,
+                    "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
+                )
             }
         } catch {
             debug(.remoteControl, "Failed to enact override preset: \(error.localizedDescription)")
