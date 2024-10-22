@@ -211,24 +211,28 @@ struct AddTempTargetForm: View {
                 if state.isAdjustSensEnabled() {
                     Section(
                         header: HStack {
-                            if state
-                                .tempTargetTarget > state.normalTarget
-                            {
-                                HStack(spacing: 5) {
-                                    Text("Sensitivity")
-                                    Image(systemName: "arrow.up.circle")
-                                    Text("Insulin")
-                                    Image(systemName: "arrow.down.circle")
-                                    Text("using \(formattedPercentage(state.percentage))% of default.")
+                            if state.tempTargetTarget > state.normalTarget {
+                                VStack(alignment: .leading) {
+                                    HStack(spacing: 5) {
+                                        Text("Sensitivity")
+                                        Image(systemName: "arrow.up.circle")
+                                        Text("Insulin")
+                                        Image(systemName: "arrow.down.circle")
+                                    }
+                                    Text("Using only \(formattedPercentage(state.percentage))% of regular Insulin for dosing.")
                                 }
                             }
                             if state.tempTargetTarget < state.normalTarget {
-                                HStack(spacing: 5) {
-                                    Text("Sensitivity")
-                                    Image(systemName: "arrow.down.circle")
-                                    Text("Insulin")
-                                    Image(systemName: "arrow.up.circle")
-                                    Text("using \(formattedPercentage(state.percentage))% of default.")
+                                VStack(alignment: .leading) {
+                                    HStack(spacing: 5) {
+                                        Text("Sensitivity")
+                                        Image(systemName: "arrow.down.circle")
+                                        Text("Insulin")
+                                        Image(systemName: "arrow.up.circle")
+                                    }
+                                    Text(
+                                        "Using +\(formattedPercentage(state.percentage - 100))% of regular Insulin for dosing."
+                                    )
                                 }
                             }
                         }
