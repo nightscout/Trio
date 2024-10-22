@@ -31,68 +31,62 @@ class TrioRemoteControl: Injectable {
         await nightscoutManager.uploadNoteTreatment(note: note)
     }
 
-    func handleRemoteNotification(userInfo: [AnyHashable: Any]) async {
+    func handleRemoteNotification(pushMessage: PushMessage) async {
         let isTrioRemoteControlEnabled = UserDefaults.standard.bool(forKey: "isTrioRemoteControlEnabled")
         guard isTrioRemoteControlEnabled else {
             await logError("Remote command received, but remote control is disabled in settings. Ignoring the command.")
             return
         }
 
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: userInfo)
-            let pushMessage = try JSONDecoder().decode(PushMessage.self, from: jsonData)
-            let currentTime = Date().timeIntervalSince1970
-            let timeDifference = currentTime - pushMessage.timestamp
+        let currentTime = Date().timeIntervalSince1970
+        let timeDifference = currentTime - pushMessage.timestamp
 
-            if timeDifference > timeWindow {
-                await logError(
-                    "Command rejected: the message is too old (sent \(Int(timeDifference)) seconds ago, which exceeds the allowed limit).",
-                    pushMessage: pushMessage
-                )
-                return
-            } else if timeDifference < -timeWindow {
-                await logError(
-                    "Command rejected: the message has an invalid future timestamp (timestamp is \(Int(-timeDifference)) seconds ahead of the current time).",
-                    pushMessage: pushMessage
-                )
-                return
-            }
+        if timeDifference > timeWindow {
+            await logError(
+                "Command rejected: the message is too old (sent \(Int(timeDifference)) seconds ago, which exceeds the allowed limit).",
+                pushMessage: pushMessage
+            )
+            return
+        } else if timeDifference < -timeWindow {
+            await logError(
+                "Command rejected: the message has an invalid future timestamp (timestamp is \(Int(-timeDifference)) seconds ahead of the current time).",
+                pushMessage: pushMessage
+            )
+            return
+        }
 
-            debug(.remoteControl, "Command received with acceptable time difference: \(Int(timeDifference)) seconds.")
+        debug(.remoteControl, "Command received with acceptable time difference: \(Int(timeDifference)) seconds.")
 
-            let storedSecret = UserDefaults.standard.string(forKey: "trioRemoteControlSharedSecret") ?? ""
-            guard !storedSecret.isEmpty else {
-                await logError(
-                    "Command rejected: shared secret is missing in settings. Cannot authenticate the command.",
-                    pushMessage: pushMessage
-                )
-                return
-            }
+        let storedSecret = UserDefaults.standard.string(forKey: "trioRemoteControlSharedSecret") ?? ""
+        guard !storedSecret.isEmpty else {
+            await logError(
+                "Command rejected: shared secret is missing in settings. Cannot authenticate the command.",
+                pushMessage: pushMessage
+            )
+            return
+        }
 
-            guard pushMessage.sharedSecret == storedSecret else {
-                await logError(
-                    "Command rejected: shared secret does not match. Cannot authenticate the command.",
-                    pushMessage: pushMessage
-                )
-                return
-            }
+        guard pushMessage.sharedSecret == storedSecret else {
+            await logError(
+                "Command rejected: shared secret does not match. Cannot authenticate the command.",
+                pushMessage: pushMessage
+            )
+            return
+        }
 
-            switch pushMessage.commandType {
-            case .bolus:
-                await handleBolusCommand(pushMessage)
-            case .tempTarget:
-                await handleTempTargetCommand(pushMessage)
-            case .cancelTempTarget:
-                await cancelTempTarget(pushMessage)
-            case .meal:
-                await handleMealCommand(pushMessage)
-            case .startOverride:
-                await handleStartOverrideCommand(pushMessage)
-            case .cancelOverride:
-                await handleCancelOverrideCommand(pushMessage)
-            }
-        } catch {
-            await logError("Error: unable to process the command due to decoding failure (\(error.localizedDescription)).")
+        switch pushMessage.commandType {
+        case .bolus:
+            await handleBolusCommand(pushMessage)
+        case .tempTarget:
+            await handleTempTargetCommand(pushMessage)
+        case .cancelTempTarget:
+            await cancelTempTarget(pushMessage)
+        case .meal:
+            await handleMealCommand(pushMessage)
+        case .startOverride:
+            await handleStartOverrideCommand(pushMessage)
+        case .cancelOverride:
+            await handleCancelOverrideCommand(pushMessage)
         }
     }
 

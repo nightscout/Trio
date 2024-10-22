@@ -19,9 +19,17 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
     ) {
         debug(.remoteControl, "Received notification")
 
-        Task {
-            await TrioRemoteControl.shared.handleRemoteNotification(userInfo: userInfo)
-            completionHandler(.newData)
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: userInfo)
+            let pushMessage = try JSONDecoder().decode(PushMessage.self, from: jsonData)
+
+            Task {
+                await TrioRemoteControl.shared.handleRemoteNotification(pushMessage: pushMessage)
+                completionHandler(.newData)
+            }
+        } catch {
+            debug(.remoteControl, "Error decoding push message: \(error.localizedDescription)")
+            completionHandler(.failed)
         }
     }
 

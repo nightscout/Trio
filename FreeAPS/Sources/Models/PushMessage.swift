@@ -1,6 +1,6 @@
 import Foundation
 
-struct PushMessage: Codable {
+struct PushMessage: Codable, Sendable {
     var user: String
     var commandType: TrioRemoteControl.CommandType
     var bolusAmount: Decimal?
