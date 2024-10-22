@@ -102,7 +102,7 @@ struct AddTempTargetForm: View {
                 HStack {
                     Text("Name")
                     Spacer()
-                    TextField("Enter Name (optional)", text: $state.tempTargetName)
+                    TextField("(Optional)", text: $state.tempTargetName)
                         .multilineTextAlignment(.trailing)
                 }
             }.listRowBackground(Color.chart)
