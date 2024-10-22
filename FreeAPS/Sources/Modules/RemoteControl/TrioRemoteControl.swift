@@ -9,6 +9,7 @@ class TrioRemoteControl: Injectable {
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var nightscoutManager: NightscoutManager!
     @Injected() private var overrideStorage: OverrideStorage!
+    @Injected() private var settings: SettingsManager!
 
     private let timeWindow: TimeInterval = 600 // Defines how old messages that are accepted, 10 minutes
 
@@ -190,6 +191,16 @@ class TrioRemoteControl: Injectable {
             return
         }
 
+        let maxIOB = settings.preferences.maxIOB
+        let currentIOB = await fetchCurrentIOB()
+        if (currentIOB + bolusAmount) > maxIOB {
+            await logError(
+                "Command rejected: bolus amount (\(bolusAmount) units) would exceed max IOB (\(maxIOB) units). Current IOB: \(currentIOB) units.",
+                pushMessage: pushMessage
+            )
+            return
+        }
+
         let totalRecentBolusAmount = await fetchTotalRecentBolusAmount(since: Date(timeIntervalSince1970: pushMessage.timestamp))
 
         if totalRecentBolusAmount >= bolusAmount * 0.2 {
@@ -216,6 +227,30 @@ class TrioRemoteControl: Injectable {
             .remoteControl,
             "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
         )
+    }
+
+    private func fetchCurrentIOB() async -> Decimal {
+        let predicate = NSPredicate.predicateFor30MinAgoForDetermination
+
+        let determinations = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OrefDetermination.self,
+            onContext: pumpHistoryFetchContext,
+            predicate: predicate,
+            key: "timestamp",
+            ascending: false,
+            fetchLimit: 1,
+            propertiesToFetch: ["iob"]
+        )
+
+        guard let fetchedResults = determinations as? [[String: Any]],
+              let firstResult = fetchedResults.first,
+              let iob = firstResult["iob"] as? Decimal
+        else {
+            await logError("Failed to fetch current IOB.")
+            return Decimal(0)
+        }
+
+        return iob
     }
 
     private func fetchTotalRecentBolusAmount(since date: Date) async -> Decimal {
