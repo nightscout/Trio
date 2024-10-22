@@ -37,25 +37,24 @@ extension RemoteControlConfig {
 
         var body: some View {
             Form {
-                Section(header: Text("Trio Remote Control")) {
-                    SettingInputSection(
-                        decimalValue: $decimalPlaceholder,
-                        booleanValue: $state.isTrioRemoteControlEnabled,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        selectedVerboseHint: Binding(
-                            get: { selectedVerboseHint },
-                            set: {
-                                selectedVerboseHint = $0
-                                hintLabel = "Enable Remote Command"
-                            }
-                        ),
-                        units: state.units,
-                        type: .boolean,
-                        label: "Enable Remote Control",
-                        miniHint: "Remote Control allow Trio to receive instructions, such as boluses and temp targets, from LoopFollow.",
-                        verboseHint: "When Remote Control is enabled, you can send boluses, overrides, temporary targets, carbs, and other commands to Trio via push notifications. To ensure security, these commands are protected by a shared secret, which must be entered in LoopFollow."
-                    )
-                }
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.isTrioRemoteControlEnabled,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Enable Remote Command"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Enable Remote Control",
+                    miniHint: "Remote Control allow Trio to receive instructions, such as boluses and temp targets, from LoopFollow.",
+                    verboseHint: "When Remote Control is enabled, you can send boluses, overrides, temporary targets, carbs, and other commands to Trio via push notifications. To ensure security, these commands are protected by a shared secret, which must be entered in LoopFollow.",
+                    headerText: "Trio Remote Control"
+                )
 
                 Section(
                     header: Text("Shared Secret"),
