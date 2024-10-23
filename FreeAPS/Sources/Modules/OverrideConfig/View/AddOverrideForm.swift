@@ -279,12 +279,14 @@ struct AddOverrideForm: View {
                             Spacer()
 
                             // Picker on the right side
+                            let settingsProvider = PickerSettingsProvider.shared
+                            let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 72, max: 270, type: .glucose)
                             Picker(selection: Binding(
                                 get: { OverrideConfig.StateModel.roundTargetToStep(state.target, targetStep) },
                                 set: { state.target = $0 }
                             ), label: Text("")) {
                                 ForEach(
-                                    generateTargetPickerValues(),
+                                    settingsProvider.generatePickerValues(from: glucoseSetting, units: state.units, roundMinToStep: true),
                                     id: \.self
                                 ) { glucose in
                                     Text(
@@ -526,38 +528,6 @@ struct AddOverrideForm: View {
         }
 
         return (false, nil)
-    }
-
-    func generateTargetPickerValues() -> [Decimal] {
-        var values: [Decimal] = []
-        var currentValue: Double = 72
-        let step = Double(targetStep)
-
-        // Adjust currentValue to be divisible by targetStep
-        let remainder = currentValue.truncatingRemainder(dividingBy: step)
-        if remainder != 0 {
-            // Move currentValue up to the next value divisible by targetStep
-            currentValue += (step - remainder)
-        }
-
-        // Now generate the picker values starting from currentValue
-        while currentValue <= 270 {
-            values.append(Decimal(currentValue))
-            currentValue += step
-        }
-
-        // Glucose values are stored as mg/dl values, so Integers.
-        // Filter out duplicate values when rounded to 1 decimal place.
-        if state.units == .mmolL {
-            // Use a Set to track unique values rounded to 1 decimal
-            var uniqueRoundedValues = Set<String>()
-            values = values.filter { value in
-                let roundedValue = String(format: "%.1f", NSDecimalNumber(decimal: value.asMmolL).doubleValue)
-                return uniqueRoundedValues.insert(roundedValue).inserted
-            }
-        }
-
-        return values
     }
 }
 

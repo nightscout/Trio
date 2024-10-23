@@ -658,3 +658,27 @@ extension OverrideConfig.StateModel: SettingsObserver {
         maxValue = settingsManager.preferences.autosensMax
     }
 }
+
+extension PickerSettingsProvider {
+    func generatePickerValues(from setting: PickerSetting, units: GlucoseUnits, roundMinToStep: Bool) -> [Decimal] {
+        if !roundMinToStep {
+            return generatePickerValues(from: setting, units: units)
+        }
+
+        // Adjust min to be divisible by step
+        var newSetting = setting
+        var min = Double(newSetting.min)
+        var step = Double(newSetting.step)
+        let remainder = min.truncatingRemainder(dividingBy: step)
+        if remainder != 0 {
+            // Move min up to the next value divisible by targetStep
+            min += (step - remainder)
+        }
+
+        newSetting.min = Decimal(min)
+
+        var values = generatePickerValues(from: newSetting, units: units)
+
+        return values
+    }
+}
