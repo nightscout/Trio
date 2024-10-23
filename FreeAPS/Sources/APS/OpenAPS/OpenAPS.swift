@@ -86,35 +86,6 @@ final class OpenAPS {
 
         // First save the current Determination to Core Data
         await attemptToSaveContext()
-
-        // After that check for changes in iob and cob and if there are any post a custom Notification
-        /// this is currently used to update Live Activity so that it stays up to date and not one loop cycle behind
-        await checkForCobIobUpdate(determination)
-    }
-
-    func checkForCobIobUpdate(_ determination: Determination) async {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OrefDetermination.self,
-            onContext: context,
-            predicate: NSPredicate.predicateFor30MinAgoForDetermination,
-            key: "deliverAt",
-            ascending: false,
-            fetchLimit: 2
-        )
-
-        guard let previousDeterminations = results as? [OrefDetermination] else {
-            return
-        }
-
-        // We need to get the second last Determination for this comparison because we have saved the current Determination already to Core Data
-        if let previousDetermination = previousDeterminations.dropFirst().first {
-            let iobChanged = previousDetermination.iob != decimalToNSDecimalNumber(determination.iob)
-            let cobChanged = previousDetermination.cob != Int16(Int(determination.cob ?? 0))
-
-            if iobChanged || cobChanged {
-                Foundation.NotificationCenter.default.post(name: .didUpdateCobIob, object: nil)
-            }
-        }
     }
 
     func attemptToSaveContext() async {
@@ -140,11 +111,11 @@ final class OpenAPS {
             batchSize: 24
         )
 
-        guard let glucoseResults = results as? [GlucoseStored] else {
-            return ""
-        }
-
         return await context.perform {
+            guard let glucoseResults = results as? [GlucoseStored] else {
+                return ""
+            }
+
             // convert to JSON
             return self.jsonConverter.convertToJSON(glucoseResults)
         }
@@ -159,11 +130,11 @@ final class OpenAPS {
             ascending: false
         )
 
-        guard let carbResults = results as? [CarbEntryStored] else {
-            return ""
-        }
-
         let json = await context.perform {
+            guard let carbResults = results as? [CarbEntryStored] else {
+                return ""
+            }
+
             var jsonArray = self.jsonConverter.convertToJSON(carbResults)
 
             if let additionalCarbs = additionalCarbs {
@@ -209,11 +180,11 @@ final class OpenAPS {
             batchSize: 50
         )
 
-        guard let pumpEventResults = results as? [PumpEventStored] else {
-            return nil
-        }
-
         return await context.perform {
+            guard let pumpEventResults = results as? [PumpEventStored] else {
+                return nil
+            }
+
             return pumpEventResults.map(\.objectID)
         }
     }
@@ -1000,11 +971,11 @@ final class OpenAPS {
 
     private func middlewareScript(name: String) -> Script? {
         if let body = storage.retrieveRaw(name) {
-            return Script(name: "Middleware", body: body)
+            return Script(name: name, body: body)
         }
 
         if let url = Foundation.Bundle.main.url(forResource: "javascript/\(name)", withExtension: "") {
-            return Script(name: "Middleware", body: try! String(contentsOf: url))
+            return Script(name: name, body: try! String(contentsOf: url))
         }
 
         return nil

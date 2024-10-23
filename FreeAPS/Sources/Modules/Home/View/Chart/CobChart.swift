@@ -32,7 +32,7 @@ extension MainChartView {
         .backport.chartXSelection(value: $selection)
         .chartXAxis { basalChartXAxis }
         .chartYAxis { cobChartYAxis }
-        .chartYScale(domain: minValueCobChart ... maxValueCobChart)
+        .chartYScale(domain: state.minValueCobChart ... state.maxValueCobChart)
     }
 
     func drawCOB(dummy: Bool) -> some ChartContent {

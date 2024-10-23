@@ -2,10 +2,11 @@ import Foundation
 import SwiftUI
 
 struct EditOverrideForm: View {
+    @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
     @ObservedObject var override: OverrideStored
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
-    @StateObject var state: OverrideConfig.StateModel
+    @Bindable var state: OverrideConfig.StateModel
 
     @State private var name: String
     @State private var percentage: Double
@@ -30,7 +31,7 @@ struct EditOverrideForm: View {
 
     init(overrideToEdit: OverrideStored, state: OverrideConfig.StateModel) {
         override = overrideToEdit
-        _state = StateObject(wrappedValue: state)
+        _state = Bindable(wrappedValue: state)
         _name = State(initialValue: overrideToEdit.name ?? "")
         _percentage = State(initialValue: overrideToEdit.percentage)
         _indefinite = State(initialValue: overrideToEdit.indefinite)
@@ -294,7 +295,9 @@ struct EditOverrideForm: View {
                         guard let moc = override.managedObjectContext else { return }
                         guard moc.hasChanges else { return }
                         try moc.save()
-
+                        Task {
+                            await nightscoutManager.uploadProfiles()
+                        }
                         if let currentActiveOverride = state.currentActiveOverride {
                             Task {
                                 await state.disableAllActiveOverrides(

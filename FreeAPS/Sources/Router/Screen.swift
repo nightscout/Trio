@@ -40,8 +40,10 @@ enum Screen: Identifiable, Hashable {
     case featureSettings
     case notificationSettings
     case liveActivitySettings
+    case liveActivityBottomRowSettings
     case calendarEventSettings
     case serviceSettings
+    case remoteControlConfig
     case autosensSettings
     case smbSettings
     case targetBehavior
@@ -118,6 +120,8 @@ extension Screen {
             Calibrations.RootView(resolver: resolver)
         case .shortcutsConfig:
             ShortcutsConfig.RootView(resolver: resolver)
+        case .remoteControlConfig:
+            RemoteControlConfig.RootView(resolver: resolver)
         case .devices:
             DevicesView(resolver: resolver, state: Settings.StateModel())
         case .therapySettings:
@@ -130,6 +134,8 @@ extension Screen {
             NotificationsView(resolver: resolver, state: Settings.StateModel())
         case .liveActivitySettings:
             LiveActivitySettings.RootView(resolver: resolver)
+        case .liveActivityBottomRowSettings:
+            LiveActivityWidgetConfiguration(resolver: resolver, state: LiveActivitySettings.StateModel())
         case .calendarEventSettings:
             CalendarEventSettings.RootView(resolver: resolver)
         case .serviceSettings:

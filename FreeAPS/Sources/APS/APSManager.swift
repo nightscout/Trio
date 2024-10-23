@@ -939,11 +939,13 @@ final class BaseAPSManager: APSManager, Injectable {
             batchSize: batchSize
         )
 
-        guard let glucoseResults = results as? [GlucoseStored] else {
-            return []
-        }
+        return await privateContext.perform {
+            guard let glucoseResults = results as? [GlucoseStored] else {
+                return []
+            }
 
-        return glucoseResults
+            return glucoseResults
+        }
     }
 
     // TODO: - Refactor this whole shit here...

@@ -7,6 +7,10 @@ protocol DeterminationStorage {
     func fetchLastDeterminationObjectID(predicate: NSPredicate) async -> [NSManagedObjectID]
     func getForecastIDs(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext) async -> [NSManagedObjectID]
     func getForecastValueIDs(for forecastID: NSManagedObjectID, in context: NSManagedObjectContext) async -> [NSManagedObjectID]
+    func fetchForecastObjects(
+        for data: (id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]),
+        in context: NSManagedObjectContext
+    ) async -> (UUID, Forecast?, [ForecastValue])
     func getOrefDeterminationNotYetUploadedToNightscout(_ determinationIds: [NSManagedObjectID]) async -> Determination?
 }
 
@@ -28,10 +32,10 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
             fetchLimit: 1
         )
 
-        guard let fetchedResults = results as? [OrefDetermination] else { return [] }
-
         return await backgroundContext.perform {
-            fetchedResults.map(\.objectID)
+            guard let fetchedResults = results as? [OrefDetermination] else { return [] }
+
+            return fetchedResults.map(\.objectID)
         }
     }
 
@@ -39,7 +43,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
         await context.perform {
             do {
                 guard let determination = try context.existingObject(with: determinationID) as? OrefDetermination,
-                      let forecastSet = determination.forecasts as? Set<NSManagedObject>
+                      let forecastSet = determination.forecasts
                 else {
                     return []
                 }
@@ -70,6 +74,34 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                 )
                 return []
             }
+        }
+    }
+
+    // Fetch forecast value IDs for a given data set
+    func fetchForecastObjects(
+        for data: (id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]),
+        in context: NSManagedObjectContext
+    ) async -> (UUID, Forecast?, [ForecastValue]) {
+        return await context.perform {
+            var forecast: Forecast?
+            var forecastValues: [ForecastValue] = []
+
+            do {
+                // Fetch the forecast object
+                forecast = try context.existingObject(with: data.forecastID) as? Forecast
+
+                // Fetch the first 3h of forecast values
+                for forecastValueID in data.forecastValueIDs.prefix(36) {
+                    if let forecastValue = try context.existingObject(with: forecastValueID) as? ForecastValue {
+                        forecastValues.append(forecastValue)
+                    }
+                }
+            } catch {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast Values with error: \(error.localizedDescription)"
+                )
+            }
+            return (data.id, forecast, forecastValues)
         }
     }
 

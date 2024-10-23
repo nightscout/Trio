@@ -41,7 +41,20 @@ extension NightscoutConfig {
                     Section(
                         header: Text("Nightscout Integration"),
                         content: {
-                            NavigationLink("Connect", destination: NightscoutConnectView(state: state))
+                            NavigationLink(destination: NightscoutConnectView(state: state), label: {
+                                HStack {
+                                    Text("Connect")
+                                    ZStack {
+                                        if state.isConnectedToNS {
+                                            Image(systemName: "network")
+                                            Image(systemName: "checkmark.circle.fill").foregroundColor(.green).font(.caption2)
+                                                .offset(x: 9, y: 6)
+                                        } else {
+                                            Image(systemName: "network.slash")
+                                        }
+                                    }
+                                }
+                            })
                             NavigationLink("Upload", destination: NightscoutUploadView(state: state))
                             NavigationLink("Fetch & Remote Control", destination: NightscoutFetchView(state: state))
                         }

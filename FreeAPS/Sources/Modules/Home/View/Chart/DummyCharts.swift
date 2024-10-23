@@ -7,10 +7,33 @@ extension MainChartView {
     var staticYAxisChart: some View {
         Chart {
             /// high and low threshold lines
+
+            // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+            let hardCodedLow = Decimal(55)
+            let hardCodedHigh = Decimal(220)
+            let isDynamicColorScheme = glucoseColorScheme == .dynamicColor
+
             if thresholdLines {
-                RuleMark(y: .value("High", highGlucose)).foregroundStyle(Color.loopYellow)
+                let highColor = FreeAPS.getDynamicGlucoseColor(
+                    glucoseValue: highGlucose,
+                    highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+                    lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
+                    targetGlucose: currentGlucoseTarget,
+                    glucoseColorScheme: glucoseColorScheme
+                )
+                let lowColor = FreeAPS.getDynamicGlucoseColor(
+                    glucoseValue: lowGlucose,
+                    highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : highGlucose,
+                    lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : lowGlucose,
+                    targetGlucose: currentGlucoseTarget,
+                    glucoseColorScheme: glucoseColorScheme
+                )
+
+                RuleMark(y: .value("High", units == .mgdL ? highGlucose : highGlucose.asMmolL))
+                    .foregroundStyle(highColor)
                     .lineStyle(.init(lineWidth: 1, dash: [5]))
-                RuleMark(y: .value("Low", lowGlucose)).foregroundStyle(Color.loopRed)
+                RuleMark(y: .value("Low", units == .mgdL ? lowGlucose : lowGlucose.asMmolL))
+                    .foregroundStyle(lowColor)
                     .lineStyle(.init(lineWidth: 1, dash: [5]))
             }
         }
@@ -21,7 +44,10 @@ extension MainChartView {
         .chartXScale(domain: startMarker ... endMarker)
         .chartXAxis(.hidden)
         .chartYAxis { mainChartYAxis }
-        .chartYScale(domain: units == .mgdL ? minValue ... maxValue : minValue.asMmolL ... maxValue.asMmolL)
+        .chartYScale(
+            domain: units == .mgdL ? state.minYAxisValue ... state.maxYAxisValue : state.minYAxisValue.asMmolL ... state
+                .maxYAxisValue.asMmolL
+        )
         .chartLegend(.hidden)
     }
 
@@ -48,7 +74,7 @@ extension MainChartView {
         .chartXAxis(.hidden)
         .chartYAxis { cobChartYAxis }
         .chartYAxis(.hidden)
-        .chartYScale(domain: minValueCobChart ... maxValueCobChart)
+        .chartYScale(domain: state.minValueCobChart ... state.maxValueCobChart)
         .chartLegend(.hidden)
     }
 }

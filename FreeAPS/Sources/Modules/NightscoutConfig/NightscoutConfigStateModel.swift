@@ -67,6 +67,22 @@ extension NightscoutConfig {
             importedInsulinActionCurve = pumpSettings.insulinActionCurve
 
             isConnectedToNS = nightscoutAPI != nil
+
+            $isUploadEnabled
+                .dropFirst()
+                .removeDuplicates()
+                .sink { [weak self] enabled in
+                    guard let self = self else { return }
+                    if enabled {
+                        debug(.nightscout, "Upload has been enabled by the user.")
+                        Task {
+                            await self.nightscoutManager.uploadProfiles()
+                        }
+                    } else {
+                        debug(.nightscout, "Upload has been disabled by the user.")
+                    }
+                }
+                .store(in: &lifetime)
         }
 
         func connect() {
@@ -326,12 +342,17 @@ extension NightscoutConfig {
             if glucose.isNotEmpty {
                 await MainActor.run {
                     self.backfilling = false
-                    self.healthKitManager.saveIfNeeded(bloodGlucose: glucose)
-                    self.glucoseStorage.storeGlucose(glucose)
+                }
+
+                glucoseStorage.storeGlucose(glucose)
+
+                Task.detached {
+                    await self.healthKitManager.uploadGlucose()
                 }
             } else {
                 await MainActor.run {
                     self.backfilling = false
+                    debug(.nightscout, "No glucose values found or fetched to backfill.")
                 }
             }
         }

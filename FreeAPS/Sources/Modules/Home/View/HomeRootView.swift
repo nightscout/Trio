@@ -8,7 +8,7 @@ extension Home {
     struct RootView: BaseView {
         let resolver: Resolver
 
-        @StateObject var state = StateModel()
+        @State var state = StateModel()
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
         @State var isMenuPresented = false
@@ -299,12 +299,14 @@ extension Home {
 
         var glucoseView: some View {
             CurrentGlucoseView(
-                timerDate: $state.timerDate,
-                units: $state.units,
-                alarm: $state.alarm,
-                lowGlucose: $state.lowGlucose,
-                highGlucose: $state.highGlucose,
-                cgmAvailable: $state.cgmAvailable,
+                timerDate: state.timerDate,
+                units: state.units,
+                alarm: state.alarm,
+                lowGlucose: state.lowGlucose,
+                highGlucose: state.highGlucose,
+                cgmAvailable: state.cgmAvailable,
+                currentGlucoseTarget: state.currentGlucoseTarget,
+                glucoseColorScheme: state.glucoseColorScheme,
                 glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
@@ -319,13 +321,13 @@ extension Home {
 
         var pumpView: some View {
             PumpView(
-                reservoir: $state.reservoir,
-                name: $state.pumpName,
-                expiresAtDate: $state.pumpExpiresAtDate,
-                timerDate: $state.timerDate,
-                timeZone: $state.timeZone,
-                pumpStatusHighlightMessage: $state.pumpStatusHighlightMessage,
-                battery: $state.batteryFromPersistence
+                reservoir: state.reservoir,
+                name: state.pumpName,
+                expiresAtDate: state.pumpExpiresAtDate,
+                timerDate: state.timerDate,
+                timeZone: state.timeZone,
+                pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
+                battery: state.batteryFromPersistence
             ).onTapGesture {
                 if state.pumpDisplayState == nil {
                     // shows user confirmation dialog with pump model choices, then proceeds to setup
@@ -505,15 +507,17 @@ extension Home {
             ZStack {
                 MainChartView(
                     geo: geo,
-                    units: $state.units,
-                    hours: .constant(state.filteredHours),
-                    tempTargets: $state.tempTargets,
-                    highGlucose: $state.highGlucose,
-                    lowGlucose: $state.lowGlucose,
-                    screenHours: $state.hours,
-                    displayXgridLines: $state.displayXgridLines,
-                    displayYgridLines: $state.displayYgridLines,
-                    thresholdLines: $state.thresholdLines,
+                    units: state.units,
+                    hours: state.filteredHours,
+                    tempTargets: state.tempTargets,
+                    highGlucose: state.highGlucose,
+                    lowGlucose: state.lowGlucose,
+                    currentGlucoseTarget: state.currentGlucoseTarget,
+                    glucoseColorScheme: state.glucoseColorScheme,
+                    screenHours: state.hours,
+                    displayXgridLines: state.displayXgridLines,
+                    displayYgridLines: state.displayYgridLines,
+                    thresholdLines: state.thresholdLines,
                     state: state
                 )
             }
@@ -530,11 +534,11 @@ extension Home {
             VStack(alignment: .leading, spacing: 20) {
                 /// Loop view at bottomLeading
                 LoopView(
-                    closedLoop: $state.closedLoop,
-                    timerDate: $state.timerDate,
-                    isLooping: $state.isLooping,
-                    lastLoopDate: $state.lastLoopDate,
-                    manualTempBasal: $state.manualTempBasal,
+                    closedLoop: state.closedLoop,
+                    timerDate: state.timerDate,
+                    isLooping: state.isLooping,
+                    lastLoopDate: state.lastLoopDate,
+                    manualTempBasal: state.manualTempBasal,
                     determination: state.determinationsFromPersistence
                 ).onTapGesture {
                     state.isStatusPopupPresented = true
@@ -596,8 +600,9 @@ extension Home {
                         .foregroundColor(.loopYellow)
                     Text(
                         (
-                            numberFormatter
-                                .string(from: (state.enactedAndNonEnactedDeterminations.first?.cob ?? 0) as NSNumber) ?? "0"
+                            numberFormatter.string(
+                                from: NSNumber(value: state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
+                            ) ?? "0"
                         ) +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
@@ -644,7 +649,7 @@ extension Home {
                                 NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
                         )
                         .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .onChange(of: state.hours) { _ in
+                        .onChange(of: state.hours) {
                             state.roundedTotalBolus = state.calculateTINS()
                         }
                         .onAppear {
@@ -967,7 +972,7 @@ extension Home {
                     }
                 }
             }
-            .onChange(of: state.hours) { _ in
+            .onChange(of: state.hours) {
                 highlightButtons()
             }
             .onAppear {
@@ -1138,7 +1143,7 @@ extension Home {
                     }
                 )
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
-                .onChange(of: selectedTab) { _ in
+                .onChange(of: selectedTab) {
                     print("current path is empty: \(settingsPath.isEmpty)")
                     settingsPath = NavigationPath()
                 }

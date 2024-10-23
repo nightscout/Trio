@@ -3,10 +3,9 @@ import CoreData
 import Foundation
 import SwiftUI
 
-struct ForeCastChart: View {
-    @StateObject var state: Bolus.StateModel
+struct ForecastChart: View {
+    var state: Bolus.StateModel
     @Environment(\.colorScheme) var colorScheme
-    @Binding var units: GlucoseUnits
 
     @State private var startMarker = Date(timeIntervalSinceNow: -4 * 60 * 60)
 
@@ -23,7 +22,7 @@ struct ForeCastChart: View {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
 
-        if units == .mmolL {
+        if state.units == .mmolL {
             formatter.maximumFractionDigits = 1
             formatter.minimumFractionDigits = 1
             formatter.roundingMode = .halfUp
@@ -35,57 +34,54 @@ struct ForeCastChart: View {
 
     var body: some View {
         VStack {
-            HStack {
-                HStack {
-                    Text("Added carbs: ")
-                        .font(.footnote)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.orange)
-
-                    Text("\(state.carbs.description) g")
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
-                }
-                .padding(8)
-                .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.orange.opacity(0.2))
-                }
-
-                Spacer()
-
-                HStack {
-                    Text("Added insulin: ")
-                        .font(.footnote)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.blue)
-
-                    Text("\(state.amount.description) U")
-                        .font(.footnote)
-                        .foregroundStyle(.blue)
-                }
-                .padding(8)
-                .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.blue.opacity(0.2))
-                }
-            }
+            forecastChartLabels
+                .padding(.bottom, 8)
 
             forecastChart
-                .padding(.vertical, 3)
-            HStack {
-                Spacer()
-                Image(systemName: "arrow.right.circle")
-                    .font(.system(size: 16, weight: .bold))
+        }
+    }
 
-                if let eventualBG = state.simulatedDetermination?.eventualBG {
+    private var forecastChartLabels: some View {
+        HStack {
+            HStack {
+                Image(systemName: "fork.knife")
+                Text("\(state.carbs.description) g")
+            }
+            .font(.footnote)
+            .foregroundStyle(.orange)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.orange.opacity(0.2))
+            }
+
+            Spacer()
+
+            HStack {
+                Image(systemName: "syringe.fill")
+                Text("\(state.amount.description) U")
+            }
+            .font(.footnote)
+            .foregroundStyle(.blue)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.blue.opacity(0.2))
+            }
+
+            Spacer()
+
+            HStack {
+                Image(systemName: "arrow.right.circle")
+
+                if let simulatedDetermination = state.simulatedDetermination, let eventualBG = simulatedDetermination.eventualBG {
                     HStack {
                         Text(
-                            units == .mgdL ? Decimal(eventualBG).description : eventualBG.formattedAsMmolL
+                            state.units == .mgdL ? Decimal(eventualBG).description : eventualBG.formattedAsMmolL
                         )
                         .font(.footnote)
                         .foregroundStyle(.primary)
-                        Text("\(units.rawValue)")
+                        Text("\(state.units.rawValue)")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -93,10 +89,17 @@ struct ForeCastChart: View {
                     Text("---")
                         .font(.footnote)
                         .foregroundStyle(.primary)
-                    Text("\(units.rawValue)")
+                    Text("\(state.units.rawValue)")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
+            }
+            .font(.footnote)
+            .foregroundStyle(.primary)
+            .padding(8)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.primary.opacity(0.2))
             }
         }
     }
@@ -115,16 +118,27 @@ struct ForeCastChart: View {
         .chartXAxis { forecastChartXAxis }
         .chartXScale(domain: startMarker ... endMarker)
         .chartYAxis { forecastChartYAxis }
-        .chartYScale(domain: units == .mgdL ? 0 ... 300 : 0.asMmolL ... 300.asMmolL)
+        .chartYScale(domain: state.units == .mgdL ? 0 ... 300 : 0.asMmolL ... 300.asMmolL)
         .backport.chartForegroundStyleScale(state: state)
     }
 
     private func drawGlucose() -> some ChartContent {
         ForEach(state.glucoseFromPersistence) { item in
             let glucoseToDisplay = state.units == .mgdL ? Decimal(item.glucose) : Decimal(item.glucose).asMmolL
-            let pointMarkColor: Color = glucoseToDisplay > state.highGlucose ? Color.orange :
-                glucoseToDisplay < state.lowGlucose ? Color.red :
-                Color.green
+            let targetGlucose = (state.determination.first?.currentTarget ?? state.currentBGTarget as NSDecimalNumber) as Decimal
+
+            // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+            let hardCodedLow = Decimal(55)
+            let hardCodedHigh = Decimal(220)
+            let isDynamicColorScheme = state.glucoseColorScheme == .dynamicColor
+
+            let pointMarkColor: Color = FreeAPS.getDynamicGlucoseColor(
+                glucoseValue: Decimal(item.glucose),
+                highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : state.highGlucose,
+                lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : state.lowGlucose,
+                targetGlucose: targetGlucose,
+                glucoseColorScheme: state.glucoseColorScheme
+            )
 
             if !state.isSmoothingEnabled {
                 PointMark(
@@ -132,7 +146,7 @@ struct ForeCastChart: View {
                     y: .value("Value", glucoseToDisplay)
                 )
                 .foregroundStyle(pointMarkColor)
-                .symbolSize(20)
+                .symbolSize(18)
             } else {
                 PointMark(
                     x: .value("Time", item.date ?? Date(), unit: .second),
@@ -140,7 +154,7 @@ struct ForeCastChart: View {
                 )
                 .symbol {
                     Image(systemName: "record.circle.fill")
-                        .font(.system(size: 8))
+                        .font(.system(size: 6))
                         .bold()
                         .foregroundStyle(pointMarkColor)
                 }
@@ -163,17 +177,17 @@ struct ForeCastChart: View {
 
                 // if distance between respective min and max is 0, provide a default range
                 if yMinMaxDelta == 0 {
-                    let yMinValue = units == .mgdL ? Decimal(state.minForecast[index] - 1) :
+                    let yMinValue = state.units == .mgdL ? Decimal(state.minForecast[index] - 1) :
                         Decimal(state.minForecast[index] - 1)
                         .asMmolL
-                    let yMaxValue = units == .mgdL ? Decimal(state.minForecast[index] + 1) :
+                    let yMaxValue = state.units == .mgdL ? Decimal(state.minForecast[index] + 1) :
                         Decimal(state.minForecast[index] + 1)
                         .asMmolL
 
                     AreaMark(
                         x: .value("Time", xValue <= endMarker ? xValue : endMarker),
-                        yStart: .value("Min Value", units == .mgdL ? yMinValue : yMinValue.asMmolL),
-                        yEnd: .value("Max Value", units == .mgdL ? yMaxValue : yMaxValue.asMmolL)
+                        yStart: .value("Min Value", state.units == .mgdL ? yMinValue : yMinValue.asMmolL),
+                        yEnd: .value("Max Value", state.units == .mgdL ? yMaxValue : yMaxValue.asMmolL)
                     )
                     .foregroundStyle(Color.blue.opacity(0.5))
                     .interpolationMethod(.catmullRom)
@@ -184,8 +198,8 @@ struct ForeCastChart: View {
 
                     AreaMark(
                         x: .value("Time", timeForIndex(Int32(index)) <= endMarker ? timeForIndex(Int32(index)) : endMarker),
-                        yStart: .value("Min Value", units == .mgdL ? yMinValue : yMinValue.asMmolL),
-                        yEnd: .value("Max Value", units == .mgdL ? yMaxValue : yMaxValue.asMmolL)
+                        yStart: .value("Min Value", state.units == .mgdL ? yMinValue : yMinValue.asMmolL),
+                        yEnd: .value("Max Value", state.units == .mgdL ? yMaxValue : yMaxValue.asMmolL)
                     )
                     .foregroundStyle(Color.blue.opacity(0.5))
                     .interpolationMethod(.catmullRom)
@@ -210,7 +224,7 @@ struct ForeCastChart: View {
                 ForEach(values.indices, id: \.self) { index in
                     LineMark(
                         x: .value("Time", timeForIndex(Int32(index))),
-                        y: .value("Value", units == .mgdL ? Decimal(values[index]) : Decimal(values[index]).asMmolL)
+                        y: .value("Value", state.units == .mgdL ? Decimal(values[index]) : Decimal(values[index]).asMmolL)
                     )
                     .foregroundStyle(by: .value("Prediction Type", name))
                 }
@@ -232,8 +246,8 @@ struct ForeCastChart: View {
         AxisMarks(values: .stride(by: .hour, count: 2)) { _ in
             AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
-                .font(.footnote)
-                .foregroundStyle(Color.primary)
+                .font(.caption2)
+                .foregroundStyle(Color.secondary)
         }
     }
 
@@ -241,7 +255,7 @@ struct ForeCastChart: View {
         AxisMarks(position: .trailing) { _ in
             AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             AxisTick(length: 3, stroke: .init(lineWidth: 3)).foregroundStyle(Color.secondary)
-            AxisValueLabel().font(.footnote).foregroundStyle(Color.primary)
+            AxisValueLabel().font(.caption2).foregroundStyle(Color.secondary)
         }
     }
 }

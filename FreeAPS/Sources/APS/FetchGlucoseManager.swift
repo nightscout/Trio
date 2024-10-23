@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import HealthKit
 import LoopKit
 import LoopKitUI
 import SwiftDate
@@ -28,6 +29,7 @@ extension FetchGlucoseManager {
 
 final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private let processQueue = DispatchQueue(label: "BaseGlucoseManager.processQueue")
+
     @Injected() var glucoseStorage: GlucoseStorage!
     @Injected() var nightscoutManager: NightscoutManager!
     @Injected() var tidepoolService: TidepoolManager!
@@ -100,6 +102,14 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         settingsManager.settings.uploadGlucose = cgmM.shouldSyncToRemoteService
     }
 
+    private func updateManagerUnits(_ manager: CGMManagerUI?) {
+        let units = settingsManager.settings.units
+        let managerName = cgmManager.map { "\(type(of: $0))" } ?? "nil"
+        let loopkitUnits: HKUnit = units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
+        print("manager: \(managerName) is changing units to: \(loopkitUnits.description) ")
+        manager?.unitDidChange(to: loopkitUnits)
+    }
+
     func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?) {
         // if changed, remove all calibrations
         if self.cgmGlucoseSourceType != cgmGlucoseSourceType || self.cgmGlucosePluginId != cgmGlucosePluginId {
@@ -122,6 +132,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             removeCalibrations()
         } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
             cgmManager = cgmManagerFromRawValue(rawCGMManager)
+            updateManagerUnits(cgmManager)
+
         } else {
             saveConfigManager()
         }
@@ -151,7 +163,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         else {
             return nil
         }
-
         return Manager.init(rawState: rawState)
     }
 
@@ -165,18 +176,16 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     /// function to try to force the refresh of the CGM - generally provide by the pump heartbeat
     public func refreshCGM() {
         debug(.deviceManager, "refreshCGM by pump")
-        // updateGlucoseSource(cgmGlucoseSourceType: settingsManager.settings.cgm, cgmGlucosePluginId: settingsManager.settings.cgmPluginIdentifier)
 
-        Publishers.CombineLatest3(
+        Publishers.CombineLatest(
             Just(glucoseStorage.syncDate()),
-            healthKitManager.fetch(nil),
             glucoseSource.fetchIfNeeded()
         )
         .eraseToAnyPublisher()
         .receive(on: processQueue)
-        .sink { syncDate, glucoseFromHealth, glucose in
+        .sink { syncDate, glucose in
             debug(.nightscout, "refreshCGM FETCHGLUCOSE : SyncDate is \(syncDate)")
-            self.glucoseStoreAndHeartDecision(syncDate: syncDate, glucose: glucose, glucoseFromHealth: glucoseFromHealth)
+            self.glucoseStoreAndHeartDecision(syncDate: syncDate, glucose: glucose)
         }
         .store(in: &lifetime)
     }
@@ -210,11 +219,10 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         }
     }
 
-    private func glucoseStoreAndHeartDecision(syncDate: Date, glucose: [BloodGlucose], glucoseFromHealth: [BloodGlucose] = []) {
+    private func glucoseStoreAndHeartDecision(syncDate: Date, glucose: [BloodGlucose]) {
         // calibration add if required only for sensor
         let newGlucose = overcalibrate(entries: glucose)
 
-        let allGlucose = newGlucose + glucoseFromHealth
         var filteredByDate: [BloodGlucose] = []
         var filtered: [BloodGlucose] = []
 
@@ -226,7 +234,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             backGroundFetchBGTaskID = .invalid
         }
 
-        guard allGlucose.isNotEmpty else {
+        guard newGlucose.isNotEmpty else {
             if let backgroundTask = backGroundFetchBGTaskID {
                 UIApplication.shared.endBackgroundTask(backgroundTask)
                 backGroundFetchBGTaskID = .invalid
@@ -234,11 +242,11 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             return
         }
 
-        filteredByDate = allGlucose.filter { $0.dateString > syncDate }
+        filteredByDate = newGlucose.filter { $0.dateString > syncDate }
         filtered = glucoseStorage.filterTooFrequentGlucose(filteredByDate, at: syncDate)
 
         guard filtered.isNotEmpty else {
-            // end of the BG tasks
+            // end of the Background tasks
             if let backgroundTask = backGroundFetchBGTaskID {
                 UIApplication.shared.endBackgroundTask(backgroundTask)
                 backGroundFetchBGTaskID = .invalid
@@ -265,24 +273,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
         deviceDataManager.heartbeat(date: Date())
 
-        Task.detached {
-            await self.nightscoutManager.uploadGlucose()
-            await self.tidepoolService.uploadGlucose(device: self.cgmManager?.cgmManagerStatus.device)
-        }
-
-        let glucoseForHealth = filteredByDate.filter { !glucoseFromHealth.contains($0) }
-
-        guard glucoseForHealth.isNotEmpty else {
-            // end of the BG tasks
-            if let backgroundTask = backGroundFetchBGTaskID {
-                UIApplication.shared.endBackgroundTask(backgroundTask)
-                backGroundFetchBGTaskID = .invalid
-            }
-            return
-        }
-        healthKitManager.saveIfNeeded(bloodGlucose: glucoseForHealth)
-
-        // end of the BG tasks
+        // End of the Background tasks
         if let backgroundTask = backGroundFetchBGTaskID {
             UIApplication.shared.endBackgroundTask(backgroundTask)
             backGroundFetchBGTaskID = .invalid
@@ -303,17 +294,15 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             }
             .sink { glucose in
                 debug(.nightscout, "FetchGlucoseManager callback sensor")
-                Publishers.CombineLatest3(
+                Publishers.CombineLatest(
                     Just(glucose),
-                    Just(self.glucoseStorage.syncDate()),
-                    self.healthKitManager.fetch(nil)
+                    Just(self.glucoseStorage.syncDate())
                 )
                 .eraseToAnyPublisher()
-                .sink { newGlucose, syncDate, glucoseFromHealth in
+                .sink { newGlucose, syncDate in
                     self.glucoseStoreAndHeartDecision(
                         syncDate: syncDate,
-                        glucose: newGlucose,
-                        glucoseFromHealth: glucoseFromHealth
+                        glucose: newGlucose
                     )
                 }
                 .store(in: &self.lifetime)

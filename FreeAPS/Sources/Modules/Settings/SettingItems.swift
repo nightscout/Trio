@@ -175,6 +175,12 @@ enum SettingItems {
             path: ["Features", "Shortcuts"]
         ),
         SettingItem(
+            title: "Remote Control",
+            view: .remoteControlConfig,
+            searchContents: ["Remote Control"],
+            path: ["Features", "Remote Control"]
+        ),
+        SettingItem(
             title: "User Interface",
             view: .userInterfaceSettings,
             searchContents: [
@@ -191,7 +197,9 @@ enum SettingItems {
                 "Standing / Laying TIR Chart",
                 "Show Carbs Required Badge",
                 "Carbs Required Threshold",
-                "Forecast Display Type"
+                "Forecast Display Type",
+                "Trio Color Scheme",
+                "Glucose Color Scheme"
             ],
             path: ["Features", "User Interface"]
         ),

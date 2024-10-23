@@ -3,7 +3,7 @@ import Foundation
 import Intents
 import Swinject
 
-@available(iOS 16.0,*) struct AddCarbPresentIntent: AppIntent {
+@available(iOS 16.0,*) struct AddCarbPresetIntent: AppIntent {
     // Title of the action in the Shortcuts app
     static var title: LocalizedStringResource = "Add carbs"
 

@@ -1,29 +1,31 @@
 import CoreData
+import HealthKit
+import Observation
 import SwiftUI
 
 extension DataTable {
-    final class StateModel: BaseStateModel<Provider> {
-        @Injected() var broadcaster: Broadcaster!
-        @Injected() var apsManager: APSManager!
-        @Injected() var unlockmanager: UnlockManager!
-        @Injected() private var storage: FileStorage!
-        @Injected() var pumpHistoryStorage: PumpHistoryStorage!
-        @Injected() var glucoseStorage: GlucoseStorage!
-        @Injected() var healthKitManager: HealthKitManager!
-        @Injected() var carbsStorage: CarbsStorage!
+    @Observable final class StateModel: BaseStateModel<Provider> {
+        @ObservationIgnored @Injected() var broadcaster: Broadcaster!
+        @ObservationIgnored @Injected() var apsManager: APSManager!
+        @ObservationIgnored @Injected() var unlockmanager: UnlockManager!
+        @ObservationIgnored @Injected() private var storage: FileStorage!
+        @ObservationIgnored @Injected() var pumpHistoryStorage: PumpHistoryStorage!
+        @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
+        @ObservationIgnored @Injected() var healthKitManager: HealthKitManager!
+        @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
 
-        @Published var mode: Mode = .treatments
-        @Published var treatments: [Treatment] = []
-        @Published var glucose: [Glucose] = []
-        @Published var meals: [Treatment] = []
-        @Published var manualGlucose: Decimal = 0
-        @Published var maxBolus: Decimal = 0
-        @Published var waitForSuggestion: Bool = false
+        var mode: Mode = .treatments
+        var treatments: [Treatment] = []
+        var glucose: [Glucose] = []
+        var meals: [Treatment] = []
+        var manualGlucose: Decimal = 0
+        var maxBolus: Decimal = 0
+        var waitForSuggestion: Bool = false
 
-        @Published var insulinEntryDeleted: Bool = false
-        @Published var carbEntryDeleted: Bool = false
+        var insulinEntryDeleted: Bool = false
+        var carbEntryDeleted: Bool = false
 
         var units: GlucoseUnits = .mgdL
 
@@ -37,19 +39,26 @@ extension DataTable {
             glucoseStorage.isGlucoseDataFresh(glucoseDate)
         }
 
-        // Carb and FPU deletion from history
-        /// marked as MainActor to be able to publish changes from the background
-        /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
-        @MainActor func invokeGlucoseDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
+        // Glucose deletion from history and from remote services
+        /// -**Parameter**: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
+        func invokeGlucoseDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
                 await deleteGlucose(treatmentObjectID)
             }
         }
 
         func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async {
+            // Delete from Apple Health/Tidepool
+            await deleteGlucoseFromServices(treatmentObjectID)
+
+            // Delete from Core Data
+            await glucoseStorage.deleteGlucose(treatmentObjectID)
+        }
+
+        func deleteGlucoseFromServices(_ treatmentObjectID: NSManagedObjectID) async {
             let taskContext = CoreDataStack.shared.newTaskContext()
             taskContext.name = "deleteContext"
-            taskContext.transactionAuthor = "deleteGlucose"
+            taskContext.transactionAuthor = "deleteGlucoseFromServices"
 
             await taskContext.perform {
                 do {
@@ -60,41 +69,55 @@ extension DataTable {
                         return
                     }
 
-                    // Delete Manual Glucose from Nightscout
-                    if glucoseToDelete.isManual == true {
-                        if let id = glucoseToDelete.id?.uuidString {
-                            self.provider.deleteManualGlucose(withID: id)
-                        }
+                    // Delete from Nightscout
+                    if let id = glucoseToDelete.id?.uuidString {
+                        self.provider.deleteManualGlucoseFromNightscout(withID: id)
                     }
 
-                    taskContext.delete(glucoseToDelete)
+                    // Delete from Apple Health
+                    if let id = glucoseToDelete.id?.uuidString {
+                        self.provider.deleteGlucoseFromHealth(withSyncID: id)
+                    }
 
-                    guard taskContext.hasChanges else { return }
-                    try taskContext.save()
-                    debugPrint("Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data")
+                    debugPrint(
+                        "\(#file) \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from remote service(s) (Nightscout, Apple Health, Tidepool)"
+                    )
                 } catch {
                     debugPrint(
-                        "Data Table State: \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data: \(error.localizedDescription)"
+                        "\(#file) \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose remote service(s) (Nightscout, Apple Health, Tidepool) with error: \(error.localizedDescription)"
                     )
                 }
             }
         }
 
         // Carb and FPU deletion from history
-        /// marked as MainActor to be able to publish changes from the background
-        /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
-        @MainActor func invokeCarbDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
+        /// - **Parameter**: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
+        func invokeCarbDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
                 await deleteCarbs(treatmentObjectID)
-                carbEntryDeleted = true
-                waitForSuggestion = true
+
+                await MainActor.run {
+                    carbEntryDeleted = true
+                    waitForSuggestion = true
+                }
             }
         }
 
         func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async {
+            // Delete from Apple Health/Tidepool
+            await deleteCarbsFromServices(treatmentObjectID)
+
+            // Delete from Core Data
+            await carbsStorage.deleteCarbs(treatmentObjectID)
+
+            // Perform a determine basal sync to update cob
+            await apsManager.determineBasalSync()
+        }
+
+        func deleteCarbsFromServices(_ treatmentObjectID: NSManagedObjectID) async {
             let taskContext = CoreDataStack.shared.newTaskContext()
             taskContext.name = "deleteContext"
-            taskContext.transactionAuthor = "deleteCarbs"
+            taskContext.transactionAuthor = "deleteCarbsFromServices"
 
             var carbEntry: CarbEntryStored?
 
@@ -103,46 +126,66 @@ extension DataTable {
                 do {
                     carbEntry = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
                     guard let carbEntry = carbEntry else {
-                        debugPrint("Carb entry for batch delete not found. \(DebuggingIdentifiers.failed)")
+                        debugPrint("Carb entry for deletion not found. \(DebuggingIdentifiers.failed)")
                         return
                     }
 
                     if carbEntry.isFPU, let fpuID = carbEntry.fpuID {
-                        // Delete FPUs from Nightscout
+                        // Delete Fat and Protein entries from Nightscout
                         self.provider.deleteCarbsFromNightscout(withID: fpuID.uuidString)
+
+                        // Delete Fat and Protein entries from Apple Health
+                        let healthObjectsToDelete: [HKSampleType?] = [
+                            AppleHealthConfig.healthFatObject,
+                            AppleHealthConfig.healthProteinObject
+                        ]
+
+                        for sampleType in healthObjectsToDelete {
+                            if let validSampleType = sampleType {
+                                self.provider.deleteMealDataFromHealth(byID: fpuID.uuidString, sampleType: validSampleType)
+                            }
+                        }
                     } else {
                         // Delete carbs from Nightscout
-                        if let id = carbEntry.id?.uuidString {
-                            self.provider.deleteCarbsFromNightscout(withID: id)
+                        if let id = carbEntry.id, let entryDate = carbEntry.date {
+                            self.provider.deleteCarbsFromNightscout(withID: id.uuidString)
+
+                            // Delete carbs from Apple Health
+                            if let sampleType = AppleHealthConfig.healthCarbObject {
+                                self.provider.deleteMealDataFromHealth(byID: id.uuidString, sampleType: sampleType)
+                            }
+
+                            self.provider.deleteCarbsFromTidepool(
+                                withSyncId: id,
+                                carbs: Decimal(carbEntry.carbs),
+                                at: entryDate,
+                                enteredBy: CarbsEntry.manual
+                            )
                         }
                     }
 
                 } catch {
                     debugPrint(
-                        "\(DebuggingIdentifiers.failed) Error deleting carb entry from Nightscout: \(error.localizedDescription)"
+                        "\(DebuggingIdentifiers.failed) Error deleting carb entry from remote service(s) (Nightscout, Apple Health, Tidepool) with error: \(error.localizedDescription)"
                     )
                 }
             }
-
-            // Delete carbs from Core Data
-            await carbsStorage.deleteCarbs(treatmentObjectID)
-
-            // Perform a determine basal sync to update cob
-            await apsManager.determineBasalSync()
         }
 
         // Insulin deletion from history
-        /// marked as MainActor to be able to publish changes from the background
-        /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
-        @MainActor func invokeInsulinDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
+        /// - **Parameter**: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
+        func invokeInsulinDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
-                await deleteInsulin(treatmentObjectID)
-                insulinEntryDeleted = true
-                waitForSuggestion = true
+                await invokeInsulinDeletion(treatmentObjectID)
+
+                await MainActor.run {
+                    insulinEntryDeleted = true
+                    waitForSuggestion = true
+                }
             }
         }
 
-        func deleteInsulin(_ treatmentObjectID: NSManagedObjectID) async {
+        func invokeInsulinDeletion(_ treatmentObjectID: NSManagedObjectID) async {
             do {
                 let authenticated = try await unlockmanager.unlock()
 
@@ -151,18 +194,49 @@ extension DataTable {
                     return
                 }
 
-                async let deleteNSManagedObjectTask: () = CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
-                async let deleteInsulinFromNightScoutTask: () = provider.deleteInsulin(with: treatmentObjectID)
-                async let determineBasalTask: () = apsManager.determineBasalSync()
+                // Delete from remote service(s) (i.e. Nightscout, Apple Health, Tidepool)
+                await deleteInsulinFromServices(with: treatmentObjectID)
 
-                await deleteNSManagedObjectTask
-                await deleteInsulinFromNightScoutTask
-                await determineBasalTask
+                // Delete from Core Data
+                await CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
 
+                // Perform a determine basal sync to update iob
+                await apsManager.determineBasalSync()
             } catch {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Error while Insulin Deletion Task: \(error.localizedDescription)"
                 )
+            }
+        }
+
+        func deleteInsulinFromServices(with treatmentObjectID: NSManagedObjectID) async {
+            let taskContext = CoreDataStack.shared.newTaskContext()
+            taskContext.name = "deleteContext"
+            taskContext.transactionAuthor = "deleteInsulinFromServices"
+
+            await taskContext.perform {
+                do {
+                    guard let treatmentToDelete = try taskContext.existingObject(with: treatmentObjectID) as? PumpEventStored
+                    else {
+                        debug(.default, "Could not cast the object to PumpEventStored")
+                        return
+                    }
+
+                    if let id = treatmentToDelete.id, let timestamp = treatmentToDelete.timestamp,
+                       let bolus = treatmentToDelete.bolus, let bolusAmount = bolus.amount
+                    {
+                        self.provider.deleteInsulinFromNightscout(withID: id)
+                        self.provider.deleteInsulinFromHealth(withSyncID: id)
+                        self.provider.deleteInsulinFromTidepool(withSyncId: id, amount: bolusAmount as Decimal, at: timestamp)
+                    }
+
+                    taskContext.delete(treatmentToDelete)
+                    try taskContext.save()
+
+                    debug(.default, "Successfully deleted the treatment object.")
+                } catch {
+                    debug(.default, "Failed to delete the treatment object: \(error.localizedDescription)")
+                }
             }
         }
 
@@ -178,6 +252,8 @@ extension DataTable {
                 newItem.glucose = Int16(glucoseAsInt)
                 newItem.isManual = true
                 newItem.isUploadedToNS = false
+                newItem.isUploadedToHealth = false
+                newItem.isUploadedToTidepool = false
 
                 do {
                     guard self.coredataContext.hasChanges else { return }

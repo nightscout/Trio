@@ -5,7 +5,9 @@ import Swinject
 extension DataTable {
     struct RootView: BaseView {
         let resolver: Resolver
-        @StateObject var state = StateModel()
+
+        @State var state = StateModel()
+
         @State private var isRemoveHistoryItemAlertPresented: Bool = false
         @State private var alertTitle: String = ""
         @State private var alertMessage: String = ""

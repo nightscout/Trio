@@ -1,5 +1,24 @@
 import Foundation
 
+extension UserDefaults {
+    private enum Keys {
+        static let liveActivityOrder = "liveActivityOrder"
+    }
+
+    func loadLiveActivityOrderFromUserDefaults() -> [LiveActivityAttributes.LiveActivityItem]? {
+        if let itemStrings = stringArray(forKey: Keys.liveActivityOrder) {
+            return itemStrings.map { string in
+                if string == "" {
+                    return .empty
+                } else {
+                    return LiveActivityAttributes.LiveActivityItem(rawValue: string) ?? .empty
+                }
+            }
+        }
+        return nil
+    }
+}
+
 extension LiveActivityAttributes.ContentState {
     static func formatGlucose(_ value: Int, units: GlucoseUnits, forceSign: Bool) -> String {
         let formatter = NumberFormatter()
@@ -43,7 +62,8 @@ extension LiveActivityAttributes.ContentState {
         chart: [GlucoseData],
         settings: FreeAPSSettings,
         determination: DeterminationData?,
-        override: OverrideData?
+        override: OverrideData?,
+        widgetItems: [LiveActivityAttributes.LiveActivityItem]?
     ) {
         let glucose = bg.glucose
         let formattedBG = Self.formatGlucose(Int(glucose), units: units, forceSign: false)
@@ -87,12 +107,15 @@ extension LiveActivityAttributes.ContentState {
                 chart: chartBG,
                 chartDate: chartDate,
                 rotationDegrees: rotationDegrees,
-                highGlucose: settings.high,
-                lowGlucose: settings.low,
                 cob: Decimal(determination?.cob ?? 0),
                 iob: determination?.iob ?? 0 as Decimal,
                 unit: settings.units.rawValue,
-                isOverrideActive: override?.isActive ?? false
+                isOverrideActive: override?.isActive ?? false,
+                overrideName: override?.overrideName ?? "Override",
+                overrideDate: override?.date ?? Date(),
+                overrideDuration: override?.duration ?? 0,
+                overrideTarget: override?.target ?? 0,
+                widgetItems: widgetItems ?? LiveActivityAttributes.LiveActivityItem.defaultItems
             )
 
         case .simple:
@@ -104,6 +127,10 @@ extension LiveActivityAttributes.ContentState {
             direction: trendString,
             change: change,
             date: bg.date,
+            highGlucose: settings.high,
+            lowGlucose: settings.low,
+            target: determination?.target ?? 100 as Decimal,
+            glucoseColorScheme: settings.glucoseColorScheme.rawValue,
             detailedViewState: detailedState,
             isInitialState: false
         )
