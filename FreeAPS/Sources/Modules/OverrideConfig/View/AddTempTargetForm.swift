@@ -7,11 +7,11 @@ struct AddTempTargetForm: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
     @State private var displayPickerDuration: Bool = false
+    @State private var displayPickerTarget: Bool = false
     @State private var selectedAdjustSens: enabledAdjustSens = .standard
     @State private var durationHours = 0
     @State private var durationMinutes = 0
     @State private var targetStep: Decimal = 5
-    @State private var displayPickerTarget: Bool = false
     @State private var showAlert = false
     @State private var showPresetAlert = false
     @State private var alertString = ""
@@ -122,7 +122,7 @@ struct AddTempTargetForm: View {
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                     }
                     .onTapGesture {
-                        displayPickerDuration.toggle()
+                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
                     }
 
                     if displayPickerDuration {
@@ -161,7 +161,7 @@ struct AddTempTargetForm: View {
                         .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
                 }
                 .onTapGesture {
-                    displayPickerTarget.toggle()
+                    displayPickerTarget = toggleScrollWheel(displayPickerTarget)
                 }
                 if displayPickerTarget {
                     HStack {
@@ -385,6 +385,12 @@ struct AddTempTargetForm: View {
 
         // Return the original target if no adjustment is needed
         return target
+    }
+
+    private func toggleScrollWheel(_ toggle: Bool) -> Bool {
+        displayPickerDuration = false
+        displayPickerTarget = false
+        return !toggle
     }
 
     func generateTargetPickerValues() -> [Decimal] {
