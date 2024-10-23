@@ -16,6 +16,7 @@ extension PreferencesEditor {
             subscribeSetting(\.units, on: $unitsIndex.map { $0 == 0 ? GlucoseUnits.mgdL : .mmolL }) {
                 unitsIndex = $0 == .mgdL ? 0 : 1
             } didSet: { [weak self] _ in
+                self?.provider.updateManagerUnits()
                 self?.provider.migrateUnits()
             }
 
