@@ -64,7 +64,7 @@ extension CGM {
                                             selectedVerboseHint =
                                                 AnyView(
                                                     Text(
-                                                        "Dexcom G5 \n\nDexcom G6/ONE \n\nDexcom G7/ONE+ \n\nDexcom Share \n\nFreestyle Libre \n\nFreestyle Libre Demo \n\nGlucose Simulator \n\nMedtronic Enlite \n\nNightscout \n\nxDrip4iOS."
+                                                        "● Dexcom G5 \n● Dexcom G6/ONE \n● Dexcom G7/ONE+ \n● Dexcom Share \n● Freestyle Libre \n● Freestyle Libre Demo \n● Glucose Simulator \n● Medtronic Enlite \n● Nightscout \n● xDrip4iOS."
                                                     )
                                                 )
                                             shouldDisplayHint.toggle()
