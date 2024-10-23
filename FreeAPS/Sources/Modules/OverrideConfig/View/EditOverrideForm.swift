@@ -335,7 +335,11 @@ struct EditOverrideForm: View {
                             get: { target ?? 100 },
                             set: { target = $0 }
                         ),
-                        options: settingsProvider.generatePickerValues(from: glucoseSetting, units: state.units, roundMinToStep: true),
+                        options: settingsProvider.generatePickerValues(
+                            from: glucoseSetting,
+                            units: state.units,
+                            roundMinToStep: true
+                        ),
                         units: state.units,
                         hasChanges: $hasChanges,
                         targetStep: $targetStep,
