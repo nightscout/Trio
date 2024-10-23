@@ -33,10 +33,10 @@ struct FreeAPSSettings: JSON, Equatable {
     var displayCalendarIOBandCOB: Bool = false
     var displayCalendarEmojis: Bool = false
     var glucoseBadge: Bool = false
-    var notificationsPump: Bool = false
-    var notificationsCgm: Bool = false
-    var notificationsCarb: Bool = false
-    var notificationsAlgorithm: Bool = false
+    var notificationsPump: Bool = true
+    var notificationsCgm: Bool = true
+    var notificationsCarb: Bool = true
+    var notificationsAlgorithm: Bool = true
     var glucoseNotificationsAlways: Bool = false
     var useAlarmSound: Bool = false
     var addSourceInfoToGlucoseNotifications: Bool = false

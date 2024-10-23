@@ -128,7 +128,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private func addAppBadge(glucose: Int?) {
         guard let glucose = glucose, settingsManager.settings.glucoseBadge else {
             DispatchQueue.main.async {
-                UIApplication.shared.applicationIconBadgeNumber = 0
+                UIApplication.shared.applicationIconBadgeNumber = -1
             }
             return
         }
@@ -147,7 +147,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
     private func notifyCarbsRequired(_ carbs: Int) {
         guard Decimal(carbs) >= settingsManager.settings.carbsRequiredThreshold,
-              settingsManager.settings.showCarbsRequiredBadge else { return }
+              settingsManager.settings.showCarbsRequiredBadge, settingsManager.settings.notificationsCarb else { return }
 
         var titles: [String] = []
 
@@ -552,6 +552,7 @@ extension BaseUserNotificationsManager: pumpNotificationObserver {
             typeMessage = .error
         } else {
             typeMessage = .warning
+            guard settingsManager.settings.notificationsPump else { return }
         }
         content.title = alert.contentTitle ?? "Unknown"
         content.body = alert.contentBody ?? "Unknown"
@@ -595,7 +596,7 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
         willPresent _: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        completionHandler([.banner, .badge, .sound])
+        completionHandler([.banner, .badge, .sound, .list])
     }
 
     func userNotificationCenter(

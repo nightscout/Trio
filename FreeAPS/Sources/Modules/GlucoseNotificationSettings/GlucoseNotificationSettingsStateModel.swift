@@ -9,10 +9,10 @@ extension GlucoseNotificationSettings {
         @Published var lowGlucose: Decimal = 0
         @Published var highGlucose: Decimal = 0
 
-        @Published var notificationsPump = false
-        @Published var notificationsCgm = false
-        @Published var notificationsCarb = false
-        @Published var notificationsAlgorithm = false
+        @Published var notificationsPump = true
+        @Published var notificationsCgm = true
+        @Published var notificationsCarb = true
+        @Published var notificationsAlgorithm = true
 
         var units: GlucoseUnits = .mgdL
 
