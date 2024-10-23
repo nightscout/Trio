@@ -37,13 +37,6 @@ struct AddOverrideForm: View {
             )
     }
 
-    private var formatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }
-
     var body: some View {
         NavigationView {
             List {
@@ -135,7 +128,7 @@ struct AddOverrideForm: View {
                             .pickerStyle(WheelPickerStyle())
                             .frame(maxWidth: .infinity)
                             .onChange(of: durationHours) {
-                                state.overrideDuration = Decimal(totalDurationInMinutes())
+                                state.overrideDuration = convertToMinutes(durationHours, durationMinutes)
                             }
 
                             Picker("Minutes", selection: $durationMinutes) {
@@ -146,7 +139,7 @@ struct AddOverrideForm: View {
                             .pickerStyle(WheelPickerStyle())
                             .frame(maxWidth: .infinity)
                             .onChange(of: durationMinutes) {
-                                state.overrideDuration = Decimal(totalDurationInMinutes())
+                                state.overrideDuration = convertToMinutes(durationHours, durationMinutes)
                             }
                         }
                         .listRowSeparator(.hidden, edges: .top)
@@ -506,11 +499,6 @@ struct AddOverrideForm: View {
         displayPickerDisableSmbSchedule = false
         displayPickerSmbMinutes = false
         return !toggle
-    }
-
-    private func totalDurationInMinutes() -> Int {
-        let durationTotal = (durationHours * 60) + durationMinutes
-        return max(0, durationTotal)
     }
 
     private func isOverrideInvalid() -> (Bool, String?) {
