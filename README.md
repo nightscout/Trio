@@ -63,7 +63,7 @@ Instructions in greater detail, but not Trio-specific:
 
 # Documentation
 
-[Discord Trio - Server ](https://discord.gg/KepAG6RdYZ)
+[Discord Trio - Server ](http://discord.diy-trio.org)
 
 [Trio documentation](https://docs.diy-trio.org/en/latest/)
 
