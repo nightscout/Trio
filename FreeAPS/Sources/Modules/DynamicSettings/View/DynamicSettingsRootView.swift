@@ -80,18 +80,18 @@ extension DynamicSettings {
 
                         Dynamic ISF allows Trio to calculate a new ISF with each loop cycle by considering your current blood glucose (BG), total daily dose (TDD) of insulin, and adjustment factor (AF). This helps tailor your insulin response more accurately in real-time. 
 
-                         Dynamic ISF calculates a Dynamic Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day.
+                        Dynamic ISF calculates a Dynamic Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day.
                         """)
                         Text("""
 
-                         Dynamic Ratio = profile.sens x AF x TDD x log (BG / insulinFactor + 1) / 1800
+                         Dynamic Ratio = Profile ISF × AF × TDD × (log(BG ÷ Insulin Factor + 1)) ÷ 1800
 
-                         New ISF = profile ISF / Dynamic Ratio
+                         New ISF = Profile ISF ÷ Dynamic Ratio
 
-                         insulinFactor = 120 - InsulinPeakTimeInMinutes
+                         Insulin Factor = 120 - Insulin Peak Time
                         """).italic()
                     },
-                    headerText: "Dynamic ISF (Sensitivity)"
+                    headerText: "Dynamic Settings"
                 )
 
                 if state.useNewFormula {
