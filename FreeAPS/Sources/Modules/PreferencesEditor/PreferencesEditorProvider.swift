@@ -1,8 +1,10 @@
 import Foundation
+import HealthKit
 
 extension PreferencesEditor {
     final class Provider: BaseProvider, PreferencesEditorProvider {
         @Injected() private var settingsManager: SettingsManager!
+        @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         private let processQueue = DispatchQueue(label: "PreferencesEditorProvider.processQueue")
 
         var preferences: Preferences {
@@ -15,6 +17,15 @@ extension PreferencesEditor {
                 prefs.timestamp = Date()
                 self.storage.save(prefs, as: OpenAPS.Settings.preferences)
             }
+        }
+
+        func updateManagerUnits() {
+            var manager = fetchGlucoseManager.cgmManager
+            let managerName = manager.map { "\(type(of: $0))" } ?? "nil"
+            let units = settingsManager.settings.units
+            let loopkitUnits: HKUnit = units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
+            print("manager: \(managerName) is changing units to: \(loopkitUnits.description) ")
+            manager?.unitDidChange(to: loopkitUnits)
         }
 
         func migrateUnits() {
