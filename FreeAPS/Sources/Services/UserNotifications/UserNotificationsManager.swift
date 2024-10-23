@@ -591,6 +591,8 @@ extension BaseUserNotificationsManager: BolusFailureObserver {
 }
 
 extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
+    static let shared = BaseUserNotificationsManager(resolver: FreeAPSApp.resolver)
+
     func userNotificationCenter(
         _: UNUserNotificationCenter,
         willPresent _: UNNotification,
