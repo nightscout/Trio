@@ -55,11 +55,11 @@ extension TargetBehavoir {
                         comment: "High Temp Target Raises Sensitivity"
                     ),
                     miniHint: """
-                        A Temp Target above 110 mg/dL increases sensitivity when glucose is above target
+                        Exercise Mode
                         Default: OFF
                         """,
                     verboseHint: VStack {
-                        Text("Exercise-mode").bold().italic()
+                        Text("Exercise Mode").bold().italic()
                         Text("Default: OFF").bold()
                         Text("""
                             
@@ -94,7 +94,7 @@ extension TargetBehavoir {
                         comment: "Low Temp Target Lowers Sensitivity"
                     ),
                     miniHint: """
-                        A Temp Target below 100 mg/dL decreases sensitivity when glucose is below target
+                        Eating Soon Mode
                         Default setting: OFF
                         """,
                     verboseHint: VStack {
@@ -102,9 +102,9 @@ extension TargetBehavoir {
                         Text("Default: OFF").bold()
                         Text("""
                             
-                            When this feature is enabled, setting a temporary target below 100 mg/dL will increase the autosens ratio used for ISF and basal adjustments, resulting in more insulin delivered overall. This scales with the temporary target set; the lower the temp target, the higher the autosens ratio used.
+                            When this feature is enabled, setting a temporary target below 100 mg/dL will increase the Autosens Ratio used for ISF and basal adjustments, resulting in more insulin delivered overall. This scales with the temporary target set; the lower the Temp Target, the higher the Autosens Ratio used.
                             
-                            If Half Basal Exercise Target is 160, a temp target of 95 mg/dL uses an autosens ratio of 1.09. A temp target of 85 mg/dL uses an autosens ratio of 1.33.
+                            If Half Basal Exercise Target is 160, a Temp Target of 95 mg/dL uses an Autosens Ratio of 1.09. A Temp Target of 85 mg/dL uses an Autosens Ratio of 1.33.
                             
                             """)
                         Text("The effect of this can be adjusted with the Half Basal Exercise Target").italic()
