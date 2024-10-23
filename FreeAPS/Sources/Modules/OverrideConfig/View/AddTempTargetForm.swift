@@ -419,35 +419,3 @@ struct AddTempTargetForm: View {
         return values
     }
 }
-
-func formatHrMin(_ durationInMinutes: Int) -> String {
-    let hours = durationInMinutes / 60
-    let minutes = durationInMinutes % 60
-
-    switch (hours, minutes) {
-    case let (0, m):
-        return "\(m) min"
-    case let (h, 0):
-        return "\(h) hr"
-    default:
-        return "\(hours) hr \(minutes) min"
-    }
-}
-
-struct RadioButton: View {
-    var isSelected: Bool
-    var label: String
-    var action: () -> Void
-
-    var body: some View {
-        Button(action: {
-            action()
-        }) {
-            HStack {
-                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
-                Text(label) // Add label inside the button to make it tappable
-            }
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
