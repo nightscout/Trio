@@ -69,10 +69,29 @@ extension DynamicSettings {
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Activate Dynamic Sensitivity (ISF)",
-                    miniHint: "Trio calculates insulin sensitivity (ISF) each loop cycle based on current blood sugar, daily insulin use, and an adjustment factor, within set limits.",
-                    verboseHint: Text("DynamicISF"),
-                    headerText: "Dynamic Insulin Sensitivity"
+                    label: "Activate Dynamic ISF (Sensitivity)",
+                    miniHint: """
+                    When enabled, Trio adjusts your Insulin Sensitivity Factor (ISF) automatically based on blood glucose, insulin use, and an adjustment factor
+                    Default: OFF
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: OFF").bold()
+                        Text("""
+
+                        Dynamic ISF allows Trio to calculate a new ISF with each loop cycle by considering your current blood glucose (BG), total daily dose (TDD) of insulin, and adjustment factor (AF). This helps tailor your insulin response more accurately in real-time. 
+
+                         Dynamic ISF calculates a Dynamic Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day.
+                        """)
+                        Text("""
+
+                         Dynamic Ratio = profile.sens x AF x TDD x log (BG / insulinFactor + 1) / 1800
+
+                         New ISF = profile ISF / Dynamic Ratio
+
+                         insulinFactor = 120 - InsulinPeakTimeInMinutes
+                        """).italic()
+                    },
+                    headerText: "Dynamic ISF (Sensitivity)"
                 )
 
                 if state.useNewFormula {
@@ -89,9 +108,23 @@ extension DynamicSettings {
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: "Activate Dynamic Carb Ratio (CR)",
-                        miniHint: "Similar to Dynamic Sensitivity, Trio calculates a dynamic carb ratio every loop cycle.",
-                        verboseHint: Text("Logarithmic Dynamic Insulin Sensitivity")
+                        label: "Activate Dynamic CR (Carb Ratio)",
+                        miniHint: """
+                        Automatically adjust your carb ratio (CR) based on insulin sensitivity and glucose levels
+                        Default: OFF
+                        """,
+                        verboseHint: VStack {
+                            Text("Default: OFF").bold()
+                            Text("""
+
+                            Dynamic CR adjusts your carb ratio in real-time, depending on your Dynamic Ratio. When this ratio increases (indicating you need more insulin), the carb ratio is adjusted to make your insulin dosing more effective. When the ratio decreases (indicating you need less insulin), the carb ratio is scaled back to avoid over-delivery.
+
+                            """)
+                            Text(
+                                "It’s recommended not to use this feature with a high Insulin Fraction (>2), as it can cause insulin dosing to become too aggressive."
+                            )
+                            .italic()
+                        }
                     )
 
                     SettingInputSection(
@@ -108,8 +141,28 @@ extension DynamicSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Use Sigmoid Formula",
-                        miniHint: "Alternative formula for dynamic ISF, that alters ISF based on distance from target BG",
-                        verboseHint: Text("Sigmoid  Dynamic Insulin Sensitivity")
+                        miniHint: """
+                        Alternative formula for Dynamic ISF (Sensitivity), that adjusts ISF based on distance from target BG using a sigmoid-shaped curve
+                        Default: OFF
+                        """,
+                        verboseHint: VStack {
+                            Text("Default: OFF").bold()
+                            Text("""
+
+                            Turning on the Sigmoid Formula setting changes how your Dynamic Ratio, and thus your New ISF and New Carb Ratio, are calculated using a sigmoid curve rather than the default logarithmic function. The curve's steepness is adjusted by the Adjustment Factor (AF), while the Autosens Min/Max settings determine the limits of the ratio adjustment. 
+
+                            When using the Sigmoid Formula, TDD has a much lower impact on the dynamic adjustments to sensitivity.
+
+                            Careful tuning is essential to avoid overly aggressive insulin changes.
+
+                            """)
+                            Text("""
+                            It’s recommended to not set Autosens Max above 1.5 to maintain safe insulin dosing.
+
+                            """).italic()
+                            Text("There has been no empirical data analysis to support the use of the Sigmoid Formula.").italic()
+                                .bold()
+                        }
                     )
 
                     if !state.sigmoid {
@@ -121,14 +174,25 @@ extension DynamicSettings {
                                 get: { selectedVerboseHint },
                                 set: {
                                     selectedVerboseHint = $0.map { AnyView($0) }
-                                    hintLabel = "Adjustment Factor"
+                                    hintLabel = "Adjustment Factor (AF)"
                                 }
                             ),
                             units: state.units,
                             type: .decimal("adjustmentFactor"),
-                            label: "Adjustment Factor",
-                            miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                            verboseHint: Text("Adjustment Factor for logarithmic dynamic sensitvity... bla bla bla")
+                            label: "Adjustment Factor (AF)",
+                            miniHint: """
+                            Fine-tune how aggressively your ISF changes in response to glucose fluctuations when using Dynamic ISF (logarithmic formula)
+                            Default: 80%
+                            """,
+                            verboseHint: VStack {
+                                Text("Default: 80%").bold()
+                                Text("""
+
+                                The Adjustment Factor (AF) allows you to control how aggressively your dynamic ISF responds to changes in blood glucose levels. A higher value means a stronger correction, increasing or decreasing the sensitivity of your insulin delivery to highs and lows in your glucose readings.
+
+                                """)
+                                Text("The maximum effect of this setting is limited by the Autosens Min/Max values.").italic()
+                            }
                         )
                     } else {
                         SettingInputSection(
@@ -145,8 +209,22 @@ extension DynamicSettings {
                             units: state.units,
                             type: .decimal("adjustmentFactorSigmoid"),
                             label: "Sigmoid Adjustment Factor",
-                            miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                            verboseHint: Text("Sigmoid Adjustment Factor… should be 0.5… bla bla ba")
+                            miniHint: """
+                            Fine-tune how aggressively your ISF changes in response to glucose fluctuations when using Sigmoid Formula for Dynamic ISF
+                            Default: 50%
+                            """,
+                            verboseHint: VStack {
+                                Text("Default: 50%").bold()
+                                Text("""
+
+                                The Sigmoid Adjustment Factor (AF) allows you to control how aggressively your Dynamic ISF using the Sigmoid Formula responds to changes in blood glucose levels. Higher values lead to stronger corrections for high or low blood glucose levels, making the curve steeper. This setting allows for a more responsive system, but like other dynamic settings, its effect is capped by the Autosens Min/Max limits.
+
+                                """)
+                                Text(
+                                    "Due to how the curve is calculated when using the Sigmoid Formula, increasing this setting has a greater impact on the steepness of the curve than in the standard logarithmic Dynamic ISF calculation. Use caution when adjusting this setting."
+                                )
+                                .italic()
+                            }
                         )
                     }
 
@@ -164,8 +242,17 @@ extension DynamicSettings {
                         units: state.units,
                         type: .decimal("weightPercentage"),
                         label: "Weighted Average of TDD",
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: Text("Weight of past 24 hours")
+                        miniHint: """
+                        The weight of the last 24 hours of total daily insulin dose (TDD) to calculate the Autosens Ratio used in Dynamic ISF and Dynamic CR
+                        Default: 65%
+                        """,
+                        verboseHint: VStack {
+                            Text("Default: 65%").bold()
+                            Text("""
+
+                            This setting adjusts how much weight is given to your recent total daily insulin dose (TDD) when calculating Dynamic ISF and Dynamic CR. At the default setting, 65% of the calculation is based on the last 24 hours of insulin use, with the remaining 35% considering the last 10 days of data. Setting this to 100% means only the past 24 hours will be used. A lower value smooths out these variations for more stability.
+                            """)
+                        }
                     )
 
                     SettingInputSection(
@@ -182,8 +269,31 @@ extension DynamicSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Adjust Basal",
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: Text("Adjust basal dynamically… bla bla")
+                        miniHint: """
+                        Replaces Autosens’s formula for adjusting basal rates, with a formula dependent on total daily dose (TDD) of insulin.
+                        Default: OFF
+                        """,
+                        verboseHint: VStack {
+                            Text("Default: OFF").bold()
+                            Text("""
+
+                            Turn this setting on to give basal adjustments more agility. Keep this setting off if your basal needs are not highly variable.
+
+                            Normally, a new basal rate is set by autosens:
+
+                            """)
+                            Text("New Basal Profile = (Current Basal Profile) x (Autosens Ratio)").italic()
+                            Text("""
+
+                            Adjust Basal replaces the standard Autosens Ratio calculation with its own Autosens Ratio calculated as such:
+
+                            """)
+                            Text("""
+                            Autosens Ratio = (Weighted Average of TDD)/(10-day Average of TDD)
+
+                            New basal profile = current basal profile * Autosens Ratio
+                            """).italic()
+                        }
                     )
 
                     SettingInputSection(
@@ -200,8 +310,24 @@ extension DynamicSettings {
                         units: state.units,
                         type: .decimal("threshold_setting"),
                         label: "Minimum Safety Threshold",
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: Text("Minimum Safety Threshold… bla bla bla")
+                        miniHint: """
+                        This gives you the ability to increase the threshold in which insulin delivery stops.
+                        Default: (Set by Algorithm)
+                        """,
+                        verboseHint: VStack {
+                            Text("Default: Set by Algorithm").bold()
+                            Text("""
+
+                            Minimum Threshold Setting is determined by your set Target Glucose. This threshold automatically suspends insulin delivery if your glucose levels are forecasted to fall below this value. It’s designed to protect against hypoglycemia, particularly during sleep or other vulnerable times.
+
+                            If your glucose target is 110 mg/dL, Trio will use a safety threshold of 75 mg/dL, unless you set Minimum Safety Threshold (mg/dL) to something > 75.
+
+                            If you leave Minimum Safety Threshold at the default, then it will use the safety threshold calculated by the algorithm that depends on your target. The lower you set your target, the lower the safety threshold will get set. If you don't want to allow it to set your safety threshold below a certain value, you can raise Minimum Safety Threshold to a higher value using this setting.
+
+                            """)
+                            Text("Basal may be resumed if there's negative IOB and glucose is rising faster than the forecast.")
+                                .italic()
+                        }
                     )
                 }
             }

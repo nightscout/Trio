@@ -70,8 +70,8 @@ extension AutotuneConfig {
                     units: state.units,
                     type: .boolean,
                     label: "Use Autotune",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text("Autotune… bla bla bla"),
+                    miniHint: "It is not advised to use Autotune with Trio",
+                    verboseHint: Text("It is not advised to use Autotune with Trio"),
                     headerText: "Data-driven Adjustments"
                 )
 
@@ -90,8 +90,8 @@ extension AutotuneConfig {
                         units: state.units,
                         type: .boolean,
                         label: "Only Autotune Basal Insulin",
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: Text("Only Autotune Basal Insulin… bla bla bla")
+                        miniHint: "Restricts Autotune adjustments to only basal settings",
+                        verboseHint: Text("Restricts Autotune adjustments to only basal settings.")
                     )
                 }
 

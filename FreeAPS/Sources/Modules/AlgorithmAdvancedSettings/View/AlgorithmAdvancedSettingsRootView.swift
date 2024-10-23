@@ -60,13 +60,23 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("maxDailySafetyMultiplier"),
                     label: NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.",
-                            comment: "Max Daily Safety Multiplier"
-                        )
-                    )
+                    miniHint: """
+                        Temporary basal rates cannot be set higher than this percentage of your LARGEST profile basal rate
+                        Default setting: 300%
+                        """,
+                    verboseHint: VStack {
+                        Text("Default: 300%").bold()
+                        Text("""
+                            
+                            This limits the automatic adjustment of the temporary basal rate to this value times the highest scheduled basal rate in your basal profile.
+                            
+                            """)
+                        Text("If Autotune is enabled, Trio uses Autotune basals instead of scheduled basals.").italic()
+                        Text("""
+                            
+                            Increasing this setting is not advised.
+                            """).bold().italic()
+                    }
                 )
 
                 SettingInputSection(
@@ -86,13 +96,23 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("currentBasalSafetyMultiplier"),
                     label: NSLocalizedString("Current Basal Safety Multiplier", comment: "Current Basal Safety Multiplier"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "This is another important OpenAPS safety limit. The default setting (which is also unlikely to need adjusting) is 4. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 4x the current hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune.",
-                            comment: "Current Basal Safety Multiplier"
-                        )
-                    )
+                    miniHint: """
+                        Temporary basal rates cannot be set higher than this percentage of the profile basal rate at the time of the loop cycle
+                        Default: 400%
+                        """,
+                    verboseHint: VStack {
+                        Text("Default: 400%").bold()
+                        Text("""
+                            
+                            This limits the automatic adjustment of the temporary basal rate to this percentage of the current hourly basal rate at the time of the loop cycle.
+                            
+                            """)
+                        Text("If Autotune is enabled, Trio uses Autotune basals instead of scheduled basals.").italic()
+                        Text("""
+                            
+                            Increasing this setting is not advised.
+                            """).bold().italic()
+                    }
                 )
 
                 SettingInputSection(
@@ -109,8 +129,19 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("dia"),
                     label: "Duration of Insulin Action",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text("Duration of Insulin Action… bla bla bla")
+                    miniHint: """
+                        Number of hours insulin will be active in your body
+                        Default: 6 hours
+                        """,
+                    verboseHint: VStack {
+                        Text("Default: 6 hours").bold()
+                        Text("""
+                            
+                            Number of hours insulin will contribute to IOB after dosing.
+                            
+                            """)
+                        Text("It is better to use Custom Peak Timing rather than adjust your Duration of Insulin Action (DIA)").italic()
+                    }
                 )
 
                 SettingInputSection(
@@ -128,13 +159,21 @@ extension AlgorithmAdvancedSettings {
                     type: .conditionalDecimal("insulinPeakTime"),
                     label: NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time"),
                     conditionalLabel: NSLocalizedString("Insulin Peak Time", comment: "Insulin Peak Time"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text(NSLocalizedString(
-                        "Defaults to false. Setting to true allows changing insulinPeakTime", comment: "Use Custom Peak Time"
-                    ) + NSLocalizedString(
-                        "Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops.",
-                        comment: "Insulin Peak Time"
-                    ))
+                    miniHint: """
+                        Time that insulin effect is at it’s highest. Set in minutes since injection.
+                        Default: (Set by Insulin Type)
+                        """,
+                    verboseHint: VStack {
+                        Text("Default: Set by Insulin Type").bold()
+                        Text("""
+                            
+                            Time of maximum glucose lowering effect of insulin. Set in minutes since insulin administration.
+                            
+                            System-Determined Defaults:
+                            Ultra-Rapid: 55 minutes (permitted range 35-100 minutes)
+                            Rapid-Acting: 75 minutes (permitted range 50-120 minutes)
+                            """)
+                    }
                 )
 
                 SettingInputSection(
@@ -151,13 +190,19 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "Defaults to false, so that Trio will set temps whenever it can, so it will be easier to see if the system is working, even when you are offline. This means Trio will set a “neutral” temp (same as your default basal) if no adjustments are needed. This is an old setting for OpenAPS to have the options to minimise sounds and notifications from the 'rig', that may wake you up during the night.",
-                            comment: "Skip Neutral Temps"
-                        )
-                    )
+                    miniHint: """
+                        When on, Trio will not send a temp basal command to the pump if the determined basal rate is the same as the scheduled basal
+                        Default: OFF
+                        """,
+                    verboseHint: VStack {
+                        Text("Default: OFF").bold()
+                        Text("""
+                            
+                            When enabled, Trio will skip neutral temp basals (those that are the same as your default basal), if no adjustments are needed. 
+                            
+                            When off, Trio will set temps whenever it can, so it will be easier to see if the system is working.
+                            """)
+                    }
                 )
 
                 SettingInputSection(
@@ -174,13 +219,19 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Unsuspend If No Temp", comment: "Unsuspend If No Temp"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended.",
-                            comment: "Unsuspend If No Temp"
-                        )
-                    )
+                    miniHint: """
+                        Automatically resume your insulin pump if you forget to unsuspend it after a zero temp basal expires
+                        Default: OFF
+                        """,
+                    verboseHint: VStack {
+                        Text("Default: OFF").bold()
+                        Text("""
+                            
+                            Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended.
+                            
+                            """)
+                        Text("Applies only to pumps with manual suspend options").italic()
+                    }
                 )
 
                 SettingInputSection(
@@ -197,13 +248,19 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Suspend Zeros IOB", comment: "Suspend Zeros IOB"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "Default is false. Any existing temp basals during times the pump was suspended will be deleted and 0 temp basals to negate the profile basal rates during times pump is suspended will be added.",
-                            comment: "Suspend Zeros IOB"
-                        )
-                    )
+                    miniHint: """
+                        Replaces any enacted temp basals prior to a pump suspend with a zero temp basal
+                        Default: OFF
+                        """,
+                    verboseHint: VStack {
+                        Text("Default: OFF").bold()
+                        Text("""
+                            
+                            Any existing temp basals during times the pump was suspended will be deleted and zero temp basals to negate the profile basal rates during times pump is suspended will be added.
+                            
+                            """)
+                        Text("Applies to only to pumps with manual suspend options").italic()
+                    }
                 )
 
                 SettingInputSection(
@@ -223,7 +280,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("autotuneISFAdjustmentFraction"),
                     label: NSLocalizedString("Autotune ISF Adjustment Fraction", comment: "Autotune ISF Adjustment Fraction"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    miniHint: "Using Autotune is not advised",
                     verboseHint: Text(
                         NSLocalizedString(
                             "The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF.",
@@ -246,13 +303,21 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("min5mCarbimpact"),
                     label: NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "This is a setting for default carb absorption impact per 5 minutes. The default is an expected 8 mg/dL/5min. This affects how fast COB is decayed in situations when carb absorption is not visible in BG deviations. The default of 8 mg/dL/5min corresponds to a minimum carb absorption rate of 24g/hr at a CSF of 4 mg/dL/g.",
-                            comment: "Min 5m Carbimpact"
-                        )
-                    )
+                    miniHint: """
+                        Set the default rate of carb absorption when no clear impact on blood glucose is visible
+                        Default: 8 mg/dL/5min
+                        """,
+                    verboseHint: VStack {
+                        Text("Default: 8 mg/dL/5 min").bold()
+                        Text("""
+                            
+                            The Min 5m Carbimpact setting determines the default expected glucose rise (in mg/dL) over a 5-minute period from carbs when the system cannot detect clear absorption from your blood glucose levels. 
+                            
+                            The default value of 8 mg/dL per 5 minutes corresponds to an absorption rate of 24g of carbs per hour. 
+                            
+                            This setting helps the system estimate how much glucose your body is absorbing, even when it’s not immediately visible in your glucose data, ensuring more accurate insulin dosing during carb absorption.
+                            """)
+                    }
                 )
 
                 SettingInputSection(

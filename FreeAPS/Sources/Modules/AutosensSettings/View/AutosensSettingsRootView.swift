@@ -48,16 +48,26 @@ extension AutosensSettings {
                     units: state.units,
                     type: .decimal("autosensMax"),
                     label: NSLocalizedString("Autosens Max", comment: "Autosens Max"),
-                    miniHint:  """
+                    miniHint: """
                     The higher limit of the Autosens Ratio
-                    Default: **120%**
+                    Default: 120%
                     """,
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, Sigmoid Formula, and/or Autotune. The Autosens Ratio is used to calculate the amount of adjustment needed to basals, ISF, and CR. Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower. This can result in more insulin given.",
-                            comment: "Autosens Max"
+                    verboseHint: VStack {
+                        Text("Default: 120%").bold()
+                        Text(
+                            """
+
+                            Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, Sigmoid Formula, and/or Autotune.
+
+                            The Autosens Ratio is used to calculate the amount of adjustment needed to basals, ISF, and CR.
+
+                            """
                         )
-                    ),
+                        Text(
+                            "Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower."
+                        )
+                        .italic()
+                    },
                     headerText: "Glucose Deviations Algorithm"
                 )
 
@@ -77,16 +87,24 @@ extension AutosensSettings {
                     label: NSLocalizedString("Autosens Min", comment: "Autosens Min"),
                     miniHint: """
                     The lower limit of the Autosens Ratio
-                    Default: **80%**
+                    Default: 80%
                     """,
-                    verboseHint: Text(NSLocalizedString(
-                        """
-                        Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, Sigmoid Formula, and/or Autotune. 
-                        The Autosens Ratio is used to calculate the amount of adjustment needed to basals, ISF, and CR.
-                        Decreasing this value allows automatic adjustments of basal rates to be lower, ISF to be higher, and CR to be higher.
-                        """,
-                        comment: "Autosens Min")
-                    )
+                    verboseHint: VStack {
+                        Text("Default: 80%").bold()
+                        Text(
+                            """
+
+                            Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, Sigmoid Formula, and/or Autotune.
+
+                            The Autosens Ratio is used to calculate the amount of adjustment needed to basals, ISF, and CR.
+
+                            """
+                        )
+                        Text(
+                            "Decreasing this value allows automatic adjustments of basal rates to be lower, ISF to be higher, and CR to be higher."
+                        )
+                        .italic()
+                    }
                 )
 
                 SettingInputSection(
@@ -103,13 +121,27 @@ extension AutosensSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Rewind Resets Autosens", comment: "Rewind Resets Autosens"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "This feature, enabled by default, resets the autosens ratio to neutral when you rewind your pump, on the assumption that this corresponds to a probable site change. Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours. If you usually rewind your pump independently of site changes, you may want to consider disabling this feature.",
-                            comment: "Rewind Resets Autosens"
+                    miniHint: """
+                    Pump rewind initiates a reset in Autosens Ratio
+                    Default: ON
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: ON").bold()
+                        Text("""
+                        Medtronic Users Only
+                        """).bold().italic()
+                        Text("""
+
+                        This feature resets the Autosens Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change.
+
+                        Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours.
+
+                        """)
+                        Text(
+                            "If you usually rewind your pump independently of site changes, you may want to consider disabling this feature."
                         )
-                    )
+                        .italic()
+                    }
                 )
             }
             .sheet(isPresented: $shouldDisplayHint) {
