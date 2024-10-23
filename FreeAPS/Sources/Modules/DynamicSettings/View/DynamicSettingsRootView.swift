@@ -84,11 +84,11 @@ extension DynamicSettings {
                         """)
                         Text("""
 
-                         Dynamic Ratio = Profile ISF × AF × TDD × (log(BG ÷ Insulin Factor + 1)) ÷ 1800
+                         Dynamic Ratio = (Profile ISF) × AF × TDD × (log(BG ÷ (Insulin Factor) + 1)) ÷ 1800
 
-                         New ISF = Profile ISF ÷ Dynamic Ratio
+                         New ISF = (Profile ISF) ÷ (Dynamic Ratio)
 
-                         Insulin Factor = 120 - Insulin Peak Time
+                         Insulin Factor = 120 - (Insulin Peak Time)
                         """).italic()
                     },
                     headerText: "Dynamic Settings"
@@ -157,10 +157,10 @@ extension DynamicSettings {
 
                             """)
                             Text("""
-                            It’s recommended to not set Autosens Max above 1.5 to maintain safe insulin dosing.
+                            It is not recommended to set Autosens Max above 150% to maintain safe insulin dosing.
 
                             """).italic()
-                            Text("There has been no empirical data analysis to support the use of the Sigmoid Formula.").italic()
+                            Text("There has been no empirical data analysis to support the use of the Sigmoid Formula for dynamic sensitivity determination.").italic()
                                 .bold()
                         }
                     )
@@ -289,9 +289,9 @@ extension DynamicSettings {
 
                             """)
                             Text("""
-                            Autosens Ratio = (Weighted Average of TDD)/(10-day Average of TDD)
+                            Autosens Ratio = (Weighted Average of TDD) ÷ (10-day Average of TDD)
 
-                            New basal profile = current basal profile * Autosens Ratio
+                            New Basal Profile = (Current Basal Profile) × (Autosens Ratio)
                             """).italic()
                         }
                     )
