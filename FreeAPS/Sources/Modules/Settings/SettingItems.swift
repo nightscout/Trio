@@ -175,6 +175,12 @@ enum SettingItems {
             path: ["Features", "Shortcuts"]
         ),
         SettingItem(
+            title: "Remote Control",
+            view: .remoteControlConfig,
+            searchContents: ["Remote Control"],
+            path: ["Features", "Remote Control"]
+        ),
+        SettingItem(
             title: "User Interface",
             view: .userInterfaceSettings,
             searchContents: [

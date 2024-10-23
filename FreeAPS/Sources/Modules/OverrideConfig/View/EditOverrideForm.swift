@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 
 struct EditOverrideForm: View {
+    @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
     @ObservedObject var override: OverrideStored
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
@@ -294,7 +295,9 @@ struct EditOverrideForm: View {
                         guard let moc = override.managedObjectContext else { return }
                         guard moc.hasChanges else { return }
                         try moc.save()
-
+                        Task {
+                            await nightscoutManager.uploadProfiles()
+                        }
                         if let currentActiveOverride = state.currentActiveOverride {
                             Task {
                                 await state.disableAllActiveOverrides(

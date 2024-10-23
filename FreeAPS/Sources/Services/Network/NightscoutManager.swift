@@ -19,6 +19,7 @@ protocol NightscoutManager: GlucoseSource {
     func uploadProfiles() async
     func importSettings() async -> ScheduledNightscoutProfile?
     var cgmURL: URL? { get }
+    func uploadNoteTreatment(note: String) async
 }
 
 final class BaseNightscoutManager: NightscoutManager, Injectable {
@@ -36,6 +37,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() private var reachabilityManager: ReachabilityManager!
     @Injected() var healthkitManager: HealthKitManager!
 
+    private let uploadOverridesSubject = PassthroughSubject<Void, Never>()
     private let processQueue = DispatchQueue(label: "BaseNetworkManager.processQueue")
     private var ping: TimeInterval?
 
@@ -95,6 +97,16 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
             .store(in: &subscriptions)
 
+        uploadOverridesSubject
+            .debounce(for: .seconds(1), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] in
+                guard let self = self else { return }
+                Task {
+                    await self.uploadOverrides()
+                }
+            }
+            .store(in: &subscriptions)
+
         registerHandlers()
         setupNotification()
     }
@@ -116,17 +128,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task.detached {
-                await self.uploadOverrides()
-            }
+            self?.uploadOverridesSubject.send()
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("OverrideRunStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task.detached {
-                await self.uploadOverrides()
-            }
+            self?.uploadOverridesSubject.send()
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
@@ -619,13 +625,25 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 let defaultProfile = "default"
 
                 let now = Date()
+
+                let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
+                let deviceToken = UserDefaults.standard.string(forKey: "deviceToken") ?? ""
+                let isAPNSProduction = UserDefaults.standard.bool(forKey: "isAPNSProduction")
+                let presetOverrides = await overridesStorage.getPresetOverridesForNightscout()
+                let teamID = Bundle.main.object(forInfoDictionaryKey: "TeamID") as? String ?? ""
+
                 let profileStore = NightscoutProfileStore(
                     defaultProfile: defaultProfile,
                     startDate: now,
                     mills: Int(now.timeIntervalSince1970) * 1000,
                     units: nsUnits,
                     enteredBy: NightscoutTreatment.local,
-                    store: [defaultProfile: scheduledProfile]
+                    store: [defaultProfile: scheduledProfile],
+                    bundleIdentifier: bundleIdentifier,
+                    deviceToken: deviceToken,
+                    isAPNSProduction: isAPNSProduction,
+                    overridePresets: presetOverrides,
+                    teamID: teamID
                 )
 
                 guard let nightscout = nightscoutAPI, isNetworkReachable else {
@@ -942,6 +960,23 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
                 )
             }
+        }
+    }
+
+    func uploadNoteTreatment(note: String) async {
+        let uploadedNotes = storage.retrieve(OpenAPS.Nightscout.uploadedNotes, as: [NightscoutTreatment].self) ?? []
+        let now = Date()
+
+        if uploadedNotes.last?.notes != note || (uploadedNotes.last?.createdAt ?? .distantPast) != now {
+            let noteTreatment = NightscoutTreatment(
+                eventType: .nsNote,
+                createdAt: now,
+                enteredBy: NightscoutTreatment.local,
+                notes: note,
+                targetTop: nil,
+                targetBottom: nil
+            )
+            await uploadTreatments([noteTreatment], fileToSave: OpenAPS.Nightscout.uploadedNotes)
         }
     }
 }

@@ -67,6 +67,22 @@ extension NightscoutConfig {
             importedInsulinActionCurve = pumpSettings.insulinActionCurve
 
             isConnectedToNS = nightscoutAPI != nil
+
+            $isUploadEnabled
+                .dropFirst()
+                .removeDuplicates()
+                .sink { [weak self] enabled in
+                    guard let self = self else { return }
+                    if enabled {
+                        debug(.nightscout, "Upload has been enabled by the user.")
+                        Task {
+                            await self.nightscoutManager.uploadProfiles()
+                        }
+                    } else {
+                        debug(.nightscout, "Upload has been disabled by the user.")
+                    }
+                }
+                .store(in: &lifetime)
         }
 
         func connect() {
