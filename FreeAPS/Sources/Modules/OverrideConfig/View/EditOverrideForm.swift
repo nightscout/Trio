@@ -44,7 +44,7 @@ struct EditOverrideForm: View {
         _indefinite = State(initialValue: overrideToEdit.indefinite)
         _duration = State(initialValue: overrideToEdit.duration?.decimalValue ?? 0)
         _target = State(initialValue: overrideToEdit.target?.decimalValue)
-        _target_override = State(initialValue: overrideToEdit.target?.decimalValue != 0)
+        _target_override = State(initialValue: overrideToEdit.target != nil && overrideToEdit.target?.decimalValue != 0)
         _advancedSettings = State(initialValue: overrideToEdit.advancedSettings)
         _smbIsOff = State(initialValue: overrideToEdit.smbIsOff)
         _smbIsScheduledOff = State(initialValue: overrideToEdit.smbIsScheduledOff)
@@ -346,6 +346,11 @@ struct EditOverrideForm: View {
                         displayPickerTarget: $displayPickerTarget,
                         toggleScrollWheel: toggleScrollWheel
                     )
+                    .onAppear {
+                        if target == 0 || target == nil {
+                            target = 100
+                        }
+                    }
                 }
             }
             .listRowBackground(Color.chart)
@@ -606,7 +611,7 @@ struct EditOverrideForm: View {
         override.percentage = percentage
         override.indefinite = indefinite
         override.duration = NSDecimalNumber(decimal: duration)
-        override.target = NSDecimalNumber(decimal: target ?? 100)
+        override.target = target_override ? NSDecimalNumber(decimal: target ?? 100) : nil
         override.advancedSettings = advancedSettings
         override.smbIsOff = smbIsOff
         override.smbIsScheduledOff = smbIsScheduledOff
