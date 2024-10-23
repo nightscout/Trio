@@ -44,7 +44,7 @@ struct EditOverrideForm: View {
         _indefinite = State(initialValue: overrideToEdit.indefinite)
         _duration = State(initialValue: overrideToEdit.duration?.decimalValue ?? 0)
         _target = State(initialValue: overrideToEdit.target?.decimalValue)
-        _target_override = State(initialValue: overrideToEdit.target?.decimalValue != 0)
+        _target_override = State(initialValue: overrideToEdit.target != nil && overrideToEdit.target?.decimalValue != 0)
         _advancedSettings = State(initialValue: overrideToEdit.advancedSettings)
         _smbIsOff = State(initialValue: overrideToEdit.smbIsOff)
         _smbIsScheduledOff = State(initialValue: overrideToEdit.smbIsScheduledOff)
@@ -188,7 +188,7 @@ struct EditOverrideForm: View {
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                     }
                     .onTapGesture {
-                        displayPickerDuration.toggle()
+                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
                     }
 
                     if displayPickerDuration {
@@ -249,7 +249,7 @@ struct EditOverrideForm: View {
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
                 }
                 .onTapGesture {
-                    displayPickerPercentage.toggle()
+                    displayPickerPercentage = toggleScrollWheel(displayPickerPercentage)
                 }
 
                 if displayPickerPercentage {
@@ -327,17 +327,30 @@ struct EditOverrideForm: View {
                 }
                 // Target Glucose Picker
                 if target_override {
+                    let settingsProvider = PickerSettingsProvider.shared
+                    let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 72, max: 270, type: .glucose)
                     TargetPicker(
                         label: "Target Glucose",
                         selection: Binding(
                             get: { target ?? 100 },
                             set: { target = $0 }
                         ),
-                        options: generateTargetPickerValues(),
+                        options: settingsProvider.generatePickerValues(
+                            from: glucoseSetting,
+                            units: state.units,
+                            roundMinToStep: true
+                        ),
                         units: state.units,
                         hasChanges: $hasChanges,
-                        targetStep: $targetStep
+                        targetStep: $targetStep,
+                        displayPickerTarget: $displayPickerTarget,
+                        toggleScrollWheel: toggleScrollWheel
                     )
+                    .onAppear {
+                        if target == 0 || target == nil {
+                            target = 100
+                        }
+                    }
                 }
             }
             .listRowBackground(Color.chart)
@@ -391,7 +404,7 @@ struct EditOverrideForm: View {
                         .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
                     }
                     .onTapGesture {
-                        displayPickerDisableSmbSchedule.toggle()
+                        displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
                     }
 
                     if displayPickerDisableSmbSchedule {
@@ -469,7 +482,7 @@ struct EditOverrideForm: View {
                                 .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
                         }
                         .onTapGesture {
-                            displayPickerSmbMinutes.toggle()
+                            displayPickerSmbMinutes = toggleScrollWheel(displayPickerSmbMinutes)
                         }
 
                         if displayPickerSmbMinutes {
@@ -599,7 +612,7 @@ struct EditOverrideForm: View {
         override.percentage = percentage
         override.indefinite = indefinite
         override.duration = NSDecimalNumber(decimal: duration)
-        override.target = NSDecimalNumber(decimal: target ?? 100)
+        override.target = target_override ? NSDecimalNumber(decimal: target ?? 100) : nil
         override.advancedSettings = advancedSettings
         override.smbIsOff = smbIsOff
         override.smbIsScheduledOff = smbIsScheduledOff
@@ -631,36 +644,13 @@ struct EditOverrideForm: View {
         uamMinutes = override.uamMinutes?.decimalValue ?? state.defaultUamMinutes
     }
 
-    func generateTargetPickerValues() -> [Decimal] {
-        var values: [Decimal] = []
-        var currentValue: Double = 72
-        let step = Double(targetStep)
-
-        // Adjust currentValue to be divisible by targetStep
-        let remainder = currentValue.truncatingRemainder(dividingBy: step)
-        if remainder != 0 {
-            // Move currentValue up to the next value divisible by targetStep
-            currentValue += (step - remainder)
-        }
-
-        // Now generate the picker values starting from currentValue
-        while currentValue <= 270 {
-            values.append(Decimal(currentValue))
-            currentValue += step
-        }
-
-        // Glucose values are stored as mg/dl values, so Integers.
-        // Filter out duplicate values when rounded to 1 decimal place.
-        if state.units == .mmolL {
-            // Use a Set to track unique values rounded to 1 decimal
-            var uniqueRoundedValues = Set<String>()
-            values = values.filter { value in
-                let roundedValue = String(format: "%.1f", NSDecimalNumber(decimal: value.asMmolL).doubleValue)
-                return uniqueRoundedValues.insert(roundedValue).inserted
-            }
-        }
-
-        return values
+    private func toggleScrollWheel(_ toggle: Bool) -> Bool {
+        displayPickerDuration = false
+        displayPickerPercentage = false
+        displayPickerTarget = false
+        displayPickerDisableSmbSchedule = false
+        displayPickerSmbMinutes = false
+        return !toggle
     }
 }
 
@@ -671,7 +661,8 @@ struct TargetPicker: View {
     let units: GlucoseUnits
     @Binding var hasChanges: Bool
     @Binding var targetStep: Decimal
-    @State private var isDisplayed: Bool = false
+    @Binding var displayPickerTarget: Bool
+    var toggleScrollWheel: (_ picker: Bool) -> Bool
 
     var body: some View {
         HStack {
@@ -680,12 +671,12 @@ struct TargetPicker: View {
             Text(
                 (units == .mgdL ? selection.description : selection.formattedAsMmolL) + " " + units.rawValue
             )
-            .foregroundColor(!isDisplayed ? .primary : .accentColor)
+            .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
         }
         .onTapGesture {
-            isDisplayed.toggle()
+            displayPickerTarget = toggleScrollWheel(displayPickerTarget)
         }
-        if isDisplayed {
+        if displayPickerTarget {
             HStack {
                 // Radio buttons and text on the left side
                 VStack(alignment: .leading) {

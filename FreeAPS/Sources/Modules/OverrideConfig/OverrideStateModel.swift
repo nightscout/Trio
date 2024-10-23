@@ -972,3 +972,116 @@ extension OverrideConfig.StateModel: SettingsObserver {
         }
     }
 }
+
+extension PickerSettingsProvider {
+    func generatePickerValues(from setting: PickerSetting, units: GlucoseUnits, roundMinToStep: Bool) -> [Decimal] {
+        if !roundMinToStep {
+            return generatePickerValues(from: setting, units: units)
+        }
+
+        // Adjust min to be divisible by step
+        var newSetting = setting
+        var min = Double(newSetting.min)
+        let step = Double(newSetting.step)
+        let remainder = min.truncatingRemainder(dividingBy: step)
+        if remainder != 0 {
+            // Move min up to the next value divisible by targetStep
+            min += (step - remainder)
+        }
+
+        newSetting.min = Decimal(min)
+
+        return generatePickerValues(from: newSetting, units: units)
+    }
+}
+
+enum IsfAndOrCrOptions: String, CaseIterable {
+    case isfAndCr = "ISF/CR"
+    case isf = "ISF"
+    case cr = "CR"
+    case nothing = "None"
+}
+
+enum DisableSmbOptions: String, CaseIterable {
+    case dontDisable = "Don't Disable"
+    case disable = "Disable"
+    case disableOnSchedule = "Disable on Schedule"
+}
+
+func percentageDescription(_ percent: Double) -> Text? {
+    if percent.isNaN || percent == 100 { return nil }
+
+    var description: String = "Insulin doses will be "
+
+    if percent < 100 {
+        description += "decreased by "
+    } else {
+        description += "increased by "
+    }
+
+    let deviationFrom100 = abs(percent - 100)
+    description += String(format: "%.0f% %.", deviationFrom100)
+
+    return Text(description)
+}
+
+// Function to check if the phone is using 24-hour format
+func is24HourFormat() -> Bool {
+    let formatter = DateFormatter()
+    formatter.locale = Locale.current
+    formatter.dateStyle = .none
+    formatter.timeStyle = .short
+    let dateString = formatter.string(from: Date())
+
+    return !dateString.contains("AM") && !dateString.contains("PM")
+}
+
+// Helper function to convert hours to AM/PM format
+func convertTo12HourFormat(_ hour: Int) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "h a"
+
+    // Create a date from the hour and format it to AM/PM
+    let calendar = Calendar.current
+    let components = DateComponents(hour: hour)
+    let date = calendar.date(from: components) ?? Date()
+
+    return formatter.string(from: date)
+}
+
+// Helper function to format 24-hour numbers as two digits
+func format24Hour(_ hour: Int) -> String {
+    String(format: "%02d", hour)
+}
+
+func formatHrMin(_ durationInMinutes: Int) -> String {
+    let hours = durationInMinutes / 60
+    let minutes = durationInMinutes % 60
+
+    switch (hours, minutes) {
+    case let (0, m):
+        return "\(m) min"
+    case let (h, 0):
+        return "\(h) hr"
+    default:
+        return "\(hours) hr \(minutes) min"
+    }
+}
+
+struct RadioButton: View {
+    var isSelected: Bool
+    var label: String
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            action()
+        }) {
+            HStack {
+                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                Text(label) // Add label inside the button to make it tappable
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}

@@ -122,7 +122,7 @@ struct AddOverrideForm: View {
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                     }
                     .onTapGesture {
-                        displayPickerDuration.toggle()
+                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
                     }
 
                     if displayPickerDuration {
@@ -164,7 +164,7 @@ struct AddOverrideForm: View {
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
                 }
                 .onTapGesture {
-                    displayPickerPercentage.toggle()
+                    displayPickerPercentage = toggleScrollWheel(displayPickerPercentage)
                 }
 
                 if displayPickerPercentage {
@@ -251,7 +251,7 @@ struct AddOverrideForm: View {
                         .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
                     }
                     .onTapGesture {
-                        displayPickerTarget.toggle()
+                        displayPickerTarget = toggleScrollWheel(displayPickerTarget)
                     }
 
                     if displayPickerTarget {
@@ -279,12 +279,18 @@ struct AddOverrideForm: View {
                             Spacer()
 
                             // Picker on the right side
+                            let settingsProvider = PickerSettingsProvider.shared
+                            let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 72, max: 270, type: .glucose)
                             Picker(selection: Binding(
                                 get: { OverrideConfig.StateModel.roundTargetToStep(state.target, targetStep) },
                                 set: { state.target = $0 }
                             ), label: Text("")) {
                                 ForEach(
-                                    generateTargetPickerValues(),
+                                    settingsProvider.generatePickerValues(
+                                        from: glucoseSetting,
+                                        units: state.units,
+                                        roundMinToStep: true
+                                    ),
                                     id: \.self
                                 ) { glucose in
                                     Text(
@@ -348,7 +354,7 @@ struct AddOverrideForm: View {
                         Spacer()
                     }
                     .onTapGesture {
-                        displayPickerDisableSmbSchedule.toggle()
+                        displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
                     }
 
                     if displayPickerDisableSmbSchedule {
@@ -407,7 +413,7 @@ struct AddOverrideForm: View {
                                 .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
                         }
                         .onTapGesture {
-                            displayPickerSmbMinutes.toggle()
+                            displayPickerSmbMinutes = toggleScrollWheel(displayPickerSmbMinutes)
                         }
 
                         if displayPickerSmbMinutes {
@@ -493,6 +499,15 @@ struct AddOverrideForm: View {
         }
     }
 
+    private func toggleScrollWheel(_ toggle: Bool) -> Bool {
+        displayPickerDuration = false
+        displayPickerPercentage = false
+        displayPickerTarget = false
+        displayPickerDisableSmbSchedule = false
+        displayPickerSmbMinutes = false
+        return !toggle
+    }
+
     private func totalDurationInMinutes() -> Int {
         let durationTotal = (durationHours * 60) + durationMinutes
         return max(0, durationTotal)
@@ -518,128 +533,4 @@ struct AddOverrideForm: View {
 
         return (false, nil)
     }
-
-    func generateTargetPickerValues() -> [Decimal] {
-        var values: [Decimal] = []
-        var currentValue: Double = 72
-        let step = Double(targetStep)
-
-        // Adjust currentValue to be divisible by targetStep
-        let remainder = currentValue.truncatingRemainder(dividingBy: step)
-        if remainder != 0 {
-            // Move currentValue up to the next value divisible by targetStep
-            currentValue += (step - remainder)
-        }
-
-        // Now generate the picker values starting from currentValue
-        while currentValue <= 270 {
-            values.append(Decimal(currentValue))
-            currentValue += step
-        }
-
-        // Glucose values are stored as mg/dl values, so Integers.
-        // Filter out duplicate values when rounded to 1 decimal place.
-        if state.units == .mmolL {
-            // Use a Set to track unique values rounded to 1 decimal
-            var uniqueRoundedValues = Set<String>()
-            values = values.filter { value in
-                let roundedValue = String(format: "%.1f", NSDecimalNumber(decimal: value.asMmolL).doubleValue)
-                return uniqueRoundedValues.insert(roundedValue).inserted
-            }
-        }
-
-        return values
-    }
 }
-
-enum IsfAndOrCrOptions: String, CaseIterable {
-    case isfAndCr = "ISF/CR"
-    case isf = "ISF"
-    case cr = "CR"
-    case nothing = "None"
-}
-
-enum DisableSmbOptions: String, CaseIterable {
-    case dontDisable = "Don't Disable"
-    case disable = "Disable"
-    case disableOnSchedule = "Disable on Schedule"
-}
-
-func percentageDescription(_ percent: Double) -> Text? {
-    if percent.isNaN || percent == 100 { return nil }
-
-    var description: String = "Insulin doses will be "
-
-    if percent < 100 {
-        description += "decreased by "
-    } else {
-        description += "increased by "
-    }
-
-    let deviationFrom100 = abs(percent - 100)
-    description += String(format: "%.0f% %.", deviationFrom100)
-
-    return Text(description)
-}
-
-// Function to check if the phone is using 24-hour format
-func is24HourFormat() -> Bool {
-    let formatter = DateFormatter()
-    formatter.locale = Locale.current
-    formatter.dateStyle = .none
-    formatter.timeStyle = .short
-    let dateString = formatter.string(from: Date())
-
-    return !dateString.contains("AM") && !dateString.contains("PM")
-}
-
-// Helper function to convert hours to AM/PM format
-func convertTo12HourFormat(_ hour: Int) -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "h a"
-
-    // Create a date from the hour and format it to AM/PM
-    let calendar = Calendar.current
-    let components = DateComponents(hour: hour)
-    let date = calendar.date(from: components) ?? Date()
-
-    return formatter.string(from: date)
-}
-
-// Helper function to format 24-hour numbers as two digits
-func format24Hour(_ hour: Int) -> String {
-    String(format: "%02d", hour)
-}
-
-//
-// func formatHrMin(_ durationInMinutes: Int) -> String {
-//    let hours = durationInMinutes / 60
-//    let minutes = durationInMinutes % 60
-//
-//    switch (hours, minutes) {
-//    case let (0, m):
-//        return "\(m) min"
-//    case let (h, 0):
-//        return "\(h) hr"
-//    default:
-//        return "\(hours) hr \(minutes) min"
-//    }
-// }
-//
-// struct RadioButton: View {
-//    var isSelected: Bool
-//    var label: String
-//    var action: () -> Void
-//
-//    var body: some View {
-//        Button(action: {
-//            action()
-//        }) {
-//            HStack {
-//                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
-//                Text(label) // Add label inside the button to make it tappable
-//            }
-//        }
-//        .buttonStyle(PlainButtonStyle())
-//    }
-// }

@@ -557,7 +557,7 @@ extension OverrideConfig {
             let target = (state.units == .mgdL ? preset.target : preset.target?.decimalValue.asMmolL as NSDecimalNumber?) ?? 0
             let duration = (preset.duration ?? 0) as Decimal
             let name = preset.name ?? ""
-            let percent = preset.percentage / 100
+            let percentage = preset.percentage
             let perpetual = preset.indefinite
             let durationString = perpetual ? "" : "\(formatHrMin(Int(duration)))"
             let scheduledSMBstring = preset.smbIsScheduledOff && preset.start != preset.end
@@ -594,7 +594,7 @@ extension OverrideConfig {
 
             let labels: [String] = [
                 durationString,
-                percent != 1 ? "\(Int(percent * 100))%\(isfAndCRstring)" : "",
+                percentage != 100 ? "\(Int(percentage))%\(isfAndCRstring)" : "",
                 targetString,
                 smbString,
                 maxSmbMinsString,
