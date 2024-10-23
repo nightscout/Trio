@@ -59,18 +59,22 @@ extension UnitsLimitsSettings {
                     type: .decimal("maxIOB"),
                     label: NSLocalizedString("Max IOB", comment: "Max IOB"),
                     miniHint: """
-                    The highest amount of insulin Trio will allow to be active at any given time. This must be greater than 0 for any automatic adjustments to be given.
+                    The highest amount of insulin Trio can allow to be active at any given time.
                     Default: 0 units
                     """,
                     verboseHint: VStack {
                         Text("Default: 0 units").bold()
+                        Text("""
+                             
+                             This must be greater than 0 for any automatic temp basals or SMBs to be given.
+                             """).bold().italic()
                         Text("""
 
                         The maximum amount of Insulin On Board (IOB) from all sources - both basal and bolus - that Trio is allowed to accumulate to treat higher-than-target glucose.
 
                         If a calculated amount exceeds this limit, the suggested and/or delivered amount will be reduced so that active insulin on board (IOB) will not exceed this safety limit.
                         """)
-                        Text("Manual boluses are not restricted by this limit.").italic()
+                        Text("Manually entered bolus amounts are not restricted by this limit.").italic()
                     }
                 )
 
@@ -149,7 +153,7 @@ extension UnitsLimitsSettings {
                     type: .decimal("maxCOB"),
                     label: NSLocalizedString("Max COB", comment: "Max COB"),
                     miniHint: """
-                    The highest amount of carbs Trio will use in dosing calculations.
+                    The highest amount of carbs Trio can use in dosing calculations.
                     Default: 120 carbs
                     """,
                     verboseHint: VStack {
