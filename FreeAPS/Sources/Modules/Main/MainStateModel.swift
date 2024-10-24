@@ -148,6 +148,34 @@ extension Main {
             }
         }
 
+        func loadAlternateAppIcon() -> UIImage? {
+            guard let alternateIconName = UIApplication.shared.alternateIconName else { return nil }
+
+            if let iconsDictionary = Bundle.main.object(forInfoDictionaryKey: "CFBundleIcons") as? [String: Any],
+               let alternateIcons = iconsDictionary["CFBundleAlternateIcons"] as? [String: Any],
+               let alternateIconInfo = alternateIcons[alternateIconName] as? [String: Any],
+               let iconFiles = alternateIconInfo["CFBundleIconFiles"] as? [String]
+            {
+                if let iconFilename = iconFiles.last {
+                    return UIImage(named: iconFilename)
+                }
+            }
+
+            return nil
+        }
+
+        func loadPrimaryAppIcon() -> UIImage? {
+            guard let iconsDictionary = Bundle.main.object(forInfoDictionaryKey: "CFBundleIcons") as? [String: Any],
+                  let primaryIcons = iconsDictionary["CFBundlePrimaryIcon"] as? [String: Any],
+                  let iconFiles = primaryIcons["CFBundleIconFiles"] as? [String],
+                  let lastIcon = iconFiles.last
+            else {
+                return nil
+            }
+
+            return UIImage(named: lastIcon)
+        }
+
         // Read the color scheme preference from UserDefaults; defaults to system default setting
         @AppStorage("colorSchemePreference") private var colorSchemePreference: ColorSchemeOption = .systemDefault
 
@@ -168,9 +196,7 @@ extension Main {
             }
 
             let titleContent: String
-
-            let iconName = UIApplication.shared.alternateIconName ?? "trioBlack"
-            let iconImage = UIImage(named: iconName) ?? UIImage()
+            let iconImage = loadAlternateAppIcon() ?? loadPrimaryAppIcon() ?? UIImage()
 
             view.configureContent(
                 title: "title",
