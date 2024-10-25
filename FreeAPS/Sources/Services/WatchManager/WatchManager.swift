@@ -195,27 +195,29 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
 
     @MainActor private func configureState() async {
         let glucoseValuesIds = await fetchGlucose()
-        async let lastDeterminationIds = fetchlastDetermination()
-        async let latestOverrideId = fetchLatestOverride()
+        async let getLatestDeterminationIds = fetchlastDetermination()
+        async let getlatestOverrideId = fetchLatestOverride()
 
-        guard let lastDeterminationId = await lastDeterminationIds.first,
-              let latestOverrideId = await latestOverrideId
-        else {
-            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to get last Determination/ last Override")
+        let latestOverrideId = await getlatestOverrideId
+
+        guard let lastDeterminationId = await getLatestDeterminationIds.first else {
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to get last Determination")
             return
         }
 
         do {
             let glucoseValues: [GlucoseStored] = await CoreDataStack.shared
                 .getNSManagedObject(with: glucoseValuesIds, context: viewContext)
-
             let lastDetermination = try viewContext.existingObject(with: lastDeterminationId) as? OrefDetermination
-            let latestOverride = try viewContext.existingObject(with: latestOverrideId) as? OverrideStored
-
             let recommendedInsulin = await newBolusCalc(
                 glucoseIds: glucoseValuesIds,
                 determinationId: lastDeterminationId
             )
+
+            var latestOverride: OverrideStored?
+            if let id = latestOverrideId {
+                latestOverride = try viewContext.existingObject(with: id) as? OverrideStored
+            }
 
             await MainActor.run { [weak self] in
                 guard let self = self else { return }
@@ -296,12 +298,13 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
 
                 self.state.isf = lastDetermination?.insulinSensitivity as? Decimal
 
-                if latestOverride?.enabled ?? false {
-                    let percentString = "\((latestOverride?.percentage ?? 100).formatted(.number)) %"
-                    self.state.override = percentString
-
-                } else {
-                    self.state.override = "100 %"
+                if let latestOverride = latestOverride {
+                    if latestOverride.enabled {
+                        let percentString = "\(latestOverride.percentage.formatted(.number)) %"
+                        self.state.override = percentString
+                    } else {
+                        self.state.override = "100 %"
+                    }
                 }
 
                 self.sendState()

@@ -25,7 +25,7 @@ import Foundation
             ]
         )
         AppShortcut(
-            intent: AddCarbPresentIntent(),
+            intent: AddCarbPresetIntent(),
             phrases: [
                 "Add carbs in \(.applicationName)",
                 "\(.applicationName) allows to add carbs"

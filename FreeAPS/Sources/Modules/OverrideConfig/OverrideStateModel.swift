@@ -9,6 +9,7 @@ extension OverrideConfig {
         @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
         @ObservationIgnored @Injected() var apsManager: APSManager!
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
+        @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
 
         var overridePercentage: Double = 100
         var isEnabled = false
@@ -243,6 +244,10 @@ extension OverrideConfig.StateModel {
 
             // Update Presets View
             setupOverridePresetsArray()
+
+            Task {
+                await nightscoutManager.uploadProfiles()
+            }
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save after reordering Override Presets with error: \(error.localizedDescription)"
@@ -426,6 +431,8 @@ extension OverrideConfig.StateModel {
 
         // Update Presets View
         setupOverridePresetsArray()
+
+        await nightscoutManager.uploadProfiles()
     }
 
     // MARK: - Setup Override Presets Array
@@ -458,6 +465,8 @@ extension OverrideConfig.StateModel {
 
         // Update Presets View
         setupOverridePresetsArray()
+
+        await nightscoutManager.uploadProfiles()
     }
 
     // MARK: - Setup the State variables with the last Override configuration

@@ -3,7 +3,11 @@ import SwiftUI
 
 struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject var state: OverrideConfig.StateModel
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.dismiss) var dismiss
+
+    @Bindable var state: OverrideConfig.StateModel
+
     @State private var selectedIsfCrOption: IsfAndOrCrOptions = .isfAndCr
     @State private var selectedDisableSmbOption: DisableSmbOptions = .dontDisable
     @State private var percentageStep: Int = 5
@@ -17,9 +21,6 @@ struct AddOverrideForm: View {
     @State private var durationMinutes = 0
     @State private var overrideTarget = false
     @State private var didPressSave = false
-    @Environment(\.colorScheme) var colorScheme
-
-    @Environment(\.dismiss) var dismiss
 
     var color: LinearGradient {
         colorScheme == .dark ? LinearGradient(
