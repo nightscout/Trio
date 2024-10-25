@@ -170,12 +170,18 @@ struct AddTempTargetForm: View {
                             // Radio buttons for step iteration
                             let stepChoices: [Decimal] = state.units == .mgdL ? [1, 5] : [1, 9]
                             ForEach(stepChoices, id: \.self) { step in
+                                let label = (state.units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
+                                    state.units.rawValue
+
                                 RadioButton(
                                     isSelected: targetStep == step,
-                                    label: "\(state.units == .mgdL ? step : step.asMmolL) \(state.units.rawValue)"
+                                    label: label
                                 ) {
                                     targetStep = step
-                                    state.tempTargetTarget = roundTargetToStep(state.tempTargetTarget, targetStep)
+                                    state.tempTargetTarget = OverrideConfig.StateModel.roundTargetToStep(
+                                        state.tempTargetTarget,
+                                        targetStep
+                                    )
                                 }
                                 .padding(.top, 10)
                             }
@@ -185,16 +191,25 @@ struct AddTempTargetForm: View {
                         Spacer()
 
                         // Picker on the right side
+                        let settingsProvider = PickerSettingsProvider.shared
+                        let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
                         Picker(selection: Binding(
-                            get: { roundTargetToStep(state.tempTargetTarget, targetStep) },
+                            get: { OverrideConfig.StateModel.roundTargetToStep(state.tempTargetTarget, targetStep) },
                             set: { state.tempTargetTarget = $0 }
                         ), label: Text("")) {
                             ForEach(
-                                generateTargetPickerValues(),
+                                settingsProvider.generatePickerValues(
+                                    from: glucoseSetting,
+                                    units: state.units,
+                                    roundMinToStep: true
+                                ),
                                 id: \.self
                             ) { glucose in
-                                Text(formattedGlucose(glucose: glucose))
-                                    .tag(glucose)
+                                Text(
+                                    (state.units == .mgdL ? glucose.description : glucose.formattedAsMmolL) + " " + state
+                                        .units.rawValue
+                                )
+                                .tag(glucose)
                             }
                         }
                         .pickerStyle(WheelPickerStyle())
