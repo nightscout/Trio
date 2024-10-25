@@ -20,20 +20,23 @@ extension GlucoseNotificationSettings {
             subscribeSetting(\.useAlarmSound, on: $useAlarmSound) { useAlarmSound = $0 }
             subscribeSetting(\.addSourceInfoToGlucoseNotifications, on: $addSourceInfoToGlucoseNotifications) {
                 addSourceInfoToGlucoseNotifications = $0 }
+
             subscribeSetting(\.lowGlucose, on: $lowGlucose, initial: {
-                let value = max(min($0, 400), 40)
+                let value = units == .mmolL ? $0.asMmolL : $0
                 lowGlucose = value
             }, map: {
-                guard units == .mmolL else { return $0 }
-                return $0.asMgdL
+                let valueInMgdL = units == .mmolL ? $0.asMgdL : $0
+                let clampedValue = max(min(valueInMgdL, 400), 40)
+                return clampedValue
             })
 
             subscribeSetting(\.highGlucose, on: $highGlucose, initial: {
-                let value = max(min($0, 400), 40)
+                let value = units == .mmolL ? $0.asMmolL : $0
                 highGlucose = value
             }, map: {
-                guard units == .mmolL else { return $0 }
-                return $0.asMgdL
+                let valueInMgdL = units == .mmolL ? $0.asMgdL : $0
+                let clampedValue = max(min(valueInMgdL, 400), 40)
+                return clampedValue
             })
         }
     }
