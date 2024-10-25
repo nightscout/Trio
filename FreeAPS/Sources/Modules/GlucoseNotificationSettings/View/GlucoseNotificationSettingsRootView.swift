@@ -68,8 +68,10 @@ extension GlucoseNotificationSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Show Glucose App Badge",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr."),
+                    miniHint: "Show your current glucose reading at the top of the Trio app icon",
+                    verboseHint: Text(
+                        "This will add your current glucose on the top right of your Trio icon as a red notification badge."
+                    ),
                     headerText: "Various Glucose Notifications"
                 )
 
@@ -87,8 +89,8 @@ extension GlucoseNotificationSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Always Notify Glucose",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr.")
+                    miniHint: "A notification will be triggered every time your glucose is updated in Trio",
+                    verboseHint: Text("A notification will be triggered every time your glucose is updated in Trio.")
                 )
 
                 SettingInputSection(
@@ -105,8 +107,8 @@ extension GlucoseNotificationSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Play Alarm Sound",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr.")
+                    miniHint: "This will cause a sound to be triggered by every Trio notification",
+                    verboseHint: Text("This will cause a sound to be triggered by every Trio notification.")
                 )
 
                 SettingInputSection(
@@ -123,8 +125,8 @@ extension GlucoseNotificationSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Add Glucose Source to Alarm",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr.")
+                    miniHint: "The source of the glucose reading will be added to the notification",
+                    verboseHint: Text("The source of the glucose reading will be added to the notification.")
                 )
 
                 Section {
@@ -144,7 +146,7 @@ extension GlucoseNotificationSettings {
 
                     HStack(alignment: .top) {
                         Text(
-                            "Set the lower and upper limit for glucose alarms. See hint for more details."
+                            "Set the upper and lower limits for glucose alarms. See hint for more details."
                         )
                         .font(.footnote)
                         .foregroundColor(.secondary)

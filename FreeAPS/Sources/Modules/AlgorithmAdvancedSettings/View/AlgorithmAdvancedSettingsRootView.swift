@@ -39,7 +39,7 @@ extension AlgorithmAdvancedSettings {
                     content: {
                         VStack(alignment: .leading) {
                             Text(
-                                "The settings in this section are designed for advanced expert users and typically do not require ANY modifications."
+                                "The settings in this section typically do not require ANY modifications. Do not alter them without a solid understanding of what you are changing and the full impact it will have on the algorithm."
                             ).bold()
                         }
                     }
@@ -61,21 +61,21 @@ extension AlgorithmAdvancedSettings {
                     type: .decimal("maxDailySafetyMultiplier"),
                     label: NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier"),
                     miniHint: """
-                        Temporary basal rates cannot be set higher than this percentage of your LARGEST profile basal rate
-                        Default setting: 300%
-                        """,
+                    Temporary basal rates cannot be set higher than this percentage of your LARGEST profile basal rate
+                    Default setting: 300%
+                    """,
                     verboseHint: VStack {
                         Text("Default: 300%").bold()
                         Text("""
-                            
-                            This limits the automatic adjustment of the temporary basal rate to this value times the highest scheduled basal rate in your basal profile.
-                            
-                            """)
+
+                        This limits the automatic adjustment of the temporary basal rate to this value times the highest scheduled basal rate in your basal profile.
+
+                        """)
                         Text("If Autotune is enabled, Trio uses Autotune basals instead of scheduled basals.").italic()
                         Text("""
-                            
-                            Increasing this setting is not advised.
-                            """).bold().italic()
+
+                        Increasing this setting is not advised.
+                        """).bold().italic()
                     }
                 )
 
@@ -97,21 +97,21 @@ extension AlgorithmAdvancedSettings {
                     type: .decimal("currentBasalSafetyMultiplier"),
                     label: NSLocalizedString("Current Basal Safety Multiplier", comment: "Current Basal Safety Multiplier"),
                     miniHint: """
-                        Temporary basal rates cannot be set higher than this percentage of the profile basal rate at the time of the loop cycle
-                        Default: 400%
-                        """,
+                    Temporary basal rates cannot be set higher than this percentage of the profile basal rate at the time of the loop cycle
+                    Default: 400%
+                    """,
                     verboseHint: VStack {
                         Text("Default: 400%").bold()
                         Text("""
-                            
-                            This limits the automatic adjustment of the temporary basal rate to this percentage of the current hourly basal rate at the time of the loop cycle.
-                            
-                            """)
+
+                        This limits the automatic adjustment of the temporary basal rate to this percentage of the current hourly basal rate at the time of the loop cycle.
+
+                        """)
                         Text("If Autotune is enabled, Trio uses Autotune basals instead of scheduled basals.").italic()
                         Text("""
-                            
-                            Increasing this setting is not advised.
-                            """).bold().italic()
+
+                        Increasing this setting is not advised.
+                        """).bold().italic()
                     }
                 )
 
@@ -130,17 +130,18 @@ extension AlgorithmAdvancedSettings {
                     type: .decimal("dia"),
                     label: "Duration of Insulin Action",
                     miniHint: """
-                        Number of hours insulin will be active in your body
-                        Default: 6 hours
-                        """,
+                    Number of hours insulin is active in your body
+                    Default: 6 hours
+                    """,
                     verboseHint: VStack {
                         Text("Default: 6 hours").bold()
                         Text("""
-                            
-                            Number of hours insulin will contribute to IOB after dosing.
-                            
-                            """)
-                        Text("It is better to use Custom Peak Timing rather than adjust your Duration of Insulin Action (DIA)").italic()
+
+                        Number of hours insulin will contribute to IOB after dosing.
+
+                        """)
+                        Text("It is better to use Custom Peak Timing rather than adjust your Duration of Insulin Action (DIA)")
+                            .italic()
                     }
                 )
 
@@ -160,19 +161,19 @@ extension AlgorithmAdvancedSettings {
                     label: NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time"),
                     conditionalLabel: NSLocalizedString("Insulin Peak Time", comment: "Insulin Peak Time"),
                     miniHint: """
-                        Time that insulin effect is at it’s highest. Set in minutes since injection.
-                        Default: (Set by Insulin Type)
-                        """,
+                    Time that insulin effect is at it’s highest. Set in minutes since injection.
+                    Default: (Set by Insulin Type)
+                    """,
                     verboseHint: VStack {
                         Text("Default: Set by Insulin Type").bold()
                         Text("""
-                            
-                            Time of maximum glucose lowering effect of insulin. Set in minutes since insulin administration.
-                            
-                            System-Determined Defaults:
-                            Ultra-Rapid: 55 minutes (permitted range 35-100 minutes)
-                            Rapid-Acting: 75 minutes (permitted range 50-120 minutes)
-                            """)
+
+                        Time of maximum glucose lowering effect of insulin. Set in minutes since insulin administration.
+
+                        System-Determined Defaults:
+                        Ultra-Rapid: 55 minutes (permitted range 35-100 minutes)
+                        Rapid-Acting: 75 minutes (permitted range 50-120 minutes)
+                        """)
                     }
                 )
 
@@ -191,17 +192,17 @@ extension AlgorithmAdvancedSettings {
                     type: .boolean,
                     label: NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps"),
                     miniHint: """
-                        When on, Trio will not send a temp basal command to the pump if the determined basal rate is the same as the scheduled basal
-                        Default: OFF
-                        """,
+                    When on, Trio will not send a temp basal command to the pump if the determined basal rate is the same as the scheduled basal
+                    Default: OFF
+                    """,
                     verboseHint: VStack {
                         Text("Default: OFF").bold()
                         Text("""
-                            
-                            When enabled, Trio will skip neutral temp basals (those that are the same as your default basal), if no adjustments are needed. 
-                            
-                            When off, Trio will set temps whenever it can, so it will be easier to see if the system is working.
-                            """)
+
+                        When enabled, Trio will skip neutral temp basals (those that are the same as your default basal), if no adjustments are needed. 
+
+                        When off, Trio will set temps whenever it can, so it will be easier to see if the system is working.
+                        """)
                     }
                 )
 
@@ -220,16 +221,16 @@ extension AlgorithmAdvancedSettings {
                     type: .boolean,
                     label: NSLocalizedString("Unsuspend If No Temp", comment: "Unsuspend If No Temp"),
                     miniHint: """
-                        Automatically resume your insulin pump if you forget to unsuspend it after a zero temp basal expires
-                        Default: OFF
-                        """,
+                    Automatically resume your insulin pump if you forget to unsuspend it after a zero temp basal expires
+                    Default: OFF
+                    """,
                     verboseHint: VStack {
                         Text("Default: OFF").bold()
                         Text("""
-                            
-                            Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended.
-                            
-                            """)
+
+                        Many people occasionally forget to resume / unsuspend their pump after reconnecting it. If you’re one of them, and you are willing to reliably set a zero temp basal whenever suspending and disconnecting your pump, this feature has your back. If enabled, it will automatically resume / unsuspend the pump if you forget to do so before your zero temp expires. As long as the zero temp is still running, it will leave the pump suspended.
+
+                        """)
                         Text("Applies only to pumps with manual suspend options").italic()
                     }
                 )
@@ -249,16 +250,16 @@ extension AlgorithmAdvancedSettings {
                     type: .boolean,
                     label: NSLocalizedString("Suspend Zeros IOB", comment: "Suspend Zeros IOB"),
                     miniHint: """
-                        Replaces any enacted temp basals prior to a pump suspend with a zero temp basal
-                        Default: OFF
-                        """,
+                    Replaces any enacted temp basals prior to a pump suspend with a zero temp basal
+                    Default: OFF
+                    """,
                     verboseHint: VStack {
                         Text("Default: OFF").bold()
                         Text("""
-                            
-                            Any existing temp basals during times the pump was suspended will be deleted and zero temp basals to negate the profile basal rates during times pump is suspended will be added.
-                            
-                            """)
+
+                        Any existing temp basals during times the pump was suspended will be deleted and zero temp basals to negate the profile basal rates during times pump is suspended will be added.
+
+                        """)
                         Text("Applies to only to pumps with manual suspend options").italic()
                     }
                 )
@@ -304,19 +305,19 @@ extension AlgorithmAdvancedSettings {
                     type: .decimal("min5mCarbimpact"),
                     label: NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact"),
                     miniHint: """
-                        Set the default rate of carb absorption when no clear impact on blood glucose is visible
-                        Default: 8 mg/dL/5min
-                        """,
+                    Set the default rate of carb absorption when no clear impact on blood glucose is visible
+                    Default: 8 mg/dL/5min
+                    """,
                     verboseHint: VStack {
                         Text("Default: 8 mg/dL/5 min").bold()
                         Text("""
-                            
-                            The Min 5m Carbimpact setting determines the default expected glucose rise (in mg/dL) over a 5-minute period from carbs when the system cannot detect clear absorption from your blood glucose levels. 
-                            
-                            The default value of 8 mg/dL per 5 minutes corresponds to an absorption rate of 24g of carbs per hour. 
-                            
-                            This setting helps the system estimate how much glucose your body is absorbing, even when it’s not immediately visible in your glucose data, ensuring more accurate insulin dosing during carb absorption.
-                            """)
+
+                        The Min 5m Carbimpact setting determines the default expected glucose rise (in mg/dL) over a 5-minute period from carbs when the system cannot detect clear absorption from your blood glucose levels. 
+
+                        The default value of 8 mg/dL per 5 minutes corresponds to an absorption rate of 24g of carbs per hour. 
+
+                        This setting helps the system estimate how much glucose your body is absorbing, even when it’s not immediately visible in your glucose data, ensuring more accurate insulin dosing during carb absorption.
+                        """)
                     }
                 )
 
@@ -328,19 +329,23 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Remaining Carbs Fraction", comment: "Remaining Carbs Fraction")
+                            hintLabel = NSLocalizedString("Remaining Carbs Percentage", comment: "Remaining Carbs Percentage")
                         }
                     ),
                     units: state.units,
                     type: .decimal("remainingCarbsFraction"),
-                    label: NSLocalizedString("Remaining Carbs Fraction", comment: "Remaining Carbs Fraction"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "This is the fraction of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption.",
-                            comment: "Remaining Carbs Fraction"
-                        )
-                    )
+                    label: NSLocalizedString("Remaining Carbs Percentage", comment: "Remaining Carbs Percentage"),
+                    miniHint: """
+                    Set the percentage of unabsorbed carbs that will be assumed to absorb over 4 hours if no absorption is detected
+                    Default: 100%
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: 100%").bold()
+                        Text("""
+
+                        The Remaining Carbs Percentage setting helps estimate how many carbs from a meal will still be absorbed if your glucose readings don’t show clear carb absorption. This percentage, applied to the entered carbs, will be spread over 4 hours. It’s useful when the system can’t detect carb absorption from blood glucose data, providing a fallback estimate to prevent under-dosing.
+                        """)
+                    }
                 )
 
                 SettingInputSection(
@@ -357,13 +362,19 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("remainingCarbsCap"),
                     label: NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "This is the amount of the maximum number of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption.",
-                            comment: "Remaining Carbs Cap"
-                        )
-                    )
+                    miniHint: """
+                    Set the maximum amount of carbs assumed to absorb over 4 hours if no absorption is detected
+                    Default: 90g
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: 90g").bold()
+                        Text("""
+
+                        The Remaining Carbs Cap defines the upper limit for how many carbs the system will assume are absorbing over 4 hours, even when there’s no clear sign of absorption from your glucose readings.
+
+                        This cap prevents the system from overestimating how much insulin is needed when carb absorption isn’t visible, offering a safeguard for accurate dosing.
+                        """)
+                    }
                 )
 
                 SettingInputSection(
@@ -379,14 +390,20 @@ extension AlgorithmAdvancedSettings {
                     ),
                     units: state.units,
                     type: .decimal("noisyCGMTargetMultiplier"),
-                    label: NSLocalizedString("Noisy CGM Target Multiplier", comment: "Noisy CGM Target Multiplier"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "Defaults to 1.3. Increase target by this amount when looping off raw/noisy CGM data",
-                            comment: "Noisy CGM Target Multiplier"
-                        )
-                    )
+                    label: NSLocalizedString("Noisy CGM Target Increase", comment: "Noisy CGM Target Increase"),
+                    miniHint: """
+                    Increase glucose target by this percent when relying on noisy CGM data
+                    Default: 130%
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: 130%").bold()
+                        Text("""
+
+                        The Noisy CGM Target Multiplier increases your glucose target when the system detects noisy or raw CGM data. By default, the target is increased by 130% to account for the less reliable glucose readings.
+
+                        This helps reduce the risk of incorrect insulin dosing based on inaccurate sensor data, ensuring safer insulin adjustments during periods of poor CGM accuracy.
+                        """)
+                    }
                 )
             }
             .sheet(isPresented: $shouldDisplayHint) {

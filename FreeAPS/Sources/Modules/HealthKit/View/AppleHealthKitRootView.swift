@@ -48,12 +48,13 @@ extension AppleHealthKit {
                     type: .boolean,
                     label: "Connect to Apple Health",
                     miniHint: "Allows Trio to read from and write to Apple Health.",
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "This allows Trio to read from and write to Apple Health. You must also give permissions in iOS Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up.",
-                            comment: "Suspend Zeros IOB"
-                        )
-                    ),
+                    verboseHint: VStack {
+                        Text("""
+                         This allows Trio to read from and write to Apple Health.
+
+                         You must also give permissions in iOS Settings > Health > Data Access.
+                        """)
+                    },
                     headerText: "Apple Health Integration"
                 )
 

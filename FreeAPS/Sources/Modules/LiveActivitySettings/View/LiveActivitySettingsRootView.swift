@@ -75,10 +75,19 @@ extension LiveActivitySettings {
                         units: state.units,
                         type: .boolean,
                         label: "Enable Live Activity",
-                        miniHint: "Live Activities display Trio's glucose readings, and other current data on the iPhone Lock Screen and in the Dynamic Island",
-                        verboseHint: Text(
-                            "With Live Activities, you can let Trio display most current data, e.g. glucose reading from CGM, insulin on board, carbohydrates on board, or even a glucose trend chart, on the iPhone Lock Screen and in the Dynamic Island. It allows you to refer to live information at a glance and perform quick actions in your diabetes management."
-                        ),
+                        miniHint: "Live Activities display Trio's glucose readings and other current data on the iPhone Lock Screen and in the Dynamic Island",
+                        verboseHint: VStack {
+                            Text("""
+                            With Live Activities, Trio displays your choice of the following current data on your iPhone's Lock Screen and in the Dynamic Island:
+                            ● Current Glucose Reading
+                            ● IOB: Insulin On Board
+                            ● COB: Carbohydrates On Board
+                            ● Last Updated: Time of Last Loop Cycle
+                            ● Glucose Trend Chart
+
+                            It allows you to refer to live information at a glance and perform quick actions in your diabetes management.
+                            """)
+                        },
                         headerText: "Display Live Data From Trio"
                     )
 
@@ -107,9 +116,15 @@ extension LiveActivitySettings {
                                             hintLabel = "Lock Screen Widget Style"
                                             selectedVerboseHint =
                                                 AnyView(
-                                                    Text(
-                                                        "Trio's simple lock screen widget only display current glucose reading, trend arrow, delta and the timestamp of the current reading.\n\nThe detailed Lock Screen widget offers users a glucose chart, glucose trend arrow, glucose delta, current insulin and carbohydrates on board, and an icon as an indicator for running overrides."
-                                                    )
+                                                    Text("""
+                                                    Trio's Simple Lock Screen Widget only display current glucose reading, trend arrow, delta and the timestamp of the current reading.
+
+                                                    The Detailed Lock Screen Widget offers users a glucose chart as well as the ability to customize the information provided in the Detailed Widget using the following options:
+                                                    ● Current Glucose Reading
+                                                    ● IOB: Insulin On Board
+                                                    ● COB: Carbohydrates On Board
+                                                    ● Last Updated: Time of Last Loop Cycle
+                                                    """)
                                                 )
                                             shouldDisplayHint.toggle()
                                         },

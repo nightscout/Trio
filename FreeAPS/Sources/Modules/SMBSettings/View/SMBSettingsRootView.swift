@@ -367,17 +367,17 @@ extension SMBSettings {
                     type: .decimal("maxDeltaBGthreshold"),
                     label: NSLocalizedString("Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold"),
                     miniHint: """
-                        When the difference between the last two glucose values is larger than this, it will disable SMBs
-                        Default: 20%
-                        """,
+                    When the difference between the last two glucose values is larger than this, it will disable SMBs
+                    Default: 20%
+                    """,
                     verboseHint: VStack {
                         Text("Default: 20% increase").bold()
                         Text("""
-                            
-                            Maximum allowed positive percentual change in glucose level to permit SMBs. If the difference in glucose is greater than this, Trio will disable SMBs.
-                            
-                            """)
-                        Text("This setting has a hard-coded cap of a 40%").italic()
+
+                        Maximum allowed positive percentual change in glucose level to permit SMBs. If the difference in glucose is greater than this, Trio will disable SMBs.
+
+                        """)
+                        Text("This setting has a hard-coded cap of 40%").italic()
                     }
                 )
 
@@ -396,18 +396,18 @@ extension SMBSettings {
                     type: .decimal("smbDeliveryRatio"),
                     label: NSLocalizedString("SMB DeliveryRatio", comment: "SMB DeliveryRatio"),
                     miniHint: """
-                        Safety limit on what percentage of total calculated insulin required can be administered as an SMB
-                        Default: 50%
-                        """,
+                    Safety limit on what percentage of total calculated insulin required can be administered as an SMB
+                    Default: 50%
+                    """,
                     verboseHint: VStack {
                         Text("Default: 50%").bold()
                         Text("""
-                            
-                            Once the total insulin required is calculated, this safety limit specifies what share of the total insulin required can be delivered as an SMB.
-                            
-                            Due to SMBs occurring every 5 minutes, it is important to set this value to a reasonable level that allows Trio to safely zero temp should dosing needs suddenly change. Increase this value with caution.
-                            
-                            """)
+
+                        Once the total insulin required is calculated, this safety limit specifies what share of the total insulin required can be delivered as an SMB.
+
+                        Due to SMBs occurring every 5 minutes, it is important to set this value to a reasonable level that allows Trio to safely zero temp should dosing needs suddenly change. Increase this value with caution.
+
+                        """)
                         Text("Limited to a range of 30 - 70%").italic()
                     }
                 )
@@ -427,17 +427,17 @@ extension SMBSettings {
                     type: .decimal("smbInterval"),
                     label: NSLocalizedString("SMB Interval", comment: "SMB Interval"),
                     miniHint: """
-                        Minimum minutes since the last SMB or manual bolus to allow an automated SMB
-                        Default: 3 min
-                        """,
+                    Minimum minutes since the last SMB or manual bolus to allow an automated SMB
+                    Default: 3 min
+                    """,
                     verboseHint: VStack {
                         Text("Default: 3 min").bold()
                         Text("""
-                            
-                            This is the minimum number of minutes since the last SMB or manual bolus before Trio will permit an automated SMB.
-                            
-                            For Omnipod Dash, this value can be as low as 3 min. For Omnipod Eros, the value can be as low as 5 min.
-                            """)
+
+                        This is the minimum number of minutes since the last SMB or manual bolus before Trio will permit an automated SMB.
+
+                        For Omnipod Dash, this value can be as low as 3 min. For Omnipod Eros, the value can be as low as 5 min.
+                        """)
                     }
                 )
             }

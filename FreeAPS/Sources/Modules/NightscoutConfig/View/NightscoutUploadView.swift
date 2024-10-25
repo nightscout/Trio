@@ -46,9 +46,16 @@ struct NightscoutUploadView: View {
                 type: .boolean,
                 label: "Allow Uploading to Nightscout",
                 miniHint: "Enables upload of selected data sets to Nightscout. See hint for more details.",
-                verboseHint: Text(
-                    "The Upload Treatments toggle enables uploading of carbs, temp targets, device status, preferences and settings."
-                )
+                verboseHint: VStack(spacing: 10) {
+                    Text("The Upload Treatments toggle enables uploading of:")
+                    VStack(alignment: .leading) {
+                        Text("• Carbs")
+                        Text("• Temp Targets")
+                        Text("• Device Status")
+                        Text("• Preferences")
+                        Text("• Settings")
+                    }
+                }
             )
 
             if state.changeUploadGlucose {
@@ -68,7 +75,9 @@ struct NightscoutUploadView: View {
                     type: .boolean,
                     label: "Upload Glucose",
                     miniHint: "Enables uploading of CGM readings to Nightscout.",
-                    verboseHint: Text("Write stuff here.")
+                    verboseHint: Text(
+                        "Enabling this setting allows CGM readings from Trio to be used in Nightscout."
+                    )
                 )
             }
         }
