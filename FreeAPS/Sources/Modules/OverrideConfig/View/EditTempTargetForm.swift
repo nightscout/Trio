@@ -38,8 +38,7 @@ struct EditTempTargetForm: View {
 
         if let hbt = tempTargetToEdit.halfBasalTarget?.decimalValue {
             let H = hbt
-            let N: Decimal = state.normalTarget
-            var T = tempTargetToEdit.target?.decimalValue ?? 0
+            let T = tempTargetToEdit.target?.decimalValue ?? 100
             let calcPercentage = Double(state.computeAdjustedPercentage(usingHBT: H, usingTarget: T) * 100)
             _percentage = State(initialValue: Decimal(calcPercentage))
         } else { _percentage = State(initialValue: Decimal(100)) }
@@ -217,11 +216,7 @@ struct EditTempTargetForm: View {
                     )
                 }
                 .onChange(of: target) {
-                    state
-                        .percentage = Double(
-                            state
-                                .computeAdjustedPercentage(usingHBT: halfBasalTarget, usingTarget: target) * 100
-                        )
+                    percentage = state.computeAdjustedPercentage(usingHBT: halfBasalTarget, usingTarget: target) * 100
                 }
             }
             .listRowBackground(Color.chart)
@@ -272,10 +267,6 @@ struct EditTempTargetForm: View {
                                             set: { newValue in
                                                 percentage = Decimal(newValue)
                                                 hasChanges = true
-
-                                                // Calculate the halfBasalTarget based on the new percentage value
-//                                                let percentageC: Double = percentage
-//                                                let targetC: Decimal = target
                                                 halfBasalTarget = Decimal(state.computeHalfBasalTarget(
                                                     usingTarget: target,
                                                     usingPercentage: Double(percentage)
@@ -291,9 +282,6 @@ struct EditTempTargetForm: View {
                                     }
                                     maximumValueLabel: {
                                         Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
-                                    } onEditingChanged: { editing in
-                                        isUsingSlider = editing
-                                        halfBasalTarget = Decimal(state.computeHalfBasalTarget())
                                     }
 
                                     Divider()
