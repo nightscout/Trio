@@ -128,19 +128,41 @@ extension GlucoseNotificationSettings {
                 )
 
                 Section {
-                    HStack {
-                        Text("Low Glucose Alarm Limit")
-                        Spacer()
-                        TextFieldWithToolBar(text: $state.lowGlucose, placeholder: "0", numberFormatter: glucoseFormatter)
-                        Text(state.units.rawValue).foregroundColor(.secondary)
-                    }.padding(.top)
+                    SettingInputSection(
+                        decimalValue: $state.lowGlucose,
+                        booleanValue: $booleanPlaceholder,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        selectedVerboseHint: Binding(
+                            get: { selectedVerboseHint },
+                            set: {
+                                selectedVerboseHint = $0
+                                hintLabel = NSLocalizedString("Low Glucose Alarm Limit", comment: "Low Glucose Alarm Limit")
+                            }
+                        ),
+                        units: state.units,
+                        type: .decimal("lowGlucose"),
+                        label: "Low Glucose Alarm Limit",
+                        miniHint: "Set the lower limit for glucose alarms.",
+                        verboseHint: "If your CGM reading is below this value, you will receive a glucose alarm via a push notification."
+                    )
 
-                    HStack {
-                        Text("High Glucose Alarm Limit")
-                        Spacer()
-                        TextFieldWithToolBar(text: $state.highGlucose, placeholder: "0", numberFormatter: glucoseFormatter)
-                        Text(state.units.rawValue).foregroundColor(.secondary)
-                    }
+                    SettingInputSection(
+                        decimalValue: $state.highGlucose,
+                        booleanValue: $booleanPlaceholder,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        selectedVerboseHint: Binding(
+                            get: { selectedVerboseHint },
+                            set: {
+                                selectedVerboseHint = $0
+                                hintLabel = NSLocalizedString("High Glucose Alarm Limit", comment: "High Glucose Alarm Limit")
+                            }
+                        ),
+                        units: state.units,
+                        type: .decimal("highGlucose"),
+                        label: "High Glucose Alarm Limit",
+                        miniHint: "Set the upper limit for glucose alarms.",
+                        verboseHint: "If your CGM reading is above this value, you will receive a glucose alarm via a push notification."
+                    )
 
                     HStack(alignment: .top) {
                         Text(

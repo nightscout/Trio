@@ -22,20 +22,16 @@ extension GlucoseNotificationSettings {
                 addSourceInfoToGlucoseNotifications = $0 }
 
             subscribeSetting(\.lowGlucose, on: $lowGlucose, initial: {
-                let value = units == .mmolL ? $0.asMmolL : $0
-                lowGlucose = value
+                lowGlucose = $0
             }, map: {
-                let valueInMgdL = units == .mmolL ? $0.asMgdL : $0
-                let clampedValue = max(min(valueInMgdL, 400), 40)
+                let clampedValue = max(min($0, 400), 40)
                 return clampedValue
             })
 
             subscribeSetting(\.highGlucose, on: $highGlucose, initial: {
-                let value = units == .mmolL ? $0.asMmolL : $0
-                highGlucose = value
+                highGlucose = $0
             }, map: {
-                let valueInMgdL = units == .mmolL ? $0.asMgdL : $0
-                let clampedValue = max(min(valueInMgdL, 400), 40)
+                let clampedValue = max(min($0, 400), 40)
                 return clampedValue
             })
         }
