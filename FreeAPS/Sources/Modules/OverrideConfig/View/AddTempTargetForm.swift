@@ -82,10 +82,41 @@ struct AddTempTargetForm: View {
                         Text("Cancel")
                     })
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(
+                        action: {
+                            state.isHelpSheetPresented.toggle()
+                        },
+                        label: {
+                            Image(systemName: "questionmark.circle")
+                        }
+                    )
+                }
             }
             .onAppear {
                 targetStep = state.units == .mgdL ? 5 : 9
                 state.tempTargetTarget = state.normalTarget
+            }
+            .sheet(isPresented: $state.isHelpSheetPresented) {
+                NavigationStack {
+                    List {
+                        Text(
+                            "A Temporary Target replaces the current Target Glucose specified in Therapy settings.\n\nDepending on the Algorithm > Target Behaviour settings these temporary glucose targets can also raise Insulin Sensitivity for high targets or lower sensitivity for low targets.\n\nFurthermore you could adjust that sensitivity change independently from the Half Basal Exercise Target specified in Algorithm > Target Behaviour settings by deliberatly setting a customized Insulin Percentage for a Temp Target."
+                        )
+                    }
+                    .padding(.trailing, 10)
+                    .navigationBarTitle("Help", displayMode: .inline)
+
+                    Button { state.isHelpSheetPresented.toggle() }
+                    label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
+                        .buttonStyle(.bordered)
+                        .padding(.top)
+                }
+                .padding()
+                .presentationDetents(
+                    [.fraction(0.9), .large],
+                    selection: $state.helpSheetDetent
+                )
             }
         }
     }
