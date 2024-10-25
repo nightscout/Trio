@@ -8,7 +8,7 @@ struct AddTempTargetForm: View {
     @Environment(\.dismiss) var dismiss
     @State private var displayPickerDuration: Bool = false
     @State private var displayPickerTarget: Bool = false
-    @State private var selectedAdjustSens: enabledAdjustSens = .standard
+    @State private var tempTargetSensitivityAdjustmentType: TempTargetSensitivityAdjustmentType = .standard
     @State private var durationHours = 0
     @State private var durationMinutes = 0
     @State private var targetStep: Decimal = 5
@@ -185,12 +185,12 @@ struct AddTempTargetForm: View {
                             .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
                         content: {
                             VStack {
-                                Picker("Sensitivity Adjustment", selection: $selectedAdjustSens) {
-                                    ForEach(enabledAdjustSens.allCases, id: \.self) { option in
+                                Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
+                                    ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
                                         Text(option.rawValue).tag(option)
                                     }
                                     .pickerStyle(MenuPickerStyle())
-                                    .onChange(of: selectedAdjustSens) { newValue in
+                                    .onChange(of: tempTargetSensitivityAdjustmentType) { newValue in
                                         if newValue == .standard {
                                             state.halfBasalTarget = state.settingHalfBasalTarget
                                             state.percentage = Double(state.computeAdjustedPercentage() * 100)
@@ -198,7 +198,7 @@ struct AddTempTargetForm: View {
                                     }
                                 }
 
-                                if selectedAdjustSens == .slider {
+                                if tempTargetSensitivityAdjustmentType == .slider {
                                     Text("\(formattedPercentage(state.percentage)) % Insulin")
                                         .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
                                         .font(.title3)
@@ -305,11 +305,6 @@ struct AddTempTargetForm: View {
                 isInvalid ? Color(.systemGray4) : Color.secondary
             )
         }
-    }
-
-    enum enabledAdjustSens: String, CaseIterable {
-        case standard = "default"
-        case slider = "customized"
     }
 
     private func totalDurationInMinutes() -> Int {
