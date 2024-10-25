@@ -273,19 +273,22 @@ extension AlgorithmAdvancedSettings {
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString(
-                                "Autotune ISF Adjustment Fraction",
-                                comment: "Autotune ISF Adjustment Fraction"
+                                "Autotune ISF Adjustment Percent",
+                                comment: "Autotune ISF Adjustment Percent"
                             )
                         }
                     ),
                     units: state.units,
                     type: .decimal("autotuneISFAdjustmentFraction"),
-                    label: NSLocalizedString("Autotune ISF Adjustment Fraction", comment: "Autotune ISF Adjustment Fraction"),
-                    miniHint: "Using Autotune is not advised",
+                    label: NSLocalizedString("Autotune ISF Adjustment Percent", comment: "Autotune ISF Adjustment Percent"),
+                    miniHint: """
+                    Using Autotune is not advised
+                    Default: 50%
+                    """,
                     verboseHint: Text(
                         NSLocalizedString(
-                            "The default of 0.5 for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 1.0 allows full adjustment, 0 is no adjustment from pump ISF.",
-                            comment: "Autotune ISF Adjustment Fraction"
+                            "The default of 50% for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 100% allows full adjustment, 0% is no adjustment from pump ISF.",
+                            comment: "Autotune ISF Adjustment Percent"
                         )
                     )
                 )
@@ -298,18 +301,18 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact")
+                            hintLabel = NSLocalizedString("Min 5m Carb Impact", comment: "Min 5m Carb Impact")
                         }
                     ),
                     units: state.units,
                     type: .decimal("min5mCarbimpact"),
-                    label: NSLocalizedString("Min 5m Carbimpact", comment: "Min 5m Carbimpact"),
+                    label: NSLocalizedString("Min 5m Carb Impact", comment: "Min 5m Carb Impact"),
                     miniHint: """
                     Set the default rate of carb absorption when no clear impact on blood glucose is visible
                     Default: 8 mg/dL/5min
                     """,
                     verboseHint: VStack {
-                        Text("Default: 8 mg/dL/5 min").bold()
+                        Text("Default: 8 mg/dL/5min").bold()
                         Text("""
 
                         The Min 5m Carbimpact setting determines the default expected glucose rise (in mg/dL) over a 5-minute period from carbs when the system cannot detect clear absorption from your blood glucose levels. 

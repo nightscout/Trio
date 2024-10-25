@@ -75,15 +75,24 @@ extension LiveActivitySettings {
                         units: state.units,
                         type: .boolean,
                         label: "Enable Live Activity",
-                        miniHint: "Live Activities display Trio's glucose readings and other current data on the iPhone Lock Screen and in the Dynamic Island",
-                        verboseHint: VStack {
+                        miniHint: """
+                        Live Activities display Trio's glucose readings and other current data on the iPhone Lock Screen and in the Dynamic Island
+                        Default: OFF
+                        """,
+                        verboseHint: VStack(spacing: 10) {
+                            Text("Default: OFF").bold()
                             Text("""
+
                             With Live Activities, Trio displays your choice of the following current data on your iPhone's Lock Screen and in the Dynamic Island:
-                            ● Current Glucose Reading
-                            ● IOB: Insulin On Board
-                            ● COB: Carbohydrates On Board
-                            ● Last Updated: Time of Last Loop Cycle
-                            ● Glucose Trend Chart
+                            """)
+                            VStack(alignment: .leading) {
+                                Text("• Current Glucose Reading")
+                                Text("• IOB: Insulin On Board")
+                                Text("• COB: Carbohydrates On Board")
+                                Text("• Last Updated: Time of Last Loop Cycle")
+                                Text("• Glucose Trend Chart")
+                            }
+                            Text("""
 
                             It allows you to refer to live information at a glance and perform quick actions in your diabetes management.
                             """)
@@ -116,15 +125,19 @@ extension LiveActivitySettings {
                                             hintLabel = "Lock Screen Widget Style"
                                             selectedVerboseHint =
                                                 AnyView(
-                                                    Text("""
-                                                    Trio's Simple Lock Screen Widget only display current glucose reading, trend arrow, delta and the timestamp of the current reading.
+                                                    VStack(spacing: 10) {
+                                                        Text("""
+                                                        Trio's Simple Lock Screen Widget only display current glucose reading, trend arrow, delta and the timestamp of the current reading.
 
-                                                    The Detailed Lock Screen Widget offers users a glucose chart as well as the ability to customize the information provided in the Detailed Widget using the following options:
-                                                    ● Current Glucose Reading
-                                                    ● IOB: Insulin On Board
-                                                    ● COB: Carbohydrates On Board
-                                                    ● Last Updated: Time of Last Loop Cycle
-                                                    """)
+                                                        The Detailed Lock Screen Widget offers users a glucose chart as well as the ability to customize the information provided in the Detailed Widget using the following options:
+                                                        """)
+                                                        VStack(alignment: .leading) {
+                                                            Text("• Current Glucose Reading")
+                                                            Text("• IOB: Insulin On Board")
+                                                            Text("• COB: Carbohydrates On Board")
+                                                            Text("• Last Updated: Time of Last Loop Cycle")
+                                                        }
+                                                    }
                                                 )
                                             shouldDisplayHint.toggle()
                                         },

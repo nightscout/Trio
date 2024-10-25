@@ -46,7 +46,7 @@ struct NightscoutUploadView: View {
                 type: .boolean,
                 label: "Allow Uploading to Nightscout",
                 miniHint: "Enables upload of selected data sets to Nightscout. See hint for more details.",
-                verboseHint: VStack(spacing: 10) {
+                verboseHint: VStack(spacing: 5) {
                     Text("The Upload Treatments toggle enables uploading of:")
                     VStack(alignment: .leading) {
                         Text("• Carbs")

@@ -66,7 +66,16 @@ extension NightscoutConfig {
                                 importAlert = Alert(
                                     title: Text("Import Therapy Settings?"),
                                     message: Text(
-                                        "Are you sure you want to import profile settings from Nightscout?\n\nThis will overwrite the following Trio therapy settings: Basal Rates, Insulin Sensitivities, Carb Ratios, Target Glucose, and Duration of Insulin Action."
+                                        """
+                                        Are you sure you want to import profile settings from Nightscout?
+
+                                        This will overwrite the following Trio therapy settings:
+                                            • Basal Rates
+                                            • Insulin Sensitivities
+                                            • Carb Ratios
+                                            • Target Glucose
+                                            • Duration of Insulin Action
+                                        """
                                     ),
                                     primaryButton: .default(
                                         Text("Yes, Import!"),
@@ -101,7 +110,10 @@ extension NightscoutConfig {
 
                             HStack(alignment: .top) {
                                 Text(
-                                    "You can import therapy settings from Nightscout. See hint for more information which settings will be overwritten."
+                                    """
+                                    Import therapy settings from Nightscout
+                                    See hint for the list of settings available for import
+                                    """
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -113,7 +125,14 @@ extension NightscoutConfig {
                                         selectedVerboseHint =
                                             AnyView(
                                                 Text(
-                                                    "This will overwrite the following Trio therapy settings: \n • Basal Rates \n • Insulin Sensitivities \n • Carb Ratios \n • Target Glucose \n • Duration of Insulin Action"
+                                                    """
+                                                    This will overwrite the following Trio therapy settings:
+                                                        • Basal Rates
+                                                        • Insulin Sensitivities
+                                                        • Carb Ratios
+                                                        • Target Glucose
+                                                        • Duration of Insulin Action
+                                                    """
                                                 )
                                             )
                                         shouldDisplayHint.toggle()
@@ -145,7 +164,7 @@ extension NightscoutConfig {
 
                                 HStack(alignment: .top) {
                                     Text(
-                                        "You can backfill missing glucose data from Nightscout."
+                                        "Backfill missing glucose data from Nightscout"
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -154,7 +173,12 @@ extension NightscoutConfig {
                                     Button(
                                         action: {
                                             hintLabel = "Backfill Glucose from Nightscout"
-                                            selectedVerboseHint = AnyView(Text("Explanation… limitation… etc."))
+                                            selectedVerboseHint =
+                                                AnyView(
+                                                    Text(
+                                                        "This will backfill 24 hours of glucose data from your connected Nightscout URL to Trio"
+                                                    )
+                                                )
                                             shouldDisplayHint.toggle()
                                         },
                                         label: {

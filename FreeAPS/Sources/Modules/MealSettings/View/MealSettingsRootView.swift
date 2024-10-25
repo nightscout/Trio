@@ -209,30 +209,35 @@ extension MealSettings {
                     type: .boolean,
                     label: "Enable Fat and Protein Entries",
                     miniHint: """
-                    Enabling this setting allows you to log fat and protein, which are then converted into future carb equivalents (FPU) using the Warsaw Method.
+                    Allows you to add fat and protein macros to meals
                     Default: OFF
                     """,
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("""
-                        
+
+                        Enabling this setting allows you to log fat and protein, which are then converted into future carb equivalents using the Warsaw Method.
+
                         The Warsaw Method helps account for the delayed glucose spikes caused by fat and protein in meals. It uses Fat-Protein Units (FPU) to calculate the carb effect from fat and protein. The system spreads insulin delivery over several hours to mimic natural insulin release, helping to manage post-meal glucose spikes.
-                        
+
                         """)
                         Text("Fat Conversion").bold()
-                        Text("fat(g) × 90% = 𝑭").italic()
+                        Text("𝑭 = fat(g) × 90%").italic()
                         Text("""
-                        
-                         Protein Conversion
+
+                        Protein Conversion
                         """).bold()
-                        Text("protein(g) × 40% = 𝑷").italic()
+                        Text("𝑷 = protein(g) × 40%").italic()
                         Text("""
-                        
-                         FPU Conversion
+
+                        FPU Conversion
                         """).bold()
                         Text("𝑭 + 𝑷 = g CHO").italic()
                         Text(
-                            "You can personalize the conversion calculation by adjusting the following settings that will appear when this option is enabled:"
+                            """
+
+                            You can personalize the conversion calculation by adjusting the following settings that will appear when this option is enabled:
+                            """
                         )
                         VStack(alignment: .leading) {
                             Text("• Fat and Protein Delay")

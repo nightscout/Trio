@@ -80,15 +80,15 @@ extension DynamicSettings {
 
                         Dynamic ISF allows Trio to calculate a new ISF with each loop cycle by considering your current blood glucose (BG), total daily dose (TDD) of insulin, and adjustment factor (AF). This helps tailor your insulin response more accurately in real-time. 
 
-                         Dynamic ISF calculates a Dynamic Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day.
+                         Dynamic ISF calculates a Dynamic Ratio, determining how much your Profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day.
                         """)
                         Text("""
 
-                         Dynamic Ratio = profile.sens x AF x TDD x log (BG / insulinFactor + 1) / 1800
+                         Dynamic Ratio = Profile ISF × AF × TDD × log(BG ÷ Insulin Factor + 1) ÷ 1800
 
-                         New ISF = profile ISF / Dynamic Ratio
+                         New ISF = Profile ISF / Dynamic Ratio
 
-                         insulinFactor = 120 - InsulinPeakTimeInMinutes
+                         Insulin Factor = 120 - Insulin Peak Time
                         """).italic()
                     },
                     headerText: "Dynamic ISF (Sensitivity)"
@@ -103,7 +103,7 @@ extension DynamicSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Activate Dynamic Carb Ratio (CR)"
+                                hintLabel = "Activate Dynamic CR (Carb Ratio)"
                             }
                         ),
                         units: state.units,
@@ -117,7 +117,7 @@ extension DynamicSettings {
                             Text("Default: OFF").bold()
                             Text("""
 
-                            Dynamic CR adjusts your carb ratio in real-time, depending on your Dynamic Ratio. When this ratio increases (indicating you need more insulin), the carb ratio is adjusted to make your insulin dosing more effective. When the ratio decreases (indicating you need less insulin), the carb ratio is scaled back to avoid over-delivery.
+                            Dynamic CR adjusts your carb ratio (CR) in real-time, depending on your Dynamic Ratio. When this ratio increases (indicating you need more insulin), the CR is adjusted to make your insulin dosing more effective. When the ratio decreases (indicating you need less insulin), the carb ratio is scaled back to avoid over-delivery.
 
                             """)
                             Text(
@@ -188,7 +188,9 @@ extension DynamicSettings {
                                 Text("Default: 80%").bold()
                                 Text("""
 
-                                The Adjustment Factor (AF) allows you to control how aggressively your dynamic ISF responds to changes in blood glucose levels. A higher value means a stronger correction, increasing or decreasing the sensitivity of your insulin delivery to highs and lows in your glucose readings.
+                                The Adjustment Factor (AF) allows you to control how aggressively your dynamic ISF responds to changes in blood glucose levels. 
+
+                                A higher value means a stronger correction, increasing or decreasing the sensitivity of your insulin delivery to highs and lows in your glucose readings.
 
                                 """)
                                 Text("The maximum effect of this setting is limited by the Autosens Min/Max values.").italic()
@@ -217,7 +219,11 @@ extension DynamicSettings {
                                 Text("Default: 50%").bold()
                                 Text("""
 
-                                The Sigmoid Adjustment Factor (AF) allows you to control how aggressively your Dynamic ISF using the Sigmoid Formula responds to changes in blood glucose levels. Higher values lead to stronger corrections for high or low blood glucose levels, making the curve steeper. This setting allows for a more responsive system, but like other dynamic settings, its effect is capped by the Autosens Min/Max limits.
+                                The Sigmoid Adjustment Factor (AF) allows you to control how aggressively your Dynamic ISF using the Sigmoid Formula responds to changes in blood glucose levels. 
+
+                                Higher values lead to stronger corrections for high or low blood glucose levels, making the curve steeper. 
+
+                                This setting allows for a more responsive system, but like other dynamic settings, its effect is capped by the Autosens Min/Max limits.
 
                                 """)
                                 Text(
@@ -250,7 +256,13 @@ extension DynamicSettings {
                             Text("Default: 65%").bold()
                             Text("""
 
-                            This setting adjusts how much weight is given to your recent total daily insulin dose (TDD) when calculating Dynamic ISF and Dynamic CR. At the default setting, 65% of the calculation is based on the last 24 hours of insulin use, with the remaining 35% considering the last 10 days of data. Setting this to 100% means only the past 24 hours will be used. A lower value smooths out these variations for more stability.
+                            This setting adjusts how much weight is given to your recent total daily insulin dose (TDD) when calculating Dynamic ISF and Dynamic CR. 
+
+                            At the default setting, 65% of the calculation is based on the last 24 hours of insulin use, with the remaining 35% considering the last 10 days of data. 
+
+                            Setting this to 100% means only the past 24 hours will be used. 
+
+                            A lower value smooths out these variations for more stability.
                             """)
                         }
                     )
