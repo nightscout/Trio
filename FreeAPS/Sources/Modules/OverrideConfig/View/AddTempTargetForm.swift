@@ -83,15 +83,6 @@ struct AddTempTargetForm: View {
                     })
                 }
             }
-            .sheet(isPresented: $shouldDisplayHint) {
-                SettingInputHintView(
-                    hintDetent: $hintDetent,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
-                    sheetTitle: "Help"
-                )
-            }
             .onAppear {
                 targetStep = state.units == .mgdL ? 5 : 9
                 state.tempTargetTarget = state.normalTarget

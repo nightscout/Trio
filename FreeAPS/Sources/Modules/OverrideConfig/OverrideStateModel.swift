@@ -908,10 +908,13 @@ extension OverrideConfig.StateModel {
         computeSliderHigh(usingTarget: initialTarget) > computeSliderLow(usingTarget: initialTarget)
     }
 
-    func computeHalfBasalTarget(using initialPercentage: Double? = nil) -> Double {
+    func computeHalfBasalTarget(
+        usingTarget initialTarget: Decimal? = nil,
+        usingPercentage initialPercentage: Double? = nil
+    ) -> Double {
         let adjustmentPercentage = initialPercentage ?? percentage
         let adjustmentRatio = Decimal(adjustmentPercentage / 100)
-        let tempTargetValue: Decimal = tempTargetTarget
+        let tempTargetValue: Decimal = initialTarget ?? tempTargetTarget
         var halfBasalTargetValue = halfBasalTarget
         if adjustmentRatio != 1 {
             halfBasalTargetValue = ((2 * adjustmentRatio * normalTarget) - normalTarget - (adjustmentRatio * tempTargetValue)) /

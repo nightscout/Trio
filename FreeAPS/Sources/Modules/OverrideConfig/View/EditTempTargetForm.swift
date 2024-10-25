@@ -6,7 +6,12 @@ struct EditTempTargetForm: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
     @StateObject var state: OverrideConfig.StateModel
-
+    @State private var displayPickerDuration: Bool = false
+    @State private var displayPickerTarget: Bool = false
+    @State private var selectedAdjustSens: enabledAdjustSens = .standard
+    @State private var durationHours = 0
+    @State private var durationMinutes = 0
+    @State private var targetStep: Decimal = 5
     @State private var name: String
     @State private var target: Decimal
     @State private var duration: Decimal
@@ -31,25 +36,18 @@ struct EditTempTargetForm: View {
         _isPreset = State(initialValue: tempTargetToEdit.isPreset)
         _isEnabled = State(initialValue: tempTargetToEdit.enabled)
 
-        let normalTarget: Decimal = 100
         if let hbt = tempTargetToEdit.halfBasalTarget?.decimalValue {
             let H = hbt
-            let N: Decimal = normalTarget
+            let N: Decimal = state.normalTarget
             var T = tempTargetToEdit.target?.decimalValue ?? 0
-            if state.units == .mmolL {
-                T = T.asMgdL
-            }
+            let calcPercentage = Double(state.computeAdjustedPercentage(usingHBT: H, usingTarget: T) * 100)
+            _percentage = State(initialValue: Decimal(calcPercentage))
+        } else { _percentage = State(initialValue: Decimal(100)) }
+    }
 
-            let denominator = H - (2 * N) + T
-            if denominator != 0 {
-                let ratio = (H - N) / denominator
-                _percentage = State(initialValue: ratio * 100)
-            } else {
-                _percentage = State(initialValue: 100)
-            }
-        } else {
-            _percentage = State(initialValue: 100)
-        }
+    enum enabledAdjustSens: String, CaseIterable {
+        case standard = "default"
+        case slider = "customized"
     }
 
     var color: LinearGradient {
@@ -89,143 +87,232 @@ struct EditTempTargetForm: View {
 
     var body: some View {
         NavigationView {
-            Form {
+            List {
                 editTempTarget()
-
                 saveButton
-
-            }.scrollContentBackground(.hidden)
-                .background(color)
-                .navigationTitle("Edit Temp Target")
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationBarItems(leading: Button("Close") {
-                    presentationMode.wrappedValue.dismiss()
-                })
-                .onDisappear {
-                    if !hasChanges {
-                        // Reset UI changes
-                        resetValues()
-                    }
+            }
+            .listSectionSpacing(10)
+            .listRowSpacing(10)
+            .padding(.top, 30)
+            .ignoresSafeArea(edges: .top)
+            .scrollContentBackground(.hidden).background(color)
+            .navigationTitle("Edit Temp Target")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }, label: {
+                        Text("Cancel")
+                    })
                 }
-                .alert(isPresented: $state.showInvalidTargetAlert) {
-                    Alert(
-                        title: Text("Invalid Input"),
-                        message: Text("\(state.alertMessage)"),
-                        dismissButton: .default(Text("OK")) { state.showInvalidTargetAlert = false }
-                    )
-                }
+            }
+            .onAppear {
+                if halfBasalTarget != state.settingHalfBasalTarget { selectedAdjustSens = .slider }
+            }
         }
     }
 
     @ViewBuilder private func editTempTarget() -> some View {
-        Section(
-            header: Text("Configure Temp Target"),
-            content: {
+        Group {
+            Section {
                 HStack {
                     Text("Name")
                     Spacer()
-                    TextField("Enter Name (optional)", text: $name)
+                    TextField("(Optional)", text: $name)
                         .multilineTextAlignment(.trailing)
                         .onChange(of: name) {
                             hasChanges = true
                         }
                 }
-                HStack {
-                    Text("Target")
-                    Spacer()
-                    TextFieldWithToolBar(
-                        text: Binding(
-                            get: { target },
-                            set: {
-                                target = $0
-                                hasChanges = true
-                            }
-                        ),
-                        placeholder: "0",
-                        numberFormatter: glucoseFormatter
-                    )
-                    Text(state.units.rawValue).foregroundColor(.secondary)
-                }
-                HStack {
-                    Text("Duration")
-                    Spacer()
-                    TextFieldWithToolBar(
-                        text: Binding(
-                            get: { duration },
-                            set: {
-                                duration = $0
-                                hasChanges = true
-                            }
-                        ),
-                        placeholder: "0",
-                        numberFormatter: formatter
-                    )
-                    Text("minutes").foregroundColor(.secondary)
-                }
+            }.listRowBackground(Color.chart)
+
+            Section {
                 DatePicker("Date", selection: $date)
                     .onChange(of: date) { hasChanges = true }
-            }
-        ).listRowBackground(Color.chart)
+            }.listRowBackground(Color.chart)
 
-        if state.computeSliderLow() != state.computeSliderHigh() {
             Section {
                 VStack {
-                    VStack {
-                        Text("\(percentage.formatted(.number.precision(.fractionLength(0)))) % Insulin")
-                            .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                            .font(.largeTitle)
+                    HStack {
+                        Text("Duration")
+                        Spacer()
+                        Text(formatHrMin(Int(duration)))
+                            .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
+                    }
+                    .onTapGesture {
+                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                    }
+                    .onChange(of: duration) { hasChanges = true }
 
-                        Slider(value: Binding(
-                            get: {
-                                Double(truncating: percentage as NSNumber)
-                            },
-                            set: { newValue in
-                                percentage = Decimal(newValue)
-                                hasChanges = true
-
-                                // Calculate the halfBasalTarget based on the new percentage value
-                                let ratio = Decimal(Int(percentage) / 100)
-                                let normalTarget: Decimal = 100
-                                var target: Decimal = target
-                                if state.units == .mmolL {
-                                    target = target.asMgdL
-                                }
-
-                                if ratio != 1 {
-                                    let hbtcalc = ((2 * ratio * normalTarget) - normalTarget - (ratio * target)) / (ratio - 1)
-                                    halfBasalTarget = hbtcalc
-                                } else {
-                                    halfBasalTarget = normalTarget
+                    if displayPickerDuration {
+                        HStack {
+                            Picker(
+                                selection: Binding(
+                                    get: {
+                                        Int(truncating: duration as NSNumber) / 60
+                                    },
+                                    set: {
+                                        let minutes = Int(truncating: duration as NSNumber) % 60
+                                        let totalMinutes = $0 * 60 + minutes
+                                        duration = Decimal(totalMinutes)
+                                        hasChanges = true
+                                    }
+                                ),
+                                label: Text("")
+                            ) {
+                                ForEach(0 ..< 24) { hour in
+                                    Text("\(hour) hr").tag(hour)
                                 }
                             }
-                        ), in: Double(state.computeSliderLow()) ... Double(state.computeSliderHigh()), step: 5) {}
-                        minimumValueLabel: {
-                            Text("\(state.computeSliderLow(), specifier: "%.0f")%")
-                        }
-                        maximumValueLabel: {
-                            Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
-                        }
-                        onEditingChanged: { editing in
-                            isUsingSlider = editing
-                            state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
-                        }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
 
-                        Divider()
-                        Text(
-                            state
-                                .units == .mgdL ?
-                                "Half Basal Exercise Target at: \(halfBasalTarget.formatted(.number.precision(.fractionLength(0)))) mg/dl" :
-                                "Half Basal Exercise Target at: \(halfBasalTarget.asMmolL.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))) mmol/L"
-                        )
-                        .foregroundColor(.secondary)
-                        .font(.caption).italic()
+                            Picker(
+                                selection: Binding(
+                                    get: {
+                                        Int(truncating: duration as NSNumber) %
+                                            60 // Convert Decimal to Int for modulus operation
+                                    },
+                                    set: {
+                                        duration = Decimal((Int(truncating: duration as NSNumber) / 60) * 60 + $0)
+                                        hasChanges = true
+                                    }
+                                ),
+                                label: Text("")
+                            ) {
+                                ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
+                                    Text("\(minute) min").tag(minute)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                        }
+                        .listRowSeparator(.hidden, edges: .top)
                     }
                 }
-            } header: {
-                Text("% Insulin")
-            } footer: {
-                Text("The Slider values are limited to your Autosens Min and Max Settings!")
             }.listRowBackground(Color.chart)
+
+            Section {
+                HStack {
+                    // Picker on the right side
+                    let settingsProvider = PickerSettingsProvider.shared
+                    let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
+                    TargetPicker(
+                        label: "Target Glucose",
+                        selection: Binding(
+                            get: { target },
+                            set: { target = $0 }
+                        ),
+                        options: settingsProvider.generatePickerValues(
+                            from: glucoseSetting,
+                            units: state.units,
+                            roundMinToStep: true
+                        ),
+                        units: state.units,
+                        hasChanges: $hasChanges,
+                        targetStep: $targetStep,
+                        displayPickerTarget: $displayPickerTarget,
+                        toggleScrollWheel: toggleScrollWheel
+                    )
+                }
+                .onChange(of: target) {
+                    state
+                        .percentage = Double(
+                            state
+                                .computeAdjustedPercentage(usingHBT: halfBasalTarget, usingTarget: target) * 100
+                        )
+                }
+            }
+            .listRowBackground(Color.chart)
+
+            if target != state.normalTarget {
+                let computedHalfBasalTarget = Decimal(
+                    state
+                        .computeHalfBasalTarget(usingTarget: target, usingPercentage: Double(percentage))
+                )
+                let sensHint = target > state.normalTarget ?
+                    "Reducing all delivered insulin to \(formattedPercentage(Double(percentage)))%." :
+                    "Increasing all delivered insulin by \(formattedPercentage(Double(percentage) - 100))%."
+
+                if state.computeSliderLow(usingTarget: target) < state.computeSliderHigh(usingTarget: target) {
+                    Section(
+                        header: Text(sensHint)
+                            .textCase(.none)
+                            .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
+                        content: {
+                            VStack {
+                                Picker("Sensitivity Adjustment", selection: $selectedAdjustSens) {
+                                    ForEach(enabledAdjustSens.allCases, id: \.self) { option in
+                                        Text(option.rawValue).tag(option)
+                                    }
+                                    .pickerStyle(MenuPickerStyle())
+                                    .onChange(of: selectedAdjustSens) { newValue in
+                                        if newValue == .standard {
+                                            halfBasalTarget = state.settingHalfBasalTarget
+                                            percentage = (
+                                                state
+                                                    .computeAdjustedPercentage(usingHBT: halfBasalTarget, usingTarget: target) *
+                                                    100
+                                            )
+                                        }
+                                    }
+                                }
+
+                                if selectedAdjustSens == .slider {
+                                    Text("\(formattedPercentage(Double(percentage))) % Insulin")
+                                        .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                                    Slider(
+                                        value: Binding(
+                                            get: {
+                                                Double(truncating: percentage as NSNumber)
+                                            },
+                                            set: { newValue in
+                                                percentage = Decimal(newValue)
+                                                hasChanges = true
+
+                                                // Calculate the halfBasalTarget based on the new percentage value
+//                                                let percentageC: Double = percentage
+//                                                let targetC: Decimal = target
+                                                halfBasalTarget = Decimal(state.computeHalfBasalTarget(
+                                                    usingTarget: target,
+                                                    usingPercentage: Double(percentage)
+                                                ))
+                                            }
+                                        ),
+                                        in: Double(state.computeSliderLow(usingTarget: target)) ...
+                                            Double(state.computeSliderHigh(usingTarget: target)),
+                                        step: 5
+                                    ) {}
+                                    minimumValueLabel: {
+                                        Text("\(state.computeSliderLow(usingTarget: target), specifier: "%.0f")%")
+                                    }
+                                    maximumValueLabel: {
+                                        Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
+                                    } onEditingChanged: { editing in
+                                        isUsingSlider = editing
+                                        halfBasalTarget = Decimal(state.computeHalfBasalTarget())
+                                    }
+
+                                    Divider()
+
+                                    HStack {
+                                        Text(
+                                            "Half Basal Exercise Target:"
+                                        )
+                                        Spacer()
+                                        Text(formattedGlucose(glucose: computedHalfBasalTarget))
+                                    }.foregroundStyle(.primary)
+                                }
+                            }.padding(.vertical, 10)
+                        }
+                    )
+                    .listRowBackground(Color.chart)
+                    .padding(.top, -10)
+                }
+            }
         }
     }
 
@@ -300,10 +387,36 @@ struct EditTempTargetForm: View {
         tempTarget.halfBasalTarget = NSDecimalNumber(decimal: halfBasalTarget)
     }
 
+    private func toggleScrollWheel(_ toggle: Bool) -> Bool {
+        displayPickerDuration = false
+        displayPickerTarget = false
+        return !toggle
+    }
+
     private func resetValues() {
         name = tempTarget.name ?? ""
         target = tempTarget.target?.decimalValue ?? 0
         duration = tempTarget.duration?.decimalValue ?? 0
         date = tempTarget.date ?? Date()
+    }
+
+    private func totalDurationInMinutes() -> Int {
+        let durationTotal = (durationHours * 60) + durationMinutes
+        return max(0, durationTotal)
+    }
+
+    private func formattedPercentage(_ value: Double) -> String {
+        let percentageNumber = NSNumber(value: value)
+        return formatter.string(from: percentageNumber) ?? "\(value)"
+    }
+
+    private func formattedGlucose(glucose: Decimal) -> String {
+        let formattedValue: String
+        if state.units == .mgdL {
+            formattedValue = glucoseFormatter.string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
+        } else {
+            formattedValue = glucose.formattedAsMmolL
+        }
+        return "\(formattedValue) \(state.units.rawValue)"
     }
 }
