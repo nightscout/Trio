@@ -665,57 +665,59 @@ struct TargetPicker: View {
     var toggleScrollWheel: (_ picker: Bool) -> Bool
 
     var body: some View {
-        HStack {
-            Text(label)
-            Spacer()
-            Text(
-                (units == .mgdL ? selection.description : selection.formattedAsMmolL) + " " + units.rawValue
-            )
-            .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
-        }
-        .onTapGesture {
-            displayPickerTarget = toggleScrollWheel(displayPickerTarget)
-        }
-        if displayPickerTarget {
+        VStack {
             HStack {
-                // Radio buttons and text on the left side
-                VStack(alignment: .leading) {
-                    // Radio buttons for step iteration
-                    let stepChoices: [Decimal] = units == .mgdL ? [1, 5] : [1, 9]
-                    ForEach(stepChoices, id: \.self) { step in
-                        let label = (units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
-                            units.rawValue
-                        RadioButton(
-                            isSelected: targetStep == step,
-                            label: label
-                        ) {
-                            targetStep = step
-                            selection = OverrideConfig.StateModel.roundTargetToStep(selection, step)
-                        }
-                        .padding(.top, 10)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-
+                Text(label)
                 Spacer()
-
-                // Picker on the right side
-                Picker(selection: Binding(
-                    get: { OverrideConfig.StateModel.roundTargetToStep(selection, targetStep) },
-                    set: {
-                        selection = $0
-                        hasChanges = true
-                    }
-                ), label: Text("")) {
-                    ForEach(options, id: \.self) { option in
-                        Text((units == .mgdL ? option.description : option.formattedAsMmolL) + " " + units.rawValue)
-                            .tag(option)
-                    }
-                }
-                .pickerStyle(WheelPickerStyle())
-                .frame(maxWidth: .infinity)
+                Text(
+                    (units == .mgdL ? selection.description : selection.formattedAsMmolL) + " " + units.rawValue
+                )
+                .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
             }
-            .listRowSeparator(.hidden, edges: .top)
+            .onTapGesture {
+                displayPickerTarget = toggleScrollWheel(displayPickerTarget)
+            }
+            if displayPickerTarget {
+                HStack {
+                    // Radio buttons and text on the left side
+                    VStack(alignment: .leading) {
+                        // Radio buttons for step iteration
+                        let stepChoices: [Decimal] = units == .mgdL ? [1, 5] : [1, 9]
+                        ForEach(stepChoices, id: \.self) { step in
+                            let label = (units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
+                                units.rawValue
+                            RadioButton(
+                                isSelected: targetStep == step,
+                                label: label
+                            ) {
+                                targetStep = step
+                                selection = OverrideConfig.StateModel.roundTargetToStep(selection, step)
+                            }
+                            .padding(.top, 10)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    Spacer()
+
+                    // Picker on the right side
+                    Picker(selection: Binding(
+                        get: { OverrideConfig.StateModel.roundTargetToStep(selection, targetStep) },
+                        set: {
+                            selection = $0
+                            hasChanges = true
+                        }
+                    ), label: Text("")) {
+                        ForEach(options, id: \.self) { option in
+                            Text((units == .mgdL ? option.description : option.formattedAsMmolL) + " " + units.rawValue)
+                                .tag(option)
+                        }
+                    }
+                    .pickerStyle(WheelPickerStyle())
+                    .frame(maxWidth: .infinity)
+                }
+                .listRowSeparator(.hidden, edges: .top)
+            }
         }
     }
 }

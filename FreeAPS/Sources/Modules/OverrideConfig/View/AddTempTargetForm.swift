@@ -16,6 +16,7 @@ struct AddTempTargetForm: View {
     @State private var showPresetAlert = false
     @State private var alertString = ""
     @State private var isUsingSlider = false
+    @State private var hasChanges = false
 
     @State private var didPressSave =
         false // only used for fixing the Disclaimer showing up after pressing save (after the state was resetted), maybe refactor this...
@@ -154,72 +155,32 @@ struct AddTempTargetForm: View {
             }.listRowBackground(Color.chart)
 
             Section {
+                let settingsProvider = PickerSettingsProvider.shared
+                let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
                 HStack {
-                    Text("Target Glucose")
-                    Spacer()
-                    Text(formattedGlucose(glucose: state.tempTargetTarget))
-                        .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
-                }
-                .onTapGesture {
-                    displayPickerTarget = toggleScrollWheel(displayPickerTarget)
-                }
-                if displayPickerTarget {
-                    HStack {
-                        // Radio buttons and text on the left side
-                        VStack(alignment: .leading) {
-                            // Radio buttons for step iteration
-                            let stepChoices: [Decimal] = state.units == .mgdL ? [1, 5] : [1, 9]
-                            ForEach(stepChoices, id: \.self) { step in
-                                let label = (state.units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
-                                    state.units.rawValue
-
-                                RadioButton(
-                                    isSelected: targetStep == step,
-                                    label: label
-                                ) {
-                                    targetStep = step
-                                    state.tempTargetTarget = OverrideConfig.StateModel.roundTargetToStep(
-                                        state.tempTargetTarget,
-                                        targetStep
-                                    )
-                                }
-                                .padding(.top, 10)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-
-                        Spacer()
-
-                        // Picker on the right side
-                        let settingsProvider = PickerSettingsProvider.shared
-                        let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
-                        Picker(selection: Binding(
-                            get: { OverrideConfig.StateModel.roundTargetToStep(state.tempTargetTarget, targetStep) },
+                    TargetPicker(
+                        label: "Target Glucose",
+                        selection: Binding(
+                            get: { state.tempTargetTarget },
                             set: { state.tempTargetTarget = $0 }
-                        ), label: Text("")) {
-                            ForEach(
-                                settingsProvider.generatePickerValues(
-                                    from: glucoseSetting,
-                                    units: state.units,
-                                    roundMinToStep: true
-                                ),
-                                id: \.self
-                            ) { glucose in
-                                Text(
-                                    (state.units == .mgdL ? glucose.description : glucose.formattedAsMmolL) + " " + state
-                                        .units.rawValue
-                                )
-                                .tag(glucose)
-                            }
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(maxWidth: .infinity)
-                        .onChange(of: state.tempTargetTarget) {
-                            state.percentage = Double(state.computeAdjustedPercentage() * 100)
-                        }
-                    }
+                        ),
+                        options: settingsProvider.generatePickerValues(
+                            from: glucoseSetting,
+                            units: state.units,
+                            roundMinToStep: true
+                        ),
+                        units: state.units,
+                        hasChanges: $hasChanges,
+                        targetStep: $targetStep,
+                        displayPickerTarget: $displayPickerTarget,
+                        toggleScrollWheel: toggleScrollWheel
+                    )
                 }
-            }.listRowBackground(Color.chart)
+                .onChange(of: state.tempTargetTarget) {
+                    state.percentage = Double(state.computeAdjustedPercentage() * 100)
+                }
+            }
+            .listRowBackground(Color.chart)
 
             if state.tempTargetTarget != state.normalTarget {
                 let computedHalfBasalTarget = Decimal(state.computeHalfBasalTarget())
