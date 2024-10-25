@@ -56,7 +56,7 @@ extension Settings {
 
                             Group {
                                 HStack {
-                                    Image(uiImage: UIImage(named: appIcons.appIcon.rawValue) ?? UIImage())
+                                    Image(appIcons.appIcon.rawValue)
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
                                         .frame(width: 50, height: 50)
