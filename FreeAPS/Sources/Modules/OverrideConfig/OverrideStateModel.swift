@@ -68,13 +68,6 @@ extension OverrideConfig {
             }
         }
 
-        var low: Decimal = 0
-        var high: Decimal = 0
-        var durationTT: Decimal = 0
-        var presetsTT: [TempTarget] = []
-        var percentageTT = 100.0
-        var hbt: Double = 160
-
         let coredataContext = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 

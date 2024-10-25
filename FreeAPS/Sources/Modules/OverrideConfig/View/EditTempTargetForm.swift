@@ -206,7 +206,7 @@ struct EditTempTargetForm: View {
                     "Reducing all delivered insulin to \(formattedPercentage(Double(percentage)))%." :
                     "Increasing all delivered insulin by \(formattedPercentage(Double(percentage) - 100))%."
 
-                if state.computeSliderLow(usingTarget: target) < state.computeSliderHigh(usingTarget: target) {
+                if state.isAdjustSensEnabled(usingTarget: target) {
                     Section(
                         header: Text(sensHint)
                             .textCase(.none)
