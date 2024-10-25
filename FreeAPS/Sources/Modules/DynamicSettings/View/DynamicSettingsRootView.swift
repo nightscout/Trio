@@ -80,18 +80,18 @@ extension DynamicSettings {
 
                         Dynamic ISF allows Trio to calculate a new ISF with each loop cycle by considering your current blood glucose (BG), total daily dose (TDD) of insulin, and adjustment factor (AF). This helps tailor your insulin response more accurately in real-time. 
 
-                         Dynamic ISF calculates a Dynamic Ratio, determining how much your Profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day.
+                        Dynamic ISF calculates a Dynamic Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day.
                         """)
                         Text("""
 
-                         Dynamic Ratio = Profile ISF × AF × TDD × log(BG ÷ Insulin Factor + 1) ÷ 1800
+                         Dynamic Ratio = (Profile ISF) × AF × TDD × (log(BG ÷ (Insulin Factor) + 1)) ÷ 1800
 
-                         New ISF = Profile ISF / Dynamic Ratio
+                         New ISF = (Profile ISF) ÷ (Dynamic Ratio)
 
-                         Insulin Factor = 120 - Insulin Peak Time
+                         Insulin Factor = 120 - (Insulin Peak Time)
                         """).italic()
                     },
-                    headerText: "Dynamic ISF (Sensitivity)"
+                    headerText: "Dynamic Settings"
                 )
 
                 if state.useNewFormula {
@@ -157,10 +157,10 @@ extension DynamicSettings {
 
                             """)
                             Text("""
-                            It’s recommended to not set Autosens Max above 1.5 to maintain safe insulin dosing.
+                            It is not recommended to set Autosens Max above 150% to maintain safe insulin dosing.
 
                             """).italic()
-                            Text("There has been no empirical data analysis to support the use of the Sigmoid Formula.").italic()
+                            Text("There has been no empirical data analysis to support the use of the Sigmoid Formula for dynamic sensitivity determination.").italic()
                                 .bold()
                         }
                     )
@@ -301,9 +301,9 @@ extension DynamicSettings {
 
                             """)
                             Text("""
-                            Autosens Ratio = (Weighted Average of TDD)/(10-day Average of TDD)
+                            Autosens Ratio = (Weighted Average of TDD) ÷ (10-day Average of TDD)
 
-                            New basal profile = current basal profile * Autosens Ratio
+                            New Basal Profile = (Current Basal Profile) × (Autosens Ratio)
                             """).italic()
                         }
                     )
