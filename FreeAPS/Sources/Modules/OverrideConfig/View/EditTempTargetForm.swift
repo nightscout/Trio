@@ -11,7 +11,7 @@ struct EditTempTargetForm: View {
     @State private var tempTargetSensitivityAdjustmentType: TempTargetSensitivityAdjustmentType = .standard
     @State private var durationHours = 0
     @State private var durationMinutes = 0
-    @State private var targetStep: Decimal = 5
+    @State private var targetStep: Decimal = 1
     @State private var name: String
     @State private var target: Decimal
     @State private var duration: Decimal
@@ -58,25 +58,6 @@ struct EditTempTargetForm: View {
                 startPoint: .top,
                 endPoint: .bottom
             )
-    }
-
-    private var formatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }
-
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        if state.units == .mmolL {
-            formatter.maximumFractionDigits = 1
-        } else {
-            formatter.maximumFractionDigits = 0
-        }
-        formatter.roundingMode = .halfUp
-        return formatter
     }
 
     var body: some View {
@@ -386,6 +367,25 @@ struct EditTempTargetForm: View {
     private func totalDurationInMinutes() -> Int {
         let durationTotal = (durationHours * 60) + durationMinutes
         return max(0, durationTotal)
+    }
+
+    private var formatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        return formatter
+    }
+
+    private var glucoseFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        if state.units == .mmolL {
+            formatter.maximumFractionDigits = 1
+        } else {
+            formatter.maximumFractionDigits = 0
+        }
+        formatter.roundingMode = .halfUp
+        return formatter
     }
 
     private func formattedPercentage(_ value: Double) -> String {

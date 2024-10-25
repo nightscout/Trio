@@ -28,10 +28,10 @@ struct EditOverrideForm: View {
     @State private var hasChanges = false
     @State private var isEditing = false
     @State private var target_override = false
-    @State private var percentageStep: Int = 5
+    @State private var percentageStep: Int = 1
     @State private var displayPickerPercentage: Bool = false
     @State private var displayPickerDuration: Bool = false
-    @State private var targetStep: Decimal = 5
+    @State private var targetStep: Decimal = 1
     @State private var displayPickerTarget: Bool = false
     @State private var displayPickerDisableSmbSchedule: Bool = false
     @State private var displayPickerSmbMinutes: Bool = false
