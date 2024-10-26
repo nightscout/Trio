@@ -18,7 +18,6 @@ class CoreDataStack: ObservableObject {
             object: nil,
             queue: nil
         ) { _ in
-//            debugPrint("Received a persistent store remote change notification")
             Task {
                 await self.fetchPersistentHistory()
             }
