@@ -241,8 +241,9 @@ extension Bolus {
             let now = Date()
             let calendar = Calendar.current
             let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "HH:mm"
             dateFormatter.timeZone = TimeZone.current
+
+            let regexWithSeconds = #"^\d{2}:\d{2}:\d{2}$"#
 
             let entries: [(start: String, value: Decimal)]
 
@@ -262,6 +263,13 @@ extension Bolus {
             }
 
             for (index, entry) in entries.enumerated() {
+                // Dynamically set the format based on whether it matches the regex
+                if entry.start.range(of: regexWithSeconds, options: .regularExpression) != nil {
+                    dateFormatter.dateFormat = "HH:mm:ss"
+                } else {
+                    dateFormatter.dateFormat = "HH:mm"
+                }
+
                 guard let entryTime = dateFormatter.date(from: entry.start) else {
                     print("Invalid entry start time: \(entry.start)")
                     continue
@@ -271,21 +279,30 @@ extension Bolus {
                 let entryStartTime = calendar.date(
                     bySettingHour: entryComponents.hour!,
                     minute: entryComponents.minute!,
-                    second: entryComponents.second!,
+                    second: entryComponents.second ?? 0, // Set seconds to 0 if not provided
                     of: now
                 )!
 
                 let entryEndTime: Date
-                if index < entries.count - 1,
-                   let nextEntryTime = dateFormatter.date(from: entries[index + 1].start)
-                {
-                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
-                    entryEndTime = calendar.date(
-                        bySettingHour: nextEntryComponents.hour!,
-                        minute: nextEntryComponents.minute!,
-                        second: nextEntryComponents.second!,
-                        of: now
-                    )!
+                if index < entries.count - 1 {
+                    // Dynamically set the format again for the next element
+                    if entries[index + 1].start.range(of: regexWithSeconds, options: .regularExpression) != nil {
+                        dateFormatter.dateFormat = "HH:mm:ss"
+                    } else {
+                        dateFormatter.dateFormat = "HH:mm"
+                    }
+
+                    if let nextEntryTime = dateFormatter.date(from: entries[index + 1].start) {
+                        let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                        entryEndTime = calendar.date(
+                            bySettingHour: nextEntryComponents.hour!,
+                            minute: nextEntryComponents.minute!,
+                            second: nextEntryComponents.second ?? 0,
+                            of: now
+                        )!
+                    } else {
+                        entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+                    }
                 } else {
                     entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
                 }
@@ -359,7 +376,6 @@ extension Bolus {
             insulinCalculated = min(insulinCalculated, maxBolus)
 
             guard let apsManager = apsManager else {
-                debug(.apsManager, "APSManager could not be gracefully unwrapped")
                 return insulinCalculated
             }
 
