@@ -104,11 +104,11 @@ extension Bolus {
         var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         var predictionsForChart: Predictions?
         var simulatedDetermination: Determination?
-        var determinationObjectIDs: [NSManagedObjectID] = []
+        @MainActor var determinationObjectIDs: [NSManagedObjectID] = []
 
         var minForecast: [Int] = []
         var maxForecast: [Int] = []
-        var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
+        @MainActor var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
         var forecastDisplayType: ForecastDisplayType = .cone
         var isSmoothingEnabled: Bool = false
         var stops: [Gradient.Stop] = []
@@ -736,7 +736,7 @@ extension Bolus.StateModel {
         if let forecastData = forecastData {
             simulatedDetermination = forecastData
         } else {
-            simulatedDetermination = await Task.detached { [self] in
+            simulatedDetermination = await Task { [self] in
                 await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
             }.value
         }
@@ -761,14 +761,14 @@ extension Bolus.StateModel {
         minCount = max(12, nonEmptyArrays.map(\.count).min() ?? 0)
         guard minCount > 0 else { return }
 
-        async let minForecastResult = Task.detached {
-            (0 ..< self.minCount).map { index in
+        async let minForecastResult = Task {
+            await (0 ..< self.minCount).map { index in
                 nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.min() ?? 0
             }
         }.value
 
-        async let maxForecastResult = Task.detached {
-            (0 ..< self.minCount).map { index in
+        async let maxForecastResult = Task {
+            await (0 ..< self.minCount).map { index in
                 nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
             }
         }.value
