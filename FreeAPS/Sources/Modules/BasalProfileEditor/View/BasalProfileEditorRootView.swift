@@ -84,9 +84,7 @@ extension BasalProfileEditor {
                     dismissButton: .default(Text("Close"))
                 )
             }
-            .onChange(of: state.items) { _ in
-                state.calcTotal()
-            }
+            .onChange(of: state.items) { state.calcTotal() }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
             .navigationTitle("Basal Profile")
@@ -118,12 +116,12 @@ extension BasalProfileEditor {
                             ).tag(i)
                         }
                     }
-                    .onChange(of: state.items[index].rateIndex, perform: { _ in state.calcTotal() })
+                    .onChange(of: state.items[index].rateIndex, { state.calcTotal() })
                 }.listRowBackground(Color.chart)
 
                 Section {
                     Picker(selection: $state.items[index].timeIndex, label: Text("Time")) {
-                        ForEach(0 ..< state.timeValues.count, id: \.self) { i in
+                        ForEach(state.availableTimeIndices(index), id: \.self) { i in
                             Text(
                                 self.dateFormatter
                                     .string(from: Date(
@@ -133,7 +131,7 @@ extension BasalProfileEditor {
                             ).tag(i)
                         }
                     }
-                    .onChange(of: state.items[index].timeIndex, perform: { _ in state.calcTotal() })
+                    .onChange(of: state.items[index].timeIndex, { state.calcTotal() })
                 }.listRowBackground(Color.chart)
             }
             .padding(.top)
