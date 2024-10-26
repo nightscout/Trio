@@ -3,7 +3,7 @@ import SwiftUI
 
 struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject var state: OverrideConfig.StateModel
+    @Bindable var state: OverrideConfig.StateModel
     @State private var selectedIsfCrOption: IsfAndOrCrOptions = .isfAndCr
     @State private var selectedDisableSmbOption: DisableSmbOptions = .dontDisable
     @State private var percentageStep: Int = 5

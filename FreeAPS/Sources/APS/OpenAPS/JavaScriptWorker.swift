@@ -28,9 +28,6 @@ final class JavaScriptWorker {
     private let virtualMachine: JSVirtualMachine
     private var contextPool: [JSContext] = []
     private let contextPoolLock = NSLock()
-    @SyncAccess(lock: contextLock) private var commonContext: JSContext? = nil
-    private var consoleLogs: [String] = []
-    private var logContext: String = ""
 
     init(poolSize: Int = 5) {
         virtualMachine = JSVirtualMachine()!
@@ -47,10 +44,15 @@ final class JavaScriptWorker {
                 warning(.openAPS, "JavaScript Error: \(error)")
             }
         }
-        let consoleLog: @convention(block) (String) -> Void = { message in
+        let consoleLog: @convention(block) (String) -> Void = { [weak context] message in
+            guard let context = context else { return }
             let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmedMessage.isEmpty {
-                self.consoleLogs.append("\(trimmedMessage)")
+                let fileName = context.objectForKeyedSubscript("scriptName").toString() ?? "Unknown"
+                let threadSafeLog = "\(trimmedMessage)"
+                self.processQueue.async(flags: .barrier) {
+                    self.outputLogs(for: fileName, message: threadSafeLog)
+                }
             }
         }
         context.setObject(consoleLog, forKeyedSubscript: "_consoleLog" as NSString)
@@ -70,36 +72,40 @@ final class JavaScriptWorker {
         contextPoolLock.unlock()
     }
 
-    // New method to flush aggregated logs
-    private func outputLogs() {
-        var outputLogs = consoleLogs.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
-        consoleLogs.removeAll()
+    private func outputLogs(for fileName: String, message: String) {
+        let logs = message.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        if outputLogs.isEmpty { return }
+        if logs.isEmpty { return }
 
-        if logContext == "autosens.js" {
-            outputLogs = outputLogs.split(separator: "\n").map { logLine in
+        if fileName == "autosens.js" {
+            let sanitizedLogs = logs.split(separator: "\n").map { logLine in
                 logLine.replacingOccurrences(
                     of: "^[-+=x!]|u\\(|\\)|\\d{1,2}h$",
                     with: "",
                     options: .regularExpression
                 )
             }.joined(separator: "\n")
-        }
 
-        if !outputLogs.isEmpty {
-            outputLogs.split(separator: "\n").forEach { logLine in
-                if !"\(logLine)".trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    debug(.openAPS, "\(logContext): \(logLine)")
+            sanitizedLogs.split(separator: "\n").forEach { logLine in
+                if !logLine.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    debug(.openAPS, "\(fileName): \(logLine)")
+                }
+            }
+        } else {
+            logs.split(separator: "\n").forEach { logLine in
+                if !logLine.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    debug(.openAPS, "\(fileName): \(logLine)")
                 }
             }
         }
     }
 
     @discardableResult func evaluate(script: Script) -> JSValue! {
-        logContext = URL(fileURLWithPath: script.name).lastPathComponent
-        let result = evaluate(string: script.body)
-        outputLogs()
+        let context = getContext()
+        defer { returnContext(context) }
+        let fileName = URL(fileURLWithPath: script.name).lastPathComponent
+        context.setObject(fileName, forKeyedSubscript: "scriptName" as NSString)
+        let result = context.evaluateScript(script.body)
         return result
     }
 
@@ -122,7 +128,6 @@ final class JavaScriptWorker {
         let context = getContext()
         defer {
             returnContext(context)
-            outputLogs()
         }
         return execute(self)
     }
@@ -130,13 +135,12 @@ final class JavaScriptWorker {
     func evaluateBatch(scripts: [Script]) {
         let context = getContext()
         defer {
-            // Ensure the context is returned to the pool
             returnContext(context)
         }
         scripts.forEach { script in
-            logContext = URL(fileURLWithPath: script.name).lastPathComponent
+            let fileName = URL(fileURLWithPath: script.name).lastPathComponent
+            context.setObject(fileName, forKeyedSubscript: "scriptName" as NSString)
             context.evaluateScript(script.body)
-            outputLogs()
         }
     }
 }
