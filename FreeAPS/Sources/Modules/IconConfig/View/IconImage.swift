@@ -8,7 +8,7 @@ struct IconImage: View {
         Label {
             Text(icon.rawValue)
         } icon: {
-            Image(uiImage: UIImage(named: icon.rawValue) ?? UIImage())
+            Image(icon.rawValue)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(minHeight: 57, maxHeight: 1024)
