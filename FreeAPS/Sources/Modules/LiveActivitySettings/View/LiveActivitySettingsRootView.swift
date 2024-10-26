@@ -126,11 +126,8 @@ extension LiveActivitySettings {
                                             selectedVerboseHint =
                                                 AnyView(
                                                     VStack(spacing: 10) {
-                                                        Text("""
-                                                        Trio's Simple Lock Screen Widget only display current glucose reading, trend arrow, delta and the timestamp of the current reading.
-
-                                                        The Detailed Lock Screen Widget offers users a glucose chart as well as the ability to customize the information provided in the Detailed Widget using the following options:
-                                                        """)
+                                                        Text("Trio's Simple Lock Screen Widget only display current glucose reading, trend arrow, delta and the timestamp of the current reading.")
+                                                        Text("The Detailed Lock Screen Widget offers users a glucose chart as well as the ability to customize the information provided in the Detailed Widget using the following options:")
                                                         VStack(alignment: .leading) {
                                                             Text("• Current Glucose Reading")
                                                             Text("• IOB: Insulin On Board")

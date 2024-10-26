@@ -45,7 +45,7 @@ extension ShortcutsConfig {
                         )
                     }
                 ).listRowBackground(Color.chart)
-
+                
                 Section {
                     Button {
                         UIApplication.shared.open(URL(string: "shortcuts://")!)
@@ -55,7 +55,7 @@ extension ShortcutsConfig {
                         .buttonStyle(.bordered)
                 }
                 .listRowBackground(Color.clear)
-
+                
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
                     booleanValue: $state.allowBolusByShortcuts,
@@ -70,8 +70,15 @@ extension ShortcutsConfig {
                     units: state.units,
                     type: .boolean,
                     label: "Allow Bolusing with Shortcuts",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text("Allow Bolusing with Shortcuts… bla bla bla")
+                    miniHint: """
+                    Automate boluses using the Shortcuts App
+                    Default: OFF
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: OFF").bold()
+                        Text("Enabling this setting allows the iOS Shortcuts App to send bolus commands to Trio.")
+                        Text("Disabling this setting will still allow other commands, like Temp Targets, Add Carbs, and Start/End Overrides")
+                    }
                 )
             }
             .sheet(isPresented: $shouldDisplayHint) {
