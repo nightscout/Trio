@@ -128,9 +128,16 @@ extension AutosensSettings {
                     verboseHint: VStack {
                         Text("Default: ON").bold()
                         Text("Medtronic Users Only").bold().italic()
-                        Text("This feature resets the Autosens Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change.")
-                        Text("Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours.")
-                        Text("If you usually rewind your pump independently of site changes, you may want to consider disabling this feature.").italic()
+                        Text(
+                            "This feature resets the Autosens Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change."
+                        )
+                        Text(
+                            "Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours."
+                        )
+                        Text(
+                            "If you usually rewind your pump independently of site changes, you may want to consider disabling this feature."
+                        )
+                        .italic()
                     }
                 )
             }
