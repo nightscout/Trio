@@ -11,7 +11,7 @@ extension RemoteControlConfig {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var isCopied: Bool = false
@@ -44,15 +44,26 @@ extension RemoteControlConfig {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Enable Remote Command"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Enable Remote Control",
-                    miniHint: "Remote Control allow Trio to receive instructions, such as boluses and temp targets, from LoopFollow.",
-                    verboseHint: "When Remote Control is enabled, you can send boluses, overrides, temporary targets, carbs, and other commands to Trio via push notifications. To ensure security, these commands are protected by a shared secret, which must be entered in LoopFollow.",
+                    miniHint: """
+                    Allow Trio to receive instructions, such as boluses and temp targets, from LoopFollow remotely.
+                    Default: OFF
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: OFF").bold()
+                        Text("""
+
+                        When Remote Control is enabled, you can send boluses, overrides, temporary targets, carbs, and other commands to Trio via push notifications.
+
+                        To ensure security, these commands are protected by a shared secret, which must be entered in LoopFollow.
+                        """)
+                    },
                     headerText: "Trio Remote Control"
                 )
 
@@ -100,7 +111,7 @@ extension RemoteControlConfig {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

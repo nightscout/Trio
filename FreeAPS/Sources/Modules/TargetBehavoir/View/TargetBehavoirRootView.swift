@@ -101,12 +101,12 @@ extension TargetBehavoir {
                         Text("Eating Soon Mode").bold().italic()
                         Text("Default: OFF").bold()
                         Text("""
-                        
-                            When this feature is enabled, setting a temporary target below 100 mg/dL will increase the Autosens Ratio used for ISF and basal adjustments, resulting in more insulin delivered overall. This scales with the temporary target set; the lower the Temp Target, the higher the Autosens Ratio used.
-                            
-                            If Half Basal Exercise Target is 160, a Temp Target of 95 mg/dL uses an Autosens Ratio of 1.09. A Temp Target of 85 mg/dL uses an Autosens Ratio of 1.33.
-                            
-                            """)
+
+                        When this feature is enabled, setting a temporary target below 100 mg/dL will increase the Autosens Ratio used for ISF and basal adjustments, resulting in more insulin delivered overall. This scales with the temporary target set; the lower the Temp Target, the higher the Autosens Ratio used.
+
+                        If Half Basal Exercise Target is 160, a Temp Target of 95 mg/dL uses an Autosens Ratio of 1.09. A Temp Target of 85 mg/dL uses an Autosens Ratio of 1.33.
+
+                        """)
                         Text("The effect of this can be adjusted with the Half Basal Exercise Target").italic()
                     }
                 )

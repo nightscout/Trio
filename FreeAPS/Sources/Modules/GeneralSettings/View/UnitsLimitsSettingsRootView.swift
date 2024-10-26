@@ -65,9 +65,9 @@ extension UnitsLimitsSettings {
                     verboseHint: VStack {
                         Text("Default: 0 units").bold()
                         Text("""
-                             
-                             This must be greater than 0 for any automatic temp basals or SMBs to be given.
-                             """).bold().italic()
+
+                        This must be greater than 0 for any automatic temp basals or SMBs to be given.
+                        """).bold().italic()
                         Text("""
 
                         The maximum amount of Insulin On Board (IOB) from all sources - both basal and bolus - that Trio is allowed to accumulate to treat higher-than-target glucose.

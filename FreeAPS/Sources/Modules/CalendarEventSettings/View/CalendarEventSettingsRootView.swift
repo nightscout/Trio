@@ -96,16 +96,16 @@ extension CalendarEventSettings {
                         verboseHint: VStack {
                             Text("Default: OFF").bold()
                             Text("""
-                            
-                                 When enabled, the calendar event created will indicate whether glucose readings are in-range or out-of-range using the following color emojis:
-                                🟢: In-Range
-                                🟠: Above-Range
-                                🔴: Below-Range    
 
-                                If "Display IOB and COB" is also enabled, "IOB" and "COB" will be replaced with the following emojis:
-                                💉: IOB
-                                🥨: COB
-                                """)
+                             When enabled, the calendar event created will indicate whether glucose readings are in-range or out-of-range using the following color emojis:
+                            🟢: In-Range
+                            🟠: Above-Range
+                            🔴: Below-Range    
+
+                            If "Display IOB and COB" is also enabled, "IOB" and "COB" will be replaced with the following emojis:
+                            💉: IOB
+                            🥨: COB
+                            """)
                         }
                     )
 
