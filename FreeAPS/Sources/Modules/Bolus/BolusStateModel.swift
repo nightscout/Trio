@@ -241,7 +241,7 @@ extension Bolus {
             let now = Date()
             let calendar = Calendar.current
             let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "HH:mm"
+            dateFormatter.dateFormat = "HH:mm:ss"
             dateFormatter.timeZone = TimeZone.current
 
             let entries: [(start: String, value: Decimal)]
@@ -359,7 +359,6 @@ extension Bolus {
             insulinCalculated = min(insulinCalculated, maxBolus)
 
             guard let apsManager = apsManager else {
-                debug(.apsManager, "APSManager could not be gracefully unwrapped")
                 return insulinCalculated
             }
 
