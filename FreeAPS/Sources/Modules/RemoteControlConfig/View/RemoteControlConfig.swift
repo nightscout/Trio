@@ -52,17 +52,17 @@ extension RemoteControlConfig {
                     type: .boolean,
                     label: "Enable Remote Control",
                     miniHint: """
-                    Allow Trio to receive instructions, such as boluses and temp targets, from LoopFollow remotely.
+                    Allow Trio to receive instructions, such as boluses and temp targets, from Loop Follow remotely
                     Default: OFF
                     """,
-                    verboseHint: VStack {
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
-                        Text("""
-
-                        When Remote Control is enabled, you can send boluses, overrides, temporary targets, carbs, and other commands to Trio via push notifications.
-
-                        To ensure security, these commands are protected by a shared secret, which must be entered in LoopFollow.
-                        """)
+                        Text(
+                            "When Remote Control is enabled, you can send boluses, overrides, temporary targets, carbs, and other commands to Trio via push notifications."
+                        )
+                        Text(
+                            "To ensure security, these commands are protected by a shared secret, which must be entered in the Loop Follow app."
+                        )
                     },
                     headerText: "Trio Remote Control"
                 )

@@ -114,7 +114,7 @@ extension BolusCalculatorConfig {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Fatty Meal Factor"
+                            hintLabel = "Fatty Meal"
                         }
                     ),
                     units: state.units,
@@ -122,17 +122,19 @@ extension BolusCalculatorConfig {
                     label: "Enable Fatty Meal",
                     conditionalLabel: "Fatty Meal Bolus Percentage",
                     miniHint: """
-                    Lower your bolus recommendation by this percentage for meals that digest slowly
-                    Default: 70%
+                    A "Fatty Meal" option appears in the bolus calculator
+                    Default: OFF
+                    Default %: 70%
                     """,
-                    verboseHint: VStack {
-                        Text("Default: 70%").bold()
+                    verboseHint: VStack(spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text("Default Percentage: 70%").bold()
                         Text("""
-
-                        This adjustment lowers your calculated bolus by this percentage when you select "Fatty Meal" in the bolus calculator. This setting replaces the Recommended Bolus Percentage Setting when selected.
-
-                        You want this setting to be lower than your Recommended Bolus Percentage setting to prevent lows with meals that digest slowly.
+                        Enabling this setting adds a "Fatty Meal" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear for you to set. When you use a Fatty Meal Bolus, the percentage you select for this setting will replace the Recommended Bolus Percentage setting used in that bolus calculation.
                         """)
+                        Text(
+                            "Tip: This setting should be LOWER than your Recommended Bolus Percentage setting to enable the bolus calculator to give less than the calculated amount to prevent lows due to carbs absorbing very slowly. This could be useful when eating meals like pizza."
+                        ).italic()
                     }
                 )
 
@@ -144,7 +146,7 @@ extension BolusCalculatorConfig {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Super Bolus Percentage"
+                            hintLabel = "Super Bolus"
                         }
                     ),
                     units: state.units,
@@ -152,17 +154,20 @@ extension BolusCalculatorConfig {
                     label: "Enable Super Bolus",
                     conditionalLabel: "Super Bolus Percentage",
                     miniHint: """
-                    Raise your bolus recommendation by this percentage for meals with fast carbs
-                    Default: 200%
+                    A "Super Bolus" option appears in the bolus calculator
+                    Default: OFF
+                    Default %: 200%
                     """,
-                    verboseHint: VStack {
-                        Text("Default 200%").bold()
+                    verboseHint: VStack(spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text("Default Percentage: 200%").bold()
                         Text("""
-
-                        This adjustment raises your calculated bolus by this percentage when you select "Super Bolus" in the bolus calculator. This setting replaces the Recommended Bolus Percentage setting when "Super Bolus" is selected. 
-
-                        You want this setting to be higher than your Recommended Bolus Percentage setting to enable the bolus calculator to give above the calculated amount to address carbs that absorb very quickly. This could be useful when eating sweets.
+                        Enabling this setting adds a "Super Bolus" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear for you to set. When you use a Super Bolus, the percentage you select for this setting will replace the Recommended Bolus Percentage setting used in that bolus calculation.
                         """)
+                        Text("The Super Bolus is a useful option for sweet or fast meals.")
+                        Text(
+                            "Tip: This setting should be HIGHER than your Recommended Bolus Percentage setting to enable the bolus calculator to give above the calculated amount to address carbs that absorb very quickly. This could be useful when eating sweets."
+                        ).italic()
                     }
                 )
             }

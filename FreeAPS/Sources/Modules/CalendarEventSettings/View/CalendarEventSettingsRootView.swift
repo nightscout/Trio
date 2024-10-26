@@ -52,14 +52,12 @@ extension CalendarEventSettings {
                     When enabled, Trio creates customizable calendar events in an iCloud calendar'
                     Default: OFF
                     """,
-                    verboseHint: VStack {
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
-                        Text("""
-
-                        When enabled, Trio will create a calendar event with every successful loop cycle. The previous calendar event will be deleted.
-
-                        You can customize this with the calendar of your choosing, emojis, and IOB/COB.
-                        """)
+                        Text(
+                            "When enabled, Trio will create a calendar event with every successful loop cycle. The previous calendar event will be deleted."
+                        )
+                        Text("You can customize this with the calendar of your choosing, emojis, and IOB/COB.")
                     },
                     headerText: "Diabetes Data as Calendar Event"
                 )
@@ -93,15 +91,15 @@ extension CalendarEventSettings {
                         Enable to use emojis instead of "IOB" or "COB" and to indicate in-range and out-of-range glucose readings
                         Default: OFF
                         """,
-                        verboseHint: VStack {
+                        verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
                             Text("""
-
                              When enabled, the calendar event created will indicate whether glucose readings are in-range or out-of-range using the following color emojis:
                             🟢: In-Range
                             🟠: Above-Range
                             🔴: Below-Range    
-
+                            """)
+                            Text("""
                             If "Display IOB and COB" is also enabled, "IOB" and "COB" will be replaced with the following emojis:
                             💉: IOB
                             🥨: COB
@@ -127,12 +125,9 @@ extension CalendarEventSettings {
                         Include IOB and COB in the calendar event created by Trio
                         Default: OFF
                         """,
-                        verboseHint: VStack {
+                        verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
-                            Text("""
-
-                            When enabled, Trio will include the current IOB and COB values in the calendar event created.
-                            """)
+                            Text(" When enabled, Trio will include the current IOB and COB values in the calendar event created.")
                         }
                     )
                 } else if state.useCalendar {

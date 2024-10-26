@@ -71,10 +71,10 @@ extension AutotuneConfig {
                     type: .boolean,
                     label: "Use Autotune",
                     miniHint: """
-                        It is not advised to use Autotune with Trio
-                        Default: OFF
-                        """,
-                    verboseHint: VStack(spacing:10) {
+                    It is not advised to use Autotune with Trio
+                    Default: OFF
+                    """,
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("It is not advised to use Autotune with Trio").bold()
                         Text("Autotune is not designed to work with Trio. It is best to keep Autotune off and do not use it.")
@@ -98,9 +98,9 @@ extension AutotuneConfig {
                         type: .boolean,
                         label: "Only Autotune Basal Insulin",
                         miniHint: """
-                            Restricts Autotune adjustments to only basal settings
-                            Default: OFF
-                            """,
+                        Restricts Autotune adjustments to only basal settings
+                        Default: OFF
+                        """,
                         verboseHint: Text("Restricts Autotune adjustments to only basal settings.")
                     )
                 }

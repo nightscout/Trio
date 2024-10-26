@@ -64,18 +64,13 @@ extension AlgorithmAdvancedSettings {
                     Temporary basal rates cannot be set higher than this percentage of your LARGEST profile basal rate
                     Default setting: 300%
                     """,
-                    verboseHint: VStack {
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: 300%").bold()
-                        Text("""
-
-                        This limits the automatic adjustment of the temporary basal rate to this value times the highest scheduled basal rate in your basal profile.
-
-                        """)
-                        Text("If Autotune is enabled, Trio uses Autotune basals instead of scheduled basals.").italic()
-                        Text("""
-
-                        Increasing this setting is not advised.
-                        """).bold().italic()
+                        Text(
+                            "This limits the automatic adjustment of the temporary basal rate to this value times the highest scheduled basal rate in your basal profile."
+                        )
+                        Text("Note: If Autotune is enabled, Trio uses Autotune basals instead of scheduled basals.").italic()
+                        Text("Warning: Increasing this setting is not advised.").bold().italic()
                     }
                 )
 
@@ -100,18 +95,13 @@ extension AlgorithmAdvancedSettings {
                     Temporary basal rates cannot be set higher than this percentage of the profile basal rate at the time of the loop cycle
                     Default: 400%
                     """,
-                    verboseHint: VStack {
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: 400%").bold()
-                        Text("""
-
-                        This limits the automatic adjustment of the temporary basal rate to this percentage of the current hourly basal rate at the time of the loop cycle.
-
-                        """)
-                        Text("If Autotune is enabled, Trio uses Autotune basals instead of scheduled basals.").italic()
-                        Text("""
-
-                        Increasing this setting is not advised.
-                        """).bold().italic()
+                        Text(
+                            "This limits the automatic adjustment of the temporary basal rate to this percentage of the current hourly basal rate at the time of the loop cycle."
+                        )
+                        Text("Note: If Autotune is enabled, Trio uses Autotune basals instead of scheduled basals.").italic()
+                        Text("Warning: Increasing this setting is not advised.").bold().italic()
                     }
                 )
 
@@ -133,15 +123,11 @@ extension AlgorithmAdvancedSettings {
                     Number of hours insulin is active in your body
                     Default: 6 hours
                     """,
-                    verboseHint: VStack {
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: 6 hours").bold()
-                        Text("""
-
-                        Number of hours insulin will contribute to IOB after dosing.
-
-                        """)
-                        Text("It is better to use Custom Peak Timing rather than adjust your Duration of Insulin Action (DIA)")
-                            .italic()
+                        Text("Number of hours insulin will contribute to IOB after dosing.")
+                        Text("Tip: It is better to use Custom Peak Time rather than adjust your Duration of Insulin Action (DIA)").italic()
+                        Text("Warning: Decreasing this setting is not advised.").bold().italic()
                     }
                 )
 
@@ -164,16 +150,14 @@ extension AlgorithmAdvancedSettings {
                     Time that insulin effect is at it’s highest. Set in minutes since injection.
                     Default: (Set by Insulin Type)
                     """,
-                    verboseHint: VStack {
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: Set by Insulin Type").bold()
-                        Text("""
-
-                        Time of maximum glucose lowering effect of insulin. Set in minutes since insulin administration.
-
-                        System-Determined Defaults:
-                        Ultra-Rapid: 55 minutes (permitted range 35-100 minutes)
-                        Rapid-Acting: 75 minutes (permitted range 50-120 minutes)
-                        """)
+                        Text("Time of maximum glucose lowering effect of insulin. Set in minutes since insulin administration.")
+                        VStack(alignment: .leading) {
+                            Text("System-Determined Defaults:").bold()
+                            Text("𝑼𝒍𝒕𝒓𝒂-𝑹𝒂𝒑𝒊𝒅: 55 minutes (permitted range 35-100 minutes)")
+                            Text("𝑹𝒂𝒑𝒊𝒅-𝑨𝒄𝒕𝒊𝒏𝒈: 75 minutes (permitted range 50-120 minutes)")
+                        }
                     }
                 )
 
