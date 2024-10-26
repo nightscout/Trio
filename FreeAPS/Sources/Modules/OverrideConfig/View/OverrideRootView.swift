@@ -15,7 +15,7 @@ extension OverrideConfig {
         @State private var selectedPresetID: String?
         @State private var selectedOverride: OverrideStored?
         // temp targets
-        @State private var isConfirmDeleteShown = false
+        @State private var isConfirmDeletePresented = false
         @State private var isPromptPresented = false
         @State private var isRemoveAlertPresented = false
         @State private var removeAlert: Alert?
@@ -150,7 +150,7 @@ extension OverrideConfig {
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .none) {
                                 selectedOverride = preset
-                                isConfirmDeleteShown = true
+                                isConfirmDeletePresented = true
                             } label: {
                                 Label("Delete", systemImage: "trash")
                                     .tint(.red)
@@ -168,7 +168,7 @@ extension OverrideConfig {
                 .onMove(perform: state.reorderOverride)
                 .confirmationDialog(
                     "Delete the Override Preset \"\(selectedOverride?.name ?? "")\"?",
-                    isPresented: $isConfirmDeleteShown,
+                    isPresented: $isConfirmDeletePresented,
                     titleVisibility: .visible
                 ) {
                     if let itemToDelete = selectedOverride {

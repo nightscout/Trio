@@ -10,7 +10,7 @@ extension Home {
 
         @State var state = StateModel()
         @State var isStatusPopupPresented = false
-        @State var isConfirmStopOverrideShown = false
+        @State var isConfirmStopOverridePresented = false
         @State var isMenuPresented = false
         @State var showTreatments = false
         @State var selectedTab: Int = 0
@@ -553,7 +553,7 @@ extension Home {
                 .padding(.horizontal, 10)
                 .confirmationDialog(
                     "Stop the Override \"\(latestOverride.first?.name ?? "")\"?",
-                    isPresented: $isConfirmStopOverrideShown,
+                    isPresented: $isConfirmStopOverridePresented,
                     titleVisibility: .visible
                 ) {
                     Button("Stop", role: .destructive) {
@@ -567,7 +567,7 @@ extension Home {
                 .padding(.trailing, 8)
                 .onTapGesture {
                     if !latestOverride.isEmpty {
-                        isConfirmStopOverrideShown = true
+                        isConfirmStopOverridePresented = true
                     }
                 }
             }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
