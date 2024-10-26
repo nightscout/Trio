@@ -489,8 +489,7 @@ extension OverrideConfig {
                     .RawValue ?? Double(state.settingHalfBasalTarget)
             )
             let percentage = Int(
-                state
-                    .computeAdjustedPercentage(usingHBT: presetHalfBasalTarget, usingTarget: presetTarget) * 100
+                TargetHelper.computeAdjustedPercentage(usingHBT: presetHalfBasalTarget, usingTarget: presetTarget) * 100
             )
 
             return ZStack(alignment: .trailing, content: {

@@ -241,6 +241,7 @@
 		38FEF413273B317A00574A46 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF412273B317A00574A46 /* HKUnit.swift */; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
+		4977A5282CCCC6C500FA2849 /* TargetPicker+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4977A5272CCCC6BB00FA2849 /* TargetPicker+Helper.swift */; };
 		5075C1608E6249A51495C422 /* TargetsEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */; };
 		53F2382465BF74DB1A967C8B /* PumpConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8630D58BDAD6D9C650B9B39 /* PumpConfigProvider.swift */; };
 		581516A42BCED84A00BF67D7 /* DebuggingIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581516A32BCED84A00BF67D7 /* DebuggingIdentifiers.swift */; };
@@ -921,6 +922,7 @@
 		3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorDataFlow.swift; sourceTree = "<group>"; };
 		42369F66CF91F30624C0B3A6 /* BasalProfileEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorProvider.swift; sourceTree = "<group>"; };
 		44080E4709E3AE4B73054563 /* ConfigEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorProvider.swift; sourceTree = "<group>"; };
+		4977A5272CCCC6BB00FA2849 /* TargetPicker+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TargetPicker+Helper.swift"; sourceTree = "<group>"; };
 		4DD795BA46B193644D48138C /* TargetsEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorRootView.swift; sourceTree = "<group>"; };
 		505E09DC17A0C3D0AF4B66FE /* ISFEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorStateModel.swift; sourceTree = "<group>"; };
 		581516A32BCED84A00BF67D7 /* DebuggingIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggingIdentifiers.swift; sourceTree = "<group>"; };
@@ -2036,6 +2038,7 @@
 				FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */,
 				FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */,
 				CEA4F62229BE10F70011ADF7 /* SavitzkyGolayFilter.swift */,
+				4977A5272CCCC6BB00FA2849 /* TargetPicker+Helper.swift */,
 				587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */,
 				BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */,
 				BD1661302B82ADAB00256551 /* CustomProgressView.swift */,
@@ -3672,6 +3675,7 @@
 				891DECF7BC20968D7F566161 /* AutotuneConfigProvider.swift in Sources */,
 				D76333C9256787610B3B4875 /* AutotuneConfigStateModel.swift in Sources */,
 				A05235B9112E677ED03B6E8E /* AutotuneConfigRootView.swift in Sources */,
+				4977A5282CCCC6C500FA2849 /* TargetPicker+Helper.swift in Sources */,
 				7F7B756BE8543965D9FDF1A2 /* DataTableDataFlow.swift in Sources */,
 				1D845DF2E3324130E1D95E67 /* DataTableProvider.swift in Sources */,
 				19F95FFA29F1102A00314DDC /* StatRootView.swift in Sources */,
