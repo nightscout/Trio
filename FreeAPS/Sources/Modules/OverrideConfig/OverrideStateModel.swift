@@ -909,6 +909,61 @@ extension OverrideConfig.StateModel {
     func isAdjustSensEnabled(usingTarget initialTarget: Decimal? = nil) -> Bool {
         computeSliderHigh(usingTarget: initialTarget) > computeSliderLow(usingTarget: initialTarget)
     }
+
+    func computeHalfBasalTarget(
+        usingTarget initialTarget: Decimal? = nil,
+        usingPercentage initialPercentage: Double? = nil
+    ) -> Double {
+        let adjustmentPercentage = initialPercentage ?? percentage
+        let adjustmentRatio = Decimal(adjustmentPercentage / 100)
+        let tempTargetValue: Decimal = initialTarget ?? tempTargetTarget
+        var halfBasalTargetValue = halfBasalTarget
+        if adjustmentRatio != 1 {
+            halfBasalTargetValue = ((2 * adjustmentRatio * normalTarget) - normalTarget - (adjustmentRatio * tempTargetValue)) /
+                (adjustmentRatio - 1)
+        }
+        return round(Double(halfBasalTargetValue))
+    }
+
+    func computeSliderLow(usingTarget initialTarget: Decimal? = nil) -> Double {
+        let calcTarget = initialTarget ?? tempTargetTarget
+        guard calcTarget != 0 else { return 15 }
+
+        let shouldRaiseSensitivity = settingsManager.preferences.highTemptargetRaisesSensitivity
+        let isExerciseModeActive = settingsManager.preferences.exerciseMode
+        let isTargetNormalOrLower = calcTarget <= normalTarget
+
+        let minSens = (isTargetNormalOrLower || (!shouldRaiseSensitivity && !isExerciseModeActive)) ? 100 : 15
+
+        return Double(max(0, minSens))
+    }
+
+    func computeSliderHigh(usingTarget initialTarget: Decimal? = nil) -> Double {
+        let calcTarget = initialTarget ?? tempTargetTarget
+        guard calcTarget != 0 else { return Double(maxValue * 100) }
+
+        let shouldLowerSensitivity = settingsManager.preferences.lowTemptargetLowersSensitivity
+        let isTargetNormalOrHigher = calcTarget >= normalTarget
+
+        let maxSens = (isTargetNormalOrHigher || !shouldLowerSensitivity) ? 100 : Double(maxValue * 100)
+
+        return maxSens
+    }
+
+    func computeAdjustedPercentage(
+        usingHBT initialHalfBasalTarget: Decimal? = nil,
+        usingTarget initialTarget: Decimal? = nil
+    ) -> Decimal {
+        let halfBasalTargetValue = initialHalfBasalTarget ?? halfBasalTarget
+        let calcTarget = initialTarget ?? tempTargetTarget
+        let deviationFromNormal = halfBasalTargetValue - normalTarget
+
+        let adjustmentFactor = deviationFromNormal + (calcTarget - normalTarget)
+        let adjustmentRatio: Decimal = (deviationFromNormal * adjustmentFactor <= 0) ? maxValue : deviationFromNormal /
+            adjustmentFactor
+
+        return min(adjustmentRatio, maxValue)
+    }
 }
 
 extension OverrideConfig.StateModel: SettingsObserver {
