@@ -119,7 +119,16 @@ extension BasalProfileEditor {
         }
 
         func availableTimeIndices(_ itemIndex: Int) -> [Int] {
-            let usedIndicesByOtherItems = items.filter { $0 != items[itemIndex] }.map(\.timeIndex)
+            // avoid index out of range issues
+            guard itemIndex >= 0 && itemIndex < items.count else {
+                return []
+            }
+            
+            let usedIndicesByOtherItems = items
+                .enumerated()
+                .filter { $0.offset != itemIndex }
+                .map { $0.element.timeIndex }
+            
             return (0 ..< timeValues.count).filter { !usedIndicesByOtherItems.contains($0) }
         }
     }
