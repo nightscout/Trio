@@ -114,7 +114,13 @@ extension BasalProfileEditor {
                 if self.items != sorted {
                     self.items = sorted
                 }
+                self.calcTotal()
             }
+        }
+
+        func availableTimeIndices(_ itemIndex: Int) -> [Int] {
+            let usedIndicesByOtherItems = items.filter { $0 != items[itemIndex] }.map(\.timeIndex)
+            return (0 ..< timeValues.count).filter { !usedIndicesByOtherItems.contains($0) }
         }
     }
 }
