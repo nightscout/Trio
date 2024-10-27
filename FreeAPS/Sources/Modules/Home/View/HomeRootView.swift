@@ -10,9 +10,7 @@ extension Home {
 
         @State var state = StateModel()
         @State var isStatusPopupPresented = false
-        @State var showCancelAlert = false
-        @State var showCancelConfirmDialog = false
-        @State var isConfirmStopOverrideShown = false
+        @State var isConfirmStopOverridePresented = false
         @State var isConfirmStopTempTargetShown = false
         @State var isMenuPresented = false
         @State var showTreatments = false
@@ -580,7 +578,7 @@ extension Home {
                 .font(.system(size: 24))
                 .confirmationDialog(
                     "Stop the Override \"\(latestOverride.first?.name ?? "")\"?",
-                    isPresented: $isConfirmStopOverrideShown,
+                    isPresented: $isConfirmStopOverridePresented,
                     titleVisibility: .visible
                 ) {
                     Button("Stop", role: .destructive) {
@@ -594,7 +592,7 @@ extension Home {
                 .padding(.trailing, 8)
                 .onTapGesture {
                     if !latestOverride.isEmpty {
-                        isConfirmStopOverrideShown = true
+                        isConfirmStopOverridePresented = true
                     }
                 }
         }

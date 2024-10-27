@@ -80,13 +80,6 @@ struct EditOverrideForm: View {
             )
     }
 
-    private var formatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }
-
     private var percentageSelection: Binding<Double> {
         Binding<Double>(
             get: {

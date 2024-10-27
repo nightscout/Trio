@@ -3,11 +3,7 @@ import SwiftUI
 
 struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
-    @Environment(\.colorScheme) var colorScheme
-    @Environment(\.dismiss) var dismiss
-
     @Bindable var state: OverrideConfig.StateModel
-
     @State private var selectedIsfCrOption: IsfAndOrCrOptions = .isfAndCr
     @State private var selectedDisableSmbOption: DisableSmbOptions = .dontDisable
     @State private var percentageStep: Int = 5
@@ -36,13 +32,6 @@ struct AddOverrideForm: View {
                 startPoint: .top,
                 endPoint: .bottom
             )
-    }
-
-    private var formatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
     }
 
     var body: some View {
@@ -136,7 +125,7 @@ struct AddOverrideForm: View {
                             .pickerStyle(WheelPickerStyle())
                             .frame(maxWidth: .infinity)
                             .onChange(of: durationHours) {
-                                state.overrideDuration = Decimal(totalDurationInMinutes())
+                                state.overrideDuration = convertToMinutes(durationHours, durationMinutes)
                             }
 
                             Picker("Minutes", selection: $durationMinutes) {
@@ -147,7 +136,7 @@ struct AddOverrideForm: View {
                             .pickerStyle(WheelPickerStyle())
                             .frame(maxWidth: .infinity)
                             .onChange(of: durationMinutes) {
-                                state.overrideDuration = Decimal(totalDurationInMinutes())
+                                state.overrideDuration = convertToMinutes(durationHours, durationMinutes)
                             }
                         }
                         .listRowSeparator(.hidden, edges: .top)
@@ -507,11 +496,6 @@ struct AddOverrideForm: View {
         displayPickerDisableSmbSchedule = false
         displayPickerSmbMinutes = false
         return !toggle
-    }
-
-    private func totalDurationInMinutes() -> Int {
-        let durationTotal = (durationHours * 60) + durationMinutes
-        return max(0, durationTotal)
     }
 
     private func isOverrideInvalid() -> (Bool, String?) {

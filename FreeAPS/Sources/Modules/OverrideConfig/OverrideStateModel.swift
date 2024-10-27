@@ -1079,6 +1079,11 @@ func formatHrMin(_ durationInMinutes: Int) -> String {
     }
 }
 
+func convertToMinutes(_ hours: Int, _ minutes: Int) -> Decimal {
+    let totalMinutes = (hours * 60) + minutes
+    return Decimal(max(0, totalMinutes))
+}
+
 struct RadioButton: View {
     var isSelected: Bool
     var label: String

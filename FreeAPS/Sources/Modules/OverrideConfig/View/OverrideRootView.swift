@@ -19,7 +19,7 @@ extension OverrideConfig {
         @State private var selectedTempTarget: TempTargetStored?
 
         // temp targets
-        @State private var isConfirmDeleteShown = false
+        @State private var isConfirmDeletePresented = false
         @State private var isPromptPresented = false
         @State private var isRemoveAlertPresented = false
         @State private var removeAlert: Alert?
@@ -249,7 +249,7 @@ extension OverrideConfig {
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .none) {
                                 selectedOverride = preset
-                                isConfirmDeleteShown = true
+                                isConfirmDeletePresented = true
                             } label: {
                                 Label("Delete", systemImage: "trash")
                                     .tint(.red)
@@ -267,7 +267,7 @@ extension OverrideConfig {
                 .onMove(perform: state.reorderOverride)
                 .confirmationDialog(
                     "Delete the Override Preset \"\(selectedOverride?.name ?? "")\"?",
-                    isPresented: $isConfirmDeleteShown,
+                    isPresented: $isConfirmDeletePresented,
                     titleVisibility: .visible
                 ) {
                     if let itemToDelete = selectedOverride {
@@ -554,7 +554,6 @@ extension OverrideConfig {
         }
 
         @ViewBuilder private func overridesView(for preset: OverrideStored) -> some View {
-            let target = (state.units == .mgdL ? preset.target : preset.target?.decimalValue.asMmolL as NSDecimalNumber?) ?? 0
             let duration = (preset.duration ?? 0) as Decimal
             let name = preset.name ?? ""
             let percentage = preset.percentage
@@ -564,7 +563,10 @@ extension OverrideConfig {
                 ? " \(formatTimeRange(start: preset.start?.stringValue, end: preset.end?.stringValue))"
                 : ""
             let smbString = (preset.smbIsOff || preset.smbIsScheduledOff) ? "SMBs Off\(scheduledSMBstring)" : ""
-            let targetString = target != 0 ? "\(target.description) \(state.units.rawValue)" : ""
+            let targetValue = (preset.target == 0 || preset.target == nil) ? "" :
+                (state.units == .mgdL ? preset.target?.description ?? "" : preset.target?.decimalValue.formattedAsMmolL)
+
+            let targetString = (targetValue?.isEmpty ?? true) ? "" : "\(targetValue!) \(state.units.rawValue)"
             let maxMinutesSMB = (preset.smbMinutes as Decimal?) != nil ? (preset.smbMinutes ?? 0) as Decimal : 0
             let maxMinutesUAM = (preset.uamMinutes as Decimal?) != nil ? (preset.uamMinutes ?? 0) as Decimal : 0
             let maxSmbMinsString = (
