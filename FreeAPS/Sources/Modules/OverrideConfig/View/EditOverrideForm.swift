@@ -124,7 +124,6 @@ struct EditOverrideForm: View {
                     )
                 }
             }
-            .onAppear { targetStep = state.units == .mgdL ? 5 : 9 }
             .onDisappear {
                 if !hasChanges {
                     // Reset UI changes
