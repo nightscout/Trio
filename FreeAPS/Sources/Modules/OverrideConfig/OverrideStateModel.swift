@@ -42,8 +42,6 @@ extension OverrideConfig {
         var currentActiveTempTarget: TempTargetStored?
         var showOverrideEditSheet = false
         var showTempTargetEditSheet = false
-        var showInvalidTargetAlert = false
-
         var units: GlucoseUnits = .mgdL
 
         // temp target stuff
@@ -73,11 +71,6 @@ extension OverrideConfig {
 
         var isHelpSheetPresented: Bool = false
         var helpSheetDetent = PresentationDetent.large
-
-        var alertMessage: String {
-            let target: String = units == .mgdL ? "70-270 mg/dl" : "4-15 mmol/l"
-            return "Please enter a valid target between" + " \(target)."
-        }
 
         private var cancellables = Set<AnyCancellable>()
 
@@ -164,18 +157,6 @@ extension OverrideConfig {
             percentage = Double(computeAdjustedPercentage() * 100)
             Task {
                 await getCurrentGlucoseTarget()
-            }
-        }
-
-        func isInputInvalid(target: Decimal) -> Bool {
-            guard target != 0 else { return false }
-
-            if target < 80 || target > 270 // in oref min lowTT = 80!
-            {
-                showInvalidTargetAlert = true
-                return true
-            } else {
-                return false
             }
         }
     }

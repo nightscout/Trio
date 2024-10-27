@@ -286,52 +286,48 @@ struct EditTempTargetForm: View {
         HStack {
             Spacer()
             Button(action: {
-                if !state.isInputInvalid(target: target) {
-                    saveChanges()
+                saveChanges()
+                do {
+                    guard let moc = tempTarget.managedObjectContext else { return }
+                    guard moc.hasChanges else { return }
+                    try moc.save()
 
-                    do {
-                        guard let moc = tempTarget.managedObjectContext else { return }
-                        guard moc.hasChanges else { return }
-                        try moc.save()
+                    if let currentActiveTempTarget = state.currentActiveTempTarget {
+                        Task {
+                            // TODO: - Creating a Run entry is probably needed for Overrides as well and the reason for "jumping" Overrides?
+                            // Disable previous active Temp Targets
+                            await state.disableAllActiveOverrides(
+                                except: currentActiveTempTarget.objectID,
+                                createOverrideRunEntry: false
+                            )
 
-                        if let currentActiveTempTarget = state.currentActiveTempTarget {
-                            Task {
-                                // TODO: - Creating a Run entry is probably needed for Overrides as well and the reason for "jumping" Overrides?
-                                // Disable previous active Temp Targets
-                                await state.disableAllActiveOverrides(
-                                    except: currentActiveTempTarget.objectID,
-                                    createOverrideRunEntry: false
+                            // If the temp target which currently gets edited is enabled, then store it to the Temp Target JSON so that oref uses it
+                            if isEnabled {
+                                let tempTarget = TempTarget(
+                                    name: name,
+                                    createdAt: Date(),
+                                    targetTop: target,
+                                    targetBottom: target,
+                                    duration: duration,
+                                    enteredBy: TempTarget.manual,
+                                    reason: TempTarget.custom,
+                                    isPreset: isPreset ? true : false,
+                                    enabled: isEnabled ? true : false,
+                                    halfBasalTarget: halfBasalTarget
                                 )
 
-                                // If the temp target which currently gets edited is enabled, then store it to the Temp Target JSON so that oref uses it
-                                if isEnabled {
-                                    let tempTarget = TempTarget(
-                                        name: name,
-                                        createdAt: Date(),
-                                        targetTop: target,
-                                        targetBottom: target,
-                                        duration: duration,
-                                        enteredBy: TempTarget.manual,
-                                        reason: TempTarget.custom,
-                                        isPreset: isPreset ? true : false,
-                                        enabled: isEnabled ? true : false,
-                                        halfBasalTarget: halfBasalTarget
-                                    )
-
-                                    // Store to TempTargetStorage so that oref uses the edited Temp target
-                                    state.saveTempTargetToStorage(tempTargets: [tempTarget])
-                                }
-
-                                // Update view
-                                state.updateLatestTempTargetConfiguration()
+                                // Store to TempTargetStorage so that oref uses the edited Temp target
+                                state.saveTempTargetToStorage(tempTargets: [tempTarget])
                             }
-                        }
 
-                        hasChanges = false
-                        presentationMode.wrappedValue.dismiss()
-                    } catch {
-                        debugPrint("Failed to Edit Temp Target")
+                            // Update view
+                            state.updateLatestTempTargetConfiguration()
+                        }
                     }
+                    hasChanges = false
+                    presentationMode.wrappedValue.dismiss()
+                } catch {
+                    debugPrint("Failed to Edit Temp Target")
                 }
             }, label: {
                 Text("Save")
