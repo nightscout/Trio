@@ -100,4 +100,15 @@ extension Home.StateModel {
             debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Profile")
         }
     }
+
+    func computeAdjustedPercentage(halfBasalTargetValue: Decimal, tempTargetValue: Decimal) -> Int {
+        let normalTarget: Decimal = 100
+        let deviationFromNormal = halfBasalTargetValue - normalTarget
+
+        let adjustmentFactor = deviationFromNormal + (tempTargetValue - normalTarget)
+        let adjustmentRatio: Decimal = (deviationFromNormal * adjustmentFactor <= 0) ? maxValue : deviationFromNormal /
+            adjustmentFactor
+
+        return Int(Double(min(adjustmentRatio, maxValue) * 100).rounded())
+    }
 }
