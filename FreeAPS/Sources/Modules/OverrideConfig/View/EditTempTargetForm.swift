@@ -221,6 +221,7 @@ struct EditTempTargetForm: View {
                                     .onChange(of: tempTargetSensitivityAdjustmentType) { newValue in
                                         if newValue == .standard {
                                             halfBasalTarget = state.settingHalfBasalTarget
+                                            hasChanges = true
                                             percentage = (
                                                 state
                                                     .computeAdjustedPercentage(usingHBT: halfBasalTarget, usingTarget: target) *
@@ -270,7 +271,8 @@ struct EditTempTargetForm: View {
                                         Text(formattedGlucose(glucose: computedHalfBasalTarget))
                                     }.foregroundStyle(.primary)
                                 }
-                            }.padding(.vertical, 10)
+                            }
+                            .padding(.vertical, 10)
                         }
                     )
                     .listRowBackground(Color.chart)
