@@ -258,8 +258,8 @@ final class BaseCalendarManager: CalendarManager, Injectable {
 
             let directionText = lastGlucoseObject.directionEnum?.symbol ?? "↔︎"
 
-            let deltaValue = settingsManager.settings.units == .mmolL ? Int(delta.asMmolL) : Int(delta)
-            let deltaText = deltaFormatter.string(from: NSNumber(value: deltaValue)) ?? "--"
+            let deltaValue = settingsManager.settings.units == .mmolL ? delta.asMmolL : delta
+            let deltaText = deltaFormatter.string(from: deltaValue as NSNumber) ?? "--"
 
             let iobText = iobFormatter.string(from: (determinationObject.iob ?? 0) as NSNumber) ?? ""
             let cobText = cobFormatter.string(from: determinationObject.cob as NSNumber) ?? ""
