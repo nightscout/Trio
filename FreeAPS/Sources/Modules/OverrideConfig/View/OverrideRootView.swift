@@ -322,7 +322,7 @@ extension OverrideConfig {
                             Button(role: .none) {
                                 Task {
                                     selectedTempTarget = preset
-                                    isConfirmDeleteShown = true
+                                    isConfirmDeletePresented = true
                                 }
                             } label: {
                                 Label("Delete", systemImage: "trash")
@@ -341,7 +341,7 @@ extension OverrideConfig {
                 .onMove(perform: state.reorderTempTargets)
                 .confirmationDialog(
                     "Delete the Temp Target Preset \"\(selectedTempTarget?.name ?? "")\"?",
-                    isPresented: $isConfirmDeleteShown,
+                    isPresented: $isConfirmDeletePresented,
                     titleVisibility: .visible
                 ) {
                     if let itemToDelete = selectedTempTarget {

@@ -3,6 +3,8 @@ import SwiftUI
 
 struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.dismiss) var dismiss
     @Bindable var state: OverrideConfig.StateModel
     @State private var selectedIsfCrOption: IsfAndOrCrOptions = .isfAndCr
     @State private var selectedDisableSmbOption: DisableSmbOptions = .dontDisable
@@ -19,15 +21,16 @@ struct AddOverrideForm: View {
     @State private var didPressSave = false
 
     var color: LinearGradient {
-        colorScheme == .dark ? LinearGradient(
-            gradient: Gradient(colors: [
-                Color.bgDarkBlue,
-                Color.bgDarkerDarkBlue
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        ) :
-            LinearGradient(
+        colorScheme == .dark
+            ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.bgDarkBlue,
+                    Color.bgDarkerDarkBlue
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            : LinearGradient(
                 gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
                 startPoint: .top,
                 endPoint: .bottom

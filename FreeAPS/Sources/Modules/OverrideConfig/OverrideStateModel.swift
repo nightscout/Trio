@@ -170,13 +170,7 @@ extension OverrideConfig {
         func isInputInvalid(target: Decimal) -> Bool {
             guard target != 0 else { return false }
 
-            if units == .mgdL,
-               target < 80 || target > 270 // in oref min lowTT = 80!
-            {
-                showInvalidTargetAlert = true
-                return true
-            } else if units == .mmolL,
-                      target < 4.4 || target > 15 // in oref min lowTT = 80!
+            if target < 80 || target > 270 // in oref min lowTT = 80!
             {
                 showInvalidTargetAlert = true
                 return true

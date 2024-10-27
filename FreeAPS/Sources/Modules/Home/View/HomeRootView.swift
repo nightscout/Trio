@@ -10,6 +10,9 @@ extension Home {
 
         @State var state = StateModel()
         @State var isStatusPopupPresented = false
+        @State var showCancelAlert = false
+        @State var showCancelConfirmDialog = false
+        @State var isConfirmStopOverrideShown = false
         @State var isConfirmStopOverridePresented = false
         @State var isConfirmStopTempTargetShown = false
         @State var isMenuPresented = false
