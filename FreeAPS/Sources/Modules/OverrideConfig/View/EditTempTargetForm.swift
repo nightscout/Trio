@@ -250,8 +250,8 @@ struct EditTempTargetForm: View {
                                                 ))
                                             }
                                         ),
-                                        in: Double(state.computeSliderLow(usingTarget: target)) ...
-                                            Double(state.computeSliderHigh(usingTarget: target)),
+                                        in: state.computeSliderLow(usingTarget: target) ... state
+                                            .computeSliderHigh(usingTarget: target) - 1,
                                         step: 5
                                     ) {}
                                     minimumValueLabel: {
