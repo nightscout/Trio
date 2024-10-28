@@ -15,18 +15,17 @@ import UIKit
              .ended,
              .stale:
             return true
-        case .active: break
+        case .active:
+            break
         @unknown default:
             return true
         }
-
-        return -startDate.timeIntervalSinceNow >
-            TimeInterval(60 * 60)
+        return -startDate.timeIntervalSinceNow > TimeInterval(60 * 60)
     }
 }
 
-@available(iOS 16.2, *) final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver
-{
+@available(iOS 16.2, *)
+final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var storage: FileStorage!
@@ -90,8 +89,6 @@ import UIKit
         )
     }
 
-    // TODO: - use a delegate or a custom notification here instead
-
     func settingsDidChange(_: FreeAPSSettings) {
         Task {
             await updateContentState(determination)
@@ -99,7 +96,6 @@ import UIKit
     }
 
     private func registerHandler() {
-        // Since we are only using this info to show if an Override is active or not in the Live Activity it is enough to observe only the 'OverrideStored' Entity
         coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
             guard let self = self else { return }
             self.overridesDidUpdate()
@@ -141,15 +137,16 @@ import UIKit
 
     @objc private func handleLiveActivityOrderChange() {
         Task {
-            self.widgetItems = UserDefaults.standard
-                .loadLiveActivityOrderFromUserDefaults() ?? LiveActivityAttributes.LiveActivityItem.defaultItems
+            self.widgetItems = UserDefaults.standard.loadLiveActivityOrderFromUserDefaults() ?? LiveActivityAttributes
+                .LiveActivityItem.defaultItems
             await self.updateLiveActivityOrder()
         }
     }
 
     @MainActor private func updateContentState<T>(_ update: T) async {
-        guard let latestGlucose = latestGlucose else { return }
-
+        guard let latestGlucose = latestGlucose else {
+            return
+        }
         var content: LiveActivityAttributes.ContentState?
 
         if let determination = update as? DeterminationData {
@@ -189,10 +186,7 @@ import UIKit
 
     private func setupGlucoseArray() {
         Task { @MainActor in
-            // Fetch and map glucose to GlucoseData struct
             self.glucoseFromPersistence = await fetchAndMapGlucose()
-
-            // Push the update to the Live Activity
             glucoseDidUpdate(glucoseFromPersistence ?? [])
         }
     }
@@ -209,14 +203,9 @@ import UIKit
         }
     }
 
-    /// creates and tries to present a new activity update from the current GlucoseStorage values if live activities are enabled in settings
-    /// Ends existing live activities if live activities are not enabled in settings
     @MainActor private func forceActivityUpdate() {
-        // just before app resigns active, show a new activity
-        // only do this if there is no current activity or the current activity is older than 1h
         if settings.useLiveActivity {
-            if currentActivity?.needsRecreation() ?? true
-            {
+            if currentActivity?.needsRecreation() ?? true {
                 glucoseDidUpdate(glucoseFromPersistence ?? [])
             }
         } else {
@@ -226,9 +215,7 @@ import UIKit
         }
     }
 
-    /// attempts to present this live activity state, creating a new activity if none exists yet
     @MainActor private func pushUpdate(_ state: LiveActivityAttributes.ContentState) async {
-//        // End all activities that are not the current one
         for unknownActivity in Activity<LiveActivityAttributes>.activities
             .filter({ self.currentActivity?.activity.id != $0.id })
         {
@@ -240,34 +227,28 @@ import UIKit
                 await endActivity()
                 await pushUpdate(state)
             } else {
-                let content = ActivityContent(
-                    state: state,
-                    staleDate: min(state.date, Date.now).addingTimeInterval(360) // 6 minutes in seconds
-                )
+                let content = ActivityContent(state: state, staleDate: min(state.date, Date.now).addingTimeInterval(360))
                 await currentActivity.activity.update(content)
             }
         } else {
             do {
-                // always push a non-stale content as the first update
-                // pushing a stale content as the frst content results in the activity not being shown at all
-                // apparently this initial state is also what is shown after the live activity expires (after 8h)
                 let expired = ActivityContent(
-                    state: LiveActivityAttributes.ContentState(
-                        bg: "--",
-                        direction: nil,
-                        change: "--",
-                        date: Date.now,
-                        highGlucose: settings.high,
-                        lowGlucose: settings.low,
-                        target: determination?.target ?? 100 as Decimal,
-                        glucoseColorScheme: settings.glucoseColorScheme.rawValue,
-                        detailedViewState: nil,
-                        isInitialState: true
-                    ),
+                    state: LiveActivityAttributes
+                        .ContentState(
+                            bg: "--",
+                            direction: nil,
+                            change: "--",
+                            date: Date.now,
+                            highGlucose: settings.high,
+                            lowGlucose: settings.low,
+                            target: determination?.target ?? 100 as Decimal,
+                            glucoseColorScheme: settings.glucoseColorScheme.rawValue,
+                            detailedViewState: nil,
+                            isInitialState: true
+                        ),
                     staleDate: Date.now.addingTimeInterval(60)
                 )
 
-                // Request a new activity
                 let activity = try Activity.request(
                     attributes: LiveActivityAttributes(startDate: Date.now),
                     content: expired,
@@ -275,22 +256,22 @@ import UIKit
                 )
                 currentActivity = ActiveActivity(activity: activity, startDate: Date.now)
 
-                // then show the actual content
                 await pushUpdate(state)
             } catch {
-                print("Activity creation error: \(error)")
+                debug(
+                    .default,
+                    "\(#file): Error creating new activity: \(error)"
+                )
             }
         }
     }
 
-    /// ends all live activities immediateny
     private func endActivity() async {
         if let currentActivity {
             await currentActivity.activity.end(nil, dismissalPolicy: .immediate)
             self.currentActivity = nil
         }
 
-        // end any other activities
         for unknownActivity in Activity<LiveActivityAttributes>.activities {
             await unknownActivity.end(nil, dismissalPolicy: .immediate)
         }
@@ -309,7 +290,6 @@ extension LiveActivityBridge {
             return
         }
 
-        // backfill latest glucose if contained in this update
         if glucose.count > 1 {
             latestGlucose = glucose.dropFirst().first
         }

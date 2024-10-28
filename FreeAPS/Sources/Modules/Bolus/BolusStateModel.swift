@@ -135,6 +135,18 @@ extension Bolus {
             setupBolusStateConcurrently()
         }
 
+        deinit {
+            // Unregister from broadcaster
+            broadcaster.unregister(DeterminationObserver.self, observer: self)
+            broadcaster.unregister(BolusFailureObserver.self, observer: self)
+
+            // Cancel Combine subscriptions
+            subscriptions.forEach { $0.cancel() }
+            subscriptions.removeAll()
+
+            debugPrint("Bolus.StateModel deinitialized")
+        }
+
         private func setupBolusStateConcurrently() {
             Task {
                 await withTaskGroup(of: Void.self) { group in
@@ -597,7 +609,8 @@ extension Bolus.StateModel {
             guard let self = self else { return }
             Task {
                 await self.setupDeterminationsArray()
-                await self.updateForecasts()
+                let forecastData = await self.mapForecastsForChart()
+                await self.updateForecasts(with: forecastData)
             }
         }.store(in: &subscriptions)
 
