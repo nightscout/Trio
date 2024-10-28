@@ -68,7 +68,6 @@ struct AddTempTargetForm: View {
                 saveButton
             }
             .listSectionSpacing(10)
-            .listRowSpacing(10)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden).background(color)
@@ -179,25 +178,23 @@ struct AddTempTargetForm: View {
             Section {
                 let settingsProvider = PickerSettingsProvider.shared
                 let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
-                HStack {
-                    TargetPicker(
-                        label: "Target Glucose",
-                        selection: Binding(
-                            get: { state.tempTargetTarget },
-                            set: { state.tempTargetTarget = $0 }
-                        ),
-                        options: settingsProvider.generatePickerValues(
-                            from: glucoseSetting,
-                            units: state.units,
-                            roundMinToStep: true
-                        ),
+                TargetPicker(
+                    label: "Target Glucose",
+                    selection: Binding(
+                        get: { state.tempTargetTarget },
+                        set: { state.tempTargetTarget = $0 }
+                    ),
+                    options: settingsProvider.generatePickerValues(
+                        from: glucoseSetting,
                         units: state.units,
-                        hasChanges: $hasChanges,
-                        targetStep: $targetStep,
-                        displayPickerTarget: $displayPickerTarget,
-                        toggleScrollWheel: toggleScrollWheel
-                    )
-                }
+                        roundMinToStep: true
+                    ),
+                    units: state.units,
+                    hasChanges: $hasChanges,
+                    targetStep: $targetStep,
+                    displayPickerTarget: $displayPickerTarget,
+                    toggleScrollWheel: toggleScrollWheel
+                )
                 .onChange(of: state.tempTargetTarget) {
                     state.percentage = Double(state.computeAdjustedPercentage() * 100)
                 }

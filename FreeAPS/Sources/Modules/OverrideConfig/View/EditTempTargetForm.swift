@@ -169,28 +169,26 @@ struct EditTempTargetForm: View {
             }.listRowBackground(Color.chart)
 
             Section {
-                HStack {
-                    // Picker on the right side
-                    let settingsProvider = PickerSettingsProvider.shared
-                    let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
-                    TargetPicker(
-                        label: "Target Glucose",
-                        selection: Binding(
-                            get: { target },
-                            set: { target = $0 }
-                        ),
-                        options: settingsProvider.generatePickerValues(
-                            from: glucoseSetting,
-                            units: state.units,
-                            roundMinToStep: true
-                        ),
+                // Picker on the right side
+                let settingsProvider = PickerSettingsProvider.shared
+                let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
+                TargetPicker(
+                    label: "Target Glucose",
+                    selection: Binding(
+                        get: { target },
+                        set: { target = $0 }
+                    ),
+                    options: settingsProvider.generatePickerValues(
+                        from: glucoseSetting,
                         units: state.units,
-                        hasChanges: $hasChanges,
-                        targetStep: $targetStep,
-                        displayPickerTarget: $displayPickerTarget,
-                        toggleScrollWheel: toggleScrollWheel
-                    )
-                }
+                        roundMinToStep: true
+                    ),
+                    units: state.units,
+                    hasChanges: $hasChanges,
+                    targetStep: $targetStep,
+                    displayPickerTarget: $displayPickerTarget,
+                    toggleScrollWheel: toggleScrollWheel
+                )
                 .onChange(of: target) {
                     percentage = state.computeAdjustedPercentage(usingHBT: halfBasalTarget, usingTarget: target) * 100
                 }
