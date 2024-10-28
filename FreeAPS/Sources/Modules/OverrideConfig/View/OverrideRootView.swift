@@ -494,32 +494,46 @@ extension OverrideConfig {
         }
 
         @ViewBuilder private func overridesView(for preset: OverrideStored) -> some View {
-            let duration = (preset.duration ?? 0) as Decimal
+            let isSelected = preset.id == selectedPresetID
             let name = preset.name ?? ""
+            let indefinite = preset.indefinite
+            let duration = preset.duration?.decimalValue ?? Decimal(0)
             let percentage = preset.percentage
-            let perpetual = preset.indefinite
-            let durationString = perpetual ? "" : "\(formatHrMin(Int(duration)))"
-            let scheduledSMBstring = preset.smbIsScheduledOff && preset.start != preset.end
-                ? " \(formatTimeRange(start: preset.start?.stringValue, end: preset.end?.stringValue))"
-                : ""
-            let smbString = (preset.smbIsOff || preset.smbIsScheduledOff) ? "SMBs Off\(scheduledSMBstring)" : ""
-            let targetValue = (preset.target == 0 || preset.target == nil) ? "" :
-                (state.units == .mgdL ? preset.target?.description ?? "" : preset.target?.decimalValue.formattedAsMmolL)
+            let smbMinutes = preset.smbMinutes?.decimalValue ?? Decimal(0)
+            let uamMinutes = preset.uamMinutes?.decimalValue ?? Decimal(0)
 
-            let targetString = (targetValue?.isEmpty ?? true) ? "" : "\(targetValue!) \(state.units.rawValue)"
-            let maxMinutesSMB = (preset.smbMinutes as Decimal?) != nil ? (preset.smbMinutes ?? 0) as Decimal : 0
-            let maxMinutesUAM = (preset.uamMinutes as Decimal?) != nil ? (preset.uamMinutes ?? 0) as Decimal : 0
-            let maxSmbMinsString = (
-                maxMinutesSMB != 0 && preset.advancedSettings && !preset.smbIsOff && maxMinutesSMB != state
-                    .defaultSmbMinutes
-            ) ?
-                "\(maxMinutesSMB.formatted()) min SMB" : ""
-            let maxUamMinsString = (
-                maxMinutesUAM != 0 && preset.advancedSettings && !preset.smbIsOff && maxMinutesUAM != state
-                    .defaultUamMinutes
-            ) ?
-                "\(maxMinutesUAM.formatted()) min UAM" : ""
-            let isfAndCRstring: String = {
+            let target: String = {
+                guard let targetValue = preset.target, targetValue != 0 else { return "" }
+                return state.units == .mgdL ? targetValue.description : targetValue.decimalValue.formattedAsMmolL
+            }()
+
+            let targetString = target.isEmpty ? "" : "\(target) \(state.units.rawValue)"
+
+            let durationString = indefinite ? "" : "\(formatHrMin(Int(duration)))"
+
+            let scheduledSMBString: String = {
+                guard preset.smbIsScheduledOff, preset.start != preset.end else { return "" }
+                return " \(formatTimeRange(start: preset.start?.stringValue, end: preset.end?.stringValue))"
+            }()
+
+            let smbString: String = {
+                guard preset.smbIsOff || preset.smbIsScheduledOff else { return "" }
+                return "SMBs Off\(scheduledSMBString)"
+            }()
+
+            let maxSmbMinsString: String = {
+                guard smbMinutes != 0, preset.advancedSettings, !preset.smbIsOff,
+                      smbMinutes != state.defaultSmbMinutes else { return "" }
+                return "\(smbMinutes.formatted()) min SMB"
+            }()
+
+            let maxUamMinsString: String = {
+                guard uamMinutes != 0, preset.advancedSettings, !preset.smbIsOff,
+                      uamMinutes != state.defaultUamMinutes else { return "" }
+                return "\(uamMinutes.formatted()) min UAM"
+            }()
+
+            let isfAndCrString: String = {
                 switch (preset.isfAndCr, preset.isf, preset.cr) {
                 case (_, true, true),
                      (true, _, _):
@@ -532,16 +546,18 @@ extension OverrideConfig {
                     return ""
                 }
             }()
-            let isSelected = preset.id == selectedPresetID
 
+            let percentageString = percentage != 100 ? "\(Int(percentage))%\(isfAndCrString)" : ""
+
+            // Combine all labels into a single array, filtering out empty strings
             let labels: [String] = [
                 durationString,
-                percentage != 100 ? "\(Int(percentage))%\(isfAndCRstring)" : "",
+                percentageString,
                 targetString,
                 smbString,
                 maxSmbMinsString,
                 maxUamMinsString
-            ].filter { !$0.isEmpty } // filter out empty labels
+            ].filter { !$0.isEmpty }
 
             if !name.isEmpty {
                 ZStack(alignment: .trailing) {
