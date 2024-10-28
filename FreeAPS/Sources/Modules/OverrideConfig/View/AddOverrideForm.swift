@@ -230,73 +230,32 @@ struct AddOverrideForm: View {
 
             Section {
                 Toggle(isOn: $state.shouldOverrideTarget) {
-                    Text("Override Profile Target")
+                    Text("Override Target")
                 }
 
                 if state.shouldOverrideTarget {
-                    HStack {
-                        Text("Target Glucose")
-                        Spacer()
-                        Text(
-                            (state.units == .mgdL ? state.target.description : state.target.formattedAsMmolL) + " " + state
-                                .units.rawValue
-                        )
-                        .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
-                    }
-                    .onTapGesture {
-                        displayPickerTarget = toggleScrollWheel(displayPickerTarget)
-                    }
-
-                    if displayPickerTarget {
-                        HStack {
-                            // Radio buttons and text on the left side
-                            VStack(alignment: .leading) {
-                                // Radio buttons for step iteration
-                                let stepChoices: [Decimal] = state.units == .mgdL ? [1, 5] : [1, 9]
-                                ForEach(stepChoices, id: \.self) { step in
-                                    let label = (state.units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
-                                        state.units.rawValue
-
-                                    RadioButton(
-                                        isSelected: targetStep == step,
-                                        label: label
-                                    ) {
-                                        targetStep = step
-                                        state.target = OverrideConfig.StateModel.roundTargetToStep(state.target, targetStep)
-                                    }
-                                    .padding(.top, 10)
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-
-                            Spacer()
-
-                            // Picker on the right side
-                            let settingsProvider = PickerSettingsProvider.shared
-                            let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 72, max: 270, type: .glucose)
-                            Picker(selection: Binding(
-                                get: { OverrideConfig.StateModel.roundTargetToStep(state.target, targetStep) },
-                                set: { state.target = $0 }
-                            ), label: Text("")) {
-                                ForEach(
-                                    settingsProvider.generatePickerValues(
-                                        from: glucoseSetting,
-                                        units: state.units,
-                                        roundMinToStep: true
-                                    ),
-                                    id: \.self
-                                ) { glucose in
-                                    Text(
-                                        (state.units == .mgdL ? glucose.description : glucose.formattedAsMmolL) + " " + state
-                                            .units.rawValue
-                                    )
-                                    .tag(glucose)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
+                    let settingsProvider = PickerSettingsProvider.shared
+                    let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 72, max: 270, type: .glucose)
+                    TargetPicker(
+                        label: "Target Glucose",
+                        selection: Binding(
+                            get: { state.target },
+                            set: { state.target = $0 }
+                        ),
+                        options: settingsProvider.generatePickerValues(
+                            from: glucoseSetting,
+                            units: state.units,
+                            roundMinToStep: true
+                        ),
+                        units: state.units,
+                        targetStep: $targetStep,
+                        displayPickerTarget: $displayPickerTarget,
+                        toggleScrollWheel: toggleScrollWheel
+                    )
+                    .onAppear {
+                        if state.target == 0 {
+                            state.target = 100
                         }
-                        .listRowSeparator(.hidden, edges: .top)
                     }
                 }
             }
