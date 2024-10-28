@@ -881,16 +881,6 @@ extension OverrideConfig.StateModel {
         }
     }
 
-    func isAdjustSensEnabled(usingTarget initialTarget: Decimal? = nil) -> Bool {
-        let shouldRaiseSensitivity = settingsManager.preferences.highTemptargetRaisesSensitivity
-        let isExerciseModeActive = settingsManager.preferences.exerciseMode
-        let shouldlowerSensitivity = settingsManager.preferences.lowTemptargetLowersSensitivity
-        let target = initialTarget ?? tempTargetTarget
-        if target < normalTarget, shouldlowerSensitivity { return true }
-        if target > normalTarget, shouldRaiseSensitivity || isExerciseModeActive { return true }
-        return false
-    }
-
     func computeHalfBasalTarget(
         usingTarget initialTarget: Decimal? = nil,
         usingPercentage initialPercentage: Double? = nil
@@ -906,28 +896,27 @@ extension OverrideConfig.StateModel {
         return round(Double(halfBasalTargetValue))
     }
 
-    func computeSliderLow(usingTarget initialTarget: Decimal? = nil) -> Double {
-        let calcTarget = initialTarget ?? tempTargetTarget
-        guard calcTarget != 0 else { return 15 }
-
+    func isAdjustSensEnabled(usingTarget initialTarget: Decimal? = nil) -> Bool {
         let shouldRaiseSensitivity = settingsManager.preferences.highTemptargetRaisesSensitivity
         let isExerciseModeActive = settingsManager.preferences.exerciseMode
-        let isTargetNormalOrLower = calcTarget <= normalTarget
+        let shouldlowerSensitivity = settingsManager.preferences.lowTemptargetLowersSensitivity
+        let target = initialTarget ?? tempTargetTarget
+        if target < normalTarget, shouldlowerSensitivity { return true }
+        if target > normalTarget, shouldRaiseSensitivity || isExerciseModeActive { return true }
+        return false
+    }
 
-        let minSens = (isTargetNormalOrLower || (!shouldRaiseSensitivity && !isExerciseModeActive)) ? 105 : 15
-
+    func computeSliderLow(usingTarget initialTarget: Decimal? = nil) -> Double {
+        let calcTarget = initialTarget ?? tempTargetTarget
+        guard calcTarget != 0 else { return 15 } // oref defined maximum sensitivity
+        let minSens = calcTarget < normalTarget ? 105 : 15
         return Double(max(0, minSens))
     }
 
     func computeSliderHigh(usingTarget initialTarget: Decimal? = nil) -> Double {
         let calcTarget = initialTarget ?? tempTargetTarget
-        guard calcTarget != 0 else { return Double(maxValue * 100) }
-
-        let shouldLowerSensitivity = settingsManager.preferences.lowTemptargetLowersSensitivity
-        let isTargetNormalOrHigher = calcTarget >= normalTarget
-
-        let maxSens = (isTargetNormalOrHigher || !shouldLowerSensitivity) ? 95 : Double(maxValue * 100)
-
+        guard calcTarget != 0 else { return Double(maxValue * 100) } // oref defined limit for increased insulin delivery
+        let maxSens = calcTarget > normalTarget ? 95 : Double(maxValue * 100)
         return maxSens
     }
 
