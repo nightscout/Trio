@@ -58,23 +58,23 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxIOB"),
                     label: NSLocalizedString("Max IOB", comment: "Max IOB"),
-                    miniHint: """
-                    The highest amount of insulin Trio can allow to be active at any given time.
-                    Default: 0 units
-                    """,
-                    verboseHint: VStack {
+                    miniHint: "Maximum units of insulin allowed active at any given time \nDefault: 0 units",
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: 0 units").bold()
-                        Text("""
-
-                        This must be greater than 0 for any automatic temp basals or SMBs to be given.
-                        """).bold().italic()
-                        Text("""
-
-                        The maximum amount of Insulin On Board (IOB) from all sources - both basal and bolus - that Trio is allowed to accumulate to treat higher-than-target glucose.
-
-                        If a calculated amount exceeds this limit, the suggested and/or delivered amount will be reduced so that active insulin on board (IOB) will not exceed this safety limit.
-                        """)
-                        Text("Manually entered bolus amounts are not restricted by this limit.").italic()
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Warning: This must be greater than 0 for any automatic temp basals or SMBs to be given.").bold()
+                                .italic()
+                            Text(
+                                "The maximum amount of Insulin On Board (IOB) above profile basals from all sources - positive temp basals, manual or meal boluses, and SMBs - that Trio is allowed to accumulate to address a higher-than-target glucose."
+                            )
+                            Text(
+                                "If a calculated amount exceeds this limit, the suggested and/or delivered amount will be reduced so that active insulin on board (IOB) will not exceed this safety limit."
+                            )
+                            Text(
+                                "Note: You can still manually bolus above this limit, but the suggested bolus amount will never exceed this in the bolus calculator."
+                            )
+                            .italic()
+                        }
                     }
                 )
 
@@ -92,20 +92,14 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxBolus"),
                     label: "Max Bolus",
-                    miniHint: """
-                    Largest bolus of insulin allowed
-                    Default: 10 units
-                    """,
-                    verboseHint: VStack {
+                    miniHint: "Largest bolus of insulin allowed \nDefault: 10 units",
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: 10 units").bold()
-                        Text("""
-
-                        The maximum bolus allowed to be delivered at one time. This limits manual and automatic bolus.
-
-                        Most set this to their largest meal bolus. Then, adjust if needed.
-
-                        If you attempt to request a bolus larger than this, the bolus will not be accepted.
-                        """)
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("The maximum bolus allowed to be delivered at one time. This limits manual and automatic bolus.")
+                            Text("Most set this to their largest meal bolus. Then, adjust if needed.")
+                            Text("If you attempt to request a bolus larger than this, the bolus will not be accepted.")
+                        }
                     }
                 )
 
@@ -123,18 +117,13 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxBasal"),
                     label: "Max Basal",
-                    miniHint: """
-                    Largest basal rate allowed
-                    Default: 2.0 units
-                    """,
-                    verboseHint: VStack {
+                    miniHint: "Largest basal rate allowed \nDefault: 2.0 units",
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: 2.0 units").bold()
-                        Text("""
-
-                        The maximum basal rate allowed to be set or scheduled.
-
-                        This applies to both automatic or manual basal rates.
-                        """)
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("The maximum basal rate allowed to be set or scheduled.")
+                            Text("This applies to both automatic or manual basal rates.")
+                        }
                     }
                 )
 
@@ -152,18 +141,15 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxCOB"),
                     label: NSLocalizedString("Max COB", comment: "Max COB"),
-                    miniHint: """
-                    The highest amount of carbs Trio can use in dosing calculations.
-                    Default: 120 carbs
-                    """,
-                    verboseHint: VStack {
+                    miniHint: "Max carbs Trio can use in dosing calculations /nDefault: 120 carbs",
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: 120 carbs").bold()
-                        Text("""
-
-                        Maximum Carbs On Board (COB) allowed. If more carbs are entered than allowed by this limit, Trio will cap the current COB in calculations to maxCOB and remain at max until remaining carbs have shown to be absorbed.
-
-                        """)
-                        Text("This is an important limit when UAM is ON.").italic()
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(
+                                "Maximum Carbs On Board (COB) allowed. If more carbs are entered than allowed by this limit, Trio will cap the current COB in calculations to Max COB and remain at max until all remaining carbs have shown to be absorbed."
+                            )
+                            Text("This is an important limit when UAM is ON.").italic()
+                        }
                     }
                 )
             }

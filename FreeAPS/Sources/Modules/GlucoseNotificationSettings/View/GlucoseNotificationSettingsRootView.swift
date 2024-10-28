@@ -70,16 +70,10 @@ extension GlucoseNotificationSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Show Glucose App Badge",
-                    miniHint: """
-                    Show your current glucose reading at the top of the Trio app icon
-                    Default: OFF
-                    """,
-                    verboseHint: VStack {
+                    miniHint: "Show your current glucose on Trio app icon \nDefault: OFF",
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
-                        Text("""
-
-                        This will add your current glucose on the top right of your Trio icon as a red notification badge.
-                        """)
+                        Text("This will add your current glucose on the top right of your Trio icon as a red notification badge.")
                     },
                     headerText: "Various Glucose Notifications"
                 )
@@ -98,16 +92,10 @@ extension GlucoseNotificationSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Always Notify Glucose",
-                    miniHint: """
-                    A notification will be triggered every time your glucose is updated in Trio
-                    Default: OFF
-                    """,
+                    miniHint: "Trigger a notification every time your glucose is updated \nDefault: OFF",
                     verboseHint: VStack {
                         Text("Default: OFF").bold()
-                        Text("""
-
-                        A notification will be triggered every time your glucose is updated in Trio.
-                        """)
+                        Text("A notification will be triggered every time your glucose is updated in Trio.")
                     }
                 )
 
@@ -125,16 +113,10 @@ extension GlucoseNotificationSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Play Alarm Sound",
-                    miniHint: """
-                    This will cause a sound to be triggered by every Trio notification
-                    Default: OFF
-                    """,
-                    verboseHint: VStack {
+                    miniHint: "Alarm with every Trio notification \nDefault: OFF",
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
-                        Text("""
-
-                        This will cause a sound to be triggered by every Trio notification.
-                        """)
+                        Text("This will cause a sound to be triggered by every Trio notification.")
                     }
                 )
 
@@ -152,16 +134,10 @@ extension GlucoseNotificationSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Add Glucose Source to Alarm",
-                    miniHint: """
-                    The source of the glucose reading will be added to the notification
-                    Default: OFF
-                    """,
-                    verboseHint: VStack {
+                    miniHint: "Source of the glucose reading will be added to the notification \nDefault: OFF",
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
-                        Text("""
-
-                        The source of the glucose reading will be added to the notification.
-                        """)
+                        Text("The source of the glucose reading will be added to the notification.")
                     }
                 )
 
@@ -260,7 +236,7 @@ extension GlucoseNotificationSettings {
 
                     HStack(alignment: .top) {
                         Text(
-                            "Set the lower and upper limit for glucose alarms. See hint for more details."
+                            "Sets the lower and upper limit for glucose alarms"
                         )
                         .lineLimit(nil)
                         .font(.footnote)
@@ -270,15 +246,17 @@ extension GlucoseNotificationSettings {
                             action: {
                                 hintLabel = "Low and High Glucose Alarm Limits"
                                 selectedVerboseHint =
-                                    AnyView(VStack {
+                                    AnyView(VStack(spacing: 10) {
                                         Text("Low Default: 70 mg/dL").bold()
                                         Text("High Default: 180 mg/dL").bold()
-                                        Text("""
-
-                                        These two settings determine the range outside of which you will be notified via push notifications. 
-
-                                        If your CGM readings are below the Low value or above the High value, you will receive a glucose alarm.
-                                        """)
+                                        VStack(alignment: .leading, spacing: 10) {
+                                            Text(
+                                                "These two settings determine the range outside of which you will be notified via push notifications."
+                                            )
+                                            Text(
+                                                "If your CGM readings are below the Low value or above the High value, you will receive a glucose alarm."
+                                            )
+                                        }
                                     })
                                 shouldDisplayHint.toggle()
                             },

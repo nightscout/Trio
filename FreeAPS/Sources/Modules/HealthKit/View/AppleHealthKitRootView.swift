@@ -47,18 +47,14 @@ extension AppleHealthKit {
                     units: state.units,
                     type: .boolean,
                     label: "Connect to Apple Health",
-                    miniHint: """
-                    Allows Trio to read from and write to Apple Health
-                    Default: OFF
-                    """,
+                    miniHint: "Allow Trio to read from and write to Apple Health \nDefault: OFF",
                     verboseHint: VStack {
                         Text("Default: OFF").bold()
-                        Text("""
-
-                        This allows Trio to read from and write to Apple Health.
-
-                        """)
-                        Text("You must also give permissions in iOS System Settings for the Health app.").bold().italic()
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("This allows Trio to read from and write to Apple Health.")
+                            Text("Warning: You must also give permissions in iOS System Settings for the Health app.").bold()
+                                .italic()
+                        }
                     },
                     headerText: "Apple Health Integration"
                 )
@@ -70,13 +66,13 @@ extension AppleHealthKit {
                                 Image(systemName: "exclamationmark.circle.fill")
                                 Text("Give Apple Health Write Permissions")
                             }.padding(.bottom)
-                            Text("""
-                            1. Open the Settings app on your iOS device
-                            2. Scroll down or type "Health" in the settings search bar and select the "Health" app
-                            3. Tap on "Data Access & Devices"
-                            4. Find and select "Trio" from the list of apps
-                            5. Ensure that the "Write Data" option is enabled for the desired health metrics
-                            """).font(.footnote)
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text("1. Open the Settings app on your iOS device")
+                                Text("2. Scroll down or type \"Health\" in the settings search bar and select the \"Health\" app")
+                                Text("3. Tap on \"Data Access & Devices\"")
+                                Text("4. Find and select \"Trio\" from the list of apps")
+                                Text("5. Ensure that the \"Write Data\" option is enabled for the desired health metrics")
+                            }.font(.footnote)
                         }
                         .padding(.vertical)
                         .foregroundColor(Color.secondary)

@@ -81,12 +81,12 @@ extension UserInterfaceSettings {
                                         hintLabel = "Color Scheme Preference"
                                         selectedVerboseHint =
                                             AnyView(Text("""
-                                                Set the app color scheme using the following options
-                                                
-                                                System Default: Follows the phone's current color scheme setting at that time
-                                                Light: Always in Light mode
-                                                Dark: Always in Dark mode
-                                                """))
+                                            Set the app color scheme using the following options
+
+                                            System Default: Follows the phone's current color scheme setting at that time
+                                            Light: Always in Light mode
+                                            Dark: Always in Dark mode
+                                            """))
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -124,9 +124,10 @@ extension UserInterfaceSettings {
                                     hintLabel = "Glucose Color Scheme"
                                     selectedVerboseHint =
                                         AnyView(
-                                            Text("""
+                                            Text(
+                                                """
                                                 Set the color scheme for glucose readings on the main glucose graph, live activities, and bolus calculatorusing the following options:
-                                                
+
                                                 Static: Below-Range Target readings will be in RED, In-Range will be GREEN, Above-Range will be YELLOW
                                                 Dynamic: Readings on Target will be GREEN. As readings approach and exceed below target, they become more RED. As readings approach and exceed above targer, they become more PURPLE.
                                                 """
@@ -164,8 +165,8 @@ extension UserInterfaceSettings {
                                         hintLabel = "Show Main Chart X- and Y-Axis Grid Lines"
                                         selectedVerboseHint =
                                             AnyView(Text("""
-                                                Choose whether or not to display one or both X- and Y-Axis grid lines.
-                                                """))
+                                            Choose whether or not to display one or both X- and Y-Axis grid lines.
+                                            """))
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -195,10 +196,10 @@ extension UserInterfaceSettings {
                     label: "Show Low and High Thresholds",
                     miniHint: "Display the Low and High glucose Thresholds set below",
                     verboseHint: Text("""
-                        This setting displays the upper and lower values for your glucose target range.
-                        
-                        This range is for display and statistical purposes only and does not influence insulin dosing.
-                        """)
+                    This setting displays the upper and lower values for your glucose target range.
+
+                    This range is for display and statistical purposes only and does not influence insulin dosing.
+                    """)
                 )
 
                 if state.rulerMarks {
@@ -274,7 +275,8 @@ extension UserInterfaceSettings {
                             }
 
                             HStack(alignment: .top) {
-                                Text("""
+                                Text(
+                                    """
                                     Set low and high glucose values for the main screen glucose graph and statistics
                                     Low Default: 70
                                     High Default: 180
@@ -290,12 +292,12 @@ extension UserInterfaceSettings {
                                         hintLabel = "Low and High Thresholds"
                                         selectedVerboseHint =
                                             AnyView(Text("""
-                                                Default values are based on internationally accepted Time in Range values of 70-180 mg/dL (5.5-10 mmol/L)
-                                                
-                                                Set the values used in the main screen glucose graph and to determine Time in Range for Statistics.
-                                                
-                                                Note: These values are not used to calculate insulin dosing.
-                                                """))
+                                            Default values are based on internationally accepted Time in Range values of 70-180 mg/dL (5.5-10 mmol/L)
+
+                                            Set the values used in the main screen glucose graph and to determine Time in Range for Statistics.
+
+                                            Note: These values are not used to calculate insulin dosing.
+                                            """))
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -321,7 +323,8 @@ extension UserInterfaceSettings {
                         }.padding(.top)
 
                         HStack(alignment: .top) {
-                            Text("""
+                            Text(
+                                """
                                 Choose between the OpenAPS colored "Lines" or the "Cone" of Uncertainty for the Forecast Lines
                                 Default: Cone
                                 """
@@ -335,13 +338,13 @@ extension UserInterfaceSettings {
                                     hintLabel = "Forecast Display Type"
                                     selectedVerboseHint =
                                         AnyView(Text("""
-                                            Default: Cone
-                                            
-                                            This setting allows you to choose between the following two options for the Forecast lines (previously: Prediction Lines).
-                                            
-                                            Lines: Uses the IOB, COB, UAM, and ZT forecast lines from OpenAPS
-                                            Cone: Uses a combined range of all possible forecasts from the OpenAPS lines and provides you with a range of possible forecasts. This option has shown to reduce confusion and stress around algorithm forecasts by providing a less concerning visual representation.
-                                            """))
+                                        Default: Cone
+
+                                        This setting allows you to choose between the following two options for the Forecast lines (previously: Prediction Lines).
+
+                                        Lines: Uses the IOB, COB, UAM, and ZT forecast lines from OpenAPS
+                                        Cone: Uses a combined range of all possible forecasts from the OpenAPS lines and provides you with a range of possible forecasts. This option has shown to reduce confusion and stress around algorithm forecasts by providing a less concerning visual representation.
+                                        """))
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -370,16 +373,16 @@ extension UserInterfaceSettings {
                     label: "X-Axis Interval Step",
                     miniHint: "Determines how many hours are shown in the main graph",
                     verboseHint: Text("""
-                        Default: 6 hours
-                        
-                        This setting determines how many hours are shown in each view of the main graph.
-                        
-                        The default setting of 6 hours uses 2, 4, 6, 12, and 24 hour views.
-                        
-                        A setting of 4 would use 1.3, 2, 4, 8, and 16 hour views.
-                        
-                        A setting of 9 would use 3, 4.5, 9, 18, and 36 hour views.
-                        """)
+                    Default: 6 hours
+
+                    This setting determines how many hours are shown in each view of the main graph.
+
+                    The default setting of 6 hours uses 2, 4, 6, 12, and 24 hour views.
+
+                    A setting of 4 would use 1.3, 2, 4, 8, and 16 hour views.
+
+                    A setting of 9 would use 3, 4.5, 9, 18, and 36 hour views.
+                    """)
                 )
 
                 Section {
@@ -406,12 +409,12 @@ extension UserInterfaceSettings {
                                     hintLabel = "Total Insulin Display Type"
                                     selectedVerboseHint =
                                         AnyView(Text("""
-                                            Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph.
-                                            
-                                            Total Daily Dose: Displays the last 24 hours of total insulin administered, both basal and bolus.
-                                            
-                                            Total Insulin in Scope: Displays the total insulin administered since midnight, both basal and bolus.
-                                            """))
+                                        Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph.
+
+                                        Total Daily Dose: Displays the last 24 hours of total insulin administered, both basal and bolus.
+
+                                        Total Insulin in Scope: Displays the total insulin administered since midnight, both basal and bolus.
+                                        """))
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -440,7 +443,9 @@ extension UserInterfaceSettings {
                     type: .boolean,
                     label: "Override HbA1c Unit",
                     miniHint: "Display HbA1c in mmol/mol or %",
-                    verboseHint: Text("Choose between displaying the HbA1c value in the statistics view as a percentage (Target of <6.5%) or mmol/mol (Target of <48 mmol/mol)"),
+                    verboseHint: Text(
+                        "Choose between displaying the HbA1c value in the statistics view as a percentage (Target of <6.5%) or mmol/mol (Target of <48 mmol/mol)"
+                    ),
                     headerText: "Trio Statistics"
                 )
 
