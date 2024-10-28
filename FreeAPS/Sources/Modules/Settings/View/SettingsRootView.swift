@@ -14,7 +14,7 @@ extension Settings {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -91,7 +91,7 @@ extension Settings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Closed Loop"
                             }
                         ),
@@ -99,7 +99,14 @@ extension Settings {
                         type: .boolean,
                         label: "Closed Loop",
                         miniHint: "Enables automated insulin delivery. Requires active CGM sensor session and connected pump.",
-                        verboseHint: "Running Trio in closed loop mode requires an active CGM sensor session and a connected pump. This enables automated insulin delivery.\n\nBefore enabling, dial in your settings (basal / insulin sensitivity / carb ratio), and familiarize yourself with the app.",
+                        verboseHint: VStack(spacing: 10) {
+                            Text(
+                                "Running Trio in closed loop mode requires an active CGM sensor session and a connected pump. This enables automated insulin delivery."
+                            )
+                            Text(
+                                "Before enabling, dial in your settings (basal / insulin sensitivity / carb ratio), and familiarize yourself with the app."
+                            )
+                        },
                         headerText: "Automated Insulin Delivery"
                     )
 
@@ -303,7 +310,7 @@ extension Settings {
                         hintDetent: $hintDetent,
                         shouldDisplayHint: $shouldDisplayHint,
                         hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? "",
+                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                         sheetTitle: "Help"
                     )
                 }

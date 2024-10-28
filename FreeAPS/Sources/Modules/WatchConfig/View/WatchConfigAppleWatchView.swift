@@ -5,7 +5,7 @@ struct WatchConfigAppleWatchView: View {
 
     @State private var shouldDisplayHint: Bool = false
     @State var hintDetent = PresentationDetent.large
-    @State var selectedVerboseHint: String?
+    @State var selectedVerboseHint: AnyView?
     @State var hintLabel: String?
     @State private var decimalPlaceholder: Decimal = 0.0
     @State private var booleanPlaceholder: Bool = false
@@ -59,7 +59,7 @@ struct WatchConfigAppleWatchView: View {
                             Button(
                                 action: {
                                     hintLabel = "Display on Watch"
-                                    selectedVerboseHint = "Display on Watch… bla bla bla"
+                                    selectedVerboseHint = AnyView(Text("Display on Watch… bla bla bla"))
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -80,7 +80,7 @@ struct WatchConfigAppleWatchView: View {
                 selectedVerboseHint: Binding(
                     get: { selectedVerboseHint },
                     set: {
-                        selectedVerboseHint = $0
+                        selectedVerboseHint = $0.map { AnyView($0) }
                         hintLabel = "Show Protein and Fat"
                     }
                 ),
@@ -88,7 +88,7 @@ struct WatchConfigAppleWatchView: View {
                 type: .boolean,
                 label: "Show Protein and Fat",
                 miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                verboseHint: "Show Protein and Fat… bla bla bla"
+                verboseHint: Text("Show Protein and Fat… bla bla bla")
             )
 
             SettingInputSection(
@@ -98,7 +98,7 @@ struct WatchConfigAppleWatchView: View {
                 selectedVerboseHint: Binding(
                     get: { selectedVerboseHint },
                     set: {
-                        selectedVerboseHint = $0
+                        selectedVerboseHint = $0.map { AnyView($0) }
                         hintLabel = "Confirm Bolus Faster"
                     }
                 ),
@@ -106,7 +106,7 @@ struct WatchConfigAppleWatchView: View {
                 type: .boolean,
                 label: "Confirm Bolus Faster",
                 miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                verboseHint: "Confirm Bolus Faster… bla bla bla"
+                verboseHint: Text("Confirm Bolus Faster… bla bla bla")
             )
         }
         .sheet(isPresented: $shouldDisplayHint) {
@@ -114,7 +114,7 @@ struct WatchConfigAppleWatchView: View {
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
-                hintText: selectedVerboseHint ?? "",
+                hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                 sheetTitle: "Help"
             )
         }

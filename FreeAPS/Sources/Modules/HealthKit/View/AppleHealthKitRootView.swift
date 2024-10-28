@@ -8,7 +8,7 @@ extension AppleHealthKit {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -40,18 +40,26 @@ extension AppleHealthKit {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Connect to Apple Health"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Connect to Apple Health",
-                    miniHint: "Allows Trio to read from and write to Apple Health.",
-                    verboseHint: NSLocalizedString(
-                        "This allows Trio to read from and write to Apple Health. You must also give permissions in iOS Settings > Health > Data Access. If you enter a glucose value into Apple Health, open Trio to confirm it shows up.",
-                        comment: "Suspend Zeros IOB"
-                    ),
+                    miniHint: """
+                    Allows Trio to read from and write to Apple Health
+                    Default: OFF
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: OFF").bold()
+                        Text("""
+
+                        This allows Trio to read from and write to Apple Health.
+
+                        """)
+                        Text("You must also give permissions in iOS System Settings for the Health app.").bold().italic()
+                    },
                     headerText: "Apple Health Integration"
                 )
 
@@ -63,11 +71,11 @@ extension AppleHealthKit {
                                 Text("Give Apple Health Write Permissions")
                             }.padding(.bottom)
                             Text("""
-                            1. Open the Settings app on your iOS device.
-                            2. Scroll down and select "Health."
-                            3. Tap on "Data Access & Devices."
-                            4. Find and select "Trio" from the list of apps.
-                            5. Ensure that the "Write Data" option is enabled for the desired health metrics.
+                            1. Open the Settings app on your iOS device
+                            2. Scroll down or type "Health" in the settings search bar and select the "Health" app
+                            3. Tap on "Data Access & Devices"
+                            4. Find and select "Trio" from the list of apps
+                            5. Ensure that the "Write Data" option is enabled for the desired health metrics
                             """).font(.footnote)
                         }
                         .padding(.vertical)
@@ -80,7 +88,7 @@ extension AppleHealthKit {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

@@ -7,7 +7,7 @@ extension UnitsLimitsSettings {
         @StateObject var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -51,18 +51,31 @@ extension UnitsLimitsSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Max IOB", comment: "Max IOB")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxIOB"),
                     label: NSLocalizedString("Max IOB", comment: "Max IOB"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings.",
-                        comment: "Max IOB"
-                    )
+                    miniHint: """
+                    The highest amount of insulin Trio can allow to be active at any given time.
+                    Default: 0 units
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: 0 units").bold()
+                        Text("""
+
+                        This must be greater than 0 for any automatic temp basals or SMBs to be given.
+                        """).bold().italic()
+                        Text("""
+
+                        The maximum amount of Insulin On Board (IOB) from all sources - both basal and bolus - that Trio is allowed to accumulate to treat higher-than-target glucose.
+
+                        If a calculated amount exceeds this limit, the suggested and/or delivered amount will be reduced so that active insulin on board (IOB) will not exceed this safety limit.
+                        """)
+                        Text("Manually entered bolus amounts are not restricted by this limit.").italic()
+                    }
                 )
 
                 SettingInputSection(
@@ -72,15 +85,28 @@ extension UnitsLimitsSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Max Bolus"
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxBolus"),
                     label: "Max Bolus",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Max Bolus… bla bla bla"
+                    miniHint: """
+                    Largest bolus of insulin allowed
+                    Default: 10 units
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: 10 units").bold()
+                        Text("""
+
+                        The maximum bolus allowed to be delivered at one time. This limits manual and automatic bolus.
+
+                        Most set this to their largest meal bolus. Then, adjust if needed.
+
+                        If you attempt to request a bolus larger than this, the bolus will not be accepted.
+                        """)
+                    }
                 )
 
                 SettingInputSection(
@@ -90,15 +116,26 @@ extension UnitsLimitsSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Max Basal"
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxBasal"),
                     label: "Max Basal",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Max Basal… bla bla bla"
+                    miniHint: """
+                    Largest basal rate allowed
+                    Default: 2.0 units
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: 2.0 units").bold()
+                        Text("""
+
+                        The maximum basal rate allowed to be set or scheduled.
+
+                        This applies to both automatic or manual basal rates.
+                        """)
+                    }
                 )
 
                 SettingInputSection(
@@ -108,18 +145,26 @@ extension UnitsLimitsSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Max COB", comment: "Max COB")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxCOB"),
                     label: NSLocalizedString("Max COB", comment: "Max COB"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "The default of maxCOB is 120. (If someone enters more carbs in one or multiple entries, Trio will cap COB to maxCOB and keep it at maxCOB until the carbs entered above maxCOB have shown to be absorbed. Essentially, this just limits UAM as a safety cap against weird COB calculations due to fluky data.)",
-                        comment: "Max COB"
-                    )
+                    miniHint: """
+                    The highest amount of carbs Trio can use in dosing calculations.
+                    Default: 120 carbs
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: 120 carbs").bold()
+                        Text("""
+
+                        Maximum Carbs On Board (COB) allowed. If more carbs are entered than allowed by this limit, Trio will cap the current COB in calculations to maxCOB and remain at max until remaining carbs have shown to be absorbed.
+
+                        """)
+                        Text("This is an important limit when UAM is ON.").italic()
+                    }
                 )
             }
             .sheet(isPresented: $shouldDisplayHint) {
@@ -127,7 +172,7 @@ extension UnitsLimitsSettings {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

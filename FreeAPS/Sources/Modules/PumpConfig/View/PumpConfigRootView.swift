@@ -9,7 +9,7 @@ extension PumpConfig {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -73,8 +73,7 @@ extension PumpConfig {
                                         Button(
                                             action: {
                                                 hintLabel = "Pump Pairing to Trio"
-                                                selectedVerboseHint =
-                                                    "Explanation… limitation… etc."
+                                                selectedVerboseHint = AnyView(Text("Explanation… limitation… etc."))
                                                 shouldDisplayHint.toggle()
                                             },
                                             label: {
@@ -119,7 +118,7 @@ extension PumpConfig {
                         hintDetent: $hintDetent,
                         shouldDisplayHint: $shouldDisplayHint,
                         hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? "",
+                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                         sheetTitle: "Help"
                     )
                 }

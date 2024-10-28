@@ -8,7 +8,7 @@ extension AutotuneConfig {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -63,15 +63,22 @@ extension AutotuneConfig {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Use Autotune"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Use Autotune",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Autotune… bla bla bla",
+                    miniHint: """
+                    It is not advised to use Autotune with Trio
+                    Default: OFF
+                    """,
+                    verboseHint: VStack(spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text("It is not advised to use Autotune with Trio").bold()
+                        Text("Autotune is not designed to work with Trio. It is best to keep Autotune off and do not use it.")
+                    },
                     headerText: "Data-driven Adjustments"
                 )
 
@@ -83,15 +90,18 @@ extension AutotuneConfig {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Only Autotune Basal Insulin"
                             }
                         ),
                         units: state.units,
                         type: .boolean,
                         label: "Only Autotune Basal Insulin",
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "Only Autotune Basal Insulin… bla bla bla"
+                        miniHint: """
+                        Restricts Autotune adjustments to only basal settings
+                        Default: OFF
+                        """,
+                        verboseHint: Text("Restricts Autotune adjustments to only basal settings.")
                     )
                 }
 
@@ -188,7 +198,7 @@ extension AutotuneConfig {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

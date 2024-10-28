@@ -8,7 +8,7 @@ extension UserInterfaceSettings {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -79,7 +79,8 @@ extension UserInterfaceSettings {
                                 Button(
                                     action: {
                                         hintLabel = "Color Scheme Preference"
-                                        selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        selectedVerboseHint =
+                                            AnyView(Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr."))
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -116,7 +117,11 @@ extension UserInterfaceSettings {
                                 action: {
                                     hintLabel = "Glucose Color Scheme"
                                     selectedVerboseHint =
-                                        "Glucose Color Scheme... Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        AnyView(
+                                            Text(
+                                                "Glucose Color Scheme... Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                            )
+                                        )
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -147,7 +152,8 @@ extension UserInterfaceSettings {
                                 Button(
                                     action: {
                                         hintLabel = "Show Main Chart X- and Y-Axis Grid Lines"
-                                        selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        selectedVerboseHint =
+                                            AnyView(Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr."))
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -168,7 +174,7 @@ extension UserInterfaceSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Show Low and High Thresholds"
                         }
                     ),
@@ -176,7 +182,7 @@ extension UserInterfaceSettings {
                     type: .boolean,
                     label: "Show Low and High Thresholds",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Display Low and High Thresholds… bla bla bla"
+                    verboseHint: Text("Display Low and High Thresholds… bla bla bla")
                 )
 
                 if state.rulerMarks {
@@ -263,7 +269,8 @@ extension UserInterfaceSettings {
                                 Button(
                                     action: {
                                         hintLabel = "Low and High Thresholds"
-                                        selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        selectedVerboseHint =
+                                            AnyView(Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr."))
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -299,7 +306,8 @@ extension UserInterfaceSettings {
                             Button(
                                 action: {
                                     hintLabel = "Forecast Display Type"
-                                    selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                    selectedVerboseHint =
+                                        AnyView(Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr."))
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -319,7 +327,7 @@ extension UserInterfaceSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "X-Axis Interval Step"
                         }
                     ),
@@ -327,7 +335,7 @@ extension UserInterfaceSettings {
                     type: .decimal("hours"),
                     label: "X-Axis Interval Step",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "X-Axis Interval Step… bla bla bla"
+                    verboseHint: Text("X-Axis Interval Step… bla bla bla")
                 )
 
                 Section {
@@ -352,7 +360,8 @@ extension UserInterfaceSettings {
                             Button(
                                 action: {
                                     hintLabel = "Total Insulin Display Type"
-                                    selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                    selectedVerboseHint =
+                                        AnyView(Text("Lorem ipsum dolor sit amet, consetetur sadipscing elitr."))
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -373,7 +382,7 @@ extension UserInterfaceSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Override HbA1c Unit"
                         }
                     ),
@@ -381,7 +390,7 @@ extension UserInterfaceSettings {
                     type: .boolean,
                     label: "Override HbA1c Unit",
                     miniHint: "Display HbA1c in mmol/L or %. Default is percent.",
-                    verboseHint: "Override HbA1c Unit… bla bla bla",
+                    verboseHint: Text("Override HbA1c Unit… bla bla bla"),
                     headerText: "Trio Statistics"
                 )
 
@@ -393,7 +402,7 @@ extension UserInterfaceSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Standing / Laying TIR Chart"
                         }
                     ),
@@ -401,7 +410,7 @@ extension UserInterfaceSettings {
                     type: .boolean,
                     label: "Standing / Laying TIR Chart",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Standing / Laying TIR Chart… bla bla bla"
+                    verboseHint: Text("Standing / Laying TIR Chart… bla bla bla")
                 )
 
                 SettingInputSection(
@@ -411,7 +420,7 @@ extension UserInterfaceSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Show Carbs Required Badge"
                         }
                     ),
@@ -420,7 +429,7 @@ extension UserInterfaceSettings {
                     label: "Show Carbs Required Badge",
                     conditionalLabel: "Carbs Required Threshold",
                     miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Show Carbs Required Badge… bla bla bla",
+                    verboseHint: Text("Show Carbs Required Badge… bla bla bla"),
                     headerText: "Carbs Required Badge"
                 )
             }
@@ -429,7 +438,7 @@ extension UserInterfaceSettings {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

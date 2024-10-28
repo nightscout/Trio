@@ -9,7 +9,7 @@ extension MealSettings {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -163,7 +163,7 @@ extension MealSettings {
 
                             HStack(alignment: .top) {
                                 Text(
-                                    "Set limits for entering meals in treatment view."
+                                    "Set limits for each type of macro per meal entry"
                                 )
                                 .lineLimit(nil)
                                 .font(.footnote)
@@ -173,7 +173,14 @@ extension MealSettings {
                                 Button(
                                     action: {
                                         hintLabel = "Limits per Entry"
-                                        selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        selectedVerboseHint =
+                                            AnyView(Text("""
+                                            Max Carbs = Enter the largest carbohydrate value allowed per meal entry
+
+                                            Max Fat = Enter the largest fat value allowed per meal entry
+
+                                            Max Protein = Enter the largest protein value allowed per meal entry
+                                            """))
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -194,18 +201,53 @@ extension MealSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
-                            hintLabel = "Display and Allow Fat and Protein Entries"
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = "Enable Fat and Protein Entries"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Display and Allow Fat and Protein Entries",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nDefaults: Spread Duration: 8 h, Spread Interval: 30 min, FPU Factor: 0.5, Delay 60 min.",
+                    label: "Enable Fat and Protein Entries",
+                    miniHint: """
+                    Allows you to add fat and protein macros to meals
+                    Default: OFF
+                    """,
+                    verboseHint: VStack(spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text("""
+
+                        Enabling this setting allows you to log fat and protein, which are then converted into future carb equivalents using the Warsaw Method.
+
+                        The Warsaw Method helps account for the delayed glucose spikes caused by fat and protein in meals. It uses Fat-Protein Units (FPU) to calculate the carb effect from fat and protein. The system spreads insulin delivery over several hours to mimic natural insulin release, helping to manage post-meal glucose spikes.
+
+                        """)
+                        Text("Fat Conversion").bold()
+                        Text("𝑭 = fat(g) × 90%").italic()
+                        Text("""
+
+                        Protein Conversion
+                        """).bold()
+                        Text("𝑷 = protein(g) × 40%").italic()
+                        Text("""
+
+                        FPU Conversion
+                        """).bold()
+                        Text("𝑭 + 𝑷 = g CHO").italic()
+                        Text(
+                            """
+
+                            You can personalize the conversion calculation by adjusting the following settings that will appear when this option is enabled:
+                            """
+                        )
+                        VStack(alignment: .leading) {
+                            Text("• Fat and Protein Delay")
+                            Text("• Maximum Duration")
+                            Text("• Spread Interval")
+                            Text("• Fat and Protein Percentage")
+                        }
+                    },
                     headerText: "Fat and Protein"
                 )
-
                 if state.useFPUconversion {
                     SettingInputSection(
                         decimalValue: $state.delay,
@@ -214,15 +256,26 @@ extension MealSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Fat and Protein Delay"
                             }
                         ),
                         units: state.units,
                         type: .decimal("delay"),
                         label: "Fat and Protein Delay",
-                        miniHint: "Delay is time from now until the first future carb entry.",
-                        verboseHint: "X-Axis Interval Step… bla bla bla"
+                        miniHint: """
+                        Set the delay between fat & protein entry in the bolus calculator and the first FPU entry
+                        Default: 60 min
+                        """,
+                        verboseHint: VStack {
+                            Text("Default: 60 min").bold()
+                            Text("""
+
+                            The Fat Protein Delay setting defines the time between when you log fat and protein and when the system starts delivering insulin for the Fat-Protein Unit Carb Equivalents (FPUs). 
+
+                            This delay accounts for the slower absorption of fat and protein, as calculated by the Warsaw Method, ensuring insulin delivery is properly timed to manage glucose spikes caused by high-fat, high-protein meals.
+                            """)
+                        }
                     )
 
                     SettingInputSection(
@@ -232,15 +285,32 @@ extension MealSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
-                                hintLabel = "Maximum Duration (hours)"
+                                selectedVerboseHint = $0.map { AnyView($0) }
+                                hintLabel = "Maximum Duration"
                             }
                         ),
                         units: state.units,
                         type: .decimal("timeCap"),
-                        label: "Maximum Duration (hours)",
-                        miniHint: "Carb spread over a maximum number of hours (5-12).",
-                        verboseHint: "This spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours."
+                        label: "Maximum Duration",
+                        miniHint: """
+                        Set the maximum timeframe to extend FPUs
+                        Default: 8 hours
+                        """,
+                        verboseHint: VStack {
+                            Text("Default: 8 hours").bold()
+                            Text("""
+
+                            This sets the maximum length of time that Fat and Protein Carb Equivalents (FPUs) will be extended over from a single Fat and/or Protein bolus calcultor entry.
+
+                            It is one factor used in combination with the Fat and Protein Delay, Spread Interval, and Fat and Protein Factor to create the FPU entries
+
+                            Increasing this setting may result in more FPU entries with smaller carb values.
+
+                            Decreasing this setting may result in fewer FPU entries with larger carb values.
+
+                            """)
+                            Text("Accepted range for this setting is 5 - 12 hours.").italic()
+                        }
                     )
 
                     SettingInputSection(
@@ -250,15 +320,32 @@ extension MealSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
-                                hintLabel = "Spread Interval (minutes)"
+                                selectedVerboseHint = $0.map { AnyView($0) }
+                                hintLabel = "Spread Interval"
                             }
                         ),
                         units: state.units,
                         type: .decimal("minuteInterval"),
-                        label: "Spread Interval (minutes)",
-                        miniHint: "Interval in minutes is how many minutes are between entries.",
-                        verboseHint: "Interval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices."
+                        label: "Spread Interval",
+                        miniHint: """
+                        Set the time interval between FPUs
+                        Default: 30 minutes
+                        """,
+                        verboseHint: VStack {
+                            Text("Default: 30 minutes").bold()
+                            Text("""
+
+                            This determines how many minutes will be between individual Fat-Protein Unit Carb Equivalent (FPU) entries from a single Fat and/or Protein bolus calculator entry.
+
+                            The shorter the interval, the smoother the correlating dosing result.
+
+                            Increasing this setting may result in fewer FPU entries with larger carb values.
+
+                            Decreasing this setting may result in more FPU entries with smaller carb values.
+
+                            """)
+                            Text("Accepted range for this setting is 5 - 60 minutes.").italic()
+                        }
                     )
 
                     SettingInputSection(
@@ -268,31 +355,49 @@ extension MealSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
-                                hintLabel = "Fat and Protein Factor"
+                                selectedVerboseHint = $0.map { AnyView($0) }
+                                hintLabel = "Fat and Protein Percentage"
                             }
                         ),
                         units: state.units,
                         type: .decimal("individualAdjustmentFactor"),
-                        label: "Fat and Protein Factor",
-                        miniHint: "Influences how many carb equivalents are recorded for fat and protein.",
-                        verboseHint: "The Fat and Protein Factor influences how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it."
+                        label: "Fat and Protein Percentage",
+                        miniHint: """
+                        Influences the conversion rate used in the Warsaw Method
+                        Default: 50%
+                        """,
+                        verboseHint: VStack {
+                            Text("Default: 50%").bold()
+                            Text("This setting changes how much effect the fat and protein entry has on FPUs.")
+                            VStack(alignment: .center) {
+                                Text("50% is half effect:").bold()
+                                Text("(Fat × 45%) + (Protein × 20%)")
+                                Text("100% is full effect:").bold()
+                                Text("(Fat × 90%) + (Protein × 40%)")
+                                Text("200% is double effect:").bold()
+                                Text("(Fat × 180%) + (Protein x 80%)")
+                                Text("""
+
+                                You may find that your normal carb ratio needs to increase to a larger number when you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 50% to ease into it.
+                                """).italic()
+                            }
+                        }
                     )
+                    .sheet(isPresented: $shouldDisplayHint) {
+                        SettingInputHintView(
+                            hintDetent: $hintDetent,
+                            shouldDisplayHint: $shouldDisplayHint,
+                            hintLabel: hintLabel ?? "",
+                            hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                            sheetTitle: "Help"
+                        )
+                    }
+                    .scrollContentBackground(.hidden).background(color)
+                    .onAppear(perform: configureView)
+                    .navigationBarTitle("Meal Settings")
+                    .navigationBarTitleDisplayMode(.automatic)
                 }
             }
-            .sheet(isPresented: $shouldDisplayHint) {
-                SettingInputHintView(
-                    hintDetent: $hintDetent,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
-                    sheetTitle: "Help"
-                )
-            }
-            .scrollContentBackground(.hidden).background(color)
-            .onAppear(perform: configureView)
-            .navigationBarTitle("Meal Settings")
-            .navigationBarTitleDisplayMode(.automatic)
         }
     }
 }

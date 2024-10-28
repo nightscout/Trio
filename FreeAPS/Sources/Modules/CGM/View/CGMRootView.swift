@@ -11,7 +11,7 @@ extension CGM {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -52,7 +52,7 @@ extension CGM {
 
                                 HStack(alignment: .top) {
                                     Text(
-                                        "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        "Select your CGM"
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -62,7 +62,11 @@ extension CGM {
                                         action: {
                                             hintLabel = "Available CGM Types for Trio"
                                             selectedVerboseHint =
-                                                "CGM Types… bla bla \n\nLorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                                AnyView(
+                                                    Text(
+                                                        "● Dexcom G5 \n● Dexcom G6/ONE \n● Dexcom G7/ONE+ \n● Dexcom Share \n● Freestyle Libre \n● Freestyle Libre Demo \n● Glucose Simulator \n● Medtronic Enlite \n● Nightscout \n● xDrip4iOS."
+                                                    )
+                                                )
                                             shouldDisplayHint.toggle()
                                         },
                                         label: {
@@ -163,7 +167,10 @@ extension CGM {
 
                                 HStack(alignment: .top) {
                                     Text(
-                                        "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        """
+                                        A “heartbeat” is what tells Trio to start a loop cycle. 
+                                        This is required to keep looping.
+                                        """
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -172,7 +179,12 @@ extension CGM {
                                     Button(
                                         action: {
                                             hintLabel = "CGM Heartbeat"
-                                            selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                            selectedVerboseHint =
+                                                AnyView(
+                                                    Text(
+                                                        "The Heartbeat can come from either a CGM or a pump to wake up Trio when phone is locked or in the background. If CGM is on the same phone as Trio and xDrip4iOS is configured to use the same AppGroup as Trio and the heartbeat feature is turned on in xDrip4iOS, then the CGM can provide a heartbeat to wake up Trio when phone is locked or app is in the background."
+                                                    )
+                                                )
                                             shouldDisplayHint.toggle()
                                         },
                                         label: {
@@ -199,15 +211,28 @@ extension CGM {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Smooth Glucose Value"
                             }
                         ),
                         units: state.units,
                         type: .boolean,
                         label: "Smooth Glucose Value",
-                        miniHint: "Smooth CGM readings using Savitzky–Golay filtering.",
-                        verboseHint: "Smooth Glucose Value… bla bla bla"
+                        miniHint: """
+                        Smooth CGM readings using Savitzky–Golay filtering
+                        Default: OFF
+                        """,
+                        verboseHint: VStack {
+                            Text("Default: OFF").bold()
+                            Text("""
+
+                            This filter looks at small groups of nearby readings and fits them to a simple mathematical curve (a low-degree polynomial). This process doesn’t change the overall pattern of your glucose data but helps smooth out the "noise" or irregular fluctuations that could lead to false highs or lows.
+
+                            Because your glucose readings are taken at regular intervals, the filter can use a set of pre-calculated "weights" to adjust each group of readings, making the calculations fast and efficient. It’s designed to keep the important trends in your data while minimizing those small, misleading variations, giving you a clearer sense of where your blood sugar is really headed.
+
+                            This type of filtering is useful in Trio, as it can help prevent over-corrections based on inaccurate glucose readings. This can help reduce the impact of sudden spikes or dips that might not reflect your true blood glucose levels, helping you get a more accurate picture of your trends.
+                            """)
+                        }
                     )
                 }
                 .scrollContentBackground(.hidden).background(color)
@@ -219,7 +244,7 @@ extension CGM {
                         hintDetent: $hintDetent,
                         shouldDisplayHint: $shouldDisplayHint,
                         hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? "",
+                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                         sheetTitle: "Help"
                     )
                 }

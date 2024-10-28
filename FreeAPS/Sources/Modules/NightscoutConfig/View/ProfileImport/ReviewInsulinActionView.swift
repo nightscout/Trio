@@ -10,7 +10,7 @@ struct ReviewInsulinActionView: BaseView {
 
     @State private var shouldDisplayHint: Bool = false
     @State private var hintDetent = PresentationDetent.large
-    @State private var selectedVerboseHint: String?
+    @State private var selectedVerboseHint: AnyView?
     @State private var hintLabel: String?
     @State private var decimalPlaceholder: Decimal = 0.0
     @State private var booleanPlaceholder: Bool = false
@@ -42,15 +42,27 @@ struct ReviewInsulinActionView: BaseView {
                 selectedVerboseHint: Binding(
                     get: { selectedVerboseHint },
                     set: {
-                        selectedVerboseHint = $0
+                        selectedVerboseHint = $0.map { AnyView($0) }
                         hintLabel = "Duration of Insulin Action"
                     }
                 ),
                 units: state.units,
                 type: .decimal("dia"),
                 label: "Duration of Insulin Action",
-                miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                verboseHint: "Duration of Insulin Action… bla bla bla",
+                miniHint: """
+                Number of hours insulin is active in your body
+                Default: 6 hours
+                """,
+                verboseHint: VStack {
+                    Text("Default: 6 hours").bold()
+                    Text("""
+
+                    Number of hours insulin will contribute to IOB after dosing.
+
+                    """)
+                    Text("It is better to use Custom Peak Timing rather than adjust your Duration of Insulin Action (DIA)")
+                        .italic()
+                },
                 headerText: "Review imported DIA"
             )
         }
@@ -59,7 +71,7 @@ struct ReviewInsulinActionView: BaseView {
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
-                hintText: selectedVerboseHint ?? "",
+                hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                 sheetTitle: "Help"
             )
         }

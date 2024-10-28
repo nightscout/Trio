@@ -11,7 +11,7 @@ extension ShortcutsConfig {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -63,15 +63,24 @@ extension ShortcutsConfig {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Allow Bolusing with Shortcuts"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Allow Bolusing with Shortcuts",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Allow Bolusing with Shortcuts… bla bla bla"
+                    miniHint: """
+                    Automate boluses using the Shortcuts App
+                    Default: OFF
+                    """,
+                    verboseHint: VStack {
+                        Text("Default: OFF").bold()
+                        Text("Enabling this setting allows the iOS Shortcuts App to send bolus commands to Trio.")
+                        Text(
+                            "Disabling this setting will still allow other commands, like Temp Targets, Add Carbs, and Start/End Overrides"
+                        )
+                    }
                 )
             }
             .sheet(isPresented: $shouldDisplayHint) {
@@ -79,7 +88,7 @@ extension ShortcutsConfig {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }
