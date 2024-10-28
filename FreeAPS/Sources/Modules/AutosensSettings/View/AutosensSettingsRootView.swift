@@ -48,25 +48,21 @@ extension AutosensSettings {
                     units: state.units,
                     type: .decimal("autosensMax"),
                     label: NSLocalizedString("Autosens Max", comment: "Autosens Max"),
-                    miniHint: """
-                    The higher limit of the Autosens Ratio
-                    Default: 120%
-                    """,
-                    verboseHint: VStack {
+                    miniHint: "The higher limit of the Autosens Ratio \nDefault: 120%",
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: 120%").bold()
-                        Text(
-                            """
-
-                            Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, Sigmoid Formula, and/or Autotune.
-
-                            The Autosens Ratio is used to calculate the amount of adjustment needed to basals, ISF, and CR.
-
-                            """
-                        )
-                        Text(
-                            "Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower."
-                        )
-                        .italic()
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(
+                                "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, Sigmoid Formula, and/or Autotune."
+                            )
+                            Text(
+                                "The Autosens Ratio is used to calculate the amount of adjustment needed to basals, ISF, and CR."
+                            )
+                            Text(
+                                "Tip: Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower."
+                            )
+                            .italic()
+                        }
                     },
                     headerText: "Glucose Deviations Algorithm"
                 )
@@ -85,25 +81,21 @@ extension AutosensSettings {
                     units: state.units,
                     type: .decimal("autosensMin"),
                     label: NSLocalizedString("Autosens Min", comment: "Autosens Min"),
-                    miniHint: """
-                    The lower limit of the Autosens Ratio
-                    Default: 80%
-                    """,
-                    verboseHint: VStack {
+                    miniHint: "The lower limit of the Autosens Ratio \nDefault: 80%",
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: 80%").bold()
-                        Text(
-                            """
-
-                            Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, Sigmoid Formula, and/or Autotune.
-
-                            The Autosens Ratio is used to calculate the amount of adjustment needed to basals, ISF, and CR.
-
-                            """
-                        )
-                        Text(
-                            "Decreasing this value allows automatic adjustments of basal rates to be lower, ISF to be higher, and CR to be higher."
-                        )
-                        .italic()
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(
+                                "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, Sigmoid Formula, and/or Autotune."
+                            )
+                            Text(
+                                "The Autosens Ratio is used to calculate the amount of adjustment needed to basals, ISF, and CR."
+                            )
+                            Text(
+                                "Tip: Decreasing this value allows automatic adjustments of basal rates to be lower, ISF to be higher, and CR to be higher."
+                            )
+                            .italic()
+                        }
                     }
                 )
 
@@ -121,23 +113,22 @@ extension AutosensSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Rewind Resets Autosens", comment: "Rewind Resets Autosens"),
-                    miniHint: """
-                    Pump rewind initiates a reset in Autosens Ratio
-                    Default: ON
-                    """,
-                    verboseHint: VStack {
+                    miniHint: "Pump rewind initiates a reset in Autosens Ratio \nDefault: ON",
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: ON").bold()
                         Text("Medtronic Users Only").bold().italic()
-                        Text(
-                            "This feature resets the Autosens Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change."
-                        )
-                        Text(
-                            "Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours."
-                        )
-                        Text(
-                            "If you usually rewind your pump independently of site changes, you may want to consider disabling this feature."
-                        )
-                        .italic()
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(
+                                "This feature resets the Autosens Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change."
+                            )
+                            Text(
+                                "Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours."
+                            )
+                            Text(
+                                "Tip: If you usually rewind your pump independently of site changes, you may want to consider disabling this feature."
+                            )
+                            .italic()
+                        }
                     }
                 )
             }

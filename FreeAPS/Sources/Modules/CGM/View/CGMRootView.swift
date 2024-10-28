@@ -64,7 +64,7 @@ extension CGM {
                                             selectedVerboseHint =
                                                 AnyView(
                                                     Text(
-                                                        "● Dexcom G5 \n● Dexcom G6/ONE \n● Dexcom G7/ONE+ \n● Dexcom Share \n● Freestyle Libre \n● Freestyle Libre Demo \n● Glucose Simulator \n● Medtronic Enlite \n● Nightscout \n● xDrip4iOS."
+                                                        "• Dexcom G5 \n• Dexcom G6/ONE \n• Dexcom G7/ONE+ \n• Dexcom Share \n• Freestyle Libre \n• Freestyle Libre Demo \n• Glucose Simulator \n• Medtronic Enlite \n• Nightscout \n• xDrip4iOS"
                                                     )
                                                 )
                                             shouldDisplayHint.toggle()
@@ -167,10 +167,7 @@ extension CGM {
 
                                 HStack(alignment: .top) {
                                     Text(
-                                        """
-                                        A “heartbeat” is what tells Trio to start a loop cycle. 
-                                        This is required to keep looping.
-                                        """
+                                        "A heartbeat tells Trio to start a loop cycle. \nThis is required to keep looping."
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -182,7 +179,7 @@ extension CGM {
                                             selectedVerboseHint =
                                                 AnyView(
                                                     Text(
-                                                        "The Heartbeat can come from either a CGM or a pump to wake up Trio when phone is locked or in the background. If CGM is on the same phone as Trio and xDrip4iOS is configured to use the same AppGroup as Trio and the heartbeat feature is turned on in xDrip4iOS, then the CGM can provide a heartbeat to wake up Trio when phone is locked or app is in the background."
+                                                        "The CGM Heartbeat can come from either a CGM or a pump to wake up Trio when phone is locked or in the background. If CGM is on the same phone as Trio and xDrip4iOS is configured to use the same AppGroup as Trio and the heartbeat feature is turned on in xDrip4iOS, then the CGM can provide a heartbeat to wake up Trio when phone is locked or app is in the background."
                                                     )
                                                 )
                                             shouldDisplayHint.toggle()
@@ -218,20 +215,20 @@ extension CGM {
                         units: state.units,
                         type: .boolean,
                         label: "Smooth Glucose Value",
-                        miniHint: """
-                        Smooth CGM readings using Savitzky–Golay filtering
-                        Default: OFF
-                        """,
+                        miniHint: "Smooth CGM readings \nDefault: OFF",
                         verboseHint: VStack {
                             Text("Default: OFF").bold()
-                            Text("""
-
-                            This filter looks at small groups of nearby readings and fits them to a simple mathematical curve (a low-degree polynomial). This process doesn’t change the overall pattern of your glucose data but helps smooth out the "noise" or irregular fluctuations that could lead to false highs or lows.
-
-                            Because your glucose readings are taken at regular intervals, the filter can use a set of pre-calculated "weights" to adjust each group of readings, making the calculations fast and efficient. It’s designed to keep the important trends in your data while minimizing those small, misleading variations, giving you a clearer sense of where your blood sugar is really headed.
-
-                            This type of filtering is useful in Trio, as it can help prevent over-corrections based on inaccurate glucose readings. This can help reduce the impact of sudden spikes or dips that might not reflect your true blood glucose levels, helping you get a more accurate picture of your trends.
-                            """)
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(
+                                    "This filter looks at small groups of nearby readings and fits them to a simple mathematical curve. This process doesn’t change the overall pattern of your glucose data but helps smooth out the \"noise\" or irregular fluctuations that could lead to false highs or lows."
+                                )
+                                Text(
+                                    "Because your glucose readings are taken at regular intervals, the filter can use a set of pre-calculated \"weights\" to adjust each group of readings, making the calculations fast and efficient. It’s designed to keep the important trends in your data while minimizing those small, misleading variations, giving you and Trio a clearer sense of where your blood sugar is really headed."
+                                )
+                                Text(
+                                    "This type of filtering is useful in Trio, as it can help prevent over-corrections based on inaccurate glucose readings. This can help reduce the impact of sudden spikes or dips that might not reflect your true blood glucose levels."
+                                )
+                            }
                         }
                     )
                 }

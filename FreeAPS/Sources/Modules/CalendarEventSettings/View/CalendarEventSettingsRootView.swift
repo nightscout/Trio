@@ -48,16 +48,21 @@ extension CalendarEventSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Create Events in Calendar",
-                    miniHint: """
-                    When enabled, Trio creates customizable calendar events in an iCloud calendar'
-                    Default: OFF
-                    """,
+                    miniHint: "Uses calendar events to display current data \nDefault: OFF",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
-                        Text(
-                            "When enabled, Trio will create a calendar event with every successful loop cycle. The previous calendar event will be deleted."
-                        )
-                        Text("You can customize this with the calendar of your choosing, emojis, and IOB/COB.")
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(
+                                "When enabled, Trio will create a customizable calendar event to keep you notified of your current glucose reading with every successful loop cycle."
+                            )
+                            Text(
+                                "This is useful if you use CarPlay or a variety of other external services that limit the view of most apps, but allows the calendar app"
+                            )
+                            Text(
+                                "Once enabled, the available customizations will appear. You can customize with the calendar of your choosing, use of emoji labels, and the inclusion of IOB & COB data."
+                            )
+                            Text("Note: Once a new calendar event is created, the previous event will be deleted.").italic()
+                        }
                     },
                     headerText: "Diabetes Data as Calendar Event"
                 )
@@ -87,23 +92,24 @@ extension CalendarEventSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Display Emojis as Labels",
-                        miniHint: """
-                        Enable to use emojis instead of "IOB" or "COB" and to indicate in-range and out-of-range glucose readings
-                        Default: OFF
-                        """,
+                        miniHint: "Emojis used instead of text for data labels \nDefault: OFF",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
-                            Text("""
-                             When enabled, the calendar event created will indicate whether glucose readings are in-range or out-of-range using the following color emojis:
-                            🟢: In-Range
-                            🟠: Above-Range
-                            🔴: Below-Range    
-                            """)
-                            Text("""
-                            If "Display IOB and COB" is also enabled, "IOB" and "COB" will be replaced with the following emojis:
-                            💉: IOB
-                            🥨: COB
-                            """)
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(
+                                    "When enabled, the calendar event created will indicate whether glucose readings are in-range or out-of-range using the following color emojis:"
+                                )
+                                Text("🟢: In-Range")
+                                Text("🟠: Above-Range")
+                                Text("🔴: Below-Range")
+                            }
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(
+                                    "If \"Display IOB and COB\" is also enabled, \"IOB\" and \"COB\" will be replaced with the following emojis:"
+                                )
+                                Text("💉: IOB")
+                                Text("🥨: COB")
+                            }
                         }
                     )
 
@@ -121,13 +127,12 @@ extension CalendarEventSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Display IOB and COB",
-                        miniHint: """
-                        Include IOB and COB in the calendar event created by Trio
-                        Default: OFF
-                        """,
+                        miniHint: "Include IOB & COB in the calendar event data \nDefault: OFF",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
-                            Text(" When enabled, Trio will include the current IOB and COB values in the calendar event created.")
+                            Text(
+                                "When enabled, Trio will include the current IOB and COB values, along with the current glucose reading, in each calendar event created."
+                            )
                         }
                     )
                 } else if state.useCalendar {
