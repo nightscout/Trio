@@ -14,6 +14,8 @@ extension GlucoseNotificationSettings {
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
+        @State private var displayPickerLowGlucose: Bool = false
+        @State private var displayPickerHighGlucose: Bool = false
 
         private var glucoseFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -163,37 +165,114 @@ extension GlucoseNotificationSettings {
                     }
                 )
 
-                Section {
-                    HStack {
-                        Text("Low Glucose Alarm Limit")
-                        Spacer()
-                        TextFieldWithToolBar(text: $state.lowGlucose, placeholder: "0", numberFormatter: glucoseFormatter)
-                        Text(state.units.rawValue).foregroundColor(.secondary)
-                    }.padding(.top)
+                self.lowAndHighGlucoseAlertSection
+            }
+            .sheet(isPresented: $shouldDisplayHint) {
+                SettingInputHintView(
+                    hintDetent: $hintDetent,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    hintLabel: hintLabel ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                    sheetTitle: "Help"
+                )
+            }
+            .scrollContentBackground(.hidden).background(color)
+            .onAppear(perform: configureView)
+            .navigationBarTitle("Glucose Notifications")
+            .navigationBarTitleDisplayMode(.automatic)
+        }
 
-                    HStack {
-                        Text("High Glucose Alarm Limit")
-                        Spacer()
-                        TextFieldWithToolBar(text: $state.highGlucose, placeholder: "0", numberFormatter: glucoseFormatter)
-                        Text(state.units.rawValue).foregroundColor(.secondary)
+        var lowAndHighGlucoseAlertSection: some View {
+            Section {
+                VStack {
+                    VStack {
+                        HStack {
+                            Text("Low Glucose Alarm Limit")
+
+                            Spacer()
+
+                            Group {
+                                Text(
+                                    state.units == .mgdL ? state.lowGlucose.description : state.lowGlucose.formattedAsMmolL
+                                )
+                                .foregroundColor(!displayPickerLowGlucose ? .primary : .accentColor)
+
+                                Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
+                            }
+                        }
+                        .onTapGesture {
+                            displayPickerLowGlucose.toggle()
+                        }
+                    }
+                    .padding(.top)
+
+                    if displayPickerLowGlucose {
+                        let setting = PickerSettingsProvider.shared.settings.lowGlucose
+
+                        Picker(selection: $state.lowGlucose, label: Text("")) {
+                            ForEach(
+                                PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
+                                id: \.self
+                            ) { value in
+                                let displayValue = state.units == .mgdL ? value.description : value.formattedAsMmolL
+                                Text(displayValue).tag(value)
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(maxWidth: .infinity)
+                    }
+
+                    VStack {
+                        HStack {
+                            Text("High Glucose Alarm Limit")
+
+                            Spacer()
+
+                            Group {
+                                Text(
+                                    state.units == .mgdL ? state.highGlucose.description : state.highGlucose.formattedAsMmolL
+                                )
+                                .foregroundColor(!displayPickerHighGlucose ? .primary : .accentColor)
+
+                                Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
+                            }
+                        }
+                        .onTapGesture {
+                            displayPickerHighGlucose.toggle()
+                        }
+                    }
+                    .padding(.top)
+
+                    if displayPickerHighGlucose {
+                        let setting = PickerSettingsProvider.shared.settings.highGlucose
+                        Picker(selection: $state.highGlucose, label: Text("")) {
+                            ForEach(
+                                PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
+                                id: \.self
+                            ) { value in
+                                let displayValue = state.units == .mgdL ? value.description : value.formattedAsMmolL
+                                Text(displayValue).tag(value)
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(maxWidth: .infinity)
                     }
 
                     HStack(alignment: .top) {
-                        Text("""
-                        Set the glucose alarm limits
-                        Tap hint icon for details
-                        """)
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(nil)
+                        Text(
+                            "Set the lower and upper limit for glucose alarms. See hint for more details."
+                        )
+                        .lineLimit(nil)
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
                         Spacer()
                         Button(
                             action: {
                                 hintLabel = "Low and High Glucose Alarm Limits"
                                 selectedVerboseHint =
                                     AnyView(VStack {
-                                        Text("Low Default: 72 mg/dL").bold()
-                                        Text("High Default: 270 mg/dL").bold()
+                                        Text("Low Default: 70 mg/dL").bold()
+                                        Text("High Default: 180 mg/dL").bold()
                                         Text("""
 
                                         These two settings determine the range outside of which you will be notified via push notifications. 
@@ -209,23 +288,9 @@ extension GlucoseNotificationSettings {
                                 }
                             }
                         ).buttonStyle(BorderlessButtonStyle())
-                    }.padding(.vertical)
-                }
-                .listRowBackground(Color.chart)
-            }
-            .sheet(isPresented: $shouldDisplayHint) {
-                SettingInputHintView(
-                    hintDetent: $hintDetent,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
-                )
-            }
-            .scrollContentBackground(.hidden).background(color)
-            .onAppear(perform: configureView)
-            .navigationBarTitle("Glucose Notifications")
-            .navigationBarTitleDisplayMode(.automatic)
+                    }.padding(.top)
+                }.padding(.bottom)
+            }.listRowBackground(Color.chart)
         }
     }
 }

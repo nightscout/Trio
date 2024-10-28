@@ -126,7 +126,8 @@ extension AlgorithmAdvancedSettings {
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 6 hours").bold()
                         Text("Number of hours insulin will contribute to IOB after dosing.")
-                        Text("Tip: It is better to use Custom Peak Time rather than adjust your Duration of Insulin Action (DIA)").italic()
+                        Text("Tip: It is better to use Custom Peak Time rather than adjust your Duration of Insulin Action (DIA)")
+                            .italic()
                         Text("Warning: Decreasing this setting is not advised.").bold().italic()
                     }
                 )
