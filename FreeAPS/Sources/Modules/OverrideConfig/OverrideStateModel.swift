@@ -138,7 +138,7 @@ extension OverrideConfig {
 
                 if now >= entryStartTime, now < entryEndTime {
                     await MainActor.run {
-                        currentGlucoseTarget = units == .mgdL ? entry.value : entry.value.asMmolL
+                        currentGlucoseTarget = entry.value
                         target = currentGlucoseTarget
                     }
                     return

@@ -218,7 +218,7 @@ struct EditTempTargetForm: View {
                                         Text(option.rawValue).tag(option)
                                     }
                                     .pickerStyle(MenuPickerStyle())
-                                    .onChange(of: tempTargetSensitivityAdjustmentType) { newValue in
+                                    .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
                                         if newValue == .standard {
                                             halfBasalTarget = state.settingHalfBasalTarget
                                             hasChanges = true
