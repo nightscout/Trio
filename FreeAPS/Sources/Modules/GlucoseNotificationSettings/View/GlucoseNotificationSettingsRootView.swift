@@ -14,7 +14,6 @@ extension GlucoseNotificationSettings {
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
-        @State var notificationsDisabled = false
         @State private var displayPickerLowGlucose: Bool = false
         @State private var displayPickerHighGlucose: Bool = false
 
@@ -211,17 +210,8 @@ extension GlucoseNotificationSettings {
                     sheetTitle: "Help"
                 )
             }
-            .onReceive(
-                resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled,
-                perform: {
-                    notificationsDisabled = $0
-                }
-            )
             .scrollContentBackground(.hidden).background(color)
-//            .onAppear(perform: configureView)
-            .onAppear {
-                configureView {}
-            }
+            .onAppear(perform: configureView)
             .navigationBarTitle("Trio Notifications")
             .navigationBarTitleDisplayMode(.automatic)
         }
