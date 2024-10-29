@@ -196,7 +196,7 @@ struct AddTempTargetForm: View {
                     toggleScrollWheel: toggleScrollWheel
                 )
                 .onChange(of: state.tempTargetTarget) {
-                    state.percentage = Double(state.computeAdjustedPercentage() * 100)
+                    state.percentage = state.computeAdjustedPercentage()
                 }
             }
             .listRowBackground(Color.chart)
@@ -220,7 +220,7 @@ struct AddTempTargetForm: View {
                                 .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
                                     if newValue == .standard {
                                         state.halfBasalTarget = state.settingHalfBasalTarget
-                                        state.percentage = Double(state.computeAdjustedPercentage() * 100)
+                                        state.percentage = state.computeAdjustedPercentage()
                                     }
                                 }
                             }

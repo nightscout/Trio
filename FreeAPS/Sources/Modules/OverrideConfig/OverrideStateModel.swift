@@ -53,7 +53,7 @@ extension OverrideConfig {
         var date = Date()
         var newPresetName = ""
         var tempTargetPresets: [TempTargetStored] = []
-        var percentage = 100.0
+        var percentage: Double = 100
         var maxValue: Decimal = 1.2
         var minValue: Decimal = 0.15
         var viewPercantage = false
@@ -154,7 +154,7 @@ extension OverrideConfig {
             minValue = settingsManager.preferences.autosensMin
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
-            percentage = Double(computeAdjustedPercentage() * 100)
+            percentage = computeAdjustedPercentage()
             Task {
                 await getCurrentGlucoseTarget()
             }
@@ -877,7 +877,7 @@ extension OverrideConfig.StateModel {
     func handleAdjustSensToggle() {
         if !didAdjustSens {
             halfBasalTarget = settingHalfBasalTarget
-            percentage = Double(computeAdjustedPercentage(usingHBT: settingHalfBasalTarget) * 100)
+            percentage = computeAdjustedPercentage(usingHBT: settingHalfBasalTarget)
         }
     }
 
@@ -923,7 +923,7 @@ extension OverrideConfig.StateModel {
     func computeAdjustedPercentage(
         usingHBT initialHalfBasalTarget: Decimal? = nil,
         usingTarget initialTarget: Decimal? = nil
-    ) -> Decimal {
+    ) -> Double {
         let halfBasalTargetValue = initialHalfBasalTarget ?? halfBasalTarget
         let calcTarget = initialTarget ?? tempTargetTarget
         let deviationFromNormal = halfBasalTargetValue - normalTarget
@@ -932,7 +932,7 @@ extension OverrideConfig.StateModel {
         let adjustmentRatio: Decimal = (deviationFromNormal * adjustmentFactor <= 0) ? maxValue : deviationFromNormal /
             adjustmentFactor
 
-        return min(adjustmentRatio, maxValue)
+        return Double(min(adjustmentRatio, maxValue) * 100).rounded()
     }
 }
 

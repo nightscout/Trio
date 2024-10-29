@@ -17,7 +17,7 @@ struct EditTempTargetForm: View {
     @State private var duration: Decimal
     @State private var date: Date
     @State private var halfBasalTarget: Decimal
-    @State private var percentage: Decimal
+    @State private var percentage: Double
 
     @State private var hasChanges = false
     @State private var showAlert = false
@@ -39,9 +39,9 @@ struct EditTempTargetForm: View {
         if let hbt = tempTargetToEdit.halfBasalTarget?.decimalValue {
             let H = hbt
             let T = tempTargetToEdit.target?.decimalValue ?? 100
-            let calcPercentage = Double(state.computeAdjustedPercentage(usingHBT: H, usingTarget: T) * 100)
-            _percentage = State(initialValue: Decimal(calcPercentage))
-        } else { _percentage = State(initialValue: Decimal(100)) }
+            let calcPercentage = state.computeAdjustedPercentage(usingHBT: H, usingTarget: T)
+            _percentage = State(initialValue: calcPercentage)
+        } else { _percentage = State(initialValue: 100) }
     }
 
     var color: LinearGradient {
@@ -189,7 +189,7 @@ struct EditTempTargetForm: View {
                     toggleScrollWheel: toggleScrollWheel
                 )
                 .onChange(of: target) {
-                    percentage = state.computeAdjustedPercentage(usingHBT: halfBasalTarget, usingTarget: target) * 100
+                    percentage = state.computeAdjustedPercentage(usingHBT: halfBasalTarget, usingTarget: target)
                 }
             }
             .listRowBackground(Color.chart)
@@ -197,11 +197,11 @@ struct EditTempTargetForm: View {
             if target != state.normalTarget {
                 let computedHalfBasalTarget = Decimal(
                     state
-                        .computeHalfBasalTarget(usingTarget: target, usingPercentage: Double(percentage))
+                        .computeHalfBasalTarget(usingTarget: target, usingPercentage: percentage)
                 )
                 let sensHint = target > state.normalTarget ?
-                    "Reducing all delivered insulin to \(formattedPercentage(Double(percentage)))%." :
-                    "Increasing all delivered insulin by \(formattedPercentage(Double(percentage) - 100))%."
+                    "Reducing all delivered insulin to \(formattedPercentage(percentage))%." :
+                    "Increasing all delivered insulin by \(formattedPercentage(percentage - 100))%."
 
                 if state.isAdjustSensEnabled(usingTarget: target) {
                     Section(
@@ -218,7 +218,7 @@ struct EditTempTargetForm: View {
                                     if newValue == .standard {
                                         halfBasalTarget = state.settingHalfBasalTarget
                                         hasChanges = true
-                                        percentage = 100 * state.computeAdjustedPercentage(
+                                        percentage = state.computeAdjustedPercentage(
                                             usingHBT: halfBasalTarget,
                                             usingTarget: target
                                         )
@@ -227,7 +227,7 @@ struct EditTempTargetForm: View {
                             }
 
                             if tempTargetSensitivityAdjustmentType == .slider {
-                                Text("\(formattedPercentage(Double(percentage))) % Insulin")
+                                Text("\(formattedPercentage(percentage)) % Insulin")
                                     .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
                                     .font(.title3)
                                     .fontWeight(.bold)
@@ -238,11 +238,11 @@ struct EditTempTargetForm: View {
                                             Double(truncating: percentage as NSNumber)
                                         },
                                         set: { newValue in
-                                            percentage = Decimal(newValue)
+                                            percentage = newValue
                                             hasChanges = true
                                             halfBasalTarget = Decimal(state.computeHalfBasalTarget(
                                                 usingTarget: target,
-                                                usingPercentage: Double(percentage)
+                                                usingPercentage: percentage
                                             ))
                                         }
                                     ),
