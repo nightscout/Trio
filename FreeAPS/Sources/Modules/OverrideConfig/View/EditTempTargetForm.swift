@@ -243,7 +243,7 @@ struct EditTempTargetForm: View {
                                         }
                                     ),
                                     in: state.computeSliderLow(usingTarget: target) ... state
-                                        .computeSliderHigh(usingTarget: target) - 1,
+                                        .computeSliderHigh(usingTarget: target),
                                     step: 5
                                 ) {}
                                 minimumValueLabel: {
