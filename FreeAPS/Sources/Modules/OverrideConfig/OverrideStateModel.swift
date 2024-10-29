@@ -871,7 +871,7 @@ extension OverrideConfig.StateModel {
         tempTargetTarget = 100
         tempTargetDuration = 0
         percentage = 100
-        halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
+        halfBasalTarget = settingHalfBasalTarget
     }
 
     func handleAdjustSensToggle() {
