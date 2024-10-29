@@ -67,7 +67,6 @@ struct EditTempTargetForm: View {
                 saveButton
             }
             .listSectionSpacing(10)
-            .listRowSpacing(10)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden).background(color)
@@ -210,71 +209,66 @@ struct EditTempTargetForm: View {
                             .textCase(.none)
                             .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
                         content: {
-                            VStack {
-                                Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
-                                    ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
-                                        Text(option.rawValue).tag(option)
-                                    }
-                                    .pickerStyle(MenuPickerStyle())
-                                    .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
-                                        if newValue == .standard {
-                                            halfBasalTarget = state.settingHalfBasalTarget
-                                            hasChanges = true
-                                            percentage = (
-                                                state
-                                                    .computeAdjustedPercentage(usingHBT: halfBasalTarget, usingTarget: target) *
-                                                    100
-                                            )
-                                        }
-                                    }
+                            Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
+                                ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
+                                    Text(option.rawValue).tag(option)
                                 }
-
-                                if tempTargetSensitivityAdjustmentType == .slider {
-                                    Text("\(formattedPercentage(Double(percentage))) % Insulin")
-                                        .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                                        .font(.title3)
-                                        .fontWeight(.bold)
-                                    Slider(
-                                        value: Binding(
-                                            get: {
-                                                Double(truncating: percentage as NSNumber)
-                                            },
-                                            set: { newValue in
-                                                percentage = Decimal(newValue)
-                                                hasChanges = true
-                                                halfBasalTarget = Decimal(state.computeHalfBasalTarget(
-                                                    usingTarget: target,
-                                                    usingPercentage: Double(percentage)
-                                                ))
-                                            }
-                                        ),
-                                        in: state.computeSliderLow(usingTarget: target) ... state
-                                            .computeSliderHigh(usingTarget: target) - 1,
-                                        step: 5
-                                    ) {}
-                                    minimumValueLabel: {
-                                        Text("\(state.computeSliderLow(usingTarget: target), specifier: "%.0f")%")
-                                    }
-                                    maximumValueLabel: {
-                                        Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
-                                    }
-
-                                    Divider()
-
-                                    HStack {
-                                        Text(
-                                            "Half Basal Exercise Target:"
+                                .pickerStyle(MenuPickerStyle())
+                                .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
+                                    if newValue == .standard {
+                                        halfBasalTarget = state.settingHalfBasalTarget
+                                        hasChanges = true
+                                        percentage = 100 * state.computeAdjustedPercentage(
+                                            usingHBT: halfBasalTarget,
+                                            usingTarget: target
                                         )
-                                        Spacer()
-                                        Text(formattedGlucose(glucose: computedHalfBasalTarget))
-                                    }.foregroundStyle(.primary)
+                                    }
                                 }
                             }
-                            .padding(.vertical, 10)
+
+                            if tempTargetSensitivityAdjustmentType == .slider {
+                                Text("\(formattedPercentage(Double(percentage))) % Insulin")
+                                    .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                Slider(
+                                    value: Binding(
+                                        get: {
+                                            Double(truncating: percentage as NSNumber)
+                                        },
+                                        set: { newValue in
+                                            percentage = Decimal(newValue)
+                                            hasChanges = true
+                                            halfBasalTarget = Decimal(state.computeHalfBasalTarget(
+                                                usingTarget: target,
+                                                usingPercentage: Double(percentage)
+                                            ))
+                                        }
+                                    ),
+                                    in: state.computeSliderLow(usingTarget: target) ... state
+                                        .computeSliderHigh(usingTarget: target) - 1,
+                                    step: 5
+                                ) {}
+                                minimumValueLabel: {
+                                    Text("\(state.computeSliderLow(usingTarget: target), specifier: "%.0f")%")
+                                }
+                                maximumValueLabel: {
+                                    Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
+                                }
+                                .listRowSeparator(.hidden, edges: .top)
+
+                                HStack {
+                                    Text(
+                                        "Half Basal Exercise Target:"
+                                    )
+                                    Spacer()
+                                    Text(formattedGlucose(glucose: computedHalfBasalTarget))
+                                }.foregroundStyle(.primary)
+                            }
                         }
                     )
                     .listRowBackground(Color.chart)
-                    .padding(.top, -10)
                 }
             }
         }

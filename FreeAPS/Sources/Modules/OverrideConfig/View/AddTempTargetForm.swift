@@ -212,53 +212,50 @@ struct AddTempTargetForm: View {
                             .textCase(.none)
                             .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
                         content: {
-                            VStack {
-                                Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
-                                    ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
-                                        Text(option.rawValue).tag(option)
-                                    }
-                                    .pickerStyle(MenuPickerStyle())
-                                    .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
-                                        if newValue == .standard {
-                                            state.halfBasalTarget = state.settingHalfBasalTarget
-                                            state.percentage = Double(state.computeAdjustedPercentage() * 100)
-                                        }
+                            Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
+                                ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
+                                    Text(option.rawValue).tag(option)
+                                }
+                                .pickerStyle(MenuPickerStyle())
+                                .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
+                                    if newValue == .standard {
+                                        state.halfBasalTarget = state.settingHalfBasalTarget
+                                        state.percentage = Double(state.computeAdjustedPercentage() * 100)
                                     }
                                 }
+                            }
 
-                                if tempTargetSensitivityAdjustmentType == .slider {
-                                    Text("\(formattedPercentage(state.percentage)) % Insulin")
-                                        .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                                        .font(.title3)
-                                        .fontWeight(.bold)
-                                    Slider(
-                                        value: $state.percentage,
-                                        in: state.computeSliderLow() ... state.computeSliderHigh(),
-                                        step: 5
-                                    ) {} minimumValueLabel: {
-                                        Text("\(state.computeSliderLow(), specifier: "%.0f")%")
-                                    } maximumValueLabel: {
-                                        Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
-                                    } onEditingChanged: { editing in
-                                        isUsingSlider = editing
-                                        state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
-                                    }
-
-                                    Divider()
-
-                                    HStack {
-                                        Text(
-                                            "Half Basal Exercise Target:"
-                                        )
-                                        Spacer()
-                                        Text(formattedGlucose(glucose: computedHalfBasalTarget))
-                                    }.foregroundStyle(.primary)
+                            if tempTargetSensitivityAdjustmentType == .slider {
+                                Text("\(formattedPercentage(state.percentage)) % Insulin")
+                                    .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                Slider(
+                                    value: $state.percentage,
+                                    in: state.computeSliderLow() ... state.computeSliderHigh(),
+                                    step: 5
+                                ) {} minimumValueLabel: {
+                                    Text("\(state.computeSliderLow(), specifier: "%.0f")%")
+                                } maximumValueLabel: {
+                                    Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
+                                } onEditingChanged: { editing in
+                                    isUsingSlider = editing
+                                    state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
                                 }
-                            }.padding(.vertical, 10)
+                                .listRowSeparator(.hidden, edges: .top)
+
+                                HStack {
+                                    Text(
+                                        "Half Basal Exercise Target:"
+                                    )
+                                    Spacer()
+                                    Text(formattedGlucose(glucose: computedHalfBasalTarget))
+                                }.foregroundStyle(.primary)
+                            }
                         }
                     )
                     .listRowBackground(Color.chart)
-                    .padding(.top, -10)
                 }
             }
         }
