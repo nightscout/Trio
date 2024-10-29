@@ -37,6 +37,10 @@ extension Home {
         var pumpName = ""
         var pumpExpiresAtDate: Date?
         var tempTarget: TempTarget?
+        var highTTraisesSens: Bool = false
+        var lowTTlowersSens: Bool = false
+        var exerciseMode: Bool = false
+        var settingHalfBasalTarget: Decimal = 160
         var setupPump = false
         var errorMessage: String?
         var errorDate: Date?
@@ -352,6 +356,10 @@ extension Home {
             cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
             showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
             forecastDisplayType = settingsManager.settings.forecastDisplayType
+            highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
+            lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
+            exerciseMode = settingsManager.preferences.exerciseMode
+            settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         }
 
         func addPump(_ type: PumpConfig.PumpType) {

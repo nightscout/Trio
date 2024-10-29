@@ -42,8 +42,6 @@ extension OverrideConfig {
         var currentActiveTempTarget: TempTargetStored?
         var showOverrideEditSheet = false
         var showTempTargetEditSheet = false
-        var showInvalidTargetAlert = false
-
         var units: GlucoseUnits = .mgdL
 
         // temp target stuff
@@ -55,7 +53,7 @@ extension OverrideConfig {
         var date = Date()
         var newPresetName = ""
         var tempTargetPresets: [TempTargetStored] = []
-        var percentage = 100.0
+        var percentage: Double = 100
         var maxValue: Decimal = 1.2
         var minValue: Decimal = 0.15
         var viewPercantage = false
@@ -73,11 +71,6 @@ extension OverrideConfig {
 
         var isHelpSheetPresented: Bool = false
         var helpSheetDetent = PresentationDetent.large
-
-        var alertMessage: String {
-            let target: String = units == .mgdL ? "70-270 mg/dl" : "4-15 mmol/l"
-            return "Please enter a valid target between" + " \(target)."
-        }
 
         private var cancellables = Set<AnyCancellable>()
 
@@ -145,7 +138,7 @@ extension OverrideConfig {
 
                 if now >= entryStartTime, now < entryEndTime {
                     await MainActor.run {
-                        currentGlucoseTarget = units == .mgdL ? entry.value : entry.value.asMmolL
+                        currentGlucoseTarget = entry.value
                         target = currentGlucoseTarget
                     }
                     return
@@ -161,27 +154,9 @@ extension OverrideConfig {
             minValue = settingsManager.preferences.autosensMin
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
-            percentage = Double(computeAdjustedPercentage() * 100)
+            percentage = computeAdjustedPercentage()
             Task {
                 await getCurrentGlucoseTarget()
-            }
-        }
-
-        func isInputInvalid(target: Decimal) -> Bool {
-            guard target != 0 else { return false }
-
-            if units == .mgdL,
-               target < 80 || target > 270 // in oref min lowTT = 80!
-            {
-                showInvalidTargetAlert = true
-                return true
-            } else if units == .mmolL,
-                      target < 4.4 || target > 15 // in oref min lowTT = 80!
-            {
-                showInvalidTargetAlert = true
-                return true
-            } else {
-                return false
             }
         }
     }
@@ -896,18 +871,14 @@ extension OverrideConfig.StateModel {
         tempTargetTarget = 100
         tempTargetDuration = 0
         percentage = 100
-        halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
+        halfBasalTarget = settingHalfBasalTarget
     }
 
     func handleAdjustSensToggle() {
         if !didAdjustSens {
             halfBasalTarget = settingHalfBasalTarget
-            percentage = Double(computeAdjustedPercentage(usingHBT: settingHalfBasalTarget) * 100)
+            percentage = computeAdjustedPercentage(usingHBT: settingHalfBasalTarget)
         }
-    }
-
-    func isAdjustSensEnabled(usingTarget initialTarget: Decimal? = nil) -> Bool {
-        computeSliderHigh(usingTarget: initialTarget) > computeSliderLow(usingTarget: initialTarget)
     }
 
     func computeHalfBasalTarget(
@@ -925,35 +896,34 @@ extension OverrideConfig.StateModel {
         return round(Double(halfBasalTargetValue))
     }
 
-    func computeSliderLow(usingTarget initialTarget: Decimal? = nil) -> Double {
-        let calcTarget = initialTarget ?? tempTargetTarget
-        guard calcTarget != 0 else { return 15 }
-
+    func isAdjustSensEnabled(usingTarget initialTarget: Decimal? = nil) -> Bool {
         let shouldRaiseSensitivity = settingsManager.preferences.highTemptargetRaisesSensitivity
         let isExerciseModeActive = settingsManager.preferences.exerciseMode
-        let isTargetNormalOrLower = calcTarget <= normalTarget
+        let shouldlowerSensitivity = settingsManager.preferences.lowTemptargetLowersSensitivity
+        let target = initialTarget ?? tempTargetTarget
+        if target < normalTarget, shouldlowerSensitivity { return true }
+        if target > normalTarget, shouldRaiseSensitivity || isExerciseModeActive { return true }
+        return false
+    }
 
-        let minSens = (isTargetNormalOrLower || (!shouldRaiseSensitivity && !isExerciseModeActive)) ? 100 : 15
-
+    func computeSliderLow(usingTarget initialTarget: Decimal? = nil) -> Double {
+        let calcTarget = initialTarget ?? tempTargetTarget
+        guard calcTarget != 0 else { return 15 } // oref defined maximum sensitivity
+        let minSens = calcTarget < normalTarget ? 105 : 15
         return Double(max(0, minSens))
     }
 
     func computeSliderHigh(usingTarget initialTarget: Decimal? = nil) -> Double {
         let calcTarget = initialTarget ?? tempTargetTarget
-        guard calcTarget != 0 else { return Double(maxValue * 100) }
-
-        let shouldLowerSensitivity = settingsManager.preferences.lowTemptargetLowersSensitivity
-        let isTargetNormalOrHigher = calcTarget >= normalTarget
-
-        let maxSens = (isTargetNormalOrHigher || !shouldLowerSensitivity) ? 100 : Double(maxValue * 100)
-
+        guard calcTarget != 0 else { return Double(maxValue * 100) } // oref defined limit for increased insulin delivery
+        let maxSens = calcTarget > normalTarget ? 95 : Double(maxValue * 100)
         return maxSens
     }
 
     func computeAdjustedPercentage(
         usingHBT initialHalfBasalTarget: Decimal? = nil,
         usingTarget initialTarget: Decimal? = nil
-    ) -> Decimal {
+    ) -> Double {
         let halfBasalTargetValue = initialHalfBasalTarget ?? halfBasalTarget
         let calcTarget = initialTarget ?? tempTargetTarget
         let deviationFromNormal = halfBasalTargetValue - normalTarget
@@ -962,7 +932,7 @@ extension OverrideConfig.StateModel {
         let adjustmentRatio: Decimal = (deviationFromNormal * adjustmentFactor <= 0) ? maxValue : deviationFromNormal /
             adjustmentFactor
 
-        return min(adjustmentRatio, maxValue)
+        return Double(min(adjustmentRatio, maxValue) * 100).rounded()
     }
 }
 
@@ -1003,7 +973,7 @@ extension PickerSettingsProvider {
 
 enum TempTargetSensitivityAdjustmentType: String, CaseIterable {
     case standard = "Standard"
-    case slider = "Customized"
+    case slider = "Custom"
 }
 
 enum IsfAndOrCrOptions: String, CaseIterable {
@@ -1079,6 +1049,11 @@ func formatHrMin(_ durationInMinutes: Int) -> String {
     }
 }
 
+func convertToMinutes(_ hours: Int, _ minutes: Int) -> Decimal {
+    let totalMinutes = (hours * 60) + minutes
+    return Decimal(max(0, totalMinutes))
+}
+
 struct RadioButton: View {
     var isSelected: Bool
     var label: String
@@ -1094,5 +1069,71 @@ struct RadioButton: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct TargetPicker: View {
+    let label: String
+    @Binding var selection: Decimal
+    let options: [Decimal]
+    let units: GlucoseUnits
+    var hasChanges: Binding<Bool>?
+    @Binding var targetStep: Decimal
+    @Binding var displayPickerTarget: Bool
+    var toggleScrollWheel: (_ picker: Bool) -> Bool
+
+    var body: some View {
+        HStack {
+            Text(label)
+            Spacer()
+            Text(
+                (units == .mgdL ? selection.description : selection.formattedAsMmolL) + " " + units.rawValue
+            )
+            .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
+        }
+        .onTapGesture {
+            displayPickerTarget = toggleScrollWheel(displayPickerTarget)
+        }
+        if displayPickerTarget {
+            HStack {
+                // Radio buttons and text on the left side
+                VStack(alignment: .leading) {
+                    // Radio buttons for step iteration
+                    let stepChoices: [Decimal] = units == .mgdL ? [1, 5] : [1, 9]
+                    ForEach(stepChoices, id: \.self) { step in
+                        let label = (units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
+                            units.rawValue
+                        RadioButton(
+                            isSelected: targetStep == step,
+                            label: label
+                        ) {
+                            targetStep = step
+                            selection = OverrideConfig.StateModel.roundTargetToStep(selection, step)
+                        }
+                        .padding(.top, 10)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+
+                Spacer()
+
+                // Picker on the right side
+                Picker(selection: Binding(
+                    get: { OverrideConfig.StateModel.roundTargetToStep(selection, targetStep) },
+                    set: {
+                        selection = $0
+                        hasChanges?.wrappedValue = true // This safely updates if hasChanges is provided
+                    }
+                ), label: Text("")) {
+                    ForEach(options, id: \.self) { option in
+                        Text((units == .mgdL ? option.description : option.formattedAsMmolL) + " " + units.rawValue)
+                            .tag(option)
+                    }
+                }
+                .pickerStyle(WheelPickerStyle())
+                .frame(maxWidth: .infinity)
+            }
+            .listRowSeparator(.hidden, edges: .top)
+        }
     }
 }

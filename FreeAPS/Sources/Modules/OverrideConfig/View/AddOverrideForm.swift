@@ -5,9 +5,7 @@ struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
-
     @Bindable var state: OverrideConfig.StateModel
-
     @State private var selectedIsfCrOption: IsfAndOrCrOptions = .isfAndCr
     @State private var selectedDisableSmbOption: DisableSmbOptions = .dontDisable
     @State private var percentageStep: Int = 5
@@ -23,26 +21,20 @@ struct AddOverrideForm: View {
     @State private var didPressSave = false
 
     var color: LinearGradient {
-        colorScheme == .dark ? LinearGradient(
-            gradient: Gradient(colors: [
-                Color.bgDarkBlue,
-                Color.bgDarkerDarkBlue
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        ) :
-            LinearGradient(
+        colorScheme == .dark
+            ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.bgDarkBlue,
+                    Color.bgDarkerDarkBlue
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            : LinearGradient(
                 gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
                 startPoint: .top,
                 endPoint: .bottom
             )
-    }
-
-    private var formatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
     }
 
     var body: some View {
@@ -136,7 +128,7 @@ struct AddOverrideForm: View {
                             .pickerStyle(WheelPickerStyle())
                             .frame(maxWidth: .infinity)
                             .onChange(of: durationHours) {
-                                state.overrideDuration = Decimal(totalDurationInMinutes())
+                                state.overrideDuration = convertToMinutes(durationHours, durationMinutes)
                             }
 
                             Picker("Minutes", selection: $durationMinutes) {
@@ -147,7 +139,7 @@ struct AddOverrideForm: View {
                             .pickerStyle(WheelPickerStyle())
                             .frame(maxWidth: .infinity)
                             .onChange(of: durationMinutes) {
-                                state.overrideDuration = Decimal(totalDurationInMinutes())
+                                state.overrideDuration = convertToMinutes(durationHours, durationMinutes)
                             }
                         }
                         .listRowSeparator(.hidden, edges: .top)
@@ -238,73 +230,32 @@ struct AddOverrideForm: View {
 
             Section {
                 Toggle(isOn: $state.shouldOverrideTarget) {
-                    Text("Override Profile Target")
+                    Text("Override Target")
                 }
 
                 if state.shouldOverrideTarget {
-                    HStack {
-                        Text("Target Glucose")
-                        Spacer()
-                        Text(
-                            (state.units == .mgdL ? state.target.description : state.target.formattedAsMmolL) + " " + state
-                                .units.rawValue
-                        )
-                        .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
-                    }
-                    .onTapGesture {
-                        displayPickerTarget = toggleScrollWheel(displayPickerTarget)
-                    }
-
-                    if displayPickerTarget {
-                        HStack {
-                            // Radio buttons and text on the left side
-                            VStack(alignment: .leading) {
-                                // Radio buttons for step iteration
-                                let stepChoices: [Decimal] = state.units == .mgdL ? [1, 5] : [1, 9]
-                                ForEach(stepChoices, id: \.self) { step in
-                                    let label = (state.units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
-                                        state.units.rawValue
-
-                                    RadioButton(
-                                        isSelected: targetStep == step,
-                                        label: label
-                                    ) {
-                                        targetStep = step
-                                        state.target = OverrideConfig.StateModel.roundTargetToStep(state.target, targetStep)
-                                    }
-                                    .padding(.top, 10)
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-
-                            Spacer()
-
-                            // Picker on the right side
-                            let settingsProvider = PickerSettingsProvider.shared
-                            let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 72, max: 270, type: .glucose)
-                            Picker(selection: Binding(
-                                get: { OverrideConfig.StateModel.roundTargetToStep(state.target, targetStep) },
-                                set: { state.target = $0 }
-                            ), label: Text("")) {
-                                ForEach(
-                                    settingsProvider.generatePickerValues(
-                                        from: glucoseSetting,
-                                        units: state.units,
-                                        roundMinToStep: true
-                                    ),
-                                    id: \.self
-                                ) { glucose in
-                                    Text(
-                                        (state.units == .mgdL ? glucose.description : glucose.formattedAsMmolL) + " " + state
-                                            .units.rawValue
-                                    )
-                                    .tag(glucose)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
+                    let settingsProvider = PickerSettingsProvider.shared
+                    let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 72, max: 270, type: .glucose)
+                    TargetPicker(
+                        label: "Target Glucose",
+                        selection: Binding(
+                            get: { state.target },
+                            set: { state.target = $0 }
+                        ),
+                        options: settingsProvider.generatePickerValues(
+                            from: glucoseSetting,
+                            units: state.units,
+                            roundMinToStep: true
+                        ),
+                        units: state.units,
+                        targetStep: $targetStep,
+                        displayPickerTarget: $displayPickerTarget,
+                        toggleScrollWheel: toggleScrollWheel
+                    )
+                    .onAppear {
+                        if state.target == 0 {
+                            state.target = 100
                         }
-                        .listRowSeparator(.hidden, edges: .top)
                     }
                 }
             }
@@ -507,11 +458,6 @@ struct AddOverrideForm: View {
         displayPickerDisableSmbSchedule = false
         displayPickerSmbMinutes = false
         return !toggle
-    }
-
-    private func totalDurationInMinutes() -> Int {
-        let durationTotal = (durationHours * 60) + durationMinutes
-        return max(0, durationTotal)
     }
 
     private func isOverrideInvalid() -> (Bool, String?) {

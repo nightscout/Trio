@@ -17,7 +17,7 @@ struct EditTempTargetForm: View {
     @State private var duration: Decimal
     @State private var date: Date
     @State private var halfBasalTarget: Decimal
-    @State private var percentage: Decimal
+    @State private var percentage: Double
 
     @State private var hasChanges = false
     @State private var showAlert = false
@@ -39,9 +39,9 @@ struct EditTempTargetForm: View {
         if let hbt = tempTargetToEdit.halfBasalTarget?.decimalValue {
             let H = hbt
             let T = tempTargetToEdit.target?.decimalValue ?? 100
-            let calcPercentage = Double(state.computeAdjustedPercentage(usingHBT: H, usingTarget: T) * 100)
-            _percentage = State(initialValue: Decimal(calcPercentage))
-        } else { _percentage = State(initialValue: Decimal(100)) }
+            let calcPercentage = state.computeAdjustedPercentage(usingHBT: H, usingTarget: T)
+            _percentage = State(initialValue: calcPercentage)
+        } else { _percentage = State(initialValue: 100) }
     }
 
     var color: LinearGradient {
@@ -67,7 +67,6 @@ struct EditTempTargetForm: View {
                 saveButton
             }
             .listSectionSpacing(10)
-            .listRowSpacing(10)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden).background(color)
@@ -169,30 +168,28 @@ struct EditTempTargetForm: View {
             }.listRowBackground(Color.chart)
 
             Section {
-                HStack {
-                    // Picker on the right side
-                    let settingsProvider = PickerSettingsProvider.shared
-                    let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
-                    TargetPicker(
-                        label: "Target Glucose",
-                        selection: Binding(
-                            get: { target },
-                            set: { target = $0 }
-                        ),
-                        options: settingsProvider.generatePickerValues(
-                            from: glucoseSetting,
-                            units: state.units,
-                            roundMinToStep: true
-                        ),
+                // Picker on the right side
+                let settingsProvider = PickerSettingsProvider.shared
+                let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
+                TargetPicker(
+                    label: "Target Glucose",
+                    selection: Binding(
+                        get: { target },
+                        set: { target = $0 }
+                    ),
+                    options: settingsProvider.generatePickerValues(
+                        from: glucoseSetting,
                         units: state.units,
-                        hasChanges: $hasChanges,
-                        targetStep: $targetStep,
-                        displayPickerTarget: $displayPickerTarget,
-                        toggleScrollWheel: toggleScrollWheel
-                    )
-                }
+                        roundMinToStep: true
+                    ),
+                    units: state.units,
+                    hasChanges: $hasChanges,
+                    targetStep: $targetStep,
+                    displayPickerTarget: $displayPickerTarget,
+                    toggleScrollWheel: toggleScrollWheel
+                )
                 .onChange(of: target) {
-                    percentage = state.computeAdjustedPercentage(usingHBT: halfBasalTarget, usingTarget: target) * 100
+                    percentage = state.computeAdjustedPercentage(usingHBT: halfBasalTarget, usingTarget: target)
                 }
             }
             .listRowBackground(Color.chart)
@@ -200,81 +197,74 @@ struct EditTempTargetForm: View {
             if target != state.normalTarget {
                 let computedHalfBasalTarget = Decimal(
                     state
-                        .computeHalfBasalTarget(usingTarget: target, usingPercentage: Double(percentage))
+                        .computeHalfBasalTarget(usingTarget: target, usingPercentage: percentage)
                 )
-                let sensHint = target > state.normalTarget ?
-                    "Reducing all delivered insulin to \(formattedPercentage(Double(percentage)))%." :
-                    "Increasing all delivered insulin by \(formattedPercentage(Double(percentage) - 100))%."
 
                 if state.isAdjustSensEnabled(usingTarget: target) {
                     Section(
-                        header: Text(sensHint)
-                            .textCase(.none)
-                            .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
+                        footer: percentageDescription(percentage),
                         content: {
-                            VStack {
-                                Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
-                                    ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
-                                        Text(option.rawValue).tag(option)
-                                    }
-                                    .pickerStyle(MenuPickerStyle())
-                                    .onChange(of: tempTargetSensitivityAdjustmentType) { newValue in
-                                        if newValue == .standard {
-                                            halfBasalTarget = state.settingHalfBasalTarget
-                                            percentage = (
-                                                state
-                                                    .computeAdjustedPercentage(usingHBT: halfBasalTarget, usingTarget: target) *
-                                                    100
-                                            )
-                                        }
-                                    }
+                            Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
+                                ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
+                                    Text(option.rawValue).tag(option)
                                 }
-
-                                if tempTargetSensitivityAdjustmentType == .slider {
-                                    Text("\(formattedPercentage(Double(percentage))) % Insulin")
-                                        .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                                        .font(.title3)
-                                        .fontWeight(.bold)
-                                    Slider(
-                                        value: Binding(
-                                            get: {
-                                                Double(truncating: percentage as NSNumber)
-                                            },
-                                            set: { newValue in
-                                                percentage = Decimal(newValue)
-                                                hasChanges = true
-                                                halfBasalTarget = Decimal(state.computeHalfBasalTarget(
-                                                    usingTarget: target,
-                                                    usingPercentage: Double(percentage)
-                                                ))
-                                            }
-                                        ),
-                                        in: Double(state.computeSliderLow(usingTarget: target)) ...
-                                            Double(state.computeSliderHigh(usingTarget: target)),
-                                        step: 5
-                                    ) {}
-                                    minimumValueLabel: {
-                                        Text("\(state.computeSliderLow(usingTarget: target), specifier: "%.0f")%")
-                                    }
-                                    maximumValueLabel: {
-                                        Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
-                                    }
-
-                                    Divider()
-
-                                    HStack {
-                                        Text(
-                                            "Half Basal Exercise Target:"
+                                .pickerStyle(MenuPickerStyle())
+                                .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
+                                    if newValue == .standard {
+                                        halfBasalTarget = state.settingHalfBasalTarget
+                                        hasChanges = true
+                                        percentage = state.computeAdjustedPercentage(
+                                            usingHBT: halfBasalTarget,
+                                            usingTarget: target
                                         )
-                                        Spacer()
-                                        Text(formattedGlucose(glucose: computedHalfBasalTarget))
-                                    }.foregroundStyle(.primary)
+                                    }
                                 }
-                            }.padding(.vertical, 10)
+                            }
+
+                            Text("\(formattedPercentage(percentage)) % Insulin")
+                                .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity, alignment: .center)
+
+                            if tempTargetSensitivityAdjustmentType == .slider {
+                                Slider(
+                                    value: Binding(
+                                        get: {
+                                            Double(truncating: percentage as NSNumber)
+                                        },
+                                        set: { newValue in
+                                            percentage = newValue
+                                            hasChanges = true
+                                            halfBasalTarget = Decimal(state.computeHalfBasalTarget(
+                                                usingTarget: target,
+                                                usingPercentage: percentage
+                                            ))
+                                        }
+                                    ),
+                                    in: state.computeSliderLow(usingTarget: target) ... state
+                                        .computeSliderHigh(usingTarget: target) - 1,
+                                    step: 5
+                                ) {}
+                                minimumValueLabel: {
+                                    Text("\(state.computeSliderLow(usingTarget: target), specifier: "%.0f")%")
+                                }
+                                maximumValueLabel: {
+                                    Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
+                                }
+                                .listRowSeparator(.hidden, edges: .top)
+
+                                HStack {
+                                    Text(
+                                        "Half Basal Exercise Target:"
+                                    )
+                                    Spacer()
+                                    Text(formattedGlucose(glucose: computedHalfBasalTarget))
+                                }.foregroundStyle(.primary)
+                            }
                         }
                     )
                     .listRowBackground(Color.chart)
-                    .padding(.top, -10)
                 }
             }
         }
@@ -284,52 +274,48 @@ struct EditTempTargetForm: View {
         HStack {
             Spacer()
             Button(action: {
-                if !state.isInputInvalid(target: target) {
-                    saveChanges()
+                saveChanges()
+                do {
+                    guard let moc = tempTarget.managedObjectContext else { return }
+                    guard moc.hasChanges else { return }
+                    try moc.save()
 
-                    do {
-                        guard let moc = tempTarget.managedObjectContext else { return }
-                        guard moc.hasChanges else { return }
-                        try moc.save()
+                    if let currentActiveTempTarget = state.currentActiveTempTarget {
+                        Task {
+                            // TODO: - Creating a Run entry is probably needed for Overrides as well and the reason for "jumping" Overrides?
+                            // Disable previous active Temp Targets
+                            await state.disableAllActiveOverrides(
+                                except: currentActiveTempTarget.objectID,
+                                createOverrideRunEntry: false
+                            )
 
-                        if let currentActiveTempTarget = state.currentActiveTempTarget {
-                            Task {
-                                // TODO: - Creating a Run entry is probably needed for Overrides as well and the reason for "jumping" Overrides?
-                                // Disable previous active Temp Targets
-                                await state.disableAllActiveOverrides(
-                                    except: currentActiveTempTarget.objectID,
-                                    createOverrideRunEntry: false
+                            // If the temp target which currently gets edited is enabled, then store it to the Temp Target JSON so that oref uses it
+                            if isEnabled {
+                                let tempTarget = TempTarget(
+                                    name: name,
+                                    createdAt: Date(),
+                                    targetTop: target,
+                                    targetBottom: target,
+                                    duration: duration,
+                                    enteredBy: TempTarget.manual,
+                                    reason: TempTarget.custom,
+                                    isPreset: isPreset ? true : false,
+                                    enabled: isEnabled ? true : false,
+                                    halfBasalTarget: halfBasalTarget
                                 )
 
-                                // If the temp target which currently gets edited is enabled, then store it to the Temp Target JSON so that oref uses it
-                                if isEnabled {
-                                    let tempTarget = TempTarget(
-                                        name: name,
-                                        createdAt: Date(),
-                                        targetTop: target,
-                                        targetBottom: target,
-                                        duration: duration,
-                                        enteredBy: TempTarget.manual,
-                                        reason: TempTarget.custom,
-                                        isPreset: isPreset ? true : false,
-                                        enabled: isEnabled ? true : false,
-                                        halfBasalTarget: halfBasalTarget
-                                    )
-
-                                    // Store to TempTargetStorage so that oref uses the edited Temp target
-                                    state.saveTempTargetToStorage(tempTargets: [tempTarget])
-                                }
-
-                                // Update view
-                                state.updateLatestTempTargetConfiguration()
+                                // Store to TempTargetStorage so that oref uses the edited Temp target
+                                state.saveTempTargetToStorage(tempTargets: [tempTarget])
                             }
-                        }
 
-                        hasChanges = false
-                        presentationMode.wrappedValue.dismiss()
-                    } catch {
-                        debugPrint("Failed to Edit Temp Target")
+                            // Update view
+                            state.updateLatestTempTargetConfiguration()
+                        }
                     }
+                    hasChanges = false
+                    presentationMode.wrappedValue.dismiss()
+                } catch {
+                    debugPrint("Failed to Edit Temp Target")
                 }
             }, label: {
                 Text("Save")

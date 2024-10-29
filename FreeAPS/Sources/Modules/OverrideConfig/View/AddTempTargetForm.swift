@@ -68,7 +68,6 @@ struct AddTempTargetForm: View {
                 saveButton
             }
             .listSectionSpacing(10)
-            .listRowSpacing(10)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden).background(color)
@@ -179,89 +178,81 @@ struct AddTempTargetForm: View {
             Section {
                 let settingsProvider = PickerSettingsProvider.shared
                 let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
-                HStack {
-                    TargetPicker(
-                        label: "Target Glucose",
-                        selection: Binding(
-                            get: { state.tempTargetTarget },
-                            set: { state.tempTargetTarget = $0 }
-                        ),
-                        options: settingsProvider.generatePickerValues(
-                            from: glucoseSetting,
-                            units: state.units,
-                            roundMinToStep: true
-                        ),
+                TargetPicker(
+                    label: "Target Glucose",
+                    selection: Binding(
+                        get: { state.tempTargetTarget },
+                        set: { state.tempTargetTarget = $0 }
+                    ),
+                    options: settingsProvider.generatePickerValues(
+                        from: glucoseSetting,
                         units: state.units,
-                        hasChanges: $hasChanges,
-                        targetStep: $targetStep,
-                        displayPickerTarget: $displayPickerTarget,
-                        toggleScrollWheel: toggleScrollWheel
-                    )
-                }
+                        roundMinToStep: true
+                    ),
+                    units: state.units,
+                    hasChanges: $hasChanges,
+                    targetStep: $targetStep,
+                    displayPickerTarget: $displayPickerTarget,
+                    toggleScrollWheel: toggleScrollWheel
+                )
                 .onChange(of: state.tempTargetTarget) {
-                    state.percentage = Double(state.computeAdjustedPercentage() * 100)
+                    state.percentage = state.computeAdjustedPercentage()
                 }
             }
             .listRowBackground(Color.chart)
 
             if state.tempTargetTarget != state.normalTarget {
                 let computedHalfBasalTarget = Decimal(state.computeHalfBasalTarget())
-                let sensHint = state.tempTargetTarget > state.normalTarget ?
-                    "Reducing all delivered insulin to \(formattedPercentage(state.percentage))%." :
-                    "Increasing all delivered insulin by \(formattedPercentage(state.percentage - 100))%."
+
                 if state.isAdjustSensEnabled() {
                     Section(
-                        header: Text(sensHint)
-                            .textCase(.none)
-                            .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
+                        footer: percentageDescription(state.percentage),
                         content: {
-                            VStack {
-                                Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
-                                    ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
-                                        Text(option.rawValue).tag(option)
-                                    }
-                                    .pickerStyle(MenuPickerStyle())
-                                    .onChange(of: tempTargetSensitivityAdjustmentType) { newValue in
-                                        if newValue == .standard {
-                                            state.halfBasalTarget = state.settingHalfBasalTarget
-                                            state.percentage = Double(state.computeAdjustedPercentage() * 100)
-                                        }
+                            Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
+                                ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
+                                    Text(option.rawValue).tag(option)
+                                }
+                                .pickerStyle(MenuPickerStyle())
+                                .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
+                                    if newValue == .standard {
+                                        state.halfBasalTarget = state.settingHalfBasalTarget
+                                        state.percentage = state.computeAdjustedPercentage()
                                     }
                                 }
+                            }
 
-                                if tempTargetSensitivityAdjustmentType == .slider {
-                                    Text("\(formattedPercentage(state.percentage)) % Insulin")
-                                        .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                                        .font(.title3)
-                                        .fontWeight(.bold)
-                                    Slider(
-                                        value: $state.percentage,
-                                        in: state.computeSliderLow() ... state.computeSliderHigh(),
-                                        step: 5
-                                    ) {} minimumValueLabel: {
-                                        Text("\(state.computeSliderLow(), specifier: "%.0f")%")
-                                    } maximumValueLabel: {
-                                        Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
-                                    } onEditingChanged: { editing in
-                                        isUsingSlider = editing
-                                        state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
-                                    }
+                            Text("\(formattedPercentage(state.percentage)) % Insulin")
+                                .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity, alignment: .center)
 
-                                    Divider()
-
-                                    HStack {
-                                        Text(
-                                            "Half Basal Exercise Target:"
-                                        )
-                                        Spacer()
-                                        Text(formattedGlucose(glucose: computedHalfBasalTarget))
-                                    }.foregroundStyle(.primary)
+                            if tempTargetSensitivityAdjustmentType == .slider {
+                                Slider(
+                                    value: $state.percentage,
+                                    in: state.computeSliderLow() ... state.computeSliderHigh(),
+                                    step: 5
+                                ) {} minimumValueLabel: {
+                                    Text("\(state.computeSliderLow(), specifier: "%.0f")%")
+                                } maximumValueLabel: {
+                                    Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
+                                } onEditingChanged: { editing in
+                                    isUsingSlider = editing
+                                    state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
                                 }
-                            }.padding(.vertical, 10)
+                                .listRowSeparator(.hidden, edges: .top)
+
+                                HStack {
+                                    Text(
+                                        "Half Basal Exercise Target:"
+                                    )
+                                    Spacer()
+                                    Text(formattedGlucose(glucose: computedHalfBasalTarget))
+                                }.foregroundStyle(.primary)
+                            }
                         }
                     )
                     .listRowBackground(Color.chart)
-                    .padding(.top, -10)
                 }
             }
         }

@@ -80,13 +80,6 @@ struct EditOverrideForm: View {
             )
     }
 
-    private var formatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }
-
     private var percentageSelection: Binding<Double> {
         Binding<Double>(
             get: {
@@ -131,7 +124,6 @@ struct EditOverrideForm: View {
                     )
                 }
             }
-            .onAppear { targetStep = state.units == .mgdL ? 5 : 9 }
             .onDisappear {
                 if !hasChanges {
                     // Reset UI changes
@@ -328,6 +320,7 @@ struct EditOverrideForm: View {
                 if target_override {
                     let settingsProvider = PickerSettingsProvider.shared
                     let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 72, max: 270, type: .glucose)
+
                     TargetPicker(
                         label: "Target Glucose",
                         selection: Binding(
@@ -652,73 +645,5 @@ struct EditOverrideForm: View {
         displayPickerDisableSmbSchedule = false
         displayPickerSmbMinutes = false
         return !toggle
-    }
-}
-
-struct TargetPicker: View {
-    let label: String
-    @Binding var selection: Decimal
-    let options: [Decimal]
-    let units: GlucoseUnits
-    @Binding var hasChanges: Bool
-    @Binding var targetStep: Decimal
-    @Binding var displayPickerTarget: Bool
-    var toggleScrollWheel: (_ picker: Bool) -> Bool
-
-    var body: some View {
-        VStack {
-            HStack {
-                Text(label)
-                Spacer()
-                Text(
-                    (units == .mgdL ? selection.description : selection.formattedAsMmolL) + " " + units.rawValue
-                )
-                .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
-            }
-            .onTapGesture {
-                displayPickerTarget = toggleScrollWheel(displayPickerTarget)
-            }
-            if displayPickerTarget {
-                HStack {
-                    // Radio buttons and text on the left side
-                    VStack(alignment: .leading) {
-                        // Radio buttons for step iteration
-                        let stepChoices: [Decimal] = units == .mgdL ? [1, 5] : [1, 9]
-                        ForEach(stepChoices, id: \.self) { step in
-                            let label = (units == .mgdL ? step.description : step.formattedAsMmolL) + " " +
-                                units.rawValue
-                            RadioButton(
-                                isSelected: targetStep == step,
-                                label: label
-                            ) {
-                                targetStep = step
-                                selection = OverrideConfig.StateModel.roundTargetToStep(selection, step)
-                            }
-                            .padding(.top, 10)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-
-                    Spacer()
-
-                    // Picker on the right side
-                    Picker(selection: Binding(
-                        get: { OverrideConfig.StateModel.roundTargetToStep(selection, targetStep) },
-                        set: {
-                            selection = $0
-                            hasChanges = true
-                        }
-                    ), label: Text("")) {
-                        ForEach(options, id: \.self) { option in
-                            Text((units == .mgdL ? option.description : option.formattedAsMmolL) + " " + units.rawValue)
-                                .tag(option)
-                        }
-                    }
-                    .pickerStyle(WheelPickerStyle())
-                    .frame(maxWidth: .infinity)
-                }
-                .listRowSeparator(.hidden, edges: .top)
-            }
-        }
     }
 }

@@ -13,6 +13,7 @@ extension Home {
         @State var showCancelAlert = false
         @State var showCancelConfirmDialog = false
         @State var isConfirmStopOverrideShown = false
+        @State var isConfirmStopOverridePresented = false
         @State var isConfirmStopTempTargetShown = false
         @State var isMenuPresented = false
         @State var showTreatments = false
@@ -243,8 +244,6 @@ extension Home {
             guard let latestTempTarget = latestTempTarget.first else {
                 return nil
             }
-
-            let name = latestTempTarget.name
             let duration = latestTempTarget.duration
             let addedMinutes = Int(truncating: duration ?? 0)
             let date = latestTempTarget.date ?? Date()
@@ -253,11 +252,21 @@ extension Home {
                 0
             )
             var durationString = ""
+            var percentageString = ""
             var target = (latestTempTarget.target ?? 100) as Decimal
+            var halfBasalTarget: Decimal = 160
+            if latestTempTarget.halfBasalTarget != nil {
+                halfBasalTarget = latestTempTarget.halfBasalTarget as! Decimal
+            } else { halfBasalTarget = state.settingHalfBasalTarget }
+            var showPercentage = false
+            if target > 100, state.exerciseMode || state.highTTraisesSens { showPercentage = true }
+            if target < 100, state.lowTTlowersSens { showPercentage = true }
+            if showPercentage {
+                percentageString =
+                    " \(state.computeAdjustedPercentage(halfBasalTargetValue: halfBasalTarget, tempTargetValue: target))%" }
             target = state.units == .mmolL ? target.asMmolL : target
-            var targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " +
-                state.units
-                .rawValue
+            let targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " +
+                state.units.rawValue + percentageString
 
             if newDuration >= 1 {
                 durationString =
@@ -580,7 +589,7 @@ extension Home {
                 .font(.system(size: 24))
                 .confirmationDialog(
                     "Stop the Override \"\(latestOverride.first?.name ?? "")\"?",
-                    isPresented: $isConfirmStopOverrideShown,
+                    isPresented: $isConfirmStopOverridePresented,
                     titleVisibility: .visible
                 ) {
                     Button("Stop", role: .destructive) {
@@ -594,7 +603,7 @@ extension Home {
                 .padding(.trailing, 8)
                 .onTapGesture {
                     if !latestOverride.isEmpty {
-                        isConfirmStopOverrideShown = true
+                        isConfirmStopOverridePresented = true
                     }
                 }
         }
