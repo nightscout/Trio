@@ -973,7 +973,7 @@ extension PickerSettingsProvider {
 
 enum TempTargetSensitivityAdjustmentType: String, CaseIterable {
     case standard = "Standard"
-    case slider = "Customized"
+    case slider = "Custom"
 }
 
 enum IsfAndOrCrOptions: String, CaseIterable {

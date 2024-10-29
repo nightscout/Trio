@@ -199,15 +199,10 @@ struct EditTempTargetForm: View {
                     state
                         .computeHalfBasalTarget(usingTarget: target, usingPercentage: percentage)
                 )
-                let sensHint = target > state.normalTarget ?
-                    "Reducing all delivered insulin to \(formattedPercentage(percentage))%." :
-                    "Increasing all delivered insulin by \(formattedPercentage(percentage - 100))%."
 
                 if state.isAdjustSensEnabled(usingTarget: target) {
                     Section(
-                        header: Text(sensHint)
-                            .textCase(.none)
-                            .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
+                        footer: percentageDescription(percentage),
                         content: {
                             Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
                                 ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
@@ -226,12 +221,13 @@ struct EditTempTargetForm: View {
                                 }
                             }
 
+                            Text("\(formattedPercentage(percentage)) % Insulin")
+                                .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity, alignment: .center)
+
                             if tempTargetSensitivityAdjustmentType == .slider {
-                                Text("\(formattedPercentage(percentage)) % Insulin")
-                                    .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                    .frame(maxWidth: .infinity, alignment: .center)
                                 Slider(
                                     value: Binding(
                                         get: {

@@ -203,14 +203,10 @@ struct AddTempTargetForm: View {
 
             if state.tempTargetTarget != state.normalTarget {
                 let computedHalfBasalTarget = Decimal(state.computeHalfBasalTarget())
-                let sensHint = state.tempTargetTarget > state.normalTarget ?
-                    "Reducing all delivered insulin to \(formattedPercentage(state.percentage))%." :
-                    "Increasing all delivered insulin by \(formattedPercentage(state.percentage - 100))%."
+
                 if state.isAdjustSensEnabled() {
                     Section(
-                        header: Text(sensHint)
-                            .textCase(.none)
-                            .foregroundStyle(colorScheme == .dark ? Color.orange : Color.accentColor),
+                        footer: percentageDescription(state.percentage),
                         content: {
                             Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
                                 ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
@@ -225,12 +221,13 @@ struct AddTempTargetForm: View {
                                 }
                             }
 
+                            Text("\(formattedPercentage(state.percentage)) % Insulin")
+                                .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity, alignment: .center)
+
                             if tempTargetSensitivityAdjustmentType == .slider {
-                                Text("\(formattedPercentage(state.percentage)) % Insulin")
-                                    .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                    .frame(maxWidth: .infinity, alignment: .center)
                                 Slider(
                                     value: $state.percentage,
                                     in: state.computeSliderLow() ... state.computeSliderHigh(),
