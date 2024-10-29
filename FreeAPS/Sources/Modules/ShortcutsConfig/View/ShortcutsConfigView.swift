@@ -70,16 +70,15 @@ extension ShortcutsConfig {
                     units: state.units,
                     type: .boolean,
                     label: "Allow Bolusing with Shortcuts",
-                    miniHint: """
-                    Automate boluses using the Shortcuts App
-                    Default: OFF
-                    """,
-                    verboseHint: VStack {
+                    miniHint: "Automate boluses using the Shortcuts App \nDefault: OFF",
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
-                        Text("Enabling this setting allows the iOS Shortcuts App to send bolus commands to Trio.")
-                        Text(
-                            "Disabling this setting will still allow other commands, like Temp Targets, Add Carbs, and Start/End Overrides"
-                        )
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Enabling this setting allows the iOS Shortcuts App to send bolus commands to Trio.")
+                            Text(
+                                "Disabling this setting will still allow other commands, like Temp Targets, Add Carbs, and Start/End Overrides"
+                            )
+                        }
                     }
                 )
             }

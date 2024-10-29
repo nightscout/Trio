@@ -45,13 +45,13 @@ struct NightscoutFetchView: View {
                 units: state.units,
                 type: .boolean,
                 label: "Allow Fetching from Nightscout",
-                miniHint: """
-                Enable fetching of selected data sets from Nightscout
-                See hint for more details.
-                """,
-                verboseHint: Text(
-                    "The Fetch Treatments toggle enables fetching of carbs and temp targets entered in Careportal or by another uploading device than Trio from Nightscout."
-                ),
+                miniHint: "Enable fetching of selected data sets from Nightscout \nDefault: OFF",
+                verboseHint: VStack(spacing: 10) {
+                    Text("Default: OFF").bold()
+                    Text(
+                        "The Fetch Treatments toggle enables fetching of carbs and temp targets entered in Careportal or by another uploading device than Trio from Nightscout."
+                    )
+                },
                 headerText: "Remote & Fetch Capabilities"
             )
 
@@ -70,12 +70,10 @@ struct NightscoutFetchView: View {
                     units: state.units,
                     type: .boolean,
                     label: "Allow Remote Control of Trio",
-                    miniHint: """
-                    Enables selected remote control capabilities via Nightscout
-                    See hint for more details
-                    """,
+                    miniHint: "Enables selected remote control capabilities via Nightscout \nDefault: OFF",
                     verboseHint: VStack(spacing: 10) {
-                        Text("When enabled you allow these remote functions through announcements from Nightscout:")
+                        Text("Default: OFF").bold()
+                        Text("When enabled you allow the following remote functions through announcements from Nightscout:")
                         VStack(alignment: .leading) {
                             Text("• Suspend/Resume Pump")
                             Text("• Opening/Closing Loop")

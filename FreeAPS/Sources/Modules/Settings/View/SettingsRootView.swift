@@ -98,7 +98,7 @@ extension Settings {
                         units: state.units,
                         type: .boolean,
                         label: "Closed Loop",
-                        miniHint: "Enables automated insulin delivery. Requires active CGM sensor session and connected pump.",
+                        miniHint: "Enables automated insulin delivery /nRequires active CGM sensor session and connected pump",
                         verboseHint: VStack(spacing: 10) {
                             Text(
                                 "Running Trio in closed loop mode requires an active CGM sensor session and a connected pump. This enables automated insulin delivery."

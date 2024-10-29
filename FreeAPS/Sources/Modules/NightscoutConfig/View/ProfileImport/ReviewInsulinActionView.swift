@@ -49,19 +49,16 @@ struct ReviewInsulinActionView: BaseView {
                 units: state.units,
                 type: .decimal("dia"),
                 label: "Duration of Insulin Action",
-                miniHint: """
-                Number of hours insulin is active in your body
-                Default: 6 hours
-                """,
-                verboseHint: VStack {
+                miniHint: "Number of hours insulin is active in your body \nDefault: 6 hours",
+                verboseHint: VStack(spacing: 10) {
                     Text("Default: 6 hours").bold()
-                    Text("""
-
-                    Number of hours insulin will contribute to IOB after dosing.
-
-                    """)
-                    Text("It is better to use Custom Peak Timing rather than adjust your Duration of Insulin Action (DIA)")
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Number of hours insulin will contribute to IOB after dosing.")
+                        Text(
+                            "Tip: It is better to use Custom Peak Timing rather than use a Duration of Insulin Action (DIA) other than the default of 6 hours."
+                        )
                         .italic()
+                    }
                 },
                 headerText: "Review imported DIA"
             )

@@ -45,18 +45,20 @@ struct NightscoutUploadView: View {
                 units: state.units,
                 type: .boolean,
                 label: "Allow Uploading to Nightscout",
-                miniHint: """
-                Enables upload of selected data sets to Nightscout
-                See hint for more details
-                """,
-                verboseHint: VStack(spacing: 5) {
-                    Text("The Upload Treatments toggle enables uploading of:")
-                    VStack(alignment: .leading) {
-                        Text("• Carbs")
-                        Text("• Temp Targets")
-                        Text("• Device Status")
-                        Text("• Preferences")
-                        Text("• Settings")
+                miniHint: "Enables upload of selected data sets to Nightscout \nDefault: OFF",
+                verboseHint: VStack(spacing: 10) {
+                    Text("Default: OFF").bold()
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(
+                            "The Upload Treatments toggle enables uploading of the following data sets to your connected Nightscout URL:"
+                        )
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("• Carbs")
+                            Text("• Temp Targets")
+                            Text("• Device Status")
+                            Text("• Preferences")
+                            Text("• Settings")
+                        }
                     }
                 }
             )
@@ -77,10 +79,11 @@ struct NightscoutUploadView: View {
                     units: state.units,
                     type: .boolean,
                     label: "Upload Glucose",
-                    miniHint: "Enables uploading of CGM readings to Nightscout",
-                    verboseHint: Text(
-                        "Enabling this setting allows CGM readings from Trio to be used in Nightscout."
-                    )
+                    miniHint: "Enables uploading of CGM readings to Nightscout /nDefault: OFF",
+                    verboseHint: VStack(spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text("Enabling this setting allows CGM readings from Trio to be used in Nightscout.")
+                    }
                 )
             }
         }

@@ -175,7 +175,7 @@ extension MealSettings {
                                         hintLabel = "Limits per Entry"
                                         selectedVerboseHint =
                                             AnyView(
-                                                VStack(spacing: 10) {
+                                                VStack(alignment: .leading, spacing: 10) {
                                                     Text("Max Carbs: Enter the largest carbohydrate value allowed per meal entry")
                                                     Text("Max Fat: Enter the largest fat value allowed per meal entry")
                                                     Text("Max Protein: Enter the largest protein value allowed per meal entry")
@@ -221,18 +221,20 @@ extension MealSettings {
                                     "The Warsaw Method helps account for the delayed glucose spikes caused by fat and protein in meals. It uses Fat-Protein Units (FPU) to calculate the carb effect from fat and protein. The system spreads insulin delivery over several hours to mimic natural insulin release, helping to manage post-meal glucose spikes."
                                 )
                             }
-                            VStack(alignment: .center) {
-                                Text("Fat Conversion").bold()
-                                Text("𝑭 = fat(g) × 90%")
-                            }
-                            VStack(alignment: .center) {
-                                Text("Protein Conversion").bold()
-                                Text("𝑷 = protein(g) × 40%")
-                            }
-                            VStack(alignment: .center) {
-                                Text("FPU Conversion").bold()
-                                Text("𝑭 + 𝑷 = g CHO")
-                            }
+                        }
+                        VStack(spacing: 5) {
+                            Text("Fat Conversion").bold()
+                            Text("𝑭 = fat(g) × 90%")
+                        }
+                        VStack(spacing: 5) {
+                            Text("Protein Conversion").bold()
+                            Text("𝑷 = protein(g) × 40%")
+                        }
+                        VStack(spacing: 5) {
+                            Text("FPU Conversion").bold()
+                            Text("𝑭 + 𝑷 = g CHO")
+                        }
+                        VStack(spacing: 5) {
                             Text(
                                 "You can personalize the conversion calculation by adjusting the following settings that will appear when this option is enabled:"
                             ).italic()
@@ -352,9 +354,9 @@ extension MealSettings {
                         miniHint: "Influences the conversion rate used in the Warsaw Method \nDefault: 50%",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: 50%").bold()
-                            VStack(alignment: .leading, spacing: 10) {
+                            VStack(spacing: 10) {
                                 Text("This setting changes how much effect the fat and protein entry has on FPUs.")
-                                VStack(alignment: .center) {
+                                VStack(alignment: .center, spacing: 5) {
                                     Text("50% is half effect:").bold()
                                     Text("(Fat × 45%) + (Protein × 20%)")
                                     Text("100% is full effect:").bold()
