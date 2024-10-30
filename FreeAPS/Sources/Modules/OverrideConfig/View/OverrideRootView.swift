@@ -452,7 +452,7 @@ extension OverrideConfig {
                         await state.disableAllActiveOverrides(createOverrideRunEntry: true)
                     }
                 }, label: {
-                    Text("Cancel Override")
+                    Text("Stop Override")
 
                 })
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -470,7 +470,7 @@ extension OverrideConfig {
                         state.updateLatestTempTargetConfiguration()
                     }
                 }, label: {
-                    Text("Cancel Temp Target")
+                    Text("Stop Temp Target")
 
                 })
                     .frame(maxWidth: .infinity, alignment: .center)
