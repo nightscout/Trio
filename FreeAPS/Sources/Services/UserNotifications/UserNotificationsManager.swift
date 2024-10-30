@@ -39,7 +39,7 @@ protocol pumpNotificationObserver {
 
 final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, Injectable {
     private enum Identifier: String {
-        case glucocoseNotification = "FreeAPS.glucoseNotification"
+        case glucoseNotification = "FreeAPS.glucoseNotification"
         case carbsRequiredNotification = "FreeAPS.carbsRequiredNotification"
         case noLoopFirstNotification = "FreeAPS.noLoopFirstNotification"
         case noLoopSecondNotification = "FreeAPS.noLoopSecondNotification"
@@ -128,7 +128,12 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private func addAppBadge(glucose: Int?) {
         guard let glucose = glucose, settingsManager.settings.glucoseBadge else {
             DispatchQueue.main.async {
-                UIApplication.shared.applicationIconBadgeNumber = -1
+                self.center.setBadgeCount(-1) { error in
+                    guard let error else {
+                        return
+                    }
+                    print(error)
+                }
             }
             return
         }
@@ -141,7 +146,12 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
 
         DispatchQueue.main.async {
-            UIApplication.shared.applicationIconBadgeNumber = badge
+            self.center.setBadgeCount(badge) { error in
+                guard let error else {
+                    return
+                }
+                print(error)
+            }
         }
     }
 
@@ -302,7 +312,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 }
 
                 addRequest(
-                    identifier: .glucocoseNotification,
+                    identifier: .glucoseNotification,
                     content: content,
                     deleteOld: true,
                     messageType: messageType,
@@ -434,7 +444,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                     return
                 }
 
-                debug(.service, "Sending \(identifier) notification")
+                debug(.service, "Sending \(identifier) notification for \(request.content.title)")
             }
         }
     }
@@ -509,7 +519,7 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
         case .carb:
             identifier = .carbsRequiredNotification
         case .glucose:
-            identifier = .glucocoseNotification
+            identifier = .glucoseNotification
         case .algorithm:
             if message.trigger != nil {
                 identifier = message.content.contains(String(firstInterval)) ? Identifier.noLoopFirstNotification : Identifier
@@ -593,12 +603,37 @@ extension BaseUserNotificationsManager: BolusFailureObserver {
 extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
     static let shared = BaseUserNotificationsManager(resolver: FreeAPSApp.resolver)
 
+    /// This is called when a notification is received while the app is in the foreground.
+    /// There is an iOS 18 bug where it is called twice (https://forums.developer.apple.com/forums/thread/762126).
+    /// As a workaround we are checking for duplicate ids and ignoring the second notification
     func userNotificationCenter(
         _: UNUserNotificationCenter,
-        willPresent _: UNNotification,
+        willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        completionHandler([.banner, .badge, .sound, .list])
+        let lastNotificationKey = "lastNotificationKey"
+        var isDuplicateNotification = false
+        if let lastNotification = UserDefaults.standard.value(forKey: lastNotificationKey) as? String {
+            isDuplicateNotification = lastNotification == notification.request.identifier + notification.request.content.title
+        }
+        UserDefaults.standard.set(
+            notification.request.identifier + notification.request.content.title,
+            forKey: lastNotificationKey
+        )
+
+        if !isDuplicateNotification {
+            debug(
+                .service,
+                "Process non-duplicate \(notification.request.identifier) notification for \(notification.request.content.title)"
+            )
+            completionHandler([.banner, .badge, .sound])
+        } else {
+            debug(
+                .service,
+                "Skip duplicate \(notification.request.identifier) notification for \(notification.request.content.title)"
+            )
+            completionHandler([])
+        }
     }
 
     func userNotificationCenter(

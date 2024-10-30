@@ -128,17 +128,6 @@ extension Home {
             var storedMessages: [MessageContent] = []
             var messageCont: MessageContent
 
-//            messageCont = MessageContent(
-//                content: "Insulin delivery stopped. Change Pod now.",
-//                type: MessageType.error, // errorPump
-//                subtype: .pump,
-//                title: "Critical Pod Fault 008",
-//                useAPN: true,
-//                action: .pumpConfig
-//            )
-//            router.alertMessage.send(messageCont)
-//            return
-
             sendTestTriggerMessage()
 
             messageCont = MessageContent(
@@ -147,6 +136,14 @@ extension Home {
                 subtype: .glucose,
                 title: "LOWALERT! 68 mg/dL" + "↔︎" + "-1",
                 useAPN: true,
+                action: .snooze
+            )
+            router.alertMessage.send(messageCont)
+            messageCont = MessageContent(
+                content: "83 mg/dL" + "↔︎" + "-1", // + "\n" + "Plugin CGM Source",
+                type: MessageType.info,
+                subtype: .glucose,
+                title: "Glucose 83 mg/dL" + "↔︎" + "-1",
                 action: .snooze
             )
             router.alertMessage.send(messageCont)
@@ -191,13 +188,6 @@ extension Home {
                 subtype: .glucose,
                 title: "Glucose 83 mg/dL" + "↔︎" + "-1",
                 action: .snooze
-            )
-            storedMessages.append(messageCont)
-            messageCont = MessageContent(
-                content: "68 mg/dL" + "↔︎" + "-1" + "\n" + "Plugin CGM Source",
-                type: MessageType.warning,
-                subtype: .glucose,
-                title: "LOWALERT! 68 mg/dL" + "↔︎" + "-1"
             )
             storedMessages.append(messageCont)
 
