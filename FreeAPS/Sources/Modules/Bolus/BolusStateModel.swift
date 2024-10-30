@@ -119,12 +119,33 @@ extension Bolus {
         let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
         let determinationFetchContext = CoreDataStack.shared.newTaskContext()
 
+        var isActive: Bool = false {
+            didSet {
+                if !isActive {
+                    debug(.bolusState, "unsubscribing and unregistering fired")
+                    broadcaster.unregister(DeterminationObserver.self, observer: self)
+                    broadcaster.unregister(BolusFailureObserver.self, observer: self)
+                    unsubscribe()
+                }
+            }
+        }
+
         private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
         private var subscriptions = Set<AnyCancellable>()
 
         typealias PumpEvent = PumpEventStored.EventType
 
+        func unsubscribe() {
+            subscriptions.forEach { $0.cancel() }
+            subscriptions.removeAll()
+        }
+
         override func subscribe() {
+            guard isActive else {
+                return
+            }
+
+            debug(.bolusState, "subscribe fired")
             coreDataPublisher =
                 changedObjectsOnManagedObjectContextDidSavePublisher()
                     .receive(on: DispatchQueue.global(qos: .background))
@@ -141,13 +162,15 @@ extension Bolus {
             broadcaster.unregister(BolusFailureObserver.self, observer: self)
 
             // Cancel Combine subscriptions
-            subscriptions.forEach { $0.cancel() }
-            subscriptions.removeAll()
+//            subscriptions.forEach { $0.cancel() }
+//            subscriptions.removeAll()
+            unsubscribe()
 
-            debugPrint("Bolus.StateModel deinitialized")
+            debug(.bolusState, "Bolus.StateModel deinitialized")
         }
 
         private func setupBolusStateConcurrently() {
+            debug(.bolusState, "setupBolusStateConcurrently fired")
             Task {
                 await withTaskGroup(of: Void.self) { group in
                     group.addTask {
@@ -341,6 +364,7 @@ extension Bolus {
 
         /// Calculate insulin recommendation
         func calculateInsulin() -> Decimal {
+            debug(.bolusState, "calculateInsulin fired")
             let isfForCalculation = isf
 
             // insulin needed for the current blood glucose
@@ -398,6 +422,7 @@ extension Bolus {
 
         func invokeTreatmentsTask() {
             Task {
+                debug(.bolusState, "invokeTreatmentsTask fired")
                 await MainActor.run {
                     self.addButtonPressed = true
                 }
@@ -437,6 +462,7 @@ extension Bolus {
         // MARK: - Insulin
 
         private func handleInsulin(isExternal: Bool) async throws {
+            debug(.bolusState, "handleInsulin fired")
             if !isExternal {
                 await addPumpInsulin()
             } else {
@@ -585,7 +611,13 @@ extension Bolus {
 
 extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
     func determinationDidUpdate(_: Determination) {
+        guard isActive else {
+            debug(.bolusState, "skipping determinationDidUpdate; view not active")
+            return
+        }
+
         DispatchQueue.main.async {
+            debug(.bolusState, "determinationDidUpdate fired")
             self.waitForSuggestion = false
             if self.addButtonPressed {
                 self.hideModal()
@@ -595,6 +627,7 @@ extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
 
     func bolusDidFail() {
         DispatchQueue.main.async {
+            debug(.bolusState, "bolusDidFail fired")
             self.waitForSuggestion = false
             if self.addButtonPressed {
                 self.hideModal()
@@ -762,11 +795,18 @@ extension Bolus.StateModel {
 
 extension Bolus.StateModel {
     @MainActor func updateForecasts(with forecastData: Determination? = nil) async {
+        guard isActive else {
+            return
+                debug(.bolusState, "updateForecasts not fired")
+        }
+
+        debug(.bolusState, "updateForecasts fired")
         if let forecastData = forecastData {
             simulatedDetermination = forecastData
         } else {
             simulatedDetermination = await Task { [self] in
-                await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
+                debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
+                return await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
             }.value
         }
 

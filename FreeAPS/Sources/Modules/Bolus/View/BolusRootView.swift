@@ -344,10 +344,12 @@ extension Bolus {
             })
             .onAppear {
                 configureView {
+                    state.isActive = true
                     state.insulinCalculated = state.calculateInsulin()
                 }
             }
             .onDisappear {
+                state.isActive = false
                 state.addButtonPressed = false
             }
             .sheet(isPresented: $state.showInfo) {
