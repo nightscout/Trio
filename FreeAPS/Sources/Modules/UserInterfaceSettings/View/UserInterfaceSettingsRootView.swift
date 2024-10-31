@@ -410,8 +410,8 @@ extension UserInterfaceSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Standing / Laying TIR Chart",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text("Standing / Laying TIR Chart… bla bla bla")
+                    miniHint: "Select a vertical chart or horizontal chart to display your Time in Range Statistics",
+                    verboseHint: Text("Select a vertical / standing chart by turning this feature OFF \n\nSelect a horizontal / laying chart by turning this feature ON")
                 )
 
                 SettingInputSection(
@@ -429,8 +429,8 @@ extension UserInterfaceSettings {
                     type: .conditionalDecimal("carbsRequiredThreshold"),
                     label: "Show Carbs Required Badge",
                     conditionalLabel: "Carbs Required Threshold",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: Text("Show Carbs Required Badge… bla bla bla"),
+                    miniHint: "Show carbs required as a notification badge on the home screen",
+                    verboseHint: Text("Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon"),
                     headerText: "Carbs Required Badge"
                 )
             }
