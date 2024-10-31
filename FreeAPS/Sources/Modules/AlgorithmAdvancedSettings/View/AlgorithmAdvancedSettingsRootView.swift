@@ -68,8 +68,7 @@ extension AlgorithmAdvancedSettings {
                                 "This setting restricts the maximum temporary basal rate Trio can set. At the default of 300%, it caps it at 3 times your highest programmed basal rate."
                             )
                             Text("It serves as a safety limit, ensuring no temporary basal rates exceed safe levels.")
-                            Text("Note: If Autotune is enabled, Trio uses Autotune basals instead of scheduled basals.").italic()
-                            Text("Warning: Increasing this setting is not advised.").bold().italic()
+                            Text("Warning: Increasing this setting is not advised.").bold()
                         }
                     }
                 )
@@ -101,8 +100,7 @@ extension AlgorithmAdvancedSettings {
                             Text(
                                 "This prevents excessive dosing, especially during times of variable insulin sensitivity, enhancing safety."
                             )
-                            Text("Note: If Autotune is enabled, Trio uses Autotune basals instead of scheduled basals.").italic()
-                            Text("Warning: Increasing this setting is not advised.").bold().italic()
+                            Text("Warning: Increasing this setting is not advised.").bold()
                         }
                     }
                 )
@@ -134,8 +132,7 @@ extension AlgorithmAdvancedSettings {
                             Text(
                                 "Tip: It is better to use Custom Peak Time rather than adjust your Duration of Insulin Action (DIA)"
                             )
-                            .italic()
-                            Text("Warning: Decreasing this setting is not advised.").bold().italic()
+                            Text("Warning: Decreasing this setting is not advised.").bold()
                         }
                     }
                 )
@@ -219,7 +216,7 @@ extension AlgorithmAdvancedSettings {
                             Text(
                                 "Enabling Unsuspend If No Temp allows Trio to resume your pump if you forget, as long as a zero temp basal was set first. This feature ensures insulin delivery restarts if you forget to manually unsuspend, adding a safeguard for pump reconnections."
                             )
-                            Text("Note: Applies only to pumps with on-pump suspend options").italic()
+                            Text("Note: Applies only to pumps with on-pump suspend options")
                         }
                     }
                 )
@@ -248,7 +245,7 @@ extension AlgorithmAdvancedSettings {
                             Text(
                                 "This prevents lingering insulin effects when your pump is suspended, ensuring safer management of insulin on board."
                             )
-                            Text("Note: Applies to only to pumps with on-pump suspend options").italic()
+                            Text("Note: Applies to only to pumps with on-pump suspend options")
                         }
                     }
                 )
@@ -299,13 +296,13 @@ extension AlgorithmAdvancedSettings {
                         Text("mmol/L Default: 0.4 mmol/L/5min").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "Min 5m Carb Impact sets the expected glucose rise from carbs over 5 minutes when absorption isn’t obvious from glucose data."
+                                "Min 5m Carb Impact sets the expected glucose rise from carbs over 5 minutes when absorption isn't obvious from glucose data."
                             )
                             Text(
                                 "The default value of 8 mg/dL per 5 minutes corresponds to an absorption rate of 24g of carbs per hour."
                             )
                             Text(
-                                "This setting helps the system estimate how much glucose your body is absorbing, even when it’s not immediately visible in your glucose data, ensuring more accurate insulin dosing during carb absorption."
+                                "This setting helps the system estimate how much glucose your body is absorbing, even when it's not immediately visible in your glucose data, ensuring more accurate insulin dosing during carb absorption."
                             )
                         }
                     }
@@ -330,7 +327,7 @@ extension AlgorithmAdvancedSettings {
                         Text("Default: 100%").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "Remaining Carbs Percentage estimates carbs still absorbing over 4 hours if glucose data doesn’t show clear absorption."
+                                "Remaining Carbs Percentage estimates carbs still absorbing over 4 hours if glucose data doesn't show clear absorption."
                             )
                             Text(
                                 "This fallback setting prevents under-dosing by spreading a portion of the entered carbs over time, balancing insulin needs with undetected carb impact."
@@ -358,10 +355,10 @@ extension AlgorithmAdvancedSettings {
                         Text("Default: 90g").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "The Remaining Carbs Cap defines the upper limit for how many carbs the system will assume are absorbing over 4 hours, even when there’s no clear sign of absorption from your glucose readings."
+                                "The Remaining Carbs Cap defines the upper limit for how many carbs the system will assume are absorbing over 4 hours, even when there's no clear sign of absorption from your glucose readings."
                             )
                             Text(
-                                "This cap prevents the system from overestimating how much insulin is needed when carb absorption isn’t visible, offering a safeguard for accurate dosing."
+                                "This cap prevents the system from overestimating how much insulin is needed when carb absorption isn't visible, offering a safeguard for accurate dosing."
                             )
                         }
                     }

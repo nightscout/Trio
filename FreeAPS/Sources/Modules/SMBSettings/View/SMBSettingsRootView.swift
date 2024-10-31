@@ -83,7 +83,6 @@ extension SMBSettings {
                                 Text(
                                     "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
                                 )
-                                .italic()
                             }
                         }
                     )
@@ -112,7 +111,6 @@ extension SMBSettings {
                                 Text(
                                     "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
                                 )
-                                .italic()
                             }
                         }
                     )
@@ -141,7 +139,6 @@ extension SMBSettings {
                                 Text(
                                     "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
                                 )
-                                .italic()
                             }
                         }
                     )
@@ -171,7 +168,6 @@ extension SMBSettings {
                                 Text(
                                     "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
                                 )
-                                .italic()
                             }
                         }
                     )
@@ -207,11 +203,10 @@ extension SMBSettings {
                             Text(
                                 "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
                             )
-                            .italic()
                             Text(
                                 "Warning: High Temp Targets are often set when recovering from lows. If you use High Temp Targets for that purpose, this feature should remain disabled."
                             )
-                            .bold().italic()
+                            .bold()
                         }
                     }
                 )
@@ -279,13 +274,13 @@ extension SMBSettings {
                             Text(
                                 "(𝒳 = Max SMB Basal Minutes)"
                             )
-                            Text("(𝒳 ÷ 60) × current basal rate").italic()
+                            Text("(𝒳 ÷ 60) × current basal rate")
                         }
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Warning: Increasing this value above 90 minutes may impact Trio's ability to effectively zero temp and prevent lows."
-                            ).bold().italic()
-                            Text("Note: SMBs must be enabled to use this limit").italic()
+                            ).bold()
+                            Text("Note: SMBs must be enabled to use this limit")
                         }
                     }
                 )
@@ -322,13 +317,13 @@ extension SMBSettings {
                             Text(
                                 "𝒳 = Max UAM SMB Basal Minutes"
                             )
-                            Text("(𝒳 ÷ 60) × current basal rate").italic()
+                            Text("(𝒳 ÷ 60) × current basal rate")
                         }
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Warning: Increasing this value above 90 minutes may impact Trio's ability to effectively zero temp and prevent lows."
-                            ).bold().italic()
-                            Text("Note: UAM SMBs must be enabled to use this limit").italic()
+                            ).bold()
+                            Text("Note: UAM SMBs must be enabled to use this limit")
                         }
                     }
                 )
@@ -354,7 +349,7 @@ extension SMBSettings {
                             Text(
                                 "Maximum allowed positive percentual change in glucose level to permit SMBs. If the difference in glucose is greater than this, Trio will disable SMBs."
                             )
-                            Text("Note: This setting has a hard-coded cap of 40%").italic()
+                            Text("Note: This setting has a hard-coded cap of 40%")
                         }
                     }
                 )
@@ -383,7 +378,7 @@ extension SMBSettings {
                             Text(
                                 "Due to SMBs occurring every 5 minutes, it is important to set this value to a reasonable level that allows Trio to safely zero temp should dosing needs suddenly change. Increase this value with caution."
                             )
-                            Text("Note: Limited to a range of 30 - 70%").italic()
+                            Text("Note: Limited to a range of 30 - 70%")
                         }
                     }
                 )
@@ -410,7 +405,6 @@ extension SMBSettings {
                                 "This is the minimum number of minutes since the last SMB or manual bolus before Trio will permit an automated SMB."
                             )
                             Text("Note: For Omnipod Dash, minimum value is 3 min. For Omnipod Eros, minimum value is 5 min.")
-                                .italic()
                         }
                     }
                 )

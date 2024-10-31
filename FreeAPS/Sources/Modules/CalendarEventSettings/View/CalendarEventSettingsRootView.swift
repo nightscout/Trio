@@ -61,7 +61,7 @@ extension CalendarEventSettings {
                             Text(
                                 "Once enabled, the available customizations will appear. You can customize with the calendar of your choosing, use of emoji labels, and the inclusion of IOB & COB data."
                             )
-                            Text("Note: Once a new calendar event is created, the previous event will be deleted.").italic()
+                            Text("Note: Once a new calendar event is created, the previous event will be deleted.")
                         }
                     },
                     headerText: "Diabetes Data as Calendar Event"

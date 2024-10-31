@@ -63,7 +63,6 @@ extension UnitsLimitsSettings {
                         Text("Default: 0 units").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Warning: This must be greater than 0 for any automatic temp basals or SMBs to be given.").bold()
-                                .italic()
                             Text(
                                 "The maximum amount of Insulin On Board (IOB) above profile basals from all sources - positive temp basals, manual or meal boluses, and SMBs - that Trio is allowed to accumulate to address a higher-than-target glucose."
                             )
@@ -73,7 +72,6 @@ extension UnitsLimitsSettings {
                             Text(
                                 "Note: You can still manually bolus above this limit, but the suggested bolus amount will never exceed this in the bolus calculator."
                             )
-                            .italic()
                         }
                     }
                 )
@@ -148,7 +146,7 @@ extension UnitsLimitsSettings {
                             Text(
                                 "Maximum Carbs On Board (COB) allowed. If more carbs are entered than allowed by this limit, Trio will cap the current COB in calculations to Max COB and remain at max until all remaining carbs have shown to be absorbed."
                             )
-                            Text("This is an important limit when UAM is ON.").italic()
+                            Text("This is an important limit when UAM is ON.")
                         }
                     }
                 )

@@ -81,11 +81,10 @@ extension DynamicSettings {
                                 "Dynamic ISF produces a Dynamic Ratio, replacing the Autosens Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day."
                             )
                             VStack(alignment: .leading, spacing: 10) {
-                                Text("New ISF = (Profile ISF) ÷ (Dynamic Ratio)").italic()
-                                Text("Dynamic Ratio = (Profile ISF) × AF × TDD × (log(BG ÷ (Insulin Factor) + 1)) ÷ 1800")
-                                    .italic()
-                                Text("Insulin Factor = 120 - (Insulin Peak Time)").italic()
-                            }
+                                Text("New ISF =\nProfile ISF) ÷ (Dynamic Ratio)")
+                                Text("Dynamic Ratio =\n(Profile ISF) × AF × TDD × (log(BG ÷ (Insulin Factor) + 1)) ÷ 1800")
+                                Text("Insulin Factor =\n120 - (Insulin Peak Time)")
+                            }.color(.accentColor)
                         }
                     },
                     headerText: "Dynamic Settings"
@@ -122,7 +121,6 @@ extension DynamicSettings {
                                 Text(
                                     "Note: It’s recommended not to use this feature with a high Insulin Fraction (>2), as it can cause insulin dosing to become too aggressive."
                                 )
-                                .italic()
                             }
                         }
                     )
@@ -153,11 +151,9 @@ extension DynamicSettings {
                                 )
                                 Text("Careful tuning is essential to avoid overly aggressive insulin changes.")
                                 Text("It is not recommended to set Autosens Max above 150% to maintain safe insulin dosing.")
-                                    .italic()
                                 Text(
                                     "There has been no empirical data analysis to support the use of the Sigmoid Formula for dynamic sensitivity determination."
-                                )
-                                .italic().bold()
+                                ).bold()
                             }
                         }
                     )
@@ -190,7 +186,7 @@ extension DynamicSettings {
                                     Text(
                                         "Warning: Increasing this setting too high can result in a much lower ISF used at your target glucose than your profile ISF. Decreasing this setting too low can result in a much higher ISF used at your target glucose. It is best to utilize the Desmos graphs from the Trio Docs to optimize all Dynamic Settings."
                                     )
-                                    .bold().italic()
+                                    .bold()
                                 }
                             }
                         )
@@ -225,7 +221,6 @@ extension DynamicSettings {
                                     Text(
                                         "Due to how the curve is calculated when using the Sigmoid Formula, increasing this setting has a different impact on the steepness of the curve than in the standard logarithmic Dynamic ISF calculation. Use caution when adjusting this setting."
                                     )
-                                    .italic()
                                 }
                             }
                         )
@@ -278,24 +273,12 @@ extension DynamicSettings {
                         miniHint: "Use Dynamic Ratio to adjust basal rates \nDefault: OFF",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
-                            Text("""
-
-                            Turn this setting on to give basal adjustments more agility. Keep this setting off if your basal needs are not highly variable.
-
-                            Normally, a new basal rate is set by autosens:
-
-                            """)
-                            Text("New Basal Profile = (Current Basal Profile) x (Autosens Ratio)").italic()
-                            Text("""
-
-                            Adjust Basal replaces the standard Autosens Ratio calculation with its own Autosens Ratio calculated as such:
-
-                            """)
-                            Text("""
-                            Autosens Ratio = (Weighted Average of TDD) ÷ (10-day Average of TDD)
-
-                            New Basal Profile = (Current Basal Profile) × (Autosens Ratio)
-                            """).italic()
+                            Text("Turn this setting on to give basal adjustments more agility. Keep this setting off if your basal needs are not highly variable.")
+                            Text("Normally, a new basal rate is set by autosens:")
+                            Text("New Basal Profile =\n(Current Basal Profile) x (Autosens Ratio)")
+                            Text("Adjust Basal replaces the standard Autosens Ratio calculation with its own Autosens Ratio calculated as such:")
+                            Text("Autosens Ratio =\n(Weighted Average of TDD) ÷ (10-day Average of TDD)")
+                            Text("New Basal Profile =\n(Current Basal Profile) × (Autosens Ratio)")
                         }
                     )
 
@@ -326,19 +309,18 @@ extension DynamicSettings {
                                 VStack(alignment: .leading, spacing: 10) {
                                     VStack(alignment: .leading, spacing: 5) {
                                         Text("The default setting is based on this calculation:").bold()
-                                        Text("Target BG - 0.5 × (Target BG - 40)").italic()
+                                        Text("Target BG - 0.5 × (Target BG - 40)")
                                     }
                                     VStack(alignment: .leading, spacing: 5) {
                                         Text(
                                             "If your glucose target is 110 mg/dL, Trio will use a safety threshold of 75 mg/dL, unless you set Minimum Safety Threshold (mg/dL) to something > 75."
                                         )
-                                        Text("110 - 0.5 × (110 - 40) = 75").italic()
+                                        Text("110 - 0.5 × (110 - 40) = 75")
                                     }
                                     Text("This setting is limited to values between 60 - 120 mg/dL (3.3 - 6.6 mmol/L)")
                                     Text(
                                         "Note: Basal may be resumed if there's negative IOB and glucose is rising faster than the forecast."
                                     )
-                                    .italic()
                                 }
                             }
                         }

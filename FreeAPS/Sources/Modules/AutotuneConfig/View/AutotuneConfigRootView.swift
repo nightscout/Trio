@@ -74,7 +74,7 @@ extension AutotuneConfig {
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("It is not advised to use Autotune with Trio").bold().italic()
+                            Text("It is not advised to use Autotune with Trio").bold()
                             Text("Autotune is not designed to work with Trio. It is best to keep Autotune off and do not use it.")
                         }
                     },

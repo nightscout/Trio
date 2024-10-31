@@ -64,7 +64,7 @@ extension TargetBehavoir {
                             Text(
                                 "If Half Basal Exercise Target is set to 160, a temp target of 120 mg/dL uses an Autosens Ratio of 0.75. A temp target of 140 mg/dL uses an Autosens Ratio of 0.6."
                             )
-                            Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target").italic()
+                            Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target")
                         }
                     },
                     headerText: "Algorithmic Target Settings"
@@ -100,7 +100,7 @@ extension TargetBehavoir {
                             Text(
                                 "If Half Basal Exercise Target is 160, a Temp Target of 95 mg/dL uses an Autosens Ratio of 1.09. A Temp Target of 85 mg/dL uses an Autosens Ratio of 1.33."
                             )
-                            Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target").italic()
+                            Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target")
                         }
                     }
                 )
@@ -176,7 +176,6 @@ extension TargetBehavoir {
                             Text(
                                 "Note: This setting is only utilized if the settings \"Low Temp Target Lowers Sensitivity\" OR \"High Temp Target Raises Sensitivity\" are enabled."
                             )
-                            .italic()
                         }
                     }
                 )

@@ -96,7 +96,6 @@ extension BolusCalculatorConfig {
                             Text(
                                 "Tip: If you are a new Trio user, it is not advised to set this to 100% until you have verified that your core settings (CR, ISF, basals) do not need adjusting."
                             )
-                            .italic()
                         }
                     },
                     headerText: "Calculator Configuration"
@@ -123,7 +122,6 @@ extension BolusCalculatorConfig {
                         Text("Default Percent: 70%").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Do not enable this feature until you have optimized your CR (carb ratio) setting.").bold()
-                                .italic()
                             Text(
                                 "Enabling this setting adds a \"Fatty Meal\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear below this for you to select."
                             )
@@ -133,7 +131,6 @@ extension BolusCalculatorConfig {
                             Text(
                                 "Tip: This setting should be ↓LOWER↓ than your Recommended Bolus Percentage setting to enable the bolus calculator the ability to give less than the calculated amount to prevent lows due to carbs absorbing very slowly. This could be useful when eating meals like pizza."
                             )
-                            .italic()
                         }
                     }
                 )
@@ -159,7 +156,6 @@ extension BolusCalculatorConfig {
                         Text("Default Percent: 200%").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Do not enable this feature until you have optimized your CR (carb ratio) setting.").bold()
-                                .italic()
                             Text(
                                 "Enabling this setting adds a \"Super Bolus\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear below this for you to select."
                             )
@@ -170,7 +166,6 @@ extension BolusCalculatorConfig {
                             Text(
                                 "Tip: This setting should be ↑HIGHER↑ than your Recommended Bolus Percentage setting to enable the bolus calculator the ability to give above the calculated amount to address carbs that absorb very quickly. This could be useful when eating sweets."
                             )
-                            .italic()
                         }
                     }
                 )

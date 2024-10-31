@@ -57,7 +57,6 @@ struct ReviewInsulinActionView: BaseView {
                         Text(
                             "Tip: It is better to use Custom Peak Timing rather than use a Duration of Insulin Action (DIA) other than the default of 6 hours."
                         )
-                        .italic()
                     }
                 },
                 headerText: "Review imported DIA"

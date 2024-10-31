@@ -53,7 +53,6 @@ extension AppleHealthKit {
                         VStack(alignment: .leading, spacing: 10) {
                             Text("This allows Trio to read from and write to Apple Health.")
                             Text("Warning: You must also give permissions in iOS System Settings for the Health app.").bold()
-                                .italic()
                         }
                     },
                     headerText: "Apple Health Integration"

@@ -61,7 +61,6 @@ extension AutosensSettings {
                             Text(
                                 "Tip: Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower."
                             )
-                            .italic()
                         }
                     },
                     headerText: "Glucose Deviations Algorithm"
@@ -94,7 +93,6 @@ extension AutosensSettings {
                             Text(
                                 "Tip: Decreasing this value allows automatic adjustments of basal rates to be lower, ISF to be higher, and CR to be higher."
                             )
-                            .italic()
                         }
                     }
                 )
@@ -116,7 +114,7 @@ extension AutosensSettings {
                     miniHint: "Pump rewind initiates a reset in Autosens Ratio \nDefault: ON",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: ON").bold()
-                        Text("Medtronic Users Only").bold().italic()
+                        Text("Medtronic Users Only").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "This feature resets the Autosens Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change."
@@ -127,7 +125,6 @@ extension AutosensSettings {
                             Text(
                                 "Tip: If you usually rewind your pump independently of site changes, you may want to consider disabling this feature."
                             )
-                            .italic()
                         }
                     }
                 )
