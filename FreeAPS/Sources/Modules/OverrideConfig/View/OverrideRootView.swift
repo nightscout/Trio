@@ -118,109 +118,113 @@ extension OverrideConfig {
                 .cornerRadius(8)
                 .padding(.horizontal)
 
-                Form {
+                List {
                     switch state.selectedTab {
                     case .overrides: overrides()
                     case .tempTargets: tempTargets() }
-                }.scrollContentBackground(.hidden).background(color)
-                    .onAppear(perform: configureView)
-                    .navigationBarTitle("Adjustments")
-                    .navigationBarTitleDisplayMode(.large)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            switch state.selectedTab {
-                            case .overrides:
-                                Button(action: {
-                                    showOverrideCreationSheet = true
-                                }, label: {
-                                    HStack {
-                                        Text("Add Override")
-                                        Image(systemName: "plus")
-                                    }
-                                })
-                            case .tempTargets:
-                                Button(action: {
-                                    showTempTargetCreationSheet = true
-                                }, label: {
-                                    HStack {
-                                        Text("Add Temp Target")
-                                        Image(systemName: "plus")
-                                    }
-                                })
-                            }
+                }
+                .listSectionSpacing(10)
+                .scrollContentBackground(.hidden).background(color)
+                .onAppear(perform: configureView)
+                .navigationBarTitle("Adjustments")
+                .navigationBarTitleDisplayMode(.large)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        switch state.selectedTab {
+                        case .overrides:
+                            Button(action: {
+                                showOverrideCreationSheet = true
+                            }, label: {
+                                HStack {
+                                    Text("Add Override")
+                                    Image(systemName: "plus")
+                                }
+                            })
+                        case .tempTargets:
+                            Button(action: {
+                                showTempTargetCreationSheet = true
+                            }, label: {
+                                HStack {
+                                    Text("Add Temp Target")
+                                    Image(systemName: "plus")
+                                }
+                            })
                         }
                     }
-                    .sheet(isPresented: $state.showOverrideEditSheet, onDismiss: {
-                        Task {
-                            await state.resetStateVariables()
-                            state.showOverrideEditSheet = false
-                        }
+                }
+                .sheet(isPresented: $state.showOverrideEditSheet, onDismiss: {
+                    Task {
+                        await state.resetStateVariables()
+                        state.showOverrideEditSheet = false
+                    }
 
-                    }) {
-                        if let override = selectedOverride {
-                            EditOverrideForm(overrideToEdit: override, state: state)
-                        }
+                }) {
+                    if let override = selectedOverride {
+                        EditOverrideForm(overrideToEdit: override, state: state)
                     }
-                    .sheet(isPresented: $showOverrideCreationSheet, onDismiss: {
-                        Task {
-                            await state.resetStateVariables()
-                            showOverrideCreationSheet = false
-                        }
-                    }) {
-                        AddOverrideForm(state: state)
+                }
+                .sheet(isPresented: $showOverrideCreationSheet, onDismiss: {
+                    Task {
+                        await state.resetStateVariables()
+                        showOverrideCreationSheet = false
                     }
-                    .sheet(isPresented: $showTempTargetCreationSheet, onDismiss: {
-                        Task {
-                            await state.resetTempTargetState()
-                            showTempTargetCreationSheet = false
-                        }
-                    }) {
-                        AddTempTargetForm(state: state)
+                }) {
+                    AddOverrideForm(state: state)
+                }
+                .sheet(isPresented: $showTempTargetCreationSheet, onDismiss: {
+                    Task {
+                        await state.resetTempTargetState()
+                        showTempTargetCreationSheet = false
                     }
-                    .sheet(isPresented: $state.showTempTargetEditSheet, onDismiss: {
-                        Task {
-                            await state.resetTempTargetState()
-                            state.showTempTargetEditSheet = false
-                        }
+                }) {
+                    AddTempTargetForm(state: state)
+                }
+                .sheet(isPresented: $state.showTempTargetEditSheet, onDismiss: {
+                    Task {
+                        await state.resetTempTargetState()
+                        state.showTempTargetEditSheet = false
+                    }
 
-                    }) {
-                        if let tempTarget = selectedTempTarget {
-                            EditTempTargetForm(tempTargetToEdit: tempTarget, state: state)
-                        }
+                }) {
+                    if let tempTarget = selectedTempTarget {
+                        EditTempTargetForm(tempTargetToEdit: tempTarget, state: state)
                     }
+                }
             }.background(color)
         }
 
         @ViewBuilder func overrides() -> some View {
+            if state.isEnabled, state.activeOverrideName.isNotEmpty {
+                currentActiveAdjustment
+                cancelAdjustmentButton
+            }
+
             if state.overridePresets.isNotEmpty {
                 overridePresets
             } else {
                 defaultText
             }
 
-            if state.isEnabled, state.activeOverrideName.isNotEmpty {
-                currentActiveAdjustment
-            }
-
-            if state.overridePresets.isNotEmpty || state.currentActiveOverride != nil {
-                cancelAdjustmentButton
-            }
+//            if state.overridePresets.isNotEmpty || state.currentActiveOverride != nil {
+//                cancelAdjustmentButton
+//            }
         }
 
         @ViewBuilder func tempTargets() -> some View {
+            if state.isTempTargetEnabled, state.activeTempTargetName.isNotEmpty {
+                currentActiveAdjustment
+                cancelAdjustmentButton
+            }
+
             if state.tempTargetPresets.isNotEmpty {
                 tempTargetPresets
             } else {
                 defaultText
             }
 
-            if state.isTempTargetEnabled, state.activeTempTargetName.isNotEmpty {
-                currentActiveAdjustment
-            }
-
-            if state.tempTargetPresets.isNotEmpty || state.currentActiveTempTarget != nil {
-                cancelAdjustmentButton
-            }
+//            if state.tempTargetPresets.isNotEmpty || state.currentActiveTempTarget != nil {
+//                cancelAdjustmentButton
+//            }
         }
 
         private var defaultText: some View {
