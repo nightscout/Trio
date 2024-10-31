@@ -119,16 +119,7 @@ extension Bolus {
         let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
         let determinationFetchContext = CoreDataStack.shared.newTaskContext()
 
-        var isActive: Bool = false {
-            didSet {
-                if !isActive {
-                    debug(.bolusState, "unsubscribing and unregistering fired")
-                    broadcaster.unregister(DeterminationObserver.self, observer: self)
-                    broadcaster.unregister(BolusFailureObserver.self, observer: self)
-                    unsubscribe()
-                }
-            }
-        }
+        var isActive: Bool = false
 
         private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
         private var subscriptions = Set<AnyCancellable>()
@@ -162,8 +153,6 @@ extension Bolus {
             broadcaster.unregister(BolusFailureObserver.self, observer: self)
 
             // Cancel Combine subscriptions
-//            subscriptions.forEach { $0.cancel() }
-//            subscriptions.removeAll()
             unsubscribe()
 
             debug(.bolusState, "Bolus.StateModel deinitialized")
