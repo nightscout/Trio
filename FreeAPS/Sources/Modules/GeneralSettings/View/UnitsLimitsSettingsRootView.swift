@@ -139,7 +139,7 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxCOB"),
                     label: NSLocalizedString("Max COB", comment: "Max COB"),
-                    miniHint: "Max carbs Trio can use in dosing calculations /nDefault: 120 carbs",
+                    miniHint: "Max carbs Trio can use in dosing calculations \nDefault: 120 carbs",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 120 carbs").bold()
                         VStack(alignment: .leading, spacing: 10) {
