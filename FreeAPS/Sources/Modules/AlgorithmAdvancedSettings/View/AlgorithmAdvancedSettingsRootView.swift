@@ -60,7 +60,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("maxDailySafetyMultiplier"),
                     label: NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier"),
-                    miniHint: "Limits temp basals to this % of your largest basal rate",
+                    miniHint: "Limits temporary basal rates to this percentage of your largest basal rate",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 300%").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -90,7 +90,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("currentBasalSafetyMultiplier"),
                     label: NSLocalizedString("Current Basal Safety Multiplier", comment: "Current Basal Safety Multiplier"),
-                    miniHint: "Limits temp basals to this % of the current basal rate",
+                    miniHint: "Limits temporary basal rates to this percentage of the current basal rate",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 400%").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -183,7 +183,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps"),
-                    miniHint: "Skip neutral temp basals to reduce pump alerts",
+                    miniHint: "Skip neutral temporary basal rates to reduce pump alerts",
                     verboseHint: VStack {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -235,12 +235,12 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Suspend Zeros IOB", comment: "Suspend Zeros IOB"),
-                    miniHint: "Clears temp basals and resets IOB when suspended",
+                    miniHint: "Clears temporary basal rates and resets IOB when suspended",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "When Suspend Zeros IOB is enabled, any active temp basals during a pump suspension are reset, with new zero temp basals added to counteract the basal rates during suspension."
+                                "When Suspend Zeros IOB is enabled, any active temporary basal rates during a pump suspension are reset, with new 0 U/hr temporary basal rates added to counteract those done during suspension."
                             )
                             Text(
                                 "This prevents lingering insulin effects when your pump is suspended, ensuring safer management of insulin on board."

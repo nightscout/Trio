@@ -94,7 +94,7 @@ extension BolusCalculatorConfig {
                                 "Because Trio utilizes SMBs and UAM SMBs to help you reach your target glucose, this is initially set to below the full calculated amount (<100%) because other AID systems do not bolus for COB the same way Trio does. When SMBs and UAM SMBs are enabled, you may find your current CR results in lows and needs to be increased before you increase this setting closer to or at 100%."
                             )
                             Text(
-                                "Tip: If you are a new Trio user, it is not advised to set this to 100% until you have verified that your core settings (CR, ISF, basals) do not need adjusting."
+                                "Tip: If you are a new Trio user, it is not advised to set this to 100% until you have verified that your core settings (basal rates, ISF, and CR) do not need adjusting."
                             )
                         }
                     },

@@ -56,7 +56,7 @@ extension AutosensSettings {
                                 "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, or Sigmoid Formula"
                             )
                             Text(
-                                "The Autosens Ratio is used to calculate the amount of adjustment needed to basals, ISF, and CR."
+                                "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
                             )
                             Text(
                                 "Tip: Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower."
@@ -88,7 +88,7 @@ extension AutosensSettings {
                                 "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, or Sigmoid Formula."
                             )
                             Text(
-                                "The Autosens Ratio is used to calculate the amount of adjustment needed to basals, ISF, and CR."
+                                "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
                             )
                             Text(
                                 "Tip: Decreasing this value allows automatic adjustments of basal rates to be lower, ISF to be higher, and CR to be higher."
