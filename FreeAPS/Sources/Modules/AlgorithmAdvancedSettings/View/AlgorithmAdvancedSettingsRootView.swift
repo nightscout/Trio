@@ -250,6 +250,8 @@ extension AlgorithmAdvancedSettings {
                     }
                 )
 
+                
+                //Commenting out Autotune from Settings Menu until full removal is complete
                 //SettingInputSection(
                     //decimalValue: $state.autotuneISFAdjustmentFraction,
                     //booleanValue: $booleanPlaceholder,
