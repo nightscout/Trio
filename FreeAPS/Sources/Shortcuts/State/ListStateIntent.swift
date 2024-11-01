@@ -9,7 +9,7 @@ import Foundation
 
     // Description of the action in the Shortcuts app
     static var description = IntentDescription(
-        "Allow to list the last Blood Glucose, trends, IOB and COB available in Trio"
+        "Allow to list the last glucose reading, trends, IOB and COB available in Trio"
     )
 
     static var parameterSummary: some ParameterSummary {

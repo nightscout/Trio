@@ -70,21 +70,18 @@ extension DynamicSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Activate Dynamic ISF",
-                    miniHint: "Adjusts ISF dynamically based on recent BG and insulin",
+                    miniHint: "Adjusts ISF dynamically based on multiple settings \n See hint for more info",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "Enabling this feature allows Trio to calculate a new Insulin Sensitivity Factor (ISF) with each loop cycle by considering your current glucose (BG), total daily dose (TDD) of insulin, and adjustment factor (AF). This helps tailor your insulin response more accurately in real-time."
+                                "Enabling this feature allows Trio to calculate a new Insulin Sensitivity Factor (ISF) with each loop cycle by considering your current glucose (BG), total daily dose (TDD) of insulin, adjustment factor (AF), and a few other data points. This helps tailor your insulin response more accurately in real-time."
                             )
                             Text(
                                 "Dynamic ISF produces a Dynamic Ratio, replacing the Autosens Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day."
                             )
-                            VStack(alignment: .leading, spacing: 10) {
-                                Text("New ISF =\nProfile ISF) ÷ (Dynamic Ratio)")
-                                Text("Dynamic Ratio =\n(Profile ISF) × AF × TDD × (log(BG ÷ (Insulin Factor) + 1)) ÷ 1800")
-                                Text("Insulin Factor =\n120 - (Insulin Peak Time)")
-                            }.color(.accentColor)
+                            Text("You can influence the adjustments made by Dynamic ISF primarily by adjusting Autosens Max, Autosens Min, and Adjustment Factor. Other settings also influence Dynamic ISF's response, such as Target Glucose, Profile ISF, Peak Insulin Time, and Weighted Average of TDD.")
+                            Text("Warning: Before adjusting these settings, make sure you are fully aware of the impact those changes will have.").bold()
                         }
                     },
                     headerText: "Dynamic Settings"
@@ -110,13 +107,13 @@ extension DynamicSettings {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 10) {
                                 Text(
-                                    "Dynamic CR adjusts your carb ratio based on your Dynamic Autosens Ratio, adapting automatically to changes in insulin sensitivity."
+                                    "Dynamic CR adjusts your carb ratio based on your Dynamic Ratio, adapting automatically to changes in insulin sensitivity."
                                 )
                                 Text(
-                                    "When Dynamic Autosens Ratio increases, indicating you need more insulin, the carb ratio is adjusted to make your insulin dosing more effective."
+                                    "When Dynamic Ratio increases, indicating you need more insulin, the carb ratio is adjusted to make your insulin dosing more effective."
                                 )
                                 Text(
-                                    "When Dynamic Autosens Ratio decreases, indicating you need less insulin, the carb ratio is scaled back to avoid over-delivery."
+                                    "When Dynamic Ratio decreases, indicating you need less insulin, the carb ratio is scaled back to avoid over-delivery."
                                 )
                                 Text(
                                     "Note: It's recommended not to use this feature with a high Insulin Fraction (>2), as it can cause insulin dosing to become too aggressive."
@@ -144,8 +141,9 @@ extension DynamicSettings {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 10) {
                                 Text(
-                                    "Turning on the Sigmoid Formula setting alters how your Dynamic Autosens Ratio, and thus your New ISF and New Carb Ratio, are calculated using a sigmoid curve rather than the default logarithmic function. The curve's steepness is influenced by the Adjustment Factor (AF), while the Autosens Min/Max settings determine the limits of the ratio adjustment, which can also influence the steepness of the sigmoid curve."
+                                    "Turning on the Sigmoid Formula setting alters how your Dynamic Ratio, and thus your New ISF and New Carb Ratio, are calculated using a sigmoid curve rather than the default logarithmic function."
                                 )
+                                Text("The curve's steepness is influenced by the Adjustment Factor (AF), while the Autosens Min/Max settings determine the limits of the ratio adjustment, which can also influence the steepness of the sigmoid curve.")
                                 Text(
                                     "When using the Sigmoid Formula, TDD has a much lower impact on the dynamic adjustments to sensitivity."
                                 )
@@ -170,6 +168,7 @@ extension DynamicSettings {
                                     hintLabel = "Adjustment Factor (AF)"
                                 }
                             ),
+                            //TODO?: include conditional links to Desmos logarithmic graphs based on which .glucose setting is used
                             units: state.units,
                             type: .decimal("adjustmentFactor"),
                             label: "Adjustment Factor (AF)",
@@ -178,15 +177,14 @@ extension DynamicSettings {
                                 Text("Default: 80%").bold()
                                 VStack(alignment: .leading, spacing: 10) {
                                     Text(
-                                        "The Adjustment Factor (AF) allows you to control how quickly and effectively Dynamic ISF responds to changes in blood glucose levels."
+                                        "The Adjustment Factor (AF) allows you to control how quickly and effectively Dynamic ISF responds to changes in glucose levels."
                                     )
                                     Text(
                                         "Adjusting this value not only can adjust how quickly your sensitivity will respond to changing glucose readings, but also at what glucose readings you reach your Autosens Max/Min limits."
                                     )
                                     Text(
-                                        "Warning: Increasing this setting too high can result in a much lower ISF used at your target glucose than your profile ISF. Decreasing this setting too low can result in a much higher ISF used at your target glucose. It is best to utilize the Desmos graphs from the Trio Docs to optimize all Dynamic Settings."
+                                        "Increasing this setting can make ISF adjustments quicker, but will also change the glucose value that coincides with the ISF used at your Autosens Max and Autosens Min limits. Likewise, decreasing this settings can make ISF adjustments slower, but will also change the glucose value that coincides with the ISF used at your Autosens Max and Autosens Min limits. It is best to utilize the Desmos graphs from the Trio Docs to optimize all Dynamic Settings."
                                     )
-                                    .bold()
                                 }
                             }
                         )
@@ -210,11 +208,10 @@ extension DynamicSettings {
                                 Text("Default: 50%").bold()
                                 VStack(alignment: .leading, spacing: 10) {
                                     Text(
-                                        "The Sigmoid Adjustment Factor (AF) allows you to control how quickly Dynamic ISF using Sigmoid Formula responds to changes in blood glucose levels."
+                                        "The Sigmoid Adjustment Factor (AF) allows you to control how quickly Sigmoid Dynamic ISF responds to changes in glucose levels and at what glucose value you will reach your Autosens Max and Autosens Min limits."
                                     )
                                     Text(
-                                        "Higher values lead to quicker adjustment responses for high or low blood glucose levels by making the sigmoid-shaped adjustment curve steeper."
-                                    )
+                                        "Sigmoid Adjustment Factor influences both how fast your ISF values will change and how quickly you will reach your Autosens Max and Min limits set. Increasing Sigmoid Adjustment Factor increases the rate of change of your ISF and reduces the range of glucose values between your Autosens Max and Min limits.")
                                     Text(
                                         "This setting allows for a more responsive system, but the effects are restricted by the Autosens Min/Max settings."
                                     )

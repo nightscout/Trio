@@ -230,7 +230,7 @@ extension SMBSettings {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "Enabling the UAM (Unannounced Meals) feature allows the system to detect and respond to unexpected rises in blood glucose caused by unannounced or miscalculated carbs, meals high in fat or protein, or other factors like adrenaline."
+                                "Enabling the UAM (Unannounced Meals) feature allows the system to detect and respond to unexpected rises in glucose readings caused by unannounced or miscalculated carbs, meals high in fat or protein, or other factors like adrenaline."
                             )
                             Text(
                                 "It uses the SMB (Super Micro Bolus) algorithm to deliver insulin in small amounts to correct glucose spikes. UAM also works in reverse, reducing or stopping SMBs if glucose levels drop unexpectedly."

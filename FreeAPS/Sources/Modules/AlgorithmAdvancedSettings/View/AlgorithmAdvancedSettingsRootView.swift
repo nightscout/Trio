@@ -124,7 +124,7 @@ extension AlgorithmAdvancedSettings {
                         Text("Default: 6 hours").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "The Duration of Insulin Action (DIA) defines how long your insulin continues to lower blood glucose after a dose."
+                                "The Duration of Insulin Action (DIA) defines how long your insulin continues to lower glucose readings after a dose."
                             )
                             Text(
                                 "This helps the system accurately track Insulin on Board (IOB), avoiding over- or under-corrections by considering the tail end of insulin's effect"
@@ -157,7 +157,7 @@ extension AlgorithmAdvancedSettings {
                         Text("Default: Set by Insulin Type").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "Insulin Peak Time defines when insulin is most effective in lowering blood glucose, set in minutes after dosing."
+                                "Insulin Peak Time defines when insulin is most effective in lowering glucose, set in minutes after dosing."
                             )
                             Text(
                                 "This peak informs the system when to expect the most potent glucose-lowering effect, helping it predict glucose trends more accurately."
