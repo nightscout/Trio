@@ -48,7 +48,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Enable SMB Always", comment: "Enable SMB Always"),
-                    miniHint: "Allow SMBs at all times except when a high Temp Target is set \nDefault: OFF",
+                    miniHint: "Allow SMBs at all times except when a high Temp Target is set",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
@@ -73,7 +73,7 @@ extension SMBSettings {
                         units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB With COB", comment: "Enable SMB With COB"),
-                        miniHint: "Allow SMB when carbs are on board \nDefault: OFF",
+                        miniHint: "Allow SMB when carbs are on board",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 10) {
@@ -101,7 +101,7 @@ extension SMBSettings {
                         units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB With Temptarget", comment: "Enable SMB With Temptarget"),
-                        miniHint: "Allow SMB when a manual Temporary Target is set under 100 mg/dL (5.5 mmol/L) \nDefault: OFF",
+                        miniHint: "Allow SMB when a manual Temporary Target is set under 100 mg/dL (5.5 mmol/L)",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 10) {
@@ -129,7 +129,7 @@ extension SMBSettings {
                         units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB After Carbs", comment: "Enable SMB After Carbs"),
-                        miniHint: "Allow SMB for 6 hrs after carbs are logged \nDefault: OFF",
+                        miniHint: "Allow SMB for 6 hrs after carbs are logged",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 10) {
@@ -158,7 +158,7 @@ extension SMBSettings {
                         type: .conditionalDecimal("enableSMB_high_bg_target"),
                         label: NSLocalizedString("Enable SMB With High BG", comment: "Enable SMB With High BG"),
                         conditionalLabel: "High BG Target",
-                        miniHint: "Allow SMB when glucose is above the High BG Target value \nDefault: OFF",
+                        miniHint: "Allow SMB when glucose is above the High BG Target value",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 10) {
@@ -193,7 +193,7 @@ extension SMBSettings {
                         "Allow SMB With High Temptarget",
                         comment: "Allow SMB With High Temptarget"
                     ),
-                    miniHint: "Allow SMB when a manual Temporary Target is set greater than 100 mg/dL (5.5 mmol/L) \nDefault: OFF",
+                    miniHint: "Allow SMB when a manual Temporary Target is set greater than 100 mg/dL (5.5 mmol/L)",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -225,7 +225,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Enable UAM", comment: "Enable UAM"),
-                    miniHint: "Automatically adjust insulin delivery when carbs are not announced or miscalculated \nDefault: OFF",
+                    miniHint: "Automatically adjust insulin delivery when carbs are not announced or miscalculated",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -256,7 +256,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("maxSMBBasalMinutes"),
                     label: NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes"),
-                    miniHint: "Limits the size of a single Super Micro Bolus (SMB) dose \nDefault: 30 minutes",
+                    miniHint: "Limits the size of a single Super Micro Bolus (SMB) dose",
                     verboseHint: VStack(spacing: 10) {
                         VStack(alignment: .center, spacing: 1) {
                             Text("Default: 30 minutes").bold()
@@ -299,7 +299,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("maxUAMSMBBasalMinutes"),
                     label: NSLocalizedString("Max UAM Basal Minutes", comment: "Max UAM Basal Minutes"),
-                    miniHint: "Limits the size of a single Unannounced Meal (UAM) SMB dose \nDefault: 30 minutes",
+                    miniHint: "Limits the size of a single Unannounced Meal (UAM) SMB dose",
                     verboseHint: VStack(spacing: 10) {
                         VStack(alignment: .center, spacing: 1) {
                             Text("Default: 30 minutes").bold()
@@ -342,7 +342,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("maxDeltaBGthreshold"),
                     label: NSLocalizedString("Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold"),
-                    miniHint: "Disables SMBs if last two glucose values differ by more than this percent \nDefault: 20%",
+                    miniHint: "Disables SMBs if last two glucose values differ by more than this percent",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 20% increase").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -368,7 +368,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("smbDeliveryRatio"),
                     label: NSLocalizedString("SMB DeliveryRatio", comment: "SMB DeliveryRatio"),
-                    miniHint: "Limits % of total insulin required that can be given as SMB \nDefault: 50%",
+                    miniHint: "Limits % of total insulin required that can be given as SMB",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 50%").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -397,7 +397,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("smbInterval"),
                     label: NSLocalizedString("SMB Interval", comment: "SMB Interval"),
-                    miniHint: "Minimum minutes since the last SMB or manual bolus to allow an automated SMB \nDefault: 3 min",
+                    miniHint: "Minimum minutes since the last SMB or manual bolus to allow an automated SMB",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 3 min").bold()
                         VStack(alignment: .leading, spacing: 10) {

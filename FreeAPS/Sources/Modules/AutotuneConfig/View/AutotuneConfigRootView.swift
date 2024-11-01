@@ -70,7 +70,7 @@ extension AutotuneConfig {
                     units: state.units,
                     type: .boolean,
                     label: "Use Autotune",
-                    miniHint: "It is not advised to use Autotune with Trio \nDefault: OFF",
+                    miniHint: "It is not advised to use Autotune with Trio",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -96,7 +96,7 @@ extension AutotuneConfig {
                         units: state.units,
                         type: .boolean,
                         label: "Only Autotune Basal Insulin",
-                        miniHint: "Restricts Autotune adjustments to only basal settings \nDefault: OFF",
+                        miniHint: "Restricts Autotune adjustments to only basal settings",
                         verboseHint: Text("Restricts Autotune adjustments to only basal settings.")
                     )
                 }

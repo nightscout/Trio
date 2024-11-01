@@ -62,7 +62,7 @@ extension BolusCalculatorConfig {
                     units: state.units,
                     type: .boolean,
                     label: "Display Meal Presets",
-                    miniHint: "Allows you to create and save preset meals \nDefault: OFF",
+                    miniHint: "Allows you to create and save preset meals",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("Enabling this feature allows you to create and save preset meals.")
@@ -83,7 +83,7 @@ extension BolusCalculatorConfig {
                     units: state.units,
                     type: .decimal("overrideFactor"),
                     label: "Recommended Bolus Percentage",
-                    miniHint: "Percent of bolus used in bolus calculator \nDefault: 70%",
+                    miniHint: "Percent of bolus used in bolus calculator",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 70%").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -116,7 +116,7 @@ extension BolusCalculatorConfig {
                     type: .conditionalDecimal("fattyMealFactor"),
                     label: "Enable Fatty Meal Option",
                     conditionalLabel: "Fatty Meal Bolus Percentage",
-                    miniHint: "\"Fatty Meal\" option appears in the bolus calculator \nDefault: OFF\nDefault Percent: 70%",
+                    miniHint: "\"Fatty Meal\" option appears in the bolus calculator",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("Default Percent: 70%").bold()
@@ -150,7 +150,7 @@ extension BolusCalculatorConfig {
                     type: .conditionalDecimal("sweetMealFactor"),
                     label: "Enable Super Bolus Option",
                     conditionalLabel: "Super Bolus Percentage",
-                    miniHint: "\"Super Bolus\" option appears in the bolus calculator \nDefault: OFF\nDefault Percent: 200%",
+                    miniHint: "\"Super Bolus\" option appears in the bolus calculator",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("Default Percent: 200%").bold()

@@ -208,7 +208,7 @@ extension MealSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Enable Fat and Protein Entries",
-                    miniHint: "Allows you to add fat and protein macros to meals \nDefault: OFF",
+                    miniHint: "Allows you to add fat and protein macros to meals",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -263,7 +263,7 @@ extension MealSettings {
                         units: state.units,
                         type: .decimal("delay"),
                         label: "Fat and Protein Delay",
-                        miniHint: "Delay between fat & protein entry and first FPU entry \nDefault: 60 min",
+                        miniHint: "Delay between fat & protein entry and first FPU entry",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: 60 min").bold()
                             VStack(alignment: .leading, spacing: 10) {
@@ -291,7 +291,7 @@ extension MealSettings {
                         units: state.units,
                         type: .decimal("timeCap"),
                         label: "Maximum Duration",
-                        miniHint: "Set the maximum timeframe to extend FPUs \nDefault: 8 hours",
+                        miniHint: "Set the maximum timeframe to extend FPUs",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: 8 hours").bold()
                             VStack(alignment: .leading, spacing: 10) {
@@ -322,7 +322,7 @@ extension MealSettings {
                         units: state.units,
                         type: .decimal("minuteInterval"),
                         label: "Spread Interval",
-                        miniHint: "Time interval between FPUs \nDefault: 30 minutes",
+                        miniHint: "Time interval between FPUs",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: 30 minutes").bold()
                             VStack(alignment: .leading, spacing: 10) {
@@ -351,7 +351,7 @@ extension MealSettings {
                         units: state.units,
                         type: .decimal("individualAdjustmentFactor"),
                         label: "Fat and Protein Percentage",
-                        miniHint: "Influences the conversion rate used in the Warsaw Method \nDefault: 50%",
+                        miniHint: "Influences the conversion rate used in the Warsaw Method",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: 50%").bold()
                             VStack(spacing: 10) {

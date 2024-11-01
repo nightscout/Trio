@@ -64,13 +64,13 @@ extension DynamicSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Activate Dynamic Sensitivity (ISF)"
+                            hintLabel = "Activate Dynamic Sensitivity (Dynamic ISF)"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Activate Dynamic ISF",
-                    miniHint: "Adjusts ISF dynamically based on recent BG and insulin \nDefault: OFF",
+                    miniHint: "Adjusts ISF dynamically based on recent BG and insulin",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -105,21 +105,21 @@ extension DynamicSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Activate Dynamic CR (Carb Ratio)",
-                        miniHint: "Dynamically adjusts carb ratio (CR)\nDefault: OFF",
+                        miniHint: "Dynamically adjusts your Carb Ratio (CR)",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 10) {
                                 Text(
-                                    "Dynamic CR adjusts your carb ratio based on your Dynamic Ratio, adapting automatically to changes in insulin sensitivity."
+                                    "Dynamic CR adjusts your carb ratio based on your Dynamic Autosens Ratio, adapting automatically to changes in insulin sensitivity."
                                 )
                                 Text(
-                                    "When Dynamic Ratio increases, indicating you need more insulin, the carb ratio is adjusted to make your insulin dosing more effective."
+                                    "When Dynamic Autosens Ratio increases, indicating you need more insulin, the carb ratio is adjusted to make your insulin dosing more effective."
                                 )
                                 Text(
-                                    "When Dynamic Ratio decreases, indicating you need less insulin, the carb ratio is scaled back to avoid over-delivery."
+                                    "When Dynamic Autosens Ratio decreases, indicating you need less insulin, the carb ratio is scaled back to avoid over-delivery."
                                 )
                                 Text(
-                                    "Note: It’s recommended not to use this feature with a high Insulin Fraction (>2), as it can cause insulin dosing to become too aggressive."
+                                    "Note: It's recommended not to use this feature with a high Insulin Fraction (>2), as it can cause insulin dosing to become too aggressive."
                                 )
                             }
                         }
@@ -139,12 +139,12 @@ extension DynamicSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Use Sigmoid Formula",
-                        miniHint: "Adjusts ISF using a sigmoid-shaped curve \nDefault: OFF",
+                        miniHint: "Adjusts ISF using a sigmoid-shaped curve",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 10) {
                                 Text(
-                                    "Turning on the Sigmoid Formula setting alters how your Dynamic Ratio, and thus your New ISF and New Carb Ratio, are calculated using a sigmoid curve rather than the default logarithmic function. The curve's steepness is influenced by the Adjustment Factor (AF), while the Autosens Min/Max settings determine the limits of the ratio adjustment, which can also influence the steepness of the sigmoid curve."
+                                    "Turning on the Sigmoid Formula setting alters how your Dynamic Autosens Ratio, and thus your New ISF and New Carb Ratio, are calculated using a sigmoid curve rather than the default logarithmic function. The curve's steepness is influenced by the Adjustment Factor (AF), while the Autosens Min/Max settings determine the limits of the ratio adjustment, which can also influence the steepness of the sigmoid curve."
                                 )
                                 Text(
                                     "When using the Sigmoid Formula, TDD has a much lower impact on the dynamic adjustments to sensitivity."
@@ -173,7 +173,7 @@ extension DynamicSettings {
                             units: state.units,
                             type: .decimal("adjustmentFactor"),
                             label: "Adjustment Factor (AF)",
-                            miniHint: "Influences the rate of dynamic sensitivity adjustments \nDefault: 80%",
+                            miniHint: "Influences the rate of Dynamic ISF (Sensitivity) adjustments",
                             verboseHint: VStack(spacing: 10) {
                                 Text("Default: 80%").bold()
                                 VStack(alignment: .leading, spacing: 10) {
@@ -205,7 +205,7 @@ extension DynamicSettings {
                             units: state.units,
                             type: .decimal("adjustmentFactorSigmoid"),
                             label: "Sigmoid Adjustment Factor",
-                            miniHint: "Influences the rate of dynamic sensitivity adjustments for Sigmoid \nDefault: 50%",
+                            miniHint: "Influences the rate of dynamic sensitivity adjustments for Sigmoid",
                             verboseHint: VStack(spacing: 10) {
                                 Text("Default: 50%").bold()
                                 VStack(alignment: .leading, spacing: 10) {
@@ -240,7 +240,7 @@ extension DynamicSettings {
                         units: state.units,
                         type: .decimal("weightPercentage"),
                         label: "Weighted Average of TDD",
-                        miniHint: "Weight of 24-hr TDD against 10-day TDD \nDefault: 65%",
+                        miniHint: "Weight of 24-hr TDD against 10-day TDD",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: 65%").bold()
                             VStack(alignment: .leading, spacing: 10) {
@@ -270,7 +270,7 @@ extension DynamicSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Adjust Basal",
-                        miniHint: "Use Dynamic Ratio to adjust basal rates \nDefault: OFF",
+                        miniHint: "Use Dynamic Ratio to adjust basal rates",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
                             Text("Turn this setting on to give basal adjustments more agility. Keep this setting off if your basal needs are not highly variable.")
@@ -296,7 +296,7 @@ extension DynamicSettings {
                         units: state.units,
                         type: .decimal("threshold_setting"),
                         label: "Minimum Safety Threshold",
-                        miniHint: "Increase the safety threshold used to suspend insulin delivery \nDefault: 60 (Set by Algorithm)",
+                        miniHint: "Increase the safety threshold used to suspend insulin delivery",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: Set by Algorithm").bold()
                             VStack(alignment: .leading, spacing: 10) {

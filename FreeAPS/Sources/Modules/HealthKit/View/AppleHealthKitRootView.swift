@@ -47,7 +47,7 @@ extension AppleHealthKit {
                     units: state.units,
                     type: .boolean,
                     label: "Connect to Apple Health",
-                    miniHint: "Allow Trio to read from and write to Apple Health \nDefault: OFF",
+                    miniHint: "Allow Trio to read from and write to Apple Health",
                     verboseHint: VStack {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {

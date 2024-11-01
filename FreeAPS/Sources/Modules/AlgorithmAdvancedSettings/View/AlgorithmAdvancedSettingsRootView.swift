@@ -60,7 +60,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("maxDailySafetyMultiplier"),
                     label: NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier"),
-                    miniHint: "Limits temp basals to this % of your largest basal rate \nDefault:300%",
+                    miniHint: "Limits temp basals to this % of your largest basal rate",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 300%").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -90,7 +90,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("currentBasalSafetyMultiplier"),
                     label: NSLocalizedString("Current Basal Safety Multiplier", comment: "Current Basal Safety Multiplier"),
-                    miniHint: "Limits temp basals to this % of the current basal rate \nDefault: 400%",
+                    miniHint: "Limits temp basals to this % of the current basal rate",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 400%").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -119,7 +119,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("dia"),
                     label: "Duration of Insulin Action",
-                    miniHint: "Number of hours insulin is active in your body \nDefault: 6 hours",
+                    miniHint: "Number of hours insulin is active in your body",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 6 hours").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -152,7 +152,7 @@ extension AlgorithmAdvancedSettings {
                     type: .conditionalDecimal("insulinPeakTime"),
                     label: NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time"),
                     conditionalLabel: NSLocalizedString("Insulin Peak Time", comment: "Insulin Peak Time"),
-                    miniHint: "Sets time of insulin’s peak effect \nDefault: (Set by Insulin Type)",
+                    miniHint: "Sets time of insulin's peak effect",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: Set by Insulin Type").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -183,7 +183,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps"),
-                    miniHint: "Skip neutral temp basals to reduce pump alerts \nDefault: OFF",
+                    miniHint: "Skip neutral temp basals to reduce pump alerts",
                     verboseHint: VStack {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -209,7 +209,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Unsuspend If No Temp", comment: "Unsuspend If No Temp"),
-                    miniHint: "Automatically resumes pump after suspension \nDefault: OFF",
+                    miniHint: "Automatically resumes pump after suspension",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -235,7 +235,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Suspend Zeros IOB", comment: "Suspend Zeros IOB"),
-                    miniHint: "Clears temp basals and resets IOB when suspended \nDefault: OFF",
+                    miniHint: "Clears temp basals and resets IOB when suspended",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -250,31 +250,31 @@ extension AlgorithmAdvancedSettings {
                     }
                 )
 
-                SettingInputSection(
-                    decimalValue: $state.autotuneISFAdjustmentFraction,
-                    booleanValue: $booleanPlaceholder,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString(
-                                "Autotune ISF Adjustment Percent",
-                                comment: "Autotune ISF Adjustment Percent"
-                            )
-                        }
-                    ),
-                    units: state.units,
-                    type: .decimal("autotuneISFAdjustmentFraction"),
-                    label: NSLocalizedString("Autotune ISF Adjustment Percent", comment: "Autotune ISF Adjustment Percent"),
-                    miniHint: "Using Autotune is not advised \nDefault: 50%",
-                    verboseHint: Text(
-                        NSLocalizedString(
-                            "The default of 50% for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 100% allows full adjustment, 0% is no adjustment from pump ISF.",
-                            comment: "Autotune ISF Adjustment Percent"
-                        )
-                    )
-                )
+                //SettingInputSection(
+                    //decimalValue: $state.autotuneISFAdjustmentFraction,
+                    //booleanValue: $booleanPlaceholder,
+                    //shouldDisplayHint: $shouldDisplayHint,
+                    //selectedVerboseHint: Binding(
+                        //get: { selectedVerboseHint },
+                        //set: {
+                            //selectedVerboseHint = $0.map { AnyView($0) }
+                            //hintLabel = NSLocalizedString(
+                                //"Autotune ISF Adjustment Percent",
+                                //comment: "Autotune ISF Adjustment Percent"
+                            //)
+                        //}
+                    //),
+                    //units: state.units,
+                    //type: .decimal("autotuneISFAdjustmentFraction"),
+                    //label: NSLocalizedString("Autotune ISF Adjustment Percent", comment: "Autotune ISF Adjustment Percent"),
+                    //miniHint: "Using Autotune is not advised",
+                    //verboseHint: Text(
+                        //NSLocalizedString(
+                            //"The default of 50% for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 100% allows full adjustment, 0% is no adjustment from pump ISF.",
+                            //comment: "Autotune ISF Adjustment Percent"
+                        //)
+                    //)
+                //)
 
                 SettingInputSection(
                     decimalValue: $state.min5mCarbimpact,
@@ -287,13 +287,13 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Min 5m Carb Impact", comment: "Min 5m Carb Impact")
                         }
                     ),
+                    let myText = (state.units == .mg/dL ? 8 : 8.formmatedAsMmolL) + "Default:" + state.units.rawValue)
                     units: state.units,
                     type: .decimal("min5mCarbimpact"),
                     label: NSLocalizedString("Min 5m Carb Impact", comment: "Min 5m Carb Impact"),
-                    miniHint: "Estimates carb absorption rate per 5 minutes \nDefault: 8 mg/dL/5min",
+                    miniHint: "Estimates the impact of carb absorbtion after 5 minutes",
                     verboseHint: VStack(spacing: 10) {
-                        Text("mg/dL Default: 8 mg/dL/5min").bold()
-                        Text("mmol/L Default: 0.4 mmol/L/5min").bold()
+                        Text(myText).bold
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Min 5m Carb Impact sets the expected glucose rise from carbs over 5 minutes when absorption isn't obvious from glucose data."
@@ -322,7 +322,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("remainingCarbsFraction"),
                     label: NSLocalizedString("Remaining Carbs Percentage", comment: "Remaining Carbs Percentage"),
-                    miniHint: "% of carbs still available if no absorption is detected \nDefault: 100%",
+                    miniHint: "% of carbs still available if no absorption is detected",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 100%").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -350,7 +350,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("remainingCarbsCap"),
                     label: NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap"),
-                    miniHint: "Maximum Carbs(g) still available if no absorption is detected \nDefault:  90g",
+                    miniHint: "Maximum amount of carbs still available if no absorption is detected",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 90g").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -378,7 +378,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("noisyCGMTargetMultiplier"),
                     label: NSLocalizedString("Noisy CGM Target Increase", comment: "Noisy CGM Target Increase"),
-                    miniHint: "Increase glucose target when noisy CGM data detected \nDefault: 130%",
+                    miniHint: "Increase glucose target when noisy CGM data detected%",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 130%").bold()
                         VStack(alignment: .leading, spacing: 10) {

@@ -58,7 +58,7 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxIOB"),
                     label: NSLocalizedString("Max IOB", comment: "Max IOB"),
-                    miniHint: "Maximum units of insulin allowed active at any given time \nDefault: 0 units",
+                    miniHint: "Maximum units of insulin allowed active at any given time",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 0 units").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -90,7 +90,7 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxBolus"),
                     label: "Max Bolus",
-                    miniHint: "Largest bolus of insulin allowed \nDefault: 10 units",
+                    miniHint: "Largest bolus of insulin allowed",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 10 units").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -115,7 +115,7 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxBasal"),
                     label: "Max Basal",
-                    miniHint: "Largest basal rate allowed \nDefault: 2.0 units",
+                    miniHint: "Largest basal rate allowed",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 2.0 units").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -139,7 +139,7 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxCOB"),
                     label: NSLocalizedString("Max COB", comment: "Max COB"),
-                    miniHint: "Max carbs Trio can use in dosing calculations \nDefault: 120 carbs",
+                    miniHint: "Max carbs Trio can use in dosing calculations",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 120 carbs").bold()
                         VStack(alignment: .leading, spacing: 10) {
