@@ -70,12 +70,12 @@ extension DynamicSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Activate Dynamic ISF",
-                    miniHint: "Adjusts ISF dynamically based on multiple settings \n See hint for more info",
+                    miniHint: "Adjusts ISF dynamically based on multiple data points \n See hint for more info",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "Enabling this feature allows Trio to calculate a new Insulin Sensitivity Factor (ISF) with each loop cycle by considering your current glucose (BG), total daily dose (TDD) of insulin, adjustment factor (AF), and a few other data points. This helps tailor your insulin response more accurately in real-time."
+                                "Enabling this feature allows Trio to calculate a new Insulin Sensitivity Factor with each loop cycle by considering your current glucose, the weighted total daily dose of insulin, the set adjustment factor, and a few other data points. This helps tailor your insulin response more accurately in real-time."
                             )
                             Text(
                                 "Dynamic ISF produces a Dynamic Ratio, replacing the Autosens Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day."
@@ -143,9 +143,9 @@ extension DynamicSettings {
                                 Text(
                                     "Turning on the Sigmoid Formula setting alters how your Dynamic Ratio, and thus your New ISF and New Carb Ratio, are calculated using a sigmoid curve rather than the default logarithmic function."
                                 )
-                                Text("The curve's steepness is influenced by the Adjustment Factor (AF), while the Autosens Min/Max settings determine the limits of the ratio adjustment, which can also influence the steepness of the sigmoid curve.")
+                                Text("The curve's steepness is influenced by the Adjustment Factor, while the Autosens Min/Max settings determine the limits of the ratio adjustment, which can also influence the steepness of the sigmoid curve.")
                                 Text(
-                                    "When using the Sigmoid Formula, TDD has a much lower impact on the dynamic adjustments to sensitivity."
+                                    "When using the Sigmoid Formula, the weighted Total Daily Dose has a much lower impact on the dynamic adjustments to sensitivity."
                                 )
                                 Text("Careful tuning is essential to avoid overly aggressive insulin changes.")
                                 Text("It is not recommended to set Autosens Max above 150% to maintain safe insulin dosing.")
@@ -242,7 +242,7 @@ extension DynamicSettings {
                             Text("Default: 65%").bold()
                             VStack(alignment: .leading, spacing: 10) {
                                 Text(
-                                    "This setting adjusts how much weight is given to your recent total daily insulin dose (TDD) when calculating Dynamic ISF and Dynamic CR."
+                                    "This setting adjusts how much weight is given to your recent total daily insulin dose when calculating Dynamic ISF and Dynamic CR."
                                 )
                                 Text(
                                     "At the default setting, 65% of the calculation is based on the last 24 hours of insulin use, with the remaining 35% considering the last 10 days of data."
@@ -306,7 +306,7 @@ extension DynamicSettings {
                                 VStack(alignment: .leading, spacing: 10) {
                                     VStack(alignment: .leading, spacing: 5) {
                                         Text("The default setting is based on this calculation:").bold()
-                                        Text("Target BG - 0.5 × (Target BG - 40)")
+                                        Text("Target Glucose - 0.5 × (Target Glucose - 40)")
                                     }
                                     VStack(alignment: .leading, spacing: 5) {
                                         Text(
@@ -316,7 +316,7 @@ extension DynamicSettings {
                                     }
                                     Text("This setting is limited to values between 60 - 120 mg/dL (3.3 - 6.6 mmol/L)")
                                     Text(
-                                        "Note: Basal may be resumed if there's negative IOB and glucose is rising faster than the forecast."
+                                        "Note: Basal may be resumed if there is negative IOB and glucose is rising faster than the forecast."
                                     )
                                 }
                             }
