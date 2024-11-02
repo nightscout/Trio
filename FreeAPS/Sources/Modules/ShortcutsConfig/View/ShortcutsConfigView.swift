@@ -70,7 +70,7 @@ extension ShortcutsConfig {
                     units: state.units,
                     type: .boolean,
                     label: "Allow Bolusing with Shortcuts",
-                    miniHint: "Automate boluses using the Shortcuts App \nDefault: OFF",
+                    miniHint: "Automate boluses using the Shortcuts App",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {

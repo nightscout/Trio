@@ -298,7 +298,7 @@ extension UserInterfaceSettings {
 
                         HStack(alignment: .top) {
                             Text(
-                                "Choose between the OpenAPS colored Lines or the Cone of Uncertainty for the Forecast Lines \nDefault: Cone"
+                                "Choose between the OpenAPS colored Lines or the Cone of Uncertainty for the Forecast Lines"
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)

@@ -75,7 +75,7 @@ extension LiveActivitySettings {
                         units: state.units,
                         type: .boolean,
                         label: "Enable Live Activity",
-                        miniHint: "Display customizable data on Lock Screen and Dynamic Island \nDefault: OFF",
+                        miniHint: "Display customizable data on Lock Screen and Dynamic Island",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 10) {
@@ -111,7 +111,7 @@ extension LiveActivitySettings {
 
                                 HStack(alignment: .top) {
                                     Text(
-                                        "Choose between simple or detailed style \nDefault: Simple"
+                                        "Choose between simple or detailed style"
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)

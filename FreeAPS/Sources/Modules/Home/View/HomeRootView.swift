@@ -788,27 +788,27 @@ extension Home {
                         List {
                             DefinitionRow(
                                 term: "IOB (Insulin on Board)",
-                                definition: Text("Forecasts BG based on the amount of insulin still active in the body."),
+                                definition: Text("Forecasts future glucose readings based on the amount of insulin still active in the body."),
                                 color: .insulin
                             )
                             DefinitionRow(
                                 term: "ZT (Zero-Temp)",
                                 definition: Text(
-                                    "Forecasts the worst-case blood glucose (BG) scenario if no carbs are absorbed and insulin delivery is stopped until BG starts rising."
+                                    "Forecasts the worst-case future glucose reading scenario if no carbs are absorbed and insulin delivery is stopped until glucose starts rising."
                                 ),
                                 color: .zt
                             )
                             DefinitionRow(
                                 term: "COB (Carbs on Board)",
                                 definition: Text(
-                                    "Forecasts BG changes by considering the amount of carbohydrates still being absorbed in the body."
+                                    "Forecasts future glucose reading changes by considering the amount of carbohydrates still being absorbed in the body."
                                 ),
                                 color: .loopYellow
                             )
                             DefinitionRow(
                                 term: "UAM (Unannounced Meal)",
                                 definition: Text(
-                                    "Forecasts BG levels and insulin dosing needs for unexpected meals or other causes of BG rises without prior notice."
+                                    "Forecasts future glucose levels and insulin dosing needs for unexpected meals or other causes of glucose reading increases without prior notice."
                                 ),
                                 color: .uam
                             )

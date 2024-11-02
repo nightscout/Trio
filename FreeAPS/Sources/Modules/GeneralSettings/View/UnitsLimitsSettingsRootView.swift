@@ -58,14 +58,13 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxIOB"),
                     label: NSLocalizedString("Max IOB", comment: "Max IOB"),
-                    miniHint: "Maximum units of insulin allowed active at any given time \nDefault: 0 units",
+                    miniHint: "Maximum units of insulin allowed active at any given time",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 0 units").bold()
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("Warning: This must be greater than 0 for any automatic temp basals or SMBs to be given.").bold()
-                                .italic()
+                            Text("Warning: This must be greater than 0 for any automatic temporary basal rates or SMBs to be given.").bold()
                             Text(
-                                "The maximum amount of Insulin On Board (IOB) above profile basals from all sources - positive temp basals, manual or meal boluses, and SMBs - that Trio is allowed to accumulate to address a higher-than-target glucose."
+                                "The maximum amount of Insulin On Board (IOB) above profile basal rates from all sources - positive temporary basal rates, manual or meal boluses, and SMBs - that Trio is allowed to accumulate to address a higher-than-target glucose."
                             )
                             Text(
                                 "If a calculated amount exceeds this limit, the suggested and/or delivered amount will be reduced so that active insulin on board (IOB) will not exceed this safety limit."
@@ -73,7 +72,6 @@ extension UnitsLimitsSettings {
                             Text(
                                 "Note: You can still manually bolus above this limit, but the suggested bolus amount will never exceed this in the bolus calculator."
                             )
-                            .italic()
                         }
                     }
                 )
@@ -92,7 +90,7 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxBolus"),
                     label: "Max Bolus",
-                    miniHint: "Largest bolus of insulin allowed \nDefault: 10 units",
+                    miniHint: "Largest bolus of insulin allowed",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 10 units").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -117,7 +115,7 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxBasal"),
                     label: "Max Basal",
-                    miniHint: "Largest basal rate allowed \nDefault: 2.0 units",
+                    miniHint: "Largest basal rate allowed",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 2.0 units").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -141,14 +139,14 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxCOB"),
                     label: NSLocalizedString("Max COB", comment: "Max COB"),
-                    miniHint: "Max carbs Trio can use in dosing calculations \nDefault: 120 carbs",
+                    miniHint: "Max carbs Trio can use in dosing calculations",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 120 carbs").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Maximum Carbs On Board (COB) allowed. If more carbs are entered than allowed by this limit, Trio will cap the current COB in calculations to Max COB and remain at max until all remaining carbs have shown to be absorbed."
                             )
-                            Text("This is an important limit when UAM is ON.").italic()
+                            Text("This is an important limit when UAM is ON.")
                         }
                     }
                 )

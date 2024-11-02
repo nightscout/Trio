@@ -45,7 +45,7 @@ struct NightscoutFetchView: View {
                 units: state.units,
                 type: .boolean,
                 label: "Allow Fetching from Nightscout",
-                miniHint: "Enable fetching of selected data sets from Nightscout \nDefault: OFF",
+                miniHint: "Enable fetching of selected data sets from Nightscout",
                 verboseHint: VStack(spacing: 10) {
                     Text("Default: OFF").bold()
                     Text(
@@ -70,7 +70,7 @@ struct NightscoutFetchView: View {
                     units: state.units,
                     type: .boolean,
                     label: "Allow Remote Control of Trio",
-                    miniHint: "Enables selected remote control capabilities via Nightscout \nDefault: OFF",
+                    miniHint: "Enables selected remote control capabilities via Nightscout",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("When enabled you allow the following remote functions through announcements from Nightscout:")

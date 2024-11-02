@@ -54,7 +54,7 @@ extension TargetBehavoir {
                         "High Temp Target Raises Sensitivity",
                         comment: "High Temp Target Raises Sensitivity"
                     ),
-                    miniHint: "A Temp Target > 110 mg/dL increases sensitivity when glucose is above target \nDefault: OFF",
+                    miniHint: "A Temp Target > 110 mg/dL increases sensitivity when glucose is above target",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -64,7 +64,7 @@ extension TargetBehavoir {
                             Text(
                                 "If Half Basal Exercise Target is set to 160, a temp target of 120 mg/dL uses an Autosens Ratio of 0.75. A temp target of 140 mg/dL uses an Autosens Ratio of 0.6."
                             )
-                            Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target").italic()
+                            Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target")
                         }
                     },
                     headerText: "Algorithmic Target Settings"
@@ -90,7 +90,7 @@ extension TargetBehavoir {
                         "Low Temp Target Lowers Sensitivity",
                         comment: "Low Temp Target Lowers Sensitivity"
                     ),
-                    miniHint: "Temp Target < 100 mg/dL decreases sensitivity when glucose is below target \nDefault setting: OFF",
+                    miniHint: "Temp Target < 100 mg/dL decreases sensitivity when glucose is below target",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -100,7 +100,7 @@ extension TargetBehavoir {
                             Text(
                                 "If Half Basal Exercise Target is 160, a Temp Target of 95 mg/dL uses an Autosens Ratio of 1.09. A Temp Target of 85 mg/dL uses an Autosens Ratio of 1.33."
                             )
-                            Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target").italic()
+                            Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target")
                         }
                     }
                 )
@@ -119,7 +119,7 @@ extension TargetBehavoir {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Sensitivity Raises Target", comment: "Sensitivity Raises Target"),
-                    miniHint: "Automatically raise target glucose if sensitivity is detected \nDefault: OFF",
+                    miniHint: "Automatically raise target glucose if sensitivity is detected",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("Automatically increase target glucose if it detects an increase in sensitivity.")
@@ -140,7 +140,7 @@ extension TargetBehavoir {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Resistance Lowers Target", comment: "Resistance Lowers Target"),
-                    miniHint: "Automatically lower target glucose if resistance is detected \nDefault: OFF",
+                    miniHint: "Automatically lower target glucose if resistance is detected",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
@@ -163,7 +163,7 @@ extension TargetBehavoir {
                     units: state.units,
                     type: .decimal("halfBasalExerciseTarget"),
                     label: NSLocalizedString("Half Basal Exercise Target", comment: "Half Basal Exercise Target"),
-                    miniHint: "Scales down your basal rate to 50% at this value \nDefault: 160 mg/dL (8.9 mmol/L)",
+                    miniHint: "Scales down your basal rate to 50% at this value",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 160 mg/dL (8.9 mmol/L)").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -176,7 +176,6 @@ extension TargetBehavoir {
                             Text(
                                 "Note: This setting is only utilized if the settings \"Low Temp Target Lowers Sensitivity\" OR \"High Temp Target Raises Sensitivity\" are enabled."
                             )
-                            .italic()
                         }
                     }
                 )

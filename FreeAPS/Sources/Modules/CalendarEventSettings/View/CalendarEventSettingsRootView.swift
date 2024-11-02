@@ -48,7 +48,7 @@ extension CalendarEventSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Create Events in Calendar",
-                    miniHint: "Uses calendar events to display current data \nDefault: OFF",
+                    miniHint: "Uses calendar events to display current data",
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -61,7 +61,7 @@ extension CalendarEventSettings {
                             Text(
                                 "Once enabled, the available customizations will appear. You can customize with the calendar of your choosing, use of emoji labels, and the inclusion of IOB & COB data."
                             )
-                            Text("Note: Once a new calendar event is created, the previous event will be deleted.").italic()
+                            Text("Note: Once a new calendar event is created, the previous event will be deleted.")
                         }
                     },
                     headerText: "Diabetes Data as Calendar Event"
@@ -92,7 +92,7 @@ extension CalendarEventSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Display Emojis as Labels",
-                        miniHint: "Emojis used instead of text for data labels \nDefault: OFF",
+                        miniHint: "Emojis used instead of text for data labels",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 5) {
@@ -127,7 +127,7 @@ extension CalendarEventSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Display IOB and COB",
-                        miniHint: "Include IOB & COB in the calendar event data \nDefault: OFF",
+                        miniHint: "Include IOB & COB in the calendar event data",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
