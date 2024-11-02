@@ -35,7 +35,7 @@ class PickerSettingsProvider: ObservableObject {
 struct DecimalPickerSettings {
     var lowGlucose = PickerSetting(value: 70, step: 5, min: 40, max: 100, type: PickerSetting.PickerSettingType.glucose)
     var highGlucose = PickerSetting(value: 180, step: 5, min: 100, max: 400, type: PickerSetting.PickerSettingType.glucose)
-    var carbsRequiredThreshold = PickerSetting(value: 10, step: 1, min: 0, max: 100, type: PickerSetting.PickerSettingType.gramms)
+    var carbsRequiredThreshold = PickerSetting(value: 10, step: 1, min: 0, max: 100, type: PickerSetting.PickerSettingType.gram)
     var individualAdjustmentFactor = PickerSetting(
         value: 0.5,
         step: 0.05,
@@ -45,9 +45,9 @@ struct DecimalPickerSettings {
     )
     var high = PickerSetting(value: 180, step: 1, min: 100, max: 500, type: PickerSetting.PickerSettingType.glucose)
     var low = PickerSetting(value: 70, step: 1, min: 40, max: 100, type: PickerSetting.PickerSettingType.glucose)
-    var maxCarbs = PickerSetting(value: 250, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gramms)
-    var maxFat = PickerSetting(value: 250, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gramms)
-    var maxProtein = PickerSetting(value: 250, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gramms)
+    var maxCarbs = PickerSetting(value: 250, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gram)
+    var maxFat = PickerSetting(value: 250, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gram)
+    var maxProtein = PickerSetting(value: 250, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gram)
     var overrideFactor = PickerSetting(value: 0.8, step: 0.05, min: 0.5, max: 1.5, type: PickerSetting.PickerSettingType.factor)
     var fattyMealFactor = PickerSetting(value: 0.7, step: 0.05, min: 0.5, max: 2, type: PickerSetting.PickerSettingType.factor)
     var sweetMealFactor = PickerSetting(value: 2, step: 0.05, min: 1, max: 3, type: PickerSetting.PickerSettingType.factor)
@@ -76,7 +76,7 @@ struct DecimalPickerSettings {
         max: 200,
         type: PickerSetting.PickerSettingType.glucose
     )
-    var maxCOB = PickerSetting(value: 120, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gramms)
+    var maxCOB = PickerSetting(value: 120, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gram)
     var min5mCarbimpact = PickerSetting(value: 8, step: 1, min: 0, max: 20, type: PickerSetting.PickerSettingType.glucose)
     var autotuneISFAdjustmentFraction = PickerSetting(
         value: 1.0,
@@ -92,7 +92,7 @@ struct DecimalPickerSettings {
         max: 1,
         type: PickerSetting.PickerSettingType.factor
     )
-    var remainingCarbsCap = PickerSetting(value: 90, step: 5, min: 0, max: 200, type: PickerSetting.PickerSettingType.gramms)
+    var remainingCarbsCap = PickerSetting(value: 90, step: 5, min: 0, max: 200, type: PickerSetting.PickerSettingType.gram)
     var maxSMBBasalMinutes = PickerSetting(value: 30, step: 5, min: 30, max: 180, type: PickerSetting.PickerSettingType.minute)
     var maxUAMSMBBasalMinutes = PickerSetting(value: 30, step: 5, min: 30, max: 180, type: PickerSetting.PickerSettingType.minute)
     var smbInterval = PickerSetting(value: 3, step: 1, min: 1, max: 10, type: PickerSetting.PickerSettingType.minute)
@@ -104,7 +104,7 @@ struct DecimalPickerSettings {
         type: PickerSetting.PickerSettingType.insulinUnit
     )
     var insulinPeakTime = PickerSetting(value: 75, step: 5, min: 35, max: 120, type: PickerSetting.PickerSettingType.minute)
-    var carbsReqThreshold = PickerSetting(value: 1.0, step: 0.1, min: 0, max: 10, type: PickerSetting.PickerSettingType.gramms)
+    var carbsReqThreshold = PickerSetting(value: 1.0, step: 0.1, min: 0, max: 10, type: PickerSetting.PickerSettingType.gram)
     var noisyCGMTargetMultiplier = PickerSetting(
         value: 1.3,
         step: 0.05,
@@ -156,7 +156,7 @@ struct PickerSetting {
     enum PickerSettingType {
         case glucose
         case factor
-        case gramms
+        case gram
         case insulinUnit
         case minute
         case hour

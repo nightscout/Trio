@@ -218,7 +218,7 @@ struct SettingInputSection<VerboseHint: View>: View {
             return Text("\(decimalValue * 100) %")
         case .insulinUnit:
             return Text("\(decimalValue) U")
-        case .gramms:
+        case .gram:
             return Text("\(decimalValue) g")
         case .minute:
             return Text("\(decimalValue) min")
