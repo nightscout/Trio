@@ -1122,7 +1122,7 @@ struct TargetPicker: View {
                     get: { OverrideConfig.StateModel.roundTargetToStep(selection, targetStep) },
                     set: {
                         selection = $0
-                        hasChanges?.wrappedValue = true // This safely updates if hasChanges is provided
+                        hasChanges?.wrappedValue = true
                     }
                 ), label: Text("")) {
                     ForEach(options, id: \.self) { option in

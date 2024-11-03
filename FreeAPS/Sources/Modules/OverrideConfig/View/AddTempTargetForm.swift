@@ -349,28 +349,6 @@ struct AddTempTargetForm: View {
         return "\(formattedValue) \(state.units.rawValue)"
     }
 
-    private func roundTargetToStep(_ target: Decimal, _ step: Decimal) -> Decimal {
-        // Convert target and step to NSDecimalNumber
-        guard let targetValue = NSDecimalNumber(decimal: target).doubleValue as Double?,
-              let stepValue = NSDecimalNumber(decimal: step).doubleValue as Double?
-        else {
-            print("Failed to unwrap target or step as NSDecimalNumber")
-            return target
-        }
-
-        // Perform the remainder check using truncatingRemainder
-        let remainder = Decimal(targetValue.truncatingRemainder(dividingBy: stepValue))
-
-        if remainder != 0 {
-            // Calculate how much to adjust (up or down) based on the remainder
-            let adjustment = step - remainder
-            return target + adjustment
-        }
-
-        // Return the original target if no adjustment is needed
-        return target
-    }
-
     private func toggleScrollWheel(_ toggle: Bool) -> Bool {
         displayPickerDuration = false
         displayPickerTarget = false

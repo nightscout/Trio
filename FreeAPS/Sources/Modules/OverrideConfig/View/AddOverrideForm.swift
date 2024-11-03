@@ -68,7 +68,10 @@ struct AddOverrideForm: View {
                     )
                 }
             }
-            .onAppear { targetStep = state.units == .mgdL ? 5 : 9 }
+            .onAppear {
+                targetStep = state.units == .mgdL ? 5 : 9
+                state.target = state.normalTarget
+            }
             .sheet(isPresented: $state.isHelpSheetPresented) {
                 NavigationStack {
                     List {
