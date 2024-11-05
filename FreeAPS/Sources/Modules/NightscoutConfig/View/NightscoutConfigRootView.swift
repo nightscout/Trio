@@ -65,24 +65,18 @@ extension NightscoutConfig {
                             Button {
                                 importAlert = Alert(
                                     title: Text("Import Therapy Settings?"),
-                                    message: VStack(spacing: 10) {
-                                        Text("Are you sure you want to import profile settings from Nightscout?")
-                                        Text("This will overwrite the following Trio therapy settings:")
-                                        VStack(alignment: .leading, spacing: 5) {
-                                            Text("• Basal Rates")
-                                            Text("• Insulin Sensitivities")
-                                            Text("• Carb Ratios")
-                                            Text("• Target Glucose")
-                                            Text("• Duration of Insulin Action")
-                                        }
-                                    }
-                                    ),
+                                    message: Text("Are you sure you want to import profile settings from Nightscout?\n\n")
+                                        + Text("This will overwrite the following Trio therapy settings:\n")
+                                        + Text("• Basal Rates\n")
+                                        + Text("• Insulin Sensitivities\n")
+                                        + Text("• Carb Ratios\n")
+                                        + Text("• Target Glucose\n")
+                                        + Text("• Duration of Insulin Action"),
                                     primaryButton: .default(
                                         Text("Yes, Import!"),
                                         action: {
                                             Task {
                                                 await state.importSettings()
-                                                // Check the import status and errors after the import process finishes
                                                 if state.importStatus == .failed, state.importErrors.isNotEmpty,
                                                    let errorMessage = state.importErrors.first
                                                 {
@@ -109,7 +103,9 @@ extension NightscoutConfig {
                                 .disabled(state.url.isEmpty || state.connecting)
 
                             HStack(alignment: .top) {
-                                Text("Import therapy settings from Nightscout\nSee hint for the list of settings available for import")
+                                Text(
+                                    "Import therapy settings from Nightscout\nSee hint for the list of settings available for import"
+                                )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
                                 .lineLimit(nil)
@@ -119,7 +115,9 @@ extension NightscoutConfig {
                                         hintLabel = "Import Settings from Nightscout"
                                         selectedVerboseHint =
                                             AnyView(
-                                                Text("This will overwrite the following Trio therapy settings:\n\n• Basal Rates\n• Insulin Sensitivities\n• Carb Ratios\n• Target Glucose\n• Duration of Insulin Action")
+                                                Text(
+                                                    "This will overwrite the following Trio therapy settings:\n\n• Basal Rates\n• Insulin Sensitivities\n• Carb Ratios\n• Target Glucose\n• Duration of Insulin Action"
+                                                )
                                             )
                                         shouldDisplayHint.toggle()
                                     },

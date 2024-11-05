@@ -250,33 +250,32 @@ extension AlgorithmAdvancedSettings {
                     }
                 )
 
-                
-                //Commenting out Autotune from Settings Menu until full removal is complete
-                //SettingInputSection(
-                    //decimalValue: $state.autotuneISFAdjustmentFraction,
-                    //booleanValue: $booleanPlaceholder,
-                    //shouldDisplayHint: $shouldDisplayHint,
-                    //selectedVerboseHint: Binding(
-                        //get: { selectedVerboseHint },
-                        //set: {
-                            //selectedVerboseHint = $0.map { AnyView($0) }
-                            //hintLabel = NSLocalizedString(
-                                //"Autotune ISF Adjustment Percent",
-                                //comment: "Autotune ISF Adjustment Percent"
-                            //)
-                        //}
-                    //),
-                    //units: state.units,
-                    //type: .decimal("autotuneISFAdjustmentFraction"),
-                    //label: NSLocalizedString("Autotune ISF Adjustment Percent", comment: "Autotune ISF Adjustment Percent"),
-                    //miniHint: "Using Autotune is not advised",
-                    //verboseHint: Text(
-                        //NSLocalizedString(
-                            //"The default of 50% for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 100% allows full adjustment, 0% is no adjustment from pump ISF.",
-                            //comment: "Autotune ISF Adjustment Percent"
-                        //)
-                    //)
-                //)
+                // Commenting out Autotune from Settings Menu until full removal is complete
+                // SettingInputSection(
+                // decimalValue: $state.autotuneISFAdjustmentFraction,
+                // booleanValue: $booleanPlaceholder,
+                // shouldDisplayHint: $shouldDisplayHint,
+                // selectedVerboseHint: Binding(
+                // get: { selectedVerboseHint },
+                // set: {
+                // selectedVerboseHint = $0.map { AnyView($0) }
+                // hintLabel = NSLocalizedString(
+                // "Autotune ISF Adjustment Percent",
+                // comment: "Autotune ISF Adjustment Percent"
+                // )
+                // }
+                // ),
+                // units: state.units,
+                // type: .decimal("autotuneISFAdjustmentFraction"),
+                // label: NSLocalizedString("Autotune ISF Adjustment Percent", comment: "Autotune ISF Adjustment Percent"),
+                // miniHint: "Using Autotune is not advised",
+                // verboseHint: Text(
+                // NSLocalizedString(
+                // "The default of 50% for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 100% allows full adjustment, 0% is no adjustment from pump ISF.",
+                // comment: "Autotune ISF Adjustment Percent"
+                // )
+                // )
+                // )
 
                 SettingInputSection(
                     decimalValue: $state.min5mCarbimpact,
@@ -289,13 +288,13 @@ extension AlgorithmAdvancedSettings {
                             hintLabel = NSLocalizedString("Min 5m Carb Impact", comment: "Min 5m Carb Impact")
                         }
                     ),
-                    let myText = (state.units == .mg/dL ? 8 : 8.formmatedAsMmolL) + "Default:" + state.units.rawValue)
                     units: state.units,
                     type: .decimal("min5mCarbimpact"),
                     label: NSLocalizedString("Min 5m Carb Impact", comment: "Min 5m Carb Impact"),
                     miniHint: "Estimates the impact of carb absorbtion after 5 minutes",
                     verboseHint: VStack(spacing: 10) {
-                        Text(myText).bold
+                        //     let myText = (state.units == .mgdL ? 8.description : 8.formmatedAsMmolL) as! String + "Default:" + state.units.rawValue
+                        //     Text(myText).bold
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Min 5m Carb Impact sets the expected glucose rise from carbs over 5 minutes when absorption isn't obvious from glucose data."

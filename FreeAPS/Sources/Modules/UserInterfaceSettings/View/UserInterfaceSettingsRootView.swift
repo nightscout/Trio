@@ -80,7 +80,11 @@ extension UserInterfaceSettings {
                                     action: {
                                         hintLabel = "Color Scheme Preference"
                                         selectedVerboseHint =
-                                            AnyView(Text("Set the app color scheme using the following options \n\nSystem Default: Follows the phone's current color scheme setting at that time\nLight: Always in Light mode \nDark: Always in Dark mode"))
+                                            AnyView(
+                                                Text(
+                                                    "Set the app color scheme using the following options \n\nSystem Default: Follows the phone's current color scheme setting at that time\nLight: Always in Light mode \nDark: Always in Dark mode"
+                                                )
+                                            )
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -153,7 +157,9 @@ extension UserInterfaceSettings {
                                     action: {
                                         hintLabel = "Show Main Chart X- and Y-Axis Grid Lines"
                                         selectedVerboseHint =
-                                            AnyView(Text("Choose whether or not to display one or both X- and Y-Axis grid lines."))
+                                            AnyView(
+                                                Text("Choose whether or not to display one or both X- and Y-Axis grid lines.")
+                                            )
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -182,7 +188,9 @@ extension UserInterfaceSettings {
                     type: .boolean,
                     label: "Show Low and High Thresholds",
                     miniHint: "Display the Low and High glucose thresholds set below",
-                    verboseHint: Text("This setting displays the upper and lower values for your glucose target range. \n\nThis range is for display and statistical purposes only and does not influence insulin dosing.")
+                    verboseHint: Text(
+                        "This setting displays the upper and lower values for your glucose target range. \n\nThis range is for display and statistical purposes only and does not influence insulin dosing."
+                    )
                 )
 
                 if state.rulerMarks {
@@ -270,8 +278,12 @@ extension UserInterfaceSettings {
                                     action: {
                                         hintLabel = "Low and High Thresholds"
                                         selectedVerboseHint =
-                                            AnyView(Text("Default values are based on internationally accepted Time in Range values of 70-180 mg/dL (5.5-10 mmol/L) \nSet the values used in the main screen glucose graph and to determine Time in Range for Statistics. \nNote: These values are not used to calculate insulin dosing."))
-                                        
+                                            AnyView(
+                                                Text(
+                                                    "Default values are based on internationally accepted Time in Range values of 70-180 mg/dL (5.5-10 mmol/L) \nSet the values used in the main screen glucose graph and to determine Time in Range for Statistics. \nNote: These values are not used to calculate insulin dosing."
+                                                )
+                                            )
+
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -308,7 +320,11 @@ extension UserInterfaceSettings {
                                 action: {
                                     hintLabel = "Forecast Display Type"
                                     selectedVerboseHint =
-                                        AnyView(Text("This setting allows you to choose between the following two options for the Forecast lines (previously: Prediction Lines). \n\nLines: Uses the IOB, COB, UAM, and ZT forecast lines from OpenAPS \n\nCone: Uses a combined range of all possible forecasts from the OpenAPS lines and provides you with a range of possible forecasts. This option has shown to reduce confusion and stress around algorithm forecasts by providing a less concerning visual representation."))
+                                        AnyView(
+                                            Text(
+                                                "This setting allows you to choose between the following two options for the Forecast lines (previously: Prediction Lines). \n\nLines: Uses the IOB, COB, UAM, and ZT forecast lines from OpenAPS \n\nCone: Uses a combined range of all possible forecasts from the OpenAPS lines and provides you with a range of possible forecasts. This option has shown to reduce confusion and stress around algorithm forecasts by providing a less concerning visual representation."
+                                            )
+                                        )
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -336,7 +352,9 @@ extension UserInterfaceSettings {
                     type: .decimal("hours"),
                     label: "X-Axis Interval Step",
                     miniHint: "Determines how many hours are shown in the main graph",
-                    verboseHint: Text("Default: 6 hours \n\nThis setting determines how many hours are shown in the primary view of the main graph.")
+                    verboseHint: Text(
+                        "Default: 6 hours \n\nThis setting determines how many hours are shown in the primary view of the main graph."
+                    )
                 )
 
                 Section {
@@ -362,7 +380,11 @@ extension UserInterfaceSettings {
                                 action: {
                                     hintLabel = "Total Insulin Display Type"
                                     selectedVerboseHint =
-                                        AnyView(Text("Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph.\n\nTotal Daily Dose: Displays the last 24 hours of total insulin administered, both basal and bolus. \n\nTotal Insulin in Scope: Displays the total insulin administered since midnight, both basal and bolus."))
+                                        AnyView(
+                                            Text(
+                                                "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph.\n\nTotal Daily Dose: Displays the last 24 hours of total insulin administered, both basal and bolus. \n\nTotal Insulin in Scope: Displays the total insulin administered since midnight, both basal and bolus."
+                                            )
+                                        )
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -391,7 +413,9 @@ extension UserInterfaceSettings {
                     type: .boolean,
                     label: "Override HbA1c Unit",
                     miniHint: "Display HbA1c in mmol/mol or %",
-                    verboseHint: Text("Choose which format you'd prefer the HbA1c value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)"),
+                    verboseHint: Text(
+                        "Choose which format you'd prefer the HbA1c value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)"
+                    ),
                     headerText: "Trio Statistics"
                 )
 
@@ -411,7 +435,9 @@ extension UserInterfaceSettings {
                     type: .boolean,
                     label: "Standing / Laying TIR Chart",
                     miniHint: "Select a vertical chart or horizontal chart to display your Time in Range Statistics",
-                    verboseHint: Text("Select a vertical / standing chart by turning this feature OFF \n\nSelect a horizontal / laying chart by turning this feature ON")
+                    verboseHint: Text(
+                        "Select a vertical / standing chart by turning this feature OFF \n\nSelect a horizontal / laying chart by turning this feature ON"
+                    )
                 )
 
                 SettingInputSection(
@@ -430,7 +456,9 @@ extension UserInterfaceSettings {
                     label: "Show Carbs Required Badge",
                     conditionalLabel: "Carbs Required Threshold",
                     miniHint: "Show carbs required as a notification badge on the home screen",
-                    verboseHint: Text("Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon"),
+                    verboseHint: Text(
+                        "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon"
+                    ),
                     headerText: "Carbs Required Badge"
                 )
             }

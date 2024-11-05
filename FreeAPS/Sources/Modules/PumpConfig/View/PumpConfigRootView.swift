@@ -73,7 +73,12 @@ extension PumpConfig {
                                         Button(
                                             action: {
                                                 hintLabel = "Pump Pairing to Trio"
-                                                selectedVerboseHint = AnyView(Text("Current Pump Models Supported:\n\n•Medtronic\n•Omnipod Eros\n•Omnipod Dash\n•Pump Simulator\n\nNote: If using a pump simulator, you will not have continuous readings from the CGM in Trio. Using a pump simulator is only advisable for becoming familiar with the app user interface. It will not give you insight on how the algorithm will respond."))
+                                                selectedVerboseHint =
+                                                    AnyView(
+                                                        Text(
+                                                            "Current Pump Models Supported:\n\n•Medtronic\n•Omnipod Eros\n•Omnipod Dash\n•Pump Simulator\n\nNote: If using a pump simulator, you will not have continuous readings from the CGM in Trio. Using a pump simulator is only advisable for becoming familiar with the app user interface. It will not give you insight on how the algorithm will respond."
+                                                        )
+                                                    )
                                                 shouldDisplayHint.toggle()
                                             },
                                             label: {

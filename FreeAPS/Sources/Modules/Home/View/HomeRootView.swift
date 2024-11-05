@@ -788,7 +788,9 @@ extension Home {
                         List {
                             DefinitionRow(
                                 term: "IOB (Insulin on Board)",
-                                definition: Text("Forecasts future glucose readings based on the amount of insulin still active in the body."),
+                                definition: Text(
+                                    "Forecasts future glucose readings based on the amount of insulin still active in the body."
+                                ),
                                 color: .insulin
                             )
                             DefinitionRow(

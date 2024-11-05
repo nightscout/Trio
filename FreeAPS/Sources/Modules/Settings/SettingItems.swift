@@ -130,7 +130,7 @@ enum SettingItems {
                 "Unsuspend If No Temp",
                 "Suspend Zeros IOB",
                 "Min 5m Carbimpact",
-                //"Autotune ISF Adjustment Fraction",
+                // "Autotune ISF Adjustment Fraction",
                 "Remaining Carbs Fraction",
                 "Remaining Carbs Cap",
                 "Noisy CGM Target Multiplier"
@@ -203,8 +203,8 @@ enum SettingItems {
             ],
             path: ["Features", "User Interface"]
         ),
-        SettingItem(title: "App Icons", view: .iconConfig),
-        //SettingItem(title: "Autotune", view: .autotuneConfig)
+        SettingItem(title: "App Icons", view: .iconConfig)
+        // SettingItem(title: "Autotune", view: .autotuneConfig)
     ]
 
     static let notificationItems = [

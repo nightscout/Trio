@@ -106,7 +106,9 @@ struct WatchConfigAppleWatchView: View {
                 type: .boolean,
                 label: "Confirm Bolus Faster",
                 miniHint: "Removes validation for boluses sent from the paired apple watch",
-                verboseHint: Text("Enabling this feature removes the confirmation / validation step to initiate a bolus faster from the watch.")
+                verboseHint: Text(
+                    "Enabling this feature removes the confirmation / validation step to initiate a bolus faster from the watch."
+                )
             )
         }
         .sheet(isPresented: $shouldDisplayHint) {

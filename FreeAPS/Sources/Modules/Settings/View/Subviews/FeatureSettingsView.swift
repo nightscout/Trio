@@ -53,12 +53,12 @@ struct FeatureSettingsView: BaseView {
             )
             .listRowBackground(Color.chart)
 
-            //Section(
-                //header: Text("Data-Driven Settings Tuning"),
-                //content: {
-                    //Text("Autotune").navigationLink(to: .autotuneConfig, from: self)
-                //}
-            //)
+            // Section(
+            // header: Text("Data-Driven Settings Tuning"),
+            // content: {
+            // Text("Autotune").navigationLink(to: .autotuneConfig, from: self)
+            // }
+            // )
             .listRowBackground(Color.chart)
         }
         .scrollContentBackground(.hidden).background(color)

@@ -80,8 +80,13 @@ extension DynamicSettings {
                             Text(
                                 "Dynamic ISF produces a Dynamic Ratio, replacing the Autosens Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day."
                             )
-                            Text("You can influence the adjustments made by Dynamic ISF primarily by adjusting Autosens Max, Autosens Min, and Adjustment Factor. Other settings also influence Dynamic ISF's response, such as Target Glucose, Profile ISF, Peak Insulin Time, and Weighted Average of TDD.")
-                            Text("Warning: Before adjusting these settings, make sure you are fully aware of the impact those changes will have.").bold()
+                            Text(
+                                "You can influence the adjustments made by Dynamic ISF primarily by adjusting Autosens Max, Autosens Min, and Adjustment Factor. Other settings also influence Dynamic ISF's response, such as Target Glucose, Profile ISF, Peak Insulin Time, and Weighted Average of TDD."
+                            )
+                            Text(
+                                "Warning: Before adjusting these settings, make sure you are fully aware of the impact those changes will have."
+                            )
+                            .bold()
                         }
                     },
                     headerText: "Dynamic Settings"
@@ -143,7 +148,9 @@ extension DynamicSettings {
                                 Text(
                                     "Turning on the Sigmoid Formula setting alters how your Dynamic Ratio, and thus your New ISF and New Carb Ratio, are calculated using a sigmoid curve rather than the default logarithmic function."
                                 )
-                                Text("The curve's steepness is influenced by the Adjustment Factor, while the Autosens Min/Max settings determine the limits of the ratio adjustment, which can also influence the steepness of the sigmoid curve.")
+                                Text(
+                                    "The curve's steepness is influenced by the Adjustment Factor, while the Autosens Min/Max settings determine the limits of the ratio adjustment, which can also influence the steepness of the sigmoid curve."
+                                )
                                 Text(
                                     "When using the Sigmoid Formula, the weighted Total Daily Dose has a much lower impact on the dynamic adjustments to sensitivity."
                                 )
@@ -168,7 +175,7 @@ extension DynamicSettings {
                                     hintLabel = "Adjustment Factor (AF)"
                                 }
                             ),
-                            //TODO?: include conditional links to Desmos logarithmic graphs based on which .glucose setting is used
+                            // TODO?: include conditional links to Desmos logarithmic graphs based on which .glucose setting is used
                             units: state.units,
                             type: .decimal("adjustmentFactor"),
                             label: "Adjustment Factor (AF)",
@@ -211,7 +218,8 @@ extension DynamicSettings {
                                         "The Sigmoid Adjustment Factor (AF) allows you to control how quickly Sigmoid Dynamic ISF responds to changes in glucose levels and at what glucose value you will reach your Autosens Max and Autosens Min limits."
                                     )
                                     Text(
-                                        "Sigmoid Adjustment Factor influences both how fast your ISF values will change and how quickly you will reach your Autosens Max and Min limits set. Increasing Sigmoid Adjustment Factor increases the rate of change of your ISF and reduces the range of glucose values between your Autosens Max and Min limits.")
+                                        "Sigmoid Adjustment Factor influences both how fast your ISF values will change and how quickly you will reach your Autosens Max and Min limits set. Increasing Sigmoid Adjustment Factor increases the rate of change of your ISF and reduces the range of glucose values between your Autosens Max and Min limits."
+                                    )
                                     Text(
                                         "This setting allows for a more responsive system, but the effects are restricted by the Autosens Min/Max settings."
                                     )
@@ -270,10 +278,14 @@ extension DynamicSettings {
                         miniHint: "Use Dynamic Ratio to adjust basal rates",
                         verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
-                            Text("Turn this setting on to give basal adjustments more agility. Keep this setting off if your basal needs are not highly variable.")
+                            Text(
+                                "Turn this setting on to give basal adjustments more agility. Keep this setting off if your basal needs are not highly variable."
+                            )
                             Text("Normally, a new basal rate is set by autosens:")
                             Text("New Basal Profile =\n(Current Basal Profile) x (Autosens Ratio)")
-                            Text("Adjust Basal replaces the standard Autosens Ratio calculation with its own Autosens Ratio calculated as such:")
+                            Text(
+                                "Adjust Basal replaces the standard Autosens Ratio calculation with its own Autosens Ratio calculated as such:"
+                            )
                             Text("Autosens Ratio =\n(Weighted Average of TDD) ÷ (10-day Average of TDD)")
                             Text("New Basal Profile =\n(Current Basal Profile) × (Autosens Ratio)")
                         }

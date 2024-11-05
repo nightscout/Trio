@@ -62,7 +62,10 @@ extension UnitsLimitsSettings {
                     verboseHint: VStack(spacing: 10) {
                         Text("Default: 0 units").bold()
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("Warning: This must be greater than 0 for any automatic temporary basal rates or SMBs to be given.").bold()
+                            Text(
+                                "Warning: This must be greater than 0 for any automatic temporary basal rates or SMBs to be given."
+                            )
+                            .bold()
                             Text(
                                 "The maximum amount of Insulin On Board (IOB) above profile basal rates from all sources - positive temporary basal rates, manual or meal boluses, and SMBs - that Trio is allowed to accumulate to address a higher-than-target glucose."
                             )
