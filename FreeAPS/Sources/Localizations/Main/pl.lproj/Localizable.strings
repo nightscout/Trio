@@ -1644,7 +1644,7 @@ Enact a temp Basal or a temp target */
 "Today" = "Dzisiaj";
 
 /* */
-"Day" = "Dni";
+"Day" = "Dzień";
 
 /* */
 "Week" = "Tydzień";
@@ -1935,7 +1935,7 @@ Enact a temp Basal or a temp target */
 "Max IOB is the maximum amount of insulin on board from all sources – both basal (or SMB correction) and bolus insulin – that your loop is allowed to accumulate to treat higher-than-target BG. Unlike the other two OpenAPS safety settings (max_daily_safety_multiplier and current_basal_safety_multiplier), max_iob is set as a fixed number of units of insulin. As of now manual boluses are NOT limited by this setting. \n\n To test your basal rates during nighttime, you can modify the Max IOB setting to zero while in Closed Loop. This will enable low glucose suspend mode while testing your basal rates settings\n\n(Tip from https://www.loopandlearn.org/freeaps-x/#open-loop)." = "Max IOB to maksymalna ilość insuliny na pokładzie ze wszystkich źródeł - zarówno bazowej (lub korekty SMB), jak i insuliny bolusowej - którą pętla może kumulować się w celu leczenia wyższego niż docelowy stężenia BG. W przeciwieństwie do pozostałych dwóch ustawień bezpieczeństwa OpenAPS (max_daily_safety_multiplier i current_basal_safety_multiplier), max_iob jest ustawiony jako stała liczba jednostek insuliny. Od teraz ręczne bolusy NIE są ograniczone przez to ustawienie. \n\n Aby przetestować dawki bazowe w nocy, możesz zmodyfikować ustawienie Max IOB do zera w zamkniętej pętli. Spowoduje to włączenie trybu zawieszania niskiej glukozy podczas testowania ustawień podstawowych\n\n(Tip z https://www.loopandlearn.org/freeaps-x/#open-loop).";
 
 /* Headline "Max Daily Safety Multiplier" */
-"Max Daily Safety Multiplier" = "Dzienny mnożnik bezpieczeństwa bazy";
+"Max Daily Safety Multiplier" = "Dzienny mnożnik bezpieczeństwa";
 
 /* "Max Daily Safety Multiplier" */
 "This is an important OpenAPS safety limit. The default setting (which is unlikely to need adjusting) is 3. This means that OpenAPS will never be allowed to set a temporary basal rate that is more than 3x the highest hourly basal rate programmed in a user’s pump, or, if enabled, determined by autotune." = "Jest to ważny limit bezpieczeństwa OpenAPS. Domyślne ustawienie (jest mało prawdopodobne, aby wymagało dostosowania) to 3. Oznacza to, że OpenAPS nigdy nie będzie mógł ustawiać tymczasowej dawki podstawowej, która jest większa niż 3 krotność najwyższej godzinowej raty dawki podstawowej zaprogramowanej w pompie użytkownika, lub włączonej przez autotune.";
