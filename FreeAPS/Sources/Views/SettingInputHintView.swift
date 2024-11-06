@@ -4,7 +4,6 @@ struct SettingInputHintView<HintView: View>: View {
     @Binding var hintDetent: PresentationDetent
     @Binding var shouldDisplayHint: Bool
     var hintLabel: String
-    var hintDefaultSetting: String?
     var hintText: HintView
     var sheetTitle: String
 
@@ -31,7 +30,6 @@ struct SettingInputHintView<HintView: View>: View {
             List {
                 DefinitionRow(
                     term: hintLabel,
-                    defaultSetting: hintDefaultSetting,
                     definition: hintText,
                     fontSize: .body
                 )
