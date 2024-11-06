@@ -227,7 +227,10 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
                 await endActivity()
                 await pushUpdate(state)
             } else {
-                let content = ActivityContent(state: state, staleDate: min(state.date, Date.now).addingTimeInterval(360))
+                let content = ActivityContent(
+                    state: state,
+                    staleDate: min(state.date ?? Date.now, Date.now).addingTimeInterval(360) // 6 minutes in seconds
+                )
                 await currentActivity.activity.update(content)
             }
         } else {
