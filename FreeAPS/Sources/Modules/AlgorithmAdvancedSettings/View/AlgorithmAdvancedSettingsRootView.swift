@@ -9,6 +9,7 @@ extension AlgorithmAdvancedSettings {
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
+        @State var hintDefaultSetting: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
 
@@ -55,6 +56,9 @@ extension AlgorithmAdvancedSettings {
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier")
+                            hintDefaultSetting =
+                                "\((PickerSettingsProvider.shared.settings.maxDailySafetyMultiplier.value * 100).description) " +
+                                "%"
                         }
                     ),
                     units: state.units,
@@ -62,7 +66,6 @@ extension AlgorithmAdvancedSettings {
                     label: NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier"),
                     miniHint: "Limits temporary basal rates to this percentage of your largest basal rate",
                     verboseHint: VStack(spacing: 10) {
-                        Text("Default: 300%").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "This setting restricts the maximum temporary basal rate Trio can set. At the default of 300%, it caps it at 3 times your highest programmed basal rate."
@@ -85,6 +88,9 @@ extension AlgorithmAdvancedSettings {
                                 "Current Basal Safety Multiplier",
                                 comment: "Current Basal Safety Multiplier"
                             )
+                            hintDefaultSetting =
+                                "\((PickerSettingsProvider.shared.settings.currentBasalSafetyMultiplier.value * 100).description) " +
+                                "%"
                         }
                     ),
                     units: state.units,
@@ -92,7 +98,6 @@ extension AlgorithmAdvancedSettings {
                     label: NSLocalizedString("Current Basal Safety Multiplier", comment: "Current Basal Safety Multiplier"),
                     miniHint: "Limits temporary basal rates to this percentage of the current basal rate",
                     verboseHint: VStack(spacing: 10) {
-                        Text("Default: 400%").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "This limits the automatic adjustment of the temporary basal rate to this percentage of the current hourly profile basal rate at the time of the loop cycle."
@@ -114,6 +119,8 @@ extension AlgorithmAdvancedSettings {
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Duration of Insulin Action"
+                            hintDefaultSetting = "\(PickerSettingsProvider.shared.settings.dia.value.description) " +
+                                "hr"
                         }
                     ),
                     units: state.units,
@@ -121,7 +128,6 @@ extension AlgorithmAdvancedSettings {
                     label: "Duration of Insulin Action",
                     miniHint: "Number of hours insulin is active in your body",
                     verboseHint: VStack(spacing: 10) {
-                        Text("Default: 6 hours").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "The Duration of Insulin Action (DIA) defines how long your insulin continues to lower glucose readings after a dose."
@@ -146,6 +152,9 @@ extension AlgorithmAdvancedSettings {
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time")
+                            hintDefaultSetting =
+                                "\(PickerSettingsProvider.shared.settings.insulinPeakTime.value.description) " +
+                                "min"
                         }
                     ),
                     units: state.units,
@@ -154,7 +163,6 @@ extension AlgorithmAdvancedSettings {
                     conditionalLabel: NSLocalizedString("Insulin Peak Time", comment: "Insulin Peak Time"),
                     miniHint: "Sets time of insulin's peak effect",
                     verboseHint: VStack(spacing: 10) {
-                        Text("Default: Set by Insulin Type").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Insulin Peak Time defines when insulin is most effective in lowering glucose, set in minutes after dosing."
@@ -286,6 +294,9 @@ extension AlgorithmAdvancedSettings {
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Min 5m Carb Impact", comment: "Min 5m Carb Impact")
+                            hintDefaultSetting =
+                                "\(PickerSettingsProvider.shared.settings.min5mCarbimpact.value.description) " + state.units
+                                    .rawValue
                         }
                     ),
                     units: state.units,
@@ -293,8 +304,6 @@ extension AlgorithmAdvancedSettings {
                     label: NSLocalizedString("Min 5m Carb Impact", comment: "Min 5m Carb Impact"),
                     miniHint: "Estimates the impact of carb absorbtion after 5 minutes",
                     verboseHint: VStack(spacing: 10) {
-                        //     let myText = (state.units == .mgdL ? 8.description : 8.formmatedAsMmolL) as! String + "Default:" + state.units.rawValue
-                        //     Text(myText).bold
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Min 5m Carb Impact sets the expected glucose rise from carbs over 5 minutes when absorption isn't obvious from glucose data."
@@ -318,6 +327,9 @@ extension AlgorithmAdvancedSettings {
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Remaining Carbs Percentage", comment: "Remaining Carbs Percentage")
+                            hintDefaultSetting =
+                                "\((PickerSettingsProvider.shared.settings.remainingCarbsFraction.value * 100).description) " +
+                                "%"
                         }
                     ),
                     units: state.units,
@@ -325,7 +337,6 @@ extension AlgorithmAdvancedSettings {
                     label: NSLocalizedString("Remaining Carbs Percentage", comment: "Remaining Carbs Percentage"),
                     miniHint: "% of carbs still available if no absorption is detected",
                     verboseHint: VStack(spacing: 10) {
-                        Text("Default: 100%").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Remaining Carbs Percentage estimates carbs still absorbing over 4 hours if glucose data doesn't show clear absorption."
@@ -346,6 +357,8 @@ extension AlgorithmAdvancedSettings {
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap")
+                            hintDefaultSetting =
+                                "\(PickerSettingsProvider.shared.settings.remainingCarbsCap.value.description) " + "g"
                         }
                     ),
                     units: state.units,
@@ -353,7 +366,6 @@ extension AlgorithmAdvancedSettings {
                     label: NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap"),
                     miniHint: "Maximum amount of carbs still available if no absorption is detected",
                     verboseHint: VStack(spacing: 10) {
-                        Text("Default: 90g").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "The Remaining Carbs Cap defines the upper limit for how many carbs the system will assume are absorbing over 4 hours, even when there's no clear sign of absorption from your glucose readings."
@@ -374,6 +386,9 @@ extension AlgorithmAdvancedSettings {
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Noisy CGM Target Multiplier", comment: "Noisy CGM Target Multiplier")
+                            hintDefaultSetting =
+                                "\((PickerSettingsProvider.shared.settings.noisyCGMTargetMultiplier.value * 100).description) " +
+                                "%"
                         }
                     ),
                     units: state.units,
@@ -381,7 +396,6 @@ extension AlgorithmAdvancedSettings {
                     label: NSLocalizedString("Noisy CGM Target Increase", comment: "Noisy CGM Target Increase"),
                     miniHint: "Increase glucose target when noisy CGM data detected%",
                     verboseHint: VStack(spacing: 10) {
-                        Text("Default: 130%").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "The Noisy CGM Target Multiplier increases your glucose target when the system detects noisy or raw CGM data. By default, the target is increased by 130% to account for the less reliable glucose readings."
@@ -398,6 +412,7 @@ extension AlgorithmAdvancedSettings {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
+                    hintDefaultSetting: hintDefaultSetting ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )

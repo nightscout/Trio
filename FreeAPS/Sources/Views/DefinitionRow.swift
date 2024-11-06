@@ -3,6 +3,7 @@ import SwiftUI
 
 struct DefinitionRow<DefinitionView: View>: View {
     var term: String
+    var defaultSetting: String?
     var definition: DefinitionView
     var color: Color?
     var fontSize: Font?
@@ -15,6 +16,13 @@ struct DefinitionRow<DefinitionView: View>: View {
                 }
                 Text(term).font(fontSize ?? .subheadline).fontWeight(.semibold)
             }.padding(.bottom, 5)
+            if defaultSetting != nil {
+                Text("Default: \(defaultSetting ?? "")")
+                    .font(fontSize ?? .subheadline)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 5)
+                    .bold()
+            }
             definition
                 .font(fontSize ?? .subheadline)
                 .foregroundColor(.secondary)
