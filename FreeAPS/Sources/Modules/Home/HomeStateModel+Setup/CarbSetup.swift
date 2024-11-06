@@ -16,7 +16,8 @@ extension Home.StateModel {
             onContext: carbsFetchContext,
             predicate: NSPredicate.carbsForChart,
             key: "date",
-            ascending: false
+            ascending: false,
+            batchSize: 5
         )
 
         return await carbsFetchContext.perform {

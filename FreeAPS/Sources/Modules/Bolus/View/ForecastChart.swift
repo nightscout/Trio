@@ -9,6 +9,8 @@ struct ForecastChart: View {
 
     @State private var startMarker = Date(timeIntervalSinceNow: -4 * 60 * 60)
 
+    @State var selection: Date? = nil
+
     private var endMarker: Date {
         state
             .forecastDisplayType == .lines ? Date(timeIntervalSinceNow: TimeInterval(hours: 3)) :
@@ -30,6 +32,12 @@ struct ForecastChart: View {
             formatter.maximumFractionDigits = 0
         }
         return formatter
+    }
+
+    private var selectedGlucose: GlucoseStored? {
+        guard let selection = selection else { return nil }
+        let range = selection.addingTimeInterval(-150) ... selection.addingTimeInterval(150)
+        return state.glucoseFromPersistence.first { $0.date.map(range.contains) ?? false }
     }
 
     var body: some View {
@@ -114,12 +122,90 @@ struct ForecastChart: View {
             } else {
                 drawForecastsCone()
             }
+
+            if let selectedGlucose {
+                RuleMark(x: .value("Selection", selectedGlucose.date ?? Date.now, unit: .minute))
+                    .foregroundStyle(Color.tabBar)
+                    .lineStyle(.init(lineWidth: 2))
+                    .annotation(
+                        position: .top,
+                        overflowResolution: .init(x: .fit(to: .chart), y: .disabled)
+                    ) {
+                        selectionPopover
+                    }
+
+                PointMark(
+                    x: .value("Time", selectedGlucose.date ?? Date.now, unit: .minute),
+                    y: .value("Value", selectedGlucose.glucose)
+                )
+                .zIndex(-1)
+                .symbolSize(CGSize(width: 15, height: 15))
+                .foregroundStyle(
+                    Decimal(selectedGlucose.glucose) > state.highGlucose ? Color.orange
+                        .opacity(0.8) :
+                        (
+                            Decimal(selectedGlucose.glucose) < state.lowGlucose ? Color.red.opacity(0.8) : Color.green
+                                .opacity(0.8)
+                        )
+                )
+
+                PointMark(
+                    x: .value("Time", selectedGlucose.date ?? Date.now, unit: .minute),
+                    y: .value("Value", selectedGlucose.glucose)
+                )
+                .zIndex(-1)
+                .symbolSize(CGSize(width: 6, height: 6))
+                .foregroundStyle(Color.primary)
+            }
         }
+        .chartXSelection(value: $selection)
         .chartXAxis { forecastChartXAxis }
         .chartXScale(domain: startMarker ... endMarker)
         .chartYAxis { forecastChartYAxis }
         .chartYScale(domain: state.units == .mgdL ? 0 ... 300 : 0.asMmolL ... 300.asMmolL)
         .backport.chartForegroundStyleScale(state: state)
+    }
+
+    @ViewBuilder var selectionPopover: some View {
+        if let sgv = selectedGlucose?.glucose {
+            VStack(alignment: .leading) {
+                HStack {
+                    Image(systemName: "clock")
+                    Text(selectedGlucose?.date?.formatted(.dateTime.hour().minute(.twoDigits)) ?? "")
+                        .font(.footnote).bold()
+                }.font(.footnote).padding(.bottom, 5)
+
+                // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+                let hardCodedLow = Decimal(55)
+                let hardCodedHigh = Decimal(220)
+                let isDynamicColorScheme = state.glucoseColorScheme == .dynamicColor
+
+                let glucoseColor = FreeAPS.getDynamicGlucoseColor(
+                    glucoseValue: Decimal(sgv),
+                    highGlucoseColorValue: isDynamicColorScheme ? hardCodedHigh : state.highGlucose,
+                    lowGlucoseColorValue: isDynamicColorScheme ? hardCodedLow : state.lowGlucose,
+                    targetGlucose: state.currentBGTarget,
+                    glucoseColorScheme: state.glucoseColorScheme
+                )
+                HStack {
+                    Text(state.units == .mgdL ? Decimal(sgv).description : Decimal(sgv).formattedAsMmolL)
+                        .bold()
+                        + Text(" \(state.units.rawValue)")
+                }.foregroundStyle(
+                    Color(glucoseColor)
+                ).font(.footnote)
+            }
+            .padding(7)
+            .background {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.chart.opacity(0.85))
+                    .shadow(color: Color.secondary, radius: 2)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(Color.secondary, lineWidth: 2)
+                    )
+            }
+        }
     }
 
     private func drawGlucose() -> some ChartContent {
