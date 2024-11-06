@@ -15,6 +15,10 @@ protocol NightscoutManager: GlucoseSource {
     func deleteManualGlucose(withID id: String) async
     func uploadStatus() async
     func uploadGlucose() async
+    func uploadCarbs() async
+    func uploadPumpHistory() async
+    func uploadOverrides() async
+    func uploadTempTargets() async
     func uploadManualGlucose() async
     func uploadProfiles() async
     func importSettings() async -> ScheduledNightscoutProfile?
@@ -692,24 +696,24 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         await uploadManualGlucose(glucoseStorage.getManualGlucoseNotYetUploadedToNightscout())
     }
 
-    private func uploadPumpHistory() async {
+    func uploadPumpHistory() async {
         await uploadTreatments(
             pumpHistoryStorage.getPumpHistoryNotYetUploadedToNightscout(),
             fileToSave: OpenAPS.Nightscout.uploadedPumphistory
         )
     }
 
-    private func uploadCarbs() async {
+    func uploadCarbs() async {
         await uploadCarbs(carbsStorage.getCarbsNotYetUploadedToNightscout())
         await uploadCarbs(carbsStorage.getFPUsNotYetUploadedToNightscout())
     }
 
-    private func uploadOverrides() async {
+    func uploadOverrides() async {
         await uploadOverrides(overridesStorage.getOverridesNotYetUploadedToNightscout())
         await uploadOverrideRuns(overridesStorage.getOverrideRunsNotYetUploadedToNightscout())
     }
 
-    private func uploadTempTargets() async {
+    func uploadTempTargets() async {
         await uploadTreatments(
             tempTargetsStorage.nightscoutTreatmentsNotUploaded(),
             fileToSave: OpenAPS.Nightscout.uploadedTempTargets
