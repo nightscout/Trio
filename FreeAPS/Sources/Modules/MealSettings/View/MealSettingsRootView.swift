@@ -370,21 +370,21 @@ extension MealSettings {
                             }
                         }
                     )
-                    .sheet(isPresented: $shouldDisplayHint) {
-                        SettingInputHintView(
-                            hintDetent: $hintDetent,
-                            shouldDisplayHint: $shouldDisplayHint,
-                            hintLabel: hintLabel ?? "",
-                            hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                            sheetTitle: "Help"
-                        )
-                    }
-                    .scrollContentBackground(.hidden).background(color)
-                    .onAppear(perform: configureView)
-                    .navigationBarTitle("Meal Settings")
-                    .navigationBarTitleDisplayMode(.automatic)
                 }
             }
+            .sheet(isPresented: $shouldDisplayHint) {
+                SettingInputHintView(
+                    hintDetent: $hintDetent,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    hintLabel: hintLabel ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                    sheetTitle: "Help"
+                )
+            }
+            .scrollContentBackground(.hidden).background(color)
+            .onAppear(perform: configureView)
+            .navigationBarTitle("Meal Settings")
+            .navigationBarTitleDisplayMode(.automatic)
         }
     }
 }
