@@ -91,7 +91,7 @@ enum SettingItems {
             path: ["Algorithm", "Super Micro Bolus (SMB)"]
         ),
         SettingItem(
-            title: "Dynamic Sensitivity",
+            title: "Dynamic Settings",
             view: .dynamicISF,
             searchContents: [
                 "Activate Dynamic Sensitivity (ISF)",
