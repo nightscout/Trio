@@ -76,7 +76,7 @@ extension LiveActivitySettings {
                         type: .boolean,
                         label: "Enable Live Activity",
                         miniHint: "Display customizable data on Lock Screen and Dynamic Island",
-                        verboseHint: VStack(spacing: 10) {
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 10) {
                                 Text(
@@ -122,7 +122,7 @@ extension LiveActivitySettings {
                                             hintLabel = "Lock Screen Widget Style"
                                             selectedVerboseHint =
                                                 AnyView(
-                                                    VStack(spacing: 10) {
+                                                    VStack(alignment: .leading, spacing: 10) {
                                                         Text("Default: Simple").bold()
                                                         VStack(alignment: .leading, spacing: 10) {
                                                             Text("Simple:").bold()

@@ -46,19 +46,18 @@ struct NightscoutUploadView: View {
                 type: .boolean,
                 label: "Allow Uploading to Nightscout",
                 miniHint: "Enables upload of selected data sets to Nightscout",
-                verboseHint: VStack(spacing: 10) {
+                verboseHint:
+                VStack(alignment: .leading, spacing: 10) {
                     Text("Default: OFF").bold()
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(
-                            "The Upload Treatments toggle enables uploading of the following data sets to your connected Nightscout URL:"
-                        )
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("• Carbs")
-                            Text("• Temp Targets")
-                            Text("• Device Status")
-                            Text("• Preferences")
-                            Text("• Settings")
-                        }
+                    Text(
+                        "The Upload Treatments toggle enables uploading of the following data sets to your connected Nightscout URL:"
+                    )
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("• Carbs")
+                        Text("• Temp Targets")
+                        Text("• Device Status")
+                        Text("• Preferences")
+                        Text("• Settings")
                     }
                 }
             )
@@ -80,7 +79,7 @@ struct NightscoutUploadView: View {
                     type: .boolean,
                     label: "Upload Glucose",
                     miniHint: "Enables uploading of CGM readings to Nightscout",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("Enabling this setting allows CGM readings from Trio to be used in Nightscout.")
                     }

@@ -209,7 +209,7 @@ extension MealSettings {
                     type: .boolean,
                     label: "Enable Fat and Protein Entries",
                     miniHint: "Allows you to add fat and protein macros to meals",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
@@ -264,16 +264,15 @@ extension MealSettings {
                         type: .decimal("delay"),
                         label: "Fat and Protein Delay",
                         miniHint: "Delay between fat & protein entry and first FPU entry",
-                        verboseHint: VStack(spacing: 10) {
+                        verboseHint:
+                        VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 60 min").bold()
-                            VStack(alignment: .leading, spacing: 10) {
-                                Text(
-                                    "The Fat Protein Delay setting defines the time between when you log fat and protein and when the system starts delivering insulin for the Fat-Protein Unit Carb Equivalents (FPUs)."
-                                )
-                                Text(
-                                    "This delay accounts for the slower absorption of fat and protein, as calculated by the Warsaw Method, ensuring insulin delivery is properly timed to manage glucose spikes caused by high-fat, high-protein meals."
-                                )
-                            }
+                            Text(
+                                "The Fat Protein Delay setting defines the time between when you log fat and protein and when the system starts delivering insulin for the Fat-Protein Unit Carb Equivalents (FPUs)."
+                            )
+                            Text(
+                                "This delay accounts for the slower absorption of fat and protein, as calculated by the Warsaw Method, ensuring insulin delivery is properly timed to manage glucose spikes caused by high-fat, high-protein meals."
+                            )
                         }
                     )
 
@@ -292,19 +291,18 @@ extension MealSettings {
                         type: .decimal("timeCap"),
                         label: "Maximum Duration",
                         miniHint: "Set the maximum timeframe to extend FPUs",
-                        verboseHint: VStack(spacing: 10) {
+                        verboseHint:
+                        VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 8 hours").bold()
-                            VStack(alignment: .leading, spacing: 10) {
-                                Text(
-                                    "This sets the maximum length of time that Fat and Protein Carb Equivalents (FPUs) will be extended over from a single Fat and/or Protein bolus calcultor entry."
-                                )
-                                Text(
-                                    "It is one factor used in combination with the Fat and Protein Delay, Spread Interval, and Fat and Protein Factor to create the FPU entries."
-                                )
-                                Text("Increasing this setting may result in more FPU entries with smaller carb values.")
-                                Text("Decreasing this setting may result in fewer FPU entries with larger carb values.")
-                                Text("Note: Accepted range for this setting is 5 - 12 hours.")
-                            }
+                            Text(
+                                "This sets the maximum length of time that Fat and Protein Carb Equivalents (FPUs) will be extended over from a single Fat and/or Protein bolus calcultor entry."
+                            )
+                            Text(
+                                "It is one factor used in combination with the Fat and Protein Delay, Spread Interval, and Fat and Protein Factor to create the FPU entries."
+                            )
+                            Text("Increasing this setting may result in more FPU entries with smaller carb values.")
+                            Text("Decreasing this setting may result in fewer FPU entries with larger carb values.")
+                            Text("Note: Accepted range for this setting is 5 - 12 hours.")
                         }
                     )
 
@@ -323,17 +321,16 @@ extension MealSettings {
                         type: .decimal("minuteInterval"),
                         label: "Spread Interval",
                         miniHint: "Time interval between FPUs",
-                        verboseHint: VStack(spacing: 10) {
+                        verboseHint:
+                        VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 30 minutes").bold()
-                            VStack(alignment: .leading, spacing: 10) {
-                                Text(
-                                    "This determines how many minutes will be between individual Fat-Protein Unit Carb Equivalent (FPU) entries from a single Fat and/or Protein bolus calculator entry."
-                                )
-                                Text("The shorter the interval, the smoother the correlating dosing result.")
-                                Text("Increasing this setting may result in fewer FPU entries with larger carb values.")
-                                Text("Decreasing this setting may result in more FPU entries with smaller carb values.")
-                                Text("Accepted range for this setting is 5 - 60 minutes.")
-                            }
+                            Text(
+                                "This determines how many minutes will be between individual Fat-Protein Unit Carb Equivalent (FPU) entries from a single Fat and/or Protein bolus calculator entry."
+                            )
+                            Text("The shorter the interval, the smoother the correlating dosing result.")
+                            Text("Increasing this setting may result in fewer FPU entries with larger carb values.")
+                            Text("Decreasing this setting may result in more FPU entries with smaller carb values.")
+                            Text("Accepted range for this setting is 5 - 60 minutes.")
                         }
                     )
 
@@ -352,7 +349,7 @@ extension MealSettings {
                         type: .decimal("individualAdjustmentFactor"),
                         label: "Fat and Protein Percentage",
                         miniHint: "Influences the conversion rate used in the Warsaw Method",
-                        verboseHint: VStack(spacing: 10) {
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 50%").bold()
                             VStack(spacing: 10) {
                                 Text("This setting changes how much effect the fat and protein entry has on FPUs.")

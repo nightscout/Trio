@@ -46,7 +46,7 @@ struct NightscoutFetchView: View {
                 type: .boolean,
                 label: "Allow Fetching from Nightscout",
                 miniHint: "Enable fetching of selected data sets from Nightscout",
-                verboseHint: VStack(spacing: 10) {
+                verboseHint: VStack(alignment: .leading, spacing: 10) {
                     Text("Default: OFF").bold()
                     Text(
                         "The Fetch Treatments toggle enables fetching of carbs and temp targets entered in Careportal or by another uploading device than Trio from Nightscout."
@@ -71,7 +71,7 @@ struct NightscoutFetchView: View {
                     type: .boolean,
                     label: "Allow Remote Control of Trio",
                     miniHint: "Enables selected remote control capabilities via Nightscout",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("When enabled you allow the following remote functions through announcements from Nightscout:")
                         VStack(alignment: .leading) {

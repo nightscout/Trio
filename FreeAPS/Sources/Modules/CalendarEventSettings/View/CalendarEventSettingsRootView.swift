@@ -49,20 +49,19 @@ extension CalendarEventSettings {
                     type: .boolean,
                     label: "Create Events in Calendar",
                     miniHint: "Uses calendar events to display current data",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(
-                                "When enabled, Trio will create a customizable calendar event to keep you notified of your current glucose reading with every successful loop cycle."
-                            )
-                            Text(
-                                "This is useful if you use CarPlay or a variety of other external services that limit the view of most apps, but allows the calendar app"
-                            )
-                            Text(
-                                "Once enabled, the available customizations will appear. You can customize with the calendar of your choosing, use of emoji labels, and the inclusion of IOB & COB data."
-                            )
-                            Text("Note: Once a new calendar event is created, the previous event will be deleted.")
-                        }
+                        Text(
+                            "When enabled, Trio will create a customizable calendar event to keep you notified of your current glucose reading with every successful loop cycle."
+                        )
+                        Text(
+                            "This is useful if you use CarPlay or a variety of other external services that limit the view of most apps, but allows the calendar app"
+                        )
+                        Text(
+                            "Once enabled, the available customizations will appear. You can customize with the calendar of your choosing, use of emoji labels, and the inclusion of IOB & COB data."
+                        )
+                        Text("Note: Once a new calendar event is created, the previous event will be deleted.")
                     },
                     headerText: "Diabetes Data as Calendar Event"
                 )
@@ -93,7 +92,7 @@ extension CalendarEventSettings {
                         type: .boolean,
                         label: "Display Emojis as Labels",
                         miniHint: "Emojis used instead of text for data labels",
-                        verboseHint: VStack(spacing: 10) {
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(
@@ -128,7 +127,7 @@ extension CalendarEventSettings {
                         type: .boolean,
                         label: "Display IOB and COB",
                         miniHint: "Include IOB & COB in the calendar event data",
-                        verboseHint: VStack(spacing: 10) {
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
                                 "When enabled, Trio will include the current IOB and COB values, along with the current glucose reading, in each calendar event created."
