@@ -239,7 +239,7 @@ extension AlgorithmAdvancedSettings {
                         Text(
                             "This prevents lingering insulin effects when your pump is suspended, ensuring safer management of insulin on board."
                         )
-                        Text("Note: Applies to only to pumps with on-pump suspend options")
+                        Text("Note: Applies to only to pumps with on-pump suspend options.")
                     }
                 )
 
@@ -370,7 +370,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("noisyCGMTargetMultiplier"),
                     label: NSLocalizedString("Noisy CGM Target Increase", comment: "Noisy CGM Target Increase"),
-                    miniHint: "Increase glucose target when noisy CGM data detected%",
+                    miniHint: "Increase glucose target when noisy CGM data is detected",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 130%").bold()

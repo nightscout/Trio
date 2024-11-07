@@ -64,7 +64,7 @@ extension BolusCalculatorConfig {
                     label: "Display Meal Presets",
                     miniHint: "Allows you to create and save preset meals",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
+                        Text("Default: ON").bold()
                         Text("Enabling this feature allows you to create and save preset meals.")
                     }
                 )
@@ -86,7 +86,7 @@ extension BolusCalculatorConfig {
                     miniHint: "Percent of bolus used in bolus calculator",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: 70%").bold()
+                        Text("Default: 80%").bold()
                         Text(
                             "Recommended Bolus Percentage is a safety feature built into Trio. Trio first calculates an insulin required value, which is the full dosage. That dosage is then multiplied by your Recommended Bolus Percentage to display your suggested insulin dose in the bolus calculator."
                         )
