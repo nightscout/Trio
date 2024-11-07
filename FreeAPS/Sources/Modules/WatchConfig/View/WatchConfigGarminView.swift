@@ -50,7 +50,7 @@ struct WatchConfigGarminView: View {
 
                         HStack(alignment: .top) {
                             Text(
-                                "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                "Add a Garmin Device to Trio"
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -59,7 +59,12 @@ struct WatchConfigGarminView: View {
                             Button(
                                 action: {
                                     hintLabel = "Add Device"
-                                    selectedVerboseHint = AnyView(Text("Add Garmin Device… bla bla bla"))
+                                    selectedVerboseHint =
+                                        AnyView(
+                                            Text(
+                                                "Add Garmin Device to Trio. Please look at the docs to see which device are supported."
+                                            )
+                                        )
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
