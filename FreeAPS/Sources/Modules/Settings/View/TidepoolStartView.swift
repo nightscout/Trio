@@ -67,7 +67,7 @@ struct TidepoolStartView: BaseView {
                             }
                         }
 
-                        HStack(alignment: .top) {
+                        HStack(alignment: .center) {
                             Text("You can connect Trio to seamlessly upload and manage your diabetes data on Tidepool.")
                                 .font(.footnote)
                                 .foregroundColor(.secondary)

@@ -821,9 +821,14 @@ extension Home {
                         List {
                             DefinitionRow(
                                 term: "Cone of Uncertainty",
-                                definition: Text(
-                                    "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result.\n\nTo modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type."
-                                ),
+                                definition: VStack {
+                                    Text(
+                                        "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
+                                    )
+                                    Text(
+                                        "Note: To modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type."
+                                    )
+                                },
                                 color: Color.blue.opacity(0.5)
                             )
                         }

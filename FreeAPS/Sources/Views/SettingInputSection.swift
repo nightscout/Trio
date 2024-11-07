@@ -236,7 +236,7 @@ struct SettingInputSection<VerboseHint: View>: View {
     }
 
     private func hintSection(miniHint: String, shouldDisplayHint: Binding<Bool>, verboseHint: VerboseHint) -> some View {
-        HStack(alignment: .top) {
+        HStack(alignment: .center) {
             Text(miniHint)
                 .font(.footnote)
                 .foregroundColor(.secondary)

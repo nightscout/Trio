@@ -102,9 +102,9 @@ extension NightscoutConfig {
                                 .buttonStyle(.bordered)
                                 .disabled(state.url.isEmpty || state.connecting)
 
-                            HStack(alignment: .top) {
+                            HStack(alignment: .center) {
                                 Text(
-                                    "Import therapy settings from Nightscout\nSee hint for the list of settings available for import"
+                                    "Import therapy settings from Nightscout.\nSee hint for the list of settings available for import."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -115,9 +115,18 @@ extension NightscoutConfig {
                                         hintLabel = "Import Settings from Nightscout"
                                         selectedVerboseHint =
                                             AnyView(
-                                                Text(
-                                                    "This will overwrite the following Trio therapy settings:\n\n• Basal Rates\n• Insulin Sensitivities\n• Carb Ratios\n• Target Glucose\n• Duration of Insulin Action"
-                                                )
+                                                VStack(spacing: 10) {
+                                                    Text(
+                                                        "This will overwrite the following Trio therapy settings:"
+                                                    )
+                                                    VStack {
+                                                        Text("• Basal Rates")
+                                                        Text("• Insulin Sensitivities")
+                                                        Text("• Carb Ratios")
+                                                        Text("• Target Glucose")
+                                                        Text("• Duration of Insulin Action")
+                                                    }
+                                                }
                                             )
                                         shouldDisplayHint.toggle()
                                     },
@@ -146,9 +155,9 @@ extension NightscoutConfig {
                                     .buttonStyle(.bordered)
                                     .disabled(state.url.isEmpty || state.connecting || state.backfilling)
 
-                                HStack(alignment: .top) {
+                                HStack(alignment: .center) {
                                     Text(
-                                        "Backfill missing glucose data from Nightscout"
+                                        "Backfill missing glucose data from Nightscout."
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)

@@ -48,7 +48,7 @@ extension CalendarEventSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Create Events in Calendar",
-                    miniHint: "Uses calendar events to display current data",
+                    miniHint: "Uses calendar events to display current data.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -91,7 +91,7 @@ extension CalendarEventSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Display Emojis as Labels",
-                        miniHint: "Emojis used instead of text for data labels",
+                        miniHint: "Emojis used instead of text for data labels.",
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 5) {
@@ -126,7 +126,7 @@ extension CalendarEventSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Display IOB and COB",
-                        miniHint: "Include IOB & COB in the calendar event data",
+                        miniHint: "Include IOB & COB in the calendar event data.",
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(

@@ -62,7 +62,7 @@ extension BolusCalculatorConfig {
                     units: state.units,
                     type: .boolean,
                     label: "Display Meal Presets",
-                    miniHint: "Allows you to create and save preset meals",
+                    miniHint: "Allows you to create and save preset meals.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("Enabling this feature allows you to create and save preset meals.")
@@ -83,7 +83,7 @@ extension BolusCalculatorConfig {
                     units: state.units,
                     type: .decimal("overrideFactor"),
                     label: "Recommended Bolus Percentage",
-                    miniHint: "Percent of bolus used in bolus calculator",
+                    miniHint: "Percentage of bolus used in bolus calculator.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 70%").bold()
@@ -115,7 +115,7 @@ extension BolusCalculatorConfig {
                     type: .conditionalDecimal("fattyMealFactor"),
                     label: "Enable Fatty Meal Option",
                     conditionalLabel: "Fatty Meal Bolus Percentage",
-                    miniHint: "\"Fatty Meal\" option appears in the bolus calculator",
+                    miniHint: "\"Fatty Meal\" option appears in the bolus calculator.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -148,7 +148,7 @@ extension BolusCalculatorConfig {
                     type: .conditionalDecimal("sweetMealFactor"),
                     label: "Enable Super Bolus Option",
                     conditionalLabel: "Super Bolus Percentage",
-                    miniHint: "\"Super Bolus\" option appears in the bolus calculator",
+                    miniHint: "\"Super Bolus\" option appears in the bolus calculator.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()

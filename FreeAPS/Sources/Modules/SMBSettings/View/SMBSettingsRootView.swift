@@ -48,7 +48,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Enable SMB Always", comment: "Enable SMB Always"),
-                    miniHint: "Allow SMBs at all times except when a high Temp Target is set",
+                    miniHint: "Allow SMBs at all times except when a high Temp Target is set.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
@@ -73,7 +73,7 @@ extension SMBSettings {
                         units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB With COB", comment: "Enable SMB With COB"),
-                        miniHint: "Allow SMB when carbs are on board",
+                        miniHint: "Allow SMB when carbs are on board.",
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -100,12 +100,12 @@ extension SMBSettings {
                         units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB With Temptarget", comment: "Enable SMB With Temptarget"),
-                        miniHint: "Allow SMB when a manual Temporary Target is set under 100 mg/dL (5.5 mmol/L)",
+                        miniHint: "Allow SMB when a manual Temporary Target is set under \(state.units == .mgdL ? "100" : 100.formattedAsMmol ?? "100") \(state.units.rawValue).",
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
-                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) at times when a manual Temporary Target under 100 mg/dL (5.5 mmol/L) is set."
+                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) at times when a manual Temporary Target under \(state.units == .mgdL ? "100" : 100.formattedAsMmol ?? "100") \(state.units.rawValue) is set."
                             )
                             Text(
                                 "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
@@ -127,7 +127,7 @@ extension SMBSettings {
                         units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB After Carbs", comment: "Enable SMB After Carbs"),
-                        miniHint: "Allow SMB for 6 hrs after carbs are logged",
+                        miniHint: "Allow SMB for 6 hrs after carbs are logged.",
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -155,7 +155,7 @@ extension SMBSettings {
                         type: .conditionalDecimal("enableSMB_high_bg_target"),
                         label: NSLocalizedString("Enable SMB With High BG", comment: "Enable SMB With High BG"),
                         conditionalLabel: "High BG Target",
-                        miniHint: "Allow SMB when glucose is above the High BG Target value",
+                        miniHint: "Allow SMB when glucose is above the High BG Target value.",
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -189,12 +189,12 @@ extension SMBSettings {
                         "Allow SMB With High Temptarget",
                         comment: "Allow SMB With High Temptarget"
                     ),
-                    miniHint: "Allow SMB when a manual Temporary Target is set greater than 100 mg/dL (5.5 mmol/L)",
+                    miniHint: "Allow SMB when a manual Temporary Target is set greater than \(state.units == .mgdL ? "100" : 100.formattedAsMmol ?? "100") \(state.units.rawValue).",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when a manual Temporary Target above 100 mg/dL (5.5 mmol/L) is set."
+                            "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when a manual Temporary Target above \(state.units == .mgdL ? "100" : 100.formattedAsMmol ?? "100") \(state.units.rawValue) is set."
                         )
                         Text(
                             "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
@@ -219,7 +219,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Enable UAM", comment: "Enable UAM"),
-                    miniHint: "Automatically adjust insulin delivery when carbs are not announced or miscalculated",
+                    miniHint: "Automatically adjust insulin delivery when carbs are not announced or miscalculated.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -249,7 +249,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("maxSMBBasalMinutes"),
                     label: NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes"),
-                    miniHint: "Limits the size of a single Super Micro Bolus (SMB) dose",
+                    miniHint: "Limits the size of a single Super Micro Bolus (SMB) dose.",
                     verboseHint: VStack(spacing: 10) {
                         VStack(alignment: .leading, spacing: 1) {
                             Text("Default: 30 minutes").bold()
@@ -292,7 +292,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("maxUAMSMBBasalMinutes"),
                     label: NSLocalizedString("Max UAM Basal Minutes", comment: "Max UAM Basal Minutes"),
-                    miniHint: "Limits the size of a single Unannounced Meal (UAM) SMB dose",
+                    miniHint: "Limits the size of a single Unannounced Meal (UAM) SMB dose.",
                     verboseHint: VStack(spacing: 10) {
                         VStack(alignment: .leading, spacing: 1) {
                             Text("Default: 30 minutes").bold()
@@ -335,7 +335,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("maxDeltaBGthreshold"),
                     label: NSLocalizedString("Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold"),
-                    miniHint: "Disables SMBs if last two glucose values differ by more than this percent",
+                    miniHint: "Disables SMBs if last two glucose values differ by more than this percent.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 20% increase").bold()
@@ -360,7 +360,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("smbDeliveryRatio"),
                     label: NSLocalizedString("SMB DeliveryRatio", comment: "SMB DeliveryRatio"),
-                    miniHint: "Limits % of total insulin required that can be given as SMB",
+                    miniHint: "Limits % of total insulin required that can be given as SMB.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 50%").bold()
@@ -388,7 +388,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("smbInterval"),
                     label: NSLocalizedString("SMB Interval", comment: "SMB Interval"),
-                    miniHint: "Minimum minutes since the last SMB or manual bolus to allow an automated SMB",
+                    miniHint: "Minimum minutes since the last SMB or manual bolus to allow an automated SMB.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 3 min").bold()

@@ -60,7 +60,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("maxDailySafetyMultiplier"),
                     label: NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier"),
-                    miniHint: "Limits temporary basal rates to this percentage of your largest basal rate",
+                    miniHint: "Limits temporary basal rates to this percentage of your largest basal rate.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 300%").bold()
@@ -89,7 +89,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("currentBasalSafetyMultiplier"),
                     label: NSLocalizedString("Current Basal Safety Multiplier", comment: "Current Basal Safety Multiplier"),
-                    miniHint: "Limits temporary basal rates to this percentage of the current basal rate",
+                    miniHint: "Limits temporary basal rates to this percentage of the current basal rate.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 400%").bold()
@@ -117,7 +117,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("dia"),
                     label: "Duration of Insulin Action",
-                    miniHint: "Number of hours insulin is active in your body",
+                    miniHint: "Number of hours insulin is active in your body.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 6 hours").bold()
@@ -149,7 +149,7 @@ extension AlgorithmAdvancedSettings {
                     type: .conditionalDecimal("insulinPeakTime"),
                     label: NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time"),
                     conditionalLabel: NSLocalizedString("Insulin Peak Time", comment: "Insulin Peak Time"),
-                    miniHint: "Sets time of insulin's peak effect",
+                    miniHint: "Sets time of insulin's peak effect.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: Set by Insulin Type").bold()
@@ -179,7 +179,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps"),
-                    miniHint: "Skip neutral temporary basal rates to reduce pump alerts",
+                    miniHint: "Skip neutral temporary basal rates to reduce pump alerts.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -204,7 +204,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Unsuspend If No Temp", comment: "Unsuspend If No Temp"),
-                    miniHint: "Automatically resumes pump after suspension",
+                    miniHint: "Automatically resumes pump after suspension.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -229,7 +229,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Suspend Zeros IOB", comment: "Suspend Zeros IOB"),
-                    miniHint: "Clears temporary basal rates and resets IOB when suspended",
+                    miniHint: "Clears temporary basal rates and resets IOB when suspended.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -284,21 +284,18 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("min5mCarbimpact"),
                     label: NSLocalizedString("Min 5m Carb Impact", comment: "Min 5m Carb Impact"),
-                    miniHint: "Estimates the impact of carb absorbtion after 5 minutes",
-                    verboseHint: VStack(spacing: 10) {
-                        //     let myText = (state.units == .mgdL ? 8.description : 8.formmatedAsMmolL) as! String + "Default:" + state.units.rawValue
-                        //     Text(myText).bold
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(
-                                "Min 5m Carb Impact sets the expected glucose rise from carbs over 5 minutes when absorption isn't obvious from glucose data."
-                            )
-                            Text(
-                                "The default value of 8 mg/dL per 5 minutes corresponds to an absorption rate of 24g of carbs per hour."
-                            )
-                            Text(
-                                "This setting helps the system estimate how much glucose your body is absorbing, even when it's not immediately visible in your glucose data, ensuring more accurate insulin dosing during carb absorption."
-                            )
-                        }
+                    miniHint: "Estimates the impact of carb absorbtion after 5 minutes.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(
+                            "Min 5m Carb Impact sets the expected glucose rise from carbs over 5 minutes when absorption isn't obvious from glucose data."
+                        )
+                        Text(
+                            "The default value of 8 mg/dL per 5 minutes corresponds to an absorption rate of 24g of carbs per hour."
+                        )
+                        Text(
+                            "This setting helps the system estimate how much glucose your body is absorbing, even when it's not immediately visible in your glucose data, ensuring more accurate insulin dosing during carb absorption."
+                        )
                     }
                 )
 
@@ -316,7 +313,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("remainingCarbsFraction"),
                     label: NSLocalizedString("Remaining Carbs Percentage", comment: "Remaining Carbs Percentage"),
-                    miniHint: "% of carbs still available if no absorption is detected",
+                    miniHint: "Percentage of carbs still available if no absorption is detected.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 100%").bold()
@@ -343,7 +340,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("remainingCarbsCap"),
                     label: NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap"),
-                    miniHint: "Maximum amount of carbs still available if no absorption is detected",
+                    miniHint: "Maximum amount of carbs still available if no absorption is detected.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 90g").bold()
@@ -370,7 +367,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("noisyCGMTargetMultiplier"),
                     label: NSLocalizedString("Noisy CGM Target Increase", comment: "Noisy CGM Target Increase"),
-                    miniHint: "Increase glucose target when noisy CGM data detected%",
+                    miniHint: "Increase glucose target when noisy CGM data detected.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 130%").bold()
@@ -380,6 +377,7 @@ extension AlgorithmAdvancedSettings {
                         Text(
                             "This helps reduce the risk of incorrect insulin dosing based on inaccurate sensor data, ensuring safer insulin adjustments during periods of poor CGM accuracy."
                         )
+                        Text("Note: A CGM is considered noisy when it provides inconsistent readings.")
                     }
                 )
             }

@@ -68,9 +68,9 @@ extension UserInterfaceSettings {
                                 }
                             }.padding(.top)
 
-                            HStack(alignment: .top) {
+                            HStack(alignment: .center) {
                                 Text(
-                                    "Choose between Light, Dark, or System Default for the app color scheme"
+                                    "Choose between Light, Dark, or System Default for the app color scheme."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -81,9 +81,18 @@ extension UserInterfaceSettings {
                                         hintLabel = "Color Scheme Preference"
                                         selectedVerboseHint =
                                             AnyView(
-                                                Text(
-                                                    "Set the app color scheme using the following options \n\nSystem Default: Follows the phone's current color scheme setting at that time\nLight: Always in Light mode \nDark: Always in Dark mode"
-                                                )
+                                                VStack(spacing: 10) {
+                                                    Text(
+                                                        "Set the app color scheme using the following options:"
+                                                    )
+                                                    VStack {
+                                                        Text(
+                                                            "System Default: Follows the phone's current color scheme setting at that time"
+                                                        )
+                                                        Text("Light: Always in Light mode")
+                                                        Text("Dark: Always in Dark mode")
+                                                    }
+                                                }
                                             )
                                         shouldDisplayHint.toggle()
                                     },
@@ -109,9 +118,9 @@ extension UserInterfaceSettings {
                             }
                         }.padding(.top)
 
-                        HStack(alignment: .top) {
+                        HStack(alignment: .center) {
                             Text(
-                                "Choose between Static or Dynamic coloring for glucose readings"
+                                "Choose between Static or Dynamic coloring for glucose readings."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -122,9 +131,19 @@ extension UserInterfaceSettings {
                                     hintLabel = "Glucose Color Scheme"
                                     selectedVerboseHint =
                                         AnyView(
-                                            Text(
-                                                "Set the color scheme for glucose readings on the main glucose graph, live activities, and bolus calculator using the following options: \n\nStatic: Below-Range Target readings will be in RED, In-Range will be GREEN, Above-Range will be YELLOW \n\nDynamic: Readings on Target will be GREEN. As readings approach and exceed below target, they become more RED. As readings approach and exceed above targer, they become more PURPLE."
-                                            )
+                                            VStack(spacing: 10) {
+                                                Text(
+                                                    "Set the color scheme for glucose readings on the main glucose graph, live activities, and bolus calculator using the following options:"
+                                                )
+                                                VStack {
+                                                    Text(
+                                                        "Static: Below-Range Target readings will be in RED, In-Range will be GREEN, Above-Range will be YELLOW."
+                                                    )
+                                                    Text(
+                                                        "Dynamic: Readings on Target will be GREEN. As readings approach and exceed below target, they become more RED. As readings approach and exceed above targer, they become more PURPLE."
+                                                    )
+                                                }
+                                            }
                                         )
                                     shouldDisplayHint.toggle()
                                 },
@@ -145,9 +164,9 @@ extension UserInterfaceSettings {
                             Toggle("Show X-Axis Grid Lines", isOn: $state.xGridLines)
                             Toggle("Show Y-Axis Grid Lines", isOn: $state.yGridLines)
 
-                            HStack(alignment: .top) {
+                            HStack(alignment: .center) {
                                 Text(
-                                    "Display the grid lines behind the glucose graph"
+                                    "Display the grid lines behind the glucose graph."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -187,10 +206,11 @@ extension UserInterfaceSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Show Low and High Thresholds",
-                    miniHint: "Display the Low and High glucose thresholds set below",
-                    verboseHint: Text(
-                        "This setting displays the upper and lower values for your glucose target range. \n\nThis range is for display and statistical purposes only and does not influence insulin dosing."
-                    )
+                    miniHint: "Display the Low and High glucose thresholds set below.",
+                    verboseHint: VStack(spacing: 10) {
+                        Text("This setting displays the upper and lower values for your glucose target range.")
+                        Text("This range is for display and statistical purposes only and does not influence insulin dosing.")
+                    }
                 )
 
                 if state.rulerMarks {
@@ -265,9 +285,9 @@ extension UserInterfaceSettings {
                                 .frame(maxWidth: .infinity)
                             }
 
-                            HStack(alignment: .top) {
+                            HStack(alignment: .center) {
                                 Text(
-                                    "Set low and high glucose values for the main screen glucose graph and statistics \nLow Default: 70 \nHigh Default: 180"
+                                    "Set low and high glucose values for the main screen glucose graph and statistics."
                                 )
                                 .lineLimit(nil)
                                 .font(.footnote)
@@ -279,9 +299,15 @@ extension UserInterfaceSettings {
                                         hintLabel = "Low and High Thresholds"
                                         selectedVerboseHint =
                                             AnyView(
-                                                Text(
-                                                    "Default values are based on internationally accepted Time in Range values of 70-180 mg/dL (5.5-10 mmol/L) \nSet the values used in the main screen glucose graph and to determine Time in Range for Statistics. \nNote: These values are not used to calculate insulin dosing."
-                                                )
+                                                VStack(spacing: 10) {
+                                                    Text(
+                                                        "Default values are based on internationally accepted Time in Range values of \(state.units == .mgdL ? "70" : 70.formattedAsMmol ?? "70")-\(state.units == .mgdL ? "180" : 180.formattedAsMmol ?? "180") \(state.units.rawValue)."
+                                                    )
+                                                    Text(
+                                                        "Set the values used in the main screen glucose graph and to determine Time in Range for Statistics."
+                                                    )
+                                                    Text("Note: These values are not used to calculate insulin dosing.")
+                                                }
                                             )
 
                                         shouldDisplayHint.toggle()
@@ -308,9 +334,9 @@ extension UserInterfaceSettings {
                             }
                         }.padding(.top)
 
-                        HStack(alignment: .top) {
+                        HStack(alignment: .center) {
                             Text(
-                                "Choose between the OpenAPS colored Lines or the Cone of Uncertainty for the Forecast Lines"
+                                "Choose between the Cone of Uncertainty or the OpenAPS colored lines for the algorithm's forecast."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -321,9 +347,17 @@ extension UserInterfaceSettings {
                                     hintLabel = "Forecast Display Type"
                                     selectedVerboseHint =
                                         AnyView(
-                                            Text(
-                                                "This setting allows you to choose between the following two options for the Forecast lines (previously: Prediction Lines). \n\nLines: Uses the IOB, COB, UAM, and ZT forecast lines from OpenAPS \n\nCone: Uses a combined range of all possible forecasts from the OpenAPS lines and provides you with a range of possible forecasts. This option has shown to reduce confusion and stress around algorithm forecasts by providing a less concerning visual representation."
-                                            )
+                                            VStack(spacing: 10) {
+                                                Text(
+                                                    "This setting allows you to choose between the following two options for the glucose forecast:"
+                                                )
+                                                Text(
+                                                    "Cone of Uncertainty: Uses a combined range of all possible forecasts from the OpenAPS lines and provides you with a range of possible forecasts. This option has shown to reduce confusion and stress around algorithm forecasts by providing a less concerning visual representation."
+                                                )
+                                                Text(
+                                                    "Forecast Lines: Uses the IOB, COB, UAM, and ZT forecast lines from OpenAPS. This option provides a more detailed view of the algorithm's forecast, but may be more confusing for some users."
+                                                )
+                                            }
                                         )
                                     shouldDisplayHint.toggle()
                                 },
@@ -337,26 +371,6 @@ extension UserInterfaceSettings {
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
 
-                SettingInputSection(
-                    decimalValue: $state.hours,
-                    booleanValue: $booleanPlaceholder,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "X-Axis Interval Step"
-                        }
-                    ),
-                    units: state.units,
-                    type: .decimal("hours"),
-                    label: "X-Axis Interval Step",
-                    miniHint: "Determines how many hours are shown in the main graph",
-                    verboseHint: Text(
-                        "Default: 6 hours \n\nThis setting determines how many hours are shown in the primary view of the main graph."
-                    )
-                )
-
                 Section {
                     VStack {
                         Picker(
@@ -368,9 +382,9 @@ extension UserInterfaceSettings {
                             }
                         }.padding(.top)
 
-                        HStack(alignment: .top) {
+                        HStack(alignment: .center) {
                             Text(
-                                "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph"
+                                "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -381,9 +395,17 @@ extension UserInterfaceSettings {
                                     hintLabel = "Total Insulin Display Type"
                                     selectedVerboseHint =
                                         AnyView(
-                                            Text(
-                                                "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph.\n\nTotal Daily Dose: Displays the last 24 hours of total insulin administered, both basal and bolus. \n\nTotal Insulin in Scope: Displays the total insulin administered since midnight, both basal and bolus."
-                                            )
+                                            VStack(spacing: 10) {
+                                                Text(
+                                                    "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph."
+                                                )
+                                                Text(
+                                                    "Total Daily Dose: Displays the last 24 hours of total insulin administered, both basal and bolus."
+                                                )
+                                                Text(
+                                                    "Total Insulin in Scope: Displays the total insulin administered since midnight, both basal and bolus."
+                                                )
+                                            }
                                         )
                                     shouldDisplayHint.toggle()
                                 },
@@ -434,10 +456,11 @@ extension UserInterfaceSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Standing / Laying TIR Chart",
-                    miniHint: "Select a vertical chart or horizontal chart to display your Time in Range Statistics",
-                    verboseHint: Text(
-                        "Select a vertical / standing chart by turning this feature OFF \n\nSelect a horizontal / laying chart by turning this feature ON"
-                    )
+                    miniHint: "Select a vertical chart or horizontal chart to display your Time in Range Statistics.",
+                    verboseHint: VStack {
+                        Text("Select a vertical / standing chart by turning this feature OFF.")
+                        Text("Select a horizontal / laying chart by turning this feature ON.")
+                    }
                 )
 
                 SettingInputSection(
@@ -455,9 +478,9 @@ extension UserInterfaceSettings {
                     type: .conditionalDecimal("carbsRequiredThreshold"),
                     label: "Show Carbs Required Badge",
                     conditionalLabel: "Carbs Required Threshold",
-                    miniHint: "Show carbs required as a notification badge on the home screen",
+                    miniHint: "Show carbs required as a notification badge on the home screen.",
                     verboseHint: Text(
-                        "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon"
+                        "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon."
                     ),
                     headerText: "Carbs Required Badge"
                 )

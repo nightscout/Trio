@@ -5,7 +5,6 @@ extension UserInterfaceSettings {
         @Published var overrideHbA1cUnit = false
         @Published var low: Decimal = 70
         @Published var high: Decimal = 180
-        @Published var hours: Decimal = 6
         @Published var xGridLines = false
         @Published var yGridLines: Bool = false
         @Published var oneDimensionalGraph = false

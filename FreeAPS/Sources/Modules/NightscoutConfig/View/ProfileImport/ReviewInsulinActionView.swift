@@ -49,7 +49,7 @@ struct ReviewInsulinActionView: BaseView {
                 units: state.units,
                 type: .decimal("dia"),
                 label: "Duration of Insulin Action",
-                miniHint: "Number of hours insulin is active in your body",
+                miniHint: "Number of hours insulin is active in your body.",
                 verboseHint:
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Default: 6 hours").bold()

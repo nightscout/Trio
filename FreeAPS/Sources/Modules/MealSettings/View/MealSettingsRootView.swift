@@ -161,9 +161,9 @@ extension MealSettings {
                                 }
                             }
 
-                            HStack(alignment: .top) {
+                            HStack(alignment: .center) {
                                 Text(
-                                    "Set limits for each type of macro per meal entry"
+                                    "Set limits for each type of macro per meal entry."
                                 )
                                 .lineLimit(nil)
                                 .font(.footnote)
@@ -208,7 +208,7 @@ extension MealSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Enable Fat and Protein Entries",
-                    miniHint: "Allows you to add fat and protein macros to meals",
+                    miniHint: "Allows you to add fat and protein macros to meals.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -222,15 +222,15 @@ extension MealSettings {
                                 )
                             }
                         }
-                        VStack(spacing: 5) {
+                        VStack(alignment: .center, spacing: 5) {
                             Text("Fat Conversion").bold()
                             Text("𝑭 = fat(g) × 90%")
                         }
-                        VStack(spacing: 5) {
+                        VStack(alignment: .center, spacing: 5) {
                             Text("Protein Conversion").bold()
                             Text("𝑷 = protein(g) × 40%")
                         }
-                        VStack(spacing: 5) {
+                        VStack(alignment: .center, spacing: 5) {
                             Text("FPU Conversion").bold()
                             Text("𝑭 + 𝑷 = g CHO")
                         }
@@ -263,7 +263,7 @@ extension MealSettings {
                         units: state.units,
                         type: .decimal("delay"),
                         label: "Fat and Protein Delay",
-                        miniHint: "Delay between fat & protein entry and first FPU entry",
+                        miniHint: "Delay between fat & protein entry and first FPU entry.",
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 60 min").bold()
@@ -290,7 +290,7 @@ extension MealSettings {
                         units: state.units,
                         type: .decimal("timeCap"),
                         label: "Maximum Duration",
-                        miniHint: "Set the maximum timeframe to extend FPUs",
+                        miniHint: "Set the maximum timeframe to extend FPUs.",
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 8 hours").bold()
@@ -320,7 +320,7 @@ extension MealSettings {
                         units: state.units,
                         type: .decimal("minuteInterval"),
                         label: "Spread Interval",
-                        miniHint: "Time interval between FPUs",
+                        miniHint: "Time interval between FPUs.",
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 30 minutes").bold()
@@ -348,7 +348,7 @@ extension MealSettings {
                         units: state.units,
                         type: .decimal("individualAdjustmentFactor"),
                         label: "Fat and Protein Percentage",
-                        miniHint: "Influences the conversion rate used in the Warsaw Method",
+                        miniHint: "Influences the conversion rate used in the Warsaw Method.",
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 50%").bold()
                             VStack(spacing: 10) {

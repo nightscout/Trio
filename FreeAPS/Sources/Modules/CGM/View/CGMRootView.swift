@@ -50,7 +50,7 @@ extension CGM {
                                     }
                                 }.padding(.top)
 
-                                HStack(alignment: .top) {
+                                HStack(alignment: .center) {
                                     Text(
                                         "Select your CGM"
                                     )
@@ -165,7 +165,7 @@ extension CGM {
                                     Text("CGM is not used as heartbeat.").padding(.top)
                                 }
 
-                                HStack(alignment: .top) {
+                                HStack(alignment: .center) {
                                     Text(
                                         "A heartbeat tells Trio to start a loop cycle. \nThis is required to keep looping."
                                     )
@@ -215,7 +215,7 @@ extension CGM {
                         units: state.units,
                         type: .boolean,
                         label: "Smooth Glucose Value",
-                        miniHint: "Smooth CGM readings using Savitzky-Golay filtering",
+                        miniHint: "Smooth CGM readings using Savitzky-Golay filtering.",
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()

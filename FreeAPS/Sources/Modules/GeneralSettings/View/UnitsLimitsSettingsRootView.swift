@@ -58,7 +58,7 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxIOB"),
                     label: NSLocalizedString("Max IOB", comment: "Max IOB"),
-                    miniHint: "Maximum units of insulin allowed active at any given time",
+                    miniHint: "Maximum units of insulin allowed active at any given time.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 0 units").bold()
@@ -91,7 +91,7 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxBolus"),
                     label: "Max Bolus",
-                    miniHint: "Largest bolus of insulin allowed",
+                    miniHint: "Largest bolus of insulin allowed.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 10 units").bold()
@@ -138,7 +138,7 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxCOB"),
                     label: NSLocalizedString("Max COB", comment: "Max COB"),
-                    miniHint: "Max carbs Trio can use in dosing calculations",
+                    miniHint: "Max carbs Trio can use in dosing calculations.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 120 carbs").bold()

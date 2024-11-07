@@ -62,7 +62,7 @@ extension PumpConfig {
                                         .frame(maxWidth: .infinity, alignment: .center)
                                         .buttonStyle(.bordered)
 
-                                    HStack(alignment: .top) {
+                                    HStack(alignment: .center) {
                                         Text(
                                             "Pair a compatible pump with Trio. See details for available devices."
                                         )
@@ -75,9 +75,20 @@ extension PumpConfig {
                                                 hintLabel = "Pump Pairing to Trio"
                                                 selectedVerboseHint =
                                                     AnyView(
-                                                        Text(
-                                                            "Current Pump Models Supported:\n\n•Medtronic\n•Omnipod Eros\n•Omnipod Dash\n•Pump Simulator\n\nNote: If using a pump simulator, you will not have continuous readings from the CGM in Trio. Using a pump simulator is only advisable for becoming familiar with the app user interface. It will not give you insight on how the algorithm will respond."
-                                                        )
+                                                        VStack(alignment: .leading, spacing: 10) {
+                                                            Text(
+                                                                "Current Pump Models Supported:"
+                                                            )
+                                                            VStack {
+                                                                Text("• Medtronic")
+                                                                Text("• Omnipod Eros")
+                                                                Text("• Omnipod Dash")
+                                                                Text("• Pump Simulator")
+                                                            }
+                                                            Text(
+                                                                "Note: If using a pump simulator, you will not have continuous readings from the CGM in Trio. Using a pump simulator is only advisable for becoming familiar with the app user interface. It will not give you insight on how the algorithm will respond."
+                                                            )
+                                                        }
                                                     )
                                                 shouldDisplayHint.toggle()
                                             },

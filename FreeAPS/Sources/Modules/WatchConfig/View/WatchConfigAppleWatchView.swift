@@ -48,7 +48,7 @@ struct WatchConfigAppleWatchView: View {
                             }
                         }.padding(.top)
 
-                        HStack(alignment: .top) {
+                        HStack(alignment: .center) {
                             Text(
                                 "Show the choosen dataitem on your Apple Watch."
                             )
@@ -88,7 +88,7 @@ struct WatchConfigAppleWatchView: View {
                 units: state.units,
                 type: .boolean,
                 label: "Show Protein and Fat",
-                miniHint: "Show protein and fat on the Apple Watch",
+                miniHint: "Show protein and fat on the Apple Watch.",
                 verboseHint: Text("When enabled, protein and fat will show in the carb entry screen of the Apple Watch")
             )
 
@@ -106,7 +106,7 @@ struct WatchConfigAppleWatchView: View {
                 units: state.units,
                 type: .boolean,
                 label: "Confirm Bolus Faster",
-                miniHint: "Removes validation for boluses sent from the paired apple watch",
+                miniHint: "Removes validation for boluses sent from the paired apple watch.",
                 verboseHint: Text(
                     "Enabling this feature removes the confirmation / validation step to initiate a bolus faster from the watch."
                 )

@@ -48,9 +48,9 @@ struct WatchConfigGarminView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                             .buttonStyle(.bordered)
 
-                        HStack(alignment: .top) {
+                        HStack(alignment: .center) {
                             Text(
-                                "Add a Garmin Device to Trio"
+                                "Add a Garmin Device to Trio."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
