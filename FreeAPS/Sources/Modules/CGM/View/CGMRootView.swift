@@ -216,19 +216,18 @@ extension CGM {
                         type: .boolean,
                         label: "Smooth Glucose Value",
                         miniHint: "Smooth CGM readings using Savitzky-Golay filtering",
-                        verboseHint: VStack {
+                        verboseHint:
+                        VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
-                            VStack(alignment: .leading, spacing: 10) {
-                                Text(
-                                    "This filter looks at small groups of nearby readings and fits them to a simple mathematical curve. This process doesn't change the overall pattern of your glucose data but helps smooth out the \"noise\" or irregular fluctuations that could lead to false highs or lows."
-                                )
-                                Text(
-                                    "Because your glucose readings are taken at regular intervals, the filter can use a set of pre-calculated \"weights\" to adjust each group of readings, making the calculations fast and efficient. It's designed to keep the important trends in your data while minimizing those small, misleading variations, giving you and Trio a clearer sense of where your blood sugar is really headed."
-                                )
-                                Text(
-                                    "This type of filtering is useful in Trio, as it can help prevent over-corrections based on inaccurate glucose readings. This can help reduce the impact of sudden spikes or dips that might not reflect your true blood glucose levels."
-                                )
-                            }
+                            Text(
+                                "This filter looks at small groups of nearby readings and fits them to a simple mathematical curve. This process doesn't change the overall pattern of your glucose data but helps smooth out the \"noise\" or irregular fluctuations that could lead to false highs or lows."
+                            )
+                            Text(
+                                "Because your glucose readings are taken at regular intervals, the filter can use a set of pre-calculated \"weights\" to adjust each group of readings, making the calculations fast and efficient. It's designed to keep the important trends in your data while minimizing those small, misleading variations, giving you and Trio a clearer sense of where your blood sugar is really headed."
+                            )
+                            Text(
+                                "This type of filtering is useful in Trio, as it can help prevent over-corrections based on inaccurate glucose readings. This can help reduce the impact of sudden spikes or dips that might not reflect your true blood glucose levels."
+                            )
                         }
                     )
                 }
@@ -268,10 +267,10 @@ extension CGM {
                         )
                     }
                 }
-                .onChange(of: setupCGM) { setupCGM in
+                .onChange(of: setupCGM) {
                     state.setupCGM = setupCGM
                 }
-                .onChange(of: state.setupCGM) { setupCGM in
+                .onChange(of: state.setupCGM) {
                     self.setupCGM = setupCGM
                 }
                 .screenNavigation(self)

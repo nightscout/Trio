@@ -71,7 +71,7 @@ extension GlucoseNotificationSettings {
                     type: .boolean,
                     label: "Show Glucose App Badge",
                     miniHint: "Show your current glucose on Trio app icon",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("This will add your current glucose on the top right of your Trio icon as a red notification badge.")
                     },
@@ -93,7 +93,7 @@ extension GlucoseNotificationSettings {
                     type: .boolean,
                     label: "Always Notify Glucose",
                     miniHint: "Trigger a notification every time your glucose is updated",
-                    verboseHint: VStack {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("A notification will be triggered every time your glucose is updated in Trio.")
                     }
@@ -114,7 +114,7 @@ extension GlucoseNotificationSettings {
                     type: .boolean,
                     label: "Play Alarm Sound",
                     miniHint: "Alarm with every Trio notification",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("This will cause a sound to be triggered by every Trio notification.")
                     }
@@ -135,7 +135,7 @@ extension GlucoseNotificationSettings {
                     type: .boolean,
                     label: "Add Glucose Source to Alarm",
                     miniHint: "Source of the glucose reading will be added to the notification",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("The source of the glucose reading will be added to the notification.")
                     }

@@ -48,12 +48,11 @@ extension AppleHealthKit {
                     type: .boolean,
                     label: "Connect to Apple Health",
                     miniHint: "Allow Trio to read from and write to Apple Health",
-                    verboseHint: VStack {
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("This allows Trio to read from and write to Apple Health.")
-                            Text("Warning: You must also give permissions in iOS System Settings for the Health app.").bold()
-                        }
+                        Text("This allows Trio to read from and write to Apple Health.")
+                        Text("Warning: You must also give permissions in iOS System Settings for the Health app.").bold()
                     },
                     headerText: "Apple Health Integration"
                 )

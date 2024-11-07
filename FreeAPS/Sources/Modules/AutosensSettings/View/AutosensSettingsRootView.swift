@@ -49,19 +49,18 @@ extension AutosensSettings {
                     type: .decimal("autosensMax"),
                     label: NSLocalizedString("Autosens Max", comment: "Autosens Max"),
                     miniHint: "The higher limit of the Autosens Ratio",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 120%").bold()
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(
-                                "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, or Sigmoid Formula"
-                            )
-                            Text(
-                                "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
-                            )
-                            Text(
-                                "Tip: Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower."
-                            )
-                        }
+                        Text(
+                            "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, or Sigmoid Formula"
+                        )
+                        Text(
+                            "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
+                        )
+                        Text(
+                            "Tip: Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower."
+                        )
                     },
                     headerText: "Glucose Deviations Algorithm"
                 )
@@ -81,19 +80,18 @@ extension AutosensSettings {
                     type: .decimal("autosensMin"),
                     label: NSLocalizedString("Autosens Min", comment: "Autosens Min"),
                     miniHint: "The lower limit of the Autosens Ratio",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 80%").bold()
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(
-                                "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, or Sigmoid Formula."
-                            )
-                            Text(
-                                "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
-                            )
-                            Text(
-                                "Tip: Decreasing this value allows automatic adjustments of basal rates to be lower, ISF to be higher, and CR to be higher."
-                            )
-                        }
+                        Text(
+                            "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, or Sigmoid Formula."
+                        )
+                        Text(
+                            "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
+                        )
+                        Text(
+                            "Tip: Decreasing this value allows automatic adjustments of basal rates to be lower, ISF to be higher, and CR to be higher."
+                        )
                     }
                 )
 
@@ -112,7 +110,7 @@ extension AutosensSettings {
                     type: .boolean,
                     label: NSLocalizedString("Rewind Resets Autosens", comment: "Rewind Resets Autosens"),
                     miniHint: "Pump rewind initiates a reset in Autosens Ratio",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: ON").bold()
                         Text("Medtronic Users Only").bold()
                         VStack(alignment: .leading, spacing: 10) {

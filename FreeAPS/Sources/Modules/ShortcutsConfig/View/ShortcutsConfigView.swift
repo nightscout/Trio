@@ -71,7 +71,7 @@ extension ShortcutsConfig {
                     type: .boolean,
                     label: "Allow Bolusing with Shortcuts",
                     miniHint: "Automate boluses using the Shortcuts App",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Enabling this setting allows the iOS Shortcuts App to send bolus commands to Trio.")
