@@ -239,7 +239,7 @@ extension AlgorithmAdvancedSettings {
                         Text(
                             "This prevents lingering insulin effects when your pump is suspended, ensuring safer management of insulin on board."
                         )
-                        Text("Note: Applies to only to pumps with on-pump suspend options")
+                        Text("Note: Applies to only to pumps with on-pump suspend options.")
                     }
                 )
 

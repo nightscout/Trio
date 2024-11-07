@@ -126,7 +126,7 @@ extension LiveActivityAttributes.ContentState {
             bg: formattedBG,
             direction: trendString,
             change: change,
-            date: bg.date,
+            date: determination?.date ?? nil,
             highGlucose: settings.high,
             lowGlucose: settings.low,
             target: determination?.target ?? 100 as Decimal,

@@ -77,7 +77,7 @@ struct DecimalPickerSettings {
         type: PickerSetting.PickerSettingType.glucose
     )
     var maxCOB = PickerSetting(value: 120, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gram)
-    var min5mCarbimpact = PickerSetting(value: 8, step: 1, min: 0, max: 20, type: PickerSetting.PickerSettingType.glucose)
+    var min5mCarbimpact = PickerSetting(value: 8, step: 1, min: 1, max: 20, type: PickerSetting.PickerSettingType.glucose)
     var autotuneISFAdjustmentFraction = PickerSetting(
         value: 1.0,
         step: 0.05,

@@ -300,7 +300,7 @@ extension SMBSettings {
                         }
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "TThis is a limit on the size of a single UAM SMB. One UAM SMB can only be as large as this many minutes of your current profile basal rate."
+                                "This is a limit on the size of a single UAM SMB. One UAM SMB can only be as large as this many minutes of your current profile basal rate."
                             )
                             Text(
                                 "To calculate the maximum UAM SMB allowed based on this setting, use the following formula"
@@ -395,7 +395,6 @@ extension SMBSettings {
                         Text(
                             "This is the minimum number of minutes since the last SMB or manual bolus before Trio will permit an automated SMB."
                         )
-                        Text("Note: For Omnipod Dash, minimum value is 3 min. For Omnipod Eros, minimum value is 5 min.")
                     }
                 )
             }
