@@ -1830,7 +1830,7 @@ Enact a temp Basal or a temp target */
 "Defaults to false. When set to true, raises sensitivity (lower sensitivity ratio) for temp targets set to >= 111. Synonym for exercise_mode. The higher your temp target above 110 will result in more sensitive (lower) ratios, e.g., temp target of 120 results in sensitivity ratio of 0.75, while 140 results in 0.6 (with default halfBasalTarget of 160)." = "Domyślnie wyłączone. Gdy Włączysz, zwiększa wrażliwość (niższy współczynnik wrażliwości) dla celów tymczasowych, ustawionych na >= 111. Podobieństwo do trybu ćwiczeń. Im wyższy cel tymczasowy powyżej 110 spowoduje większe (niższe) współczynniki, np. cel tymczasowy wynoszący 120 daje współczynnik czułości wynoszący 0,75, podczas gdy 140 daje 0,6 (domyślny poziom trybu ćwiczeń wynosi 160).";
 
 /* Headline ”Low Temptarget Lowers Sensitivity" */
-"Low Temptarget Lowers Sensitivity" = "Niski tymczasowy cel zmniejsza wrażliwość";
+"Low Temptarget Lowers Sensitivity" = "Niski cel tymczasowy zmniejsza wrażliwość";
 
 /* ”Low Temptarget Lowers Sensitivity" */
 "Defaults to false. When set to true, can lower sensitivity (higher sensitivity ratio) for temptargets <= 99. The lower your temp target below 100 will result in less sensitive (higher) ratios, e.g., temp target of 95 results in sensitivity ratio of 1.09, while 85 results in 1.33 (with default halfBasalTarget of 160)." = "Domyślnie Wyłączone. Po Włączeniu, może obniżyć wrażliwość (wyższy współczynnik wrażliwości) dla celów tymczasowych <= 99. Im niższy cel tymczasowy poniżej 100, tym niższe (wyższe) współczynniki będą miały niższą wrażliwość, np. cel tymczasowy 95 da współczynnik wrażliwości 1,09, podczas gdy 85 da współczynnik wrażliwości 1,33 (przy domyślnym poziomie trybu ćwiczeń równym 160).";
@@ -1992,13 +1992,14 @@ Enact a temp Basal or a temp target */
 "Remaining Carbs Fraction" = "Pozostałe frakcje węglowodanów";
 
 /* "Remaining Carbs Fraction" */
-"This is the fraction of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "Jest to część węglowodanów, które zakładamy że wchłoną się przez 4 godziny, jeżeli jeszcze nie rozpoczęło się wchłanianie węglowodanów.";
+"This is the fraction of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "Jest to część węglowodanów, o której zakłada się, że nie została jeszcze wchłonięta po 4 godzinach, jeśli nie zaobserwowano wchłaniania węglowodanów.
+Próba pomiaru węglowodanów na pokładzie (COB) Trio może nie być w pełni dokładna. To ustawienie stanowi funkcję zabezpieczającą, która może uniemożliwić Trio podawanie insuliny w przypadku nieistniejących węglowodanów. Zalecane jest pozostawienie tej wartości domyślnej wynoszącej 1, co oznacza, że ​​nie będzie to miało wpływu na obliczenia Trio.";
 
 /* Headline "Remaining Carbs Cap" */
 "Remaining Carbs Cap" = "Limit pozostałych węglowodanów";
 
 /* "Remaining Carbs Cap" */
-"This is the amount of the maximum number of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "Jest to ilość węglowodanów, która ma zostać wchłonięta po 4 godzinach wchłaniania węglowodanów.";
+"This is the amount of the maximum number of carbs we’ll assume will absorb over 4h if we don’t yet see carb absorption." = "To ustawienie jest ogranicznikiem bezpieczeństwa, który określa maksymalną ilość węglowodanów, która ma zostać wchłonięta po 4 godzinach wchłaniania węglowodanów. W przypadku tego ustawienia wymagane jest minimum 90 węglowodanów. Zaleca się pozostawienie tej wartości jako domyślnej.";
 
 /* Headline ”Max SMB Basal Minutes" */
 "Max SMB Basal Minutes" = "Max SMB Basal Minutes";
