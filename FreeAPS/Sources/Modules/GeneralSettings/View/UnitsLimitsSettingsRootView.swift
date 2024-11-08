@@ -115,7 +115,7 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxBasal"),
                     label: "Max Basal",
-                    miniHint: "Largest basal rate allowed",
+                    miniHint: "Largest basal rate allowed.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 2.0 units").bold()

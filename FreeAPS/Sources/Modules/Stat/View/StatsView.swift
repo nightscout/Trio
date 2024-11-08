@@ -144,7 +144,7 @@ struct StatsView: View {
                     + " %"
             )
             VStack(spacing: 5) {
-                Text("HbA1C").font(.subheadline).foregroundColor(headline)
+                Text("HbA1c").font(.subheadline).foregroundColor(headline)
                 Text(hba1cString)
             }
             VStack(spacing: 5) {

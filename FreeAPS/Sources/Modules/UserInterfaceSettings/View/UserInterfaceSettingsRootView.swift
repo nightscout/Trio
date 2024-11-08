@@ -434,7 +434,7 @@ extension UserInterfaceSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Override HbA1c Unit",
-                    miniHint: "Display HbA1c in mmol/mol or %",
+                    miniHint: "Display HbA1c in mmol/mol or %.",
                     verboseHint: Text(
                         "Choose which format you'd prefer the HbA1c value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)"
                     ),
