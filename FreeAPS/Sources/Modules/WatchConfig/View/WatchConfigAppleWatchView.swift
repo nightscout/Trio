@@ -50,7 +50,7 @@ struct WatchConfigAppleWatchView: View {
 
                         HStack(alignment: .center) {
                             Text(
-                                "Show the choosen dataitem on your Apple Watch."
+                                "Select the information to display."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -60,7 +60,16 @@ struct WatchConfigAppleWatchView: View {
                                 action: {
                                     hintLabel = "Display on Watch"
                                     selectedVerboseHint =
-                                        AnyView(Text("Choose which dataitem you want to display on your Apple Watch."))
+                                        AnyView(VStack(alignment: .leading, spacing: 10) {
+                                            Text("Choose between the following options:")   
+                                            VStack(alignment: .leading, spacing: 5) {
+                                                Text("• Heart Rate")
+                                                Text("• Glucose Target")
+                                                Text("• Steps")
+                                                Text("• ISF")
+                                                Text("• % Override")
+                                            }
+                                        })
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
