@@ -74,6 +74,10 @@ class TrioRemoteControl: Injectable {
             await cancelTempTarget(pushMessage)
         case .meal:
             await handleMealCommand(pushMessage)
+
+            if pushMessage.bolusAmount != nil {
+                await handleBolusCommand(pushMessage)
+            }
         case .startOverride:
             await handleStartOverrideCommand(pushMessage)
         case .cancelOverride:
