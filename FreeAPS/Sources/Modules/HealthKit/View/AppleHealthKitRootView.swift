@@ -32,7 +32,7 @@ extension AppleHealthKit {
         }
 
         var body: some View {
-            Form {
+            List {
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
                     booleanValue: $state.useAppleHealth,
@@ -77,6 +77,7 @@ extension AppleHealthKit {
                     }.listRowBackground(Color.chart)
                 }
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,

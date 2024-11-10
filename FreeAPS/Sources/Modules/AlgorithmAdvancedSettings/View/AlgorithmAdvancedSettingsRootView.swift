@@ -381,6 +381,7 @@ extension AlgorithmAdvancedSettings {
                     }
                 )
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,

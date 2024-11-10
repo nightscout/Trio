@@ -330,6 +330,7 @@ extension DynamicSettings {
                     )
                 }
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,

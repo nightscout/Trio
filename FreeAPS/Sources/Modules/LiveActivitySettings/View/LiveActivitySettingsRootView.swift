@@ -170,6 +170,7 @@ extension LiveActivitySettings {
                     }
                 }
             }
+            .listSectionSpacing(sectionSpacing)
             .onReceive(resolver.resolve(LiveActivityBridge.self)!.$systemEnabled, perform: {
                 self.systemLiveActivitySetting = $0
             })

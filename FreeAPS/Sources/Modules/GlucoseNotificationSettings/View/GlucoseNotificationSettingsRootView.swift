@@ -55,7 +55,7 @@ extension GlucoseNotificationSettings {
         }
 
         var body: some View {
-            Form {
+            List {
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
                     booleanValue: $state.glucoseBadge,
@@ -143,6 +143,7 @@ extension GlucoseNotificationSettings {
 
                 self.lowAndHighGlucoseAlertSection
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,

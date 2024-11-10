@@ -180,6 +180,7 @@ extension TargetBehavoir {
                     }
                 )
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,

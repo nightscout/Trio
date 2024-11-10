@@ -25,7 +25,7 @@ extension WatchConfig {
         }
 
         var body: some View {
-            Form {
+            List {
                 Section(
                     header: Text("Smartwatch Configuration"),
                     content: {
@@ -34,6 +34,7 @@ extension WatchConfig {
                     }
                 ).listRowBackground(Color.chart)
             }
+            .listSectionSpacing(sectionSpacing)
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
             .navigationTitle("Watch")

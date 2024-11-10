@@ -36,7 +36,7 @@ extension CGM {
 
         var body: some View {
             NavigationView {
-                Form {
+                List {
                     Section(
                         header: Text("CGM Integration to Trio"),
                         content: {
@@ -231,6 +231,7 @@ extension CGM {
                         }
                     )
                 }
+                .listSectionSpacing(sectionSpacing)
                 .scrollContentBackground(.hidden).background(color)
                 .onAppear(perform: configureView)
                 .navigationTitle("CGM")

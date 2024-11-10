@@ -309,7 +309,8 @@ extension Bolus {
                         }.listRowBackground(Color.chart)
 
                         treatmentButton
-                    }.listSectionSpacing(20)
+                    }
+                    .listSectionSpacing(sectionSpacing)
                 }
                 .blur(radius: state.waitForSuggestion ? 5 : 0)
 

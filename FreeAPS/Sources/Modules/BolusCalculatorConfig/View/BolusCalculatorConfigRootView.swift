@@ -47,7 +47,7 @@ extension BolusCalculatorConfig {
         }
 
         var body: some View {
-            Form {
+            List {
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
                     booleanValue: $state.displayPresets,
@@ -167,6 +167,7 @@ extension BolusCalculatorConfig {
                     }
                 )
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,

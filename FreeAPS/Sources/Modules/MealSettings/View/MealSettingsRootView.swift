@@ -56,7 +56,7 @@ extension MealSettings {
         }
 
         var body: some View {
-            Form {
+            List {
                 Section(
                     header: Text("Limits per Entry"),
                     content: {
@@ -369,6 +369,7 @@ extension MealSettings {
                     )
                 }
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,

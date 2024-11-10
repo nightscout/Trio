@@ -37,7 +37,7 @@ extension NightscoutConfig {
 
         var body: some View {
             ZStack {
-                Form {
+                List {
                     Section(
                         header: Text("Nightscout Integration"),
                         content: {
@@ -184,7 +184,9 @@ extension NightscoutConfig {
                             }.padding(.vertical)
                         }
                     ).listRowBackground(Color.chart)
-                }.blur(radius: state.importStatus == .running ? 5 : 0)
+                }
+                .listSectionSpacing(sectionSpacing)
+                .blur(radius: state.importStatus == .running ? 5 : 0)
 
                 if state.importStatus == .running {
                     CustomProgressView(text: "Importing Profile...")

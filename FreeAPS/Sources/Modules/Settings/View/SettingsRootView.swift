@@ -44,7 +44,7 @@ extension Settings {
         }
 
         var body: some View {
-            Form {
+            List {
                 if searchText.isEmpty {
                     let buildDetails = BuildDetails.default
 
@@ -303,42 +303,43 @@ extension Settings {
 //                        }
 //                    }
 //                }.listRowBackground(Color.chart)
-
-            }.scrollContentBackground(.hidden).background(color)
-                .sheet(isPresented: $shouldDisplayHint) {
-                    SettingInputHintView(
-                        hintDetent: $hintDetent,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                        sheetTitle: "Help"
+            }
+            .listSectionSpacing(sectionSpacing)
+            .scrollContentBackground(.hidden).background(color)
+            .sheet(isPresented: $shouldDisplayHint) {
+                SettingInputHintView(
+                    hintDetent: $hintDetent,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    hintLabel: hintLabel ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                    sheetTitle: "Help"
+                )
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ShareSheet(activityItems: state.logItems())
+            }
+            .onAppear(perform: configureView)
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.automatic)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(
+                        action: {
+                            if let url = URL(string: "https://triodocs.org/") {
+                                UIApplication.shared.open(url)
+                            }
+                        },
+                        label: {
+                            HStack {
+                                Text("Trio Docs")
+                                Image(systemName: "questionmark.circle")
+                            }
+                        }
                     )
                 }
-                .sheet(isPresented: $showShareSheet) {
-                    ShareSheet(activityItems: state.logItems())
-                }
-                .onAppear(perform: configureView)
-                .navigationTitle("Settings")
-                .navigationBarTitleDisplayMode(.automatic)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(
-                            action: {
-                                if let url = URL(string: "https://triodocs.org/") {
-                                    UIApplication.shared.open(url)
-                                }
-                            },
-                            label: {
-                                HStack {
-                                    Text("Trio Docs")
-                                    Image(systemName: "questionmark.circle")
-                                }
-                            }
-                        )
-                    }
-                }
-                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-                .screenNavigation(self)
+            }
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
+            .screenNavigation(self)
         }
     }
 }

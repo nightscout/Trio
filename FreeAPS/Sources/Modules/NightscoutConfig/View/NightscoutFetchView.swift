@@ -30,7 +30,7 @@ struct NightscoutFetchView: View {
     }
 
     var body: some View {
-        Form {
+        List {
             SettingInputSection(
                 decimalValue: $decimalPlaceholder,
                 booleanValue: $state.isDownloadEnabled,
@@ -88,6 +88,7 @@ struct NightscoutFetchView: View {
                 }.listRowBackground(Color.tabBar)
             }
         }
+        .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
                 hintDetent: $hintDetent,

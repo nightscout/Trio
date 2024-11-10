@@ -54,7 +54,7 @@ extension UserInterfaceSettings {
         }
 
         var body: some View {
-            Form {
+            List {
                 Section(
                     header: Text("General Appearance"),
                     content: {
@@ -485,6 +485,7 @@ extension UserInterfaceSettings {
                     headerText: "Carbs Required Badge"
                 )
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,

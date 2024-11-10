@@ -149,6 +149,7 @@ extension CalendarEventSettings {
                     }
                 }
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,

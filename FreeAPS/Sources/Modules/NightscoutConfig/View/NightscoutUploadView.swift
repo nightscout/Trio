@@ -29,7 +29,7 @@ struct NightscoutUploadView: View {
     }
 
     var body: some View {
-        Form {
+        List {
             SettingInputSection(
                 decimalValue: $decimalPlaceholder,
                 booleanValue: $state.isUploadEnabled,
@@ -86,6 +86,7 @@ struct NightscoutUploadView: View {
                 )
             }
         }
+        .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
                 hintDetent: $hintDetent,

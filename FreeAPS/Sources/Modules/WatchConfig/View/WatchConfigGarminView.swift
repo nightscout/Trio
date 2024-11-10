@@ -34,7 +34,7 @@ struct WatchConfigGarminView: View {
     }
 
     var body: some View {
-        Form {
+        List {
             Section(
                 header: Text("Garmin Configuration"),
                 content:
@@ -89,6 +89,7 @@ struct WatchConfigGarminView: View {
                 }.listRowBackground(Color.chart)
             }
         }
+        .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
                 hintDetent: $hintDetent,

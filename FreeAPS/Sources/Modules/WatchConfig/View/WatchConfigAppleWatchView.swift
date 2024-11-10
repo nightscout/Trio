@@ -34,7 +34,7 @@ struct WatchConfigAppleWatchView: View {
     }
 
     var body: some View {
-        Form {
+        List {
             Section(
                 header: Text("Apple Watch Configuration"),
                 content: {
@@ -121,6 +121,7 @@ struct WatchConfigAppleWatchView: View {
                 )
             )
         }
+        .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
                 hintDetent: $hintDetent,

@@ -36,7 +36,7 @@ extension ShortcutsConfig {
         }
 
         var body: some View {
-            Form {
+            List {
                 Section(
                     header: Text("Shortcuts Integration"),
                     content: {
@@ -82,6 +82,7 @@ extension ShortcutsConfig {
                     }
                 )
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
