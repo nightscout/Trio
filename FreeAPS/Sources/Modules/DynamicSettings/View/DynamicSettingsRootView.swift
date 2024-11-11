@@ -81,7 +81,7 @@ extension DynamicSettings {
                             "Dynamic ISF produces a Dynamic Ratio, replacing the Autosens Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day."
                         )
                         Text(
-                            "You can influence the adjustments made by Dynamic ISF primarily by adjusting Autosens Max, Autosens Min, and Adjustment Factor. Other settings also influence Dynamic ISF's response, such as Target Glucose, Profile ISF, Peak Insulin Time, and Weighted Average of TDD."
+                            "You can influence the adjustments made by Dynamic ISF primarily by adjusting Autosens Max, Autosens Min, and Adjustment Factor. Other settings also influence Dynamic ISF's response, such as Glucose Target, Profile ISF, Peak Insulin Time, and Weighted Average of TDD."
                         )
                         Text(
                             "Warning: Before adjusting these settings, make sure you are fully aware of the impact those changes will have."
@@ -305,7 +305,7 @@ extension DynamicSettings {
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: Set by Algorithm").bold()
                             Text(
-                                "Minimum Threshold Setting is, by default, determined by your set Target Glucose. This threshold automatically suspends insulin delivery if your glucose levels are forecasted to fall below this value. It’s designed to protect against hypoglycemia, particularly during sleep or other vulnerable times."
+                                "Minimum Threshold Setting is, by default, determined by your set Glucose Target. This threshold automatically suspends insulin delivery if your glucose levels are forecasted to fall below this value. It’s designed to protect against hypoglycemia, particularly during sleep or other vulnerable times."
                             )
                             Text(
                                 "Trio will use the larger of the default setting calculation below and the value entered here."
@@ -313,7 +313,7 @@ extension DynamicSettings {
                             VStack(alignment: .leading, spacing: 10) {
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text("The default setting is based on this calculation:").bold()
-                                    Text("Target Glucose - 0.5 × (Target Glucose - 40)")
+                                    Text("TargetGlucose - 0.5 × (TargetGlucose - 40)")
                                 }
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text(

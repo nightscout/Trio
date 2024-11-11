@@ -70,7 +70,7 @@ extension NightscoutConfig {
                                         + Text("• Basal Rates\n")
                                         + Text("• Insulin Sensitivities\n")
                                         + Text("• Carb Ratios\n")
-                                        + Text("• Target Glucose\n")
+                                        + Text("• Glucose Targets\n")
                                         + Text("• Duration of Insulin Action"),
                                     primaryButton: .default(
                                         Text("Yes, Import!"),
@@ -123,7 +123,7 @@ extension NightscoutConfig {
                                                         Text("• Basal Rates")
                                                         Text("• Insulin Sensitivities")
                                                         Text("• Carb Ratios")
-                                                        Text("• Target Glucose")
+                                                        Text("• Glucose Targets")
                                                         Text("• Duration of Insulin Action")
                                                     }
                                                 }

@@ -66,7 +66,7 @@ extension TargetsEditor {
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
-            .navigationTitle("Target Glucose")
+            .navigationTitle("Glucose Targets")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {
                 ToolbarItem(placement: .topBarTrailing) {
