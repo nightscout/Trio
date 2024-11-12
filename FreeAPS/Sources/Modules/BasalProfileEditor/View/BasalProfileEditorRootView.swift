@@ -86,10 +86,39 @@ extension BasalProfileEditor {
             )
         }
 
-        var body: some View {
-            Form {
+        var saveButton: some View {
+            ZStack {
                 let shouldDisableButton = state.syncInProgress || state.items.isEmpty || !state.hasChanges
 
+                Rectangle()
+                    .frame(width: UIScreen.main.bounds.width, height: 65)
+                    .foregroundStyle(Color.chart)
+                Group {
+                    HStack {
+                        Button {
+                            let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                            impactHeavy.impactOccurred()
+                            state.save()
+                        } label: {
+                            HStack {
+                                if state.syncInProgress {
+                                    ProgressView().padding(.trailing, 10)
+                                }
+                                Text(state.syncInProgress ? "Saving..." : "Save")
+                            }.padding(10)
+                        }
+                        .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+                        .disabled(shouldDisableButton)
+                        .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
+                        .tint(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                }.padding(5)
+            }
+        }
+
+        var body: some View {
+            Form {
                 Section(header: Text("Schedule")) {
                     if !state.items.isEmpty {
                         basalScheduleChart.padding(.vertical)
@@ -110,25 +139,8 @@ extension BasalProfileEditor {
                             .foregroundColor(.secondary)
                     }
                 }.listRowBackground(Color.chart)
-
-                Section {
-                    HStack {
-                        if state.syncInProgress {
-                            ProgressView().padding(.trailing, 10)
-                        }
-                        Button {
-                            let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                            impactHeavy.impactOccurred()
-                            state.save()
-                        } label: {
-                            Text(state.syncInProgress ? "Saving..." : "Save")
-                        }
-                        .disabled(shouldDisableButton)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .tint(.white)
-                    }
-                }.listRowBackground(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
             }
+            .safeAreaInset(edge: .bottom, spacing: 30) { saveButton }
             .alert(isPresented: $state.showAlert) {
                 Alert(
                     title: Text("Unable to Save"),
