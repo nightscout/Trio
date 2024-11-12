@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 import Swinject
 
@@ -6,6 +7,9 @@ extension BasalProfileEditor {
         let resolver: Resolver
         @State var state = StateModel()
         @State private var editMode = EditMode.inactive
+
+        let chartScale = Calendar.current
+            .date(from: DateComponents(year: 2001, month: 01, day: 01, hour: 0, minute: 0, second: 0))
 
         @Environment(\.colorScheme) var colorScheme
         var color: LinearGradient {
@@ -38,11 +42,59 @@ extension BasalProfileEditor {
             return formatter
         }
 
+        var basalScheduleChart: some View {
+            Chart {
+                ForEach(state.chartData!, id: \.self) { profile in
+                    RectangleMark(
+                        xStart: .value("start", profile.startDate),
+                        xEnd: .value("end", profile.endDate!),
+                        yStart: .value("rate-start", profile.amount),
+                        yEnd: .value("rate-end", 0)
+                    ).foregroundStyle(
+                        .linearGradient(
+                            colors: [
+                                Color.insulin.opacity(0.6),
+                                Color.insulin.opacity(0.1)
+                            ],
+                            startPoint: .bottom,
+                            endPoint: .top
+                        )
+                    ).alignsMarkStylesWithPlotArea()
+
+                    LineMark(x: .value("End Date", profile.endDate!), y: .value("Amount", profile.amount))
+                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+
+                    LineMark(x: .value("Start Date", profile.startDate), y: .value("Amount", profile.amount))
+                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                }
+            }
+            .chartXAxis {
+                AxisMarks(values: .automatic(desiredCount: 6)) { _ in
+                    AxisValueLabel(format: .dateTime.hour())
+                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
+                }
+            }
+            .chartYAxis {
+                AxisMarks(values: .automatic(desiredCount: 2)) { _ in
+                    AxisValueLabel()
+                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
+                }
+            }
+            .chartXScale(
+                domain: Calendar.current.startOfDay(for: chartScale!) ... Calendar.current.startOfDay(for: chartScale!)
+                    .addingTimeInterval(60 * 60 * 24)
+            )
+        }
+
         var body: some View {
             Form {
                 let shouldDisableButton = state.syncInProgress || state.items.isEmpty || !state.hasChanges
 
                 Section(header: Text("Schedule")) {
+                    if !state.items.isEmpty {
+                        basalScheduleChart.padding(.vertical)
+                    }
+
                     list
                 }.listRowBackground(Color.chart)
 
@@ -84,9 +136,11 @@ extension BasalProfileEditor {
                     dismissButton: .default(Text("Close"))
                 )
             }
-            .onChange(of: state.items) { state.calcTotal() }
+            .onChange(of: state.items) {
+                state.calcTotal()
+                state.caluclateChartData()
+            }
             .scrollContentBackground(.hidden).background(color)
-            .onAppear(perform: configureView)
             .navigationTitle("Basal Profile")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {
@@ -99,7 +153,9 @@ extension BasalProfileEditor {
             })
             .environment(\.editMode, $editMode)
             .onAppear {
+                configureView()
                 state.validate()
+                state.caluclateChartData()
             }
         }
 
@@ -183,6 +239,7 @@ extension BasalProfileEditor {
             state.items.remove(atOffsets: offsets)
             state.validate()
             state.calcTotal()
+            state.caluclateChartData()
         }
     }
 }
