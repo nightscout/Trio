@@ -102,52 +102,6 @@ struct AddOverrideForm: View {
             }
             .listRowBackground(Color.chart)
 
-            Section {
-                Toggle(isOn: $state.indefinite) {
-                    Text("Enable Indefinitely")
-                }
-
-                if !state.indefinite {
-                    HStack {
-                        Text("Duration")
-                        Spacer()
-                        Text(formatHrMin(Int(state.overrideDuration)))
-                            .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
-                    }
-                    .onTapGesture {
-                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
-                    }
-
-                    if displayPickerDuration {
-                        HStack {
-                            Picker("Hours", selection: $durationHours) {
-                                ForEach(0 ..< 24) { hour in
-                                    Text("\(hour) hr").tag(hour)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
-                            .onChange(of: durationHours) {
-                                state.overrideDuration = convertToMinutes(durationHours, durationMinutes)
-                            }
-
-                            Picker("Minutes", selection: $durationMinutes) {
-                                ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
-                                    Text("\(minute) min").tag(minute)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
-                            .onChange(of: durationMinutes) {
-                                state.overrideDuration = convertToMinutes(durationHours, durationMinutes)
-                            }
-                        }
-                        .listRowSeparator(.hidden, edges: .top)
-                    }
-                }
-            }
-            .listRowBackground(Color.chart)
-
             Section(footer: percentageDescription(state.overridePercentage)) {
                 // Percentage Picker
                 HStack {
@@ -398,6 +352,52 @@ struct AddOverrideForm: View {
                 }
                 .listRowBackground(Color.chart)
             }
+
+            Section {
+                Toggle(isOn: $state.indefinite) {
+                    Text("Enable Indefinitely")
+                }
+
+                if !state.indefinite {
+                    HStack {
+                        Text("Duration")
+                        Spacer()
+                        Text(formatHrMin(Int(state.overrideDuration)))
+                            .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
+                    }
+                    .onTapGesture {
+                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                    }
+
+                    if displayPickerDuration {
+                        HStack {
+                            Picker("Hours", selection: $durationHours) {
+                                ForEach(0 ..< 24) { hour in
+                                    Text("\(hour) hr").tag(hour)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                            .onChange(of: durationHours) {
+                                state.overrideDuration = convertToMinutes(durationHours, durationMinutes)
+                            }
+
+                            Picker("Minutes", selection: $durationMinutes) {
+                                ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
+                                    Text("\(minute) min").tag(minute)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                            .onChange(of: durationMinutes) {
+                                state.overrideDuration = convertToMinutes(durationHours, durationMinutes)
+                            }
+                        }
+                        .listRowSeparator(.hidden, edges: .top)
+                    }
+                }
+            }
+            .listRowBackground(Color.chart)
         }
     }
 
@@ -423,7 +423,7 @@ struct AddOverrideForm: View {
                             dismiss()
                         }
                     }, label: {
-                        Text("Enact Override")
+                        Text("Start Override")
                     })
                         .disabled(isInvalid)
                         .frame(maxWidth: .infinity, alignment: .center)

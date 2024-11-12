@@ -132,50 +132,6 @@ struct AddTempTargetForm: View {
             }.listRowBackground(Color.chart)
 
             Section {
-                DatePicker("Date", selection: $state.date)
-            }.listRowBackground(Color.chart)
-
-            Section {
-                VStack {
-                    HStack {
-                        Text("Duration")
-                        Spacer()
-                        Text(formatHrMin(Int(state.tempTargetDuration)))
-                            .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
-                    }
-                    .onTapGesture {
-                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
-                    }
-
-                    if displayPickerDuration {
-                        HStack {
-                            Picker("Hours", selection: $durationHours) {
-                                ForEach(0 ..< 24) { hour in
-                                    Text("\(hour) hr").tag(hour)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
-                            .onChange(of: durationHours) {
-                                state.tempTargetDuration = Decimal(totalDurationInMinutes())
-                            }
-
-                            Picker("Minutes", selection: $durationMinutes) {
-                                ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
-                                    Text("\(minute) min").tag(minute)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
-                            .onChange(of: durationMinutes) {
-                                state.tempTargetDuration = Decimal(totalDurationInMinutes())
-                            }
-                        }
-                    }
-                }
-            }.listRowBackground(Color.chart)
-
-            Section {
                 let settingsProvider = PickerSettingsProvider.shared
                 let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
                 TargetPicker(
@@ -255,6 +211,50 @@ struct AddTempTargetForm: View {
                     .listRowBackground(Color.chart)
                 }
             }
+
+            Section {
+                DatePicker("Date", selection: $state.date)
+            }.listRowBackground(Color.chart)
+
+            Section {
+                VStack {
+                    HStack {
+                        Text("Duration")
+                        Spacer()
+                        Text(formatHrMin(Int(state.tempTargetDuration)))
+                            .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
+                    }
+                    .onTapGesture {
+                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                    }
+
+                    if displayPickerDuration {
+                        HStack {
+                            Picker("Hours", selection: $durationHours) {
+                                ForEach(0 ..< 24) { hour in
+                                    Text("\(hour) hr").tag(hour)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                            .onChange(of: durationHours) {
+                                state.tempTargetDuration = Decimal(totalDurationInMinutes())
+                            }
+
+                            Picker("Minutes", selection: $durationMinutes) {
+                                ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
+                                    Text("\(minute) min").tag(minute)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                            .onChange(of: durationMinutes) {
+                                state.tempTargetDuration = Decimal(totalDurationInMinutes())
+                            }
+                        }
+                    }
+                }
+            }.listRowBackground(Color.chart)
         }
     }
 
@@ -299,7 +299,7 @@ struct AddTempTargetForm: View {
                             dismiss()
                         }
                     }, label: {
-                        Text("Enact Temp Target")
+                        Text("Start Temp Target")
                     })
                         .disabled(isInvalid)
                         .frame(maxWidth: .infinity, alignment: .center)

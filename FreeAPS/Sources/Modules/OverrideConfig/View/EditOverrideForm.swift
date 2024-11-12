@@ -167,70 +167,6 @@ struct EditOverrideForm: View {
                 .listRowBackground(Color.chart)
             }
 
-            Section {
-                Toggle(isOn: $indefinite) { Text("Enable Indefinitely") }
-                    .onChange(of: indefinite) { hasChanges = true }
-
-                if !indefinite {
-                    HStack {
-                        Text("Duration")
-                        Spacer()
-                        Text(formatHrMin(Int(truncating: duration as NSNumber)))
-                            .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
-                    }
-                    .onTapGesture {
-                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
-                    }
-
-                    if displayPickerDuration {
-                        HStack {
-                            Picker(
-                                selection: Binding(
-                                    get: {
-                                        Int(truncating: duration as NSNumber) / 60
-                                    },
-                                    set: {
-                                        let minutes = Int(truncating: duration as NSNumber) % 60
-                                        let totalMinutes = $0 * 60 + minutes
-                                        duration = Decimal(totalMinutes)
-                                        hasChanges = true
-                                    }
-                                ),
-                                label: Text("")
-                            ) {
-                                ForEach(0 ..< 24) { hour in
-                                    Text("\(hour) hr").tag(hour)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
-
-                            Picker(
-                                selection: Binding(
-                                    get: {
-                                        Int(truncating: duration as NSNumber) %
-                                            60 // Convert Decimal to Int for modulus operation
-                                    },
-                                    set: {
-                                        duration = Decimal((Int(truncating: duration as NSNumber) / 60) * 60 + $0)
-                                        hasChanges = true
-                                    }
-                                ),
-                                label: Text("")
-                            ) {
-                                ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
-                                    Text("\(minute) min").tag(minute)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(maxWidth: .infinity)
-                        }
-                        .listRowSeparator(.hidden, edges: .top)
-                    }
-                }
-            }
-            .listRowBackground(Color.chart)
-
             // Percentage Picker
             Section(footer: percentageDescription(percentage)) {
                 HStack {
@@ -519,6 +455,70 @@ struct EditOverrideForm: View {
                 }
                 .listRowBackground(Color.chart)
             }
+
+            Section {
+                Toggle(isOn: $indefinite) { Text("Enable Indefinitely") }
+                    .onChange(of: indefinite) { hasChanges = true }
+
+                if !indefinite {
+                    HStack {
+                        Text("Duration")
+                        Spacer()
+                        Text(formatHrMin(Int(truncating: duration as NSNumber)))
+                            .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
+                    }
+                    .onTapGesture {
+                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                    }
+
+                    if displayPickerDuration {
+                        HStack {
+                            Picker(
+                                selection: Binding(
+                                    get: {
+                                        Int(truncating: duration as NSNumber) / 60
+                                    },
+                                    set: {
+                                        let minutes = Int(truncating: duration as NSNumber) % 60
+                                        let totalMinutes = $0 * 60 + minutes
+                                        duration = Decimal(totalMinutes)
+                                        hasChanges = true
+                                    }
+                                ),
+                                label: Text("")
+                            ) {
+                                ForEach(0 ..< 24) { hour in
+                                    Text("\(hour) hr").tag(hour)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+
+                            Picker(
+                                selection: Binding(
+                                    get: {
+                                        Int(truncating: duration as NSNumber) %
+                                            60 // Convert Decimal to Int for modulus operation
+                                    },
+                                    set: {
+                                        duration = Decimal((Int(truncating: duration as NSNumber) / 60) * 60 + $0)
+                                        hasChanges = true
+                                    }
+                                ),
+                                label: Text("")
+                            ) {
+                                ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
+                                    Text("\(minute) min").tag(minute)
+                                }
+                            }
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
+                        }
+                        .listRowSeparator(.hidden, edges: .top)
+                    }
+                }
+            }
+            .listRowBackground(Color.chart)
         }
     }
 

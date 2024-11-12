@@ -690,7 +690,7 @@ extension OverrideConfig.StateModel {
         // Save Temp Target to Core Data
         await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
 
-        // Enact Temp Target for oref
+        // Start Temp Target for oref
         tempTargetStorage.saveTempTargetsToStorage([tempTarget])
 
         // Reset State variables
@@ -725,7 +725,7 @@ extension OverrideConfig.StateModel {
         setupTempTargetPresetsArray()
     }
 
-    // Enact Temp Target Preset
+    // Start Temp Target Preset
     /// here we only have to update the Boolean Flag 'enabled'
     @MainActor func enactTempTargetPreset(withID id: NSManagedObjectID) async {
         do {
