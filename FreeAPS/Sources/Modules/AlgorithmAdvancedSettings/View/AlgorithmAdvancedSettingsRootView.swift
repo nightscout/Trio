@@ -120,7 +120,7 @@ extension AlgorithmAdvancedSettings {
                     miniHint: "Number of hours insulin is active in your body.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: 6 hours").bold()
+                        Text("Default: 10 hours").bold()
                         Text(
                             "The Duration of Insulin Action (DIA) defines how long your insulin continues to lower glucose readings after a dose."
                         )

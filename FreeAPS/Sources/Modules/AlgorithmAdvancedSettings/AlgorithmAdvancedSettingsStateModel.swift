@@ -23,7 +23,7 @@ extension AlgorithmAdvancedSettings {
         var remainingCarbsCap: Decimal = 90
         var noisyCGMTargetMultiplier: Decimal = 1.3
 
-        var insulinActionCurve: Decimal = 6
+        var insulinActionCurve: Decimal = 10
 
         var preferences: Preferences {
             settingsManager.preferences
