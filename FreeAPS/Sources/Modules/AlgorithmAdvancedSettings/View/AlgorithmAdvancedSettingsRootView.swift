@@ -130,7 +130,6 @@ extension AlgorithmAdvancedSettings {
                         Text(
                             "Tip: It is better to use Custom Peak Time rather than adjust your Duration of Insulin Action (DIA)"
                         )
-                        Text("Warning: Decreasing this setting is not advised.").bold()
                     }
                 )
 
