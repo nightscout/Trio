@@ -273,6 +273,13 @@ final class BaseAPSManager: APSManager, Injectable {
                 await loopCompleted(error: error, loopStatRecord: loopStatRecord)
             }
 
+            if let nightscoutManager = nightscout {
+                await nightscoutManager.uploadCarbs()
+                await nightscoutManager.uploadPumpHistory()
+                await nightscoutManager.uploadOverrides()
+                await nightscoutManager.uploadTempTargets()
+            }
+
             // End background task after all the operations are completed
             if let backgroundTask = self.backGroundTaskID {
                 await UIApplication.shared.endBackgroundTask(backgroundTask)

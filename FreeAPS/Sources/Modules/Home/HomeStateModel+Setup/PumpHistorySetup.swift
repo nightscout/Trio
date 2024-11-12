@@ -16,7 +16,8 @@ extension Home.StateModel {
             onContext: pumpHistoryFetchContext,
             predicate: NSPredicate.pumpHistoryLast24h,
             key: "timestamp",
-            ascending: true
+            ascending: true,
+            batchSize: 30
         )
 
         return await pumpHistoryFetchContext.perform {

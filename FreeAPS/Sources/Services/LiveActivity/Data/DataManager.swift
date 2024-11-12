@@ -33,7 +33,7 @@ extension LiveActivityBridge {
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1,
-            propertiesToFetch: ["iob", "cob", "currentTarget"]
+            propertiesToFetch: ["iob", "cob", "currentTarget", "deliverAt"]
         )
 
         return await context.perform {
@@ -45,7 +45,8 @@ extension LiveActivityBridge {
                 DeterminationData(
                     cob: ($0["cob"] as? Int) ?? 0,
                     iob: ($0["iob"] as? NSDecimalNumber)?.decimalValue ?? 0,
-                    target: ($0["currentTarget"] as? NSDecimalNumber)?.decimalValue ?? 0
+                    target: ($0["currentTarget"] as? NSDecimalNumber)?.decimalValue ?? 0,
+                    date: $0["deliverAt"] as? Date ?? nil
                 )
             }
         }
