@@ -91,6 +91,22 @@ platform :ios do
       ]
     )
 
+   # Set initial build number logic with error handling for first-time uploads
+begin
+  previous_build_number = latest_testflight_build_number(
+    app_identifier: "#{BUNDLE_ID}",
+    api_key: api_key,
+  )
+  current_build_number = previous_build_number + 1
+rescue
+  UI.message("No previous build found, starting with build number 1")
+  current_build_number = 1
+end
+
+    increment_build_number(
+      xcodeproj: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      build_number: current_build_number
+    )
     mapping = Actions.lane_context[
       SharedValues::MATCH_PROVISIONING_PROFILE_MAPPING
     ]
