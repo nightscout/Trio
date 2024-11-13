@@ -92,7 +92,11 @@ extension BasalProfileEditor {
 
                 Rectangle()
                     .frame(width: UIScreen.main.bounds.width, height: 65)
-                    .foregroundStyle(Color.chart)
+                    .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
+                    .background(.thinMaterial)
+                    .opacity(0.8)
+                    .clipShape(Rectangle())
+
                 Group {
                     HStack {
                         Button {
