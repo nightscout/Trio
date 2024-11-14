@@ -221,7 +221,8 @@ struct CarbsView: View {
                 let amountFat = Int(numberFormatter.string(from: fatAmount as NSNumber)!) ?? Int(fatAmount.rounded())
                 let amountProtein = Int(numberFormatter.string(from: proteinAmount as NSNumber)!) ??
                     Int(proteinAmount.rounded())
-                state.addMeal(amountCarbs, fat: amountFat, protein: amountProtein)
+                let note = "⌚️" // Hard-coded note for entries from watch
+                state.addMeal(amountCarbs, fat: amountFat, protein: amountProtein, note: note)
             }
             label: { Text("Save") }
                 .buttonStyle(.borderless)

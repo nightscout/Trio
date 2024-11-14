@@ -6,10 +6,11 @@ import Foundation
         _ quantityCarbs: Double,
         _ quantityFat: Double,
         _ quantityProtein: Double,
-        _ dateAdded: Date
+        _ dateAdded: Date,
+        _ note: String?
     ) async throws -> String {
         guard quantityCarbs >= 0.0 || quantityFat >= 0.0 || quantityProtein >= 0.0 else {
-            return "no adding carbs in iAPS"
+            return "not adding carbs in Trio"
         }
 
         let carbs = min(Decimal(quantityCarbs), settingsManager.settings.maxCarbs)
@@ -22,7 +23,7 @@ import Foundation
                 carbs: carbs,
                 fat: Decimal(quantityFat),
                 protein: Decimal(quantityProtein),
-                note: "add with shortcuts",
+                note: note,
                 enteredBy: CarbsEntry.manual,
                 isFPU: false, fpuID: nil
             )],
