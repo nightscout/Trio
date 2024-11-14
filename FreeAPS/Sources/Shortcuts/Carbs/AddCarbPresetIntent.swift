@@ -45,7 +45,7 @@ import Swinject
     ) var dateAdded: Date
 
     @Parameter(
-        title: "Notering",
+        title: "Notes",
         description: "Emoji or short text"
     ) var note: String?
 
