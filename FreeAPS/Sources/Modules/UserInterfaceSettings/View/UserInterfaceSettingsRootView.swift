@@ -347,7 +347,7 @@ extension UserInterfaceSettings {
                                     hintLabel = "Forecast Display Type"
                                     selectedVerboseHint =
                                         AnyView(
-                                            VStack(spacing: 10) {
+                                            VStack(alignment: .leading, spacing: 10) {
                                                 Text(
                                                     "This setting allows you to choose between the following two options for the glucose forecast:"
                                                 )
@@ -395,7 +395,7 @@ extension UserInterfaceSettings {
                                     hintLabel = "Total Insulin Display Type"
                                     selectedVerboseHint =
                                         AnyView(
-                                            VStack(spacing: 10) {
+                                            VStack(alignment: .leading, spacing: 10) {
                                                 Text(
                                                     "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph."
                                                 )
