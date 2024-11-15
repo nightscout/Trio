@@ -81,11 +81,11 @@ extension UserInterfaceSettings {
                                         hintLabel = "Color Scheme Preference"
                                         selectedVerboseHint =
                                             AnyView(
-                                                VStack(spacing: 10) {
+                                                VStack(alignment: .leading, spacing: 10) {
                                                     Text(
                                                         "Set the app color scheme using the following options:"
                                                     )
-                                                    VStack {
+                                                    VStack(alignment: .leading, spacing: 10) {
                                                         Text(
                                                             "System Default: Follows the phone's current color scheme setting at that time"
                                                         )
