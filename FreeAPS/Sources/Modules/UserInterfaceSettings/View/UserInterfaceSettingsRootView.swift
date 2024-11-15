@@ -299,7 +299,7 @@ extension UserInterfaceSettings {
                                         hintLabel = "Low and High Thresholds"
                                         selectedVerboseHint =
                                             AnyView(
-                                                VStack(spacing: 10) {
+                                                VStack(alignment: .leading, spacing: 10) {
                                                     Text(
                                                         "Default values are based on internationally accepted Time in Range values of \(state.units == .mgdL ? "70" : 70.formattedAsMmol ?? "70")-\(state.units == .mgdL ? "180" : 180.formattedAsMmol ?? "180") \(state.units.rawValue)."
                                                     )
