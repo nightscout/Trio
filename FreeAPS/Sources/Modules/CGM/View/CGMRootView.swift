@@ -52,7 +52,7 @@ extension CGM {
 
                                 HStack(alignment: .center) {
                                     Text(
-                                        "Select your CGM"
+                                        "Select your CGM."
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
