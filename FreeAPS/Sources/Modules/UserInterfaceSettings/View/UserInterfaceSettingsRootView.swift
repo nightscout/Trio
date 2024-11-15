@@ -372,10 +372,10 @@ extension UserInterfaceSettings {
                 }.listRowBackground(Color.chart)
 
                 Section {
-                    VStack {
+                    VStack(alignment: .leading) {
                         Picker(
                             selection: $state.totalInsulinDisplayType,
-                            label: Text("Total Insulin Display Type")
+                            label: Text("Total Insulin Display Type").multilineTextAlignment(.leading)
                         ) {
                             ForEach(TotalInsulinDisplayType.allCases) { selection in
                                 Text(selection.displayName).tag(selection)
@@ -419,49 +419,88 @@ extension UserInterfaceSettings {
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
 
-                // TODO: this needs to be a picker: mmol/L or %
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.overrideHbA1cUnit,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Override HbA1c Unit"
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: "Override HbA1c Unit",
-                    miniHint: "Display HbA1c in mmol/mol or %.",
-                    verboseHint: Text(
-                        "Choose which format you'd prefer the HbA1c value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)"
-                    ),
-                    headerText: "Trio Statistics"
-                )
+                Section(
+                    header: Text("Trio Statistics"),
+                    content: {
+                        VStack {
+                            Picker(
+                                selection: $state.hbA1cDisplayUnit,
+                                label: Text("HbA1c Display Unit")
+                            ) {
+                                ForEach(HbA1cDisplayUnit.allCases) { selection in
+                                    Text(selection.displayName).tag(selection)
+                                }
+                            }.padding(.top)
 
-                // TODO: this needs to be a picker: choose bar chart or progress bar
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.oneDimensionalGraph,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Standing / Laying TIR Chart"
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: "Standing / Laying TIR Chart",
-                    miniHint: "Select a vertical chart or horizontal chart to display your Time in Range Statistics.",
-                    verboseHint: VStack {
-                        Text("Select a vertical / standing chart by turning this feature OFF.")
-                        Text("Select a horizontal / laying chart by turning this feature ON.")
+                            HStack(alignment: .center) {
+                                Text(
+                                    "Choose to display HbA1c in % or mmol/mol."
+                                )
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                                .lineLimit(nil)
+                                Spacer()
+                                Button(
+                                    action: {
+                                        hintLabel = "HbA1c Display Unit"
+                                        selectedVerboseHint =
+                                            AnyView(
+                                                Text(
+                                                    "Choose which format you'd prefer the HbA1c value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)."
+                                                )
+                                            )
+                                        shouldDisplayHint.toggle()
+                                    },
+                                    label: {
+                                        HStack {
+                                            Image(systemName: "questionmark.circle")
+                                        }
+                                    }
+                                ).buttonStyle(BorderlessButtonStyle())
+                            }.padding(.top)
+                        }.padding(.bottom)
                     }
-                )
+                ).listRowBackground(Color.chart)
+
+                Section {
+                    VStack(alignment: .leading) {
+                        Picker(
+                            selection: $state.timeInRangeChartStyle,
+                            label: Text("Time in Range Chart Style").multilineTextAlignment(.leading)
+                        ) {
+                            ForEach(TimeInRangeChartStyle.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
+                            }
+                        }.padding(.top)
+
+                        HStack(alignment: .center) {
+                            Text(
+                                "Choose to display the Time in Range chart as a vertical bar chart or horizontal line chart."
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = "Time in Range Chart Style"
+                                    selectedVerboseHint =
+                                        AnyView(
+                                            Text(
+                                                "Choose which style for the time in range chart you'd prefer: a standing, i.e., vertical, bar chart or a laying, i.e., horizontal, line chart."
+                                            )
+                                        )
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+                }.listRowBackground(Color.chart)
 
                 SettingInputSection(
                     decimalValue: $state.carbsRequiredThreshold,

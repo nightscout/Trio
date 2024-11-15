@@ -49,14 +49,14 @@ struct FreeAPSSettings: JSON, Equatable {
     var useAppleHealth: Bool = false
     var smoothGlucose: Bool = false
     var displayOnWatch: AwConfig = .BGTarget
-    var overrideHbA1cUnit: Bool = false
+    var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
     var high: Decimal = 180
     var low: Decimal = 70
     var hours: Int = 6
     var glucoseColorScheme: GlucoseColorScheme = .staticColor
     var xGridLines: Bool = true
     var yGridLines: Bool = true
-    var oneDimensionalGraph: Bool = false
+    var timeInRangeChartStyle: TimeInRangeChartStyle = .vertical
     var rulerMarks: Bool = true
     var forecastDisplayType: ForecastDisplayType = .cone
     var maxCarbs: Decimal = 250
@@ -263,8 +263,8 @@ extension FreeAPSSettings: Decodable {
             settings.yGridLines = yGridLines
         }
 
-        if let oneDimensionalGraph = try? container.decode(Bool.self, forKey: .oneDimensionalGraph) {
-            settings.oneDimensionalGraph = oneDimensionalGraph
+        if let timeInRangeChartStyle = try? container.decode(TimeInRangeChartStyle.self, forKey: .timeInRangeChartStyle) {
+            settings.timeInRangeChartStyle = timeInRangeChartStyle
         }
 
         if let rulerMarks = try? container.decode(Bool.self, forKey: .rulerMarks) {
@@ -275,8 +275,8 @@ extension FreeAPSSettings: Decodable {
             settings.forecastDisplayType = forecastDisplayType
         }
 
-        if let overrideHbA1cUnit = try? container.decode(Bool.self, forKey: .overrideHbA1cUnit) {
-            settings.overrideHbA1cUnit = overrideHbA1cUnit
+        if let hbA1cDisplayUnit = try? container.decode(HbA1cDisplayUnit.self, forKey: .hbA1cDisplayUnit) {
+            settings.hbA1cDisplayUnit = hbA1cDisplayUnit
         }
 
         if let maxCarbs = try? container.decode(Decimal.self, forKey: .maxCarbs) {

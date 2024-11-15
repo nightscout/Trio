@@ -52,7 +52,7 @@ extension Home {
         var highGlucose: Decimal = 180
         var currentGlucoseTarget: Decimal = 100
         var glucoseColorScheme: GlucoseColorScheme = .staticColor
-        var overrideUnit: Bool = false
+        var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
         var displayXgridLines: Bool = false
         var displayYgridLines: Bool = false
         var thresholdLines: Bool = false
@@ -333,7 +333,7 @@ extension Home {
             maxValue = settingsManager.preferences.autosensMax
             lowGlucose = settingsManager.settings.low
             highGlucose = settingsManager.settings.high
-            overrideUnit = settingsManager.settings.overrideHbA1cUnit
+            hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
@@ -589,7 +589,7 @@ extension Home.StateModel:
         Task {
             await getCurrentGlucoseTarget()
         }
-        overrideUnit = settingsManager.settings.overrideHbA1cUnit
+        hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
         glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
