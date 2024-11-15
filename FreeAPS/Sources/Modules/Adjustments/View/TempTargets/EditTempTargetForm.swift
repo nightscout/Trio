@@ -232,7 +232,7 @@ struct EditTempTargetForm: View {
             }
 
             Section {
-                DatePicker("Start Time", selection: $date)
+                DatePicker("Start Time", selection: $date, in: Date.now...)
                     .onChange(of: date) { hasChanges = true }
             }.listRowBackground(Color.chart)
 

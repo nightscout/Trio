@@ -213,7 +213,7 @@ struct AddTempTargetForm: View {
             }
 
             Section {
-                DatePicker("Start Time", selection: $state.date)
+                DatePicker("Start Time", selection: $state.date, in: Date.now...)
             }.listRowBackground(Color.chart)
 
             Section {
@@ -279,15 +279,31 @@ struct AddTempTargetForm: View {
         return (false, nil)
     }
 
+    private func isSavePresetInvalid() -> (Bool, String?) {
+        let (isTempTargetInvalid, tempTargetError) = isTempTargetInvalid()
+        let isDateInFuture = state.date > Date()
+
+        if isTempTargetInvalid {
+            return (true, tempTargetError)
+        }
+
+        if isDateInFuture {
+            return (true, "Presets can't be saved with a future date!")
+        }
+
+        return (false, nil)
+    }
+
     private var saveButton: some View {
-        let (isInvalid, errorMessage) = isTempTargetInvalid()
+        let (isTempTargetInvalid, _) = isTempTargetInvalid()
+        let (isSavePresetInvalid, savePresetError) = isSavePresetInvalid()
         let noNameSpecified = state.tempTargetName == ""
         return Group {
             Section(
                 header:
                 HStack {
                     Spacer()
-                    Text(errorMessage ?? "").textCase(nil)
+                    Text(savePresetError ?? "").textCase(nil)
                         .foregroundColor(colorScheme == .dark ? .orange : .accentColor)
                     Spacer()
                 },
@@ -302,11 +318,11 @@ struct AddTempTargetForm: View {
                     }, label: {
                         Text("Start Temp Target")
                     })
-                        .disabled(isInvalid)
+                        .disabled(isTempTargetInvalid)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .tint(.white)
                 }
-            ).listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))
+            ).listRowBackground(isTempTargetInvalid ? Color(.systemGray4) : Color(.systemBlue))
 
             Section {
                 Button(action: {
@@ -320,12 +336,13 @@ struct AddTempTargetForm: View {
                     Text("Save as Preset")
 
                 })
-                    .disabled(isInvalid)
+                    .disabled(isSavePresetInvalid)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .tint(.white)
             }
+
             .listRowBackground(
-                isInvalid ? Color(.systemGray4) : Color.secondary
+                isSavePresetInvalid ? Color(.systemGray4) : Color.secondary
             )
         }
     }
