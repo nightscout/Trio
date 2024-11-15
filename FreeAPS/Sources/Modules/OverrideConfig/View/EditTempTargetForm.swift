@@ -135,8 +135,14 @@ struct EditTempTargetForm: View {
                 )
 
                 if state.isAdjustSensEnabled(usingTarget: target) {
+                    let tempTargetPercentageFooter = tempTargetSensitivityAdjustmentType == .slider
+                        ? (percentageDescription(percentage) ?? Text("")) +
+                        Text(
+                            " Temporary adjusting Half Basal Exercise Target to \(formattedGlucose(glucose: computedHalfBasalTarget))."
+                        )
+                        : (percentageDescription(percentage) ?? Text(""))
                     Section(
-                        footer: percentageDescription(percentage),
+                        footer: tempTargetPercentageFooter,
                         content: {
                             Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
                                 ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
@@ -187,14 +193,6 @@ struct EditTempTargetForm: View {
                                     Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
                                 }
                                 .listRowSeparator(.hidden, edges: .top)
-
-                                HStack {
-                                    Text(
-                                        "Half Basal Exercise Target:"
-                                    )
-                                    Spacer()
-                                    Text(formattedGlucose(glucose: computedHalfBasalTarget))
-                                }.foregroundStyle(.primary)
                             }
                         }
                     )
