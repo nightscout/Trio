@@ -107,16 +107,14 @@ extension BasalProfileEditor {
                 .store(in: &lifetime)
         }
 
-        func validate() {
-            DispatchQueue.main.async {
-                let uniq = Array(Set(self.items))
-                let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
-                sorted.first?.timeIndex = 0
-                if self.items != sorted {
-                    self.items = sorted
-                }
-                self.calcTotal()
+        @MainActor func validate() {
+            let uniq = Array(Set(items))
+            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+            sorted.first?.timeIndex = 0
+            if items != sorted {
+                items = sorted
             }
+            calcTotal()
         }
 
         func availableTimeIndices(_ itemIndex: Int) -> [Int] {
@@ -133,32 +131,30 @@ extension BasalProfileEditor {
             return (0 ..< timeValues.count).filter { !usedIndicesByOtherItems.contains($0) }
         }
 
-        func caluclateChartData() {
-            DispatchQueue.main.async {
-                var basals: [BasalProfile] = []
-                let tzOffset = TimeZone.current.secondsFromGMT() * -1
+        @MainActor func calculateChartData() {
+            var basals: [BasalProfile] = []
+            let tzOffset = TimeZone.current.secondsFromGMT() * -1
 
-                basals.append(contentsOf: self.items.enumerated().map { index, item in
-                    let startDate = Date(timeIntervalSinceReferenceDate: self.timeValues[item.timeIndex])
-                    var endDate = Date(timeIntervalSinceReferenceDate: self.timeValues.last!).addingTimeInterval(30 * 60)
-                    if self.items.count > index + 1 {
-                        let nextItem = self.items[index + 1]
-                        endDate = Date(timeIntervalSinceReferenceDate: self.timeValues[nextItem.timeIndex])
-                    }
+            basals.append(contentsOf: items.enumerated().map { index, item in
+                let startDate = Date(timeIntervalSinceReferenceDate: self.timeValues[item.timeIndex])
+                var endDate = Date(timeIntervalSinceReferenceDate: self.timeValues.last!).addingTimeInterval(30 * 60)
+                if self.items.count > index + 1 {
+                    let nextItem = self.items[index + 1]
+                    endDate = Date(timeIntervalSinceReferenceDate: self.timeValues[nextItem.timeIndex])
+                }
 
-                    return BasalProfile(
-                        amount: Double(self.rateValues[item.rateIndex]),
-                        isOverwritten: false,
-                        startDate: startDate.addingTimeInterval(TimeInterval(tzOffset)),
-                        endDate: endDate.addingTimeInterval(TimeInterval(tzOffset))
-                    )
-                })
-                basals.sort(by: {
-                    $0.startDate > $1.startDate
-                })
+                return BasalProfile(
+                    amount: Double(self.rateValues[item.rateIndex]),
+                    isOverwritten: false,
+                    startDate: startDate.addingTimeInterval(TimeInterval(tzOffset)),
+                    endDate: endDate.addingTimeInterval(TimeInterval(tzOffset))
+                )
+            })
+            basals.sort(by: {
+                $0.startDate > $1.startDate
+            })
 
-                self.chartData = basals
-            }
+            chartData = basals
         }
     }
 }
