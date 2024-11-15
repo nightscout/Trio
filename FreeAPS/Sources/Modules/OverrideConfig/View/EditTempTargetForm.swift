@@ -161,7 +161,7 @@ struct EditTempTargetForm: View {
                                 }
                             }
 
-                            Text("\(formattedPercentage(percentage)) % Insulin")
+                            Text("\(formattedPercentage(percentage))% Insulin")
                                 .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
                                 .font(.title3)
                                 .fontWeight(.bold)
