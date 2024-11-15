@@ -118,7 +118,7 @@ extension TargetBehavoir {
                     type: .boolean,
                     label: NSLocalizedString("Sensitivity Raises Target", comment: "Sensitivity Raises Target"),
                     miniHint: "Automatically raise target glucose if sensitivity is detected.",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("Automatically increase target glucose if it detects an increase in sensitivity.")
                     }
@@ -139,7 +139,7 @@ extension TargetBehavoir {
                     type: .boolean,
                     label: NSLocalizedString("Resistance Lowers Target", comment: "Resistance Lowers Target"),
                     miniHint: "Automatically lower target glucose if resistance is detected.",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
                             "Enabling this feature causes Trio to automatically reduce the targeted glucose if it detects a decrease in sensitivity (resistance)."

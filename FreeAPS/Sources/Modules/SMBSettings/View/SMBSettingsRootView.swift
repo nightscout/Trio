@@ -251,11 +251,9 @@ extension SMBSettings {
                     label: NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes"),
                     miniHint: "Limits the size of a single Super Micro Bolus (SMB) dose.",
                     verboseHint: VStack(spacing: 10) {
-                        VStack(alignment: .leading, spacing: 1) {
+                        VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 30 minutes").bold()
                             Text("(50% current basal rate)").bold()
-                        }
-                        VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "This is a limit on the size of a single SMB. One SMB can only be as large as this many minutes of your current profile basal rate."
                             )
@@ -263,12 +261,14 @@ extension SMBSettings {
                                 "To calculate the maximum SMB allowed based on this setting, use the following formula:"
                             )
                         }
-                        VStack(alignment: .center, spacing: 5) {
+
+                        VStack(alignment: .center, spacing: 10) {
                             Text(
                                 "(𝒳 = Max SMB Basal Minutes)"
                             )
                             Text("(𝒳 ÷ 60) × current basal rate")
                         }
+
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Warning: Increasing this value above 90 minutes may impact Trio's ability to effectively zero temp and prevent lows."

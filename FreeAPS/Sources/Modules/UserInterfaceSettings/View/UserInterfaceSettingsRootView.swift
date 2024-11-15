@@ -81,11 +81,11 @@ extension UserInterfaceSettings {
                                         hintLabel = "Color Scheme Preference"
                                         selectedVerboseHint =
                                             AnyView(
-                                                VStack(spacing: 10) {
+                                                VStack(alignment: .leading, spacing: 10) {
                                                     Text(
                                                         "Set the app color scheme using the following options:"
                                                     )
-                                                    VStack {
+                                                    VStack(alignment: .leading, spacing: 10) {
                                                         Text(
                                                             "System Default: Follows the phone's current color scheme setting at that time"
                                                         )
@@ -207,7 +207,7 @@ extension UserInterfaceSettings {
                     type: .boolean,
                     label: "Show Low and High Thresholds",
                     miniHint: "Display the Low and High glucose thresholds set below.",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("This setting displays the upper and lower values for your glucose target range.")
                         Text("This range is for display and statistical purposes only and does not influence insulin dosing.")
                     }
@@ -299,7 +299,7 @@ extension UserInterfaceSettings {
                                         hintLabel = "Low and High Thresholds"
                                         selectedVerboseHint =
                                             AnyView(
-                                                VStack(spacing: 10) {
+                                                VStack(alignment: .leading, spacing: 10) {
                                                     Text(
                                                         "Default values are based on internationally accepted Time in Range values of \(state.units == .mgdL ? "70" : 70.formattedAsMmol ?? "70")-\(state.units == .mgdL ? "180" : 180.formattedAsMmol ?? "180") \(state.units.rawValue)."
                                                     )
@@ -347,7 +347,7 @@ extension UserInterfaceSettings {
                                     hintLabel = "Forecast Display Type"
                                     selectedVerboseHint =
                                         AnyView(
-                                            VStack(spacing: 10) {
+                                            VStack(alignment: .leading, spacing: 10) {
                                                 Text(
                                                     "This setting allows you to choose between the following two options for the glucose forecast:"
                                                 )
@@ -395,7 +395,7 @@ extension UserInterfaceSettings {
                                     hintLabel = "Total Insulin Display Type"
                                     selectedVerboseHint =
                                         AnyView(
-                                            VStack(spacing: 10) {
+                                            VStack(alignment: .leading, spacing: 10) {
                                                 Text(
                                                     "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph."
                                                 )
