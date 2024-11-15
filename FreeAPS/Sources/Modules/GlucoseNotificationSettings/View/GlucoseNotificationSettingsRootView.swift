@@ -247,7 +247,7 @@ extension GlucoseNotificationSettings {
                             action: {
                                 hintLabel = "Low and High Glucose Alarm Limits"
                                 selectedVerboseHint =
-                                    AnyView(VStack(spacing: 10) {
+                                    AnyView(VStack(alignment: .leading, spacing: 10) {
                                         Text("Low Default: 70 mg/dL").bold()
                                         Text("High Default: 180 mg/dL").bold()
                                         VStack(alignment: .leading, spacing: 10) {
