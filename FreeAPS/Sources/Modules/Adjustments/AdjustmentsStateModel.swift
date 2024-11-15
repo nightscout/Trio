@@ -53,6 +53,7 @@ extension OverrideConfig {
         var date = Date()
         var newPresetName = ""
         var tempTargetPresets: [TempTargetStored] = []
+        var scheduledTempTargets: [TempTargetStored] = []
         var percentage: Double = 100
         var maxValue: Decimal = 1.2
         var minValue: Decimal = 0.15
@@ -644,29 +645,119 @@ extension OverrideConfig.StateModel {
         }
     }
 
-    // Fill the array of the Temp Target Presets to display them in the UI
-    private func setupTempTargetPresetsArray() {
+    private func setupTempTargets(
+        fetchFunction: @escaping () async -> [NSManagedObjectID],
+        updateFunction: @escaping @MainActor([TempTargetStored]) -> Void
+    ) {
         Task {
-            let ids = await tempTargetStorage.fetchForTempTargetPresets()
-            await updateTempTargetPresetsArray(with: ids)
+            let ids = await fetchFunction()
+            let tempTargetObjects = await fetchTempTargetObjects(for: ids)
+            await updateFunction(tempTargetObjects)
         }
     }
 
-    @MainActor private func updateTempTargetPresetsArray(with IDs: [NSManagedObjectID]) async {
+    @MainActor private func fetchTempTargetObjects(for IDs: [NSManagedObjectID]) async -> [TempTargetStored] {
         do {
-            let tempTargetObjects = try IDs.compactMap { id in
+            return try IDs.compactMap { id in
                 try viewContext.existingObject(with: id) as? TempTargetStored
             }
-            tempTargetPresets = tempTargetObjects
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to extract Temp Targets as NSManagedObjects from the NSManagedObjectIDs with error: \(error.localizedDescription)"
             )
+            return []
         }
+    }
+
+    private func setupTempTargetPresetsArray() {
+        setupTempTargets(
+            fetchFunction: tempTargetStorage.fetchForTempTargetPresets,
+            updateFunction: { tempTargets in
+                self.tempTargetPresets = tempTargets
+            }
+        )
+    }
+
+    private func setupScheduledTempTargetsArray() {
+        setupTempTargets(
+            fetchFunction: tempTargetStorage.fetchScheduledTempTargets,
+            updateFunction: { tempTargets in
+                self.scheduledTempTargets = tempTargets
+            }
+        )
     }
 
     func saveTempTargetToStorage(tempTargets: [TempTarget]) {
         tempTargetStorage.saveTempTargetsToStorage(tempTargets)
+    }
+
+    func invokeSaveOfCustomTempTargets() async {
+        if date > Date() {
+            await saveScheduledTempTarget()
+        } else {
+            await saveCustomTempTarget()
+        }
+    }
+
+    // Save scheduled Preset to Core Data
+    func saveScheduledTempTarget() async {
+        guard date > Date() else { return }
+
+        let tempTarget = TempTarget(
+            name: tempTargetName,
+            createdAt: date,
+            targetTop: tempTargetTarget,
+            targetBottom: tempTargetTarget,
+            duration: tempTargetDuration,
+            enteredBy: TempTarget.manual,
+            reason: TempTarget.custom,
+            isPreset: false,
+            enabled: false,
+            halfBasalTarget: halfBasalTarget
+        )
+
+        await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
+
+        // Update Scheduled Temp Targets Array
+        setupScheduledTempTargetsArray()
+
+        // If the scheduled date equals Date() enable the Preset
+        Task {
+            await waitUntilDate(date)
+
+            await enableScheduledTempTarget(for: date)
+        }
+    }
+
+    private func enableScheduledTempTarget(for date: Date) async {
+        let ids = await tempTargetStorage.fetchScheduledTempTarget(for: date)
+
+        guard let firstID = ids.first else {
+            debugPrint("No Temp Target found for the specified date.")
+            return
+        }
+
+        await MainActor.run {
+            do {
+                if let tempTarget = try viewContext.existingObject(with: firstID) as? TempTargetStored {
+                    tempTarget.enabled = true
+                    try viewContext.save()
+                }
+            } catch {
+                debugPrint("Failed to enable the Temp Target for the specified date: \(error.localizedDescription)")
+            }
+        }
+
+        // Refresh the list of scheduled Temp Targets
+        setupScheduledTempTargetsArray()
+    }
+
+    private func waitUntilDate(_ targetDate: Date) async {
+        while Date() < targetDate {
+            let timeInterval = targetDate.timeIntervalSince(Date())
+            let sleepDuration = min(timeInterval, 60.0) // check every 60s
+            try? await Task.sleep(nanoseconds: UInt64(sleepDuration * 1_000_000_000))
+        }
     }
 
     // Creates and enacts a non Preset Temp Target
@@ -676,7 +767,7 @@ extension OverrideConfig.StateModel {
 
         let tempTarget = TempTarget(
             name: tempTargetName,
-            createdAt: Date(),
+            createdAt: date,
             targetTop: tempTargetTarget,
             targetBottom: tempTargetTarget,
             duration: tempTargetDuration,

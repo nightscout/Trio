@@ -11,6 +11,8 @@ protocol TempTargetsStorage {
     func storeTempTarget(tempTarget: TempTarget) async
     func saveTempTargetsToStorage(_ targets: [TempTarget])
     func fetchForTempTargetPresets() async -> [NSManagedObjectID]
+    func fetchScheduledTempTargets() async -> [NSManagedObjectID]
+    func fetchScheduledTempTarget(for targetDate: Date) async -> [NSManagedObjectID]
     func copyRunningTempTarget(_ tempTarget: TempTargetStored) async -> NSManagedObjectID
     func deleteOverridePreset(_ objectID: NSManagedObjectID) async
     func loadLatestTempTargetConfigurations(fetchLimit: Int) async -> [NSManagedObjectID]
@@ -64,6 +66,43 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
 
         return await backgroundContext.perform {
             return fetchedResults.map(\.objectID)
+        }
+    }
+
+    func fetchScheduledTempTargets() async -> [NSManagedObjectID] {
+        let scheduledTempTargets = NSPredicate(format: "date > %@", Date() as NSDate)
+
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TempTargetStored.self,
+            onContext: backgroundContext,
+            predicate: scheduledTempTargets,
+            key: "date",
+            ascending: false
+        )
+
+        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+
+        return await backgroundContext.perform {
+            return fetchedResults.map(\.objectID)
+        }
+    }
+
+    func fetchScheduledTempTarget(for targetDate: Date) async -> [NSManagedObjectID] {
+        let predicate = NSPredicate(format: "date == %@", targetDate as NSDate)
+
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TempTargetStored.self,
+            onContext: backgroundContext,
+            predicate: predicate,
+            key: "date",
+            ascending: false,
+            fetchLimit: 1
+        )
+
+        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+
+        return await backgroundContext.perform {
+            fetchedResults.map(\.objectID)
         }
     }
 

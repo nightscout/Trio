@@ -60,6 +60,13 @@ struct EditTempTargetForm: View {
             )
     }
 
+    private var dateFormatter: DateFormatter {
+        let f = DateFormatter()
+        f.dateStyle = .short
+        f.timeStyle = .short
+        return f
+    }
+
     var body: some View {
         NavigationView {
             List {
@@ -85,6 +92,28 @@ struct EditTempTargetForm: View {
                 if halfBasalTarget != state.settingHalfBasalTarget { tempTargetSensitivityAdjustmentType = .slider }
             }
         }
+    }
+
+    private func calculatedEndDate(from startDate: Date, totalDuration: Decimal) -> Date {
+        let elapsedTime = Date().timeIntervalSince(startDate)
+        let totalDurationSeconds = Int(totalDuration) * 60
+        let remainingTime = max(totalDurationSeconds - Int(elapsedTime), 0)
+        return Date().addingTimeInterval(TimeInterval(remainingTime))
+    }
+
+    private func formattedEndTime(startDate: Date, totalDuration: Decimal) -> String {
+        let endDate = calculatedEndDate(from: startDate, totalDuration: totalDuration)
+        let formatter = DateFormatter()
+
+        if Calendar.current.isDateInToday(endDate) {
+            formatter.dateStyle = .none
+            formatter.timeStyle = .short // show only the time
+        } else {
+            formatter.dateStyle = .short
+            formatter.timeStyle = .short // show Date and time
+        }
+
+        return formatter.string(from: endDate)
     }
 
     @ViewBuilder private func editTempTarget() -> some View {
@@ -203,7 +232,7 @@ struct EditTempTargetForm: View {
             }
 
             Section {
-                DatePicker("Date", selection: $date)
+                DatePicker("Start Time", selection: $date)
                     .onChange(of: date) { hasChanges = true }
             }.listRowBackground(Color.chart)
 
@@ -218,7 +247,6 @@ struct EditTempTargetForm: View {
                     .onTapGesture {
                         displayPickerDuration = toggleScrollWheel(displayPickerDuration)
                     }
-//                    .onChange(of: duration) { hasChanges = true }
 
                     if displayPickerDuration {
                         HStack {
@@ -267,6 +295,15 @@ struct EditTempTargetForm: View {
                     }
                 }
             }.listRowBackground(Color.chart)
+
+            if isEnabled {
+                Section {
+                    HStack {
+                        Spacer()
+                        Text("Until \(formattedEndTime(startDate: date, totalDuration: duration))").foregroundStyle(.secondary)
+                    }
+                }.listRowBackground(Color.clear)
+            }
         }
     }
 
