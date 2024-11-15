@@ -207,7 +207,7 @@ extension UserInterfaceSettings {
                     type: .boolean,
                     label: "Show Low and High Thresholds",
                     miniHint: "Display the Low and High glucose thresholds set below.",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("This setting displays the upper and lower values for your glucose target range.")
                         Text("This range is for display and statistical purposes only and does not influence insulin dosing.")
                     }
