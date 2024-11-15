@@ -312,8 +312,8 @@ extension OverrideConfig {
 
         private var scheduledTempTargets: some View {
             Section {
-                ForEach(state.scheduledTempTargets) { tt in
-                    tempTargetView(for: tt)
+                ForEach(state.scheduledTempTargets) { tempTarget in
+                    tempTargetView(for: tempTarget)
                 }
                 .listRowBackground(Color.chart)
             } header: {
@@ -367,7 +367,7 @@ extension OverrideConfig {
 
         private func swipeActions(for preset: TempTargetStored) -> some View {
             Group {
-                Button(role: .destructive) {
+                Button {
                     Task {
                         selectedTempTarget = preset
                         isConfirmDeletePresented = true
@@ -564,27 +564,32 @@ extension OverrideConfig {
         }
 
         private func tempTargetView(
-            for preset: TempTargetStored,
+            for tempTarget: TempTargetStored,
             showCheckmark: Bool = false,
             onTap: (() -> Void)? = nil
         ) -> some View {
-            let target = preset.target ?? 100
-            let presetTarget = Decimal(target as! Double.RawValue)
-            let isSelected = preset.id?.uuidString == selectedTempTargetPresetID
-            let presetHalfBasalTarget = Decimal(
-                preset.halfBasalTarget as? Double
+            let target = tempTarget.target ?? 100
+            let tempTargetValue = Decimal(target as! Double.RawValue)
+            let isSelected = tempTarget.id?.uuidString == selectedPresetID
+            let tempTargetHalfBasal = Decimal(
+                tempTarget.halfBasalTarget as? Double
                     .RawValue ?? Double(state.settingHalfBasalTarget)
             )
             let percentage = Int(
-                state.computeAdjustedPercentage(usingHBT: presetHalfBasalTarget, usingTarget: presetTarget)
+                state.computeAdjustedPercentage(usingHBT: tempTargetHalfBasal, usingTarget: tempTargetValue)
             )
+            let remainingTime = tempTarget.date?.timeIntervalSinceNow ?? 0
 
             return ZStack(alignment: .trailing) {
                 HStack {
-                    VStack {
+                    VStack(alignment: .leading) {
                         HStack {
-                            Text(preset.name ?? "")
+                            Text(tempTarget.name ?? "")
                             Spacer()
+                            if remainingTime > 0 {
+                                Text("Starts in \(formattedTimeRemaining(remainingTime))")
+                                    .foregroundColor(colorScheme == .dark ? .orange : .accentColor)
+                            }
                         }
                         HStack(spacing: 2) {
                             Text(formattedGlucose(glucose: target as Decimal))
@@ -593,13 +598,13 @@ extension OverrideConfig {
                             Text("for")
                                 .foregroundColor(.secondary)
                                 .font(.caption)
-                            Text("\(formatter.string(from: (preset.duration ?? 0) as NSNumber)!)")
+                            Text("\(formatter.string(from: (tempTarget.duration ?? 0) as NSNumber)!)")
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                             Text("min")
                                 .foregroundColor(.secondary)
                                 .font(.caption)
-                            if state.isAdjustSensEnabled(usingTarget: presetTarget) {
+                            if state.isAdjustSensEnabled(usingTarget: tempTargetValue) {
                                 Text(", \(percentage)%")
                                     .foregroundColor(.secondary)
                                     .font(.caption)
@@ -626,116 +631,20 @@ extension OverrideConfig {
             }
         }
 
-//        private func tempTargetView(for preset: TempTargetStored) -> some View {
-//            let target = preset.target ?? 100
-//            let presetTarget = Decimal(target as! Double.RawValue)
-//            let isSelected = preset.id?.uuidString == selectedTempTargetPresetID
-//            let presetHalfBasalTarget = Decimal(
-//                preset.halfBasalTarget as? Double
-//                    .RawValue ?? Double(state.settingHalfBasalTarget)
-//            )
-//            let percentage = Int(
-//                state.computeAdjustedPercentage(usingHBT: presetHalfBasalTarget, usingTarget: presetTarget)
-//            )
-//
-//            return ZStack(alignment: .trailing, content: {
-//                HStack {
-//                    VStack {
-//                        HStack {
-//                            Text(preset.name ?? "")
-//                            Spacer()
-//                        }
-//                        HStack(spacing: 2) {
-//                            Text(formattedGlucose(glucose: target as Decimal))
-//                                .foregroundColor(.secondary)
-//                                .font(.caption)
-//                            Text("for")
-//                                .foregroundColor(.secondary)
-//                                .font(.caption)
-//                            Text("\(formatter.string(from: (preset.duration ?? 0) as NSNumber)!)")
-//                                .foregroundColor(.secondary)
-//                                .font(.caption)
-//                            Text("min")
-//                                .foregroundColor(.secondary)
-//                                .font(.caption)
-//                            if state.isAdjustSensEnabled(usingTarget: presetTarget) { Text(", \(percentage)%")
-//                                .foregroundColor(.secondary)
-//                                .font(.caption)
-//                            }
-//                            Spacer()
-//                        }.padding(.top, 2)
-//                    }
-//                    .contentShape(Rectangle())
-//                    .onTapGesture {
-//                        Task {
-//                            let objectID = preset.objectID
-//                            await state.enactTempTargetPreset(withID: objectID)
-//                            selectedTempTargetPresetID = preset.id?.uuidString
-//                            showCheckmark.toggle()
-//
-//                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-//                                showCheckmark = false
-//                            }
-//                        }
-//                    }
-//                }
-//                if showCheckmark && isSelected {
-//                    // show checkmark to indicate if the preset was actually pressed
-//                    Image(systemName: "checkmark.circle.fill")
-//                        .imageScale(.large)
-//                        .fontWeight(.bold)
-//                        .foregroundStyle(Color.green)
-//                } else {
-//                    Image(systemName: "line.3.horizontal")
-//                        .imageScale(.medium)
-//                        .foregroundStyle(.secondary)
-//                }
-//            })
-//        }
-//
-//        private func scheduledTempTargetView(for preset: TempTargetStored) -> some View {
-//            let target = preset.target ?? 100
-//            let presetTarget = Decimal(target as! Double.RawValue)
-//            let isSelected = preset.id?.uuidString == selectedTempTargetPresetID
-//            let presetHalfBasalTarget = Decimal(
-//                preset.halfBasalTarget as? Double
-//                    .RawValue ?? Double(state.settingHalfBasalTarget)
-//            )
-//            let percentage = Int(
-//                state.computeAdjustedPercentage(usingHBT: presetHalfBasalTarget, usingTarget: presetTarget)
-//            )
-//
-//            return ZStack(alignment: .trailing, content: {
-//                HStack {
-//                    VStack {
-//                        HStack {
-//                            Text(preset.name ?? "")
-//                            Spacer()
-//                        }
-//                        HStack(spacing: 2) {
-//                            Text(formattedGlucose(glucose: target as Decimal))
-//                                .foregroundColor(.secondary)
-//                                .font(.caption)
-//                            Text("for")
-//                                .foregroundColor(.secondary)
-//                                .font(.caption)
-//                            Text("\(formatter.string(from: (preset.duration ?? 0) as NSNumber)!)")
-//                                .foregroundColor(.secondary)
-//                                .font(.caption)
-//                            Text("min")
-//                                .foregroundColor(.secondary)
-//                                .font(.caption)
-//                            if state.isAdjustSensEnabled(usingTarget: presetTarget) { Text(", \(percentage)%")
-//                                .foregroundColor(.secondary)
-//                                .font(.caption)
-//                            }
-//                            Spacer()
-//                        }.padding(.top, 2)
-//                    }
-//                    .contentShape(Rectangle())
-//                }
-//            })
-//        }
+        private func formattedTimeRemaining(_ timeInterval: TimeInterval) -> String {
+            let totalSeconds = Int(timeInterval)
+            let hours = totalSeconds / 3600
+            let minutes = (totalSeconds % 3600) / 60
+            let seconds = totalSeconds % 60
+
+            if hours > 0 {
+                return "\(hours)h \(minutes)m \(seconds)s"
+            } else if minutes > 0 {
+                return "\(minutes)m \(seconds)s"
+            } else {
+                return "<1m"
+            }
+        }
 
         private var overrideLabelDivider: some View {
             Divider()

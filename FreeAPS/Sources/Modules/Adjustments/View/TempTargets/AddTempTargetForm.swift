@@ -296,7 +296,6 @@ struct AddTempTargetForm: View {
                         Task {
                             if noNameSpecified { state.tempTargetName = "Custom Target" }
                             didPressSave.toggle()
-                            state.isTempTargetEnabled.toggle()
                             await state.invokeSaveOfCustomTempTargets()
                             dismiss()
                         }

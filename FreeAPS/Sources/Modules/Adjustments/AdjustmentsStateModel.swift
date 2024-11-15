@@ -742,6 +742,9 @@ extension OverrideConfig.StateModel {
                 if let tempTarget = try viewContext.existingObject(with: firstID) as? TempTargetStored {
                     tempTarget.enabled = true
                     try viewContext.save()
+
+                    // Update Buttons in Adjustments View
+                    isTempTargetEnabled.toggle()
                 }
             } catch {
                 debugPrint("Failed to enable the Temp Target for the specified date: \(error.localizedDescription)")
@@ -788,6 +791,7 @@ extension OverrideConfig.StateModel {
         await resetTempTargetState()
 
         // Update View
+        isTempTargetEnabled.toggle()
         updateLatestTempTargetConfiguration()
     }
 
