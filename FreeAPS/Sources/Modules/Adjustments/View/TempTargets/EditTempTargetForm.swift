@@ -213,12 +213,12 @@ struct EditTempTargetForm: View {
                         Text("Duration")
                         Spacer()
                         Text(formatHrMin(Int(duration)))
-                            .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
+                            .foregroundColor(!displayPickerDuration ? (duration > 0 ? .primary : .secondary) : .accentColor)
                     }
                     .onTapGesture {
                         displayPickerDuration = toggleScrollWheel(displayPickerDuration)
                     }
-                    .onChange(of: duration) { hasChanges = true }
+//                    .onChange(of: duration) { hasChanges = true }
 
                     if displayPickerDuration {
                         HStack {
@@ -231,7 +231,7 @@ struct EditTempTargetForm: View {
                                         let minutes = Int(truncating: duration as NSNumber) % 60
                                         let totalMinutes = $0 * 60 + minutes
                                         duration = Decimal(totalMinutes)
-                                        hasChanges = true
+                                        hasChanges = duration > 0 ? true : false // prevents the user from setting 0 min
                                     }
                                 ),
                                 label: Text("")
@@ -251,7 +251,7 @@ struct EditTempTargetForm: View {
                                     },
                                     set: {
                                         duration = Decimal((Int(truncating: duration as NSNumber) / 60) * 60 + $0)
-                                        hasChanges = true
+                                        hasChanges = duration > 0 ? true : false
                                     }
                                 ),
                                 label: Text("")

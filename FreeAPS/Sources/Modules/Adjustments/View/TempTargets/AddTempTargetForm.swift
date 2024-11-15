@@ -222,7 +222,10 @@ struct AddTempTargetForm: View {
                         Text("Duration")
                         Spacer()
                         Text(formatHrMin(Int(state.tempTargetDuration)))
-                            .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
+                            .foregroundColor(
+                                !displayPickerDuration ?
+                                    (state.tempTargetDuration > 0 ? .primary : .secondary) : .accentColor
+                            )
                     }
                     .onTapGesture {
                         displayPickerDuration = toggleScrollWheel(displayPickerDuration)
@@ -294,9 +297,8 @@ struct AddTempTargetForm: View {
                             if noNameSpecified { state.tempTargetName = "Custom Target" }
                             didPressSave.toggle()
                             state.isTempTargetEnabled.toggle()
-                            await state.saveCustomTempTarget()
-                            await state.resetTempTargetState()
                             dismiss()
+                            await state.saveCustomTempTarget()
                         }
                     }, label: {
                         Text("Start Temp Target")
@@ -312,8 +314,8 @@ struct AddTempTargetForm: View {
                     Task {
                         if noNameSpecified { state.tempTargetName = "Custom Target" }
                         didPressSave.toggle()
-                        await state.saveTempTargetPreset()
                         dismiss()
+                        await state.saveTempTargetPreset()
                     }
                 }, label: {
                     Text("Save as Preset")
