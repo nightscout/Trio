@@ -445,12 +445,10 @@ extension OverrideConfig {
             ZStack {
                 Rectangle()
                     .frame(width: UIScreen.main.bounds.width, height: 65)
-                    .shadow(
-                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                            Color.black.opacity(0.33),
-                        radius: 3
-                    )
-                    .foregroundStyle(Color.chart)
+                    .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
+                    .background(.thinMaterial)
+                    .opacity(0.8)
+                    .clipShape(Rectangle())
                 Group {
                     switch state.selectedTab {
                     case .overrides:
@@ -468,7 +466,6 @@ extension OverrideConfig {
                             .disabled(!state.isEnabled)
                             .background(!state.isEnabled ? Color(.systemGray4) : Color(.systemRed))
                             .tint(.white)
-                            .tint(.white)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     case .tempTargets:
                         Button(action: {
@@ -476,7 +473,6 @@ extension OverrideConfig {
                                 // Save cancelled Temp Targets in TempTargetRunStored Entity
                                 // Cancel ALL active Temp Targets
                                 await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
-
                                 // Update View
                                 state.updateLatestTempTargetConfiguration()
                             }
