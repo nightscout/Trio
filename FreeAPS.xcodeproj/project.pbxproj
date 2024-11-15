@@ -329,6 +329,8 @@
 		BD3CC0722B0B89D50013189E /* MainChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3CC0712B0B89D50013189E /* MainChartView.swift */; };
 		BD4064D12C4ED26900582F43 /* CoreDataObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */; };
 		BD6EB2D62C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6EB2D52C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift */; };
+		BD793CB02CE7C61500D669AC /* OverrideRunStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */; };
+		BD793CB22CE8033500D669AC /* TempTargetRunStored.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD793CB12CE8032E00D669AC /* TempTargetRunStored.swift */; };
 		BD7DA9A52AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A42AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift */; };
 		BD7DA9A72AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */; };
 		BD7DA9A92AE06E9200601B20 /* BolusCalculatorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */; };
@@ -1010,6 +1012,8 @@
 		BD3CC0712B0B89D50013189E /* MainChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChartView.swift; sourceTree = "<group>"; };
 		BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataObserver.swift; sourceTree = "<group>"; };
 		BD6EB2D52C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityWidgetConfiguration.swift; sourceTree = "<group>"; };
+		BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+helper.swift"; sourceTree = "<group>"; };
+		BD793CB12CE8032E00D669AC /* TempTargetRunStored.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetRunStored.swift; sourceTree = "<group>"; };
 		BD7DA9A42AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigDataFlow.swift; sourceTree = "<group>"; };
 		BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigProvider.swift; sourceTree = "<group>"; };
 		BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorStateModel.swift; sourceTree = "<group>"; };
@@ -2308,8 +2312,10 @@
 				582FAE422C05102C00D1C13F /* CoreDataError.swift */,
 				BDF34EBD2C0A31D000D51995 /* CustomNotification.swift */,
 				BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */,
+				BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */,
 				BDB899892C565D0B006F3298 /* CarbsGlucose+helper.swift */,
 				58A3D5432C96DE11003F90FC /* TempTargetStored+Helper.swift */,
+				BD793CB12CE8032E00D669AC /* TempTargetRunStored.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -3461,6 +3467,7 @@
 				38EA05DA261F6E7C0064E39B /* SimpleLogReporter.swift in Sources */,
 				3811DE6125C9D4D500A708ED /* ViewModifiers.swift in Sources */,
 				3811DEAC25C9D88300A708ED /* NightscoutManager.swift in Sources */,
+				BD793CB22CE8033500D669AC /* TempTargetRunStored.swift in Sources */,
 				19A910302A24BF6300C8951B /* StatsView.swift in Sources */,
 				BD7DA9A92AE06E9200601B20 /* BolusCalculatorStateModel.swift in Sources */,
 				CEB434E528B8FF5D00B70274 /* UIColor.swift in Sources */,
@@ -3468,6 +3475,7 @@
 				3811DEA925C9D88300A708ED /* AppearanceManager.swift in Sources */,
 				CE7950242997D81700FA576E /* CGMSettingsView.swift in Sources */,
 				58237D9E2BCF0A6B00A47A79 /* PopupView.swift in Sources */,
+				BD793CB02CE7C61500D669AC /* OverrideRunStored+helper.swift in Sources */,
 				38D0B3D925EC07C400CB6E88 /* CarbsEntry.swift in Sources */,
 				DD32CF9C2CC82499003686D6 /* TrioRemoteControl+TempTarget.swift in Sources */,
 				38A9260525F012D8009E3739 /* CarbRatios.swift in Sources */,

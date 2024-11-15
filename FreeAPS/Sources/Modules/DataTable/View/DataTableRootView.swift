@@ -43,6 +43,20 @@ extension DataTable {
             animation: .bouncy
         ) var carbEntryStored: FetchedResults<CarbEntryStored>
 
+        @FetchRequest(
+            entity: OverrideRunStored.entity(),
+            sortDescriptors: [NSSortDescriptor(keyPath: \OverrideRunStored.startDate, ascending: false)],
+            predicate: NSPredicate.overridesRunStoredFromOneDayAgo,
+            animation: .bouncy
+        ) var overrideRunStored: FetchedResults<OverrideRunStored>
+
+        @FetchRequest(
+            entity: TempTargetRunStored.entity(),
+            sortDescriptors: [NSSortDescriptor(keyPath: \TempTargetRunStored.startDate, ascending: false)],
+            predicate: NSPredicate.tempTargetRunStoredFromOneDayAgo,
+            animation: .bouncy
+        ) var tempTargetRunStored: FetchedResults<TempTargetRunStored>
+
         private var insulinFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -125,6 +139,7 @@ extension DataTable {
                         case .treatments: treatmentsList
                         case .glucose: glucoseList
                         case .meals: mealsList
+                        case .adjustments: adjustmentsList
                         }
                     }.scrollContentBackground(.hidden)
                         .background(color)
@@ -244,6 +259,93 @@ extension DataTable {
                     }
                 }
             }.listRowBackground(Color.chart)
+        }
+
+        private var adjustmentsList: some View {
+            List {
+                HStack {
+                    Text("Adjustment").foregroundStyle(.secondary)
+                    Spacer()
+                    Text("Time").foregroundStyle(.secondary)
+                }
+                if !combinedAdjustments.isEmpty {
+                    ForEach(combinedAdjustments) { item in
+                        adjustmentView(for: item)
+                    }
+                } else {
+                    HStack {
+                        Text("No data.")
+                    }
+                }
+            }
+            .listRowBackground(Color.chart)
+        }
+
+        private var combinedAdjustments: [AdjustmentItem] {
+            let overrides = overrideRunStored.map { override -> AdjustmentItem in
+                AdjustmentItem(
+                    id: override.objectID,
+                    name: override.name ?? "Override",
+                    date: override.startDate ?? Date(),
+                    type: .override
+                )
+            }
+
+            let tempTargets = tempTargetRunStored.map { tempTarget -> AdjustmentItem in
+                AdjustmentItem(
+                    id: tempTarget.objectID,
+                    name: tempTarget.name ?? "Temp Target",
+                    date: tempTarget.startDate ?? Date(),
+                    type: .tempTarget
+                )
+            }
+
+            let combined = overrides + tempTargets
+            return combined.sorted(by: { $0.date > $1.date })
+        }
+
+        private struct AdjustmentItem: Identifiable {
+            let id: NSManagedObjectID
+            let name: String
+            let date: Date
+            let type: AdjustmentType
+        }
+
+        private enum AdjustmentType {
+            case override
+            case tempTarget
+
+            var symbolName: String {
+                switch self {
+                case .override:
+                    return "clock.arrow.2.circlepath"
+                case .tempTarget:
+                    return "target"
+                }
+            }
+
+            var symbolColor: Color {
+                switch self {
+                case .override:
+                    return .orange
+                case .tempTarget:
+                    return .blue
+                }
+            }
+        }
+
+        @ViewBuilder private func adjustmentView(for item: AdjustmentItem) -> some View {
+            HStack {
+                Image(systemName: item.type.symbolName)
+                    .foregroundStyle(
+                        item
+                            .type == .override ? Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569) : Color
+                            .loopGreen
+                    )
+                Text(item.name)
+                Spacer()
+                Text(dateFormatter.string(from: item.date))
+            }
         }
 
         private var glucoseList: some View {
