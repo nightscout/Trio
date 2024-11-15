@@ -115,11 +115,11 @@ extension NightscoutConfig {
                                         hintLabel = "Import Settings from Nightscout"
                                         selectedVerboseHint =
                                             AnyView(
-                                                VStack(spacing: 10) {
+                                                VStack(alignment: .leading, spacing: 10) {
                                                     Text(
                                                         "This will overwrite the following Trio therapy settings:"
                                                     )
-                                                    VStack {
+                                                    VStack(alignment: .leading) {
                                                         Text("• Basal Rates")
                                                         Text("• Insulin Sensitivities")
                                                         Text("• Carb Ratios")
