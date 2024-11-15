@@ -392,6 +392,7 @@ extension Bolus {
             .disabled(disableTaskButton)
             .listRowBackground(
                 limitExceeded ? Color(.systemRed) :
+                    disableTaskButton ? Color(.systemGray) :
                     Color(.systemBlue)
             )
             .shadow(radius: 3)
