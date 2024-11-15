@@ -118,7 +118,7 @@ extension TargetBehavoir {
                     type: .boolean,
                     label: NSLocalizedString("Sensitivity Raises Target", comment: "Sensitivity Raises Target"),
                     miniHint: "Automatically raise target glucose if sensitivity is detected.",
-                    verboseHint: VStack(spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("Automatically increase target glucose if it detects an increase in sensitivity.")
                     }
