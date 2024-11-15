@@ -314,6 +314,9 @@ extension OverrideConfig {
             Section {
                 ForEach(state.scheduledTempTargets) { tempTarget in
                     tempTargetView(for: tempTarget)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            swipeActions(for: tempTarget)
+                        }
                 }
                 .listRowBackground(Color.chart)
             } header: {
@@ -365,11 +368,11 @@ extension OverrideConfig {
             }
         }
 
-        private func swipeActions(for preset: TempTargetStored) -> some View {
+        private func swipeActions(for tempTarget: TempTargetStored) -> some View {
             Group {
                 Button {
                     Task {
-                        selectedTempTarget = preset
+                        selectedTempTarget = tempTarget
                         isConfirmDeletePresented = true
                     }
                 } label: {
@@ -377,7 +380,7 @@ extension OverrideConfig {
                         .tint(.red)
                 }
                 Button(action: {
-                    selectedTempTarget = preset
+                    selectedTempTarget = tempTarget
                     state.showTempTargetEditSheet = true
                 }, label: {
                     Label("Edit", systemImage: "pencil")

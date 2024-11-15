@@ -133,7 +133,7 @@ struct EditTempTargetForm: View {
             Section {
                 // Picker on the right side
                 let settingsProvider = PickerSettingsProvider.shared
-                let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
+                let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 200, type: .glucose)
                 TargetPicker(
                     label: "Target Glucose",
                     selection: Binding(

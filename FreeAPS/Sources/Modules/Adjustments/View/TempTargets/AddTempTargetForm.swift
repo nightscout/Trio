@@ -133,7 +133,7 @@ struct AddTempTargetForm: View {
 
             Section {
                 let settingsProvider = PickerSettingsProvider.shared
-                let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 270, type: .glucose)
+                let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 200, type: .glucose)
                 TargetPicker(
                     label: "Target Glucose",
                     selection: Binding(
@@ -213,7 +213,7 @@ struct AddTempTargetForm: View {
             }
 
             Section {
-                DatePicker("Date", selection: $state.date)
+                DatePicker("Start Time", selection: $state.date)
             }.listRowBackground(Color.chart)
 
             Section {

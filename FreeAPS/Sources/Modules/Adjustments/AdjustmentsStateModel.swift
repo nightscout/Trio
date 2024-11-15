@@ -737,6 +737,8 @@ extension OverrideConfig.StateModel {
             return
         }
 
+        await setCurrentTempTarget(from: ids)
+
         await MainActor.run {
             do {
                 if let tempTarget = try viewContext.existingObject(with: firstID) as? TempTargetStored {
