@@ -301,7 +301,7 @@ extension UserInterfaceSettings {
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 10) {
                                                     Text(
-                                                        "Default values are based on internationally accepted Time in Range values of \(state.units == .mgdL ? "70" : 70.formattedAsMmol ?? "70")-\(state.units == .mgdL ? "180" : 180.formattedAsMmol ?? "180") \(state.units.rawValue)."
+                                                        "Default values are based on internationally accepted Time in Range values of \(state.units == .mgdL ? "70" : 70.formattedAsMmolL)-\(state.units == .mgdL ? "180" : 180.formattedAsMmolL) \(state.units.rawValue)."
                                                     )
                                                     Text(
                                                         "Set the values used in the main screen glucose graph and to determine Time in Range for Statistics."
