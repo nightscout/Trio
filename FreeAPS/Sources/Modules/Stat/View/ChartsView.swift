@@ -7,8 +7,8 @@ struct ChartsView: View {
     let highLimit: Decimal
     let lowLimit: Decimal
     let units: GlucoseUnits
-    let overrideUnit: Bool
-    let standing: Bool
+    let hbA1cDisplayUnit: HbA1cDisplayUnit
+    let timeInRangeChartStyle: TimeInRangeChartStyle
 
     let glucose: [GlucoseStored]
 
@@ -21,7 +21,7 @@ struct ChartsView: View {
     var body: some View {
         glucoseChart
         Rectangle().fill(.cyan.opacity(0.2)).frame(maxHeight: 3)
-        if standing {
+        if timeInRangeChartStyle == .horizontal {
             VStack {
                 tirChart
                 Rectangle().fill(.cyan.opacity(0.2)).frame(maxHeight: 3)
@@ -39,15 +39,15 @@ struct ChartsView: View {
         highLimit: Decimal,
         lowLimit: Decimal,
         units: GlucoseUnits,
-        overrideUnit: Bool,
-        standing: Bool,
+        hbA1cDisplayUnit: HbA1cDisplayUnit,
+        timeInRangeChartStyle: TimeInRangeChartStyle,
         glucose: [GlucoseStored]
     ) {
         self.highLimit = highLimit
         self.lowLimit = lowLimit
         self.units = units
-        self.overrideUnit = overrideUnit
-        self.standing = standing
+        self.hbA1cDisplayUnit = hbA1cDisplayUnit
+        self.timeInRangeChartStyle = timeInRangeChartStyle
         self.glucose = glucose
     }
 

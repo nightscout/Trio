@@ -45,7 +45,7 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        overrideUnit: state.overrideUnit
+                        hbA1cDisplayUnit: state.hbA1cDisplayUnit
                     )
                 case .Day:
                     StatsView(
@@ -53,7 +53,7 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        overrideUnit: state.overrideUnit
+                        hbA1cDisplayUnit: state.hbA1cDisplayUnit
                     )
                 case .Week:
                     StatsView(
@@ -61,7 +61,7 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        overrideUnit: state.overrideUnit
+                        hbA1cDisplayUnit: state.hbA1cDisplayUnit
                     )
                 case .Month:
                     StatsView(
@@ -69,7 +69,7 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        overrideUnit: state.overrideUnit
+                        hbA1cDisplayUnit: state.hbA1cDisplayUnit
                     )
                 case .Total:
                     StatsView(
@@ -77,7 +77,7 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        overrideUnit: state.overrideUnit
+                        hbA1cDisplayUnit: state.hbA1cDisplayUnit
                     )
                 }
             }
@@ -90,8 +90,8 @@ extension Stat {
                     highLimit: state.highLimit,
                     lowLimit: state.lowLimit,
                     units: state.units,
-                    overrideUnit: state.overrideUnit,
-                    standing: state.layingChart,
+                    hbA1cDisplayUnit: state.hbA1cDisplayUnit,
+                    timeInRangeChartStyle: state.timeInRangeChartStyle,
                     glucose: state.glucoseFromPersistence
                 )
             case .Day:
@@ -99,8 +99,8 @@ extension Stat {
                     highLimit: state.highLimit,
                     lowLimit: state.lowLimit,
                     units: state.units,
-                    overrideUnit: state.overrideUnit,
-                    standing: state.layingChart,
+                    hbA1cDisplayUnit: state.hbA1cDisplayUnit,
+                    timeInRangeChartStyle: state.timeInRangeChartStyle,
                     glucose: state.glucoseFromPersistence
                 )
             case .Week:
@@ -108,8 +108,8 @@ extension Stat {
                     highLimit: state.highLimit,
                     lowLimit: state.lowLimit,
                     units: state.units,
-                    overrideUnit: state.overrideUnit,
-                    standing: state.layingChart,
+                    hbA1cDisplayUnit: state.hbA1cDisplayUnit,
+                    timeInRangeChartStyle: state.timeInRangeChartStyle,
                     glucose: state.glucoseFromPersistence
                 )
             case .Month:
@@ -117,8 +117,8 @@ extension Stat {
                     highLimit: state.highLimit,
                     lowLimit: state.lowLimit,
                     units: state.units,
-                    overrideUnit: state.overrideUnit,
-                    standing: state.layingChart,
+                    hbA1cDisplayUnit: state.hbA1cDisplayUnit,
+                    timeInRangeChartStyle: state.timeInRangeChartStyle,
                     glucose: state.glucoseFromPersistence
                 )
             case .Total:
@@ -126,8 +126,8 @@ extension Stat {
                     highLimit: state.highLimit,
                     lowLimit: state.lowLimit,
                     units: state.units,
-                    overrideUnit: state.overrideUnit,
-                    standing: state.layingChart,
+                    hbA1cDisplayUnit: state.hbA1cDisplayUnit,
+                    timeInRangeChartStyle: state.timeInRangeChartStyle,
                     glucose: state.glucoseFromPersistence
                 )
             }
