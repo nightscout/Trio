@@ -154,7 +154,7 @@ extension BasalProfileEditor {
             }
             .onChange(of: state.items) {
                 state.calcTotal()
-                state.caluclateChartData()
+                state.calculateChartData()
             }
             .scrollContentBackground(.hidden).background(color)
             .navigationTitle("Basal Profile")
@@ -171,7 +171,7 @@ extension BasalProfileEditor {
             .onAppear {
                 configureView()
                 state.validate()
-                state.caluclateChartData()
+                state.calculateChartData()
             }
         }
 
@@ -254,8 +254,7 @@ extension BasalProfileEditor {
         private func onDelete(offsets: IndexSet) {
             state.items.remove(atOffsets: offsets)
             state.validate()
-            state.calcTotal()
-            state.caluclateChartData()
+            state.calculateChartData()
         }
     }
 }
