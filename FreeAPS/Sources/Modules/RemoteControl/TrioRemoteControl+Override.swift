@@ -1,3 +1,4 @@
+import CoreData
 import Foundation
 
 extension TrioRemoteControl {
@@ -30,11 +31,11 @@ extension TrioRemoteControl {
     }
 
     @MainActor private func enactOverridePreset(preset: OverrideStored, pushMessage: PushMessage) async {
-        await disableAllActiveOverrides()
-
         preset.enabled = true
         preset.date = Date()
         preset.isUploadedToNS = false
+
+        await disableAllActiveOverrides(except: preset.objectID)
 
         do {
             if viewContext.hasChanges {
@@ -43,17 +44,14 @@ extension TrioRemoteControl {
                 Foundation.NotificationCenter.default.post(name: .willUpdateOverrideConfiguration, object: nil)
                 await awaitNotification(.didUpdateOverrideConfiguration)
 
-                debug(
-                    .remoteControl,
-                    "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
-                )
+                debug(.remoteControl, "Remote command processed successfully. \(pushMessage.humanReadableDescription())")
             }
         } catch {
             debug(.remoteControl, "Failed to enact override preset: \(error.localizedDescription)")
         }
     }
 
-    @MainActor private func disableAllActiveOverrides() async {
+    @MainActor private func disableAllActiveOverrides(except overrideID: NSManagedObjectID? = nil) async {
         let ids = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 0) // 0 = no fetch limit
 
         let didPostNotification = await viewContext.perform { () -> Bool in
@@ -65,17 +63,23 @@ extension TrioRemoteControl {
                 guard !results.isEmpty else { return false }
 
                 for canceledOverride in results where canceledOverride.enabled {
+                    if let overrideID = overrideID, canceledOverride.objectID == overrideID {
+                        continue
+                    }
+
                     let newOverrideRunStored = OverrideRunStored(context: self.viewContext)
                     newOverrideRunStored.id = UUID()
                     newOverrideRunStored.name = canceledOverride.name
                     newOverrideRunStored.startDate = canceledOverride.date ?? .distantPast
                     newOverrideRunStored.endDate = Date()
-                    newOverrideRunStored
-                        .target = NSDecimalNumber(decimal: self.overrideStorage.calculateTarget(override: canceledOverride))
+                    newOverrideRunStored.target = NSDecimalNumber(
+                        decimal: self.overrideStorage.calculateTarget(override: canceledOverride)
+                    )
                     newOverrideRunStored.override = canceledOverride
                     newOverrideRunStored.isUploadedToNS = false
 
                     canceledOverride.enabled = false
+                    canceledOverride.isUploadedToNS = false
                 }
 
                 if self.viewContext.hasChanges {
