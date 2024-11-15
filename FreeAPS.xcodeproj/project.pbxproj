@@ -2441,6 +2441,24 @@
 			path = View;
 			sourceTree = "<group>";
 		};
+		BD793CAD2CE7660C00D669AC /* Overrides */ = {
+			isa = PBXGroup;
+			children = (
+				DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */,
+				DDD163192C4C695E00CD525A /* EditOverrideForm.swift */,
+			);
+			path = Overrides;
+			sourceTree = "<group>";
+		};
+		BD793CAE2CE7661D00D669AC /* TempTargets */ = {
+			isa = PBXGroup;
+			children = (
+				58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */,
+				5825A1BD2C97335C0046467E /* EditTempTargetForm.swift */,
+			);
+			path = TempTargets;
+			sourceTree = "<group>";
+		};
 		BD7DA9A32AE06DBA00601B20 /* BolusCalculatorConfig */ = {
 			isa = PBXGroup;
 			children = (
@@ -2790,10 +2808,8 @@
 			isa = PBXGroup;
 			children = (
 				DDD163172C4C694000CD525A /* AdjustmentsRootView.swift */,
-				DDD163192C4C695E00CD525A /* EditOverrideForm.swift */,
-				DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */,
-				58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */,
-				5825A1BD2C97335C0046467E /* EditTempTargetForm.swift */,
+				BD793CAD2CE7660C00D669AC /* Overrides */,
+				BD793CAE2CE7661D00D669AC /* TempTargets */,
 			);
 			path = View;
 			sourceTree = "<group>";
