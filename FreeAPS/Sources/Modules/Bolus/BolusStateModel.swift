@@ -119,12 +119,24 @@ extension Bolus {
         let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
         let determinationFetchContext = CoreDataStack.shared.newTaskContext()
 
+        var isActive: Bool = false
+
         private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
         private var subscriptions = Set<AnyCancellable>()
 
         typealias PumpEvent = PumpEventStored.EventType
 
+        func unsubscribe() {
+            subscriptions.forEach { $0.cancel() }
+            subscriptions.removeAll()
+        }
+
         override func subscribe() {
+            guard isActive else {
+                return
+            }
+
+            debug(.bolusState, "subscribe fired")
             coreDataPublisher =
                 changedObjectsOnManagedObjectContextDidSavePublisher()
                     .receive(on: DispatchQueue.global(qos: .background))
@@ -135,7 +147,19 @@ extension Bolus {
             setupBolusStateConcurrently()
         }
 
+        deinit {
+            // Unregister from broadcaster
+            broadcaster.unregister(DeterminationObserver.self, observer: self)
+            broadcaster.unregister(BolusFailureObserver.self, observer: self)
+
+            // Cancel Combine subscriptions
+            unsubscribe()
+
+            debug(.bolusState, "Bolus.StateModel deinitialized")
+        }
+
         private func setupBolusStateConcurrently() {
+            debug(.bolusState, "setupBolusStateConcurrently fired")
             Task {
                 await withTaskGroup(of: Void.self) { group in
                     group.addTask {
@@ -241,8 +265,9 @@ extension Bolus {
             let now = Date()
             let calendar = Calendar.current
             let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "HH:mm"
             dateFormatter.timeZone = TimeZone.current
+
+            let regexWithSeconds = #"^\d{2}:\d{2}:\d{2}$"#
 
             let entries: [(start: String, value: Decimal)]
 
@@ -262,6 +287,13 @@ extension Bolus {
             }
 
             for (index, entry) in entries.enumerated() {
+                // Dynamically set the format based on whether it matches the regex
+                if entry.start.range(of: regexWithSeconds, options: .regularExpression) != nil {
+                    dateFormatter.dateFormat = "HH:mm:ss"
+                } else {
+                    dateFormatter.dateFormat = "HH:mm"
+                }
+
                 guard let entryTime = dateFormatter.date(from: entry.start) else {
                     print("Invalid entry start time: \(entry.start)")
                     continue
@@ -271,21 +303,30 @@ extension Bolus {
                 let entryStartTime = calendar.date(
                     bySettingHour: entryComponents.hour!,
                     minute: entryComponents.minute!,
-                    second: entryComponents.second!,
+                    second: entryComponents.second ?? 0, // Set seconds to 0 if not provided
                     of: now
                 )!
 
                 let entryEndTime: Date
-                if index < entries.count - 1,
-                   let nextEntryTime = dateFormatter.date(from: entries[index + 1].start)
-                {
-                    let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
-                    entryEndTime = calendar.date(
-                        bySettingHour: nextEntryComponents.hour!,
-                        minute: nextEntryComponents.minute!,
-                        second: nextEntryComponents.second!,
-                        of: now
-                    )!
+                if index < entries.count - 1 {
+                    // Dynamically set the format again for the next element
+                    if entries[index + 1].start.range(of: regexWithSeconds, options: .regularExpression) != nil {
+                        dateFormatter.dateFormat = "HH:mm:ss"
+                    } else {
+                        dateFormatter.dateFormat = "HH:mm"
+                    }
+
+                    if let nextEntryTime = dateFormatter.date(from: entries[index + 1].start) {
+                        let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                        entryEndTime = calendar.date(
+                            bySettingHour: nextEntryComponents.hour!,
+                            minute: nextEntryComponents.minute!,
+                            second: nextEntryComponents.second ?? 0,
+                            of: now
+                        )!
+                    } else {
+                        entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+                    }
                 } else {
                     entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
                 }
@@ -312,6 +353,7 @@ extension Bolus {
 
         /// Calculate insulin recommendation
         func calculateInsulin() -> Decimal {
+            debug(.bolusState, "calculateInsulin fired")
             let isfForCalculation = isf
 
             // insulin needed for the current blood glucose
@@ -359,7 +401,6 @@ extension Bolus {
             insulinCalculated = min(insulinCalculated, maxBolus)
 
             guard let apsManager = apsManager else {
-                debug(.apsManager, "APSManager could not be gracefully unwrapped")
                 return insulinCalculated
             }
 
@@ -370,6 +411,7 @@ extension Bolus {
 
         func invokeTreatmentsTask() {
             Task {
+                debug(.bolusState, "invokeTreatmentsTask fired")
                 await MainActor.run {
                     self.addButtonPressed = true
                 }
@@ -409,6 +451,7 @@ extension Bolus {
         // MARK: - Insulin
 
         private func handleInsulin(isExternal: Bool) async throws {
+            debug(.bolusState, "handleInsulin fired")
             if !isExternal {
                 await addPumpInsulin()
             } else {
@@ -557,7 +600,13 @@ extension Bolus {
 
 extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
     func determinationDidUpdate(_: Determination) {
+        guard isActive else {
+            debug(.bolusState, "skipping determinationDidUpdate; view not active")
+            return
+        }
+
         DispatchQueue.main.async {
+            debug(.bolusState, "determinationDidUpdate fired")
             self.waitForSuggestion = false
             if self.addButtonPressed {
                 self.hideModal()
@@ -567,6 +616,7 @@ extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
 
     func bolusDidFail() {
         DispatchQueue.main.async {
+            debug(.bolusState, "bolusDidFail fired")
             self.waitForSuggestion = false
             if self.addButtonPressed {
                 self.hideModal()
@@ -581,7 +631,8 @@ extension Bolus.StateModel {
             guard let self = self else { return }
             Task {
                 await self.setupDeterminationsArray()
-                await self.updateForecasts()
+                let forecastData = await self.mapForecastsForChart()
+                await self.updateForecasts(with: forecastData)
             }
         }.store(in: &subscriptions)
 
@@ -733,11 +784,18 @@ extension Bolus.StateModel {
 
 extension Bolus.StateModel {
     @MainActor func updateForecasts(with forecastData: Determination? = nil) async {
+        guard isActive else {
+            return
+                debug(.bolusState, "updateForecasts not fired")
+        }
+
+        debug(.bolusState, "updateForecasts fired")
         if let forecastData = forecastData {
             simulatedDetermination = forecastData
         } else {
             simulatedDetermination = await Task { [self] in
-                await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
+                debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
+                return await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
             }.value
         }
 

@@ -10,6 +10,7 @@ extension BasalProfileEditor {
         var items: [Item] = []
         var total: Decimal = 0.0
         var showAlert: Bool = false
+        var chartData: [BasalProfile]? = []
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
@@ -114,6 +115,49 @@ extension BasalProfileEditor {
                 if self.items != sorted {
                     self.items = sorted
                 }
+                self.calcTotal()
+            }
+        }
+
+        func availableTimeIndices(_ itemIndex: Int) -> [Int] {
+            // avoid index out of range issues
+            guard itemIndex >= 0, itemIndex < items.count else {
+                return []
+            }
+
+            let usedIndicesByOtherItems = items
+                .enumerated()
+                .filter { $0.offset != itemIndex }
+                .map(\.element.timeIndex)
+
+            return (0 ..< timeValues.count).filter { !usedIndicesByOtherItems.contains($0) }
+        }
+
+        func caluclateChartData() {
+            DispatchQueue.main.async {
+                var basals: [BasalProfile] = []
+                let tzOffset = TimeZone.current.secondsFromGMT() * -1
+
+                basals.append(contentsOf: self.items.enumerated().map { index, item in
+                    let startDate = Date(timeIntervalSinceReferenceDate: self.timeValues[item.timeIndex])
+                    var endDate = Date(timeIntervalSinceReferenceDate: self.timeValues.last!).addingTimeInterval(30 * 60)
+                    if self.items.count > index + 1 {
+                        let nextItem = self.items[index + 1]
+                        endDate = Date(timeIntervalSinceReferenceDate: self.timeValues[nextItem.timeIndex])
+                    }
+
+                    return BasalProfile(
+                        amount: Double(self.rateValues[item.rateIndex]),
+                        isOverwritten: false,
+                        startDate: startDate.addingTimeInterval(TimeInterval(tzOffset)),
+                        endDate: endDate.addingTimeInterval(TimeInterval(tzOffset))
+                    )
+                })
+                basals.sort(by: {
+                    $0.startDate > $1.startDate
+                })
+
+                self.chartData = basals
             }
         }
     }

@@ -16,7 +16,7 @@ struct LiveActivityAttributes: ActivityAttributes {
         let bg: String
         let direction: String?
         let change: String
-        let date: Date
+        let date: Date?
         let highGlucose: Decimal
         let lowGlucose: Decimal
         let target: Decimal

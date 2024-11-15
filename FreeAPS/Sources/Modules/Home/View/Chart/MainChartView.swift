@@ -42,37 +42,27 @@ struct MainChartView: View {
     }
 
     private var selectedGlucose: GlucoseStored? {
-        if let selection = selection {
-            let lowerBound = selection.addingTimeInterval(-150)
-            let upperBound = selection.addingTimeInterval(150)
-            return state.glucoseFromPersistence.first { $0.date ?? now >= lowerBound && $0.date ?? now <= upperBound }
-        } else {
-            return nil
+        guard let selection = selection else { return nil }
+        let range = selection.addingTimeInterval(-150) ... selection.addingTimeInterval(150)
+        return state.glucoseFromPersistence.first { $0.date.map(range.contains) ?? false }
+    }
+
+    private func findDetermination(in range: ClosedRange<Date>) -> OrefDetermination? {
+        state.enactedAndNonEnactedDeterminations.first {
+            $0.deliverAt ?? now >= range.lowerBound && $0.deliverAt ?? now <= range.upperBound
         }
     }
 
     var selectedCOBValue: OrefDetermination? {
-        if let selection = selection {
-            let lowerBound = selection.addingTimeInterval(-120)
-            let upperBound = selection.addingTimeInterval(120)
-            return state.enactedAndNonEnactedDeterminations.first {
-                $0.deliverAt ?? now >= lowerBound && $0.deliverAt ?? now <= upperBound
-            }
-        } else {
-            return nil
-        }
+        guard let selection = selection else { return nil }
+        let range = selection.addingTimeInterval(-120) ... selection.addingTimeInterval(120)
+        return findDetermination(in: range)
     }
 
     var selectedIOBValue: OrefDetermination? {
-        if let selection = selection {
-            let lowerBound = selection.addingTimeInterval(-120)
-            let upperBound = selection.addingTimeInterval(120)
-            return state.enactedAndNonEnactedDeterminations.first {
-                $0.deliverAt ?? now >= lowerBound && $0.deliverAt ?? now <= upperBound
-            }
-        } else {
-            return nil
-        }
+        guard let selection = selection else { return nil }
+        let range = selection.addingTimeInterval(-120) ... selection.addingTimeInterval(120)
+        return findDetermination(in: range)
     }
 
     var body: some View {

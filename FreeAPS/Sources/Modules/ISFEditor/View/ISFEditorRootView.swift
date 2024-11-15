@@ -39,10 +39,49 @@ extension ISFEditor {
             return formatter
         }
 
-        var body: some View {
-            Form {
+        var saveButton: some View {
+            ZStack {
                 let shouldDisableButton = state.items.isEmpty || !state.hasChanges
 
+                Rectangle()
+                    .frame(width: UIScreen.main.bounds.width, height: 65)
+                    .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
+                    .background(.thinMaterial)
+                    .opacity(0.8)
+                    .clipShape(Rectangle())
+
+                Group {
+                    HStack {
+                        HStack {
+                            if state.shouldDisplaySaving {
+                                ProgressView().padding(.trailing, 10)
+                            }
+
+                            Button {
+                                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                                impactHeavy.impactOccurred()
+                                state.save()
+
+                                // deactivate saving display after 1.25 seconds
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
+                                    state.shouldDisplaySaving = false
+                                }
+                            } label: {
+                                Text(state.shouldDisplaySaving ? "Saving..." : "Save").padding(10)
+                            }
+                        }
+                        .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+                        .disabled(shouldDisableButton)
+                        .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
+                        .tint(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                }.padding(5)
+            }
+        }
+
+        var body: some View {
+            Form {
                 if let autotune = state.autotune, !state.settingsManager.settings.onlyAutotuneBasals {
                     Section(header: Text("Autotune")) {
                         HStack {
@@ -99,31 +138,8 @@ extension ISFEditor {
                 Section(header: Text("Schedule")) {
                     list
                 }.listRowBackground(Color.chart)
-
-                Section {
-                    HStack {
-                        if state.shouldDisplaySaving {
-                            ProgressView().padding(.trailing, 10)
-                        }
-
-                        Button {
-                            let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                            impactHeavy.impactOccurred()
-                            state.save()
-
-                            // deactivate saving display after 1.25 seconds
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
-                                state.shouldDisplaySaving = false
-                            }
-                        } label: {
-                            Text(state.shouldDisplaySaving ? "Saving..." : "Save")
-                        }
-                        .disabled(shouldDisableButton)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .tint(.white)
-                    }
-                }.listRowBackground(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
             }
+            .safeAreaInset(edge: .bottom, spacing: 30) { saveButton }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
             .navigationTitle("Insulin Sensitivities")

@@ -16,7 +16,8 @@ extension Home.StateModel {
             onContext: glucoseFetchContext,
             predicate: NSPredicate.glucose,
             key: "date",
-            ascending: true
+            ascending: true,
+            batchSize: 50
         )
 
         return await glucoseFetchContext.perform {
