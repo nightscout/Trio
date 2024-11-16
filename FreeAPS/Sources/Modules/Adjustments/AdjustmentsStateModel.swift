@@ -701,6 +701,9 @@ extension OverrideConfig.StateModel {
 
     // Save scheduled Preset to Core Data
     func saveScheduledTempTarget() async {
+        // Save date to a constant to allow multiple executions of this function at the same time, i.e. allowing for scheduling multiple TTs
+        let date = self.date
+        
         guard date > Date() else { return }
 
         let tempTarget = TempTarget(
@@ -723,9 +726,14 @@ extension OverrideConfig.StateModel {
 
         // If the scheduled date equals Date() enable the Preset
         Task {
+            // First wait until the time has passed
             await waitUntilDate(date)
-
+            // Then disable previous Temp Targets
+            await disableAllActiveTempTargets(createTempTargetRunEntry: true)
+            // Set 'enabled' property to true, i.e. enacting it in Core Data
             await enableScheduledTempTarget(for: date)
+            // Activate the scheduled TT also for oref
+            tempTargetStorage.saveTempTargetsToStorage([tempTarget])
         }
     }
 
@@ -746,7 +754,7 @@ extension OverrideConfig.StateModel {
                     try viewContext.save()
 
                     // Update Buttons in Adjustments View
-                    isTempTargetEnabled.toggle()
+                    isTempTargetEnabled = true
                 }
             } catch {
                 debugPrint("Failed to enable the Temp Target for the specified date: \(error.localizedDescription)")
@@ -793,7 +801,7 @@ extension OverrideConfig.StateModel {
         await resetTempTargetState()
 
         // Update View
-        isTempTargetEnabled.toggle()
+        isTempTargetEnabled = true
         updateLatestTempTargetConfiguration()
     }
 
