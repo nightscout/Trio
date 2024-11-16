@@ -65,6 +65,17 @@ extension CarbEntryStored {
     }
 }
 
+struct CarbEntryDTO: Codable {
+    var id: UUID?
+    var carbs: Double
+    var date: Date?
+    var fat: Double?
+    var protein: Double?
+    var isFPU: Bool?
+    var note: String?
+    var enteredBy: String?
+}
+
 extension CarbEntryStored: Encodable {
     enum CodingKeys: String, CodingKey {
         case actualDate

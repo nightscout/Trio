@@ -100,8 +100,8 @@ struct BolusDTO: Codable {
     var timestamp: String
     var amount: Double
     var isExternal: Bool
-    var isSMB: Bool
-    var duration: Int
+    var isSMB: Bool?
+    var duration: Int?
     var _type: String = "Bolus"
 }
 
@@ -127,11 +127,19 @@ struct TempBasalDurationDTO: Codable {
     }
 }
 
+struct PumpSuspendDTO: Codable {
+    var id: String
+    var timestamp: String
+    var reason: String?
+    var _type: String = "PumpSuspend"
+}
+
 // Mask distinct DTO subtypes with a common enum that conforms to Encodable
-enum PumpEventDTO: Encodable {
+enum PumpEventDTO: Encodable, Decodable {
     case bolus(BolusDTO)
     case tempBasal(TempBasalDTO)
     case tempBasalDuration(TempBasalDurationDTO)
+    case pumpSuspend(PumpSuspendDTO)
 
     func encode(to encoder: Encoder) throws {
         switch self {
@@ -141,7 +149,80 @@ enum PumpEventDTO: Encodable {
             try tempBasal.encode(to: encoder)
         case let .tempBasalDuration(tempBasalDuration):
             try tempBasalDuration.encode(to: encoder)
+        case let .pumpSuspend(pumpSuspend):
+            try pumpSuspend.encode(to: encoder)
         }
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        guard let type = try? container.decode(String.self, forKey: ._type) else {
+            throw DecodingError.keyNotFound(
+                CodingKeys._type,
+                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "_type key not found")
+            )
+        }
+
+        switch type {
+        case "Bolus":
+            do {
+                let bolus = try BolusDTO(from: decoder)
+                self = .bolus(bolus)
+            } catch {
+                throw DecodingError.typeMismatch(
+                    BolusDTO.self,
+                    DecodingError
+                        .Context(
+                            codingPath: decoder.codingPath,
+                            debugDescription: "Failed to decode BolusDTO",
+                            underlyingError: error
+                        )
+                )
+            }
+        case "TempBasal":
+            do {
+                let tempBasal = try TempBasalDTO(from: decoder)
+                self = .tempBasal(tempBasal)
+            } catch {
+                throw DecodingError.typeMismatch(
+                    TempBasalDTO.self,
+                    DecodingError
+                        .Context(
+                            codingPath: decoder.codingPath,
+                            debugDescription: "Failed to decode TempBasalDTO",
+                            underlyingError: error
+                        )
+                )
+            }
+        case "TempBasalDuration":
+            do {
+                let tempBasalDuration = try TempBasalDurationDTO(from: decoder)
+                self = .tempBasalDuration(tempBasalDuration)
+            } catch {
+                throw DecodingError.typeMismatch(
+                    TempBasalDurationDTO.self,
+                    DecodingError
+                        .Context(
+                            codingPath: decoder.codingPath,
+                            debugDescription: "Failed to decode TempBasalDurationDTO",
+                            underlyingError: error
+                        )
+                )
+            }
+        case "PumpSuspend":
+            let pumpSuspend = try PumpSuspendDTO(from: decoder)
+            self = .pumpSuspend(pumpSuspend)
+        default:
+            throw DecodingError.dataCorruptedError(
+                forKey: ._type,
+                in: container,
+                debugDescription: "Unbekannter _type-Wert: \(type)"
+            )
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case _type
     }
 }
 

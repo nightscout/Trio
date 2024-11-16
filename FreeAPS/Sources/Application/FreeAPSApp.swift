@@ -59,18 +59,28 @@ import Swinject
     init() {
         debug(
             .default,
-            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(BuildDetails.default.buildDate())] [buildExpires: \(BuildDetails.default.calculateExpirationDate())]"
+            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.default.buildDate()))] [buildExpires: \(String(describing: BuildDetails.default.calculateExpirationDate()))]"
         )
         loadServices()
 
         // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
         cleanupOldData()
+
+        importStuff()
+    }
+
+    func importStuff() {
+        Task {
+            let importer = JSONImporter(context: coreDataStack.newTaskContext())
+            await importer.importPumpHistoryIfNeeded()
+            await importer.importCarbHistoryIfNeeded()
+        }
     }
 
     var body: some Scene {
         WindowGroup {
             Main.RootView(resolver: resolver)
-                .preferredColorScheme(colorScheme(for: colorSchemePreference ?? .systemDefault) ?? nil)
+                .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
                 .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
                 .environmentObject(Icons())
                 .onOpenURL(perform: handleURL)
