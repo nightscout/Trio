@@ -180,7 +180,7 @@ extension Backport {
     }
 
     @ViewBuilder func chartForegroundStyleScale(state: any StateModel) -> some View {
-        if (state as? Bolus.StateModel)?.forecastDisplayType == ForecastDisplayType.lines ||
+        if (state as? Treatments.StateModel)?.forecastDisplayType == ForecastDisplayType.lines ||
             (state as? Home.StateModel)?.forecastDisplayType == ForecastDisplayType.lines
         {
             let modifiedContent = content
