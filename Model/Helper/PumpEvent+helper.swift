@@ -94,6 +94,120 @@ extension NSPredicate {
     }
 }
 
+// MARK: - PumpEventDTO and Conformance to ImportableDTO
+
+enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
+    case bolus(BolusDTO)
+    case tempBasal(TempBasalDTO)
+    case tempBasalDuration(TempBasalDurationDTO)
+    case pumpSuspend(PumpSuspendDTO)
+
+    func encode(to encoder: Encoder) throws {
+        switch self {
+        case let .bolus(bolus):
+            try bolus.encode(to: encoder)
+        case let .tempBasal(tempBasal):
+            try tempBasal.encode(to: encoder)
+        case let .tempBasalDuration(tempBasalDuration):
+            try tempBasalDuration.encode(to: encoder)
+        case let .pumpSuspend(pumpSuspend):
+            try pumpSuspend.encode(to: encoder)
+        }
+    }
+
+    // Coding keys to identify the event type in JSON.
+    private enum CodingKeys: String, CodingKey {
+        case _type
+    }
+
+    // Custom initializer to decode the JSON based on the `_type` field.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        guard let type = try? container.decode(String.self, forKey: ._type) else {
+            throw DecodingError.keyNotFound(
+                CodingKeys._type,
+                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "_type key not found")
+            )
+        }
+
+        let singleValueContainer = try decoder.singleValueContainer()
+
+        switch type {
+        case "Bolus":
+            let bolusDTO = try singleValueContainer.decode(BolusDTO.self)
+            self = .bolus(bolusDTO)
+        case "TempBasal":
+            let tempBasalDTO = try singleValueContainer.decode(TempBasalDTO.self)
+            self = .tempBasal(tempBasalDTO)
+        case "TempBasalDuration":
+            let tempBasalDurationDTO = try singleValueContainer.decode(TempBasalDurationDTO.self)
+            self = .tempBasalDuration(tempBasalDurationDTO)
+        case "PumpSuspend":
+            let pumpSuspendDTO = try singleValueContainer.decode(PumpSuspendDTO.self)
+            self = .pumpSuspend(pumpSuspendDTO)
+        default:
+            throw DecodingError.dataCorruptedError(
+                forKey: ._type,
+                in: container,
+                debugDescription: "Unknown _type value: \(type)"
+            )
+        }
+    }
+
+    // Conformance to ImportableDTO
+    typealias ManagedObject = PumpEventStored
+
+    /// Stores the DTO in Core Data by mapping it to the corresponding managed object.
+    func store(in context: NSManagedObjectContext) -> PumpEventStored {
+        switch self {
+        case let .bolus(bolusDTO):
+            let pumpEvent = PumpEventStored(context: context)
+            pumpEvent.id = bolusDTO.id
+            pumpEvent.timestamp = ISO8601DateFormatter().date(from: bolusDTO.timestamp)
+            pumpEvent.type = bolusDTO._type
+
+            let bolus = BolusStored(context: context)
+            bolus.amount = NSDecimalNumber(value: bolusDTO.amount)
+            bolus.isExternal = bolusDTO.isExternal
+            bolus.isSMB = bolusDTO.isSMB ?? false
+            pumpEvent.bolus = bolus
+
+            return pumpEvent
+
+        case let .tempBasal(tempBasalDTO):
+            let pumpEvent = PumpEventStored(context: context)
+            pumpEvent.id = tempBasalDTO.id
+            pumpEvent.timestamp = ISO8601DateFormatter().date(from: tempBasalDTO.timestamp)
+            pumpEvent.type = tempBasalDTO._type
+
+            let tempBasal = TempBasalStored(context: context)
+            tempBasal.tempType = tempBasalDTO.temp
+            tempBasal.rate = NSDecimalNumber(value: tempBasalDTO.rate)
+            pumpEvent.tempBasal = tempBasal
+
+            return pumpEvent
+
+        case let .tempBasalDuration(tempBasalDurationDTO):
+            let pumpEvent = PumpEventStored(context: context)
+            pumpEvent.id = tempBasalDurationDTO.id
+            pumpEvent.timestamp = ISO8601DateFormatter().date(from: tempBasalDurationDTO.timestamp)
+            pumpEvent.type = tempBasalDurationDTO._type
+
+            let tempBasal = TempBasalStored(context: context)
+            tempBasal.duration = Int16(tempBasalDurationDTO.duration)
+            pumpEvent.tempBasal = tempBasal
+
+            return pumpEvent
+
+        case .pumpSuspend:
+            // Handle pump suspend event if needed
+            let pumpEvent = PumpEventStored(context: context)
+            // Set properties for pump suspend if applicable
+            return pumpEvent
+        }
+    }
+}
+
 // Declare helper structs ("data transfer objects" = DTO) to utilize parsing a flattened pump history
 struct BolusDTO: Codable {
     var id: String
@@ -132,98 +246,6 @@ struct PumpSuspendDTO: Codable {
     var timestamp: String
     var reason: String?
     var _type: String = "PumpSuspend"
-}
-
-// Mask distinct DTO subtypes with a common enum that conforms to Encodable
-enum PumpEventDTO: Encodable, Decodable {
-    case bolus(BolusDTO)
-    case tempBasal(TempBasalDTO)
-    case tempBasalDuration(TempBasalDurationDTO)
-    case pumpSuspend(PumpSuspendDTO)
-
-    func encode(to encoder: Encoder) throws {
-        switch self {
-        case let .bolus(bolus):
-            try bolus.encode(to: encoder)
-        case let .tempBasal(tempBasal):
-            try tempBasal.encode(to: encoder)
-        case let .tempBasalDuration(tempBasalDuration):
-            try tempBasalDuration.encode(to: encoder)
-        case let .pumpSuspend(pumpSuspend):
-            try pumpSuspend.encode(to: encoder)
-        }
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        guard let type = try? container.decode(String.self, forKey: ._type) else {
-            throw DecodingError.keyNotFound(
-                CodingKeys._type,
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "_type key not found")
-            )
-        }
-
-        switch type {
-        case "Bolus":
-            do {
-                let bolus = try BolusDTO(from: decoder)
-                self = .bolus(bolus)
-            } catch {
-                throw DecodingError.typeMismatch(
-                    BolusDTO.self,
-                    DecodingError
-                        .Context(
-                            codingPath: decoder.codingPath,
-                            debugDescription: "Failed to decode BolusDTO",
-                            underlyingError: error
-                        )
-                )
-            }
-        case "TempBasal":
-            do {
-                let tempBasal = try TempBasalDTO(from: decoder)
-                self = .tempBasal(tempBasal)
-            } catch {
-                throw DecodingError.typeMismatch(
-                    TempBasalDTO.self,
-                    DecodingError
-                        .Context(
-                            codingPath: decoder.codingPath,
-                            debugDescription: "Failed to decode TempBasalDTO",
-                            underlyingError: error
-                        )
-                )
-            }
-        case "TempBasalDuration":
-            do {
-                let tempBasalDuration = try TempBasalDurationDTO(from: decoder)
-                self = .tempBasalDuration(tempBasalDuration)
-            } catch {
-                throw DecodingError.typeMismatch(
-                    TempBasalDurationDTO.self,
-                    DecodingError
-                        .Context(
-                            codingPath: decoder.codingPath,
-                            debugDescription: "Failed to decode TempBasalDurationDTO",
-                            underlyingError: error
-                        )
-                )
-            }
-        case "PumpSuspend":
-            let pumpSuspend = try PumpSuspendDTO(from: decoder)
-            self = .pumpSuspend(pumpSuspend)
-        default:
-            throw DecodingError.dataCorruptedError(
-                forKey: ._type,
-                in: container,
-                debugDescription: "Unbekannter _type-Wert: \(type)"
-            )
-        }
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case _type
-    }
 }
 
 // Extension with helper functions to map pump events to DTO objects via uniform masking enum

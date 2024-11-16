@@ -66,14 +66,17 @@ import Swinject
         // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
         cleanupOldData()
 
-        importStuff()
+        migrateDataFromJSON()
     }
 
-    func importStuff() {
+    func migrateDataFromJSON() {
         Task {
             let importer = JSONImporter(context: coreDataStack.newTaskContext())
-            await importer.importPumpHistoryIfNeeded()
-            await importer.importCarbHistoryIfNeeded()
+            async let importPumpHistory: () = importer.importPumpHistoryIfNeeded()
+            async let importCarbHistory: () = importer.importCarbHistoryIfNeeded()
+            
+            await importPumpHistory
+            await importCarbHistory
         }
     }
 
@@ -85,7 +88,7 @@ import Swinject
                 .environmentObject(Icons())
                 .onOpenURL(perform: handleURL)
         }
-        .onChange(of: scenePhase) { newScenePhase in
+        .onChange(of: scenePhase) { oldScenePhase, newScenePhase in
             debug(.default, "APPLICATION PHASE: \(newScenePhase)")
 
             /// If the App goes to the background we should ensure that all the changes are saved from the viewContext to the Persistent Container
