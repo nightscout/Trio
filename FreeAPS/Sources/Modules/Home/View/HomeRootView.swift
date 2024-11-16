@@ -286,42 +286,6 @@ extension Home {
             return components.isEmpty ? nil : components.joined(separator: ", ")
         }
 
-        var infoPanel: some View {
-            HStack(alignment: .center) {
-                if state.pumpSuspended {
-                    Text("Pump suspended")
-                        .font(.system(size: 15, weight: .bold)).foregroundColor(.loopGray)
-                        .padding(.leading, 8)
-                } else if let tempBasalString = tempBasalString {
-                    Text(tempBasalString)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(.insulin)
-                        .padding(.leading, 8)
-                }
-                if state.totalInsulinDisplayType == .totalInsulinInScope {
-                    Text(
-                        "TINS: \(state.calculateTINS())" +
-                            NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
-                    )
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(.insulin)
-                }
-
-                if let tempTargetString = tempTargetString {
-                    Text(tempTargetString)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                Spacer()
-
-                if state.closedLoop, state.settingsManager.preferences.maxIOB == 0 {
-                    Text("Max IOB: 0").font(.callout).foregroundColor(.orange).padding(.trailing, 20)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: 30)
-        }
-
         var timeInterval: some View {
             HStack(alignment: .center) {
                 ForEach(timeButtons) { button in
@@ -536,6 +500,9 @@ extension Home {
                         .font(.caption)
                 }
             }
+            .onTapGesture {
+                selectedTab = 2
+            }
         }
 
         @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: String) -> some View {
@@ -549,6 +516,9 @@ extension Home {
                     Text(tempTargetString)
                         .font(.caption)
                 }
+            }
+            .onTapGesture {
+                selectedTab = 2
             }
         }
 
@@ -660,24 +630,25 @@ extension Home {
                             Spacer()
                             adjustmentsCancelTempTargetView()
                         }
-                    } else {
-                        VStack {
-                            Text("No Active Adjustment")
-                                .font(.subheadline)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            Text("Profile at 100 %")
-                                .font(.caption)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }.padding(.leading, 10)
-
-                        Spacer()
-
-                        /// to ensure the same position....
-                        Image(systemName: "xmark.app")
-                            .font(.system(size: 25))
-                            // clear color for the icon
-                            .foregroundStyle(Color.clear)
                     }
+//                    else {
+//                        VStack {
+//                            Text("No Active Adjustment")
+//                                .font(.subheadline)
+//                                .frame(maxWidth: .infinity, alignment: .leading)
+//                            Text("Profile at 100 %")
+//                                .font(.caption)
+//                                .frame(maxWidth: .infinity, alignment: .leading)
+//                        }.padding(.leading, 10)
+//
+//                        Spacer()
+//
+//                        /// to ensure the same position....
+//                        Image(systemName: "xmark.app")
+//                            .font(.system(size: 25))
+//                            // clear color for the icon
+//                            .foregroundStyle(Color.clear)
+//                    }
                 }.padding(.horizontal, 10)
                     .confirmationDialog("Adjustment to Stop", isPresented: $showCancelConfirmDialog) {
                         Button("Stop Override", role: .destructive) {
@@ -690,6 +661,15 @@ extension Home {
                             Task {
                                 guard let objectID = latestTempTarget.first?.objectID else { return }
                                 await state.cancelTempTarget(withID: objectID)
+                            }
+                        }
+                        Button("Stop All Adjustments", role: .destructive) {
+                            Task {
+                                guard let overrideObjectID = latestOverride.first?.objectID else { return }
+                                await state.cancelOverride(withID: overrideObjectID)
+
+                                guard let tempTargetObjectID = latestTempTarget.first?.objectID else { return }
+                                await state.cancelTempTarget(withID: tempTargetObjectID)
                             }
                         }
                     } message: {
@@ -812,7 +792,7 @@ extension Home {
 
                     if let progress = state.bolusProgress {
                         bolusView(geo: geo, progress).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
-                    } else {
+                    } else if (tempBasalString != nil) || (overrideString != nil) {
                         adjustmentView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                     }
                 }

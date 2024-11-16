@@ -715,7 +715,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
     func uploadTempTargets() async {
         await uploadTreatments(
-            tempTargetsStorage.nightscoutTreatmentsNotUploaded(),
+            tempTargetsStorage.getTempTargetsNotYetUploadedToNightscout(),
             fileToSave: OpenAPS.Nightscout.uploadedTempTargets
         )
     }

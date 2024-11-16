@@ -703,7 +703,7 @@ extension OverrideConfig.StateModel {
     func saveScheduledTempTarget() async {
         // Save date to a constant to allow multiple executions of this function at the same time, i.e. allowing for scheduling multiple TTs
         let date = self.date
-        
+
         guard date > Date() else { return }
 
         let tempTarget = TempTarget(

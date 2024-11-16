@@ -18,7 +18,7 @@ protocol TempTargetsStorage {
     func loadLatestTempTargetConfigurations(fetchLimit: Int) async -> [NSManagedObjectID]
     func syncDate() -> Date
     func recent() -> [TempTarget]
-    func nightscoutTreatmentsNotUploaded() -> [NightscoutTreatment]
+    func getTempTargetsNotYetUploadedToNightscout() -> [NightscoutTreatment]
     func presets() -> [TempTarget]
     func current() -> TempTarget?
 }
@@ -126,8 +126,13 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             newTempTarget.halfBasalTarget = NSDecimalNumber(decimal: tempTarget.halfBasalTarget ?? 160)
 
             // Set order position if we have a valid count and the temp target is a preset
-            if tempTarget.isPreset == true, presetCount > -1 {
-                newTempTarget.orderPosition = Int16(presetCount + 1)
+            // Nullify half basal target to ensure the latest HBT is used via OpenAPS Manager when sending TT data to oref
+            if tempTarget.isPreset == true {
+                newTempTarget.halfBasalTarget = nil
+
+                if presetCount > -1 {
+                    newTempTarget.orderPosition = Int16(presetCount + 1)
+                }
             }
 
             do {
@@ -174,7 +179,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         newTempTarget.name = tempTarget.name
         newTempTarget.target = tempTarget.target
         newTempTarget.isPreset = false // no Preset
-        newTempTarget.halfBasalTarget = tempTarget.halfBasalTarget
+        newTempTarget.halfBasalTarget = tempTarget.halfBasalTarget != 160 ? tempTarget.halfBasalTarget : nil
 
         await viewContext.perform {
             do {
@@ -216,7 +221,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         return last
     }
 
-    func nightscoutTreatmentsNotUploaded() -> [NightscoutTreatment] {
+    func getTempTargetsNotYetUploadedToNightscout() -> [NightscoutTreatment] {
         let uploaded = storage.retrieve(OpenAPS.Nightscout.uploadedTempTargets, as: [NightscoutTreatment].self) ?? []
 
         let eventsManual = recent().filter { $0.enteredBy == TempTarget.manual }
