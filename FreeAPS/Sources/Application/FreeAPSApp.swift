@@ -74,9 +74,11 @@ import Swinject
             let importer = JSONImporter(context: coreDataStack.newTaskContext())
             async let importPumpHistory: () = importer.importPumpHistoryIfNeeded()
             async let importCarbHistory: () = importer.importCarbHistoryIfNeeded()
-            
+            async let importGlucoseHistory: () = importer.importGlucoseHistoryIfNeeded()
+
             await importPumpHistory
             await importCarbHistory
+            await importGlucoseHistory
         }
     }
 
@@ -88,7 +90,7 @@ import Swinject
                 .environmentObject(Icons())
                 .onOpenURL(perform: handleURL)
         }
-        .onChange(of: scenePhase) { oldScenePhase, newScenePhase in
+        .onChange(of: scenePhase) { _, newScenePhase in
             debug(.default, "APPLICATION PHASE: \(newScenePhase)")
 
             /// If the App goes to the background we should ensure that all the changes are saved from the viewContext to the Persistent Container

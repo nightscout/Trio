@@ -108,4 +108,13 @@ extension JSONImporter {
             dateDecodingStrategy: .iso8601
         )
     }
+
+    func importGlucoseHistoryIfNeeded() async {
+        await importDataIfNeeded(
+            userDefaultsKey: "glucoseHistoryImported",
+            filePathComponent: OpenAPS.Monitor.glucose,
+            dtoType: GlucoseEntryDTO.self,
+            dateDecodingStrategy: .iso8601
+        )
+    }
 }
