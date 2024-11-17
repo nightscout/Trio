@@ -65,7 +65,7 @@ Instructions in greater detail, but not Trio-specific:
 
 [Discord Trio - Server ](http://discord.diy-trio.org)
 
-[Trio documentation](https://docs.diy-trio.org/en/latest/)
+[Trio documentation](https://docs.diy-trio.org/)
 
 TODO: Add link: Trio Website (under development, not existing yet)
 
