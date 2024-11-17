@@ -578,20 +578,50 @@ extension Home {
                 }
         }
 
+        @ViewBuilder func noActiveAdjustmentsView() -> some View {
+            Group {
+                VStack {
+                    Text("No Active Adjustment")
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text("Profile at 100 %")
+                        .font(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }.padding(.leading, 10)
+
+                Spacer()
+
+                /// to ensure the same position....
+                Image(systemName: "xmark.app")
+                    .font(.system(size: 25))
+                    // clear color for the icon
+                    .foregroundStyle(Color.clear)
+            }.onTapGesture {
+                selectedTab = 2
+            }
+        }
+
         @ViewBuilder func adjustmentView(geo: GeometryProxy) -> some View {
             ZStack {
                 /// rectangle as background
                 RoundedRectangle(cornerRadius: 15)
                     .fill(
-                        colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color
-                            .insulin
-                            .opacity(0.1)
+                        (overrideString != nil || tempTargetString != nil) ?
+                            (
+                                colorScheme == .dark ?
+                                    Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) :
+                                    Color.insulin.opacity(0.1)
+                            ) : Color.clear // Use clear and add the Material in the background
                     )
+                    .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 15))
                     .frame(height: geo.size.height * 0.08)
                     .shadow(
-                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                            Color.black.opacity(0.33),
+                        color: (overrideString != nil || tempTargetString != nil) ?
+                            (
+                                colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                                    Color.black.opacity(0.33)
+                            ) : Color.clear,
                         radius: 3
                     )
                 HStack {
@@ -630,25 +660,9 @@ extension Home {
                             Spacer()
                             adjustmentsCancelTempTargetView()
                         }
+                    } else {
+                        noActiveAdjustmentsView()
                     }
-//                    else {
-//                        VStack {
-//                            Text("No Active Adjustment")
-//                                .font(.subheadline)
-//                                .frame(maxWidth: .infinity, alignment: .leading)
-//                            Text("Profile at 100 %")
-//                                .font(.caption)
-//                                .frame(maxWidth: .infinity, alignment: .leading)
-//                        }.padding(.leading, 10)
-//
-//                        Spacer()
-//
-//                        /// to ensure the same position....
-//                        Image(systemName: "xmark.app")
-//                            .font(.system(size: 25))
-//                            // clear color for the icon
-//                            .foregroundStyle(Color.clear)
-//                    }
                 }.padding(.horizontal, 10)
                     .confirmationDialog("Adjustment to Stop", isPresented: $showCancelConfirmDialog) {
                         Button("Stop Override", role: .destructive) {
@@ -792,7 +806,7 @@ extension Home {
 
                     if let progress = state.bolusProgress {
                         bolusView(geo: geo, progress).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
-                    } else if (tempBasalString != nil) || (overrideString != nil) {
+                    } else {
                         adjustmentView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                     }
                 }
