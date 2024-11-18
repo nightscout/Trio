@@ -75,10 +75,12 @@ import Swinject
             async let importPumpHistory: () = importer.importPumpHistoryIfNeeded()
             async let importCarbHistory: () = importer.importCarbHistoryIfNeeded()
             async let importGlucoseHistory: () = importer.importGlucoseHistoryIfNeeded()
+            async let importDeterminationHistory: () = importer.importDeterminationHistoryIfNeeded()
 
             await importPumpHistory
             await importCarbHistory
             await importGlucoseHistory
+            await importDeterminationHistory
         }
     }
 
