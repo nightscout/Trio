@@ -194,7 +194,7 @@ extension ISFEditor {
 
         private var list: some View {
             List {
-                ISFChart.padding(.vertical)
+                chart.padding(.vertical)
                 ForEach(state.items.indexed(), id: \.1.id) { index, item in
                     let displayValue = state.units == .mgdL ? state.rateValues[item.rateIndex].description : state
                         .rateValues[item.rateIndex].formattedAsMmolL
@@ -222,7 +222,7 @@ extension ISFEditor {
         let chartScale = Calendar.current
             .date(from: DateComponents(year: 2001, month: 01, day: 01, hour: 0, minute: 0, second: 0))
 
-        var ISFChart: some View {
+        var chart: some View {
             Chart {
                 ForEach(state.items.indexed(), id: \.1.id) { index, item in
                     let displayValue = state.units == .mgdL ? state.rateValues[item.rateIndex].description : state
