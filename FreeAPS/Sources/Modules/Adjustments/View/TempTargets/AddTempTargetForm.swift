@@ -197,14 +197,6 @@ struct AddTempTargetForm: View {
                                     state.halfBasalTarget = Decimal(state.computeHalfBasalTarget())
                                 }
                                 .listRowSeparator(.hidden, edges: .top)
-
-                                HStack {
-                                    Text(
-                                        "Half Basal Exercise Target:"
-                                    )
-                                    Spacer()
-                                    Text(formattedGlucose(glucose: computedHalfBasalTarget))
-                                }.foregroundStyle(.primary)
                             }
                         }
                     )

@@ -216,14 +216,6 @@ struct EditTempTargetForm: View {
                                     Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
                                 }
                                 .listRowSeparator(.hidden, edges: .top)
-
-                                HStack {
-                                    Text(
-                                        "Half Basal Exercise Target:"
-                                    )
-                                    Spacer()
-                                    Text(formattedGlucose(glucose: computedHalfBasalTarget))
-                                }.foregroundStyle(.primary)
                             }
                         }
                     )
