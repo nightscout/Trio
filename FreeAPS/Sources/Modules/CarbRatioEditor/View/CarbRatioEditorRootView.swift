@@ -209,10 +209,10 @@ extension CarbRatioEditor {
                         )
                     ).alignsMarkStylesWithPlotArea()
 
-                    LineMark(x: .value("End Date", startDate), y: .value("Amount", displayValue))
+                    LineMark(x: .value("End Date", startDate), y: .value("Ratio", displayValue))
                         .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.orange)
 
-                    LineMark(x: .value("Start Date", endDate), y: .value("Amount", displayValue))
+                    LineMark(x: .value("Start Date", endDate), y: .value("Ratio", displayValue))
                         .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.orange)
                 }
             }

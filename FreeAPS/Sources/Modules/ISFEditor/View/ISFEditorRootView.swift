@@ -257,10 +257,10 @@ extension ISFEditor {
                         )
                     ).alignsMarkStylesWithPlotArea()
 
-                    LineMark(x: .value("End Date", startDate), y: .value("Amount", displayValueFloat ?? 0))
+                    LineMark(x: .value("End Date", startDate), y: .value("ISF", displayValueFloat ?? 0))
                         .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
 
-                    LineMark(x: .value("Start Date", endDate), y: .value("Amount", displayValueFloat ?? 0))
+                    LineMark(x: .value("Start Date", endDate), y: .value("ISF", displayValueFloat ?? 0))
                         .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
                 }
             }
