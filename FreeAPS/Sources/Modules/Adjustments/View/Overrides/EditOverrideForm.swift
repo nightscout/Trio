@@ -5,7 +5,7 @@ struct EditOverrideForm: View {
     var override: OverrideStored
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
-    @Bindable var state: OverrideConfig.StateModel
+    @Bindable var state: Adjustments.StateModel
 
     @State private var name: String
     @State private var percentage: Double
@@ -35,7 +35,7 @@ struct EditOverrideForm: View {
     @State private var displayPickerDisableSmbSchedule: Bool = false
     @State private var displayPickerSmbMinutes: Bool = false
 
-    init(overrideToEdit: OverrideStored, state: OverrideConfig.StateModel) {
+    init(overrideToEdit: OverrideStored, state: Adjustments.StateModel) {
         override = overrideToEdit
         _state = Bindable(wrappedValue: state)
         _name = State(initialValue: overrideToEdit.name ?? "")
@@ -187,7 +187,7 @@ struct EditOverrideForm: View {
                             ForEach([1, 5], id: \.self) { step in
                                 RadioButton(isSelected: percentageStep == step, label: "\(step) %") {
                                     percentageStep = step
-                                    percentage = OverrideConfig.StateModel.roundOverridePercentageToStep(percentage, step)
+                                    percentage = Adjustments.StateModel.roundOverridePercentageToStep(percentage, step)
                                 }
                                 .padding(.top, 10)
                             }

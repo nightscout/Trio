@@ -2,7 +2,7 @@ import CoreData
 import SwiftUI
 import Swinject
 
-extension OverrideConfig {
+extension Adjustments {
     struct RootView: BaseView {
         let resolver: Resolver
 
@@ -80,7 +80,7 @@ extension OverrideConfig {
                         Image(systemName: "clock.arrow.2.circlepath")
                             .font(.system(size: 20))
                             .foregroundStyle(Color.primary, Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569))
-                        Text(OverrideConfig.Tab.overrides.name)
+                        Text(Adjustments.Tab.overrides.name)
                             .font(.subheadline)
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
@@ -99,7 +99,7 @@ extension OverrideConfig {
                         Image(systemName: "target")
                             .font(.system(size: 20))
                             .foregroundStyle(Color.loopGreen)
-                        Text(OverrideConfig.Tab.tempTargets.name)
+                        Text(Adjustments.Tab.tempTargets.name)
                             .font(.subheadline)
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)

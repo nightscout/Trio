@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-enum OverrideConfig {
+enum Adjustments {
     enum Config {}
 
     enum Tab: String, Hashable, Identifiable, CaseIterable {
@@ -24,4 +24,4 @@ enum OverrideConfig {
     }
 }
 
-protocol OverrideProvider: Provider {}
+protocol AdjustmentsProvider: Provider {}

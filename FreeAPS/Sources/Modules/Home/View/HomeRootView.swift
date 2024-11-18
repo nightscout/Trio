@@ -954,7 +954,7 @@ extension Home {
 
                     Spacer()
 
-                    NavigationStack { OverrideConfig.RootView(resolver: resolver) }
+                    NavigationStack { Adjustments.RootView(resolver: resolver) }
                         .tabItem {
                             Label(
                                 "Adjustments",

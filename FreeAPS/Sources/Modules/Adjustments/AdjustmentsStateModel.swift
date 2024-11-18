@@ -3,7 +3,7 @@ import CoreData
 import Observation
 import SwiftUI
 
-extension OverrideConfig {
+extension Adjustments {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var broadcaster: Broadcaster!
         @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
@@ -165,7 +165,7 @@ extension OverrideConfig {
 
 // MARK: - Setup Notifications
 
-extension OverrideConfig.StateModel {
+extension Adjustments.StateModel {
     // Custom Notification to update View when an Override has been cancelled via Home View
     func setupNotification() {
         Foundation.NotificationCenter.default.addObserver(
@@ -591,7 +591,7 @@ extension OverrideConfig.StateModel {
 
 // MARK: - Temp Targets
 
-extension OverrideConfig.StateModel {
+extension Adjustments.StateModel {
     // MARK: - Setup the State variables with the last Temp Target configuration
 
     /// First get the latest Temp Target corresponding NSManagedObjectID with a background fetch
@@ -1041,7 +1041,7 @@ extension OverrideConfig.StateModel {
     }
 }
 
-extension OverrideConfig.StateModel: SettingsObserver {
+extension Adjustments.StateModel: SettingsObserver {
     func settingsDidChange(_: FreeAPSSettings) {
         units = settingsManager.settings.units
         defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
@@ -1213,7 +1213,7 @@ struct TargetPicker: View {
                             label: label
                         ) {
                             targetStep = step
-                            selection = OverrideConfig.StateModel.roundTargetToStep(selection, step)
+                            selection = Adjustments.StateModel.roundTargetToStep(selection, step)
                         }
                         .padding(.top, 10)
                     }
@@ -1224,7 +1224,7 @@ struct TargetPicker: View {
 
                 // Picker on the right side
                 Picker(selection: Binding(
-                    get: { OverrideConfig.StateModel.roundTargetToStep(selection, targetStep) },
+                    get: { Adjustments.StateModel.roundTargetToStep(selection, targetStep) },
                     set: {
                         selection = $0
                         hasChanges?.wrappedValue = true // This safely updates if hasChanges is provided

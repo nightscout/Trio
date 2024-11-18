@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 struct AddTempTargetForm: View {
-    @StateObject var state: OverrideConfig.StateModel
+    @StateObject var state: Adjustments.StateModel
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss

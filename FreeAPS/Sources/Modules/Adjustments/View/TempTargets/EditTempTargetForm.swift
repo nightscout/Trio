@@ -5,7 +5,7 @@ struct EditTempTargetForm: View {
     @ObservedObject var tempTarget: TempTargetStored
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
-    @StateObject var state: OverrideConfig.StateModel
+    @StateObject var state: Adjustments.StateModel
     @State private var displayPickerDuration: Bool = false
     @State private var displayPickerTarget: Bool = false
     @State private var tempTargetSensitivityAdjustmentType: TempTargetSensitivityAdjustmentType = .standard
@@ -25,7 +25,7 @@ struct EditTempTargetForm: View {
     @State private var isPreset = false
     @State private var isEnabled = false
 
-    init(tempTargetToEdit: TempTargetStored, state: OverrideConfig.StateModel) {
+    init(tempTargetToEdit: TempTargetStored, state: Adjustments.StateModel) {
         tempTarget = tempTargetToEdit
         _state = StateObject(wrappedValue: state)
         _name = State(initialValue: tempTargetToEdit.name ?? "")

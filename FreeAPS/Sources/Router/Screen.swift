@@ -103,7 +103,7 @@ extension Screen {
         case .iconConfig:
             IconConfig.RootView(resolver: resolver)
         case .overrideConfig:
-            OverrideConfig.RootView(resolver: resolver)
+            Adjustments.RootView(resolver: resolver)
         case .snooze:
             Snooze.RootView(resolver: resolver)
         case .watch:

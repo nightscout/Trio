@@ -5,7 +5,7 @@ struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
-    @Bindable var state: OverrideConfig.StateModel
+    @Bindable var state: Adjustments.StateModel
     @State private var selectedIsfCrOption: IsfAndOrCrOptions = .isfAndCr
     @State private var selectedDisableSmbOption: DisableSmbOptions = .dontDisable
     @State private var percentageStep: Int = 5
@@ -122,7 +122,7 @@ struct AddOverrideForm: View {
                             ForEach([1, 5], id: \.self) { step in
                                 RadioButton(isSelected: percentageStep == step, label: "\(step) %") {
                                     percentageStep = step
-                                    state.overridePercentage = OverrideConfig.StateModel.roundOverridePercentageToStep(
+                                    state.overridePercentage = Adjustments.StateModel.roundOverridePercentageToStep(
                                         state.overridePercentage,
                                         step
                                     )
