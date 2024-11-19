@@ -165,9 +165,9 @@ extension TargetBehavoir {
             .onAppear(perform: configureView)
             .navigationTitle("Target Behavior")
             .navigationBarTitleDisplayMode(.automatic)
-            .onDisappear {
-                state.saveIfChanged()
-            }
+//            .onDisappear {
+//                state.saveIfChanged()
+//            }
         }
     }
 }

@@ -111,9 +111,6 @@ extension AutosensSettings {
             .onAppear(perform: configureView)
             .navigationTitle("Autosens")
             .navigationBarTitleDisplayMode(.automatic)
-            .onDisappear {
-                state.saveIfChanged()
-            }
         }
     }
 }

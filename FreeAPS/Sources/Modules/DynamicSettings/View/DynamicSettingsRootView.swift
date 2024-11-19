@@ -218,9 +218,6 @@ extension DynamicSettings {
             .onAppear(perform: configureView)
             .navigationBarTitle("Dynamic Settings")
             .navigationBarTitleDisplayMode(.automatic)
-            .onDisappear {
-                state.saveIfChanged()
-            }
         }
     }
 }

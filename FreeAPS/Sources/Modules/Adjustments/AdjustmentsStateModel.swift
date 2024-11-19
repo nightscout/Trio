@@ -79,6 +79,7 @@ extension Adjustments {
             setupNotification()
             setupSettings()
             broadcaster.register(SettingsObserver.self, observer: self)
+            broadcaster.register(PreferencesObserver.self, observer: self)
 
             Task {
                 await withTaskGroup(of: Void.self) { group in
@@ -1041,13 +1042,22 @@ extension Adjustments.StateModel {
     }
 }
 
-extension Adjustments.StateModel: SettingsObserver {
+extension Adjustments.StateModel: SettingsObserver, PreferencesObserver {
     func settingsDidChange(_: FreeAPSSettings) {
         units = settingsManager.settings.units
+        Task {
+            await getCurrentGlucoseTarget()
+        }
+    }
+
+    func preferencesDidChange(_: Preferences) {
         defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
         defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
         maxValue = settingsManager.preferences.autosensMax
         minValue = settingsManager.preferences.autosensMin
+        settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
+        halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
+        percentage = computeAdjustedPercentage()
         Task {
             await getCurrentGlucoseTarget()
         }
