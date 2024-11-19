@@ -359,7 +359,8 @@ final class OpenAPS {
         await context.perform {
             // Retrieve preferences
             let preferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
-            var hbt_ = preferences?.halfBasalExerciseTarget ?? 160
+            let defaultHalfBasalTarget = preferences?.halfBasalExerciseTarget ?? 160
+            var hbt_ = defaultHalfBasalTarget
             let wp = preferences?.weightPercentage ?? 1.0
             let smbMinutes = preferences?.maxSMBBasalMinutes ?? 30
             let uamMinutes = preferences?.maxUAMSMBBasalMinutes ?? 30
@@ -479,7 +480,6 @@ final class OpenAPS {
 
                     if timeRemaining > 0 {
                         hbt_ = halfBasalTarget.decimalValue
-                        isTemptargetActive = true
                     }
                 }
             }
@@ -490,7 +490,7 @@ final class OpenAPS {
                 weightedAverage: currentTDD > 0 ? weightedAverage : 1,
                 past2hoursAverage: currentTDD > 0 ? average2hours : 0,
                 date: Date(),
-                isEnabled: isTemptargetActive,
+                isEnabled: hbt_ != defaultHalfBasalTarget,
                 presetActive: isTemptargetActive,
                 overridePercentage: overridePercentage,
                 useOverride: useOverride,

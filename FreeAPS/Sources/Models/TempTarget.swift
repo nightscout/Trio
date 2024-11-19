@@ -14,7 +14,7 @@ struct TempTarget: JSON, Identifiable, Equatable, Hashable {
     let halfBasalTarget: Decimal?
 
     static let manual = "Trio"
-    static let custom = "Temp target"
+    static let custom = "Temp Target"
     static let cancel = "Cancel"
 
     var displayName: String {

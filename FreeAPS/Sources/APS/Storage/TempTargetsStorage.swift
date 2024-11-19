@@ -27,6 +27,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
     private let processQueue = DispatchQueue(label: "BaseTempTargetsStorage.processQueue")
     @Injected() private var storage: FileStorage!
     @Injected() private var broadcaster: Broadcaster!
+    @Injected() private var settingsManager: SettingsManager!
 
     private let backgroundContext = CoreDataStack.shared.newTaskContext()
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -123,16 +124,18 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             newTempTarget.name = tempTarget.name
             newTempTarget.target = NSDecimalNumber(decimal: tempTarget.targetTop ?? 0)
             newTempTarget.isPreset = tempTarget.isPreset ?? false
-            newTempTarget.halfBasalTarget = NSDecimalNumber(decimal: tempTarget.halfBasalTarget ?? 160)
 
-            // Set order position if we have a valid count and the temp target is a preset
             // Nullify half basal target to ensure the latest HBT is used via OpenAPS Manager when sending TT data to oref
-            if tempTarget.isPreset == true {
-                newTempTarget.halfBasalTarget = nil
+            newTempTarget.halfBasalTarget = nil
 
-                if presetCount > -1 {
-                    newTempTarget.orderPosition = Int16(presetCount + 1)
-                }
+            if let halfBasalTarget = tempTarget.halfBasalTarget,
+               halfBasalTarget != self.settingsManager.preferences.halfBasalExerciseTarget
+            {
+                newTempTarget.halfBasalTarget = NSDecimalNumber(decimal: halfBasalTarget)
+            }
+
+            if tempTarget.isPreset == true, presetCount > -1 {
+                newTempTarget.orderPosition = Int16(presetCount + 1)
             }
 
             do {
