@@ -183,16 +183,26 @@ extension Adjustments.StateModel {
             name: .didUpdateTempTargetConfiguration,
             object: nil
         )
-    }
 
-    @objc private func handleOverrideConfigurationUpdate() {
-        updateLatestOverrideConfiguration()
+        // Creates a publisher that updates the Override View when the Custom notification was sent (via shortcut)
         Foundation.NotificationCenter.default.publisher(for: .willUpdateOverrideConfiguration)
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 self.updateLatestOverrideConfiguration()
             }
             .store(in: &cancellables)
+
+        // Creates a publisher that updates the Temp Target View when the Custom notification was sent (via shortcut)
+        Foundation.NotificationCenter.default.publisher(for: .willUpdateTempTargetConfiguration)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.updateLatestTempTargetConfiguration()
+            }
+            .store(in: &cancellables)
+    }
+
+    @objc private func handleOverrideConfigurationUpdate() {
+        updateLatestOverrideConfiguration()
     }
 
     @objc private func handleTempTargetConfigurationUpdate() {

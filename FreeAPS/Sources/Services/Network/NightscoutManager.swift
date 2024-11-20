@@ -173,6 +173,18 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 }
             }
             .store(in: &subscriptions)
+
+        Foundation.NotificationCenter.default.publisher(for: .willUpdateTempTargetConfiguration)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    await self.uploadOverrides()
+
+                    // Post a notification indicating that the upload has finished and that we can end the background task in the TempTargetPresetsIntentRequest
+                    Foundation.NotificationCenter.default.post(name: .didUpdateTempTargetConfiguration, object: nil)
+                }
+            }
+            .store(in: &subscriptions)
     }
 
     func sourceInfo() -> [String: Any]? {

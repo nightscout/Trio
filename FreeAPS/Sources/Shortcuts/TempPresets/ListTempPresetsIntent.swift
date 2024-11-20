@@ -11,33 +11,15 @@ import Foundation
         categoryName: "Navigation"
     )
 
-    @Parameter(title: "Preset") var preset: tempPreset?
+    @Parameter(title: "Preset") var preset: TempPreset?
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Choose the temp preset  \(\.$preset)")
+        Summary("Choose the Temp Target preset  \(\.$preset)")
     }
 
-    @MainActor func perform() async throws -> some ReturnsValue<tempPreset> {
+    @MainActor func perform() async throws -> some ReturnsValue<TempPreset> {
         .result(
             value: preset!
         )
-    }
-}
-
-@available(iOS 16.0, *) struct tempPresetsQuery: EntityQuery {
-    internal var intentRequest: TempPresetsIntentRequest
-
-    init() {
-        intentRequest = TempPresetsIntentRequest()
-    }
-
-    func entities(for identifiers: [tempPreset.ID]) async throws -> [tempPreset] {
-        let tempTargets = intentRequest.fetchIDs(identifiers)
-        return tempTargets
-    }
-
-    func suggestedEntities() async throws -> [tempPreset] {
-        let tempTargets = intentRequest.fetchAll()
-        return tempTargets
     }
 }

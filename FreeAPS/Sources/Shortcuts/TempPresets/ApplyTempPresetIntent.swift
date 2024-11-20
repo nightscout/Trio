@@ -14,7 +14,7 @@ import Foundation
         intentRequest = TempPresetsIntentRequest()
     }
 
-    @Parameter(title: "Preset") var preset: tempPreset?
+    @Parameter(title: "Preset") var preset: TempPreset?
 
     @Parameter(
         title: "Confirm Before applying",
@@ -46,12 +46,12 @@ import Foundation
 
     @MainActor func perform() async throws -> some ProvidesDialog {
         do {
-            let presetToApply: tempPreset
+            let presetToApply: TempPreset
             if let preset = preset {
                 presetToApply = preset
             } else {
                 presetToApply = try await $preset.requestDisambiguation(
-                    among: intentRequest.fetchAll(),
+                    among: intentRequest.fetchAndProcessTempTargets(),
                     dialog: "Select Temporary Target"
                 )
             }
@@ -63,15 +63,25 @@ import Foundation
                 )
             }
 
-            // TODO: enact the temp target
-            let tempTarget = try intentRequest.findTempTarget(presetToApply)
-            let finalTempTargetApply = try await intentRequest.enactTempTarget(tempTarget)
-            let formattedTime = decimalToTimeFormattedString(decimal: finalTempTargetApply.duration)
-            let displayDetail: String =
-                "Target '\(finalTempTargetApply.displayName)' applied for \(formattedTime)"
-            return .result(
-                dialog: IntentDialog(stringLiteral: displayDetail)
-            )
+            if await intentRequest.enactTempTarget(presetToApply) {
+                return .result(
+                    dialog: IntentDialog(
+                        LocalizedStringResource(
+                            "TempTarget '\(presetToApply.name)' applied",
+                            table: "ShortcutsDetail"
+                        )
+                    )
+                )
+            } else {
+                return .result(
+                    dialog: IntentDialog(
+                        LocalizedStringResource(
+                            "TempTarget '\(presetToApply.name)' failed",
+                            table: "ShortcutsDetail"
+                        )
+                    )
+                )
+            }
         } catch {
             throw error
         }

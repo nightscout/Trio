@@ -19,7 +19,7 @@ import Foundation
     ) var preset: OverridePreset?
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Choose the override  \(\.$preset)", table: "ShortcutsDetail")
+        Summary("Choose the Override  \(\.$preset)", table: "ShortcutsDetail")
     }
 
     @MainActor func perform() async throws -> some ReturnsValue<OverridePreset> {
