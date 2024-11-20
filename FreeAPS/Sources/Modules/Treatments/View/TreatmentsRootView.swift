@@ -4,7 +4,7 @@ import LoopKitUI
 import SwiftUI
 import Swinject
 
-extension Bolus {
+extension Treatments {
     struct RootView: BaseView {
         enum FocusedField {
             case carbs

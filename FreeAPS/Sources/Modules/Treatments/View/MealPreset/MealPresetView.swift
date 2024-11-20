@@ -3,7 +3,7 @@ import Foundation
 import SwiftUI
 
 struct MealPresetView: View {
-    @Bindable var state: Bolus.StateModel
+    @Bindable var state: Treatments.StateModel
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
     @Environment(\.managedObjectContext) var moc
@@ -86,6 +86,7 @@ struct MealPresetView: View {
                     presetCarbs: $presetCarbs,
                     presetFat: $presetFat,
                     presetProtein: $presetProtein,
+                    displayFatAndProtein: $state.useFPUconversion,
                     onSave: savePreset,
                     onCancel: {
                         showAddNewPresetSheet.toggle()
@@ -161,7 +162,7 @@ struct MealPresetView: View {
             dismiss()
         }
         label: {
-            Text("Add to treatments")
+            Text("Add to Treatments")
                 .font(.headline)
                 .foregroundStyle(Color.white)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -173,7 +174,7 @@ struct MealPresetView: View {
     }
 
     private var noPresetChosen: Bool {
-        state.selection == nil || carbs == 0 || fat == 0 || protein == 0
+        state.selection == nil || carbs == 0 || (state.useFPUconversion && (fat == 0 || protein == 0))
     }
 
     @ViewBuilder private func dishInfos() -> some View {
@@ -201,29 +202,31 @@ struct MealPresetView: View {
                         }
                     }
 
-                    Group {
-                        Text("Fat: ")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        HStack(spacing: 2) {
-                            Text("\(fat as NSNumber, formatter: mealFormatter)")
-                                .font(.footnote)
-                            Text(" g")
+                    if state.useFPUconversion {
+                        Group {
+                            Text("Fat: ")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
+                            HStack(spacing: 2) {
+                                Text("\(fat as NSNumber, formatter: mealFormatter)")
+                                    .font(.footnote)
+                                Text(" g")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                    }
 
-                    Group {
-                        Text("Protein: ")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        HStack(spacing: 2) {
-                            Text("\(protein as NSNumber, formatter: mealFormatter)")
-                                .font(.footnote)
-                            Text(" g")
+                        Group {
+                            Text("Protein: ")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
+                            HStack(spacing: 2) {
+                                Text("\(protein as NSNumber, formatter: mealFormatter)")
+                                    .font(.footnote)
+                                Text(" g")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
                 }
@@ -266,17 +269,19 @@ struct MealPresetView: View {
                 carbs -= (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal)
             } else { carbs = 0 }
 
-            if fat != 0,
-               (fat - (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
-            {
-                fat -= (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal)
-            } else { fat = 0 }
+            if state.useFPUconversion {
+                if fat != 0,
+                   (fat - (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
+                {
+                    fat -= (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal)
+                } else { fat = 0 }
 
-            if protein != 0,
-               (protein - (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
-            {
-                protein -= (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal)
-            } else { protein = 0 }
+                if protein != 0,
+                   (protein - (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal) as Decimal) >= 0
+                {
+                    protein -= (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal)
+                } else { protein = 0 }
+            }
 
             state.removePresetFromNewMeal()
             if carbs == 0, fat == 0, protein == 0 { state.summation = [] }
@@ -299,8 +304,10 @@ struct MealPresetView: View {
     private var plusButton: some View {
         Button {
             carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
-            fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
-            protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
+            if state.useFPUconversion {
+                fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
+                protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
+            }
 
             state.addPresetToNewMeal()
         }
@@ -316,9 +323,11 @@ struct MealPresetView: View {
         if dish != "" {
             let preset = MealPresetStored(context: moc)
             preset.dish = dish
-            preset.fat = presetFat as NSDecimalNumber
-            preset.protein = presetProtein as NSDecimalNumber
             preset.carbs = presetCarbs as NSDecimalNumber
+            if state.useFPUconversion {
+                preset.fat = presetFat as NSDecimalNumber
+                preset.protein = presetProtein as NSDecimalNumber
+            }
 
             do {
                 guard moc.hasChanges else { return }
