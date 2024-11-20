@@ -28,6 +28,6 @@ extension TrioRemoteControl {
     }
 
     private func isRunningInAPNSProductionEnvironment() -> Bool {
-        return BuildDetails.default.isTestFlightBuild()
+        BuildDetails.default.isTestFlightBuild()
     }
 }
