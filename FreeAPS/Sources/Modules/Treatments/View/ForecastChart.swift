@@ -4,7 +4,7 @@ import Foundation
 import SwiftUI
 
 struct ForecastChart: View {
-    var state: Bolus.StateModel
+    var state: Treatments.StateModel
     @Environment(\.colorScheme) var colorScheme
 
     @State private var startMarker = Date(timeIntervalSinceNow: -4 * 60 * 60)

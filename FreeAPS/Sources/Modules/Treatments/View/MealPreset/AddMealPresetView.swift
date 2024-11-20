@@ -8,6 +8,7 @@ struct AddMealPresetView: View {
     @Binding var presetCarbs: Decimal
     @Binding var presetFat: Decimal
     @Binding var presetProtein: Decimal
+    @Binding var displayFatAndProtein: Bool
     var onSave: () -> Void
     var onCancel: () -> Void
 
@@ -48,7 +49,9 @@ struct AddMealPresetView: View {
 
                 Section {
                     carbsTextField()
-                    proteinAndFat()
+                    if displayFatAndProtein {
+                        proteinAndFat()
+                    }
                 }
                 .listRowBackground(Color.chart)
 

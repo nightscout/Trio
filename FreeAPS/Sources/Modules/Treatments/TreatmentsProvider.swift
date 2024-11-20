@@ -1,5 +1,5 @@
-extension Bolus {
-    final class Provider: BaseProvider, BolusProvider {
+extension Treatments {
+    final class Provider: BaseProvider, TreatmentsProvider {
         func getPumpSettings() async -> PumpSettings {
             await storage.retrieveAsync(OpenAPS.Settings.settings, as: PumpSettings.self)
                 ?? PumpSettings(from: OpenAPS.defaults(for: OpenAPS.Settings.settings))
