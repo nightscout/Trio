@@ -359,7 +359,7 @@ final class OpenAPS {
         await context.perform {
             let preferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
             var hbt_ = preferences?.halfBasalExerciseTarget ?? 160
-            let wp = preferences?.weightPercentage ?? 1
+            let wp = preferences?.weightPercentage ?? 0.35
             let smbMinutes = (preferences?.maxSMBBasalMinutes ?? 30) as NSDecimalNumber
             let uamMinutes = (preferences?.maxUAMSMBBasalMinutes ?? 30) as NSDecimalNumber
 

@@ -11,7 +11,7 @@ extension DynamicSettings {
         var sigmoid: Bool = false
         var adjustmentFactor: Decimal = 0.8
         var adjustmentFactorSigmoid: Decimal = 0.5
-        var weightPercentage: Decimal = 0.65
+        var weightPercentage: Decimal = 0.35
         var tddAdjBasal: Bool = false
         var threshold_setting: Decimal = 60
         var units: GlucoseUnits = .mgdL

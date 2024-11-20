@@ -127,7 +127,7 @@ struct DecimalPickerSettings {
         max: 2,
         type: PickerSetting.PickerSettingType.factor
     )
-    var weightPercentage = PickerSetting(value: 0.65, step: 0.1, min: 0.1, max: 1, type: PickerSetting.PickerSettingType.factor)
+    var weightPercentage = PickerSetting(value: 0.35, step: 0.05, min: 0.05, max: 1, type: PickerSetting.PickerSettingType.factor)
     var enableSMB_high_bg_target = PickerSetting(
         value: 110,
         step: 1,

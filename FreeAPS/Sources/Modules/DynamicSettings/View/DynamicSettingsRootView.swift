@@ -249,7 +249,7 @@ extension DynamicSettings {
                                 "This setting adjusts how much weight is given to your recent total daily insulin dose when calculating Dynamic ISF and Dynamic CR."
                             )
                             Text(
-                                "At the default setting, 65% of the calculation is based on the last 24 hours of insulin use, with the remaining 35% considering the last 10 days of data."
+                                "At the default setting, 35% of the calculation is based on the last 24 hours of insulin use, with the remaining 65% considering the last 10 days of data."
                             )
                             Text("Setting this to 100% means only the past 24 hours will be used.")
                             Text("A lower value smooths out these variations for more stability.")
