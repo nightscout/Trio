@@ -259,7 +259,7 @@ extension Home {
                 halfBasalTarget = latestTempTarget.halfBasalTarget as! Decimal
             } else { halfBasalTarget = state.settingHalfBasalTarget }
             var showPercentage = false
-            if target > 100, state.exerciseMode || state.highTTraisesSens { showPercentage = true }
+            if target > 100, state.isExerciseModeActive || state.highTTraisesSens { showPercentage = true }
             if target < 100, state.lowTTlowersSens { showPercentage = true }
             if showPercentage {
                 percentageString =

@@ -39,8 +39,9 @@ extension Home {
         var tempTarget: TempTarget?
         var highTTraisesSens: Bool = false
         var lowTTlowersSens: Bool = false
-        var exerciseMode: Bool = false
+        var isExerciseModeActive: Bool = false
         var settingHalfBasalTarget: Decimal = 160
+        var percentage: Int = 100
         var setupPump = false
         var errorMessage: String?
         var errorDate: Date?
@@ -260,6 +261,7 @@ extension Home {
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(SettingsObserver.self, observer: self)
+            broadcaster.register(PreferencesObserver.self, observer: self)
             broadcaster.register(PumpSettingsObserver.self, observer: self)
             broadcaster.register(BasalProfileObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
@@ -356,10 +358,11 @@ extension Home {
             cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
             showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
             forecastDisplayType = settingsManager.settings.forecastDisplayType
+            isExerciseModeActive = settingsManager.preferences.exerciseMode
             highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
             lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
-            exerciseMode = settingsManager.preferences.exerciseMode
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
+            maxValue = settingsManager.preferences.autosensMax
         }
 
         func addPump(_ type: PumpConfig.PumpType) {
@@ -537,6 +540,7 @@ extension Home.StateModel:
     GlucoseObserver,
     DeterminationObserver,
     SettingsObserver,
+    PreferencesObserver,
     PumpSettingsObserver,
     BasalProfileObserver,
     PumpReservoirObserver,
@@ -574,6 +578,14 @@ extension Home.StateModel:
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
         setupBatteryArray()
+    }
+
+    func preferencesDidChange(_: Preferences) {
+        maxValue = settingsManager.preferences.autosensMax
+        settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
+        highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
+        isExerciseModeActive = settingsManager.preferences.exerciseMode
+        lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
     }
 
     // TODO: is this ever really triggered? react to MOC changes?
