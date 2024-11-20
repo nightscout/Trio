@@ -56,16 +56,12 @@ extension Adjustments {
         var scheduledTempTargets: [TempTargetStored] = []
         var percentage: Double = 100
         var maxValue: Decimal = 1.2
-        var minValue: Decimal = 0.15
-        var viewPercantage = false
         var halfBasalTarget: Decimal = 160
         var settingHalfBasalTarget: Decimal = 160
+        var highTTraisesSens: Bool = false
+        var isExerciseModeActive: Bool = false
+        var lowTTlowersSens: Bool = false
         var didSaveSettings: Bool = false
-        var didAdjustSens: Bool = false {
-            didSet {
-                handleAdjustSensToggle()
-            }
-        }
 
         let coredataContext = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -153,9 +149,11 @@ extension Adjustments {
             defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
             defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
             maxValue = settingsManager.preferences.autosensMax
-            minValue = settingsManager.preferences.autosensMin
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
+            highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
+            isExerciseModeActive = settingsManager.preferences.exerciseMode
+            lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
             percentage = computeAdjustedPercentage()
             Task {
                 await getCurrentGlucoseTarget()
@@ -990,13 +988,6 @@ extension Adjustments.StateModel {
         halfBasalTarget = settingHalfBasalTarget
     }
 
-    func handleAdjustSensToggle() {
-        if !didAdjustSens {
-            halfBasalTarget = settingHalfBasalTarget
-            percentage = computeAdjustedPercentage(usingHBT: settingHalfBasalTarget)
-        }
-    }
-
     func computeHalfBasalTarget(
         usingTarget initialTarget: Decimal? = nil,
         usingPercentage initialPercentage: Double? = nil
@@ -1013,12 +1004,9 @@ extension Adjustments.StateModel {
     }
 
     func isAdjustSensEnabled(usingTarget initialTarget: Decimal? = nil) -> Bool {
-        let shouldRaiseSensitivity = settingsManager.preferences.highTemptargetRaisesSensitivity
-        let isExerciseModeActive = settingsManager.preferences.exerciseMode
-        let shouldlowerSensitivity = settingsManager.preferences.lowTemptargetLowersSensitivity
         let target = initialTarget ?? tempTargetTarget
-        if target < normalTarget, shouldlowerSensitivity { return true }
-        if target > normalTarget, shouldRaiseSensitivity || isExerciseModeActive { return true }
+        if target < normalTarget, lowTTlowersSens { return true }
+        if target > normalTarget, highTTraisesSens || isExerciseModeActive { return true }
         return false
     }
 
@@ -1064,9 +1052,11 @@ extension Adjustments.StateModel: SettingsObserver, PreferencesObserver {
         defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
         defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
         maxValue = settingsManager.preferences.autosensMax
-        minValue = settingsManager.preferences.autosensMin
         settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
+        highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
+        isExerciseModeActive = settingsManager.preferences.exerciseMode
+        lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
         percentage = computeAdjustedPercentage()
         Task {
             await getCurrentGlucoseTarget()

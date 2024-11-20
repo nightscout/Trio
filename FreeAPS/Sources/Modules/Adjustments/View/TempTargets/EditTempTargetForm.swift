@@ -16,7 +16,7 @@ struct EditTempTargetForm: View {
     @State private var target: Decimal
     @State private var duration: Decimal
     @State private var date: Date
-    @State private var halfBasalTarget: Decimal
+    @State private var halfBasalTarget: Decimal?
     @State private var percentage: Double
 
     @State private var hasChanges = false
@@ -32,16 +32,19 @@ struct EditTempTargetForm: View {
         _target = State(initialValue: tempTargetToEdit.target?.decimalValue ?? 0)
         _duration = State(initialValue: tempTargetToEdit.duration?.decimalValue ?? 0)
         _date = State(initialValue: tempTargetToEdit.date ?? Date())
-        _halfBasalTarget = State(initialValue: tempTargetToEdit.halfBasalTarget?.decimalValue ?? 160)
+        _halfBasalTarget = State(initialValue: tempTargetToEdit.halfBasalTarget?.decimalValue ?? state.settingHalfBasalTarget)
         _isPreset = State(initialValue: tempTargetToEdit.isPreset)
         _isEnabled = State(initialValue: tempTargetToEdit.enabled)
 
-        if let hbt = tempTargetToEdit.halfBasalTarget?.decimalValue {
-            let H = hbt
-            let T = tempTargetToEdit.target?.decimalValue ?? 100
-            let calcPercentage = state.computeAdjustedPercentage(usingHBT: H, usingTarget: T)
-            _percentage = State(initialValue: calcPercentage)
-        } else { _percentage = State(initialValue: 100) }
+        var tempTargetHalfBasal: Decimal = state.settingHalfBasalTarget
+        if tempTargetToEdit.halfBasalTarget != nil {
+            tempTargetHalfBasal = tempTargetToEdit.halfBasalTarget as! Decimal
+        }
+
+        let H = tempTargetHalfBasal
+        let T = tempTargetToEdit.target?.decimalValue ?? 100
+        let calcPercentage = state.computeAdjustedPercentage(usingHBT: H, usingTarget: T)
+        _percentage = State(initialValue: calcPercentage)
     }
 
     var color: LinearGradient {
@@ -174,7 +177,7 @@ struct EditTempTargetForm: View {
                                 .pickerStyle(MenuPickerStyle())
                                 .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
                                     if newValue == .standard {
-                                        halfBasalTarget = state.settingHalfBasalTarget
+                                        halfBasalTarget = nil
                                         hasChanges = true
                                         percentage = state.computeAdjustedPercentage(
                                             usingHBT: halfBasalTarget,
@@ -363,7 +366,11 @@ struct EditTempTargetForm: View {
         tempTarget.duration = NSDecimalNumber(decimal: duration)
         tempTarget.date = date
         tempTarget.isUploadedToNS = false
-        tempTarget.halfBasalTarget = NSDecimalNumber(decimal: halfBasalTarget)
+        if let halfBasalValue = halfBasalTarget {
+            tempTarget.halfBasalTarget = NSDecimalNumber(decimal: halfBasalValue)
+        } else {
+            tempTarget.halfBasalTarget = nil
+        }
     }
 
     private func toggleScrollWheel(_ toggle: Bool) -> Bool {
