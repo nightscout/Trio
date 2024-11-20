@@ -392,6 +392,7 @@ extension Treatments {
             .disabled(disableTaskButton)
             .listRowBackground(
                 limitExceeded ? Color(.systemRed) :
+                    disableTaskButton ? Color(.systemGray) :
                     Color(.systemBlue)
             )
             .shadow(radius: 3)
