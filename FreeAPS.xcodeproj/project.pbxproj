@@ -524,6 +524,16 @@
 		E13B7DAB2A435F57066AF02E /* TargetsEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36F58DDD71F0E795464FA3F0 /* TargetsEditorStateModel.swift */; };
 		E39E418C56A5A46B61D960EE /* ConfigEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D5B4F8B4194BB7E260EF251 /* ConfigEditorStateModel.swift */; };
 		E3A08AAE59538BC8A8ABE477 /* GlucoseNotificationSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3260468377DA9DB4DEE9AF6D /* GlucoseNotificationSettingsDataFlow.swift */; };
+		E592A3702CEEC01E009A472C /* ContactTrickEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */; };
+		E592A3772CEEC038009A472C /* ContactTrickStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3752CEEC038009A472C /* ContactTrickStateModel.swift */; };
+		E592A3782CEEC038009A472C /* ContactTrickDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3732CEEC038009A472C /* ContactTrickDataFlow.swift */; };
+		E592A3792CEEC038009A472C /* ContactTrickRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3712CEEC038009A472C /* ContactTrickRootView.swift */; };
+		E592A37A2CEEC038009A472C /* ContactTrickProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3742CEEC038009A472C /* ContactTrickProvider.swift */; };
+		E592A37F2CEEC046009A472C /* ContactPicture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A37D2CEEC046009A472C /* ContactPicture.swift */; };
+		E592A3802CEEC046009A472C /* ContactTrickManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A37B2CEEC046009A472C /* ContactTrickManager.swift */; };
+		E592A3812CEEC046009A472C /* ContactTrickState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A37C2CEEC046009A472C /* ContactTrickState.swift */; };
+		E592A3832CEEC227009A472C /* FontWeight.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3822CEEC227009A472C /* FontWeight.swift */; };
+		E592A3852CEEC245009A472C /* FontTracking.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3842CEEC245009A472C /* FontTracking.swift */; };
 		E974172296125A5AE99E634C /* PumpConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD22C985B79A2F0D2EA3D9D /* PumpConfigRootView.swift */; };
 		F5CA3DB1F9DC8B05792BBFAA /* CGMDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B5C0607505A38F256BF99A /* CGMDataFlow.swift */; };
 		F5F7E6C1B7F098F59EB67EC5 /* TargetsEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA49538D56989D8DA6FCF538 /* TargetsEditorDataFlow.swift */; };
@@ -1201,6 +1211,16 @@
 		E0CC2C5B275B9DAE00A7BC71 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		E0D4F80427513ECF00BDF1FE /* HealthKitSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSample.swift; sourceTree = "<group>"; };
 		E26904AACA8D9C15D229D675 /* SnoozeStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeStateModel.swift; sourceTree = "<group>"; };
+		E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickEntry.swift; sourceTree = "<group>"; };
+		E592A3712CEEC038009A472C /* ContactTrickRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickRootView.swift; sourceTree = "<group>"; };
+		E592A3732CEEC038009A472C /* ContactTrickDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickDataFlow.swift; sourceTree = "<group>"; };
+		E592A3742CEEC038009A472C /* ContactTrickProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickProvider.swift; sourceTree = "<group>"; };
+		E592A3752CEEC038009A472C /* ContactTrickStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickStateModel.swift; sourceTree = "<group>"; };
+		E592A37B2CEEC046009A472C /* ContactTrickManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickManager.swift; sourceTree = "<group>"; };
+		E592A37C2CEEC046009A472C /* ContactTrickState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickState.swift; sourceTree = "<group>"; };
+		E592A37D2CEEC046009A472C /* ContactPicture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactPicture.swift; sourceTree = "<group>"; };
+		E592A3822CEEC227009A472C /* FontWeight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontWeight.swift; sourceTree = "<group>"; };
+		E592A3842CEEC245009A472C /* FontTracking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontTracking.swift; sourceTree = "<group>"; };
 		E625985B47742D498CB1681A /* GlucoseNotificationSettingsProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsProvider.swift; sourceTree = "<group>"; };
 		F816825D28DB441200054060 /* HeartBeatManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HeartBeatManager.swift; sourceTree = "<group>"; };
 		F816825F28DB441800054060 /* BluetoothTransmitter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BluetoothTransmitter.swift; sourceTree = "<group>"; };
@@ -1512,6 +1532,7 @@
 				E42231DBF0DBE2B4B92D1B15 /* CarbRatioEditor */,
 				F75CB57ED6971B46F8756083 /* CGM */,
 				0610F7D6D2EC00E3BA1569F0 /* ConfigEditor */,
+				E592A3762CEEC038009A472C /* ContactTrick */,
 				9E56E3626FAD933385101B76 /* DataTable */,
 				195D80B22AF696EE00D25097 /* DynamicSettings */,
 				DD17454C2C55CA0200211FAC /* GeneralSettings */,
@@ -1656,6 +1677,7 @@
 				38E8754D275556E100975559 /* WatchManager */,
 				38E87406274F9AA500975559 /* UserNotifications */,
 				3862CC2C2743F9DC00BF832C /* Calendar */,
+				E592A37E2CEEC046009A472C /* ContactTrick */,
 				38AEE75025F021F10013F05B /* SettingsManager */,
 				38B4F3C425E5016800E76A18 /* Notifications */,
 				3811DE9225C9D88200A708ED /* Appearance */,
@@ -1962,6 +1984,9 @@
 				38A9260425F012D8009E3739 /* CarbRatios.swift */,
 				38D0B3D825EC07C400CB6E88 /* CarbsEntry.swift */,
 				3811DF0125CA9FEA00A708ED /* Credentials.swift */,
+				E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */,
+				E592A3822CEEC227009A472C /* FontWeight.swift */,
+				E592A3842CEEC245009A472C /* FontTracking.swift */,
 				38AEE73C25F0200C0013F05B /* FreeAPSSettings.swift */,
 				383948D925CD64D500E91849 /* Glucose.swift */,
 				382C133625F13A1E00715CE1 /* InsulinSensitivities.swift */,
@@ -2877,6 +2902,35 @@
 			path = CarbRatioEditor;
 			sourceTree = "<group>";
 		};
+		E592A3722CEEC038009A472C /* View */ = {
+			isa = PBXGroup;
+			children = (
+				E592A3712CEEC038009A472C /* ContactTrickRootView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		E592A3762CEEC038009A472C /* ContactTrick */ = {
+			isa = PBXGroup;
+			children = (
+				E592A3722CEEC038009A472C /* View */,
+				E592A3732CEEC038009A472C /* ContactTrickDataFlow.swift */,
+				E592A3742CEEC038009A472C /* ContactTrickProvider.swift */,
+				E592A3752CEEC038009A472C /* ContactTrickStateModel.swift */,
+			);
+			path = ContactTrick;
+			sourceTree = "<group>";
+		};
+		E592A37E2CEEC046009A472C /* ContactTrick */ = {
+			isa = PBXGroup;
+			children = (
+				E592A37B2CEEC046009A472C /* ContactTrickManager.swift */,
+				E592A37C2CEEC046009A472C /* ContactTrickState.swift */,
+				E592A37D2CEEC046009A472C /* ContactPicture.swift */,
+			);
+			path = ContactTrick;
+			sourceTree = "<group>";
+		};
 		EEC747824D6593B5CD87E195 /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -3295,6 +3349,9 @@
 				38B4F3CA25E502E200E76A18 /* SwiftNotificationCenter.swift in Sources */,
 				38AEE75225F022080013F05B /* SettingsManager.swift in Sources */,
 				3894873A2614928B004DF424 /* DispatchTimer.swift in Sources */,
+				E592A37F2CEEC046009A472C /* ContactPicture.swift in Sources */,
+				E592A3802CEEC046009A472C /* ContactTrickManager.swift in Sources */,
+				E592A3812CEEC046009A472C /* ContactTrickState.swift in Sources */,
 				3895E4C625B9E00D00214B37 /* Preferences.swift in Sources */,
 				CE94598429E9E3E60047C9C6 /* WatchConfigStateModel.swift in Sources */,
 				DD6B7CB92C7BAC6900B75029 /* NightscoutImportResultView.swift in Sources */,
@@ -3325,6 +3382,7 @@
 				E00EEC0527368630002FF094 /* StorageAssembly.swift in Sources */,
 				DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */,
 				384E803825C388640086DB71 /* Script.swift in Sources */,
+				E592A3832CEEC227009A472C /* FontWeight.swift in Sources */,
 				CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */,
 				3883583425EEB38000E024B2 /* PumpSettings.swift in Sources */,
 				38DAB280260CBB7F00F74C1A /* PumpView.swift in Sources */,
@@ -3405,6 +3463,7 @@
 				38B4F3AF25E2979F00E76A18 /* IndexedCollection.swift in Sources */,
 				58D08B222C8DAA8E00AA37D3 /* OverrideView.swift in Sources */,
 				BD0B2EF32C5998E600B3298F /* MealPresetView.swift in Sources */,
+				E592A3702CEEC01E009A472C /* ContactTrickEntry.swift in Sources */,
 				DD6D67E42C9C253500660C9B /* ColorSchemeOption.swift in Sources */,
 				582DF9752C8CDB92001F516D /* GlucoseChartView.swift in Sources */,
 				DD1745302C55AE5300211FAC /* TargetBehaviorProvider.swift in Sources */,
@@ -3619,6 +3678,10 @@
 				38E8755427561E9800975559 /* DataFlow.swift in Sources */,
 				38E44522274E3DDC00EC9A94 /* NetworkReachabilityManager.swift in Sources */,
 				CE7CA34F2A064973004BE681 /* BaseIntentsRequest.swift in Sources */,
+				E592A3772CEEC038009A472C /* ContactTrickStateModel.swift in Sources */,
+				E592A3782CEEC038009A472C /* ContactTrickDataFlow.swift in Sources */,
+				E592A3792CEEC038009A472C /* ContactTrickRootView.swift in Sources */,
+				E592A37A2CEEC038009A472C /* ContactTrickProvider.swift in Sources */,
 				CE82E02728E869DF00473A9C /* AlertEntry.swift in Sources */,
 				38E4451E274DB04600EC9A94 /* AppDelegate.swift in Sources */,
 				BD2FF1A02AE29D43005D1C5D /* CheckboxToggleStyle.swift in Sources */,
@@ -3696,6 +3759,7 @@
 				DDE179562C910127003CDDB7 /* BolusStored+CoreDataClass.swift in Sources */,
 				DDE179572C910127003CDDB7 /* BolusStored+CoreDataProperties.swift in Sources */,
 				DDE179582C910127003CDDB7 /* ForecastValue+CoreDataClass.swift in Sources */,
+				E592A3852CEEC245009A472C /* FontTracking.swift in Sources */,
 				DDE179592C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift in Sources */,
 				DDE1795A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift in Sources */,
 				DDE1795B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift in Sources */,

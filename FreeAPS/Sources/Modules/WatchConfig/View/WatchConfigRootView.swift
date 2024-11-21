@@ -33,11 +33,16 @@ extension WatchConfig {
                         NavigationLink("Garmin", destination: WatchConfigGarminView(state: state))
                     }
                 ).listRowBackground(Color.chart)
-            }
-            .scrollContentBackground(.hidden).background(color)
-            .onAppear(perform: configureView)
-            .navigationTitle("Watch")
-            .navigationBarTitleDisplayMode(.automatic)
+                Section(
+                    header: Text("Complications"),
+                    content: {
+                        NavigationLink("Contact Image", destination: ContactTrick.RootView(resolver: resolver))
+                    }
+                ).listRowBackground(Color.chart) }
+                .scrollContentBackground(.hidden).background(color)
+                .onAppear(perform: configureView)
+                .navigationTitle("Watch")
+                .navigationBarTitleDisplayMode(.automatic)
         }
     }
 }

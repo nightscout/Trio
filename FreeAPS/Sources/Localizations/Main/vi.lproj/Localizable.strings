@@ -1810,8 +1810,159 @@ Enact a temp Basal or a temp target */
 /* Smoothing of CGM readings */
 "Smooth Glucose Value" = "Giá trị Glucose mịn";
 
-/* -----------------------------------------------------------------------------------------------------------
+/* --------------------------------------------------------  Contact Image --------------------------------------*/
 
+/* Contact Image, contacts list - prefix before the contact given name */
+"Contact" = "Contact";
+
+/* Contact Image, settings, header of the contacts list */
+"Contacts" = "Contacts";
+
+/* Contact Image, settings, save your changes reminedr */
+"Don't forget to save your changes." = "Don't forget to save your changes.";
+
+/* Contact Image, settings, message about need to access contacts */
+"Trio needs access to your contacts for this feature to work" = "Trio needs access to your contacts for this feature to work";
+
+/* Contact Image, settings, button to grant access to contacts */
+"Grant Trio access to contacts" = "Grant Trio access to contacts";
+
+/* Contact Image, settings, message when access to contacts denied */
+"Access to contacts denied" = "Access to contacts denied";
+
+/* Contact Image, settings, message when access to contacts restricted */
+"Access to contacts is restricted (parental control?)" = "Access to contacts is restricted (parental control?)";
+
+/* Contact Image, settings, message when access to contacts is in unknown state */
+"Access to contacts - unknown state" = "Access to contacts - unknown state";
+
+/* Contact Image, settings, short description of the feature */
+"A Contact Image can be used to get live updates from Trio to your Apple Watch Contact complication and/or your iPhone Contact widget." = "A Contact Image can be used to get live updates from Trio to your Apple Watch Contact complication and/or your iPhone Contact widget.";
+
+/* Contact Image, settings, main header */
+"Contact Image" = "Contact Image";
+
+/* Contact Image, settings, label for the layout picker */
+"Layout" = "Layout";
+
+/* Contact Image, settings, single layout name */
+"Single" = "Single";
+
+/* Contact Image, settings, split layout name */
+"Split" = "Split";
+
+/* Contact Image, settings, outer ring - don't show */
+"DontShowRing" = "Don't show";
+
+/* Contact Image, settings, outer ring - Loop status */
+"LoopStatusRing" = "Loop status";
+
+/* Contact Image, settings, outer ring - IOB */
+"IOBRing" = "IOB";
+
+/* Contact Image, settings, outer ring - COB */
+"COBRing" = "COB";
+
+/* Contact Image, settings, outer ring - IOB+COB */
+"IOB+COBRing" = "IOB+COB";
+
+/* Contact Image, settings, label for the primary value picker */
+"Primary" = "Primary";
+
+/* Contact Image, settings, label for the top value picker */
+"Top" = "Top";
+
+/* Contact Image, settings, label for the bottom value picker */
+"Bottom" = "Bottom";
+
+/* Contact Image, settings, header for the outer ring section */
+"Ring" = "Ring";
+
+/* Contact Image, settings, label for the outer ring picker */
+"Outer" = "Outer";
+
+/* Contact Image, settings, label for the ring width picker */
+"Width" = "Width";
+
+/* Contact Image, settings, label for the ring gap picker */
+"Gap" = "Gap";
+
+/* Contact Image, settings, header for the font section */
+"Font" = "Font";
+
+/* Contact Image, settings, label for the font size picker */
+"Size" = "Size";
+
+/* Contact Image, settings, label for the secondary font size picker */
+"Secondary size" = "Secondary size";
+
+/* Contact Image, settings, label for the font tracking picker (tracking - horizontal spacing between letters) */
+"Tracking" = "Tracking";
+
+/* Contact Image, settings, label for the font weight picker */
+"Weight" = "Weight";
+
+/* Contact Image, settings, label for the dark-mode switcher */
+"Dark mode" = "Dark mode";
+
+/* Contact Image, settings, tighter font tracking */
+"TighterFontTracking" = "Tighter";
+
+/* Contact Image, settings, tight font tracking */
+"TightFontTracking" = "Tight";
+
+/* Contact Image, settings, normal font tracking */
+"NormalFontTracking" = "Normal";
+
+/* Contact Image, settings, wide font tracking */
+"WideFontTracking" = "Wide";
+
+/* Contact Image, settings, light font weight */
+"LightFontWeight" = "Light";
+
+/* Contact Image, settings, regular font weight */
+"RegularFontWeight" = "Regular";
+
+/* Contact Image, settings, medium font weight */
+"MediumFontWeight" = "Medium";
+
+/* Contact Image, settings, semibold font weight */
+"SemiboldFontWeight" = "Semibold";
+
+/* Contact Image, settings, bold font weight */
+"BoldFontWeight" = "Bold";
+
+/* Contact Image, settings, black font weight (black is "very bold") */
+"BlackFontWeight" = "Black";
+
+/* Contact Image, settings, don't display any value */
+"NoneContactValue" = "None";
+
+/* Contact Image, settings, Glucose (data to display) */
+"GlucoseContactValue" = "Glucose";
+
+/* Contact Image, settings, Eventual BG (data to display) */
+"EventualBGContactValue" = "Eventual BG";
+
+/* Contact Image, settings, Delta (data to display) */
+"DeltaContactValue" = "Delta";
+
+/* Contact Image, settings, Trend (data to display) */
+"TrendContactValue" = "Trend";
+
+/* Contact Image, settings, Last loop time (data to display) */
+"LastLoopTimeContactValue" = "Last loop time";
+
+/* Contact Image, settings, COB (data to display) */
+"COBContactValue" = "COB";
+
+/* Contact Image, settings, IOB (data to display) */
+"IOBContactValue" = "IOB";
+
+/* Contact Image, settings, loop status (data to display) */
+"LoopStatusContactValue" = "Loop status";
+
+/* ---------------------------------------------------------------------------------------------------------------
   Infotexts from openaps.docs and androidaps.docs
   Trio
 */
