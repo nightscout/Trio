@@ -29,20 +29,15 @@ extension WatchConfig {
                 Section(
                     header: Text("Smartwatch Configuration"),
                     content: {
-                        NavigationLink("Apple Watch", destination: WatchConfigAppleWatchView(state: state))
+                        NavigationLink("Apple Watch", destination: WatchConfigAppleWatchView(resolver: resolver, state: state))
                         NavigationLink("Garmin", destination: WatchConfigGarminView(state: state))
                     }
                 ).listRowBackground(Color.chart)
-                Section(
-                    header: Text("Complications"),
-                    content: {
-                        NavigationLink("Contact Image", destination: ContactTrick.RootView(resolver: resolver))
-                    }
-                ).listRowBackground(Color.chart) }
-                .scrollContentBackground(.hidden).background(color)
-                .onAppear(perform: configureView)
-                .navigationTitle("Watch")
-                .navigationBarTitleDisplayMode(.automatic)
+            }
+            .scrollContentBackground(.hidden).background(color)
+            .onAppear(perform: configureView)
+            .navigationTitle("Watch")
+            .navigationBarTitleDisplayMode(.automatic)
         }
     }
 }

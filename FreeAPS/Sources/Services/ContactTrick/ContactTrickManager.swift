@@ -92,7 +92,6 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
 
         broadcaster.register(SettingsObserver.self, observer: self)
         broadcaster.register(CarbsObserver.self, observer: self)
-
     }
 
     private func registerSubscribers() {
@@ -444,7 +443,6 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
 
         return description
     }
-
 }
 
 extension BaseContactTrickManager:

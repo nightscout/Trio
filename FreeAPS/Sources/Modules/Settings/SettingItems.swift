@@ -57,7 +57,7 @@ enum SettingItems {
             title: "Contact Image",
             view: .watch,
             searchContents: ["Display on Watch", "Watch Complication"],
-            path: ["Devices", "Smart Watch", "Contact Image"]
+            path: ["Devices", "Smart Watch", "Apple Watch", "Contact Image"]
         )
     ]
 

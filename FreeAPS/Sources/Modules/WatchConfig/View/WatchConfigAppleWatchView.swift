@@ -1,6 +1,8 @@
 import SwiftUI
+import Swinject
 
 struct WatchConfigAppleWatchView: View {
+    let resolver: Resolver
     @ObservedObject var state: WatchConfig.StateModel
 
     @State private var shouldDisplayHint: Bool = false
@@ -108,6 +110,21 @@ struct WatchConfigAppleWatchView: View {
                 miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                 verboseHint: "Confirm Bolus Faster… bla bla bla"
             )
+
+            Section(
+                header: Text("Complications"),
+                content: {
+                    VStack {
+                        HStack {
+                            NavigationLink(
+                                "Contact Image",
+                                destination: ContactTrick.RootView(resolver: resolver)
+                            ).foregroundStyle(Color.accentColor)
+                        }
+                    }
+//                        .padding(.bottom)
+                }
+            ).listRowBackground(Color.chart)
         }
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
