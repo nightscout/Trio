@@ -412,19 +412,21 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         messageSubtype: MessageSubtype = MessageSubtype.misc,
         action: NotificationAction = NotificationAction.none
     ) {
+        let messageCont = MessageContent(
+            content: content.body,
+            type: messageType,
+            subtype: messageSubtype,
+            title: content.title,
+            useAPN: false,
+            trigger: trigger,
+            action: action
+        )
         if alertPermissionsChecker.notificationsDisabled {
-            let messageCont = MessageContent(
-                content: content.body,
-                type: messageType,
-                subtype: messageSubtype,
-                title: content.title,
-                useAPN: false,
-                trigger: trigger,
-                action: action
-            )
             router.alertMessage.send(messageCont)
             return
         }
+        guard router.allowNotify(messageCont, settingsManager.settings) else { return }
+
         var alertIdentifier = identifier.rawValue
         alertIdentifier = identifier == .pumpNotification ? alertIdentifier + content
             .title : (identifier == .alertMessageNotification ? alertIdentifier + content.body : alertIdentifier)

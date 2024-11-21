@@ -4,17 +4,10 @@ import LoopKit
 import SwiftUI
 import Swinject
 
-// protocol AlertPermissionsCheckerDelegate: AnyObject {
-//    func notificationsPermissions(requiresRiskMitigation: Bool, scheduledDeliveryEnabled: Bool)
-// }
-
 public class AlertPermissionsChecker: ObservableObject, Injectable {
-//    @Environment(\.appName) private var appName
     private lazy var cancellables = Set<AnyCancellable>()
     private var listeningToNotificationCenter = false
 
-//    @Injected() private var apsManager: APSManager!
-//    @Injected() private var router: Router!
     @Published var notificationsDisabled: Bool = false
 
     init(resolver: Resolver) {

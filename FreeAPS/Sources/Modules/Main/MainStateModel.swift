@@ -112,25 +112,6 @@ extension Main {
             return false
         }
 
-        private func allowNotify(_ message: MessageContent) -> Bool {
-            if message.type == .error { return true } // .errorPump
-            switch message.subtype {
-            case .pump:
-                guard settingsManager.settings.notificationsPump else { return false }
-            case .cgm:
-                guard settingsManager.settings.notificationsCgm else { return false }
-            case .carb:
-                guard settingsManager.settings.notificationsCarb else { return false }
-            case .glucose:
-                guard settingsManager.settings.glucoseNotificationsAlways else { return false }
-            case .algorithm:
-                guard settingsManager.settings.notificationsAlgorithm else { return false }
-            case .misc:
-                return true
-            }
-            return true
-        }
-
         private func showAlertMessage(_ message: MessageContent) {
             if message.useAPN, !alertPermissionsChecker.notificationsDisabled
             {
@@ -242,7 +223,7 @@ extension Main {
                 .receive(on: DispatchQueue.main)
                 .sink { message in
                     guard !self.isApnPumpConfigAction(message) else { return }
-                    guard self.allowNotify(message) else { return }
+                    guard self.router.allowNotify(message, self.settingsManager.settings) else { return }
                     self.showAlertMessage(message)
                 }
                 .store(in: &lifetime)
