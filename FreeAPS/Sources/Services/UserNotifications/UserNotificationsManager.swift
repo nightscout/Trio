@@ -432,8 +432,8 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
         if deleteOld {
             DispatchQueue.main.async {
-                self.center.removeDeliveredNotifications(withIdentifiers: [identifier.rawValue])
-                self.center.removePendingNotificationRequests(withIdentifiers: [identifier.rawValue])
+                self.center.removeDeliveredNotifications(withIdentifiers: [alertIdentifier])
+                self.center.removePendingNotificationRequests(withIdentifiers: [alertIdentifier])
             }
         }
 
@@ -601,39 +601,12 @@ extension BaseUserNotificationsManager: BolusFailureObserver {
 }
 
 extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
-    static let shared = BaseUserNotificationsManager(resolver: FreeAPSApp.resolver)
-
-    /// This is called when a notification is received while the app is in the foreground.
-    /// There is an iOS 18 bug where it is called twice (https://forums.developer.apple.com/forums/thread/762126).
-    /// As a workaround we are checking for duplicate ids and ignoring the second notification
     func userNotificationCenter(
         _: UNUserNotificationCenter,
-        willPresent notification: UNNotification,
+        willPresent _: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        let lastNotificationKey = "lastNotificationKey"
-        var isDuplicateNotification = false
-        if let lastNotification = UserDefaults.standard.value(forKey: lastNotificationKey) as? String {
-            isDuplicateNotification = lastNotification == notification.request.identifier + notification.request.content.title
-        }
-        UserDefaults.standard.set(
-            notification.request.identifier + notification.request.content.title,
-            forKey: lastNotificationKey
-        )
-
-        if !isDuplicateNotification {
-            debug(
-                .service,
-                "Process non-duplicate \(notification.request.identifier) notification for \(notification.request.content.title)"
-            )
-            completionHandler([.banner, .badge, .sound])
-        } else {
-            debug(
-                .service,
-                "Skip duplicate \(notification.request.identifier) notification for \(notification.request.content.title)"
-            )
-            completionHandler([])
-        }
+        completionHandler([.banner, .badge, .sound, .list])
     }
 
     func userNotificationCenter(
