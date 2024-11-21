@@ -6,7 +6,7 @@ import Observation
 import SwiftUI
 import Swinject
 
-extension Bolus {
+extension Treatments {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var unlockmanager: UnlockManager!
         @ObservationIgnored @Injected() var apsManager: APSManager!
@@ -598,7 +598,7 @@ extension Bolus {
     }
 }
 
-extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
+extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
     func determinationDidUpdate(_: Determination) {
         guard isActive else {
             debug(.bolusState, "skipping determinationDidUpdate; view not active")
@@ -625,7 +625,7 @@ extension Bolus.StateModel: DeterminationObserver, BolusFailureObserver {
     }
 }
 
-extension Bolus.StateModel {
+extension Treatments.StateModel {
     private func registerHandlers() {
         coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
@@ -656,7 +656,7 @@ extension Bolus.StateModel {
 
 // MARK: - Setup Glucose and Determinations
 
-extension Bolus.StateModel {
+extension Treatments.StateModel {
     // Glucose
     private func setupGlucoseArray() {
         Task {
@@ -782,7 +782,7 @@ extension Bolus.StateModel {
     }
 }
 
-extension Bolus.StateModel {
+extension Treatments.StateModel {
     @MainActor func updateForecasts(with forecastData: Determination? = nil) async {
         guard isActive else {
             return

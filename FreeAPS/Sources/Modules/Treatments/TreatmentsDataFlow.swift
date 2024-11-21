@@ -1,8 +1,8 @@
-enum Bolus {
+enum Treatments {
     enum Config {}
 }
 
-protocol BolusProvider: Provider {
+protocol TreatmentsProvider: Provider {
     func getPumpSettings() async -> PumpSettings
     func getBasalProfile() async -> [BasalProfileEntry]
     func getCarbRatios() async -> CarbRatios

@@ -28,9 +28,6 @@ extension TrioRemoteControl {
     }
 
     private func isRunningInAPNSProductionEnvironment() -> Bool {
-        if let appStoreReceiptURL = Bundle.main.appStoreReceiptURL {
-            return appStoreReceiptURL.lastPathComponent != "sandboxReceipt"
-        }
-        return false
+        BuildDetails.default.isTestFlightBuild()
     }
 }
