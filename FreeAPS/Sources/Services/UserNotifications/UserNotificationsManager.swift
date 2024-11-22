@@ -20,10 +20,16 @@ enum NotificationAction: String {
     static let key = "action"
 
     case snooze
+    case pumpConfig
+    case none
 }
 
 protocol BolusFailureObserver {
     func bolusDidFail()
+}
+
+protocol alertMessageNotificationObserver {
+    func alertMessageNotification(_ message: MessageContent)
 }
 
 protocol pumpNotificationObserver {
@@ -33,14 +39,16 @@ protocol pumpNotificationObserver {
 
 final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, Injectable {
     private enum Identifier: String {
-        case glucocoseNotification = "FreeAPS.glucoseNotification"
+        case glucoseNotification = "FreeAPS.glucoseNotification"
         case carbsRequiredNotification = "FreeAPS.carbsRequiredNotification"
         case noLoopFirstNotification = "FreeAPS.noLoopFirstNotification"
         case noLoopSecondNotification = "FreeAPS.noLoopSecondNotification"
         case bolusFailedNotification = "FreeAPS.bolusFailedNotification"
         case pumpNotification = "FreeAPS.pumpNotification"
+        case alertMessageNotification = "FreeAPS.alertMessageNotification"
     }
 
+    @Injected() var alertPermissionsChecker: AlertPermissionsChecker!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var glucoseStorage: GlucoseStorage!
@@ -60,6 +68,9 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
+    let firstInterval = 20 // min
+    let secondInterval = 40 // min
+
     init(resolver: Resolver) {
         super.init()
         center.delegate = self
@@ -74,6 +85,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         broadcaster.register(DeterminationObserver.self, observer: self)
         broadcaster.register(BolusFailureObserver.self, observer: self)
         broadcaster.register(pumpNotificationObserver.self, observer: self)
+        broadcaster.register(alertMessageNotificationObserver.self, observer: self)
         requestNotificationPermissionsIfNeeded()
         Task {
             await sendGlucoseNotification()
@@ -116,7 +128,12 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private func addAppBadge(glucose: Int?) {
         guard let glucose = glucose, settingsManager.settings.glucoseBadge else {
             DispatchQueue.main.async {
-                UIApplication.shared.applicationIconBadgeNumber = 0
+                self.center.setBadgeCount(-1) { error in
+                    guard let error else {
+                        return
+                    }
+                    print(error)
+                }
             }
             return
         }
@@ -129,97 +146,97 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
 
         DispatchQueue.main.async {
-            UIApplication.shared.applicationIconBadgeNumber = badge
+            self.center.setBadgeCount(badge) { error in
+                guard let error else {
+                    return
+                }
+                print(error)
+            }
         }
     }
 
     private func notifyCarbsRequired(_ carbs: Int) {
         guard Decimal(carbs) >= settingsManager.settings.carbsRequiredThreshold,
-              settingsManager.settings.showCarbsRequiredBadge else { return }
+              settingsManager.settings.showCarbsRequiredBadge, settingsManager.settings.notificationsCarb else { return }
 
-        ensureCanSendNotification {
-            var titles: [String] = []
+        var titles: [String] = []
 
-            let content = UNMutableNotificationContent()
+        let content = UNMutableNotificationContent()
 
-            if self.snoozeUntilDate > Date() {
-                titles.append(NSLocalizedString("(Snoozed)", comment: "(Snoozed)"))
-            } else {
-                content.sound = .default
-                self.playSoundIfNeeded()
-            }
-
-            titles.append(String(format: NSLocalizedString("Carbs required: %d g", comment: "Carbs required"), carbs))
-
-            content.title = titles.joined(separator: " ")
-            content.body = String(
-                format: NSLocalizedString(
-                    "To prevent LOW required %d g of carbs",
-                    comment: "To prevent LOW required %d g of carbs"
-                ),
-                carbs
-            )
-
-            self.addRequest(identifier: .carbsRequiredNotification, content: content, deleteOld: true)
+        if snoozeUntilDate > Date() {
+            titles.append(NSLocalizedString("(Snoozed)", comment: "(Snoozed)"))
+        } else {
+            content.sound = .default
+            playSoundIfNeeded()
         }
+
+        titles.append(String(format: NSLocalizedString("Carbs required: %d g", comment: "Carbs required"), carbs))
+
+        content.title = titles.joined(separator: " ")
+        content.body = String(
+            format: NSLocalizedString(
+                "To prevent LOW required %d g of carbs",
+                comment: "To prevent LOW required %d g of carbs"
+            ),
+            carbs
+        )
+        addRequest(identifier: .carbsRequiredNotification, content: content, deleteOld: true, messageSubtype: .carb)
     }
 
     private func scheduleMissingLoopNotifiactions(date _: Date) {
-        ensureCanSendNotification {
-            let title = NSLocalizedString("Trio Not Active", comment: "Trio Not Active")
-            let body = NSLocalizedString("Last loop was more than %d min ago", comment: "Last loop was more than %d min ago")
+        let title = NSLocalizedString("Trio Not Active", comment: "Trio Not Active")
+        let body = NSLocalizedString("Last loop was more than %d min ago", comment: "Last loop was more than %d min ago")
 
-            let firstInterval = 20 // min
-            let secondInterval = 40 // min
+        let firstContent = UNMutableNotificationContent()
+        firstContent.title = title
+        firstContent.body = String(format: body, firstInterval)
+        firstContent.sound = .default
 
-            let firstContent = UNMutableNotificationContent()
-            firstContent.title = title
-            firstContent.body = String(format: body, firstInterval)
-            firstContent.sound = .default
+        let secondContent = UNMutableNotificationContent()
+        secondContent.title = title
+        secondContent.body = String(format: body, secondInterval)
+        secondContent.sound = .default
 
-            let secondContent = UNMutableNotificationContent()
-            secondContent.title = title
-            secondContent.body = String(format: body, secondInterval)
-            secondContent.sound = .default
+        let firstTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * TimeInterval(firstInterval), repeats: false)
+        let secondTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * TimeInterval(secondInterval), repeats: false)
 
-            let firstTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * TimeInterval(firstInterval), repeats: false)
-            let secondTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * TimeInterval(secondInterval), repeats: false)
-
-            self.addRequest(
-                identifier: .noLoopFirstNotification,
-                content: firstContent,
-                deleteOld: true,
-                trigger: firstTrigger
-            )
-            self.addRequest(
-                identifier: .noLoopSecondNotification,
-                content: secondContent,
-                deleteOld: true,
-                trigger: secondTrigger
-            )
-        }
+        addRequest(
+            identifier: .noLoopFirstNotification,
+            content: firstContent,
+            deleteOld: true,
+            trigger: firstTrigger,
+            messageType: .error,
+            messageSubtype: .algorithm
+        )
+        addRequest(
+            identifier: .noLoopSecondNotification,
+            content: secondContent,
+            deleteOld: true,
+            trigger: secondTrigger,
+            messageType: .error,
+            messageSubtype: .algorithm
+        )
     }
 
     private func notifyBolusFailure() {
-        ensureCanSendNotification {
-            let title = NSLocalizedString("Bolus failed", comment: "Bolus failed")
-            let body = NSLocalizedString(
-                "Bolus failed or inaccurate. Check pump history before repeating.",
-                comment: "Bolus failed or inaccurate. Check pump history before repeating."
-            )
+        let title = NSLocalizedString("Bolus failed", comment: "Bolus failed")
+        let body = NSLocalizedString(
+            "Bolus failed or inaccurate. Check pump history before repeating.",
+            comment: "Bolus failed or inaccurate. Check pump history before repeating."
+        )
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
 
-            let content = UNMutableNotificationContent()
-            content.title = title
-            content.body = body
-            content.sound = .default
-
-            self.addRequest(
-                identifier: .noLoopFirstNotification,
-                content: content,
-                deleteOld: true,
-                trigger: nil
-            )
-        }
+        addRequest(
+            identifier: .noLoopFirstNotification,
+            content: content,
+            deleteOld: true,
+            trigger: nil,
+            messageType: .error,
+            messageSubtype: .pump
+        )
     }
 
     private func fetchGlucoseIDs() async -> [NSManagedObjectID] {
@@ -255,45 +272,53 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
             guard glucoseStorage.alarm != nil || settingsManager.settings.glucoseNotificationsAlways else { return }
 
-            ensureCanSendNotification {
-                var titles: [String] = []
-                var notificationAlarm = false
+            var titles: [String] = []
+            var notificationAlarm = false
+            var messageType = MessageType.info
 
-                switch self.glucoseStorage.alarm {
-                case .none:
-                    titles.append(NSLocalizedString("Glucose", comment: "Glucose"))
-                case .low:
-                    titles.append(NSLocalizedString("LOWALERT!", comment: "LOWALERT!"))
-                    notificationAlarm = true
-                case .high:
-                    titles.append(NSLocalizedString("HIGHALERT!", comment: "HIGHALERT!"))
-                    notificationAlarm = true
+            switch glucoseStorage.alarm {
+            case .none:
+                titles.append(NSLocalizedString("Glucose", comment: "Glucose"))
+            case .low:
+                titles.append(NSLocalizedString("LOWALERT!", comment: "LOWALERT!"))
+                messageType = MessageType.warning
+                notificationAlarm = true
+            case .high:
+                titles.append(NSLocalizedString("HIGHALERT!", comment: "HIGHALERT!"))
+                messageType = MessageType.warning
+                notificationAlarm = true
+            }
+
+            let delta = glucoseObjects.count >= 2 ? lastReading - secondLastReading : nil
+            let body = glucoseText(
+                glucoseValue: Int(lastReading),
+                delta: Int(delta ?? 0),
+                direction: lastDirection
+            ) + infoBody()
+
+            if snoozeUntilDate > Date() {
+                titles.append(NSLocalizedString("(Snoozed)", comment: "(Snoozed)"))
+                notificationAlarm = false
+            } else {
+                titles.append(body)
+                let content = UNMutableNotificationContent()
+                content.title = titles.joined(separator: " ")
+                content.body = body
+
+                if notificationAlarm {
+                    playSoundIfNeeded()
+                    content.sound = .default
+                    content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
                 }
 
-                let delta = glucoseObjects.count >= 2 ? lastReading - secondLastReading : nil
-                let body = self.glucoseText(
-                    glucoseValue: Int(lastReading),
-                    delta: Int(delta ?? 0),
-                    direction: lastDirection
-                ) + self.infoBody()
-
-                if self.snoozeUntilDate > Date() {
-                    titles.append(NSLocalizedString("(Snoozed)", comment: "(Snoozed)"))
-                    notificationAlarm = false
-                } else {
-                    titles.append(body)
-                    let content = UNMutableNotificationContent()
-                    content.title = titles.joined(separator: " ")
-                    content.body = body
-
-                    if notificationAlarm {
-                        self.playSoundIfNeeded()
-                        content.sound = .default
-                        content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
-                    }
-
-                    self.addRequest(identifier: .glucocoseNotification, content: content, deleteOld: true)
-                }
+                addRequest(
+                    identifier: .glucoseNotification,
+                    content: content,
+                    deleteOld: true,
+                    messageType: messageType,
+                    messageSubtype: .glucose,
+                    action: NotificationAction.snooze
+                )
             }
         } catch {
             debugPrint(
@@ -378,31 +403,39 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
     }
 
-    private func ensureCanSendNotification(_ completion: @escaping () -> Void) {
-        center.getNotificationSettings { settings in
-            guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else {
-                warning(.service, "ensureCanSendNotification failed, authorization denied")
-                return
-            }
-
-            debug(.service, "Sending notification was allowed")
-
-            completion()
-        }
-    }
-
     private func addRequest(
         identifier: Identifier,
         content: UNMutableNotificationContent,
         deleteOld: Bool = false,
-        trigger: UNNotificationTrigger? = nil
+        trigger: UNNotificationTrigger? = nil,
+        messageType: MessageType = MessageType.other,
+        messageSubtype: MessageSubtype = MessageSubtype.misc,
+        action: NotificationAction = NotificationAction.none
     ) {
-        let request = UNNotificationRequest(identifier: identifier.rawValue, content: content, trigger: trigger)
+        let messageCont = MessageContent(
+            content: content.body,
+            type: messageType,
+            subtype: messageSubtype,
+            title: content.title,
+            useAPN: false,
+            trigger: trigger,
+            action: action
+        )
+        if alertPermissionsChecker.notificationsDisabled {
+            router.alertMessage.send(messageCont)
+            return
+        }
+        guard router.allowNotify(messageCont, settingsManager.settings) else { return }
+
+        var alertIdentifier = identifier.rawValue
+        alertIdentifier = identifier == .pumpNotification ? alertIdentifier + content
+            .title : (identifier == .alertMessageNotification ? alertIdentifier + content.body : alertIdentifier)
+        let request = UNNotificationRequest(identifier: alertIdentifier, content: content, trigger: trigger)
 
         if deleteOld {
             DispatchQueue.main.async {
-                self.center.removeDeliveredNotifications(withIdentifiers: [identifier.rawValue])
-                self.center.removePendingNotificationRequests(withIdentifiers: [identifier.rawValue])
+                self.center.removeDeliveredNotifications(withIdentifiers: [alertIdentifier])
+                self.center.removePendingNotificationRequests(withIdentifiers: [alertIdentifier])
             }
         }
 
@@ -413,7 +446,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                     return
                 }
 
-                debug(.service, "Sending \(identifier) notification")
+                debug(.service, "Sending \(identifier) notification for \(request.content.title)")
             }
         }
     }
@@ -463,20 +496,88 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     }
 }
 
+extension BaseUserNotificationsManager: alertMessageNotificationObserver {
+    func alertMessageNotification(_ message: MessageContent) {
+        let content = UNMutableNotificationContent()
+        var identifier: Identifier = .alertMessageNotification
+
+        if message.title == "" {
+            switch message.type {
+            case .info:
+                content.title = NSLocalizedString("Info", comment: "Info title")
+            case .warning:
+                content.title = NSLocalizedString("Warning", comment: "Warning title")
+            case .error:
+                content.title = NSLocalizedString("Error", comment: "Error title")
+            default:
+                content.title = message.title
+            }
+        } else {
+            content.title = message.title
+        }
+        switch message.subtype {
+        case .pump:
+            identifier = .pumpNotification
+        case .carb:
+            identifier = .carbsRequiredNotification
+        case .glucose:
+            identifier = .glucoseNotification
+        case .algorithm:
+            if message.trigger != nil {
+                identifier = message.content.contains(String(firstInterval)) ? Identifier.noLoopFirstNotification : Identifier
+                    .noLoopSecondNotification
+            } else {
+                identifier = Identifier.alertMessageNotification
+            }
+        default:
+            identifier = .alertMessageNotification
+        }
+        switch message.action {
+        case .snooze:
+            content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
+        case .pumpConfig:
+            content.userInfo[NotificationAction.key] = NotificationAction.pumpConfig.rawValue
+        default: break
+        }
+
+        content.body = NSLocalizedString(message.content, comment: "Info message")
+        content.sound = .default
+        addRequest(
+            identifier: identifier,
+            content: content,
+            deleteOld: true,
+            trigger: message.trigger,
+            messageType: message.type,
+            messageSubtype: message.subtype,
+            action: message.action
+        )
+    }
+}
+
 extension BaseUserNotificationsManager: pumpNotificationObserver {
     func pumpNotification(alert: AlertEntry) {
-        ensureCanSendNotification {
-            let content = UNMutableNotificationContent()
-            content.title = alert.contentTitle ?? "Unknown"
-            content.body = alert.contentBody ?? "Unknown"
-            content.sound = .default
-            self.addRequest(
-                identifier: .pumpNotification,
-                content: content,
-                deleteOld: true,
-                trigger: nil
-            )
+        let content = UNMutableNotificationContent()
+        let alertUp = alert.alertIdentifier.uppercased()
+        let typeMessage: MessageType
+        if alertUp.contains("FAULT") || alertUp.contains("ERROR") {
+            content.userInfo[NotificationAction.key] = NotificationAction.pumpConfig.rawValue
+            typeMessage = .error
+        } else {
+            typeMessage = .warning
+            guard settingsManager.settings.notificationsPump else { return }
         }
+        content.title = alert.contentTitle ?? "Unknown"
+        content.body = alert.contentBody ?? "Unknown"
+        content.sound = .default
+        addRequest(
+            identifier: .pumpNotification,
+            content: content,
+            deleteOld: true,
+            trigger: nil,
+            messageType: typeMessage,
+            messageSubtype: .pump,
+            action: .pumpConfig
+        )
     }
 
     func pumpRemoveNotification() {
@@ -507,7 +608,7 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
         willPresent _: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        completionHandler([.banner, .badge, .sound])
+        completionHandler([.banner, .badge, .sound, .list])
     }
 
     func userNotificationCenter(
@@ -523,6 +624,16 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
         switch action {
         case .snooze:
             router.mainModalScreen.send(.snooze)
+        case .pumpConfig:
+            let messageCont = MessageContent(
+                content: response.notification.request.content.body,
+                type: MessageType.other,
+                subtype: .pump,
+                useAPN: false,
+                action: .pumpConfig
+            )
+            router.alertMessage.send(messageCont)
+        default: break
         }
     }
 }

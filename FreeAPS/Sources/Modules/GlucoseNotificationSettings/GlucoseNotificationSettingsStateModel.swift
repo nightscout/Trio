@@ -9,11 +9,21 @@ extension GlucoseNotificationSettings {
         @Published var lowGlucose: Decimal = 0
         @Published var highGlucose: Decimal = 0
 
+        @Published var notificationsPump = true
+        @Published var notificationsCgm = true
+        @Published var notificationsCarb = true
+        @Published var notificationsAlgorithm = true
+
         var units: GlucoseUnits = .mgdL
 
         override func subscribe() {
             let units = settingsManager.settings.units
             self.units = units
+
+            subscribeSetting(\.notificationsPump, on: $notificationsPump) { notificationsPump = $0 }
+            subscribeSetting(\.notificationsCgm, on: $notificationsCgm) { notificationsCgm = $0 }
+            subscribeSetting(\.notificationsCarb, on: $notificationsCarb) { notificationsCarb = $0 }
+            subscribeSetting(\.notificationsAlgorithm, on: $notificationsAlgorithm) { notificationsAlgorithm = $0 }
 
             subscribeSetting(\.glucoseBadge, on: $glucoseBadge) { glucoseBadge = $0 }
             subscribeSetting(\.glucoseNotificationsAlways, on: $glucoseNotificationsAlways) { glucoseNotificationsAlways = $0 }
