@@ -77,11 +77,8 @@ struct NotificationsView: BaseView {
             Section(
                 header: Text("Notification Center"),
                 content: {
-//                    if !notificationsDisabled {
-                    // Text("Glucose Notifications").navigationLink(to: .glucoseNotificationSettings, from: self)//TODO: add MessageType settings
                     Text("Trio Notifications")
-                        .navigationLink(to: .glucoseNotificationSettings, from: self) // Glucose Notifications
-//                    }
+                        .navigationLink(to: .glucoseNotificationSettings, from: self)
 
                     if #available(iOS 16.2, *) {
                         Text("Live Activity").navigationLink(to: .liveActivitySettings, from: self)
