@@ -601,7 +601,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // One of two exercise settings (they share the same purpose)
 
-    if (profile.high_temptarget_raises_sensitivity || profile.exercise_mode || oref2_variables.isEnabled) {
+    if (profile.high_temptarget_raises_sensitivity || profile.exercise_mode) {
     exerciseSetting = true;
     }
 
@@ -656,7 +656,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //
 
     var sigmoidLog = ""
-    
+
     if (dynISFenabled) {
         // Logarithmic
         if (!enable_sigmoid) {
@@ -897,7 +897,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
 // Calculate sensitivityRatio based on temp targets, if applicable, or using the value calculated by autosens
 //    var sensitivityRatio;
-    var high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity || oref2_variables.isEnabled;
+    var high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity;
     var normalTarget = 100; // evaluate high/low temptarget against 100, not scheduled target (which might change)
     var halfBasalTarget = 160;  // when temptarget is 160 mg/dL, run 50% basal (120 = 75%; 140 = 60%)
     // 80 mg/dL with low_temptarget_lowers_sensitivity would give 1.5x basal, but is limitLoged to autosens_max (1.2x by default)
@@ -905,15 +905,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     halfBasalTarget = profile.half_basal_exercise_target;
     //}
 
-     if (oref2_variables.isEnabled) {
-         const newHalfBasalTarget = oref2_variables.hbt;
-         console.log("Half Basal Target used: " + convert_bg(newHalfBasalTarget, profile) + " " + profile.out_units);
-          halfBasalTarget = newHalfBasalTarget;
-    } else { console.log("Default Half Basal Target used: " + convert_bg(halfBasalTarget, profile) + " " + profile.out_units) }
-
     if ( high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget ||
-        profile.low_temptarget_lowers_sensitivity && profile.temptargetSet && target_bg < normalTarget ||
-        oref2_variables.isEnabled && profile.temptargetSet && target_bg < normalTarget ) {
+        profile.low_temptarget_lowers_sensitivity && profile.temptargetSet && target_bg < normalTarget ) {
         // w/ target 100, temp target 110 = .89, 120 = 0.8, 140 = 0.67, 160 = .57, and 200 = .44
         // e.g.: Sensitivity ratio set to 0.8 based on temp target of 120; Adjusting basal from 1.65 to 1.35; ISF from 58.9 to 73.6
         //sensitivityRatio = 2/(2+(target_bg-normalTarget)/40);
@@ -934,6 +927,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     else if (typeof autosens_data !== 'undefined' && autosens_data) {
         sensitivityRatio = autosens_data.ratio;
+
         // Override Profile.Target
     if (overrideTarget !== 0 && overrideTarget !== 6 && overrideTarget !== profile.min_bg && !profile.temptargetSet) {
         target_bg = overrideTarget;
@@ -953,9 +947,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         }
     }
 
-    if (sensitivityRatio && !dynISFenabled) { // Disable adjustment of basal by sensitivityRatio when using dISF
+    if (sensitivityRatio && !dynISFenabled) { // Only enable adjustment of basal by sensitivityRatio when not using dISF
         basal = profile.current_basal * overrideFactor * sensitivityRatio;
         basal = round_basal(basal, profile);
+        if (basal !== profile_current_basal) {
+            process.stderr.write("Adjusting basal from "+profile_current_basal+" to "+basal+"; ");
+        } else {
+            process.stderr.write("Basal unchanged: "+basal+"; ");
+        }
     }
 
     else if (dynISFenabled && profile.tddAdjBasal) {
