@@ -5,13 +5,10 @@ struct Oref2_variables: JSON, Equatable {
     var weightedAverage: Decimal
     var past2hoursAverage: Decimal
     var date: Date
-    var isEnabled: Bool
-    var presetActive: Bool
     var overridePercentage: Decimal
     var useOverride: Bool
     var duration: Decimal
     var unlimited: Bool
-    var hbt: Decimal
     var overrideTarget: Decimal
     var smbIsOff: Bool
     var advancedSettings: Bool
@@ -29,13 +26,10 @@ struct Oref2_variables: JSON, Equatable {
         weightedAverage: Decimal,
         past2hoursAverage: Decimal,
         date: Date,
-        isEnabled: Bool,
-        presetActive: Bool,
         overridePercentage: Decimal,
         useOverride: Bool,
         duration: Decimal,
         unlimited: Bool,
-        hbt: Decimal,
         overrideTarget: Decimal,
         smbIsOff: Bool,
         advancedSettings: Bool,
@@ -52,13 +46,10 @@ struct Oref2_variables: JSON, Equatable {
         self.weightedAverage = weightedAverage
         self.past2hoursAverage = past2hoursAverage
         self.date = date
-        self.isEnabled = isEnabled
-        self.presetActive = presetActive
         self.overridePercentage = overridePercentage
         self.useOverride = useOverride
         self.duration = duration
         self.unlimited = unlimited
-        self.hbt = hbt
         self.overrideTarget = overrideTarget
         self.smbIsOff = smbIsOff
         self.advancedSettings = advancedSettings
@@ -79,13 +70,10 @@ extension Oref2_variables {
         case weightedAverage
         case past2hoursAverage
         case date
-        case isEnabled
-        case presetActive
         case overridePercentage
         case useOverride
         case duration
         case unlimited
-        case hbt
         case overrideTarget
         case smbIsOff
         case advancedSettings
