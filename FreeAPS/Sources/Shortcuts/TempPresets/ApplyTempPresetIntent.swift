@@ -1,18 +1,12 @@
 import AppIntents
 import Foundation
 
-@available(iOS 16.0, *) struct ApplyTempPresetIntent: AppIntent {
+struct ApplyTempPresetIntent: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title: LocalizedStringResource = "Apply a temporary target"
+    static var title: LocalizedStringResource = "Apply a Temporary Target"
 
     // Description of the action in the Shortcuts app
-    static var description = IntentDescription("Enable a temporary target")
-
-    internal var intentRequest: TempPresetsIntentRequest
-
-    init() {
-        intentRequest = TempPresetsIntentRequest()
-    }
+    static var description = IntentDescription("Enable a Temporary Target")
 
     @Parameter(title: "Preset") var preset: TempPreset?
 
@@ -46,6 +40,7 @@ import Foundation
 
     @MainActor func perform() async throws -> some ProvidesDialog {
         do {
+            let intentRequest = TempPresetsIntentRequest()
             let presetToApply: TempPreset
             if let preset = preset {
                 presetToApply = preset

@@ -256,7 +256,7 @@ extension Home {
             var target = (latestTempTarget.target ?? 100) as Decimal
             var halfBasalTarget: Decimal = 160
             if latestTempTarget.halfBasalTarget != nil {
-                halfBasalTarget = latestTempTarget.halfBasalTarget as! Decimal
+                halfBasalTarget = latestTempTarget.halfBasalTarget! as Decimal
             } else { halfBasalTarget = state.settingHalfBasalTarget }
             var showPercentage = false
             if target > 100, state.isExerciseModeActive || state.highTTraisesSens { showPercentage = true }

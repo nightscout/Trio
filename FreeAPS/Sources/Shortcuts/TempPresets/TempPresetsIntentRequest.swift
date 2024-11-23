@@ -2,7 +2,7 @@ import CoreData
 import Foundation
 import UIKit
 
-@available(iOS 16.0, *) final class TempPresetsIntentRequest: BaseIntentsRequest {
+final class TempPresetsIntentRequest: BaseIntentsRequest {
     enum TempPresetsError: Error {
         case noTempTargetFound
         case noDurationDefined
@@ -87,11 +87,11 @@ import UIKit
     @MainActor func enactTempTarget(_ preset: TempPreset) async -> Bool {
         // Start background task
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-        backgroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "Override Upload") {
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Override Upload") {
             guard backgroundTaskID != .invalid else { return }
             Task {
                 // End background task when the time is about to expire
-                await UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                UIApplication.shared.endBackgroundTask(backgroundTaskID)
             }
             backgroundTaskID = .invalid
         }
@@ -100,7 +100,7 @@ import UIKit
         defer {
             if backgroundTaskID != .invalid {
                 Task {
-                    await UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
                 }
                 backgroundTaskID = .invalid
             }
@@ -158,11 +158,11 @@ import UIKit
 
         if shouldStartBackgroundTask {
             // Start background task
-            backgroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "TempTarget Cancel") {
+            backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "TempTarget Cancel") {
                 guard backgroundTaskID != .invalid else { return }
                 Task {
                     // End background task when the time is about to expire
-                    await UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
                 }
                 backgroundTaskID = .invalid
             }
@@ -172,7 +172,7 @@ import UIKit
         defer {
             if shouldStartBackgroundTask, backgroundTaskID != .invalid {
                 Task {
-                    await UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
                 }
                 backgroundTaskID = .invalid
             }

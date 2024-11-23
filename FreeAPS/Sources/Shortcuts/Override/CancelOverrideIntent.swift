@@ -1,7 +1,7 @@
 import AppIntents
 import Foundation
 
-@available(iOS 16.0, *) struct CancelOverrideIntent: AppIntent {
+struct CancelOverrideIntent: AppIntent {
     // Title of the action in the Shortcuts app
     static var title = LocalizedStringResource("Cancel override", table: "ShortcutsDetail")
 
