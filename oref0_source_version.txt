@@ -1,6 +1,7 @@
-oref0 branch: dev - git version: 363fd11
+oref0 branch: TToref-reset - git version: e0caaa0
 
 Last commits:
+e0caaa0 revert to standard HBT calculation
 363fd11 Merge pull request #28 from bjornoleh/harmonise_defaults
 2d695e1 index.js: set enableUAM to false, and remove whitespace in L11
 8f5f820 Harmonise profile defaults with openaps/oref0
