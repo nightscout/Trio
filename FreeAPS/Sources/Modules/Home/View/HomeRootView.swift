@@ -20,6 +20,8 @@ extension Home {
         @State var selectedTab: Int = 0
         @State private var statusTitle: String = ""
         @State var showPumpSelection: Bool = false
+        @State var notificationsDisabled = false
+        @State var alertSafetyNotificationsViewHeight = 0
 
         struct Buttons: Identifiable {
             let label: String
@@ -53,6 +55,8 @@ extension Home {
             ascending: false,
             fetchLimit: 1
         )) var latestTempTarget: FetchedResults<TempTargetStored>
+
+        // TODO: end todo
 
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -776,41 +780,122 @@ extension Home {
             }
         }
 
-        @ViewBuilder func mainView() -> some View {
+        @ViewBuilder func alertSafetyNotificationsView(geo: GeometryProxy) -> some View {
+            ZStack {
+                /// rectangle as background
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(
+                        Color(
+                            red: 0.9,
+                            green: 0.133333333,
+                            blue: 0.2156862745
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 15))
+                    .frame(height: geo.size.height * 0.08)
+                    .coordinateSpace(name: "alertSafetyNotificationsView")
+                    .shadow(
+                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                            Color.black.opacity(0.33),
+                        radius: 3
+                    )
+                HStack {
+                    Spacer()
+                    VStack {
+                        Text("⚠️ Safety Notifications are OFF")
+                            .font(.subheadline)
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white.gradient)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("Fix now by turning Notifications ON.")
+                            .font(.caption)
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white.gradient)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }.padding(.leading, 5)
+                    Spacer()
+                    Image(systemName: "chevron.right").foregroundColor(.white)
+                        .font(.system(size: 15, design: .rounded))
+                }.padding(.horizontal, 10)
+                    .padding(.trailing, 8)
+                    .onTapGesture {
+                        UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+                    }
+            }.padding(.horizontal, 10)
+                .padding(.top, 0)
+        }
+
+        @ViewBuilder func mainViewWithScrollView() -> some View {
             GeometryReader { geo in
-                VStack(spacing: 0) {
-                    ZStack {
-                        /// glucose bobble
-                        glucoseView
+                ScrollView(.vertical, showsIndicators: false) {
+                    mainViewViews(geo)
+                }
+            }
+        }
 
-                        /// right panel with loop status and evBG
-                        HStack {
-                            Spacer()
-                            rightHeaderPanel(geo)
-                        }.padding(.trailing, 20)
+        @ViewBuilder func mainViewViews(_ geo: GeometryProxy) -> some View {
+            VStack(spacing: 0) {
+                if notificationsDisabled {
+                    alertSafetyNotificationsView(geo: geo)
+                        .padding(.top, UIDevice.adjustPadding(min: nil, max: 40))
+                }
+                ZStack {
+                    /// glucose bobble
+                    glucoseView
 
-                        /// left panel with pump related info
-                        HStack {
-                            pumpView
-                            Spacer()
-                        }.padding(.leading, 20)
-                    }.padding(.top, 10)
+                    /// right panel with loop status and evBG
+                    HStack {
+                        Spacer()
+                        rightHeaderPanel(geo)
+                    }.padding(.trailing, 20)
 
-                    mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
-                        .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
+                    /// left panel with pump related info
+                    HStack {
+                        pumpView
+                        Spacer()
+                    }.padding(.leading, 20)
+                }.padding(.top, 10)
 
-                    mainChart(geo: geo)
+                mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
+                    .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
 
-                    timeInterval.padding(.top, UIDevice.adjustPadding(min: 0, max: 12))
-                        .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 12))
+                mainChart(geo: geo)
 
-                    if let progress = state.bolusProgress {
-                        bolusView(geo: geo, progress).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
-                    } else {
-                        adjustmentView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
+                timeInterval.padding(.top, UIDevice.adjustPadding(min: 0, max: 12))
+                    .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 12))
+
+                if let progress = state.bolusProgress {
+                    bolusView(geo: geo, progress)
+                        .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
+                } else {
+                    adjustmentView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
+                }
+            }
+            .background(color)
+            .onReceive(
+                resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled,
+                perform: {
+                    if notificationsDisabled != $0 {
+                        notificationsDisabled = $0
+                        if notificationsDisabled {
+                            debug(.default, "notificationsDisabled")
+                        }
                     }
                 }
-                .background(color)
+            )
+        }
+
+        @ViewBuilder func mainView() -> some View {
+            GeometryReader { geo in
+                if notificationsDisabled {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        mainViewViews(geo)
+                    }
+                } else {
+                    GeometryReader { geo in
+                        mainViewViews(geo)
+                    }
+                }
             }
             .onChange(of: state.hours) {
                 highlightButtons()
@@ -925,6 +1010,133 @@ extension Home {
                 )
             }
         }
+
+//        @ViewBuilder func mainView() -> some View {
+//            GeometryReader { geo in
+//                if notificationsDisabled {
+//                    ScrollView(.vertical, showsIndicators: false) {
+//                        mainViewViews(geo)
+//                    }
+//                } else {
+//                    GeometryReader { geo in
+//                        mainViewViews(geo)
+        // >>>>>>> 04a9930af6fb5a25c8ee00e1e9fd788663eb4f7c
+//                    }
+//                }
+//            }
+//            .onChange(of: state.hours) {
+//                highlightButtons()
+//            }
+//            .onAppear {
+//                configureView {
+//                    highlightButtons()
+//                }
+//            }
+//            .navigationTitle("Home")
+//            .navigationBarHidden(true)
+//            .ignoresSafeArea(.keyboard)
+//            .popup(isPresented: state.isStatusPopupPresented, alignment: .top, direction: .top) {
+//                popup
+//                    .padding()
+//                    .background(
+//                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+//                            .fill(colorScheme == .dark ? Color(
+//                                "Chart"
+//                            ) : Color(UIColor.darkGray))
+//                    )
+//                    .onTapGesture {
+//                        state.isStatusPopupPresented = false
+//                    }
+//                    .gesture(
+//                        DragGesture(minimumDistance: 10, coordinateSpace: .local)
+//                            .onEnded { value in
+//                                if value.translation.height < 0 {
+//                                    state.isStatusPopupPresented = false
+//                                }
+//                            }
+//                    )
+//            }
+//            .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
+//                Button("Medtronic") { state.addPump(.minimed) }
+//                Button("Omnipod Eros") { state.addPump(.omnipod) }
+//                Button("Omnipod Dash") { state.addPump(.omnipodBLE) }
+//                Button("Pump Simulator") { state.addPump(.simulator) }
+//            } message: { Text("Select Pump Model") }
+//            .sheet(isPresented: $state.setupPump) {
+//                if let pumpManager = state.provider.apsManager.pumpManager {
+//                    PumpConfig.PumpSettingsView(
+//                        pumpManager: pumpManager,
+//                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+//                        completionDelegate: state,
+//                        setupDelegate: state
+//                    )
+//                } else {
+//                    PumpConfig.PumpSetupView(
+//                        pumpType: state.setupPumpType,
+//                        pumpInitialSettings: PumpConfig.PumpInitialSettings.default,
+//                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+//                        completionDelegate: state,
+//                        setupDelegate: state
+//                    )
+//                }
+//            }
+//            .sheet(isPresented: $state.isLegendPresented) {
+//                NavigationStack {
+//                    Text(
+//                        "The oref algorithm determines insulin dosing based on a number of scenarios that it estimates with different types of forecasts."
+//                    )
+//                    .font(.subheadline)
+//                    .foregroundColor(.secondary)
+//
+//                    if state.forecastDisplayType == .lines {
+//                        List {
+//                            DefinitionRow(
+//                                term: "IOB (Insulin on Board)",
+//                                definition: "Forecasts BG based on the amount of insulin still active in the body.",
+//                                color: .insulin
+//                            )
+//                            DefinitionRow(
+//                                term: "ZT (Zero-Temp)",
+//                                definition: "Forecasts the worst-case blood glucose (BG) scenario if no carbs are absorbed and insulin delivery is stopped until BG starts rising.",
+//                                color: .zt
+//                            )
+//                            DefinitionRow(
+//                                term: "COB (Carbs on Board)",
+//                                definition: "Forecasts BG changes by considering the amount of carbohydrates still being absorbed in the body.",
+//                                color: .loopYellow
+//                            )
+//                            DefinitionRow(
+//                                term: "UAM (Unannounced Meal)",
+//                                definition: "Forecasts BG levels and insulin dosing needs for unexpected meals or other causes of BG rises without prior notice.",
+//                                color: .uam
+//                            )
+//                        }
+//                        .padding(.trailing, 10)
+//                        .navigationBarTitle("Legend", displayMode: .inline)
+//                    } else {
+//                        List {
+//                            DefinitionRow(
+//                                term: "Cone of Uncertainty",
+//                                definition: "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result.\n\nTo modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type.",
+//                                color: Color.blue.opacity(0.5)
+//                            )
+//                        }
+//                        .padding(.trailing, 10)
+//                        .navigationBarTitle("Legend", displayMode: .inline)
+//                    }
+//
+//                    Button { state.isLegendPresented.toggle() }
+//                    label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
+//                        .buttonStyle(.bordered)
+//                        .padding(.top)
+//                }
+//                .padding()
+//                .presentationDetents(
+//                    [.fraction(0.9), .large],
+//                    selection: $state.legendSheetDetent
+//                )
+//            }
+//        }
 
         @State var settingsPath = NavigationPath()
 
@@ -1098,7 +1310,10 @@ extension UIDevice {
         case largeDevice = 852 // Height for 6.1" iPhone 15 Pro
     }
 
-    @usableFromInline static func adjustPadding(min: CGFloat? = nil, max: CGFloat? = nil) -> CGFloat? {
+    @usableFromInline static func adjustPadding(
+        min: CGFloat? = nil,
+        max: CGFloat? = nil
+    ) -> CGFloat? {
         if UIScreen.screenHeight > UIDevice.DeviceSize.smallDevice.rawValue {
             if UIScreen.screenHeight >= UIDevice.DeviceSize.largeDevice.rawValue {
                 return max

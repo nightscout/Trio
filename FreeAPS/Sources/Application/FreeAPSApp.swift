@@ -51,6 +51,7 @@ import Swinject
         _ = resolver.resolve(HealthKitManager.self)!
         _ = resolver.resolve(BluetoothStateManager.self)!
         _ = resolver.resolve(PluginManager.self)!
+        _ = resolver.resolve(AlertPermissionsChecker.self)!
         if #available(iOS 16.2, *) {
             _ = resolver.resolve(LiveActivityBridge.self)!
         }
