@@ -32,8 +32,60 @@ extension AutosensSettings {
                 )
         }
 
+        private var rateFormatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.maximumFractionDigits = 2
+            return formatter
+        }
+
         var body: some View {
             List {
+                if let newISF = state.autosensISF {
+                    Section(
+                        header: !state.settingsManager.preferences
+                            .useNewFormula ? Text("Autosens") : Text("Dynamic Sensitivity")
+                    ) {
+                        let dynamicRatio = state.determinationsFromPersistence.first?.sensitivityRatio
+                        let dynamicISF = state.determinationsFromPersistence.first?.insulinSensitivity
+                        HStack {
+                            Text("Sensitivity Ratio")
+                            Spacer()
+                            Text(
+                                rateFormatter
+                                    .string(from: (
+                                        (
+                                            !state.settingsManager.preferences.useNewFormula ? state
+                                                .autosensRatio as NSDecimalNumber : dynamicRatio
+                                        ) ?? 1
+                                    ) as NSNumber) ?? "1"
+                            )
+                        }
+                        HStack {
+                            Text("Calculated Sensitivity")
+                            Spacer()
+                            if state.units == .mgdL {
+                                Text(
+                                    !state.settingsManager.preferences
+                                        .useNewFormula ? newISF.description : (dynamicISF ?? 0).description
+                                )
+                            } else {
+                                Text((
+                                    !state.settingsManager.preferences
+                                        .useNewFormula ? newISF.formattedAsMmolL : dynamicISF?.decimalValue.formattedAsMmolL
+                                ) ?? "0")
+                            }
+                            Text(state.units.rawValue + "/U").foregroundColor(.secondary)
+                        }
+                        HStack {
+                            Text("This is a snapshot in time and should not be used as your ISF setting.")
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                                .lineLimit(nil)
+                        }
+                    }.listRowBackground(Color.chart)
+                }
+
                 SettingInputSection(
                     decimalValue: $state.autosensMax,
                     booleanValue: $booleanPlaceholder,
