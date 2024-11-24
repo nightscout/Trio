@@ -58,6 +58,76 @@ extension GlucoseNotificationSettings {
             List {
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.notificationsPump,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Always Notify Pump"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Always Notify Pump",
+                    miniHint: "Always Notify Pump Warnings",
+                    verboseHint: "With iOS Trio Notifications enabled, you can let Trio display most Pump Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue. Set iOS Notifications Banner Style to Persistent to display banners in the app until dismissed.\n\nIf iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.\n\nAn example of a Pump Warning is 'Pod Expiration Reminder'",
+                    headerText: "Trio Information Notifications"
+                )
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.notificationsCgm,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Always Notify CGM"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Always Notify CGM",
+                    miniHint: "Always Notify CGM Warnings",
+                    verboseHint: "With iOS Trio Notifications enabled, you can let Trio display most CGM Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue. Set iOS Notifications Banner Style to Persistent to display banners in the app until dismissed.\n\nIf iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.\n\nAn example of a CGM Warning is 'Unable to open the app'"
+                )
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.notificationsCarb,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Always Notify Carb"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Always Notify Carb",
+                    miniHint: "Always Notify Carb Warnings",
+                    verboseHint: "With iOS Trio Notifications enabled, you can let Trio display most Carb Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue. Set iOS Notifications Banner Style to Persistent to display banners in the app until dismissed.\n\nIf iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.\n\nAn example of a Carb Warning is 'Carbs required: 30 g'"
+                )
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.notificationsAlgorithm,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0
+                            hintLabel = "Always Notify Algorithm"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Always Notify Algorithm",
+                    miniHint: "Always Notify Algorithm Warnings",
+                    verboseHint: "With iOS Trio Notifications enabled, you can let Trio display most Algorithm Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue. Set iOS Notifications Banner Style to Persistent to display banners in the app until dismissed.\n\nIf iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.\n\nAn example of an Algorithm Warning is 'Error: Invalid glucose: Not enough glucose data'"
+                )
+
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
                     booleanValue: $state.glucoseBadge,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
@@ -155,7 +225,7 @@ extension GlucoseNotificationSettings {
             }
             .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
-            .navigationBarTitle("Glucose Notifications")
+            .navigationBarTitle("Trio Notifications")
             .navigationBarTitleDisplayMode(.automatic)
         }
 

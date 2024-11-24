@@ -33,6 +33,10 @@ struct FreeAPSSettings: JSON, Equatable {
     var displayCalendarIOBandCOB: Bool = false
     var displayCalendarEmojis: Bool = false
     var glucoseBadge: Bool = false
+    var notificationsPump: Bool = true
+    var notificationsCgm: Bool = true
+    var notificationsCarb: Bool = true
+    var notificationsAlgorithm: Bool = true
     var glucoseNotificationsAlways: Bool = false
     var useAlarmSound: Bool = false
     var addSourceInfoToGlucoseNotifications: Bool = false
@@ -202,6 +206,22 @@ extension FreeAPSSettings: Decodable {
 
         if let delay = try? container.decode(Int.self, forKey: .delay) {
             settings.delay = delay
+        }
+
+        if let notificationsPump = try? container.decode(Bool.self, forKey: .notificationsPump) {
+            settings.notificationsPump = notificationsPump
+        }
+
+        if let notificationsCgm = try? container.decode(Bool.self, forKey: .notificationsCgm) {
+            settings.notificationsCgm = notificationsCgm
+        }
+
+        if let notificationsCarb = try? container.decode(Bool.self, forKey: .notificationsCarb) {
+            settings.notificationsCarb = notificationsCarb
+        }
+
+        if let notificationsAlgorithm = try? container.decode(Bool.self, forKey: .notificationsAlgorithm) {
+            settings.notificationsAlgorithm = notificationsAlgorithm
         }
 
         if let glucoseNotificationsAlways = try? container.decode(Bool.self, forKey: .glucoseNotificationsAlways) {

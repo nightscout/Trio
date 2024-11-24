@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 import Swinject
 
@@ -135,6 +136,7 @@ extension TargetsEditor {
 
         private var list: some View {
             List {
+                chart.padding(.vertical)
                 ForEach(state.items.indexed(), id: \.1.id) { index, item in
                     NavigationLink(destination: pickers(for: index)) {
                         HStack {
@@ -154,6 +156,54 @@ extension TargetsEditor {
                 }
                 .onDelete(perform: onDelete)
             }
+        }
+
+        let chartScale = Calendar.current
+            .date(from: DateComponents(year: 2001, month: 01, day: 01, hour: 0, minute: 0, second: 0))
+
+        var chart: some View {
+            Chart {
+                ForEach(state.items.indexed(), id: \.1.id) { index, item in
+                    let displayValue = state.units == .mgdL ? state.rateValues[item.lowIndex].description : state
+                        .rateValues[item.lowIndex].formattedAsMmolL
+
+                    // Convert from string so we know we use the same math as the rest of Trio.
+                    // However, swift doesn't understand languages that use comma as decimal delminator
+                    let displayValueFloat = Double(displayValue.replacingOccurrences(of: ",", with: "."))
+
+                    let tzOffset = TimeZone.current.secondsFromGMT() * -1
+                    let startDate = Date(timeIntervalSinceReferenceDate: state.timeValues[item.timeIndex])
+                        .addingTimeInterval(TimeInterval(tzOffset))
+                    let endDate = state.items
+                        .count > index + 1 ?
+                        Date(timeIntervalSinceReferenceDate: state.timeValues[state.items[index + 1].timeIndex])
+                        .addingTimeInterval(TimeInterval(tzOffset)) :
+                        Date(timeIntervalSinceReferenceDate: state.timeValues.last!).addingTimeInterval(30 * 60)
+                        .addingTimeInterval(TimeInterval(tzOffset))
+
+                    LineMark(x: .value("End Date", startDate), y: .value("Target", displayValueFloat ?? 0.0))
+                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.green.gradient)
+
+                    LineMark(x: .value("Start Date", endDate), y: .value("Target", displayValueFloat ?? 0.0))
+                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.green.gradient)
+                }
+            }
+            .chartXAxis {
+                AxisMarks(values: .automatic(desiredCount: 6)) { _ in
+                    AxisValueLabel(format: .dateTime.hour())
+                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
+                }
+            }
+            .chartXScale(
+                domain: Calendar.current.startOfDay(for: chartScale!) ... Calendar.current.startOfDay(for: chartScale!)
+                    .addingTimeInterval(60 * 60 * 24)
+            )
+            .chartYAxis {
+                AxisMarks(values: .automatic(desiredCount: 4)) { _ in
+                    AxisValueLabel()
+                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
+                }
+            }.chartYScale(domain: (state.units == .mgdL ? 72 : 4.0) ... (state.units == .mgdL ? 180 : 10))
         }
 
         private var addButton: some View {

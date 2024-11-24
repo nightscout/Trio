@@ -4,7 +4,7 @@ import LoopKitUI
 import SwiftUI
 import Swinject
 
-extension Bolus {
+extension Treatments {
     struct RootView: BaseView {
         enum FocusedField {
             case carbs
@@ -393,6 +393,7 @@ extension Bolus {
             .disabled(disableTaskButton)
             .listRowBackground(
                 limitExceeded ? Color(.systemRed) :
+                    disableTaskButton ? Color(.systemGray) :
                     Color(.systemBlue)
             )
             .shadow(radius: 3)
