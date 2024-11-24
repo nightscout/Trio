@@ -60,6 +60,7 @@ extension Settings {
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
                                         .frame(width: 50, height: 50)
+                                        .cornerRadius(10)
                                         .padding(.trailing, 10)
                                     VStack(alignment: .leading) {
                                         Text("Trio v\(versionNumber) (\(buildNumber))")
