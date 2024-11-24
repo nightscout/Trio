@@ -115,21 +115,22 @@ extension BolusCalculatorConfig {
                     type: .conditionalDecimal("fattyMealFactor"),
                     label: "Enable Fatty Meal Option",
                     conditionalLabel: "Fatty Meal Bolus Percentage",
-                    miniHint: "\"Fatty Meal\" option appears in the bolus calculator.",
+                    miniHint: "Adds a \"Fatty Meal\" option to the bolus calculator.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("Default Percent: 70%").bold()
                         Text("Do not enable this feature until you have optimized your CR (carb ratio) setting.").bold()
                         Text(
-                            "Enabling this setting adds a \"Fatty Meal\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear below this for you to select."
+                            "Enabling this setting adds a \"Fatty Meal\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear for you to select."
                         )
                         Text(
-                            "When you use a Fatty Meal Bolus, the percentage you select for this setting will replace the Recommended Bolus Percentage setting used in that bolus calculation."
+                            "When \"Fatty Meal\" is selected in the bolus calculator, the recommended bolus will be multiplied by the \"Fatty Meal Bolus Percentage\" as well as the \"Recommended Bolus Percentage\"."
                         )
                         Text(
-                            "Tip: This setting should be ↓LOWER↓ than your Recommended Bolus Percentage setting to enable the bolus calculator the ability to give less than the calculated amount to prevent lows due to carbs absorbing very slowly. This could be useful when eating meals like pizza."
+                            "If you have a \"Recommended Bolus Percentage\" of 80%, and a \"Fatty Meal Bolus Percentage\" of 70%, your recommended bolus will be multiplied by: (80 × 70) ÷ 100 = 56%."
                         )
+                        Text("This could be useful for slow absorbing meals like pizza.")
                     }
                 )
 
@@ -148,22 +149,22 @@ extension BolusCalculatorConfig {
                     type: .conditionalDecimal("sweetMealFactor"),
                     label: "Enable Super Bolus Option",
                     conditionalLabel: "Super Bolus Percentage",
-                    miniHint: "\"Super Bolus\" option appears in the bolus calculator.",
+                    miniHint: "Adds a \"Super Bolus\" option to the bolus calculator.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("Default Percent: 200%").bold()
                         Text("Do not enable this feature until you have optimized your CR (carb ratio) setting.").bold()
                         Text(
-                            "Enabling this setting adds a \"Super Bolus\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear below this for you to select."
+                            "Enabling this setting adds a \"Super Bolus\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear for you to select."
                         )
                         Text(
-                            "When you use a Super Bolus, the percentage you select for this setting will replace the Recommended Bolus Percentage setting used in that bolus calculation."
+                            "When \"Super Bolus\" is selected in the bolus calculator, your current basal rate multiplied by \"Super Bolus Percentage\" will be added to your bolus recommendation."
                         )
-                        Text("The Super Bolus is a useful option for sweet or fast meals.")
                         Text(
-                            "Tip: This setting should be ↑HIGHER↑ than your Recommended Bolus Percentage setting to enable the bolus calculator the ability to give above the calculated amount to address carbs that absorb very quickly. This could be useful when eating sweets."
+                            "If your current basal rate is 0.8 U/hr and \"Super Bolus Percentage\" is set to 200%: 0.8 × (200 ÷ 100) = 1.6 units will be added to your bolus recommendation."
                         )
+                        Text("This could be useful for fast absorbing meals like sugary cereal.")
                     }
                 )
             }

@@ -52,7 +52,7 @@
   "fattyMeals": false,
   "fattyMealFactor": 0.7,
   "sweetMeals": false,
-  "sweetMealFactor": 2,
+  "sweetMealFactor": 1,
   "lockScreenView": "simple",
   "useCalendar": false,
   "displayCalendarIOBandCOB": false,

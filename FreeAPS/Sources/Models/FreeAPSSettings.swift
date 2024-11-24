@@ -69,7 +69,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var fattyMeals: Bool = false
     var fattyMealFactor: Decimal = 0.7
     var sweetMeals: Bool = false
-    var sweetMealFactor: Decimal = 2
+    var sweetMealFactor: Decimal = 1
     var displayPresets: Bool = true
     var useLiveActivity: Bool = false
     var lockScreenView: LockScreenView = .simple
