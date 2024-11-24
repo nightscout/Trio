@@ -494,7 +494,7 @@ extension Home {
             Group {
                 Image(systemName: "clock.arrow.2.circlepath")
                     .font(.system(size: 20))
-                    .foregroundStyle(Color.primary, Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569))
+                    .foregroundStyle(Color.primary, Color.purple)
                 VStack(alignment: .leading) {
                     Text(latestOverride.first?.name ?? "Custom Override")
                         .font(.subheadline)

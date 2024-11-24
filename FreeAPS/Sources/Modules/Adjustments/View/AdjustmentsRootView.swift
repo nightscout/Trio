@@ -5,9 +5,7 @@ import Swinject
 extension Adjustments {
     struct RootView: BaseView {
         let resolver: Resolver
-
         @State var state = StateModel()
-
         @State private var isEditing = false
         @State private var showOverrideCreationSheet = false
         @State private var showTempTargetCreationSheet = false
@@ -17,16 +15,14 @@ extension Adjustments {
         @State private var selectedTempTargetPresetID: String?
         @State private var selectedOverride: OverrideStored?
         @State private var selectedTempTarget: TempTargetStored?
-
-        // temp targets
         @State private var isConfirmDeletePresented = false
         @State private var isPromptPresented = false
         @State private var isRemoveAlertPresented = false
         @State private var removeAlert: Alert?
         @State private var isEditingTT = false
 
-        @Environment(\.managedObjectContext) var moc
         @Environment(\.colorScheme) var colorScheme
+
         var color: LinearGradient {
             colorScheme == .dark ? LinearGradient(
                 gradient: Gradient(colors: [
@@ -73,55 +69,23 @@ extension Adjustments {
         }
 
         var body: some View {
-            VStack {
-                HStack(spacing: 6) {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "clock.arrow.2.circlepath")
-                            .font(.system(size: 20))
-                            .foregroundStyle(Color.primary, Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569))
-                        Text(Adjustments.Tab.overrides.name)
-                            .font(.subheadline)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                        Spacer()
-                    }
-                    .padding(.vertical, 6)
-                    .background(state.selectedTab == .overrides ? Color.loopGray.opacity(0.4) : Color.clear)
-                    .cornerRadius(8)
-                    .onTapGesture {
-                        withAnimation {
-                            state.selectedTab = .overrides
+            ZStack(alignment: .center, content: {
+                VStack {
+                    Picker("Adjustment Tabs", selection: $state.selectedTab) {
+                        ForEach(Adjustments.Tab.allCases.indexed(), id: \.1) { index, item in
+                            Text(item.name).tag(index)
                         }
                     }
-                    HStack {
-                        Spacer()
-                        Image(systemName: "target")
-                            .font(.system(size: 20))
-                            .foregroundStyle(Color.loopGreen)
-                        Text(Adjustments.Tab.tempTargets.name)
-                            .font(.subheadline)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                        Spacer()
-                    }
-                    .padding(.vertical, 6)
-                    .background(state.selectedTab == .tempTargets ? Color.loopGray.opacity(0.4) : Color.clear)
-                    .cornerRadius(8)
-                    .onTapGesture {
-                        withAnimation {
-                            state.selectedTab = .tempTargets
-                        }
-                    }
-                }
-                .background(Color.gray.opacity(0.2))
-                .cornerRadius(8)
-                .padding(.horizontal)
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(.horizontal)
 
-                List {
-                    switch state.selectedTab {
-                    case .overrides: overrides()
-                    case .tempTargets: tempTargets() }
+                    List {
+                        switch state.selectedTab {
+                        case .overrides: overrides()
+                        case .tempTargets: tempTargets() }
+                    }
+                    .scrollContentBackground(.hidden)
+                    .background(color)
                 }
                 .listSectionSpacing(10)
                 .safeAreaInset(edge: .bottom, spacing: 30) { stickyStopButton }
@@ -191,7 +155,7 @@ extension Adjustments {
                         EditTempTargetForm(tempTargetToEdit: tempTarget, state: state)
                     }
                 }
-            }.background(color)
+            }).background(color)
         }
 
         @ViewBuilder func overrides() -> some View {
@@ -301,10 +265,10 @@ extension Adjustments {
                 }
                 .listRowBackground(Color.chart)
             } header: {
-                Text("Presets")
+                Text("Override Presets")
             } footer: {
                 HStack {
-                    Image(systemName: "hand.draw.fill")
+                    Image(systemName: "hand.draw.fill").foregroundStyle(.primary)
                     Text("Swipe left to edit or delete an override preset. Hold, drag and drop to reorder a preset.")
                 }
             }
@@ -346,11 +310,11 @@ extension Adjustments {
                 }
                 .listRowBackground(Color.chart)
             } header: {
-                Text("Presets")
+                Text("Temporary Target Presets")
             } footer: {
                 HStack {
-                    Image(systemName: "hand.draw.fill")
-                    Text("Swipe left to edit or delete a Temp Target preset. Hold, drag and drop to reorder a preset.")
+                    Image(systemName: "hand.draw.fill").foregroundStyle(.primary)
+                    Text("Swipe left to edit or delete a temporary target preset. Hold, drag and drop to reorder a preset.")
                 }
             }
         }
@@ -433,7 +397,7 @@ extension Adjustments {
 
                         Spacer()
                         Image(systemName: "square.and.pencil")
-                            .foregroundStyle(Color.blue)
+                            .foregroundStyle(Color.primary)
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -450,7 +414,7 @@ extension Adjustments {
                         }
                     }
                 }
-                .listRowBackground(Color.blue.opacity(0.2))
+                .listRowBackground(Color.purple.opacity(0.8))
             case .tempTargets:
                 Section {
                     HStack {
@@ -458,7 +422,7 @@ extension Adjustments {
 
                         Spacer()
                         Image(systemName: "square.and.pencil")
-                            .foregroundStyle(Color.blue)
+                            .foregroundStyle(Color.primary)
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -475,7 +439,7 @@ extension Adjustments {
                         }
                     }
                 }
-                .listRowBackground(Color.blue.opacity(0.2))
+                .listRowBackground(Color.loopGreen.opacity(0.8))
             }
         }
 
