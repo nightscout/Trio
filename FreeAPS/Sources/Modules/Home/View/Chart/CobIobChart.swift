@@ -92,7 +92,7 @@ extension MainChartView {
     func drawIOB() -> some ChartContent {
         ForEach(state.enactedAndNonEnactedDeterminations) { iob in
             let rawAmount = iob.iob?.doubleValue ?? 0
-            
+
             // as iob and cob share the same y axis and cob is usually >> iob we need to weigh iob visually
             let amount: Double = rawAmount > 0 ? rawAmount * 3 : rawAmount * 4
             let date: Date = iob.deliverAt ?? Date()

@@ -803,19 +803,20 @@ extension Home {
                     Spacer()
                     VStack {
                         Text("⚠️ Safety Notifications are OFF")
-                            .font(.subheadline)
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .fontDesign(.rounded)
                             .foregroundStyle(.white.gradient)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         Text("Fix now by turning Notifications ON.")
-                            .font(.caption)
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .font(.footnote)
+                            .fontDesign(.rounded)
                             .foregroundStyle(.white.gradient)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }.padding(.leading, 5)
                     Spacer()
                     Image(systemName: "chevron.right").foregroundColor(.white)
-                        .font(.system(size: 15, design: .rounded))
+                        .font(.headline)
                 }.padding(.horizontal, 10)
                     .padding(.trailing, 8)
                     .onTapGesture {
@@ -825,20 +826,8 @@ extension Home {
                 .padding(.top, 0)
         }
 
-        @ViewBuilder func mainViewWithScrollView() -> some View {
-            GeometryReader { geo in
-                ScrollView(.vertical, showsIndicators: false) {
-                    mainViewViews(geo)
-                }
-            }
-        }
-
-        @ViewBuilder func mainViewViews(_ geo: GeometryProxy) -> some View {
+        @ViewBuilder func mainViewElements(_ geo: GeometryProxy) -> some View {
             VStack(spacing: 0) {
-                if notificationsDisabled {
-                    alertSafetyNotificationsView(geo: geo)
-                        .padding(.top, UIDevice.adjustPadding(min: nil, max: 40))
-                }
                 ZStack {
                     /// glucose bobble
                     glucoseView
@@ -854,6 +843,16 @@ extension Home {
                         pumpView
                         Spacer()
                     }.padding(.leading, 20)
+
+                    if notificationsDisabled {
+                        alertSafetyNotificationsView(geo: geo)
+                            // maybe experiment with safeAreaInset() or similar to avoid overlapping with the dynamic island
+                            .offset(
+                                y: -geo.size
+                                    .height *
+                                    0.075
+                            )
+                    }
                 }.padding(.top, 10)
 
                 mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
@@ -887,15 +886,7 @@ extension Home {
 
         @ViewBuilder func mainView() -> some View {
             GeometryReader { geo in
-                if notificationsDisabled {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        mainViewViews(geo)
-                    }
-                } else {
-                    GeometryReader { geo in
-                        mainViewViews(geo)
-                    }
-                }
+                mainViewElements(geo)
             }
             .onChange(of: state.hours) {
                 highlightButtons()
@@ -954,7 +945,13 @@ extension Home {
                 }
             }
             .sheet(isPresented: $state.isLegendPresented) {
-                NavigationStack {
+                legendSheetView()
+            }
+        }
+
+        @ViewBuilder func legendSheetView() -> some View {
+            NavigationStack {
+                VStack(alignment: .leading, spacing: 16) {
                     Text(
                         "The oref algorithm determines insulin dosing based on a number of scenarios that it estimates with different types of forecasts."
                     )
@@ -962,46 +959,19 @@ extension Home {
                     .foregroundColor(.secondary)
 
                     if state.forecastDisplayType == .lines {
-                        List {
-                            DefinitionRow(
-                                term: "IOB (Insulin on Board)",
-                                definition: "Forecasts BG based on the amount of insulin still active in the body.",
-                                color: .insulin
-                            )
-                            DefinitionRow(
-                                term: "ZT (Zero-Temp)",
-                                definition: "Forecasts the worst-case blood glucose (BG) scenario if no carbs are absorbed and insulin delivery is stopped until BG starts rising.",
-                                color: .zt
-                            )
-                            DefinitionRow(
-                                term: "COB (Carbs on Board)",
-                                definition: "Forecasts BG changes by considering the amount of carbohydrates still being absorbed in the body.",
-                                color: .loopYellow
-                            )
-                            DefinitionRow(
-                                term: "UAM (Unannounced Meal)",
-                                definition: "Forecasts BG levels and insulin dosing needs for unexpected meals or other causes of BG rises without prior notice.",
-                                color: .uam
-                            )
-                        }
-                        .padding(.trailing, 10)
-                        .navigationBarTitle("Legend", displayMode: .inline)
+                        legendLinesView()
                     } else {
-                        List {
-                            DefinitionRow(
-                                term: "Cone of Uncertainty",
-                                definition: "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result.\n\nTo modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type.",
-                                color: Color.blue.opacity(0.5)
-                            )
-                        }
-                        .padding(.trailing, 10)
-                        .navigationBarTitle("Legend", displayMode: .inline)
+                        legendConeOfUncertaintyView()
                     }
 
-                    Button { state.isLegendPresented.toggle() }
-                    label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
-                        .buttonStyle(.bordered)
-                        .padding(.top)
+                    Button {
+                        state.isLegendPresented.toggle()
+                    } label: {
+                        Text("Got it!")
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                    .buttonStyle(.bordered)
+                    .padding(.top)
                 }
                 .padding()
                 .presentationDetents(
@@ -1011,132 +981,48 @@ extension Home {
             }
         }
 
-//        @ViewBuilder func mainView() -> some View {
-//            GeometryReader { geo in
-//                if notificationsDisabled {
-//                    ScrollView(.vertical, showsIndicators: false) {
-//                        mainViewViews(geo)
-//                    }
-//                } else {
-//                    GeometryReader { geo in
-//                        mainViewViews(geo)
-        // >>>>>>> 04a9930af6fb5a25c8ee00e1e9fd788663eb4f7c
-//                    }
-//                }
-//            }
-//            .onChange(of: state.hours) {
-//                highlightButtons()
-//            }
-//            .onAppear {
-//                configureView {
-//                    highlightButtons()
-//                }
-//            }
-//            .navigationTitle("Home")
-//            .navigationBarHidden(true)
-//            .ignoresSafeArea(.keyboard)
-//            .popup(isPresented: state.isStatusPopupPresented, alignment: .top, direction: .top) {
-//                popup
-//                    .padding()
-//                    .background(
-//                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-//                            .fill(colorScheme == .dark ? Color(
-//                                "Chart"
-//                            ) : Color(UIColor.darkGray))
-//                    )
-//                    .onTapGesture {
-//                        state.isStatusPopupPresented = false
-//                    }
-//                    .gesture(
-//                        DragGesture(minimumDistance: 10, coordinateSpace: .local)
-//                            .onEnded { value in
-//                                if value.translation.height < 0 {
-//                                    state.isStatusPopupPresented = false
-//                                }
-//                            }
-//                    )
-//            }
-//            .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
-//                Button("Medtronic") { state.addPump(.minimed) }
-//                Button("Omnipod Eros") { state.addPump(.omnipod) }
-//                Button("Omnipod Dash") { state.addPump(.omnipodBLE) }
-//                Button("Pump Simulator") { state.addPump(.simulator) }
-//            } message: { Text("Select Pump Model") }
-//            .sheet(isPresented: $state.setupPump) {
-//                if let pumpManager = state.provider.apsManager.pumpManager {
-//                    PumpConfig.PumpSettingsView(
-//                        pumpManager: pumpManager,
-//                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
-//                        completionDelegate: state,
-//                        setupDelegate: state
-//                    )
-//                } else {
-//                    PumpConfig.PumpSetupView(
-//                        pumpType: state.setupPumpType,
-//                        pumpInitialSettings: PumpConfig.PumpInitialSettings.default,
-//                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
-//                        completionDelegate: state,
-//                        setupDelegate: state
-//                    )
-//                }
-//            }
-//            .sheet(isPresented: $state.isLegendPresented) {
-//                NavigationStack {
-//                    Text(
-//                        "The oref algorithm determines insulin dosing based on a number of scenarios that it estimates with different types of forecasts."
-//                    )
-//                    .font(.subheadline)
-//                    .foregroundColor(.secondary)
-//
-//                    if state.forecastDisplayType == .lines {
-//                        List {
-//                            DefinitionRow(
-//                                term: "IOB (Insulin on Board)",
-//                                definition: "Forecasts BG based on the amount of insulin still active in the body.",
-//                                color: .insulin
-//                            )
-//                            DefinitionRow(
-//                                term: "ZT (Zero-Temp)",
-//                                definition: "Forecasts the worst-case blood glucose (BG) scenario if no carbs are absorbed and insulin delivery is stopped until BG starts rising.",
-//                                color: .zt
-//                            )
-//                            DefinitionRow(
-//                                term: "COB (Carbs on Board)",
-//                                definition: "Forecasts BG changes by considering the amount of carbohydrates still being absorbed in the body.",
-//                                color: .loopYellow
-//                            )
-//                            DefinitionRow(
-//                                term: "UAM (Unannounced Meal)",
-//                                definition: "Forecasts BG levels and insulin dosing needs for unexpected meals or other causes of BG rises without prior notice.",
-//                                color: .uam
-//                            )
-//                        }
-//                        .padding(.trailing, 10)
-//                        .navigationBarTitle("Legend", displayMode: .inline)
-//                    } else {
-//                        List {
-//                            DefinitionRow(
-//                                term: "Cone of Uncertainty",
-//                                definition: "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result.\n\nTo modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type.",
-//                                color: Color.blue.opacity(0.5)
-//                            )
-//                        }
-//                        .padding(.trailing, 10)
-//                        .navigationBarTitle("Legend", displayMode: .inline)
-//                    }
-//
-//                    Button { state.isLegendPresented.toggle() }
-//                    label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
-//                        .buttonStyle(.bordered)
-//                        .padding(.top)
-//                }
-//                .padding()
-//                .presentationDetents(
-//                    [.fraction(0.9), .large],
-//                    selection: $state.legendSheetDetent
-//                )
-//            }
-//        }
+        @ViewBuilder func legendLinesView() -> some View {
+            List {
+                DefinitionRow(
+                    term: "IOB (Insulin on Board)",
+                    definition: "Forecasts BG based on the amount of insulin still active in the body.",
+                    color: .insulin
+                )
+                DefinitionRow(
+                    term: "ZT (Zero-Temp)",
+                    definition: "Forecasts the worst-case blood glucose (BG) scenario if no carbs are absorbed and insulin delivery is stopped until BG starts rising.",
+                    color: .zt
+                )
+                DefinitionRow(
+                    term: "COB (Carbs on Board)",
+                    definition: "Forecasts BG changes by considering the amount of carbohydrates still being absorbed in the body.",
+                    color: .loopYellow
+                )
+                DefinitionRow(
+                    term: "UAM (Unannounced Meal)",
+                    definition: "Forecasts BG levels and insulin dosing needs for unexpected meals or other causes of BG rises without prior notice.",
+                    color: .uam
+                )
+            }
+            .padding(.trailing, 10)
+            .navigationBarTitle("Legend", displayMode: .inline)
+        }
+
+        @ViewBuilder func legendConeOfUncertaintyView() -> some View {
+            List {
+                DefinitionRow(
+                    term: "Cone of Uncertainty",
+                    definition: """
+                    For simplicity reasons, oref's various forecast curves are displayed as a "Cone of Uncertainty" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algorithm's result.
+
+                    To modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type.
+                    """,
+                    color: Color.blue.opacity(0.5)
+                )
+            }
+            .padding(.trailing, 10)
+            .navigationBarTitle("Legend", displayMode: .inline)
+        }
 
         @State var settingsPath = NavigationPath()
 
