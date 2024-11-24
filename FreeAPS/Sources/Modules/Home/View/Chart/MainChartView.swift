@@ -81,11 +81,7 @@ struct MainChartView: View {
                             basalChart
                             mainChart
                             Spacer()
-                            ZStack {
-                                cobChart
-                                iobChart
-                            }
-
+                            cobIobChart
                         }.onChange(of: screenHours) {
                             scroller.scrollTo("MainChart", anchor: .trailing)
                         }
@@ -373,7 +369,7 @@ extension MainChartView {
         }
     }
 
-    var cobChartYAxis: some AxisContent {
+    var cobIobChartYAxis: some AxisContent {
         AxisMarks(position: .trailing) { _ in
             if displayYgridLines {
                 AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))

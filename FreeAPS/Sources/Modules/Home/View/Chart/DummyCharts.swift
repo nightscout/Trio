@@ -72,7 +72,7 @@ extension MainChartView {
         .chartXScale(domain: startMarker ... endMarker)
         .chartXAxis { basalChartXAxis }
         .chartXAxis(.hidden)
-        .chartYAxis { cobChartYAxis }
+        .chartYAxis { cobIobChartYAxis }
         .chartYAxis(.hidden)
         .chartYScale(domain: state.minValueCobChart ... state.maxValueCobChart)
         .chartLegend(.hidden)
