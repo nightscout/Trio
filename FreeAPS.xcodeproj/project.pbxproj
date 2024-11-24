@@ -456,6 +456,10 @@
 		DD32CF9E2CC824C5003686D6 /* TrioRemoteControl+Override.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF9D2CC824C2003686D6 /* TrioRemoteControl+Override.swift */; };
 		DD32CFA02CC824D6003686D6 /* TrioRemoteControl+APNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF9F2CC824D3003686D6 /* TrioRemoteControl+APNS.swift */; };
 		DD32CFA22CC824E2003686D6 /* TrioRemoteControl+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CFA12CC824E1003686D6 /* TrioRemoteControl+Helpers.swift */; };
+		DD5DC9F12CF3D97C00AB8703 /* AdjustmentsStateModel+Overrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F02CF3D96E00AB8703 /* AdjustmentsStateModel+Overrides.swift */; };
+		DD5DC9F32CF3D9DD00AB8703 /* AdjustmentsStateModel+TempTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F22CF3D9D600AB8703 /* AdjustmentsStateModel+TempTargets.swift */; };
+		DD5DC9F72CF3DA9300AB8703 /* TargetPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F62CF3DA9300AB8703 /* TargetPicker.swift */; };
+		DD5DC9F92CF3DAA900AB8703 /* RadioButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F82CF3DAA900AB8703 /* RadioButton.swift */; };
 		DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */; };
 		DD6B7CB22C7B6F0800B75029 /* Rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB12C7B6F0800B75029 /* Rounding.swift */; };
 		DD6B7CB42C7B71F700B75029 /* ForecastDisplayType.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */; };
@@ -1139,6 +1143,10 @@
 		DD32CF9D2CC824C2003686D6 /* TrioRemoteControl+Override.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Override.swift"; sourceTree = "<group>"; };
 		DD32CF9F2CC824D3003686D6 /* TrioRemoteControl+APNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+APNS.swift"; sourceTree = "<group>"; };
 		DD32CFA12CC824E1003686D6 /* TrioRemoteControl+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Helpers.swift"; sourceTree = "<group>"; };
+		DD5DC9F02CF3D96E00AB8703 /* AdjustmentsStateModel+Overrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentsStateModel+Overrides.swift"; sourceTree = "<group>"; };
+		DD5DC9F22CF3D9D600AB8703 /* AdjustmentsStateModel+TempTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentsStateModel+TempTargets.swift"; sourceTree = "<group>"; };
+		DD5DC9F62CF3DA9300AB8703 /* TargetPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetPicker.swift; sourceTree = "<group>"; };
+		DD5DC9F82CF3DAA900AB8703 /* RadioButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioButton.swift; sourceTree = "<group>"; };
 		DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutExercise.swift; sourceTree = "<group>"; };
 		DD6B7CB12C7B6F0800B75029 /* Rounding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rounding.swift; sourceTree = "<group>"; };
 		DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastDisplayType.swift; sourceTree = "<group>"; };
@@ -1508,6 +1516,7 @@
 		3811DE0325C9D31700A708ED /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				DDD163032C4C67B400CD525A /* Adjustments */,
 				DD1745382C55BF8B00211FAC /* AlgorithmAdvancedSettings */,
 				DD1745422C55C5C400211FAC /* AutosensSettings */,
 				672F63EEAE27400625E14BAD /* AutotuneConfig */,
@@ -1532,7 +1541,6 @@
 				5031FE61F63C2A8A8B7674DD /* ManualTempBasal */,
 				19D466A129AA2B0A004D5F33 /* MealSettings */,
 				D533BF261CDC1C3F871E7BFD /* NightscoutConfig */,
-				DDD163032C4C67B400CD525A /* Adjustments */,
 				99C01B871ACAB3F32CE755C7 /* PumpConfig */,
 				DD9ECB662CA99EFE00AA7C45 /* RemoteControl */,
 				DD9ECB6B2CA99FA400AA7C45 /* RemoteControlConfig */,
@@ -2759,6 +2767,24 @@
 			path = View;
 			sourceTree = "<group>";
 		};
+		DD5DC9EF2CF3D95400AB8703 /* AdjustmentsStateModel+Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				DD5DC9F22CF3D9D600AB8703 /* AdjustmentsStateModel+TempTargets.swift */,
+				DD5DC9F02CF3D96E00AB8703 /* AdjustmentsStateModel+Overrides.swift */,
+			);
+			path = "AdjustmentsStateModel+Extensions";
+			sourceTree = "<group>";
+		};
+		DD5DC9F52CF3DA8900AB8703 /* ViewElements */ = {
+			isa = PBXGroup;
+			children = (
+				DD5DC9F82CF3DAA900AB8703 /* RadioButton.swift */,
+				DD5DC9F62CF3DA9300AB8703 /* TargetPicker.swift */,
+			);
+			path = ViewElements;
+			sourceTree = "<group>";
+		};
 		DD6B7CB72C7BAC1B00B75029 /* ProfileImport */ = {
 			isa = PBXGroup;
 			children = (
@@ -2804,6 +2830,7 @@
 		DDD163032C4C67B400CD525A /* Adjustments */ = {
 			isa = PBXGroup;
 			children = (
+				DD5DC9EF2CF3D95400AB8703 /* AdjustmentsStateModel+Extensions */,
 				DDD1630A2C4C67F000CD525A /* View */,
 				DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */,
 				DDD163132C4C68D300CD525A /* AdjustmentsProvider.swift */,
@@ -2815,6 +2842,7 @@
 		DDD1630A2C4C67F000CD525A /* View */ = {
 			isa = PBXGroup;
 			children = (
+				DD5DC9F52CF3DA8900AB8703 /* ViewElements */,
 				DDD163172C4C694000CD525A /* AdjustmentsRootView.swift */,
 				BD793CAD2CE7660C00D669AC /* Overrides */,
 				BD793CAE2CE7661D00D669AC /* TempTargets */,
@@ -3292,6 +3320,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DD5DC9F12CF3D97C00AB8703 /* AdjustmentsStateModel+Overrides.swift in Sources */,
 				3811DE2325C9D48300A708ED /* MainDataFlow.swift in Sources */,
 				BD3CC0722B0B89D50013189E /* MainChartView.swift in Sources */,
 				3811DEEB25CA063400A708ED /* PersistedProperty.swift in Sources */,
@@ -3365,6 +3394,7 @@
 				CE95BF572BA5F5FE00DC3DE3 /* PluginManager.swift in Sources */,
 				382C133725F13A1E00715CE1 /* InsulinSensitivities.swift in Sources */,
 				19D466A529AA2BD4004D5F33 /* MealSettingsProvider.swift in Sources */,
+				DD5DC9F72CF3DA9300AB8703 /* TargetPicker.swift in Sources */,
 				383948D625CD4D8900E91849 /* FileStorage.swift in Sources */,
 				CEE9A6572BBB418300EB5194 /* CalibrationsChart.swift in Sources */,
 				3811DE4125C9D4A100A708ED /* SettingsRootView.swift in Sources */,
@@ -3637,6 +3667,7 @@
 				58A3D5442C96DE11003F90FC /* TempTargetStored+Helper.swift in Sources */,
 				58A3D5532C96EFA8003F90FC /* TempTargetRunStored+CoreDataClass.swift in Sources */,
 				DD6B7CB42C7B71F700B75029 /* ForecastDisplayType.swift in Sources */,
+				DD5DC9F32CF3D9DD00AB8703 /* AdjustmentsStateModel+TempTargets.swift in Sources */,
 				F5F7E6C1B7F098F59EB67EC5 /* TargetsEditorDataFlow.swift in Sources */,
 				DD17453A2C55BFA600211FAC /* AlgorithmAdvancedSettingsDataFlow.swift in Sources */,
 				5075C1608E6249A51495C422 /* TargetsEditorProvider.swift in Sources */,
@@ -3652,6 +3683,7 @@
 				DD09D4822C5986F6003FEA5D /* CalendarEventSettingsRootView.swift in Sources */,
 				CE48C86428CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift in Sources */,
 				38E8755427561E9800975559 /* DataFlow.swift in Sources */,
+				DD5DC9F92CF3DAA900AB8703 /* RadioButton.swift in Sources */,
 				38E44522274E3DDC00EC9A94 /* NetworkReachabilityManager.swift in Sources */,
 				CE7CA34F2A064973004BE681 /* BaseIntentsRequest.swift in Sources */,
 				CE82E02728E869DF00473A9C /* AlertEntry.swift in Sources */,
