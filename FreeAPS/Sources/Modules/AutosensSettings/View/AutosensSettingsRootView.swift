@@ -46,43 +46,62 @@ extension AutosensSettings {
                         header: !state.settingsManager.preferences
                             .useNewFormula ? Text("Autosens") : Text("Dynamic Sensitivity")
                     ) {
-                        let dynamicRatio = state.determinationsFromPersistence.first?.sensitivityRatio
-                        let dynamicISF = state.determinationsFromPersistence.first?.insulinSensitivity
-                        HStack {
-                            Text("Sensitivity Ratio")
-                            Spacer()
-                            Text(
-                                rateFormatter
-                                    .string(from: (
-                                        (
-                                            !state.settingsManager.preferences.useNewFormula ? state
-                                                .autosensRatio as NSDecimalNumber : dynamicRatio
-                                        ) ?? 1
-                                    ) as NSNumber) ?? "1"
-                            )
-                        }
-                        HStack {
-                            Text("Calculated Sensitivity")
-                            Spacer()
-                            if state.units == .mgdL {
+                        VStack {
+                            let dynamicRatio = state.determinationsFromPersistence.first?.sensitivityRatio
+                            let dynamicISF = state.determinationsFromPersistence.first?.insulinSensitivity
+                            HStack {
+                                Text("Sensitivity Ratio")
+                                Spacer()
                                 Text(
-                                    !state.settingsManager.preferences
-                                        .useNewFormula ? newISF.description : (dynamicISF ?? 0).description
+                                    rateFormatter
+                                        .string(from: (
+                                            (
+                                                !state.settingsManager.preferences.useNewFormula ? state
+                                                    .autosensRatio as NSDecimalNumber : dynamicRatio
+                                            ) ?? 1
+                                        ) as NSNumber) ?? "1"
                                 )
-                            } else {
-                                Text((
-                                    !state.settingsManager.preferences
-                                        .useNewFormula ? newISF.formattedAsMmolL : dynamicISF?.decimalValue.formattedAsMmolL
-                                ) ?? "0")
+                            }.padding(.vertical)
+                            HStack {
+                                Text("Calculated Sensitivity")
+                                Spacer()
+                                if state.units == .mgdL {
+                                    Text(
+                                        !state.settingsManager.preferences
+                                            .useNewFormula ? newISF.description : (dynamicISF ?? 0).description
+                                    )
+                                } else {
+                                    Text((
+                                        !state.settingsManager.preferences
+                                            .useNewFormula ? newISF.formattedAsMmolL : dynamicISF?.decimalValue.formattedAsMmolL
+                                    ) ?? "0")
+                                }
+                                Text(state.units.rawValue + "/U").foregroundColor(.secondary)
                             }
-                            Text(state.units.rawValue + "/U").foregroundColor(.secondary)
-                        }
-                        HStack {
-                            Text("This is a snapshot in time and should not be used as your ISF setting.")
+
+                            HStack(alignment: .top) {
+                                Text(
+                                    "This is a snapshot in time and should not be used as your ISF setting."
+                                )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
                                 .lineLimit(nil)
-                        }
+                                Spacer()
+                                Button(
+                                    action: {
+                                        hintLabel = "Autosens"
+                                        selectedVerboseHint =
+                                            "Autosens automatically adjusts insulin delivery based on how sensitive or resistant you are to insulin, by analyzing past data to keep blood sugar levels stable.\n\nHow it works: It looks at the last 8-24 hours of data, excluding meal-related changes, and adjusts insulin settings like basal rates and targets when needed to match your sensitivity or resistance to insulin.\n\nWhat it adjusts: Autosens modifies insulin sensitivity factor (ISF), basal rates, and target blood sugar levels. It doesn’t account for carbs but adjusts for insulin effectiveness based on patterns in your glucose data.\n\nKey limitations: Autosens has safety limits (1.2 for resistance and 0.7 for sensitivity) to prevent over-adjusting, and it works alongside or can be disabled by other settings like Autotune or advanced target adjustments."
+                                        shouldDisplayHint.toggle()
+                                    },
+                                    label: {
+                                        HStack {
+                                            Image(systemName: "questionmark.circle")
+                                        }
+                                    }
+                                ).buttonStyle(BorderlessButtonStyle())
+                            }.padding(.top)
+                        }.padding(.bottom)
                     }.listRowBackground(Color.chart)
                 }
 
