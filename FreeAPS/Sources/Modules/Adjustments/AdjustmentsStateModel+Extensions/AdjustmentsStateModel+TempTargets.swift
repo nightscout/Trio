@@ -3,8 +3,9 @@ import CoreData
 import Foundation
 
 extension Adjustments.StateModel {
-    // MARK: - Setup the State variables with the last Temp Target configuration
+    // MARK: - State Initialization and Updates
 
+    /// Updates the latest Temp Target configuration for UI state and logic.
     /// First get the latest Temp Target corresponding NSManagedObjectID with a background fetch
     /// Then unpack it on the view context and update the State variables which can be used on in the View for some Logic
     /// This also needs to be called when we cancel an Temp Target via the Home View to update the State of the Button for this case
@@ -13,29 +14,26 @@ extension Adjustments.StateModel {
             let id = await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1)
             async let updateState: () = updateLatestTempTargetConfigurationOfState(from: id)
             async let setTempTarget: () = setCurrentTempTarget(from: id)
-
             _ = await (updateState, setTempTarget)
         }
     }
 
+    /// Updates state variables with the latest Temp Target configuration.
     @MainActor func updateLatestTempTargetConfigurationOfState(from IDs: [NSManagedObjectID]) async {
         do {
             let result = try IDs.compactMap { id in
                 try viewContext.existingObject(with: id) as? TempTargetStored
             }
             isTempTargetEnabled = result.first?.enabled ?? false
-
             if !isEnabled {
                 await resetTempTargetState()
             }
         } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update latest temp target configuration"
-            )
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update latest temp target configuration")
         }
     }
 
-    // Sets the current active Preset name to show in the UI
+    /// Sets the current Temp Target for UI and logic purposes.
     @MainActor func setCurrentTempTarget(from IDs: [NSManagedObjectID]) async {
         do {
             guard let firstID = IDs.first else {
@@ -56,6 +54,9 @@ extension Adjustments.StateModel {
         }
     }
 
+    // MARK: - Temp Target Fetching and Setup
+
+    /// Sets up Temp Targets using fetch and update functions.
     func setupTempTargets(
         fetchFunction: @escaping () async -> [NSManagedObjectID],
         updateFunction: @escaping @MainActor([TempTargetStored]) -> Void
@@ -67,19 +68,19 @@ extension Adjustments.StateModel {
         }
     }
 
+    /// Fetches Temp Target objects from Core Data.
     @MainActor private func fetchTempTargetObjects(for IDs: [NSManagedObjectID]) async -> [TempTargetStored] {
         do {
             return try IDs.compactMap { id in
                 try viewContext.existingObject(with: id) as? TempTargetStored
             }
         } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to extract Temp Targets as NSManagedObjects from the NSManagedObjectIDs with error: \(error.localizedDescription)"
-            )
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch Temp Targets")
             return []
         }
     }
 
+    /// Sets up the Temp Target presets array for the view.
     func setupTempTargetPresetsArray() {
         setupTempTargets(
             fetchFunction: tempTargetStorage.fetchForTempTargetPresets,
@@ -89,6 +90,7 @@ extension Adjustments.StateModel {
         )
     }
 
+    /// Sets up the scheduled Temp Targets array for the view.
     func setupScheduledTempTargetsArray() {
         setupTempTargets(
             fetchFunction: tempTargetStorage.fetchScheduledTempTargets,
@@ -98,10 +100,14 @@ extension Adjustments.StateModel {
         )
     }
 
+    // MARK: - Temp Target Creation and Management
+
+    /// Saves a Temp Target to storage.
     func saveTempTargetToStorage(tempTargets: [TempTarget]) {
         tempTargetStorage.saveTempTargetsToStorage(tempTargets)
     }
 
+    /// Saves a Temp Target based on whether it is scheduled or custom.
     func invokeSaveOfCustomTempTargets() async {
         if date > Date() {
             await saveScheduledTempTarget()
@@ -110,11 +116,9 @@ extension Adjustments.StateModel {
         }
     }
 
-    // Save scheduled Preset to Core Data
+    /// Saves a scheduled Temp Target and activates it at the specified date.
     func saveScheduledTempTarget() async {
-        // Save date to a constant to allow multiple executions of this function at the same time, i.e. allowing for scheduling multiple TTs
         let date = self.date
-
         guard date > Date() else { return }
 
         let tempTarget = TempTarget(
@@ -129,33 +133,24 @@ extension Adjustments.StateModel {
             enabled: false,
             halfBasalTarget: halfBasalTarget
         )
-
         await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
-
-        // Update Scheduled Temp Targets Array
         setupScheduledTempTargetsArray()
 
-        // If the scheduled date equals Date() enable the Preset
         Task {
-            // First wait until the time has passed
             await waitUntilDate(date)
-            // Then disable previous Temp Targets
             await disableAllActiveTempTargets(createTempTargetRunEntry: true)
-            // Set 'enabled' property to true, i.e. enacting it in Core Data
             await enableScheduledTempTarget(for: date)
-            // Activate the scheduled TT also for oref
             tempTargetStorage.saveTempTargetsToStorage([tempTarget])
         }
     }
 
+    /// Enables a scheduled Temp Target for a specific date.
     func enableScheduledTempTarget(for date: Date) async {
         let ids = await tempTargetStorage.fetchScheduledTempTarget(for: date)
-
         guard let firstID = ids.first else {
             debugPrint("No Temp Target found for the specified date.")
             return
         }
-
         await setCurrentTempTarget(from: ids)
 
         await MainActor.run {
@@ -163,32 +158,27 @@ extension Adjustments.StateModel {
                 if let tempTarget = try viewContext.existingObject(with: firstID) as? TempTargetStored {
                     tempTarget.enabled = true
                     try viewContext.save()
-
-                    // Update Buttons in Adjustments View
                     isTempTargetEnabled = true
                 }
             } catch {
-                debugPrint("Failed to enable the Temp Target for the specified date: \(error.localizedDescription)")
+                debugPrint("Failed to enable the Temp Target: \(error.localizedDescription)")
             }
         }
-
-        // Refresh the list of scheduled Temp Targets
         setupScheduledTempTargetsArray()
     }
 
+    /// Waits until a target date before proceeding.
     private func waitUntilDate(_ targetDate: Date) async {
         while Date() < targetDate {
             let timeInterval = targetDate.timeIntervalSince(Date())
-            let sleepDuration = min(timeInterval, 60.0) // check every 60s
+            let sleepDuration = min(timeInterval, 60.0)
             try? await Task.sleep(nanoseconds: UInt64(sleepDuration * 1_000_000_000))
         }
     }
 
-    // Creates and enacts a non Preset Temp Target
+    /// Saves a custom Temp Target and disables existing ones.
     func saveCustomTempTarget() async {
-        // First disable all active TempTargets
         await disableAllActiveTempTargets(createTempTargetRunEntry: true)
-
         let tempTarget = TempTarget(
             name: tempTargetName,
             createdAt: date,
@@ -201,22 +191,14 @@ extension Adjustments.StateModel {
             enabled: true,
             halfBasalTarget: halfBasalTarget
         )
-
-        // Save Temp Target to Core Data
         await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
-
-        // Start Temp Target for oref
         tempTargetStorage.saveTempTargetsToStorage([tempTarget])
-
-        // Reset State variables
         await resetTempTargetState()
-
-        // Update View
         isTempTargetEnabled = true
         updateLatestTempTargetConfiguration()
     }
 
-    // Creates a new Temp Target Preset
+    /// Creates a new Temp Target preset.
     func saveTempTargetPreset() async {
         let tempTarget = TempTarget(
             name: tempTargetName,
@@ -230,47 +212,33 @@ extension Adjustments.StateModel {
             enabled: false,
             halfBasalTarget: halfBasalTarget
         )
-
-        // Save to Core Data
         await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
-
-        // Reset State variables
         await resetTempTargetState()
-
-        // Update View
         setupTempTargetPresetsArray()
     }
 
-    // Start Temp Target Preset
-    /// here we only have to update the Boolean Flag 'enabled'
+    /// Enacts a Temp Target preset by enabling it.
     @MainActor func enactTempTargetPreset(withID id: NSManagedObjectID) async {
         do {
-            /// get the underlying NSManagedObject of the Override that should be enabled
             let tempTargetToEnact = try viewContext.existingObject(with: id) as? TempTargetStored
             tempTargetToEnact?.enabled = true
             tempTargetToEnact?.date = Date()
             tempTargetToEnact?.isUploadedToNS = false
-
-            /// Update the 'Cancel Temp Target' button state
             isTempTargetEnabled = true
 
-            /// disable all active Temp Targets and reset state variables
             async let disableTempTargets: () = disableAllActiveTempTargets(
                 except: id,
                 createTempTargetRunEntry: currentActiveTempTarget != nil
             )
             async let resetState: () = resetTempTargetState()
-
             _ = await (disableTempTargets, resetState)
 
             if viewContext.hasChanges {
                 try viewContext.save()
             }
 
-            // Update View
             updateLatestTempTargetConfiguration()
 
-            // Map to TempTarget Struct
             let tempTarget = TempTarget(
                 name: tempTargetToEnact?.name,
                 createdAt: Date(),
@@ -283,15 +251,13 @@ extension Adjustments.StateModel {
                 enabled: true,
                 halfBasalTarget: halfBasalTarget
             )
-
-            // Make sure the Temp Target gets used by Oref
             tempTargetStorage.saveTempTargetsToStorage([tempTarget])
         } catch {
             debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Override Preset")
         }
     }
 
-    // Disable all active Temp Targets
+    /// Disables all active Temp Targets.
     @MainActor func disableAllActiveTempTargets(except id: NSManagedObjectID? = nil, createTempTargetRunEntry: Bool) async {
         // Get ALL NSManagedObject IDs of ALL active Temp Targets to cancel every single Temp Target
         let ids = await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 0) // 0 = no fetch limit
@@ -344,6 +310,7 @@ extension Adjustments.StateModel {
         }
     }
 
+    /// Duplicates the current preset and cancels the previous one.
     @MainActor func duplicateTempTargetPresetAndCancelPreviousTempTarget() async {
         // We get the current active Preset by using currentActiveTempTarget which can either be a Preset or a custom Override
         guard let tempTargetPresetToDuplicate = currentActiveTempTarget,
@@ -353,7 +320,7 @@ extension Adjustments.StateModel {
         let duplidateId = await tempTargetStorage.copyRunningTempTarget(tempTargetPresetToDuplicate)
 
         // Cancel the duplicated Temp Target
-        /// As we are on the Main Thread already we don't need to cancel via the objectID in this case
+        // As we are on the Main Thread already we don't need to cancel via the objectID in this case
         do {
             try await viewContext.perform {
                 tempTargetPresetToDuplicate.enabled = false
@@ -374,14 +341,13 @@ extension Adjustments.StateModel {
         }
     }
 
-    // Deletion of Temp Targets
+    /// Deletes a Temp Target preset.
     func invokeTempTargetPresetDeletion(_ objectID: NSManagedObjectID) async {
         await tempTargetStorage.deleteOverridePreset(objectID)
-
-        // Update Presets View
         setupTempTargetPresetsArray()
     }
 
+    /// Resets Temp Target state variables.
     @MainActor func resetTempTargetState() async {
         tempTargetName = ""
         tempTargetTarget = 100
@@ -390,6 +356,9 @@ extension Adjustments.StateModel {
         halfBasalTarget = settingHalfBasalTarget
     }
 
+    // MARK: - Calculations
+
+    /// Computes the half-basal target based on the current settings.
     func computeHalfBasalTarget(
         usingTarget initialTarget: Decimal? = nil,
         usingPercentage initialPercentage: Double? = nil
@@ -405,6 +374,7 @@ extension Adjustments.StateModel {
         return round(Double(halfBasalTargetValue))
     }
 
+    /// Determines if sensitivity adjustment is enabled based on target.
     func isAdjustSensEnabled(usingTarget initialTarget: Decimal? = nil) -> Bool {
         let target = initialTarget ?? tempTargetTarget
         if target < normalTarget, lowTTlowersSens { return true }
@@ -412,6 +382,7 @@ extension Adjustments.StateModel {
         return false
     }
 
+    /// Computes the low value for the slider based on the target.
     func computeSliderLow(usingTarget initialTarget: Decimal? = nil) -> Double {
         let calcTarget = initialTarget ?? tempTargetTarget
         guard calcTarget != 0 else { return 15 } // oref defined maximum sensitivity
@@ -419,6 +390,7 @@ extension Adjustments.StateModel {
         return Double(max(0, minSens))
     }
 
+    /// Computes the high value for the slider based on the target.
     func computeSliderHigh(usingTarget initialTarget: Decimal? = nil) -> Double {
         let calcTarget = initialTarget ?? tempTargetTarget
         guard calcTarget != 0 else { return Double(maxValue * 100) } // oref defined limit for increased insulin delivery
@@ -426,6 +398,7 @@ extension Adjustments.StateModel {
         return maxSens
     }
 
+    /// Computes the adjusted percentage for the slider.
     func computeAdjustedPercentage(
         usingHBT initialHalfBasalTarget: Decimal? = nil,
         usingTarget initialTarget: Decimal? = nil

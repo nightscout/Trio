@@ -5,11 +5,15 @@ import SwiftUI
 
 extension Adjustments {
     @Observable final class StateModel: BaseStateModel<Provider> {
+        // MARK: - Injected Dependencies
+
         @ObservationIgnored @Injected() var broadcaster: Broadcaster!
         @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
         @ObservationIgnored @Injected() var apsManager: APSManager!
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
         @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
+
+        // MARK: - Override and Temp Target Properties
 
         var overridePercentage: Double = 100
         var isEnabled = false
@@ -44,7 +48,7 @@ extension Adjustments {
         var showTempTargetEditSheet = false
         var units: GlucoseUnits = .mgdL
 
-        // temp target stuff
+        // Temp Target Properties
         let normalTarget: Decimal = 100
         var tempTargetDuration: Decimal = 0
         var tempTargetName: String = ""
@@ -63,14 +67,20 @@ extension Adjustments {
         var lowTTlowersSens: Bool = false
         var didSaveSettings: Bool = false
 
+        // Core Data
         let coredataContext = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
+        // Help Sheet
         var isHelpSheetPresented: Bool = false
         var helpSheetDetent = PresentationDetent.large
 
+        // Combine
         private var cancellables = Set<AnyCancellable>()
 
+        // MARK: - Lifecycle
+
+        /// Subscribes to notifications and initializes settings.
         override func subscribe() {
             setupNotification()
             setupSettings()
@@ -79,22 +89,15 @@ extension Adjustments {
 
             Task {
                 await withTaskGroup(of: Void.self) { group in
-                    group.addTask {
-                        self.setupOverridePresetsArray()
-                    }
-                    group.addTask {
-                        self.setupTempTargetPresetsArray()
-                    }
-                    group.addTask {
-                        self.updateLatestOverrideConfiguration()
-                    }
-                    group.addTask {
-                        self.updateLatestTempTargetConfiguration()
-                    }
+                    group.addTask { self.setupOverridePresetsArray() }
+                    group.addTask { self.setupTempTargetPresetsArray() }
+                    group.addTask { self.updateLatestOverrideConfiguration() }
+                    group.addTask { self.updateLatestTempTargetConfiguration() }
                 }
             }
         }
 
+        /// Retrieves the current glucose target based on the time of day.
         func getCurrentGlucoseTarget() async {
             let now = Date()
             let calendar = Calendar.current
@@ -144,6 +147,7 @@ extension Adjustments {
             }
         }
 
+        /// Configures various settings from the settings manager.
         private func setupSettings() {
             units = settingsManager.settings.units
             defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
@@ -159,13 +163,44 @@ extension Adjustments {
                 await getCurrentGlucoseTarget()
             }
         }
+
+        /// Reorders Override Presets and updates the view.
+        func reorderOverride(from source: IndexSet, to destination: Int) {
+            overridePresets.move(fromOffsets: source, toOffset: destination)
+            for (index, override) in overridePresets.enumerated() {
+                override.orderPosition = Int16(index + 1)
+            }
+            do {
+                guard viewContext.hasChanges else { return }
+                try viewContext.save()
+                setupOverridePresetsArray()
+                Task { await nightscoutManager.uploadProfiles() }
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Override Presets order")
+            }
+        }
+
+        /// Reorders Temp Target Presets and updates the view.
+        func reorderTempTargets(from source: IndexSet, to destination: Int) {
+            tempTargetPresets.move(fromOffsets: source, toOffset: destination)
+            for (index, tempTarget) in tempTargetPresets.enumerated() {
+                tempTarget.orderPosition = Int16(index + 1)
+            }
+            do {
+                guard viewContext.hasChanges else { return }
+                try viewContext.save()
+                setupTempTargetPresetsArray()
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Temp Target Presets order")
+            }
+        }
     }
 }
 
-// MARK: - Setup Notifications
+// MARK: - Notifications Setup
 
 extension Adjustments.StateModel {
-    // Custom Notification to update View when an Override has been cancelled via Home View
+    /// Sets up notification observers for Override and Temp Target updates.
     func setupNotification() {
         Foundation.NotificationCenter.default.addObserver(
             self,
@@ -199,60 +234,19 @@ extension Adjustments.StateModel {
             .store(in: &cancellables)
     }
 
+    /// Handles Override configuration updates.
     @objc private func handleOverrideConfigurationUpdate() {
         updateLatestOverrideConfiguration()
     }
 
+    /// Handles Temp Target configuration updates.
     @objc private func handleTempTargetConfigurationUpdate() {
         updateLatestTempTargetConfiguration()
-    }
-
-    func reorderOverride(from source: IndexSet, to destination: Int) {
-        overridePresets.move(fromOffsets: source, toOffset: destination)
-
-        for (index, override) in overridePresets.enumerated() {
-            override.orderPosition = Int16(index + 1)
-        }
-
-        do {
-            guard viewContext.hasChanges else { return }
-            try viewContext.save()
-
-            // Update Presets View
-            setupOverridePresetsArray()
-
-            Task {
-                await nightscoutManager.uploadProfiles()
-            }
-        } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save after reordering Override Presets with error: \(error.localizedDescription)"
-            )
-        }
-    }
-
-    func reorderTempTargets(from source: IndexSet, to destination: Int) {
-        tempTargetPresets.move(fromOffsets: source, toOffset: destination)
-
-        for (index, tempTarget) in tempTargetPresets.enumerated() {
-            tempTarget.orderPosition = Int16(index + 1)
-        }
-
-        do {
-            guard viewContext.hasChanges else { return }
-            try viewContext.save()
-
-            // Update Presets View
-            setupTempTargetPresetsArray()
-        } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save after reordering Temp Target Presets with error: \(error.localizedDescription)"
-            )
-        }
     }
 }
 
 extension Adjustments.StateModel: SettingsObserver, PreferencesObserver {
+    /// Updates settings when they change.
     func settingsDidChange(_: FreeAPSSettings) {
         units = settingsManager.settings.units
         Task {
@@ -260,6 +254,7 @@ extension Adjustments.StateModel: SettingsObserver, PreferencesObserver {
         }
     }
 
+    /// Updates preferences when they change.
     func preferencesDidChange(_: Preferences) {
         defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
         defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
@@ -274,91 +269,4 @@ extension Adjustments.StateModel: SettingsObserver, PreferencesObserver {
             await getCurrentGlucoseTarget()
         }
     }
-}
-
-extension PickerSettingsProvider {
-    func generatePickerValues(from setting: PickerSetting, units: GlucoseUnits, roundMinToStep: Bool) -> [Decimal] {
-        if !roundMinToStep {
-            return generatePickerValues(from: setting, units: units)
-        }
-
-        // Adjust min to be divisible by step
-        var newSetting = setting
-        var min = Double(newSetting.min)
-        let step = Double(newSetting.step)
-        let remainder = min.truncatingRemainder(dividingBy: step)
-        if remainder != 0 {
-            // Move min up to the next value divisible by targetStep
-            min += (step - remainder)
-        }
-
-        newSetting.min = Decimal(min)
-
-        return generatePickerValues(from: newSetting, units: units)
-    }
-}
-
-func percentageDescription(_ percent: Double) -> Text? {
-    if percent.isNaN || percent == 100 { return nil }
-
-    var description: String = "Insulin doses will be "
-
-    if percent < 100 {
-        description += "decreased by "
-    } else {
-        description += "increased by "
-    }
-
-    let deviationFrom100 = abs(percent - 100)
-    description += String(format: "%.0f% %.", deviationFrom100)
-
-    return Text(description)
-}
-
-// Function to check if the phone is using 24-hour format
-func is24HourFormat() -> Bool {
-    let formatter = DateFormatter()
-    formatter.locale = Locale.current
-    formatter.dateStyle = .none
-    formatter.timeStyle = .short
-    let dateString = formatter.string(from: Date())
-
-    return !dateString.contains("AM") && !dateString.contains("PM")
-}
-
-// Helper function to convert hours to AM/PM format
-func convertTo12HourFormat(_ hour: Int) -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "h a"
-
-    // Create a date from the hour and format it to AM/PM
-    let calendar = Calendar.current
-    let components = DateComponents(hour: hour)
-    let date = calendar.date(from: components) ?? Date()
-
-    return formatter.string(from: date)
-}
-
-// Helper function to format 24-hour numbers as two digits
-func format24Hour(_ hour: Int) -> String {
-    String(format: "%02d", hour)
-}
-
-func formatHrMin(_ durationInMinutes: Int) -> String {
-    let hours = durationInMinutes / 60
-    let minutes = durationInMinutes % 60
-
-    switch (hours, minutes) {
-    case let (0, m):
-        return "\(m) min"
-    case let (h, 0):
-        return "\(h) hr"
-    default:
-        return "\(hours) hr \(minutes) min"
-    }
-}
-
-func convertToMinutes(_ hours: Int, _ minutes: Int) -> Decimal {
-    let totalMinutes = (hours * 60) + minutes
-    return Decimal(max(0, totalMinutes))
 }

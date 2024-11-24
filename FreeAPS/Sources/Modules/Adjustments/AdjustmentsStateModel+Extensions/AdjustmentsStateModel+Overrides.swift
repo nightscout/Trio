@@ -5,48 +5,40 @@ import Foundation
 extension Adjustments.StateModel {
     // MARK: - Enact Overrides
 
-    /// here we only have to update the Boolean Flag 'enabled'
+    /// Enacts an Override Preset by enabling it and disabling others.
     @MainActor func enactOverridePreset(withID id: NSManagedObjectID) async {
         do {
-            /// get the underlying NSManagedObject of the Override that should be enabled
             let overrideToEnact = try viewContext.existingObject(with: id) as? OverrideStored
             overrideToEnact?.enabled = true
             overrideToEnact?.date = Date()
             overrideToEnact?.isUploadedToNS = false
-
-            /// Update the 'Cancel Override' button state
             isEnabled = true
 
-            /// disable all active Overrides and reset state variables
-            /// do not create a OverrideRunEntry because we only want that if we cancel a running Override, not when enacting a Preset
             await disableAllActiveOverrides(except: id, createOverrideRunEntry: currentActiveOverride != nil)
-
             await resetStateVariables()
 
             guard viewContext.hasChanges else { return }
             try viewContext.save()
 
-            // Update View
             updateLatestOverrideConfiguration()
         } catch {
             debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Override Preset")
         }
     }
 
-    // MARK: - Save the Override that we want to cancel to the OverrideRunStored Entity, then cancel ALL active overrides
+    // MARK: - Disable Overrides
 
+    /// Disables all active Overrides, optionally creating a run entry.
     @MainActor func disableAllActiveOverrides(except overrideID: NSManagedObjectID? = nil, createOverrideRunEntry: Bool) async {
         // Get ALL NSManagedObject IDs of ALL active Override to cancel every single Override
-        let ids = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 0) // 0 = no fetch limit
-
+        let ids = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 0)
+        
         await viewContext.perform {
             do {
                 // Fetch the existing OverrideStored objects from the context
                 let results = try ids.compactMap { id in
                     try self.viewContext.existingObject(with: id) as? OverrideStored
                 }
-
-                // If there are no results, return early
                 guard !results.isEmpty else { return }
 
                 // Check if we also need to create a corresponding OverrideRunStored entry, i.e. when the User uses the Cancel Button in Override View
@@ -65,32 +57,27 @@ extension Adjustments.StateModel {
                     }
                 }
 
-                // Disable all override except the one with overrideID
-                for overrideToCancel in results {
-                    if overrideToCancel.objectID != overrideID {
-                        overrideToCancel.enabled = false
-                    }
+                // Disable all overrides except the one with overrideID
+                for overrideToCancel in results where overrideToCancel.objectID != overrideID {
+                    overrideToCancel.enabled = false
                 }
 
-                // Save the context if there are changes
                 if self.viewContext.hasChanges {
+                    // Save changes and update the View
                     try self.viewContext.save()
-
-                    // Update the View
                     self.updateLatestOverrideConfiguration()
                 }
             } catch {
                 debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Overrides with error: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Overrides: \(error.localizedDescription)"
                 )
             }
         }
     }
 
-    // MARK: - Override (presets) save operations
+    // MARK: - Save Overrides
 
-    // Saves a Custom Override in a background context
-    /// not a Preset
+    /// Saves a custom Override and activates it.
     func saveCustomOverride() async {
         let override = Override(
             name: overrideName,
@@ -128,8 +115,9 @@ extension Adjustments.StateModel {
         updateLatestOverrideConfiguration()
     }
 
-    // Save Presets
-    /// enabled has to be false, isPreset has to be true
+    /// Saves an Override Preset without activating it.
+    /// `enabled` has to be false
+    /// `isPreset` has to be true
     func saveOverridePreset() async {
         let preset = Override(
             name: overrideName,
@@ -156,25 +144,22 @@ extension Adjustments.StateModel {
 
         async let storeOverride: () = overrideStorage.storeOverride(override: preset)
         async let resetState: () = resetStateVariables()
-
         _ = await (storeOverride, resetState)
-
-        // Update Presets View
         setupOverridePresetsArray()
-
         await nightscoutManager.uploadProfiles()
     }
 
-    // MARK: - Setup Override Presets Array
+    // MARK: - Override Preset Management
 
-    // Fill the array of the Override Presets to display them in the UI
+    /// Sets up the array of Override Presets for UI display.
     func setupOverridePresetsArray() {
         Task {
-            let ids = await self.overrideStorage.fetchForOverridePresets()
+            let ids = await overrideStorage.fetchForOverridePresets()
             await updateOverridePresetsArray(with: ids)
         }
     }
 
+    /// Updates the array of Override Presets from Core Data.
     @MainActor private func updateOverridePresetsArray(with IDs: [NSManagedObjectID]) async {
         do {
             let overrideObjects = try IDs.compactMap { id in
@@ -183,24 +168,21 @@ extension Adjustments.StateModel {
             overridePresets = overrideObjects
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to extract Overrides as NSManagedObjects from the NSManagedObjectIDs with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to extract Overrides: \(error.localizedDescription)"
             )
         }
     }
 
-    // MARK: - Override Preset Deletion
-
+    /// Deletes an Override Preset and updates the view.
     func invokeOverridePresetDeletion(_ objectID: NSManagedObjectID) async {
         await overrideStorage.deleteOverridePreset(objectID)
-
-        // Update Presets View
         setupOverridePresetsArray()
-
         await nightscoutManager.uploadProfiles()
     }
 
-    // MARK: - Setup the State variables with the last Override configuration
+    // MARK: - Update Latest Override Configuration
 
+    /// Updates the latest Override configuration and state.
     /// First get the latest Overrides corresponding NSManagedObjectID with a background fetch
     /// Then unpack it on the view context and update the State variables which can be used on in the View for some Logic
     /// This also needs to be called when we cancel an Override via the Home View to update the State of the Button for this case
@@ -209,29 +191,26 @@ extension Adjustments.StateModel {
             let id = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 1)
             async let updateState: () = updateLatestOverrideConfigurationOfState(from: id)
             async let setOverride: () = setCurrentOverride(from: id)
-
             _ = await (updateState, setOverride)
         }
     }
 
+    /// Updates state variables with the latest Override configuration.
     @MainActor func updateLatestOverrideConfigurationOfState(from IDs: [NSManagedObjectID]) async {
         do {
             let result = try IDs.compactMap { id in
                 try viewContext.existingObject(with: id) as? OverrideStored
             }
             isEnabled = result.first?.enabled ?? false
-
             if !isEnabled {
                 await resetStateVariables()
             }
         } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to updateLatestOverrideConfiguration"
-            )
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update latest Override configuration")
         }
     }
 
-    // Sets the current active Preset name to show in the UI
+    /// Sets the current active Override for UI purposes.
     @MainActor func setCurrentOverride(from IDs: [NSManagedObjectID]) async {
         do {
             guard let firstID = IDs.first else {
@@ -246,47 +225,40 @@ extension Adjustments.StateModel {
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to set active preset name with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to set active Override: \(error.localizedDescription)"
             )
         }
     }
 
+    /// Duplicates the active Override Preset and cancels the previous one.
     @MainActor func duplicateOverridePresetAndCancelPreviousOverride() async {
-        // We get the current active Preset by using currentActiveOverride which can either be a Preset or a custom Override
-        guard let overridePresetToDuplicate = currentActiveOverride, overridePresetToDuplicate.isPreset == true else { return }
+        guard let overridePresetToDuplicate = currentActiveOverride, overridePresetToDuplicate.isPreset else { return }
 
-        // Copy the current Override-Preset to not edit the underlying Preset
-        let duplidateId = await overrideStorage.copyRunningOverride(overridePresetToDuplicate)
+        let duplicateId = await overrideStorage.copyRunningOverride(overridePresetToDuplicate)
 
-        // Cancel the duplicated Override
-        /// As we are on the Main Thread already we don't need to cancel via the objectID in this case
         do {
             try await viewContext.perform {
                 overridePresetToDuplicate.enabled = false
-
                 guard self.viewContext.hasChanges else { return }
                 try self.viewContext.save()
             }
 
-            // Update View
-            // TODO: -
-            if let overrideToEdit = try viewContext.existingObject(with: duplidateId) as? OverrideStored
-            {
+            if let overrideToEdit = try viewContext.existingObject(with: duplicateId) as? OverrideStored {
                 currentActiveOverride = overrideToEdit
                 activeOverrideName = overrideToEdit.name ?? "Custom Override"
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel previous override with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel previous Override: \(error.localizedDescription)"
             )
         }
     }
 
-    // MARK: - Helper functions for Overrides
+    // MARK: - Helper Functions
 
+    /// Resets state variables to default values.
     @MainActor func resetStateVariables() async {
         id = ""
-
         overrideDuration = 0
         indefinite = true
         overridePercentage = 100
@@ -305,6 +277,7 @@ extension Adjustments.StateModel {
         target = currentGlucoseTarget
     }
 
+    /// Rounds a target value to the nearest step.
     static func roundTargetToStep(_ target: Decimal, _ step: Decimal) -> Decimal {
         // Convert target and step to NSDecimalNumber
         guard let targetValue = NSDecimalNumber(decimal: target).doubleValue as Double?,
@@ -326,6 +299,7 @@ extension Adjustments.StateModel {
         return target
     }
 
+    /// Rounds an Override percentage to the nearest step.
     static func roundOverridePercentageToStep(_ percentage: Double, _ step: Int) -> Double {
         let stepDouble = Double(step)
         // Check if overridePercentage is not divisible by the selected step

@@ -1223,6 +1223,32 @@ extension UIScreen {
     }
 }
 
+/// Checks if the device is using a 24-hour time format.
+func is24HourFormat() -> Bool {
+    let formatter = DateFormatter()
+    formatter.locale = Locale.current
+    formatter.dateStyle = .none
+    formatter.timeStyle = .short
+    let dateString = formatter.string(from: Date())
+
+    return !dateString.contains("AM") && !dateString.contains("PM")
+}
+
+/// Converts a duration in minutes to a formatted string (e.g., "1 hr 30 min").
+func formatHrMin(_ durationInMinutes: Int) -> String {
+    let hours = durationInMinutes / 60
+    let minutes = durationInMinutes % 60
+
+    switch (hours, minutes) {
+    case let (0, m):
+        return "\(m) min"
+    case let (h, 0):
+        return "\(h) hr"
+    default:
+        return "\(hours) hr \(minutes) min"
+    }
+}
+
 // Helper function to convert a start and end hour to either 24-hour or AM/PM format
 func formatTimeRange(start: String?, end: String?) -> String {
     guard let start = start, let end = end else {

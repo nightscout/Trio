@@ -168,7 +168,7 @@ struct EditTempTargetForm: View {
 
                 if state.isAdjustSensEnabled(usingTarget: target) {
                     Section(
-                        footer: percentageDescription(percentage),
+                        footer: state.percentageDescription(percentage),
                         content: {
                             Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
                                 ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
@@ -236,7 +236,7 @@ struct EditTempTargetForm: View {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        Text(formatHrMin(Int(duration)))
+                        Text(state.formatHrMin(Int(duration)))
                             .foregroundColor(!displayPickerDuration ? (duration > 0 ? .primary : .secondary) : .accentColor)
                     }
                     .onTapGesture {

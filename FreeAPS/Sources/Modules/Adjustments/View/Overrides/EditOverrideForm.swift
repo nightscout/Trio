@@ -168,7 +168,7 @@ struct EditOverrideForm: View {
             }
 
             // Percentage Picker
-            Section(footer: percentageDescription(percentage)) {
+            Section(footer: state.percentageDescription(percentage)) {
                 HStack {
                     Text("Change Basal Rate by")
                     Spacer()
@@ -312,8 +312,8 @@ struct EditOverrideForm: View {
                         Text("From")
                         Spacer()
                         Text(
-                            is24HourFormat() ? format24Hour(Int(truncating: start! as NSNumber)) + ":00" :
-                                convertTo12HourFormat(Int(truncating: start! as NSNumber))
+                            state.is24HourFormat() ? state.format24Hour(Int(truncating: start! as NSNumber)) + ":00" :
+                                state.convertTo12HourFormat(Int(truncating: start! as NSNumber))
                         )
                         .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
 
@@ -326,8 +326,8 @@ struct EditOverrideForm: View {
                         Text("To")
                         Spacer()
                         Text(
-                            is24HourFormat() ? format24Hour(Int(truncating: end! as NSNumber)) + ":00" :
-                                convertTo12HourFormat(Int(truncating: end! as NSNumber))
+                            state.is24HourFormat() ? state.format24Hour(Int(truncating: end! as NSNumber)) + ":00" :
+                                state.convertTo12HourFormat(Int(truncating: end! as NSNumber))
                         )
                         .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
                     }
@@ -344,13 +344,13 @@ struct EditOverrideForm: View {
                                     hasChanges = true
                                 }
                             ), label: Text("")) {
-                                if is24HourFormat() {
+                                if state.is24HourFormat() {
                                     ForEach(0 ..< 24, id: \.self) { hour in
-                                        Text(format24Hour(hour) + ":00").tag(hour)
+                                        Text(state.format24Hour(hour) + ":00").tag(hour)
                                     }
                                 } else {
                                     ForEach(0 ..< 24, id: \.self) { hour in
-                                        Text(convertTo12HourFormat(hour)).tag(hour)
+                                        Text(state.convertTo12HourFormat(hour)).tag(hour)
                                     }
                                 }
                             }
@@ -364,13 +364,13 @@ struct EditOverrideForm: View {
                                     hasChanges = true
                                 }
                             ), label: Text("")) {
-                                if is24HourFormat() {
+                                if state.is24HourFormat() {
                                     ForEach(0 ..< 24, id: \.self) { hour in
-                                        Text(format24Hour(hour) + ":00").tag(hour)
+                                        Text(state.format24Hour(hour) + ":00").tag(hour)
                                     }
                                 } else {
                                     ForEach(0 ..< 24, id: \.self) { hour in
-                                        Text(convertTo12HourFormat(hour)).tag(hour)
+                                        Text(state.convertTo12HourFormat(hour)).tag(hour)
                                     }
                                 }
                             }
@@ -464,7 +464,7 @@ struct EditOverrideForm: View {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        Text(formatHrMin(Int(truncating: duration as NSNumber)))
+                        Text(state.formatHrMin(Int(truncating: duration as NSNumber)))
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                     }
                     .onTapGesture {

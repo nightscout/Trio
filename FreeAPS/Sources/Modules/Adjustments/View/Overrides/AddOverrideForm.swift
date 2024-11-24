@@ -102,7 +102,7 @@ struct AddOverrideForm: View {
             }
             .listRowBackground(Color.chart)
 
-            Section(footer: percentageDescription(state.overridePercentage)) {
+            Section(footer: state.percentageDescription(state.overridePercentage)) {
                 // Percentage Picker
                 HStack {
                     Text("Change Basal Rate by")
@@ -243,8 +243,8 @@ struct AddOverrideForm: View {
                         Text("From")
                         Spacer()
                         Text(
-                            is24HourFormat() ? format24Hour(Int(truncating: state.start as NSNumber)) + ":00" :
-                                convertTo12HourFormat(Int(truncating: state.start as NSNumber))
+                            state.is24HourFormat() ? state.format24Hour(Int(truncating: state.start as NSNumber)) + ":00" :
+                                state.convertTo12HourFormat(Int(truncating: state.start as NSNumber))
                         )
                         .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
                         Spacer()
@@ -253,8 +253,8 @@ struct AddOverrideForm: View {
                         Text("To")
                         Spacer()
                         Text(
-                            is24HourFormat() ? format24Hour(Int(truncating: state.end as NSNumber)) + ":00" :
-                                convertTo12HourFormat(Int(truncating: state.end as NSNumber))
+                            state.is24HourFormat() ? state.format24Hour(Int(truncating: state.end as NSNumber)) + ":00" :
+                                state.convertTo12HourFormat(Int(truncating: state.end as NSNumber))
                         )
                         .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
                         Spacer()
@@ -271,8 +271,11 @@ struct AddOverrideForm: View {
                                 set: { state.start = Decimal($0) }
                             ), label: Text("")) {
                                 ForEach(0 ..< 24, id: \.self) { hour in
-                                    Text(is24HourFormat() ? format24Hour(hour) + ":00" : convertTo12HourFormat(hour))
-                                        .tag(hour)
+                                    Text(
+                                        state.is24HourFormat() ? state.format24Hour(hour) + ":00" : state
+                                            .convertTo12HourFormat(hour)
+                                    )
+                                    .tag(hour)
                                 }
                             }
                             .pickerStyle(WheelPickerStyle())
@@ -284,8 +287,11 @@ struct AddOverrideForm: View {
                                 set: { state.end = Decimal($0) }
                             ), label: Text("")) {
                                 ForEach(0 ..< 24, id: \.self) { hour in
-                                    Text(is24HourFormat() ? format24Hour(hour) + ":00" : convertTo12HourFormat(hour))
-                                        .tag(hour)
+                                    Text(
+                                        state.is24HourFormat() ? state.format24Hour(hour) + ":00" : state
+                                            .convertTo12HourFormat(hour)
+                                    )
+                                    .tag(hour)
                                 }
                             }
                             .pickerStyle(WheelPickerStyle())
@@ -362,7 +368,7 @@ struct AddOverrideForm: View {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        Text(formatHrMin(Int(state.overrideDuration)))
+                        Text(state.formatHrMin(Int(state.overrideDuration)))
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                     }
                     .onTapGesture {
@@ -379,7 +385,7 @@ struct AddOverrideForm: View {
                             .pickerStyle(WheelPickerStyle())
                             .frame(maxWidth: .infinity)
                             .onChange(of: durationHours) {
-                                state.overrideDuration = convertToMinutes(durationHours, durationMinutes)
+                                state.overrideDuration = state.convertToMinutes(durationHours, durationMinutes)
                             }
 
                             Picker("Minutes", selection: $durationMinutes) {
@@ -390,7 +396,7 @@ struct AddOverrideForm: View {
                             .pickerStyle(WheelPickerStyle())
                             .frame(maxWidth: .infinity)
                             .onChange(of: durationMinutes) {
-                                state.overrideDuration = convertToMinutes(durationHours, durationMinutes)
+                                state.overrideDuration = state.convertToMinutes(durationHours, durationMinutes)
                             }
                         }
                         .listRowSeparator(.hidden, edges: .top)
