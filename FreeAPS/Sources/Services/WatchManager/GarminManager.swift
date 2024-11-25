@@ -160,7 +160,9 @@ extension BaseGarminManager: IQUIOverrideDelegate {
                 "The app Garmin Connect must be installed to use for Trio.\n Go to App Store to download it",
                 comment: ""
             ),
-            type: .warning
+            type: .warning,
+            subtype: .misc,
+            title: NSLocalizedString("Garmin is not available", comment: "")
         )
         router.alertMessage.send(messageCont)
     }

@@ -21,7 +21,7 @@ enum MessageSubtype: String {
 struct MessageContent {
     var content: String
     var type: MessageType = .info
-    var subtype: MessageSubtype = .misc
+    var subtype: MessageSubtype = .algorithm
     var title: String = ""
     var useAPN: Bool = true
     var trigger: UNNotificationTrigger? = nil
