@@ -7,6 +7,7 @@ let calendar = Calendar.current
 
 struct MainChartView: View {
     var geo: GeometryProxy
+    var safeAreaSize: CGFloat
     var units: GlucoseUnits
     var hours: Int
     var tempTargets: [TempTarget]
@@ -213,7 +214,9 @@ extension MainChartView {
             .onChange(of: state.insulinFromPersistence) {
                 state.roundedTotalBolus = state.calculateTINS()
             }
-            .frame(minHeight: geo.size.height * 0.28)
+            .frame(
+                minHeight: geo.size.height * (0.28 - safeAreaSize)
+            )
             .frame(width: fullWidth(viewWidth: screenSize.width))
             .chartXScale(domain: startMarker ... endMarker)
             .chartXAxis { mainChartXAxis }
