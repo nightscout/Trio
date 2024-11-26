@@ -101,6 +101,7 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
     case tempBasal(TempBasalDTO)
     case tempBasalDuration(TempBasalDurationDTO)
     case pumpSuspend(PumpSuspendDTO)
+    case unknown(String) // Catch-all for unknown types
 
     func encode(to encoder: Encoder) throws {
         switch self {
@@ -112,22 +113,23 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
             try tempBasalDuration.encode(to: encoder)
         case let .pumpSuspend(pumpSuspend):
             try pumpSuspend.encode(to: encoder)
+        case let .unknown(type):
+            debugPrint("⚠️ Skipping unknown type during encoding: \(type)")
         }
     }
 
-    // Coding keys to identify the event type in JSON.
     private enum CodingKeys: String, CodingKey {
         case _type
     }
 
-    // Custom initializer to decode the JSON based on the `_type` field.
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Attempt to decode `_type` key
         guard let type = try? container.decode(String.self, forKey: ._type) else {
-            throw DecodingError.keyNotFound(
-                CodingKeys._type,
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "_type key not found")
-            )
+            debugPrint("⚠️ Missing _type in JSON entry.")
+            self = .unknown("missing_type")
+            return
         }
 
         let singleValueContainer = try decoder.singleValueContainer()
@@ -146,18 +148,14 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
             let pumpSuspendDTO = try singleValueContainer.decode(PumpSuspendDTO.self)
             self = .pumpSuspend(pumpSuspendDTO)
         default:
-            throw DecodingError.dataCorruptedError(
-                forKey: ._type,
-                in: container,
-                debugDescription: "Unknown _type value: \(type)"
-            )
+            debugPrint("⚠️ Unknown _type value: \(type)")
+            self = .unknown(type)
         }
     }
 
     // Conformance to ImportableDTO
     typealias ManagedObject = PumpEventStored
 
-    /// Stores the DTO in Core Data by mapping it to the corresponding managed object.
     func store(in context: NSManagedObjectContext) -> PumpEventStored {
         switch self {
         case let .bolus(bolusDTO):
@@ -199,11 +197,19 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
 
             return pumpEvent
 
-        case .pumpSuspend:
-            // Handle pump suspend event if needed
+        case let .pumpSuspend(pumpSuspendDTO):
             let pumpEvent = PumpEventStored(context: context)
-            // Set properties for pump suspend if applicable
+            pumpEvent.id = pumpSuspendDTO.id
+            pumpEvent.timestamp = ISO8601DateFormatter().date(from: pumpSuspendDTO.timestamp)
+            pumpEvent.type = pumpSuspendDTO._type
+
+            // You can map additional pump suspend-specific fields here
             return pumpEvent
+
+        case .unknown:
+            debugPrint("⚠️ Skipping unknown event type.")
+            // Return an empty PumpEventStored object or handle appropriately
+            return PumpEventStored(context: context)
         }
     }
 }
@@ -217,6 +223,16 @@ struct BolusDTO: Codable {
     var isSMB: Bool?
     var duration: Int?
     var _type: String = "Bolus"
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case timestamp
+        case amount
+        case isExternal = "isExternalInsulin"
+        case isSMB
+        case duration
+        case _type
+    }
 }
 
 struct TempBasalDTO: Codable {

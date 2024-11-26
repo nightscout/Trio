@@ -29,64 +29,6 @@ class JSONImporter {
     ///   - filePathComponent: Path component of the JSON file.
     ///   - dtoType: The DTO type conforming to `ImportableDTO`.
     ///   - dateDecodingStrategy: The date decoding strategy for JSON decoding.
-//    func importDataIfNeeded<T: ImportableDTO>(
-//        userDefaultsKey: String,
-//        filePathComponent: String,
-//        dtoType _: T.Type,
-//        dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601
-//    ) async {
-//        let hasImported = UserDefaults.standard.bool(forKey: userDefaultsKey)
-//
-//        //        guard !hasImported else {
-//        //            debugPrint("\(filePathComponent) already imported. Skipping import.")
-//        //            return
-//        //        }
-//
-//        do {
-//            // Get the file path for the JSON file
-//            guard let filePath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
-//                .first?
-//                .appendingPathComponent(filePathComponent),
-//                fileManager.fileExists(atPath: filePath.path)
-//            else {
-//                debugPrint("\(filePathComponent) file not found at path \(filePathComponent)")
-//                return
-//            }
-//
-//            // Read data from the JSON file
-//            let data = try Data(contentsOf: filePath)
-//            let decoder = JSONDecoder()
-//            decoder.dateDecodingStrategy = dateDecodingStrategy
-//
-//            // Decode the data into an array of DTOs
-//            let entries = try decoder.decode([T].self, from: data)
-//
-//            // Save the DTOs into Core Data
-//            await context.perform {
-//                for entry in entries {
-//                    _ = entry.store(in: self.context)
-//                }
-//
-//                do {
-//                    guard self.context.hasChanges else { return }
-//                    try self.context.save()
-//                    debugPrint("\(DebuggingIdentifiers.succeeded) \(filePathComponent) successfully imported into Core Data.")
-//                } catch {
-//                    debugPrint("\(DebuggingIdentifiers.failed) Failed to save \(filePathComponent) to Core Data: \(error)")
-//                }
-//            }
-//
-//            // Delete the JSON file after successful import
-//            try fileManager.removeItem(at: filePath)
-//            debugPrint("\(filePathComponent) deleted after successful import.")
-//
-//            // Update UserDefaults to indicate that the data has been imported
-//            UserDefaults.standard.set(true, forKey: userDefaultsKey)
-//        } catch {
-//            debugPrint("Error importing \(filePathComponent): \(error)")
-//        }
-//    }
-
     func importDataIfNeeded<T: ImportableDTO>(
         userDefaultsKey: String,
         filePathComponent: String,
@@ -95,18 +37,19 @@ class JSONImporter {
     ) async {
         let hasImported = UserDefaults.standard.bool(forKey: userDefaultsKey)
 
-        //    if hasImported {
-        //        debugPrint("\(filePathComponent) already imported. Skipping import.")
-        //        return
-        //    }
+//            guard !hasImported else {
+//                debugPrint("\(filePathComponent) already imported. Skipping import.")
+//                return
+//            }
 
         do {
+            // Get the file path for the JSON file
             guard let filePath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
                 .first?
                 .appendingPathComponent(filePathComponent),
                 fileManager.fileExists(atPath: filePath.path)
             else {
-                debugPrint("File not found: \(filePathComponent).")
+                debugPrint("\(DebuggingIdentifiers.failed) File not found: \(filePathComponent).")
                 return
             }
 
@@ -117,18 +60,22 @@ class JSONImporter {
             var entries: [T] = []
 
             do {
+                // Decode as either an array or as a single object
                 if let array = try? decoder.decode([T].self, from: data) {
-                    debugPrint("Decoded \(array.count) entries as an array.")
+                    debugPrint("\(DebuggingIdentifiers.succeeded) Decoded \(array.count) entries as an array.")
                     entries = array
                 } else if let singleObject = try? decoder.decode(T.self, from: data) {
-                    debugPrint("Decoded a single object.")
+                    debugPrint("\(DebuggingIdentifiers.succeeded) Decoded a single object.")
                     entries = [singleObject]
                 } else {
-                    debugPrint("Failed to decode \(filePathComponent) as either an array or a single object.")
+                    debugPrint(
+                        "\(DebuggingIdentifiers.failed) Failed to decode \(filePathComponent) as either an array or a single object."
+                    )
                     return
                 }
             }
 
+            // Save the DTOs into Core Data
             await context.perform {
                 for entry in entries {
                     _ = entry.store(in: self.context)
@@ -145,11 +92,14 @@ class JSONImporter {
                 }
             }
 
+            // Delete the JSON file after successful import
             try fileManager.removeItem(at: filePath)
-            debugPrint("\(filePathComponent) deleted after successful import.")
+            debugPrint("\(DebuggingIdentifiers.succeeded) \(filePathComponent) deleted after successful import.")
+
+            // Update UserDefaults to indicate that the data has been imported
             UserDefaults.standard.set(true, forKey: userDefaultsKey)
         } catch {
-            debugPrint("Error importing \(filePathComponent): \(error)")
+            debugPrint("\(DebuggingIdentifiers.failed) Error importing \(filePathComponent): \(error)")
         }
     }
 }
@@ -188,7 +138,7 @@ extension JSONImporter {
         await importDataIfNeeded(
             userDefaultsKey: "enactedHistoryImported",
             filePathComponent: OpenAPS.Enact.enacted,
-            dtoType: Determination2.self,
+            dtoType: DeterminationDTO.self,
             dateDecodingStrategy: .iso8601
         )
     }
