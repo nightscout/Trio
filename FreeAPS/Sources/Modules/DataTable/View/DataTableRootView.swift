@@ -266,7 +266,6 @@ extension DataTable {
                 HStack {
                     Text("Adjustment").foregroundStyle(.secondary)
                     Spacer()
-                    Text("Time").foregroundStyle(.secondary)
                 }
                 if !combinedAdjustments.isEmpty {
                     ForEach(combinedAdjustments) { item in
@@ -286,7 +285,9 @@ extension DataTable {
                 AdjustmentItem(
                     id: override.objectID,
                     name: override.name ?? "Override",
-                    date: override.startDate ?? Date(),
+                    startDate: override.startDate ?? Date(),
+                    endDate: override.endDate ?? Date(),
+                    target: override.target?.decimalValue ?? 100, /// Should we handle the default better?
                     type: .override
                 )
             }
@@ -295,19 +296,23 @@ extension DataTable {
                 AdjustmentItem(
                     id: tempTarget.objectID,
                     name: tempTarget.name ?? "Temp Target",
-                    date: tempTarget.startDate ?? Date(),
+                    startDate: tempTarget.startDate ?? Date(),
+                    endDate: tempTarget.endDate ?? Date(),
+                    target: tempTarget.target?.decimalValue ?? 100,
                     type: .tempTarget
                 )
             }
 
             let combined = overrides + tempTargets
-            return combined.sorted(by: { $0.date > $1.date })
+            return combined.sorted(by: { $0.startDate > $1.startDate })
         }
 
         private struct AdjustmentItem: Identifiable {
             let id: NSManagedObjectID
             let name: String
-            let date: Date
+            let startDate: Date
+            let endDate: Date
+            let target: Decimal
             let type: AdjustmentType
         }
 
@@ -335,17 +340,40 @@ extension DataTable {
         }
 
         @ViewBuilder private func adjustmentView(for item: AdjustmentItem) -> some View {
-            HStack {
-                Image(systemName: item.type.symbolName)
-                    .foregroundStyle(
-                        item
-                            .type == .override ? Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569) : Color
-                            .loopGreen
-                    )
-                Text(item.name)
-                Spacer()
-                Text(dateFormatter.string(from: item.date))
+            let formattedDates = "\(dateFormatter.string(from: item.startDate)) - \(dateFormatter.string(from: item.endDate))"
+
+            let labels: [String] = [
+                "\(item.target) \(state.units.rawValue)",
+                formattedDates
+            ].filter { !$0.isEmpty }
+
+            ZStack(alignment: .trailing) {
+                HStack {
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Image(systemName: item.type.symbolName)
+                                .foregroundStyle(item.type == .override ? Color.purple : Color.green)
+                            Text(item.name)
+                                .font(.headline)
+                            Spacer()
+                        }
+                        HStack(spacing: 5) {
+                            ForEach(labels, id: \.self) { label in
+                                Text(label)
+                                if label != labels.last {
+                                    Divider()
+                                }
+                            }
+                            Spacer()
+                        }
+                        .padding(.top, 2)
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                    }
+                    .contentShape(Rectangle())
+                }
             }
+            .padding(.vertical, 8)
         }
 
         private var glucoseList: some View {

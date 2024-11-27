@@ -60,44 +60,41 @@ extension Home.StateModel {
         tempTargetRunStored = objects
     }
 
-    @MainActor func saveToTempTargetRunStored(withID id: NSManagedObjectID) async {
-        await viewContext.perform {
-            do {
-                guard let object = try self.viewContext.existingObject(with: id) as? TempTargetStored else { return }
-
-                let newTempTargetRunStored = TempTargetRunStored(context: self.viewContext)
-                newTempTargetRunStored.id = UUID()
-                newTempTargetRunStored.name = object.name
-                newTempTargetRunStored.startDate = object.date ?? .distantPast
-                newTempTargetRunStored.endDate = Date()
-                newTempTargetRunStored.target = object.target ?? 0
-                newTempTargetRunStored.tempTarget = object
-                newTempTargetRunStored.isUploadedToNS = false
-
-            } catch {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to initialize a new Override Run Object"
-                )
-            }
-        }
-    }
-
     @MainActor func cancelTempTarget(withID id: NSManagedObjectID) async {
         do {
-            let profileToCancel = try viewContext.existingObject(with: id) as? TempTargetStored
-            profileToCancel?.enabled = false
+            guard let profileToCancel = try viewContext.existingObject(with: id) as? TempTargetStored else { return }
 
-            await saveToTempTargetRunStored(withID: id)
+            profileToCancel.enabled = false
 
             guard viewContext.hasChanges else { return }
             try viewContext.save()
+
+            await saveToTempTargetRunStored(object: profileToCancel)
 
             // We also need to update the storage for temp targets
             tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())])
 
             Foundation.NotificationCenter.default.post(name: .didUpdateTempTargetConfiguration, object: nil)
-        } catch {
-            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Profile")
+        } catch let error as NSError {
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Temp Target with error: \(error)")
+        }
+    }
+
+    @MainActor func saveToTempTargetRunStored(object: TempTargetStored) async {
+        let newTempTargetRunStored = TempTargetRunStored(context: viewContext)
+        newTempTargetRunStored.id = UUID()
+        newTempTargetRunStored.name = object.name
+        newTempTargetRunStored.startDate = object.date ?? .distantPast
+        newTempTargetRunStored.endDate = Date()
+        newTempTargetRunStored.target = object.target ?? 0
+        newTempTargetRunStored.tempTarget = object
+        newTempTargetRunStored.isUploadedToNS = false
+
+        do {
+            guard viewContext.hasChanges else { return }
+            try viewContext.save()
+        } catch let error as NSError {
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Temp Target with error: \(error)")
         }
     }
 

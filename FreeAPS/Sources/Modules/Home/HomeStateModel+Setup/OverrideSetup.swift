@@ -94,7 +94,7 @@ extension Home.StateModel {
         }
     }
 
-    /// We can safely pass the NSManagedObject  as we are doing everything on the Main Actor 
+    /// We can safely pass the NSManagedObject  as we are doing everything on the Main Actor
     @MainActor func saveToOverrideRunStored(object: OverrideStored) async {
         let newOverrideRunStored = OverrideRunStored(context: viewContext)
         newOverrideRunStored.id = UUID()
