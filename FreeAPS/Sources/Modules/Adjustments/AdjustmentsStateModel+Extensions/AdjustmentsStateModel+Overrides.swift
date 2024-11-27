@@ -32,7 +32,7 @@ extension Adjustments.StateModel {
     @MainActor func disableAllActiveOverrides(except overrideID: NSManagedObjectID? = nil, createOverrideRunEntry: Bool) async {
         // Get ALL NSManagedObject IDs of ALL active Override to cancel every single Override
         let ids = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 0)
-        
+
         await viewContext.perform {
             do {
                 // Fetch the existing OverrideStored objects from the context

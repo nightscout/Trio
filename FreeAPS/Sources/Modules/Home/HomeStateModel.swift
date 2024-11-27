@@ -180,6 +180,12 @@ extension Home {
                         self.setupOverrideRunStored()
                     }
                     group.addTask {
+                        self.setupTempTargetsStored()
+                    }
+                    group.addTask {
+                        self.setupTempTargetsRunStored()
+                    }
+                    group.addTask {
                         await self.setupSettings()
                     }
                     group.addTask {
