@@ -17,8 +17,14 @@ struct NotificationsView: BaseView {
     @State var showAlert = false
     @State private var shouldDisplayHint: Bool = false
     @State var hintDetent = PresentationDetent.large
-    @State var selectedVerboseHint: String? =
-        "Notifications give you important Trio information without requiring you to open the app.\n\nKeep these turned ON in your phone’s settings to ensure you receive Trio Notifications, Critical Alerts, and Time Sensitive Notifications."
+    @State var selectedVerboseHint: AnyView? = AnyView(
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Notifications give you important Trio information without requiring you to open the app.")
+            Text(
+                "Keep these turned ON in your phone’s settings to ensure you receive Trio Notifications, Critical Alerts, and Time Sensitive Notifications."
+            )
+        }
+    )
     @State var hintLabel: String? = "Manage iOS Preferences"
 
     @Environment(\.colorScheme) var colorScheme
@@ -40,7 +46,7 @@ struct NotificationsView: BaseView {
     }
 
     var body: some View {
-        Form {
+        List {
             Section(
                 header: Text("Manage iOS Preferences"),
                 content: {
@@ -51,18 +57,24 @@ struct NotificationsView: BaseView {
                 VStack {
                     notificationsEnabledStatus
                     HStack(alignment: .top) {
-                        Text(
-                            "Notifications give you important Trio information without requiring you to open the app."
-                        )
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                        .lineLimit(nil)
+                        Text("Notifications give you important Trio information without requiring you to open the app.")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
                         Spacer()
                         Button(
                             action: {
                                 hintLabel = "Manage iOS Preferences"
-                                selectedVerboseHint =
-                                    "Notifications give you important Trio information without requiring you to open the app.\n\nKeep these turned ON in your phone’s settings to ensure you receive Trio Notifications, Critical Alerts, and Time Sensitive Notifications."
+                                selectedVerboseHint = AnyView(
+                                    VStack(alignment: .leading, spacing: 10) {
+                                        Text(
+                                            "Notifications give you important Trio information without requiring you to open the app."
+                                        )
+                                        Text(
+                                            "Keep these turned ON in your phone’s settings to ensure you receive Trio Notifications, Critical Alerts, and Time Sensitive Notifications."
+                                        )
+                                    }
+                                )
                                 shouldDisplayHint.toggle()
                             },
                             label: {
@@ -89,6 +101,7 @@ struct NotificationsView: BaseView {
             )
             .listRowBackground(Color.chart)
         }
+        .listSectionSpacing(sectionSpacing)
         .onReceive(
             resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled,
             perform: {
@@ -109,7 +122,7 @@ struct NotificationsView: BaseView {
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
-                hintText: selectedVerboseHint ?? "",
+                hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                 sheetTitle: "Help"
             )
         }
