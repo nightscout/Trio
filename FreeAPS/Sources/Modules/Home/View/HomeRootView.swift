@@ -7,6 +7,7 @@ import Swinject
 extension Home {
     struct RootView: BaseView {
         let resolver: Resolver
+        let safeAreaSize: CGFloat = 0.08
 
         @State var state = StateModel()
         @State var isStatusPopupPresented = false
@@ -21,7 +22,6 @@ extension Home {
         @State private var statusTitle: String = ""
         @State var showPumpSelection: Bool = false
         @State var notificationsDisabled = false
-        @State var alertSafetyNotificationsViewHeight = 0
 
         struct Buttons: Identifiable {
             let label: String
@@ -335,6 +335,7 @@ extension Home {
             ZStack {
                 MainChartView(
                     geo: geo,
+                    safeAreaSize: notificationsDisabled == true ? safeAreaSize : 0,
                     units: state.units,
                     hours: state.filteredHours,
                     tempTargets: state.tempTargets,
@@ -792,7 +793,7 @@ extension Home {
                         )
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 15))
-                    .frame(height: geo.size.height * 0.08)
+                    .frame(height: geo.size.height * safeAreaSize)
                     .coordinateSpace(name: "alertSafetyNotificationsView")
                     .shadow(
                         color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
@@ -843,17 +844,12 @@ extension Home {
                         pumpView
                         Spacer()
                     }.padding(.leading, 20)
-
-                    if notificationsDisabled {
-                        alertSafetyNotificationsView(geo: geo)
-                            // maybe experiment with safeAreaInset() or similar to avoid overlapping with the dynamic island
-                            .offset(
-                                y: -geo.size
-                                    .height *
-                                    0.075
-                            )
-                    }
                 }.padding(.top, 10)
+                    .safeAreaInset(edge: .top, spacing: 0) {
+                        if notificationsDisabled {
+                            alertSafetyNotificationsView(geo: geo)
+                        }
+                    }
 
                 mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
                     .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
