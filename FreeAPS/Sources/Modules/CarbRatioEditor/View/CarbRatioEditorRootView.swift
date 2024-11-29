@@ -94,6 +94,16 @@ extension CarbRatioEditor {
                     }.listRowBackground(Color.chart)
                 }
 
+                if !state.canAdd {
+                    Section {
+                        VStack(alignment: .leading) {
+                            Text(
+                                "Carb Ratios cover 24 hours. You cannot add more rates. Please remove or adjust existing rates to make space."
+                            ).bold()
+                        }
+                    }.listRowBackground(Color.tabBar)
+                }
+
                 Section(header: Text("Schedule")) {
                     list
                 }.listRowBackground(Color.chart)
@@ -104,11 +114,13 @@ extension CarbRatioEditor {
             .navigationTitle("Carb Ratios")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {
-                ToolbarItem(placement: .topBarTrailing) {
-                    EditButton()
+                if state.items.isNotEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        EditButton()
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    addButton
+                    Button(action: { state.add() }) { Image(systemName: "plus") }.disabled(!state.canAdd)
                 }
             })
             .environment(\.editMode, $editMode)
@@ -232,23 +244,6 @@ extension CarbRatioEditor {
                     AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
                 }
             }
-        }
-
-        private var addButton: some View {
-            guard state.canAdd else {
-                return AnyView(EmptyView())
-            }
-
-            switch editMode {
-            case .inactive:
-                return AnyView(Button(action: onAdd) { Image(systemName: "plus") })
-            default:
-                return AnyView(EmptyView())
-            }
-        }
-
-        func onAdd() {
-            state.add()
         }
 
         private func onDelete(offsets: IndexSet) {

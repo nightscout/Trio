@@ -123,6 +123,16 @@ extension BasalProfileEditor {
 
         var body: some View {
             Form {
+                if !state.canAdd {
+                    Section {
+                        VStack(alignment: .leading) {
+                            Text(
+                                "Basal profile covers 24 hours. You cannot add more rates. Please remove or adjust existing rates to make space."
+                            ).bold()
+                        }
+                    }.listRowBackground(Color.tabBar)
+                }
+
                 Section(header: Text("Schedule")) {
                     if !state.items.isEmpty {
                         basalScheduleChart.padding(.vertical)
@@ -160,11 +170,13 @@ extension BasalProfileEditor {
             .navigationTitle("Basal Profile")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {
-                ToolbarItem(placement: .topBarTrailing) {
-                    EditButton()
+                if state.items.isNotEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        EditButton()
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    addButton
+                    Button(action: { state.add() }) { Image(systemName: "plus") }.disabled(!state.canAdd)
                 }
             })
             .environment(\.editMode, $editMode)
@@ -232,23 +244,6 @@ extension BasalProfileEditor {
                 }
                 .onDelete(perform: onDelete)
             }
-        }
-
-        private var addButton: some View {
-            guard state.canAdd else {
-                return AnyView(EmptyView())
-            }
-
-            switch editMode {
-            case .inactive:
-                return AnyView(Button(action: onAdd) { Image(systemName: "plus") })
-            default:
-                return AnyView(EmptyView())
-            }
-        }
-
-        func onAdd() {
-            state.add()
         }
 
         private func onDelete(offsets: IndexSet) {
