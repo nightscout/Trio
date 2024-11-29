@@ -451,8 +451,13 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             status: pumpStatus
         )
 
-        let device = await UIDevice.current
-        let uploader = await Uploader(batteryVoltage: nil, battery: Int(device.batteryLevel * 100))
+        let batteryLevel = await UIDevice.current.batteryLevel
+        let batteryState = await UIDevice.current.batteryState
+        let uploader = Uploader(
+            batteryVoltage: nil,
+            battery: Int(batteryLevel * 100),
+            isCharging: batteryState == .charging || batteryState == .full
+        )
         let status = NightscoutStatus(
             device: NightscoutTreatment.local,
             openaps: openapsStatus,
