@@ -21,7 +21,6 @@ extension DataTable {
         var glucose: [Glucose] = []
         var meals: [Treatment] = []
         var manualGlucose: Decimal = 0
-        var maxBolus: Decimal = 0
         var waitForSuggestion: Bool = false
 
         var insulinEntryDeleted: Bool = false
@@ -31,7 +30,6 @@ extension DataTable {
 
         override func subscribe() {
             units = settingsManager.settings.units
-            maxBolus = provider.pumpSettings().maxBolus
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(SettingsObserver.self, observer: self)
         }
@@ -260,6 +258,5 @@ extension DataTable.StateModel: DeterminationObserver, SettingsObserver {
 
     func settingsDidChange(_: FreeAPSSettings) {
         units = settingsManager.settings.units
-        maxBolus = provider.pumpSettings().maxBolus
     }
 }
