@@ -12,22 +12,7 @@ extension BasalProfileEditor {
             .date(from: DateComponents(year: 2001, month: 01, day: 01, hour: 0, minute: 0, second: 0))
 
         @Environment(\.colorScheme) var colorScheme
-        var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         private var dateFormatter: DateFormatter {
             let formatter = DateFormatter()
@@ -156,7 +141,7 @@ extension BasalProfileEditor {
                 state.calcTotal()
                 state.calculateChartData()
             }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Basal Profile")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {
@@ -207,7 +192,7 @@ extension BasalProfileEditor {
                 }.listRowBackground(Color.chart)
             }
             .padding(.top)
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Set Rate")
             .navigationBarTitleDisplayMode(.automatic)
         }

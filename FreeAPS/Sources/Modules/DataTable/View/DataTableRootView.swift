@@ -21,6 +21,7 @@ extension DataTable {
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.managedObjectContext) var context
+        @Environment(AppState.self) var appState
 
         @FetchRequest(
             entity: GlucoseStored.entity(),
@@ -103,23 +104,6 @@ extension DataTable {
             return formatter
         }
 
-        private var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
-
         var body: some View {
             ZStack(alignment: .center, content: {
                 VStack {
@@ -142,7 +126,7 @@ extension DataTable {
                         case .adjustments: adjustmentsList
                         }
                     }.scrollContentBackground(.hidden)
-                        .background(color)
+                        .background(appState.trioBackgroundColor(for: colorScheme))
                 }.blur(radius: state.waitForSuggestion ? 8 : 0)
 
                 // Show custom progress view
@@ -151,7 +135,7 @@ extension DataTable {
                     CustomProgressView(text: progressText.rawValue)
                 }
             })
-                .background(color)
+                .background(appState.trioBackgroundColor(for: colorScheme))
                 .onAppear(perform: configureView)
                 .onDisappear {
                     state.carbEntryDeleted = false
@@ -499,7 +483,7 @@ extension DataTable {
                                 .manualGlucose > limitHigh ? Color(.systemGray4) : Color(.systemBlue)
                         )
                         .tint(.white)
-                    }.scrollContentBackground(.hidden).background(color)
+                    }.scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
                 }
                 .onAppear(perform: configureView)
                 .navigationTitle("Add Glucose")

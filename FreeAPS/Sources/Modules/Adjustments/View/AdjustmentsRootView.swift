@@ -22,23 +22,7 @@ extension Adjustments {
         @State private var isEditingTT = false
 
         @Environment(\.colorScheme) var colorScheme
-
-        var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -85,11 +69,12 @@ extension Adjustments {
                         case .tempTargets: tempTargets() }
                     }
                     .scrollContentBackground(.hidden)
-                    .background(color)
+                    .background(appState.trioBackgroundColor(for: colorScheme))
                 }
                 .listSectionSpacing(10)
                 .safeAreaInset(edge: .bottom, spacing: 30) { stickyStopButton }
-                .scrollContentBackground(.hidden).background(color)
+                .scrollContentBackground(.hidden)
+                .background(appState.trioBackgroundColor(for: colorScheme))
                 .onAppear(perform: configureView)
                 .navigationBarTitle("Adjustments")
                 .navigationBarTitleDisplayMode(.large)
@@ -155,7 +140,7 @@ extension Adjustments {
                         EditTempTargetForm(tempTargetToEdit: tempTarget, state: state)
                     }
                 }
-            }).background(color)
+            }).background(appState.trioBackgroundColor(for: colorScheme))
         }
 
         @ViewBuilder func overrides() -> some View {

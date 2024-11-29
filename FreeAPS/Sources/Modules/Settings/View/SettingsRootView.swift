@@ -21,23 +21,7 @@ extension Settings {
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
-
-        private var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         private var filteredItems: [FilteredSettingItem] {
             SettingItems.filteredItems(searchText: searchText)
@@ -298,7 +282,7 @@ extension Settings {
 //                    }
 //                }.listRowBackground(Color.chart)
 
-            }.scrollContentBackground(.hidden).background(color)
+            }.scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
                 .sheet(isPresented: $shouldDisplayHint) {
                     SettingInputHintView(
                         hintDetent: $hintDetent,

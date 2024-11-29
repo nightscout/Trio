@@ -5,6 +5,7 @@ struct AddOverrideForm: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
+    @Environment(AppState.self) var appState
     @Bindable var state: Adjustments.StateModel
     @State private var selectedIsfCrOption: IsfAndOrCrOptions = .isfAndCr
     @State private var selectedDisableSmbOption: DisableSmbOptions = .dontDisable
@@ -20,23 +21,6 @@ struct AddOverrideForm: View {
     @State private var overrideTarget = false
     @State private var didPressSave = false
 
-    var color: LinearGradient {
-        colorScheme == .dark
-            ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            : LinearGradient(
-                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-    }
-
     var body: some View {
         NavigationView {
             List {
@@ -46,7 +30,8 @@ struct AddOverrideForm: View {
             .listSectionSpacing(10)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Add Override")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

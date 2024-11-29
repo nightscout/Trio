@@ -5,6 +5,7 @@ struct EditOverrideForm: View {
     var override: OverrideStored
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
+    @Environment(AppState.self) var appState
     @Bindable var state: Adjustments.StateModel
 
     @State private var name: String
@@ -64,22 +65,6 @@ struct EditOverrideForm: View {
         _uamMinutes = State(initialValue: overrideToEdit.uamMinutes?.decimalValue)
     }
 
-    var color: LinearGradient {
-        colorScheme == .dark ? LinearGradient(
-            gradient: Gradient(colors: [
-                Color.bgDarkBlue,
-                Color.bgDarkerDarkBlue
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        ) :
-            LinearGradient(
-                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-    }
-
     private var percentageSelection: Binding<Double> {
         Binding<Double>(
             get: {
@@ -102,7 +87,8 @@ struct EditOverrideForm: View {
             .listSectionSpacing(10)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Edit Override")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

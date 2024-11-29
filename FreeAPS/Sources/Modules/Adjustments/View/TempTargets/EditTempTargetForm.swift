@@ -5,6 +5,7 @@ struct EditTempTargetForm: View {
     @ObservedObject var tempTarget: TempTargetStored
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
+    @Environment(AppState.self) var appState
     @StateObject var state: Adjustments.StateModel
     @State private var displayPickerDuration: Bool = false
     @State private var displayPickerTarget: Bool = false
@@ -47,22 +48,6 @@ struct EditTempTargetForm: View {
         _percentage = State(initialValue: calcPercentage)
     }
 
-    var color: LinearGradient {
-        colorScheme == .dark ? LinearGradient(
-            gradient: Gradient(colors: [
-                Color.bgDarkBlue,
-                Color.bgDarkerDarkBlue
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        ) :
-            LinearGradient(
-                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-    }
-
     private var dateFormatter: DateFormatter {
         let f = DateFormatter()
         f.dateStyle = .short
@@ -79,7 +64,8 @@ struct EditTempTargetForm: View {
             .listSectionSpacing(10)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Edit Temp Target")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
