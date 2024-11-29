@@ -9,6 +9,8 @@ extension Home {
         let resolver: Resolver
         let safeAreaSize: CGFloat = 0.08
 
+        @Environment(AppState.self) var appState
+
         @State var state = StateModel()
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
@@ -891,6 +893,8 @@ extension Home {
                 configureView {
                     highlightButtons()
                 }
+                appState.configureTabBarAppearance()
+//                AppState.configureTabBarAppearance()
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)

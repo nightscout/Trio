@@ -15,6 +15,8 @@ import Swinject
 
     let coreDataStack = CoreDataStack.shared
 
+    @State private var appState = AppState()
+
     // Dependencies Assembler
     // contain all dependencies Assemblies
     // TODO: Remove static key after update "Use Dependencies" logic
@@ -64,7 +66,7 @@ import Swinject
         )
 
         // Configure global appearance for UITabBar
-        configureTabBarAppearance()
+//        configureTabBarAppearance()
 
         // Load services
         loadServices()
@@ -91,12 +93,13 @@ import Swinject
     var body: some Scene {
         WindowGroup {
             Main.RootView(resolver: resolver)
-                .preferredColorScheme(colorScheme(for: colorSchemePreference ?? .systemDefault) ?? nil)
+                .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
                 .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
+                .environment(appState)
                 .environmentObject(Icons())
                 .onOpenURL(perform: handleURL)
         }
-        .onChange(of: scenePhase) { newScenePhase in
+        .onChange(of: scenePhase) { _, newScenePhase in
             debug(.default, "APPLICATION PHASE: \(newScenePhase)")
 
             /// If the App goes to the background we should ensure that all the changes are saved from the viewContext to the Persistent Container
