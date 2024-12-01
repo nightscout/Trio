@@ -13,7 +13,7 @@ struct TempTarget: JSON, Identifiable, Equatable, Hashable {
     let enabled: Bool?
     let halfBasalTarget: Decimal?
 
-    static let manual = "Trio"
+    static let local = "Trio"
     static let custom = "Temp Target"
     static let cancel = "Cancel"
 
@@ -36,7 +36,7 @@ struct TempTarget: JSON, Identifiable, Equatable, Hashable {
             targetTop: 0,
             targetBottom: 0,
             duration: 0,
-            enteredBy: TempTarget.manual,
+            enteredBy: TempTarget.local,
             reason: TempTarget.cancel,
             isPreset: nil,
             enabled: nil,

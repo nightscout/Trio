@@ -18,7 +18,7 @@ extension TrioRemoteControl {
             targetTop: Decimal(targetValue),
             targetBottom: Decimal(targetValue),
             duration: Decimal(durationInMinutes),
-            enteredBy: TempTarget.manual,
+            enteredBy: TempTarget.local,
             reason: TempTarget.custom,
             isPreset: false,
             enabled: true,

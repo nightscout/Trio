@@ -165,7 +165,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 fat: 0,
                 protein: 0,
                 note: nil,
-                enteredBy: CarbsEntry.manual,
+                enteredBy: CarbsEntry.local,
                 isFPU: true,
                 fpuID: fpuID
             )
@@ -365,7 +365,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     rate: nil,
                     eventType: .nsCarbCorrection,
                     createdAt: result.date,
-                    enteredBy: CarbsEntry.manual,
+                    enteredBy: CarbsEntry.local,
                     bolus: nil,
                     insulin: nil,
                     notes: result.note,
@@ -402,7 +402,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     rate: nil,
                     eventType: .nsCarbCorrection,
                     createdAt: result.date,
-                    enteredBy: CarbsEntry.manual,
+                    enteredBy: CarbsEntry.local,
                     bolus: nil,
                     insulin: nil,
                     carbs: Decimal(result.carbs),
@@ -440,7 +440,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     fat: Decimal(result.fat),
                     protein: Decimal(result.protein),
                     note: result.note,
-                    enteredBy: CarbsEntry.manual,
+                    enteredBy: CarbsEntry.local,
                     isFPU: result.isFPU,
                     fpuID: result.fpuID?.uuidString
                 )
@@ -471,7 +471,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     fat: nil,
                     protein: nil,
                     note: result.note,
-                    enteredBy: CarbsEntry.manual,
+                    enteredBy: CarbsEntry.local,
                     isFPU: nil,
                     fpuID: nil
                 )

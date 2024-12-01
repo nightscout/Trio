@@ -108,7 +108,7 @@ extension NightscoutAPI {
             URLQueryItem(name: "find[carbs][$exists]", value: "true"),
             URLQueryItem(
                 name: "find[enteredBy][$ne]",
-                value: CarbsEntry.manual.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+                value: CarbsEntry.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
             ),
             URLQueryItem(
                 name: "find[enteredBy][$ne]",
@@ -247,7 +247,7 @@ extension NightscoutAPI {
             URLQueryItem(name: "find[eventType]", value: "Temporary+Target"),
             URLQueryItem(
                 name: "find[enteredBy][$ne]",
-                value: TempTarget.manual.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+                value: TempTarget.local.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
             ),
             URLQueryItem(
                 name: "find[enteredBy][$ne]",

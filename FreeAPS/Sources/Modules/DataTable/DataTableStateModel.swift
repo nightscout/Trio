@@ -159,7 +159,7 @@ extension DataTable {
                                 withSyncId: id,
                                 carbs: Decimal(carbEntry.carbs),
                                 at: entryDate,
-                                enteredBy: CarbsEntry.manual
+                                enteredBy: CarbsEntry.local
                             )
                         }
                     }

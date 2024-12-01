@@ -31,12 +31,12 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
                     async let carbs = self.nightscoutManager.fetchCarbs()
                     async let tempTargets = self.nightscoutManager.fetchTempTargets()
 
-                    let filteredCarbs = await carbs.filter { !($0.enteredBy?.contains(CarbsEntry.manual) ?? false) }
+                    let filteredCarbs = await carbs.filter { !($0.enteredBy?.contains(CarbsEntry.local) ?? false) }
                     if filteredCarbs.isNotEmpty {
                         await self.carbsStorage.storeCarbs(filteredCarbs, areFetchedFromRemote: true)
                     }
 
-                    let filteredTargets = await tempTargets.filter { !($0.enteredBy?.contains(TempTarget.manual) ?? false) }
+                    let filteredTargets = await tempTargets.filter { !($0.enteredBy?.contains(TempTarget.local) ?? false) }
                     if filteredTargets.isNotEmpty {
                         for tempTarget in filteredTargets {
                             await self.tempTargetsStorage.storeTempTarget(tempTarget: tempTarget)

@@ -433,7 +433,7 @@ extension BaseWatchManager: WCSessionDelegate {
                         fat: Decimal(fat),
                         protein: Decimal(protein),
                         note: nil,
-                        enteredBy: CarbsEntry.manual,
+                        enteredBy: CarbsEntry.local,
                         isFPU: false,
                         fpuID: nil
                     )],
@@ -459,7 +459,7 @@ extension BaseWatchManager: WCSessionDelegate {
                         targetTop: 0,
                         targetBottom: 0,
                         duration: 0,
-                        enteredBy: TempTarget.manual,
+                        enteredBy: TempTarget.local,
                         reason: TempTarget.cancel,
                         isPreset: false,
                         enabled: false,

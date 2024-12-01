@@ -329,7 +329,7 @@ struct EditTempTargetForm: View {
                                     targetTop: target,
                                     targetBottom: target,
                                     duration: duration,
-                                    enteredBy: TempTarget.manual,
+                                    enteredBy: TempTarget.local,
                                     reason: TempTarget.custom,
                                     isPreset: isPreset ? true : false,
                                     enabled: isEnabled ? true : false,

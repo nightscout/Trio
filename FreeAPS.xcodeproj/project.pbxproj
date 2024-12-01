@@ -1697,9 +1697,8 @@
 				38E44521274E3DDC00EC9A94 /* NetworkReachabilityManager.swift */,
 				38192E03261B82FA0094D973 /* ReachabilityManager.swift */,
 				3811DE9625C9D88300A708ED /* HTTPResponseStatus.swift */,
-				3811DE9725C9D88300A708ED /* NightscoutManager.swift */,
+				DDC9B9962CFD2332003E7721 /* Nightscout */,
 				38FE826925CC82DB001FF17A /* NetworkService.swift */,
-				38FE826C25CC8461001FF17A /* NightscoutAPI.swift */,
 				CE1F6DDA2BAE08B60064EB8D /* TidepoolManager.swift */,
 			);
 			path = Network;
@@ -2828,6 +2827,15 @@
 				DD9ECB732CA9A0C300AA7C45 /* RemoteControlConfig.swift */,
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		DDC9B9962CFD2332003E7721 /* Nightscout */ = {
+			isa = PBXGroup;
+			children = (
+				3811DE9725C9D88300A708ED /* NightscoutManager.swift */,
+				38FE826C25CC8461001FF17A /* NightscoutAPI.swift */,
+			);
+			path = Nightscout;
 			sourceTree = "<group>";
 		};
 		DDD163032C4C67B400CD525A /* Adjustments */ = {
