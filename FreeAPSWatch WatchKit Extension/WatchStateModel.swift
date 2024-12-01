@@ -69,11 +69,11 @@ class WatchStateModel: NSObject, ObservableObject {
         session.activate()
     }
 
-    func addMeal(_ carbs: Int, fat: Int, protein: Int) {
+    func addMeal(_ carbs: Int, fat: Int, protein: Int, note: String) {
         confirmationSuccess = nil
         isConfirmationViewActive = true
         isCarbsViewActive = false
-        session.sendMessage(["carbs": carbs, "fat": fat, "protein": protein], replyHandler: { reply in
+        session.sendMessage(["carbs": carbs, "fat": fat, "protein": protein, "note": note], replyHandler: { reply in
             self.completionHandler(reply)
             if let ok = reply["confirmation"] as? Bool, ok {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {

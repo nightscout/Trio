@@ -405,6 +405,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     enteredBy: CarbsEntry.local,
                     bolus: nil,
                     insulin: nil,
+                    notes: result.note,
                     carbs: Decimal(result.carbs),
                     fat: Decimal(result.fat),
                     protein: Decimal(result.protein),

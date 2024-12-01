@@ -21,7 +21,6 @@ extension DataTable {
         var glucose: [Glucose] = []
         var meals: [Treatment] = []
         var manualGlucose: Decimal = 0
-        var maxBolus: Decimal = 0
         var waitForSuggestion: Bool = false
 
         var insulinEntryDeleted: Bool = false
@@ -31,8 +30,8 @@ extension DataTable {
 
         override func subscribe() {
             units = settingsManager.settings.units
-            maxBolus = provider.pumpSettings().maxBolus
             broadcaster.register(DeterminationObserver.self, observer: self)
+            broadcaster.register(SettingsObserver.self, observer: self)
         }
 
         func isGlucoseDataFresh(_ glucoseDate: Date?) -> Bool {
@@ -88,6 +87,14 @@ extension DataTable {
                     )
                 }
             }
+        }
+
+        func addManualGlucose() {
+            // Always save value in mg/dL
+            let glucose = units == .mmolL ? manualGlucose.asMgdL : manualGlucose
+            let glucoseAsInt = Int(glucose)
+
+            glucoseStorage.addManualGlucose(glucose: glucoseAsInt)
         }
 
         // Carb and FPU deletion from history
@@ -239,37 +246,17 @@ extension DataTable {
                 }
             }
         }
-
-        func addManualGlucose() {
-            let glucose = units == .mmolL ? manualGlucose.asMgdL : manualGlucose
-            let glucoseAsInt = Int(glucose)
-
-            // save to core data
-            coredataContext.perform {
-                let newItem = GlucoseStored(context: self.coredataContext)
-                newItem.id = UUID()
-                newItem.date = Date()
-                newItem.glucose = Int16(glucoseAsInt)
-                newItem.isManual = true
-                newItem.isUploadedToNS = false
-                newItem.isUploadedToHealth = false
-                newItem.isUploadedToTidepool = false
-
-                do {
-                    guard self.coredataContext.hasChanges else { return }
-                    try self.coredataContext.save()
-                } catch {
-                    print(error.localizedDescription)
-                }
-            }
-        }
     }
 }
 
-extension DataTable.StateModel: DeterminationObserver {
+extension DataTable.StateModel: DeterminationObserver, SettingsObserver {
     func determinationDidUpdate(_: Determination) {
         DispatchQueue.main.async {
             self.waitForSuggestion = false
         }
+    }
+
+    func settingsDidChange(_: FreeAPSSettings) {
+        units = settingsManager.settings.units
     }
 }

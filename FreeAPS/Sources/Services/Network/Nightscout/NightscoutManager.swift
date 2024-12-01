@@ -368,24 +368,27 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     let status: String? = last.status
                     let display: Bool? = last.display
 
-                    if let percent = percent, let voltage = voltage, let status = status, let display = display {
+                    if let status {
                         debugPrint(
-                            "Home State Model: \(#function) \(DebuggingIdentifiers.succeeded) setup battery from core data successfully"
+                            "NightscoutManager: \(#function) \(DebuggingIdentifiers.succeeded) setup battery from core data successfully"
                         )
                         return Battery(
                             percent: percent,
                             voltage: voltage,
-                            string: BatteryState(rawValue: status) ?? BatteryState.normal,
+                            string: BatteryState(rawValue: status) ?? BatteryState.unknown,
                             display: display
                         )
                     }
                 }
-                return Battery(percent: 100, voltage: 100, string: BatteryState.normal, display: false)
+                debugPrint(
+                    "NightscoutManager: \(#function) \(DebuggingIdentifiers.succeeded) successfully fetched; but no battery data available. Returning fallback default."
+                )
+                return Battery(percent: nil, voltage: nil, string: BatteryState.error, display: nil)
             } catch {
                 debugPrint(
-                    "Home State Model: \(#function) \(DebuggingIdentifiers.failed) failed to setup battery from core data"
+                    "NightscoutManager: \(#function) \(DebuggingIdentifiers.failed) failed to setup battery from core data"
                 )
-                return Battery(percent: 100, voltage: 100, string: BatteryState.normal, display: false)
+                return Battery(percent: nil, voltage: nil, string: BatteryState.error, display: nil)
             }
         }
     }
@@ -460,7 +463,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             iob: iob?.first,
             suggested: modifiedSuggestedDetermination,
             enacted: settingsManager.settings.closedLoop ? fetchedEnactedDetermination : nil,
-            version: "0.7.1"
+            version: Bundle.main.releaseVersionNumber ?? "Unknown"
         )
 
         // Gather all relevant data for NS Status
@@ -474,8 +477,13 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             status: pumpStatus
         )
 
-        let device = await UIDevice.current
-        let uploader = await Uploader(batteryVoltage: nil, battery: Int(device.batteryLevel * 100))
+        let batteryLevel = await UIDevice.current.batteryLevel
+        let batteryState = await UIDevice.current.batteryState
+        let uploader = Uploader(
+            batteryVoltage: nil,
+            battery: Int(batteryLevel * 100),
+            isCharging: batteryState == .charging || batteryState == .full
+        )
         let status = NightscoutStatus(
             device: NightscoutTreatment.local,
             openaps: openapsStatus,
