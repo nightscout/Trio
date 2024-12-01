@@ -1544,7 +1544,6 @@
 				19D466A129AA2B0A004D5F33 /* MealSettings */,
 				D533BF261CDC1C3F871E7BFD /* NightscoutConfig */,
 				99C01B871ACAB3F32CE755C7 /* PumpConfig */,
-				DD9ECB662CA99EFE00AA7C45 /* RemoteControl */,
 				DD9ECB6B2CA99FA400AA7C45 /* RemoteControlConfig */,
 				3811DE3825C9D4A100A708ED /* Settings */,
 				110AEDEA2C51A0AE00615CC9 /* ShortcutsConfig */,
@@ -1679,6 +1678,7 @@
 				3811DE9425C9D88200A708ED /* Network */,
 				3811DE9825C9D88300A708ED /* Storage */,
 				3811DEA525C9D88300A708ED /* UnlockManager */,
+				DD9ECB662CA99EFE00AA7C45 /* RemoteControl */,
 			);
 			path = Services;
 			sourceTree = "<group>";
