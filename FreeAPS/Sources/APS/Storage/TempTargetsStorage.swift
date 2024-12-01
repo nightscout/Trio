@@ -18,7 +18,8 @@ protocol TempTargetsStorage {
     func loadLatestTempTargetConfigurations(fetchLimit: Int) async -> [NSManagedObjectID]
     func syncDate() -> Date
     func recent() -> [TempTarget]
-    func getTempTargetsNotYetUploadedToNightscout() -> [NightscoutTreatment]
+    func getTempTargetsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
+    func getTempTargetRunsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func presets() -> [TempTarget]
     func current() -> TempTarget?
 }
@@ -224,29 +225,80 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         return last
     }
 
-    func getTempTargetsNotYetUploadedToNightscout() -> [NightscoutTreatment] {
-        let uploaded = storage.retrieve(OpenAPS.Nightscout.uploadedTempTargets, as: [NightscoutTreatment].self) ?? []
+    func getTempTargetsNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TempTargetStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate.lastActiveOverrideNotYetUploadedToNightscout, // TODO: create adjustment predicate (OR+TT)
+            key: "date",
+            ascending: false
+        )
 
-        let eventsManual = recent().filter { $0.enteredBy == TempTarget.manual }
-        let treatments = eventsManual.map {
-            NightscoutTreatment(
-                duration: Int($0.duration),
-                rawDuration: nil,
-                rawRate: nil,
-                absolute: nil,
-                rate: nil,
-                eventType: .nsTempTarget,
-                createdAt: $0.createdAt,
-                enteredBy: TempTarget.manual,
-                bolus: nil,
-                insulin: nil,
-                notes: nil,
-                carbs: nil,
-                targetTop: $0.targetTop,
-                targetBottom: $0.targetBottom
-            )
+        return await backgroundContext.perform {
+            guard let fetchedTempTargets = results as? [TempTargetStored] else { return [] }
+
+            return fetchedTempTargets.map { tempTarget in
+                NightscoutTreatment(
+                    duration: Int(truncating: tempTarget.duration ?? 60),
+                    rawDuration: nil,
+                    rawRate: nil,
+                    absolute: nil,
+                    rate: nil,
+                    eventType: .nsTempTarget,
+                    createdAt: tempTarget.date ?? Date(),
+                    enteredBy: TempTarget.manual,
+                    bolus: nil,
+                    insulin: nil,
+                    notes: tempTarget.name ?? "Custom Temporary Target",
+                    carbs: nil,
+                    targetTop: tempTarget
+                        .target as Decimal? ?? (self.settingsManager.settings.units == .mgdL ? 100.0 : 100.asMmolL),
+                    targetBottom: tempTarget
+                        .target as Decimal? ?? (self.settingsManager.settings.units == .mgdL ? 100.0 : 100.asMmolL)
+                )
+            }
         }
-        return Array(Set(treatments).subtracting(Set(uploaded)))
+    }
+
+    func getTempTargetRunsNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TempTargetRunStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate(
+                format: "startDate >= %@ AND isUploadedToNS == %@",
+                Date.oneDayAgo as NSDate,
+                false as NSNumber
+            ),
+            key: "startDate",
+            ascending: false
+        )
+
+        return await backgroundContext.perform {
+            guard let fetchedTempTargetRuns = results as? [TempTargetRunStored] else { return [] }
+
+            return fetchedTempTargetRuns.map { tempTargetRun in
+                var durationInMinutes = (tempTargetRun.endDate?.timeIntervalSince(tempTargetRun.startDate ?? Date()) ?? 1) / 60
+                durationInMinutes = durationInMinutes < 1 ? 1 : durationInMinutes
+                return NightscoutTreatment(
+                    duration: Int(durationInMinutes),
+                    rawDuration: nil,
+                    rawRate: nil,
+                    absolute: nil,
+                    rate: nil,
+                    eventType: .nsTempTarget,
+                    createdAt: (tempTargetRun.startDate ?? tempTargetRun.tempTarget?.date) ?? Date(),
+                    enteredBy: TempTarget.manual,
+                    bolus: nil,
+                    insulin: nil,
+                    notes: nil,
+                    carbs: nil,
+                    targetTop: tempTargetRun
+                        .target as Decimal? ?? (self.settingsManager.settings.units == .mgdL ? 100.0 : 100.asMmolL),
+                    targetBottom: tempTargetRun
+                        .target as Decimal? ?? (self.settingsManager.settings.units == .mgdL ? 100.0 : 100.asMmolL)
+                )
+            }
+        }
     }
 
     func presets() -> [TempTarget] {

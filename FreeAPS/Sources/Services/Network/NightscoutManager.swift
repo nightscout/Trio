@@ -21,9 +21,9 @@ protocol NightscoutManager: GlucoseSource {
     func uploadTempTargets() async
     func uploadManualGlucose() async
     func uploadProfiles() async
+    func uploadNoteTreatment(note: String) async
     func importSettings() async -> ScheduledNightscoutProfile?
     var cgmURL: URL? { get }
-    func uploadNoteTreatment(note: String) async
 }
 
 final class BaseNightscoutManager: NightscoutManager, Injectable {
@@ -116,7 +116,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func subscribe() {
-        broadcaster.register(TempTargetsObserver.self, observer: self)
+//        broadcaster.register(TempTargetsObserver.self, observer: self)
 
         _ = reachabilityManager.startListening(onQueue: processQueue) { status in
             debug(.nightscout, "Network status: \(status)")
@@ -137,6 +137,20 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         coreDataPublisher?.filterByEntityName("OverrideRunStored").sink { [weak self] _ in
             self?.uploadOverridesSubject.send()
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("TempTargetStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task.detached {
+                await self.uploadTempTargets()
+            }
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("TempTargetRunStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task.detached {
+                await self.uploadTempTargets()
+            }
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
@@ -539,7 +553,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 targetTop: nil,
                 targetBottom: nil
             )
-            await uploadTreatments([siteTreatment], fileToSave: OpenAPS.Nightscout.uploadedPodAge)
+            await uploadNonCoreDataTreatments([siteTreatment])
         }
     }
 
@@ -698,10 +712,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
     func uploadGlucose() async {
         await uploadGlucose(glucoseStorage.getGlucoseNotYetUploadedToNightscout())
-        await uploadTreatments(
-            glucoseStorage.getCGMStateNotYetUploadedToNightscout(),
-            fileToSave: OpenAPS.Nightscout.uploadedCGMState
-        )
+        await uploadNonCoreDataTreatments(glucoseStorage.getCGMStateNotYetUploadedToNightscout())
     }
 
     func uploadManualGlucose() async {
@@ -709,10 +720,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadPumpHistory() async {
-        await uploadTreatments(
-            pumpHistoryStorage.getPumpHistoryNotYetUploadedToNightscout(),
-            fileToSave: OpenAPS.Nightscout.uploadedPumphistory
-        )
+        await uploadPumpHistory(pumpHistoryStorage.getPumpHistoryNotYetUploadedToNightscout())
     }
 
     func uploadCarbs() async {
@@ -726,10 +734,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadTempTargets() async {
-        await uploadTreatments(
-            tempTargetsStorage.getTempTargetsNotYetUploadedToNightscout(),
-            fileToSave: OpenAPS.Nightscout.uploadedTempTargets
-        )
+        await uploadTempTargets(await tempTargetsStorage.getTempTargetsNotYetUploadedToNightscout())
+        await uploadTempTargetRuns(await tempTargetsStorage.getTempTargetRunsNotYetUploadedToNightscout())
     }
 
     private func uploadGlucose(_ glucose: [BloodGlucose]) async {
@@ -774,7 +780,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    private func uploadTreatments(_ treatments: [NightscoutTreatment], fileToSave _: String) async {
+    private func uploadNonCoreDataTreatments(_ treatments: [NightscoutTreatment]) async {
         guard !treatments.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
             return
         }
@@ -784,8 +790,23 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 try await nightscout.uploadTreatments(Array(chunk))
             }
 
-            // If successful, update the isUploadedToNS property of the PumpEventStored objects
-            await updateTreatmentsAsUploaded(treatments)
+            debug(.nightscout, "Treatments uploaded")
+        } catch {
+            debug(.nightscout, error.localizedDescription)
+        }
+    }
+
+    private func uploadPumpHistory(_ treatments: [NightscoutTreatment]) async {
+        guard !treatments.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
+            return
+        }
+
+        do {
+            for chunk in treatments.chunks(ofCount: 100) {
+                try await nightscout.uploadTreatments(Array(chunk))
+            }
+
+            await updatePumpEventStoredsAsUploaded(treatments)
 
             debug(.nightscout, "Treatments uploaded")
         } catch {
@@ -793,7 +814,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    private func updateTreatmentsAsUploaded(_ treatments: [NightscoutTreatment]) async {
+    private func updatePumpEventStoredsAsUploaded(_ treatments: [NightscoutTreatment]) async {
         await backgroundContext.perform {
             let ids = treatments.map(\.id) as NSArray
             let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
@@ -979,6 +1000,89 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
+    private func uploadTempTargets(_ tempTargets: [NightscoutTreatment]) async {
+        guard !tempTargets.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
+            return
+        }
+
+        do {
+            for chunk in tempTargets.chunks(ofCount: 100) {
+                try await nightscout.uploadTreatments(Array(chunk))
+            }
+
+            // If successful, update the isUploadedToNS property of the TempTargetStored objects
+            await updateTempTargetsAsUploaded(tempTargets)
+
+            debug(.nightscout, "Temp Targets uploaded")
+        } catch {
+            debug(.nightscout, error.localizedDescription)
+        }
+    }
+
+    private func updateTempTargetsAsUploaded(_ tempTargets: [NightscoutTreatment]) async {
+        await backgroundContext.perform {
+            let ids = tempTargets.map(\.id) as NSArray
+            let fetchRequest: NSFetchRequest<TempTargetStored> = TempTargetStored.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
+
+            do {
+                let results = try self.backgroundContext.fetch(fetchRequest)
+                for result in results {
+                    result.isUploadedToNS = true
+                }
+
+                guard self.backgroundContext.hasChanges else { return }
+                try self.backgroundContext.save()
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS for TempTargetStored: \(error.userInfo)"
+                )
+            }
+        }
+    }
+
+    private func uploadTempTargetRuns(_ tempTargetRuns: [NightscoutTreatment]) async {
+        guard !tempTargetRuns.isEmpty, let nightscout = nightscoutAPI, isUploadEnabled else {
+            return
+        }
+
+        do {
+            for chunk in tempTargetRuns.chunks(ofCount: 100) {
+                try await nightscout.uploadTreatments(Array(chunk))
+            }
+
+            // If successful, update the isUploadedToNS property of the TempTargetRunStored objects
+            await updateTempTargetRunsAsUploaded(tempTargetRuns)
+
+            debug(.nightscout, "Temp Target Runs uploaded")
+        } catch {
+            debug(.nightscout, error.localizedDescription)
+        }
+    }
+
+    private func updateTempTargetRunsAsUploaded(_ tempTargetRuns: [NightscoutTreatment]) async {
+        await backgroundContext.perform {
+            let ids = tempTargetRuns.map(\.id) as NSArray
+            let fetchRequest: NSFetchRequest<TempTargetRunStored> = TempTargetRunStored.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
+
+            do {
+                let results = try self.backgroundContext.fetch(fetchRequest)
+                for result in results {
+                    result.isUploadedToNS = true
+                }
+
+                guard self.backgroundContext.hasChanges else { return }
+                try self.backgroundContext.save()
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS for TempTargetRunStored: \(error.userInfo)"
+                )
+            }
+        }
+    }
+
+    // TODO: have this checked; this has never actually written anything to file; the entire logic of this function seems broken
     func uploadNoteTreatment(note: String) async {
         let uploadedNotes = storage.retrieve(OpenAPS.Nightscout.uploadedNotes, as: [NightscoutTreatment].self) ?? []
         let now = Date()
@@ -992,7 +1096,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 targetTop: nil,
                 targetBottom: nil
             )
-            await uploadTreatments([noteTreatment], fileToSave: OpenAPS.Nightscout.uploadedNotes)
+            await uploadNonCoreDataTreatments([noteTreatment])
+            // TODO: fix/adjust, if necessary
+//            await uploadTreatments([noteTreatment], fileToSave: OpenAPS.Nightscout.uploadedNotes)
         }
     }
 }
@@ -1001,14 +1107,6 @@ extension Array {
     func chunks(ofCount count: Int) -> [[Element]] {
         stride(from: 0, to: self.count, by: count).map {
             Array(self[$0 ..< Swift.min($0 + count, self.count)])
-        }
-    }
-}
-
-extension BaseNightscoutManager: TempTargetsObserver {
-    func tempTargetsDidUpdate(_: [TempTarget]) {
-        Task.detached {
-            await self.uploadTempTargets()
         }
     }
 }
