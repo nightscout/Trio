@@ -41,6 +41,8 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
                         for tempTarget in filteredTargets {
                             await self.tempTargetsStorage.storeTempTarget(tempTarget: tempTarget)
                         }
+                        // TODO: verify this works! WIP!
+                        self.tempTargetsStorage.saveTempTargetsToStorage(filteredTargets)
                     }
                 }
             }
