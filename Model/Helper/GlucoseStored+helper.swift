@@ -153,9 +153,9 @@ struct GlucoseEntryDTO: Decodable, ImportableDTO {
         glucoseEntry.glucose = Int16(glucose)
         glucoseEntry.direction = direction
         glucoseEntry.isManual = isManual ?? false
-        glucoseEntry.isUploadedToNS = false
-        glucoseEntry.isUploadedToHealth = false
-        glucoseEntry.isUploadedToTidepool = false
+        glucoseEntry.isUploadedToNS = true
+        glucoseEntry.isUploadedToHealth = true
+        glucoseEntry.isUploadedToTidepool = true
 
         return glucoseEntry
     }

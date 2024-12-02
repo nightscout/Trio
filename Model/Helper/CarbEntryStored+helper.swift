@@ -91,9 +91,9 @@ struct CarbEntryDTO: Decodable, ImportableDTO {
         carbEntry.protein = protein ?? 0.0
         carbEntry.isFPU = isFPU ?? false
         carbEntry.note = note
-        carbEntry.isUploadedToNS = false
-        carbEntry.isUploadedToHealth = false
-        carbEntry.isUploadedToTidepool = false
+        carbEntry.isUploadedToNS = true
+        carbEntry.isUploadedToHealth = true
+        carbEntry.isUploadedToTidepool = true
         return carbEntry
     }
 }
