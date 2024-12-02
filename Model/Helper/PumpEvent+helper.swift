@@ -101,6 +101,7 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
     case tempBasal(TempBasalDTO)
     case tempBasalDuration(TempBasalDurationDTO)
     case pumpSuspend(PumpSuspendDTO)
+    case pumpResume(PumpResumeDTO)
     case unknown(String) // Catch-all for unknown types
 
     func encode(to encoder: Encoder) throws {
@@ -113,6 +114,8 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
             try tempBasalDuration.encode(to: encoder)
         case let .pumpSuspend(pumpSuspend):
             try pumpSuspend.encode(to: encoder)
+        case let .pumpResume(pumpResume):
+            try pumpResume.encode(to: encoder)
         case let .unknown(type):
             debugPrint("⚠️ Skipping unknown type during encoding: \(type)")
         }
@@ -147,6 +150,9 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
         case "PumpSuspend":
             let pumpSuspendDTO = try singleValueContainer.decode(PumpSuspendDTO.self)
             self = .pumpSuspend(pumpSuspendDTO)
+        case "PumpResume":
+            let pumpResumeDTO = try singleValueContainer.decode(PumpResumeDTO.self)
+            self = .pumpResume(pumpResumeDTO)
         default:
             debugPrint("⚠️ Unknown _type value: \(type)")
             self = .unknown(type)
@@ -157,9 +163,13 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
     typealias ManagedObject = PumpEventStored
 
     func store(in context: NSManagedObjectContext) -> PumpEventStored {
+        let pumpEvent = PumpEventStored(context: context)
+        pumpEvent.isUploadedToNS = true
+        pumpEvent.isUploadedToHealth = true
+        pumpEvent.isUploadedToTidepool = true
+        
         switch self {
         case let .bolus(bolusDTO):
-            let pumpEvent = PumpEventStored(context: context)
             pumpEvent.id = bolusDTO.id
             pumpEvent.timestamp = ISO8601DateFormatter().date(from: bolusDTO.timestamp)
             pumpEvent.type = bolusDTO._type
@@ -173,7 +183,6 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
             return pumpEvent
 
         case let .tempBasal(tempBasalDTO):
-            let pumpEvent = PumpEventStored(context: context)
             pumpEvent.id = tempBasalDTO.id
             pumpEvent.timestamp = ISO8601DateFormatter().date(from: tempBasalDTO.timestamp)
             pumpEvent.type = tempBasalDTO._type
@@ -186,7 +195,6 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
             return pumpEvent
 
         case let .tempBasalDuration(tempBasalDurationDTO):
-            let pumpEvent = PumpEventStored(context: context)
             pumpEvent.id = tempBasalDurationDTO.id
             pumpEvent.timestamp = ISO8601DateFormatter().date(from: tempBasalDurationDTO.timestamp)
             pumpEvent.type = tempBasalDurationDTO._type
@@ -198,12 +206,17 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
             return pumpEvent
 
         case let .pumpSuspend(pumpSuspendDTO):
-            let pumpEvent = PumpEventStored(context: context)
             pumpEvent.id = pumpSuspendDTO.id
             pumpEvent.timestamp = ISO8601DateFormatter().date(from: pumpSuspendDTO.timestamp)
             pumpEvent.type = pumpSuspendDTO._type
 
-            // You can map additional pump suspend-specific fields here
+            return pumpEvent
+            
+        case let .pumpResume(pumpResumeDTO):
+            pumpEvent.id = pumpResumeDTO.id
+            pumpEvent.timestamp = ISO8601DateFormatter().date(from: pumpResumeDTO.timestamp)
+            pumpEvent.type = pumpResumeDTO._type
+
             return pumpEvent
 
         case .unknown:
@@ -262,6 +275,13 @@ struct PumpSuspendDTO: Codable {
     var timestamp: String
     var reason: String?
     var _type: String = "PumpSuspend"
+}
+
+struct PumpResumeDTO: Codable {
+    var id: String
+    var timestamp: String
+    var reason: String?
+    var _type: String = "PumpResume"
 }
 
 // Extension with helper functions to map pump events to DTO objects via uniform masking enum
