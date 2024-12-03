@@ -343,7 +343,7 @@ extension DataTable {
             let formattedDates = "\(dateFormatter.string(from: item.startDate)) - \(dateFormatter.string(from: item.endDate))"
 
             let labels: [String] = [
-                "\(item.target) \(state.units.rawValue)",
+                "\(state.units == .mgdL ? item.target : item.target.asMmolL) \(state.units.rawValue)",
                 formattedDates
             ].filter { !$0.isEmpty }
 
