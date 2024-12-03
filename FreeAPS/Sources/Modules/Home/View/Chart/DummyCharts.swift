@@ -65,18 +65,16 @@ extension MainChartView {
     }
 
     var dummyCobChart: some View {
-        Chart {
-            drawCOB(dummy: true)
-        }
-        .id("DummyCobChart")
-        .frame(minHeight: geo.size.height * 0.12)
-        .frame(width: screenSize.width - 10)
-        .chartXScale(domain: startMarker ... endMarker)
-        .chartXAxis { basalChartXAxis }
-        .chartXAxis(.hidden)
-        .chartYAxis { cobIobChartYAxis }
-        .chartYAxis(.hidden)
-        .chartYScale(domain: state.minValueCobChart ... state.maxValueCobChart)
-        .chartLegend(.hidden)
+        Chart {}
+            .id("DummyCobChart")
+            .frame(minHeight: geo.size.height * 0.12)
+            .frame(width: screenSize.width - 10)
+            .chartXScale(domain: startMarker ... endMarker)
+            .chartXAxis { basalChartXAxis }
+            .chartXAxis(.hidden)
+            .chartYAxis { cobIobChartYAxis }
+            .chartYAxis(.hidden)
+            .chartYScale(domain: state.minValueCobChart ... state.maxValueCobChart)
+            .chartLegend(.hidden)
     }
 }

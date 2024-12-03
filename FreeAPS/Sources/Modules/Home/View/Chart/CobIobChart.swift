@@ -6,47 +6,37 @@ extension MainChartView {
     var cobIobChart: some View {
         Chart {
             drawCurrentTimeMarker()
-            drawIOB()
-            drawCOB(dummy: false)
+            drawCOBIOBChart()
 
             if let selectedCOBValue {
-                PointMark(
-                    x: .value("Time", selectedCOBValue.deliverAt ?? now, unit: .minute),
-                    y: .value("Value", selectedCOBValue.cob)
+                drawSelectedInnerPoint(
+                    xValue: selectedCOBValue.deliverAt ?? Date.now,
+                    yValue: Double(selectedCOBValue.cob),
+                    axis: "COB"
                 )
-                .symbolSize(CGSize(width: 15, height: 15))
-                .foregroundStyle(Color.orange.opacity(0.8))
-                .position(by: .value("Axis", "COB"))
-
-                PointMark(
-                    x: .value("Time", selectedCOBValue.deliverAt ?? now, unit: .minute),
-                    y: .value("Value", selectedCOBValue.cob)
+                drawSelectedOuterPoint(
+                    xValue: selectedCOBValue.deliverAt ?? Date.now,
+                    yValue: Double(selectedCOBValue.cob),
+                    axis: "IOB",
+                    color: Color.orange
                 )
-                .symbolSize(CGSize(width: 6, height: 6))
-                .foregroundStyle(Color.primary)
-                .position(by: .value("Axis", "COB"))
             }
 
             if let selectedIOBValue {
                 let rawAmount = selectedIOBValue.iob?.doubleValue ?? 0
-
-                // as iob and cob share the same y axis and cob is usually >> iob we need to weigh iob visually
                 let amount: Double = rawAmount > 0 ? rawAmount * 5 : rawAmount * 6
-                PointMark(
-                    x: .value("Time", selectedIOBValue.deliverAt ?? now, unit: .minute),
-                    y: .value("Value", amount)
-                )
-                .symbolSize(CGSize(width: 15, height: 15))
-                .foregroundStyle(Color.darkerBlue.opacity(0.8))
-                .position(by: .value("Axis", "IOB"))
 
-                PointMark(
-                    x: .value("Time", selectedIOBValue.deliverAt ?? now, unit: .minute),
-                    y: .value("Value", amount)
+                drawSelectedInnerPoint(
+                    xValue: selectedIOBValue.deliverAt ?? Date.now,
+                    yValue: amount,
+                    axis: "COB"
                 )
-                .symbolSize(CGSize(width: 6, height: 6))
-                .foregroundStyle(Color.primary)
-                .position(by: .value("Axis", "IOB"))
+                drawSelectedOuterPoint(
+                    xValue: selectedIOBValue.deliverAt ?? Date.now,
+                    yValue: amount,
+                    axis: "IOB",
+                    color: Color.darkerBlue
+                )
             }
         }
         .chartForegroundStyleScale([
@@ -69,43 +59,54 @@ extension MainChartView {
         return Double(minValue) ... Double(maxValue)
     }
 
-    func drawCOB(dummy: Bool) -> some ChartContent {
-        ForEach(state.enactedAndNonEnactedDeterminations) { cob in
-            let amount = Int(cob.cob)
-            let date: Date = cob.deliverAt ?? Date()
-
-            if dummy {
-                LineMark(x: .value("Time", date), y: .value("Value", amount))
-                    .foregroundStyle(Color.clear)
-                    .position(by: .value("Axis", "COB"))
-                AreaMark(x: .value("Time", date), y: .value("Value", amount))
-                    .foregroundStyle(Color.clear)
-                    .position(by: .value("Axis", "COB"))
-            } else {
-                LineMark(x: .value("Time", date), y: .value("Value", amount))
-                    .foregroundStyle(by: .value("Type", "COB"))
-                    .position(by: .value("Axis", "COB"))
-                AreaMark(x: .value("Time", date), y: .value("Value", amount))
-                    .foregroundStyle(by: .value("Type", "COB"))
-                    .position(by: .value("Axis", "COB"))
-                    .opacity(0.2)
-            }
-        }
+    private func drawSelectedInnerPoint(xValue: Date, yValue: Double, axis: String) -> some ChartContent {
+        PointMark(
+            x: .value("Time", xValue, unit: .minute),
+            y: .value("Value", yValue)
+        )
+        .symbolSize(CGSize(width: 6, height: 6))
+        .foregroundStyle(Color.primary)
+        .position(by: .value("Axis", axis))
     }
 
-    func drawIOB() -> some ChartContent {
-        ForEach(state.enactedAndNonEnactedDeterminations) { iob in
-            let rawAmount = iob.iob?.doubleValue ?? 0
+    private func drawSelectedOuterPoint(xValue: Date, yValue: Double, axis: String, color: Color) -> some ChartContent {
+        PointMark(
+            x: .value("Time", xValue, unit: .minute),
+            y: .value("Value", yValue)
+        )
+        .symbolSize(CGSize(width: 15, height: 15))
+        .foregroundStyle(color.opacity(0.8))
+        .position(by: .value("Axis", axis))
+    }
+
+    func drawCOBIOBChart() -> some ChartContent {
+        ForEach(state.enactedAndNonEnactedDeterminations) { item in
+
+            // MARK: - COB line and area mark
+
+            let amountCOB = Int(item.cob)
+            let date: Date = item.deliverAt ?? Date()
+
+            LineMark(x: .value("Time", date), y: .value("Value", amountCOB))
+                .foregroundStyle(by: .value("Type", "COB"))
+                .position(by: .value("Axis", "COB"))
+            AreaMark(x: .value("Time", date), y: .value("Value", amountCOB))
+                .foregroundStyle(by: .value("Type", "COB"))
+                .position(by: .value("Axis", "COB"))
+                .opacity(0.2)
+
+            // MARK: - IOB line and area mark
+
+            let rawAmount = item.iob?.doubleValue ?? 0
 
             // as iob and cob share the same y axis and cob is usually >> iob we need to weigh iob visually
-            let amount: Double = rawAmount > 0 ? rawAmount * 5 : rawAmount * 6
-            let date: Date = iob.deliverAt ?? Date()
+            let amountIOB: Double = rawAmount > 0 ? rawAmount * 5 : rawAmount * 6
 
-            AreaMark(x: .value("Time", date), y: .value("Amount", amount))
+            AreaMark(x: .value("Time", date), y: .value("Amount", amountIOB))
                 .foregroundStyle(by: .value("Type", "IOB"))
                 .position(by: .value("Axis", "IOB"))
                 .opacity(0.2)
-            LineMark(x: .value("Time", date), y: .value("Amount", amount))
+            LineMark(x: .value("Time", date), y: .value("Amount", amountIOB))
                 .foregroundStyle(by: .value("Type", "IOB"))
                 .position(by: .value("Axis", "IOB"))
         }
