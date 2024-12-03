@@ -28,9 +28,13 @@ extension MainChartView {
             }
 
             if let selectedIOBValue {
+                let rawAmount = selectedIOBValue.iob?.doubleValue ?? 0
+
+                // as iob and cob share the same y axis and cob is usually >> iob we need to weigh iob visually
+                let amount: Double = rawAmount > 0 ? rawAmount * 5 : rawAmount * 6
                 PointMark(
                     x: .value("Time", selectedIOBValue.deliverAt ?? now, unit: .minute),
-                    y: .value("Value", Int(truncating: selectedIOBValue.iob ?? 0))
+                    y: .value("Value", amount)
                 )
                 .symbolSize(CGSize(width: 15, height: 15))
                 .foregroundStyle(Color.darkerBlue.opacity(0.8))
@@ -38,7 +42,7 @@ extension MainChartView {
 
                 PointMark(
                     x: .value("Time", selectedIOBValue.deliverAt ?? now, unit: .minute),
-                    y: .value("Value", Int(truncating: selectedIOBValue.iob ?? 0))
+                    y: .value("Value", amount)
                 )
                 .symbolSize(CGSize(width: 6, height: 6))
                 .foregroundStyle(Color.primary)
@@ -94,7 +98,7 @@ extension MainChartView {
             let rawAmount = iob.iob?.doubleValue ?? 0
 
             // as iob and cob share the same y axis and cob is usually >> iob we need to weigh iob visually
-            let amount: Double = rawAmount > 0 ? rawAmount * 3 : rawAmount * 4
+            let amount: Double = rawAmount > 0 ? rawAmount * 5 : rawAmount * 6
             let date: Date = iob.deliverAt ?? Date()
 
             AreaMark(x: .value("Time", date), y: .value("Amount", amount))
