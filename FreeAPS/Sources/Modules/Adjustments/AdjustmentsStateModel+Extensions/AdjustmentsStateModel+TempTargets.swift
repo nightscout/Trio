@@ -181,7 +181,8 @@ extension Adjustments.StateModel {
         await disableAllActiveTempTargets(createTempTargetRunEntry: true)
         let tempTarget = TempTarget(
             name: tempTargetName,
-            createdAt: date,
+            /// We don't need to use the state var date here as we are using a different function for scheduled Temp Targets 'saveScheduledTempTarget()'
+            createdAt: Date(),
             targetTop: tempTargetTarget,
             targetBottom: tempTargetTarget,
             duration: tempTargetDuration,
