@@ -42,7 +42,7 @@ struct OverrideView: ChartContent {
         ForEach(overrideRunStored) { overrideRunStored in
             let start: Date = overrideRunStored.startDate ?? .distantPast
             let end: Date = overrideRunStored.endDate ?? Date()
-            let target = overrideRunStored.target?.decimalValue ?? 100
+            let target = (overrideRunStored.target?.decimalValue ?? 100) == 0 ? 100 : overrideRunStored.target!.decimalValue
             RuleMark(
                 xStart: .value("Start", start, unit: .second),
                 xEnd: .value("End", end, unit: .second),

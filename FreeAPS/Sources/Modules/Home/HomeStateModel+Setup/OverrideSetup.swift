@@ -38,13 +38,6 @@ extension Home.StateModel {
         return TimeInterval(overrideDuration * 60) // return seconds
     }
 
-    @MainActor func calculateTarget(override: OverrideStored) -> Decimal {
-        guard let overrideTarget = override.target, overrideTarget != 0 else {
-            return 100 // default
-        }
-        return overrideTarget.decimalValue
-    }
-
     // Setup expired Overrides
     func setupOverrideRunStored() {
         Task {
@@ -101,7 +94,7 @@ extension Home.StateModel {
         newOverrideRunStored.name = object.name
         newOverrideRunStored.startDate = object.date ?? .distantPast
         newOverrideRunStored.endDate = Date()
-        newOverrideRunStored.target = NSDecimalNumber(decimal: calculateTarget(override: object))
+        newOverrideRunStored.target = NSDecimalNumber(decimal: overrideStorage.calculateTarget(override: object))
         newOverrideRunStored.override = object
         newOverrideRunStored.isUploadedToNS = false
 

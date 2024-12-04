@@ -89,7 +89,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
 
     @MainActor func calculateTarget(override: OverrideStored) -> Decimal {
         guard let overrideTarget = override.target, overrideTarget != 0 else {
-            return 100 // default
+            return 0
         }
         return overrideTarget.decimalValue
     }

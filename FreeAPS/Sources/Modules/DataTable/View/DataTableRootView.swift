@@ -237,7 +237,7 @@ extension DataTable {
                     name: override.name ?? "Override",
                     startDate: override.startDate ?? Date(),
                     endDate: override.endDate ?? Date(),
-                    target: override.target?.decimalValue ?? 100, /// Should we handle the default better?
+                    target: override.target?.decimalValue,
                     type: .override
                 )
             }
@@ -248,7 +248,7 @@ extension DataTable {
                     name: tempTarget.name ?? "Temp Target",
                     startDate: tempTarget.startDate ?? Date(),
                     endDate: tempTarget.endDate ?? Date(),
-                    target: tempTarget.target?.decimalValue ?? 100,
+                    target: tempTarget.target?.decimalValue,
                     type: .tempTarget
                 )
             }
@@ -262,7 +262,7 @@ extension DataTable {
             let name: String
             let startDate: Date
             let endDate: Date
-            let target: Decimal
+            let target: Decimal?
             let type: AdjustmentType
         }
 
@@ -293,8 +293,15 @@ extension DataTable {
             let formattedDates =
                 "\(Formatter.dateFormatter.string(from: item.startDate)) - \(Formatter.dateFormatter.string(from: item.endDate))"
 
+            let targetDescription: String = {
+                guard let target = item.target, target != 0 else {
+                    return ""
+                }
+                return "\(state.units == .mgdL ? target : target.asMmolL) \(state.units.rawValue)"
+            }()
+
             let labels: [String] = [
-                "\(state.units == .mgdL ? item.target : item.target.asMmolL) \(state.units.rawValue)",
+                targetDescription,
                 formattedDates
             ].filter { !$0.isEmpty }
 

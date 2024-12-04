@@ -16,6 +16,7 @@ extension Home {
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
         @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
         @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
+        @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         var manualGlucose: [BloodGlucose] = []
