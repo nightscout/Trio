@@ -37,10 +37,7 @@ struct EditTempTargetForm: View {
         _isPreset = State(initialValue: tempTargetToEdit.isPreset)
         _isEnabled = State(initialValue: tempTargetToEdit.enabled)
 
-        var tempTargetHalfBasal: Decimal = state.settingHalfBasalTarget
-        if tempTargetToEdit.halfBasalTarget != nil {
-            tempTargetHalfBasal = tempTargetToEdit.halfBasalTarget as! Decimal
-        }
+        let tempTargetHalfBasal: Decimal = (tempTargetToEdit.halfBasalTarget?.decimalValue) ?? state.settingHalfBasalTarget
 
         let H = tempTargetHalfBasal
         let T = tempTargetToEdit.target?.decimalValue ?? 100

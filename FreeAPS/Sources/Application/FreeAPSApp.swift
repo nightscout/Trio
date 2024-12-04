@@ -62,32 +62,14 @@ import Swinject
     init() {
         debug(
             .default,
-            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(BuildDetails.default.buildDate())] [buildExpires: \(BuildDetails.default.calculateExpirationDate())]"
+            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.default.buildDate()))] [buildExpires: \(String(describing: BuildDetails.default.calculateExpirationDate()))]"
         )
-
-        // Configure global appearance for UITabBar
-//        configureTabBarAppearance()
 
         // Load services
         loadServices()
 
         // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
         cleanupOldData()
-    }
-
-    // Function to configure global tab bar appearance
-    private func configureTabBarAppearance() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithDefaultBackground()
-
-        // Blur the background
-        appearance.backgroundEffect = UIBlurEffect(style: .systemChromeMaterial)
-
-        // Keep background semi-transparent
-        appearance.backgroundColor = UIColor.clear
-
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 
     var body: some Scene {

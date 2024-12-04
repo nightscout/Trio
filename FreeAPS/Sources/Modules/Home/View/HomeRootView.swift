@@ -848,7 +848,6 @@ extension Home {
                     highlightButtons()
                 }
                 appState.configureTabBarAppearance()
-//                AppState.configureTabBarAppearance()
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)

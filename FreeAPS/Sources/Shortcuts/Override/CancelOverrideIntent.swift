@@ -8,15 +8,9 @@ struct CancelOverrideIntent: AppIntent {
     // Description of the action in the Shortcuts app
     static var description = IntentDescription(.init("Cancel an active override", table: "ShortcutsDetail"))
 
-    internal var intentRequest: OverridePresetsIntentRequest
-
-    init() {
-        intentRequest = OverridePresetsIntentRequest()
-    }
-
     @MainActor func perform() async throws -> some ProvidesDialog {
         do {
-            await intentRequest.cancelOverride()
+            await OverridePresetsIntentRequest().cancelOverride()
             return .result(
                 dialog: IntentDialog(LocalizedStringResource("Override canceled", table: "ShortcutsDetail"))
             )

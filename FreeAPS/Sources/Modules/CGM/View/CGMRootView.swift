@@ -231,10 +231,10 @@ extension CGM {
                         )
                     }
                 }
-                .onChange(of: setupCGM) { setupCGM in
+                .onChange(of: setupCGM) { _, setupCGM in
                     state.setupCGM = setupCGM
                 }
-                .onChange(of: state.setupCGM) { setupCGM in
+                .onChange(of: state.setupCGM) { _, setupCGM in
                     self.setupCGM = setupCGM
                 }
                 .screenNavigation(self)

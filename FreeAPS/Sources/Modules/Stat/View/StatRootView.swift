@@ -124,7 +124,7 @@ extension Stat {
                     ForEach(Stat.StateModel.Duration.allCases) { duration in
                         Text(NSLocalizedString(duration.rawValue, comment: "")).tag(Optional(duration))
                     }
-                }.onChange(of: state.selectedDuration) { newValue in
+                }.onChange(of: state.selectedDuration) { _, newValue in
                     state.setupGlucoseArray(for: newValue)
                 }
                 .pickerStyle(.segmented).background(.cyan.opacity(0.2))
