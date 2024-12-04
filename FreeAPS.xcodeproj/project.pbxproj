@@ -344,6 +344,7 @@
 		BDC2EA472C3045AD00E5BBD0 /* Override.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC2EA462C3045AD00E5BBD0 /* Override.swift */; };
 		BDCAF2382C639F35002DC907 /* SettingItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCAF2372C639F35002DC907 /* SettingItems.swift */; };
 		BDCD47AF2C1F3F1700F8BCD5 /* OverrideStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */; };
+		BDDAF9EF2D00554500B34E7A /* SelectionPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDAF9EE2D00553E00B34E7A /* SelectionPopoverView.swift */; };
 		BDF34EBE2C0A31D100D51995 /* CustomNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF34EBD2C0A31D000D51995 /* CustomNotification.swift */; };
 		BDF34F832C10C5B600D51995 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF34F822C10C5B600D51995 /* DataManager.swift */; };
 		BDF34F852C10C62E00D51995 /* GlucoseData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF34F842C10C62E00D51995 /* GlucoseData.swift */; };
@@ -1031,6 +1032,7 @@
 		BDC2EA462C3045AD00E5BBD0 /* Override.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Override.swift; sourceTree = "<group>"; };
 		BDCAF2372C639F35002DC907 /* SettingItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingItems.swift; sourceTree = "<group>"; };
 		BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+helper.swift"; sourceTree = "<group>"; };
+		BDDAF9EE2D00553E00B34E7A /* SelectionPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionPopoverView.swift; sourceTree = "<group>"; };
 		BDF34EBD2C0A31D000D51995 /* CustomNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNotification.swift; sourceTree = "<group>"; };
 		BDF34F822C10C5B600D51995 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		BDF34F842C10C62E00D51995 /* GlucoseData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseData.swift; sourceTree = "<group>"; };
@@ -1852,15 +1854,7 @@
 			isa = PBXGroup;
 			children = (
 				BD3CC0712B0B89D50013189E /* MainChartView.swift */,
-				582DF9742C8CDB92001F516D /* GlucoseChartView.swift */,
-				582DF9762C8CDBE7001F516D /* InsulinView.swift */,
-				582DF97A2C8CE209001F516D /* CarbView.swift */,
-				58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */,
-				58D08B2F2C8DEA7500AA37D3 /* ForecastView.swift */,
-				58D08B312C8DF88900AA37D3 /* DummyCharts.swift */,
-				58D08B332C8DF9A700AA37D3 /* CobIobChart.swift */,
-				58D08B372C8DFB6000AA37D3 /* BasalChart.swift */,
-				58D08B392C8DFECD00AA37D3 /* TempTargets.swift */,
+				BDDAF9F12D0055CC00B34E7A /* ChartElements */,
 			);
 			path = Chart;
 			sourceTree = "<group>";
@@ -2488,6 +2482,23 @@
 				BD7DA9AB2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift */,
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		BDDAF9F12D0055CC00B34E7A /* ChartElements */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAF9EE2D00553E00B34E7A /* SelectionPopoverView.swift */,
+				582DF9742C8CDB92001F516D /* GlucoseChartView.swift */,
+				582DF9762C8CDBE7001F516D /* InsulinView.swift */,
+				582DF97A2C8CE209001F516D /* CarbView.swift */,
+				58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */,
+				58D08B2F2C8DEA7500AA37D3 /* ForecastView.swift */,
+				58D08B312C8DF88900AA37D3 /* DummyCharts.swift */,
+				58D08B332C8DF9A700AA37D3 /* CobIobChart.swift */,
+				58D08B372C8DFB6000AA37D3 /* BasalChart.swift */,
+				58D08B392C8DFECD00AA37D3 /* TempTargets.swift */,
+			);
+			path = ChartElements;
 			sourceTree = "<group>";
 		};
 		BDF34F882C10C65E00D51995 /* Data */ = {
@@ -3783,6 +3794,7 @@
 				DDE1795A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift in Sources */,
 				DDE1795B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift in Sources */,
 				DDE1795E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift in Sources */,
+				BDDAF9EF2D00554500B34E7A /* SelectionPopoverView.swift in Sources */,
 				DDE1795F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift in Sources */,
 				DDE179602C910127003CDDB7 /* StatsData+CoreDataClass.swift in Sources */,
 				DDE179612C910127003CDDB7 /* StatsData+CoreDataProperties.swift in Sources */,

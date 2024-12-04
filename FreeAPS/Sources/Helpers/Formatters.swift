@@ -70,6 +70,15 @@ extension Formatter {
 
         return formatter
     }
+
+    static let bolusFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumIntegerDigits = 0
+        formatter.maximumFractionDigits = 2
+        formatter.decimalSeparator = "."
+        return formatter
+    }()
 }
 
 extension JSONDecoder.DateDecodingStrategy {

@@ -32,7 +32,7 @@ struct InsulinView: ChartContent {
                     Image(systemName: "arrowtriangle.down.fill").font(.system(size: size)).foregroundStyle(Color.insulin)
                 }
                 .annotation(position: .top) {
-                    Text(MainChartHelper.bolusFormatter.string(from: amount) ?? "")
+                    Text(Formatter.bolusFormatter.string(from: amount) ?? "")
                         .font(.caption2)
                         .foregroundStyle(Color.primary)
                 }

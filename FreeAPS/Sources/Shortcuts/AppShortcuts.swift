@@ -10,7 +10,7 @@ struct AppShortcuts: AppShortcutsProvider {
                 "Enacts a \(.applicationName) Bolus"
             ],
             shortTitle: "Bolus",
-            systemImageName: "drop.fill"
+            systemImageName: "syringe.fill"
         )
         AppShortcut(
             intent: ApplyTempPresetIntent(),

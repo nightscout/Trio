@@ -39,7 +39,7 @@ struct CarbView: ChartContent {
                         .rotationEffect(.degrees(180))
                 }
                 .annotation(position: .bottom) {
-                    Text(MainChartHelper.carbsFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
+                    Text(Formatter.integerFormatter.string(from: carbAmount as NSNumber)!).font(.caption2)
                         .foregroundStyle(Color.primary)
                 }
             }

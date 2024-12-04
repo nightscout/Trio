@@ -47,7 +47,7 @@ extension MainChartView {
         .frame(minHeight: geo.size.height * 0.12)
         .frame(width: fullWidth(viewWidth: screenSize.width))
         .chartXScale(domain: startMarker ... endMarker)
-        .backport.chartXSelection(value: $selection)
+        .chartXSelection(value: $selection)
         .chartXAxis { basalChartXAxis }
         .chartYAxis { cobIobChartYAxis }
         .chartYScale(domain: combinedYDomain())
