@@ -27,24 +27,6 @@ struct AddTempTargetForm: View {
     @State var hintLabel: String?
     var isCustomizedAdjustSens: Bool = false
 
-    private var formatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }
-
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        if state.units == .mmolL {
-            formatter.maximumFractionDigits = 1
-        }
-        formatter.roundingMode = .halfUp
-        return formatter
-    }
-
     var body: some View {
         NavigationView {
             List {
@@ -331,13 +313,13 @@ struct AddTempTargetForm: View {
 
     private func formattedPercentage(_ value: Double) -> String {
         let percentageNumber = NSNumber(value: value)
-        return formatter.string(from: percentageNumber) ?? "\(value)"
+        return Formatter.integerFormatter.string(from: percentageNumber) ?? "\(value)"
     }
 
     private func formattedGlucose(glucose: Decimal) -> String {
         let formattedValue: String
         if state.units == .mgdL {
-            formattedValue = glucoseFormatter.string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
+            formattedValue = Formatter.glucoseFormatter(for: state.units).string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
         } else {
             formattedValue = glucose.formattedAsMmolL
         }

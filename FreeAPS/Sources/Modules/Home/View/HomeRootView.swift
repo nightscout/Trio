@@ -4,14 +4,26 @@ import SwiftDate
 import SwiftUI
 import Swinject
 
+struct TimePicker: Identifiable {
+    let label: String
+    let number: String
+    var active: Bool
+    let hours: Int16
+    var id: String { label }
+}
+
 extension Home {
     struct RootView: BaseView {
         let resolver: Resolver
         let safeAreaSize: CGFloat = 0.08
 
+        @Environment(\.managedObjectContext) var moc
+        @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
         @State var state = StateModel()
+
+        @State var settingsPath = NavigationPath()
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
         @State var showCancelConfirmDialog = false
@@ -24,27 +36,15 @@ extension Home {
         @State private var statusTitle: String = ""
         @State var showPumpSelection: Bool = false
         @State var notificationsDisabled = false
-
-        struct Buttons: Identifiable {
-            let label: String
-            let number: String
-            var active: Bool
-            let hours: Int16
-            var id: String { label }
-        }
-
-        @State var timeButtons: [Buttons] = [
-            Buttons(label: "2 hours", number: "2", active: false, hours: 2),
-            Buttons(label: "4 hours", number: "4", active: false, hours: 4),
-            Buttons(label: "6 hours", number: "6", active: false, hours: 6),
-            Buttons(label: "12 hours", number: "12", active: false, hours: 12),
-            Buttons(label: "24 hours", number: "24", active: false, hours: 24)
+        @State var timeButtons: [TimePicker] = [
+            TimePicker(label: "2 hours", number: "2", active: false, hours: 2),
+            TimePicker(label: "4 hours", number: "4", active: false, hours: 4),
+            TimePicker(label: "6 hours", number: "6", active: false, hours: 6),
+            TimePicker(label: "12 hours", number: "12", active: false, hours: 12),
+            TimePicker(label: "24 hours", number: "24", active: false, hours: 24)
         ]
 
         let buttonFont = Font.custom("TimeButtonFont", size: 14)
-
-        @Environment(\.managedObjectContext) var moc
-        @Environment(\.colorScheme) var colorScheme
 
         @FetchRequest(fetchRequest: OverrideStored.fetch(
             NSPredicate.lastActiveOverride,
@@ -58,8 +58,6 @@ extension Home {
             fetchLimit: 1
         )) var latestTempTarget: FetchedResults<TempTargetStored>
 
-        // TODO: end todo
-
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -71,13 +69,6 @@ extension Home {
             return formatter
         }
 
-        private var numberFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 2
-            return formatter
-        }
-
         private var fetchedTargetFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -85,26 +76,6 @@ extension Home {
                 formatter.maximumFractionDigits = 1
             } else { formatter.maximumFractionDigits = 0 }
             return formatter
-        }
-
-        private var targetFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 1
-            return formatter
-        }
-
-        private var tirFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 0
-            return formatter
-        }
-
-        private var dateFormatter: DateFormatter {
-            let dateFormatter = DateFormatter()
-            dateFormatter.timeStyle = .short
-            return dateFormatter
         }
 
         private var historySFSymbol: String {
@@ -161,7 +132,7 @@ extension Home {
             guard let lastTempBasal = state.tempBasals.last?.tempBasal, let tempRate = lastTempBasal.rate else {
                 return nil
             }
-            let rateString = numberFormatter.string(from: tempRate as NSNumber) ?? "0"
+            let rateString = Formatter.decimalFormatterWithTwoFractionDigits.string(from: tempRate as NSNumber) ?? "0"
             var manualBasalString = ""
 
             if let apsManager = state.apsManager, apsManager.isManualTempBasal {
@@ -370,7 +341,7 @@ extension Home {
                         Image(systemName: "arrow.right.circle")
                             .font(.system(size: 16, weight: .bold))
                         Text(
-                            numberFormatter.string(
+                            Formatter.decimalFormatterWithTwoFractionDigits.string(
                                 from: (
                                     state.units == .mmolL ? bg
                                         .asMmolL : bg
@@ -398,7 +369,7 @@ extension Home {
                         .foregroundColor(Color.insulin)
                     Text(
                         (
-                            numberFormatter
+                            Formatter.decimalFormatterWithTwoFractionDigits
                                 .string(from: (state.enactedAndNonEnactedDeterminations.first?.iob ?? 0) as NSNumber) ?? "0"
                         ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
@@ -414,7 +385,7 @@ extension Home {
                         .foregroundColor(.loopYellow)
                     Text(
                         (
-                            numberFormatter.string(
+                            Formatter.decimalFormatterWithTwoFractionDigits.string(
                                 from: NSNumber(value: state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
                             ) ?? "0"
                         ) +
@@ -448,7 +419,7 @@ extension Home {
                     Text(
                         "TDD: " +
                             (
-                                numberFormatter
+                                Formatter.decimalFormatterWithTwoFractionDigits
                                     .string(from: (state.determinationsFromPersistence.first?.totalDailyDose ?? 0) as NSNumber) ??
                                     "0"
                             ) +
@@ -712,7 +683,7 @@ extension Home {
                 let bolusString =
                     (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
                         + " of " +
-                        (numberFormatter.string(from: bolusTotal as NSNumber) ?? "0")
+                        (Formatter.decimalFormatterWithTwoFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
                         + NSLocalizedString(" U", comment: "Insulin unit")
 
                 ZStack {
@@ -1007,8 +978,6 @@ extension Home {
             .navigationBarTitle("Legend", displayMode: .inline)
         }
 
-        @State var settingsPath = NavigationPath()
-
         @ViewBuilder func tabBar() -> some View {
             ZStack(alignment: .bottom) {
                 TabView(selection: $selectedTab) {
@@ -1021,7 +990,7 @@ extension Home {
                         let carbsRequiredDecimal = Decimal(carbsRequired)
                         if carbsRequiredDecimal > state.settingsManager.settings.carbsRequiredThreshold {
                             let numberAsNSNumber = NSDecimalNumber(decimal: carbsRequiredDecimal)
-                            return (numberFormatter.string(from: numberAsNSNumber) ?? "") + " g"
+                            return (Formatter.decimalFormatterWithTwoFractionDigits.string(from: numberAsNSNumber) ?? "") + " g"
                         }
                         return nil
                     }()
@@ -1147,7 +1116,7 @@ extension Home {
                 }
 
                 if let errorMessage = state.errorMessage, let date = state.errorDate {
-                    Text(NSLocalizedString("Error at", comment: "") + " " + dateFormatter.string(from: date))
+                    Text(NSLocalizedString("Error at", comment: "") + " " + Formatter.dateFormatter.string(from: date))
                         .foregroundColor(.white)
                         .font(.headline)
                         .padding(.bottom, 4)

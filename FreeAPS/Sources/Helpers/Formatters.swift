@@ -28,6 +28,48 @@ extension Formatter {
         formatter.formatOptions = [.withInternetDateTime]
         return formatter
     }()
+
+    static let decimalFormatterWithTwoFractionDigits: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 2
+        return formatter
+    }()
+
+    static let dateFormatter: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.timeStyle = .short
+        return dateFormatter
+    }()
+
+    static let decimalFormatterWithOneFractionDigit: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        return formatter
+    }()
+
+    static let integerFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        return formatter
+    }()
+
+    static func glucoseFormatter(for units: GlucoseUnits) -> NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.roundingMode = .halfUp
+
+        switch units {
+        case .mmolL:
+            formatter.maximumFractionDigits = 1
+        case .mgdL:
+            formatter.maximumFractionDigits = 0
+        }
+
+        return formatter
+    }
 }
 
 extension JSONDecoder.DateDecodingStrategy {

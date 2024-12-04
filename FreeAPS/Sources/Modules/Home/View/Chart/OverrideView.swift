@@ -4,7 +4,7 @@ import Foundation
 import SwiftUI
 
 struct OverrideView: ChartContent {
-    @ObservedObject var state: Home.StateModel // @ObservedObject will be replaced when converting to Observable
+    var state: Home.StateModel
     let overrides: [OverrideStored]
     let overrideRunStored: [OverrideRunStored]
     let units: GlucoseUnits

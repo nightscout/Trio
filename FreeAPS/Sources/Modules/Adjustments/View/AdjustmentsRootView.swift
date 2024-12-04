@@ -24,28 +24,11 @@ extension Adjustments {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        private var formatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 0
-            return formatter
-        }
-
-        private var glucoseFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 0
-            if state.units == .mmolL {
-                formatter.maximumFractionDigits = 1
-            }
-            formatter.roundingMode = .halfUp
-            return formatter
-        }
-
         private func formattedGlucose(glucose: Decimal) -> String {
             let formattedValue: String
             if state.units == .mgdL {
-                formattedValue = glucoseFormatter.string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
+                formattedValue = Formatter.glucoseFormatter(for: state.units)
+                    .string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
             } else {
                 formattedValue = glucose.formattedAsMmolL
             }
@@ -550,7 +533,7 @@ extension Adjustments {
                             Text("for")
                                 .foregroundColor(.secondary)
                                 .font(.caption)
-                            Text("\(formatter.string(from: (tempTarget.duration ?? 0) as NSNumber)!)")
+                            Text("\(Formatter.integerFormatter.string(from: (tempTarget.duration ?? 0) as NSNumber)!)")
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                             Text("min")
