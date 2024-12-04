@@ -24,7 +24,7 @@ extension MainChartView {
 
             if let selectedIOBValue {
                 let rawAmount = selectedIOBValue.iob?.doubleValue ?? 0
-                let amount: Double = rawAmount > 0 ? rawAmount * 5 : rawAmount * 6
+                let amount: Double = rawAmount > 0 ? rawAmount * 8 : rawAmount * 9
 
                 drawSelectedInnerPoint(
                     xValue: selectedIOBValue.deliverAt ?? Date.now,
@@ -100,7 +100,7 @@ extension MainChartView {
             let rawAmount = item.iob?.doubleValue ?? 0
 
             // as iob and cob share the same y axis and cob is usually >> iob we need to weigh iob visually
-            let amountIOB: Double = rawAmount > 0 ? rawAmount * 5 : rawAmount * 6
+            let amountIOB: Double = rawAmount > 0 ? rawAmount * 8 : rawAmount * 9
 
             AreaMark(x: .value("Time", date), y: .value("Amount", amountIOB))
                 .foregroundStyle(by: .value("Type", "IOB"))
