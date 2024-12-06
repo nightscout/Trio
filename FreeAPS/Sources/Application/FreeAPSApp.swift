@@ -68,6 +68,9 @@ import Swinject
         // Load services
         loadServices()
 
+        // Fix bug in iOS 18 related to the translucent tab bar
+        configureTabBarAppearance()
+
         // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
         cleanupOldData()
     }
@@ -93,6 +96,16 @@ import Swinject
             await scheduleDatabaseCleaning()
             await cleanupOldData()
         }
+    }
+
+    func configureTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+        appearance.backgroundEffect = UIBlurEffect(style: .systemChromeMaterial)
+        appearance.backgroundColor = UIColor.clear
+
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 
     private func colorScheme(for colorScheme: ColorSchemeOption) -> ColorScheme? {

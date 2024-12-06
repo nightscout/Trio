@@ -847,7 +847,6 @@ extension Home {
                 configureView {
                     highlightButtons()
                 }
-                appState.configureTabBarAppearance()
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)
