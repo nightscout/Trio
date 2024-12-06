@@ -22,6 +22,7 @@ protocol TempTargetsStorage {
     func getTempTargetRunsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func presets() -> [TempTarget]
     func current() -> TempTarget?
+    func existsTempTarget(with date: Date) async -> Bool
 }
 
 final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
@@ -167,6 +168,22 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
 
             self.broadcaster.notify(TempTargetsObserver.self, on: self.processQueue) {
                 $0.tempTargetsDidUpdate(uniqEvents)
+            }
+        }
+    }
+
+    func existsTempTarget(with date: Date) async -> Bool {
+        await backgroundContext.perform {
+            // Fetch all Temp Targets with the given date
+            let fetchRequest: NSFetchRequest<TempTargetStored> = TempTargetStored.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "date == %@", date as NSDate)
+
+            do {
+                let results = try self.backgroundContext.fetch(fetchRequest)
+                return !results.isEmpty
+            } catch let error as NSError {
+                debugPrint("\(DebuggingIdentifiers.failed) Failed to check for existing Temp Target: \(error)")
+                return false
             }
         }
     }

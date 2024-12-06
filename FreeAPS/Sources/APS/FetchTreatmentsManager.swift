@@ -1,4 +1,5 @@
 import Combine
+import CoreData
 import Foundation
 import SwiftDate
 import Swinject
@@ -13,6 +14,7 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
 
     private var lifetime = Lifetime()
     private let timer = DispatchTimer(timeInterval: 1.minutes.timeInterval)
+    private var backgroundContext = CoreDataStack.shared.newTaskContext()
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -28,21 +30,46 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
                 debug(.nightscout, "Start fetching carbs and temptargets")
 
                 Task {
+                    // Fetch carbs and temp targets concurrently
                     async let carbs = self.nightscoutManager.fetchCarbs()
                     async let tempTargets = self.nightscoutManager.fetchTempTargets()
 
-                    let filteredCarbs = await carbs.filter { !($0.enteredBy?.contains(CarbsEntry.local) ?? false) }
-                    if filteredCarbs.isNotEmpty {
-                        await self.carbsStorage.storeCarbs(filteredCarbs, areFetchedFromRemote: true)
+                    // Store carbs if available
+                    let fetchedCarbs = await carbs
+                    if fetchedCarbs.isNotEmpty {
+                        await self.carbsStorage.storeCarbs(fetchedCarbs, areFetchedFromRemote: true)
                     }
 
-                    let filteredTargets = await tempTargets.filter { !($0.enteredBy?.contains(TempTarget.local) ?? false) }
-                    if filteredTargets.isNotEmpty {
-                        for tempTarget in filteredTargets {
-                            await self.tempTargetsStorage.storeTempTarget(tempTarget: tempTarget)
+                    // Store temp targets if available
+                    let fetchedTargets = await tempTargets
+                    if fetchedTargets.isNotEmpty {
+                        // Sort temp targets by date
+                        let sortedTargets = fetchedTargets.sorted { lhs, rhs in
+                            lhs.createdAt < rhs.createdAt
                         }
-                        // TODO: verify this works! WIP!
-                        self.tempTargetsStorage.saveTempTargetsToStorage(filteredTargets)
+
+                        // Iterate over all temp targets
+                        for (index, tempTarget) in sortedTargets.enumerated() {
+                            // Skip saving if a Temp Target with the same date already exists
+                            guard await !self.tempTargetsStorage.existsTempTarget(with: tempTarget.createdAt) else {
+                                debug(
+                                    .nightscout,
+                                    "Skipping duplicate temp target with date: \(tempTarget.date ?? Date.distantPast)"
+                                )
+                                continue
+                            }
+                            // Create a mutable copy of tempTarget
+                            var mutableTempTarget = tempTarget
+
+                            // Set enabled to true only for the last temp target
+                            mutableTempTarget.enabled = (index == sortedTargets.count - 1)
+
+                            // Save to Core Data
+                            await self.tempTargetsStorage.storeTempTarget(tempTarget: mutableTempTarget)
+                        }
+
+                        // Save the temp targets to JSON so that they get used by oref
+                        self.tempTargetsStorage.saveTempTargetsToStorage(sortedTargets)
                     }
                 }
             }

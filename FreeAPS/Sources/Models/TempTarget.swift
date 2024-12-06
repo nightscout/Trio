@@ -10,7 +10,7 @@ struct TempTarget: JSON, Identifiable, Equatable, Hashable {
     let enteredBy: String?
     let reason: String?
     let isPreset: Bool?
-    let enabled: Bool?
+    var enabled: Bool?
     let halfBasalTarget: Decimal?
 
     static let local = "Trio"
