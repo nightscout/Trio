@@ -1670,19 +1670,19 @@
 		3811DE9125C9D88200A708ED /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				6B1A8D2C2B156EC100E76752 /* LiveActivity */,
-				CEB434E128B8F9BC00B70274 /* Bluetooth */,
-				F90692A8274B7A980037068D /* HealthKit */,
-				38E8754D275556E100975559 /* WatchManager */,
-				38E87406274F9AA500975559 /* UserNotifications */,
-				3862CC2C2743F9DC00BF832C /* Calendar */,
-				38AEE75025F021F10013F05B /* SettingsManager */,
-				38B4F3C425E5016800E76A18 /* Notifications */,
 				3811DE9225C9D88200A708ED /* Appearance */,
+				CEB434E128B8F9BC00B70274 /* Bluetooth */,
+				3862CC2C2743F9DC00BF832C /* Calendar */,
+				F90692A8274B7A980037068D /* HealthKit */,
+				6B1A8D2C2B156EC100E76752 /* LiveActivity */,
 				3811DE9425C9D88200A708ED /* Network */,
+				38B4F3C425E5016800E76A18 /* Notifications */,
+				DD9ECB662CA99EFE00AA7C45 /* RemoteControl */,
+				38AEE75025F021F10013F05B /* SettingsManager */,
 				3811DE9825C9D88300A708ED /* Storage */,
 				3811DEA525C9D88300A708ED /* UnlockManager */,
-				DD9ECB662CA99EFE00AA7C45 /* RemoteControl */,
+				38E87406274F9AA500975559 /* UserNotifications */,
+				38E8754D275556E100975559 /* WatchManager */,
 			);
 			path = Services;
 			sourceTree = "<group>";

@@ -1,7 +1,8 @@
 import Foundation
+import CoreData
 
 extension TrioRemoteControl {
-    func handleTempTargetCommand(_ pushMessage: PushMessage) async {
+    @MainActor func handleTempTargetCommand(_ pushMessage: PushMessage) async {
         guard let targetValue = pushMessage.target,
               let durationValue = pushMessage.duration
         else {
@@ -25,29 +26,77 @@ extension TrioRemoteControl {
             halfBasalTarget: settings.preferences.halfBasalExerciseTarget
         )
 
-        // TODO: this should probably be try-catch'd ?
         await tempTargetsStorage.storeTempTarget(tempTarget: tempTarget)
-
+        tempTargetsStorage.saveTempTargetsToStorage([tempTarget])
+        
         debug(
             .remoteControl,
             "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
         )
     }
 
-    func cancelTempTarget(_ pushMessage: PushMessage) async {
+    @MainActor func cancelTempTarget(_ pushMessage: PushMessage) async {
         debug(.remoteControl, "Cancelling temp target.")
 
-        guard tempTargetsStorage.current() != nil else {
-            await logError("Command rejected: no active temp target to cancel.")
-            return
-        }
-
-        let cancelEntry = TempTarget.cancel(at: Date())
-        await tempTargetsStorage.storeTempTarget(tempTarget: cancelEntry)
+        await disableAllActiveTempTargets()
 
         debug(
             .remoteControl,
             "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
         )
+    }
+    
+    @MainActor func disableAllActiveTempTargets() async {
+        let ids = await tempTargetsStorage.loadLatestTempTargetConfigurations(fetchLimit: 0)
+
+        let didPostNotification = await viewContext.perform { () -> Bool in
+            do {
+                let results = try ids.compactMap { id in
+                    try self.viewContext.existingObject(with: id) as? TempTargetStored
+                }
+
+                guard !results.isEmpty else {
+                    Task {
+                        await self.logError("Command rejected: no active temp target to cancel.")
+                    }
+                    return false
+                }
+
+                for canceledTempTarget in results where canceledTempTarget.enabled {
+                    let newTempTargetRunStored = TempTargetRunStored(context: self.viewContext)
+                    newTempTargetRunStored.id = UUID()
+                    newTempTargetRunStored.name = canceledTempTarget.name
+                    newTempTargetRunStored.startDate = canceledTempTarget.date ?? .distantPast
+                    newTempTargetRunStored.endDate = Date()
+                    newTempTargetRunStored
+                        .target = canceledTempTarget.target ?? 0
+                    newTempTargetRunStored.tempTarget = canceledTempTarget
+                    newTempTargetRunStored.isUploadedToNS = false
+                    
+                    canceledTempTarget.enabled = false
+                    canceledTempTarget.isUploadedToNS = false
+                }
+
+                if self.viewContext.hasChanges {
+                    try self.viewContext.save()
+                    Foundation.NotificationCenter.default.post(name: .willUpdateTempTargetConfiguration, object: nil)
+                    
+                    // Update the storage so oref can pick up cancellation
+                    self.tempTargetsStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date().addingTimeInterval(-1))])
+                    return true
+                } else {
+                    return false
+                }
+            } catch {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active TempTargets with error: \(error.localizedDescription)"
+                )
+                return false
+            }
+        }
+        
+        if didPostNotification {
+            await awaitNotification(.didUpdateTempTargetConfiguration)
+        }
     }
 }

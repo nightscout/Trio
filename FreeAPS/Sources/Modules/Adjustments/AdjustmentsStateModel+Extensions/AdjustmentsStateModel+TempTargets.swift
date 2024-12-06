@@ -289,7 +289,7 @@ extension Adjustments.StateModel {
                     }
                 }
 
-                // Disable all override except the one with overrideID
+                // Disable all temporary targets except the one with given id
                 for tempTargetToCancel in results {
                     if tempTargetToCancel.objectID != id {
                         tempTargetToCancel.enabled = false
@@ -305,7 +305,7 @@ extension Adjustments.StateModel {
                 }
             } catch {
                 debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Overrides with error: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active TempTargets with error: \(error.localizedDescription)"
                 )
             }
         }
