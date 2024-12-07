@@ -1,5 +1,5 @@
-import Foundation
 import CoreData
+import Foundation
 
 extension TrioRemoteControl {
     @MainActor func handleTempTargetCommand(_ pushMessage: PushMessage) async {
@@ -28,7 +28,7 @@ extension TrioRemoteControl {
 
         await tempTargetsStorage.storeTempTarget(tempTarget: tempTarget)
         tempTargetsStorage.saveTempTargetsToStorage([tempTarget])
-        
+
         debug(
             .remoteControl,
             "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
@@ -45,7 +45,7 @@ extension TrioRemoteControl {
             "Remote command processed successfully. \(pushMessage.humanReadableDescription())"
         )
     }
-    
+
     @MainActor func disableAllActiveTempTargets() async {
         let ids = await tempTargetsStorage.loadLatestTempTargetConfigurations(fetchLimit: 0)
 
@@ -72,7 +72,7 @@ extension TrioRemoteControl {
                         .target = canceledTempTarget.target ?? 0
                     newTempTargetRunStored.tempTarget = canceledTempTarget
                     newTempTargetRunStored.isUploadedToNS = false
-                    
+
                     canceledTempTarget.enabled = false
                     canceledTempTarget.isUploadedToNS = false
                 }
@@ -80,7 +80,7 @@ extension TrioRemoteControl {
                 if self.viewContext.hasChanges {
                     try self.viewContext.save()
                     Foundation.NotificationCenter.default.post(name: .willUpdateTempTargetConfiguration, object: nil)
-                    
+
                     // Update the storage so oref can pick up cancellation
                     self.tempTargetsStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date().addingTimeInterval(-1))])
                     return true
@@ -94,7 +94,7 @@ extension TrioRemoteControl {
                 return false
             }
         }
-        
+
         if didPostNotification {
             await awaitNotification(.didUpdateTempTargetConfiguration)
         }

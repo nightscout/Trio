@@ -48,6 +48,8 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
                             lhs.createdAt < rhs.createdAt
                         }
 
+                        var lastTempTarget: TempTarget?
+
                         // Iterate over all temp targets
                         for (index, tempTarget) in sortedTargets.enumerated() {
                             // Skip saving if a Temp Target with the same date already exists
@@ -58,6 +60,7 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
                                 )
                                 continue
                             }
+
                             // Create a mutable copy of tempTarget
                             var mutableTempTarget = tempTarget
 
@@ -66,6 +69,17 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
 
                             // Save to Core Data
                             await self.tempTargetsStorage.storeTempTarget(tempTarget: mutableTempTarget)
+
+                            // Keep track of the last temp target
+                            if index == sortedTargets.count - 1 {
+                                lastTempTarget = mutableTempTarget
+                            }
+                        }
+
+                        // Check if the last Temp Target is a cancel event
+                        if let lastTempTarget = lastTempTarget, lastTempTarget.reason == TempTarget.cancel {
+                            // Send custom notification to update Adjustments UI
+                            Foundation.NotificationCenter.default.post(name: .didUpdateTempTargetConfiguration, object: nil)
                         }
 
                         // Save the temp targets to JSON so that they get used by oref
