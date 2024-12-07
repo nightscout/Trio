@@ -1852,7 +1852,8 @@ Enact a temp Basal or a temp target */
 /* Smoothing of CGM readings */
 "Smooth Glucose Value" = "Valeur Glycémie lisse";
 
-/* ---------------------------------------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------------------------------------
+
   Infotexts from openaps.docs and androidaps.docs
   Trio
 */
