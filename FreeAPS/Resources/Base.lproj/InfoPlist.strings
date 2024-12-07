@@ -20,4 +20,4 @@
 "NSHealthShareUsageDescription" = "Health App is used to store blood glucose, insulin and carbohydrates";
 
 /* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "To enable the Contact Image feature: get live updates from Trio to your Apple Watch Contact complication";
+"NSContactsUsageDescription" = "Allows Trio to access your contacts for live updates to your Apple Watch contact complication using the 'Contact Trick' feature.";

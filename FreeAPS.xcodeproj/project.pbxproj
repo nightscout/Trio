@@ -533,8 +533,6 @@
 		E592A37F2CEEC046009A472C /* ContactPicture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A37D2CEEC046009A472C /* ContactPicture.swift */; };
 		E592A3802CEEC046009A472C /* ContactTrickManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A37B2CEEC046009A472C /* ContactTrickManager.swift */; };
 		E592A3812CEEC046009A472C /* ContactTrickState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A37C2CEEC046009A472C /* ContactTrickState.swift */; };
-		E592A3832CEEC227009A472C /* FontWeight.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3822CEEC227009A472C /* FontWeight.swift */; };
-		E592A3852CEEC245009A472C /* FontTracking.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3842CEEC245009A472C /* FontTracking.swift */; };
 		E974172296125A5AE99E634C /* PumpConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD22C985B79A2F0D2EA3D9D /* PumpConfigRootView.swift */; };
 		F5CA3DB1F9DC8B05792BBFAA /* CGMDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B5C0607505A38F256BF99A /* CGMDataFlow.swift */; };
 		F5F7E6C1B7F098F59EB67EC5 /* TargetsEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA49538D56989D8DA6FCF538 /* TargetsEditorDataFlow.swift */; };
@@ -1221,8 +1219,6 @@
 		E592A37B2CEEC046009A472C /* ContactTrickManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickManager.swift; sourceTree = "<group>"; };
 		E592A37C2CEEC046009A472C /* ContactTrickState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickState.swift; sourceTree = "<group>"; };
 		E592A37D2CEEC046009A472C /* ContactPicture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactPicture.swift; sourceTree = "<group>"; };
-		E592A3822CEEC227009A472C /* FontWeight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontWeight.swift; sourceTree = "<group>"; };
-		E592A3842CEEC245009A472C /* FontTracking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontTracking.swift; sourceTree = "<group>"; };
 		E625985B47742D498CB1681A /* GlucoseNotificationSettingsProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsProvider.swift; sourceTree = "<group>"; };
 		F816825D28DB441200054060 /* HeartBeatManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HeartBeatManager.swift; sourceTree = "<group>"; };
 		F816825F28DB441800054060 /* BluetoothTransmitter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BluetoothTransmitter.swift; sourceTree = "<group>"; };
@@ -1987,8 +1983,6 @@
 				38D0B3D825EC07C400CB6E88 /* CarbsEntry.swift */,
 				3811DF0125CA9FEA00A708ED /* Credentials.swift */,
 				E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */,
-				E592A3822CEEC227009A472C /* FontWeight.swift */,
-				E592A3842CEEC245009A472C /* FontTracking.swift */,
 				38AEE73C25F0200C0013F05B /* FreeAPSSettings.swift */,
 				383948D925CD64D500E91849 /* Glucose.swift */,
 				382C133625F13A1E00715CE1 /* InsulinSensitivities.swift */,
@@ -3385,7 +3379,6 @@
 				E00EEC0527368630002FF094 /* StorageAssembly.swift in Sources */,
 				DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */,
 				384E803825C388640086DB71 /* Script.swift in Sources */,
-				E592A3832CEEC227009A472C /* FontWeight.swift in Sources */,
 				CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */,
 				3883583425EEB38000E024B2 /* PumpSettings.swift in Sources */,
 				38DAB280260CBB7F00F74C1A /* PumpView.swift in Sources */,
@@ -3763,7 +3756,6 @@
 				DDE179562C910127003CDDB7 /* BolusStored+CoreDataClass.swift in Sources */,
 				DDE179572C910127003CDDB7 /* BolusStored+CoreDataProperties.swift in Sources */,
 				DDE179582C910127003CDDB7 /* ForecastValue+CoreDataClass.swift in Sources */,
-				E592A3852CEEC245009A472C /* FontTracking.swift in Sources */,
 				DDE179592C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift in Sources */,
 				DDE1795A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift in Sources */,
 				DDE1795B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift in Sources */,

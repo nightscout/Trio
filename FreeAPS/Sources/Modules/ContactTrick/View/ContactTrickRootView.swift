@@ -64,6 +64,12 @@ extension ContactTrick {
                         )
                     }
 
+                case .limited:
+                    Section {
+                        Text(
+                            "Access to contacts is limited. Trio needs full access to contacts for this feature to work"
+                        )
+                    }
                 @unknown default:
                     Section {
                         Text(
@@ -194,190 +200,204 @@ extension ContactTrick {
         @State private var availableFonts: [String]? = nil
         let previewState: ContactTrickState
 
-        private let fontSizes: [Int] = [100, 120, 130, 140, 160, 180, 200, 225, 250, 275, 300, 350, 400]
-        private let ringWidths: [Int] = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-        private let ringGaps: [Int] = [0, 1, 2, 3, 4, 5]
+        private let ringWidths: [Int] = [5, 10, 15]
+        private let ringGaps: [Int] = [0, 2, 4]
 
         var body: some View {
-            Section {
-                HStack {
-                    ZStack {
-                        Circle()
-                            .fill(entry.darkMode ? .black : .white)
-                            .foregroundColor(.white)
-                        Image(uiImage: ContactPicture.getImage(contact: entry, state: previewState))
-                            .resizable()
-                            .aspectRatio(1, contentMode: .fit)
-                            .frame(width: 64, height: 64)
-                            .clipShape(Circle())
-                        Circle()
-                            .stroke(lineWidth: 2)
-                            .foregroundColor(.white)
-                    }
-                    .frame(width: 64, height: 64)
-                }
-            }
-            Form {
+            VStack {
                 Section {
-                    Picker(
-                        selection: $entry.layout,
-                        label: Text("Layout")
-                    ) {
-                        ForEach(ContactTrickLayout.allCases) { v in
-                            Text(v.displayName).tag(v)
+                    HStack {
+                        ZStack {
+                            Circle()
+                                .fill(entry.darkMode ? .black : .white)
+                            Image(uiImage: ContactPicture.getImage(contact: entry, state: previewState))
+                                .resizable()
+                                .aspectRatio(1, contentMode: .fit)
+                                .frame(width: 64, height: 64)
+                                .clipShape(Circle())
+                            Circle()
+                                .stroke(lineWidth: 2)
+                                .foregroundColor(.white)
                         }
-                    }
-                }
-                Section {
-                    switch entry.layout {
-                    case .single:
-                        Picker(
-                            selection: $entry.primary,
-                            label: Text("Primary")
-                        ) {
-                            ForEach(ContactTrickValue.allCases) { v in
-                                Text(v.displayName).tag(v)
-                            }
-                        }
-                        Picker(
-                            selection: $entry.top,
-                            label: Text("Top")
-                        ) {
-                            ForEach(ContactTrickValue.allCases) { v in
-                                Text(v.displayName).tag(v)
-                            }
-                        }
-                        Picker(
-                            selection: $entry.bottom,
-                            label: Text("Bottom")
-                        ) {
-                            ForEach(ContactTrickValue.allCases) { v in
-                                Text(v.displayName).tag(v)
-                            }
-                        }
-                    case .split:
-                        Picker(
-                            selection: $entry.top,
-                            label: Text("Top")
-                        ) {
-                            ForEach(ContactTrickValue.allCases) { v in
-                                Text(v.displayName).tag(v)
-                            }
-                        }
-                        Picker(
-                            selection: $entry.bottom,
-                            label: Text("Bottom")
-                        ) {
-                            ForEach(ContactTrickValue.allCases) { v in
-                                Text(v.displayName).tag(v)
-                            }
-                        }
+                        .frame(width: 64, height: 64)
                     }
                 }
 
-                Section(header: Text("Ring")) {
-                    Picker(
-                        selection: $entry.ring1,
-                        label: Text("Outer")
-                    ) {
-                        ForEach(ContactTrickLargeRing.allCases) { v in
-                            Text(v.displayName).tag(v)
-                        }
-                    }
-                    Picker(
-                        selection: $entry.ringWidth,
-                        label: Text("Width")
-                    ) {
-                        ForEach(ringWidths, id: \.self) { s in
-                            Text("\(s)").tag(s)
-                        }
-                    }
-                    Picker(
-                        selection: $entry.ringGap,
-                        label: Text("Gap")
-                    ) {
-                        ForEach(ringGaps, id: \.self) { s in
-                            Text("\(s)").tag(s)
-                        }
-                    }
-                }
-
-                Section(header: Text("Font")) {
-                    if availableFonts == nil {
-                        HStack {
-                            Spacer()
-                            Button {
-                                loadFonts()
-                            } label: {
-                                Text(entry.fontName)
-                            }
-                        }
-                    } else {
+                Form {
+                    Section {
                         Picker(
-                            selection: $entry.fontName,
-                            label: EmptyView()
+                            selection: $entry.layout,
+                            label: Text("Layout")
                         ) {
-                            ForEach(availableFonts!, id: \.self) { f in
-                                Text(f).tag(f)
+                            ForEach(ContactTrickLayout.allCases, id: \.self) { layout in
+                                Text(layout.displayName).tag(layout)
                             }
                         }
-                        .pickerStyle(.navigationLink)
-                        .labelsHidden()
                     }
-                    Picker(
-                        selection: $entry.fontSize,
-                        label: Text("Size")
-                    ) {
-                        ForEach(fontSizes, id: \.self) { s in
-                            Text("\(s)").tag(s)
+
+                    layoutSpecificSection
+
+                    Section(header: Text("Ring")) {
+                        Picker(
+                            selection: $entry.ring1,
+                            label: Text("Outer")
+                        ) {
+                            ForEach(ContactTrickLargeRing.allCases, id: \.self) { ring in
+                                Text(ring.displayName).tag(ring)
+                            }
+                        }
+                        Picker(
+                            selection: $entry.ringWidth,
+                            label: Text("Width")
+                        ) {
+                            ForEach(ringWidths, id: \.self) { width in
+                                Text("\(width)").tag(width)
+                            }
+                        }
+                        Picker(
+                            selection: $entry.ringGap,
+                            label: Text("Gap")
+                        ) {
+                            ForEach(ringGaps, id: \.self) { gap in
+                                Text("\(gap)").tag(gap)
+                            }
                         }
                     }
-                    Picker(
-                        selection: $entry.secondaryFontSize,
-                        label: Text("Secondary size")
-                    ) {
-                        ForEach(fontSizes, id: \.self) { s in
-                            Text("\(s)").tag(s)
+
+                    Section(header: Text("Font")) {
+                        Picker(
+                            selection: $entry.fontSize,
+                            label: Text("Size")
+                        ) {
+                            ForEach(
+                                [
+                                    ContactTrickEntry.fontSize.tiny,
+                                    ContactTrickEntry.fontSize.small,
+                                    ContactTrickEntry.fontSize.regular,
+                                    ContactTrickEntry.fontSize.large
+                                ],
+                                id: \.self
+                            ) { size in
+                                Text("\(size)").tag(size)
+                            }
                         }
-                    }
-                    Picker(
-                        selection: $entry.fontTracking,
-                        label: Text("Tracking")
-                    ) {
-                        ForEach(FontTracking.allCases) { w in
-                            Text(w.displayName).tag(w)
+                        Picker(
+                            selection: $entry.secondaryFontSize,
+                            label: Text("Secondary size")
+                        ) {
+                            ForEach(
+                                [
+                                    ContactTrickEntry.fontSize.tiny,
+                                    ContactTrickEntry.fontSize.small,
+                                    ContactTrickEntry.fontSize.regular,
+                                    ContactTrickEntry.fontSize.large
+                                ],
+                                id: \.self
+                            ) { size in
+                                Text("\(size)").tag(size)
+                            }
                         }
-                    }
-                    if entry.isDefaultFont() {
+                        Picker(
+                            selection: $entry.fontWidth,
+                            label: Text("Tracking")
+                        ) {
+                            ForEach(
+                                [Font.Width.standard, Font.Width.condensed, Font.Width.expanded],
+                                id: \.self
+                            ) { width in
+                                Text(width.displayName).tag(width)
+                            }
+                        }
                         Picker(
                             selection: $entry.fontWeight,
                             label: Text("Weight")
                         ) {
-                            ForEach(FontWeight.allCases) { w in
-                                Text(w.displayName).tag(w)
+                            ForEach(
+                                [Font.Weight.regular, Font.Weight.bold, Font.Weight.black],
+                                id: \.self
+                            ) { weight in
+                                Text(weight.displayName).tag(weight)
                             }
                         }
                     }
-                }
-                Section {
-                    Toggle("Dark mode", isOn: $entry.darkMode)
+
+                    Section {
+                        Toggle("Dark mode", isOn: $entry.darkMode)
+                    }
                 }
             }
         }
 
-        private func loadFonts() {
-            if availableFonts != nil {
-                return
-            }
-            var data = [String]()
-
-            data.append("Default Font")
-            UIFont.familyNames.forEach { family in
-                UIFont.fontNames(forFamilyName: family).forEach { font in
-                    data.append(font)
+        private var layoutSpecificSection: some View {
+            Section {
+                if entry.layout == .single {
+                    Picker(
+                        selection: $entry.primary,
+                        label: Text("Primary")
+                    ) {
+                        ForEach(ContactTrickValue.allCases, id: \.self) { value in
+                            Text(value.displayName).tag(value)
+                        }
+                    }
+                    Picker(
+                        selection: $entry.top,
+                        label: Text("Top")
+                    ) {
+                        ForEach(ContactTrickValue.allCases, id: \.self) { value in
+                            Text(value.displayName).tag(value)
+                        }
+                    }
+                    Picker(
+                        selection: $entry.bottom,
+                        label: Text("Bottom")
+                    ) {
+                        ForEach(ContactTrickValue.allCases, id: \.self) { value in
+                            Text(value.displayName).tag(value)
+                        }
+                    }
+                } else if entry.layout == .split {
+                    Picker(
+                        selection: $entry.top,
+                        label: Text("Top")
+                    ) {
+                        ForEach(ContactTrickValue.allCases, id: \.self) { value in
+                            Text(value.displayName).tag(value)
+                        }
+                    }
+                    Picker(
+                        selection: $entry.bottom,
+                        label: Text("Bottom")
+                    ) {
+                        ForEach(ContactTrickValue.allCases, id: \.self) { value in
+                            Text(value.displayName).tag(value)
+                        }
+                    }
                 }
             }
-            availableFonts = data
+        }
+    }
+}
+
+extension Font.Width {
+    var displayName: String {
+        switch self {
+        case .condensed: return "Condensed"
+        case .expanded: return "Expanded"
+        case .compressed: return "Compressed"
+        case .standard: return "Standard"
+        default: return "Unknown"
+        }
+    }
+}
+
+extension Font.Weight {
+    var displayName: String {
+        switch self {
+        case .light: return "Light"
+        case .regular: return "Regular"
+        case .medium: return "Medium"
+        case .bold: return "Bold"
+        default: return "Unknown"
         }
     }
 }

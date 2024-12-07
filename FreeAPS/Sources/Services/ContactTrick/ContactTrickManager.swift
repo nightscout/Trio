@@ -80,9 +80,10 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
                 .share()
                 .eraseToAnyPublisher()
 
-        contacts = storage.retrieve(OpenAPS.Settings.contactTrick, as: [ContactTrickEntry].self)
-            ?? [ContactTrickEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.contactTrick))
-            ?? []
+        // TODO: fetch this from CD
+//        contacts = storage.retrieve(OpenAPS.Settings.contactTrick, as: [ContactTrickEntry].self)
+//            ?? [ContactTrickEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.contactTrick))
+//            ?? []
 
         knownIds = contacts.compactMap(\.contactId)
 
@@ -259,7 +260,9 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
             let newContacts = contacts.enumerated().map { index, entry in renderContact(entry, index + 1, self.state) }
             if newContacts != contacts {
                 // when we create new contacts we store the IDs, in that case we need to write into the settings storage
-                storage.save(newContacts, as: OpenAPS.Settings.contactTrick)
+
+                // TODO: save this in CD
+//                storage.save(newContacts, as: OpenAPS.Settings.contactTrick)
             }
             contacts = newContacts
         }

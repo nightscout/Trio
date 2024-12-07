@@ -28,7 +28,7 @@ struct ContactPicture: View {
         let secondaryTextColor: Color = contact.darkMode ?
             Color(red: 220 / 256, green: 220 / 256, blue: 220 / 256) :
             Color(red: 40 / 256, green: 40 / 256, blue: 40 / 256)
-        let fontWeight = contact.fontWeight.toUI()
+        let fontWeight = contact.fontWeight
 
         UIGraphicsBeginImageContext(rect.size)
         if let context = UIGraphicsGetCurrentContext() {
@@ -36,8 +36,8 @@ struct ContactPicture: View {
             context.setAllowsAntialiasing(true)
         }
 
-        let ringWidth = Double(contact.ringWidth) / 100.0
-        let ringGap = Double(contact.ringGap) / 100.0
+        let ringWidth = Double(contact.ringWidth.rawValue) / 100.0
+        let ringGap = Double(contact.ringGap.rawValue) / 100.0
         let outerGap = 0.03
 
         if contact.ring1 != .none {
@@ -137,10 +137,9 @@ struct ContactPicture: View {
                 state: state,
                 rect: primaryRect,
                 fitHeigh: false,
-                fontName: contact.fontName,
-                fontSize: contact.fontSize,
+                fontSize: contact.fontSize.rawValue,
                 fontWeight: fontWeight,
-                fontTracking: contact.fontTracking,
+                fontWidth: contact.fontWidth,
                 color: textColor
             )
             if showTop {
@@ -150,10 +149,9 @@ struct ContactPicture: View {
                     state: state,
                     rect: topRect,
                     fitHeigh: true,
-                    fontName: contact.fontName,
-                    fontSize: secondaryFontSize,
+                    fontSize: secondaryFontSize.rawValue,
                     fontWeight: fontWeight,
-                    fontTracking: contact.fontTracking,
+                    fontWidth: contact.fontWidth,
                     color: secondaryTextColor
                 )
             }
@@ -164,10 +162,9 @@ struct ContactPicture: View {
                     state: state,
                     rect: bottomRect,
                     fitHeigh: true,
-                    fontName: contact.fontName,
-                    fontSize: secondaryFontSize,
+                    fontSize: secondaryFontSize.rawValue,
                     fontWeight: fontWeight,
-                    fontTracking: contact.fontTracking,
+                    fontWidth: contact.fontWidth,
                     color: secondaryTextColor
                 )
             }
@@ -204,10 +201,9 @@ struct ContactPicture: View {
                 state: state,
                 rect: topRect,
                 fitHeigh: true,
-                fontName: contact.fontName,
-                fontSize: topFontSize,
+                fontSize: topFontSize.rawValue,
                 fontWeight: fontWeight,
-                fontTracking: contact.fontTracking,
+                fontWidth: contact.fontWidth,
                 color: textColor
             )
             displayPiece(
@@ -216,10 +212,9 @@ struct ContactPicture: View {
                 state: state,
                 rect: bottomRect,
                 fitHeigh: true,
-                fontName: contact.fontName,
-                fontSize: bottomFontSize,
+                fontSize: bottomFontSize.rawValue,
                 fontWeight: fontWeight,
-                fontTracking: contact.fontTracking,
+                fontWidth: contact.fontWidth,
                 color: textColor
             )
         }
@@ -234,34 +229,11 @@ struct ContactPicture: View {
         state: ContactTrickState,
         rect: CGRect,
         fitHeigh: Bool,
-        fontName: String?,
         fontSize: Int,
-        fontWeight: UIFont.Weight,
-        fontTracking: FontTracking,
+        fontWeight: Font.Weight,
+        fontWidth: Font.Width,
         color: Color
     ) {
-//        guard let context = UIGraphicsGetCurrentContext() else {
-//            return
-//        }
-//
-//        // Set the fill color (optional)
-//        context.setFillColor(UIColor.red.cgColor)
-//
-//        // Set the stroke color (optional)
-//        context.setStrokeColor(UIColor.black.cgColor)
-//
-//        // Set the line width (optional)
-//        context.setLineWidth(2.0)
-//
-//        // Create a rectangle
-//        let rectangle = CGRect(x: 50, y: 50, width: 100, height: 100)
-//
-//        // Fill the rectangle (if fill color is set)
-//        context.fill(rect)
-//
-//        // Stroke the rectangle (if stroke color is set)
-//        context.stroke(rect)
-
         guard value != .none else { return }
         if value == .ring {
             drawRing(
@@ -299,10 +271,9 @@ struct ContactPicture: View {
                 text: text,
                 rect: rect,
                 fitHeigh: fitHeigh,
-                fontName: fontName,
                 fontSize: fontSize,
                 fontWeight: fontWeight,
-                fontTracking: fontTracking,
+                fontWidth: fontWidth,
                 color: textColor
             )
         }
@@ -312,24 +283,19 @@ struct ContactPicture: View {
         text: String,
         rect: CGRect,
         fitHeigh: Bool,
-        fontName: String?,
         fontSize: Int,
-        fontWeight: UIFont.Weight,
-        fontTracking: FontTracking,
+        fontWeight: Font.Weight,
+        fontWidth: Font.Width,
         color: Color
     ) {
         var theFontSize = fontSize
 
         func makeAttributes(_ size: Int) -> [NSAttributedString.Key: Any] {
-            let font = if let fontName {
-                UIFont(name: fontName, size: CGFloat(size)) ?? UIFont.systemFont(ofSize: CGFloat(size), weight: fontWeight)
-            } else {
-                UIFont.systemFont(ofSize: CGFloat(size), weight: fontWeight)
-            }
+            let font = UIFont.systemFont(ofSize: CGFloat(size), weight: fontWeight.uiFontWeight)
             return [
                 .font: font,
                 .foregroundColor: UIColor(color),
-                .tracking: fontTracking.value * Double(fontSize)
+                .kern: fontWidth.value * Double(fontSize) // `kern` is the correct key for tracking
             ]
         }
 
@@ -337,17 +303,17 @@ struct ContactPicture: View {
 
         var stringSize = text.size(withAttributes: attributes)
         while stringSize.width > rect.width * 0.90 || fitHeigh && (stringSize.height > rect.height * 0.95), theFontSize > 50 {
-            theFontSize = theFontSize - 10
+            theFontSize -= 10
             attributes = makeAttributes(theFontSize)
             stringSize = text.size(withAttributes: attributes)
         }
 
         text.draw(
-            in: CGRectMake(
-                rect.minX + (rect.width - stringSize.width) / 2,
-                rect.minY + (rect.height - stringSize.height) / 2,
-                rect.minX + stringSize.width,
-                rect.minY + stringSize.height
+            in: CGRect(
+                x: rect.minX + (rect.width - stringSize.width) / 2,
+                y: rect.minY + (rect.height - stringSize.height) / 2,
+                width: stringSize.width,
+                height: stringSize.height
             ),
             withAttributes: attributes
         )
@@ -610,21 +576,19 @@ struct ContactPicture: View {
     }
 }
 
-extension FontWeight {
-    func toUI() -> UIFont.Weight {
+extension Font.Weight {
+    var uiFontWeight: UIFont.Weight {
         switch self {
-        case .light:
-            UIFont.Weight.light
-        case .regular:
-            UIFont.Weight.regular
-        case .medium:
-            UIFont.Weight.medium
-        case .semibold:
-            UIFont.Weight.semibold
-        case .bold:
-            UIFont.Weight.bold
-        case .black:
-            UIFont.Weight.black
+        case .ultraLight: return .ultraLight
+        case .thin: return .thin
+        case .light: return .light
+        case .regular: return .regular
+        case .medium: return .medium
+        case .semibold: return .semibold
+        case .bold: return .bold
+        case .heavy: return .heavy
+        case .black: return .black
+        default: return .regular
         }
     }
 }
@@ -655,7 +619,7 @@ struct ContactPicture_Previews: PreviewProvider {
     struct Preview: View {
         @State var rangeIndicator: Bool = true
         @State var darkMode: Bool = true
-        @State var fontSize: Int = 130
+        @State var fontSize: ContactTrickEntry.fontSize = .small
         @State var fontWeight: UIFont.Weight = .bold
         @State var fontName: String? = "AmericanTypewriter"
 
@@ -666,7 +630,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         primary: .glucose,
                         top: .delta,
                         bottom: .trend,
-                        fontSize: 100,
+                        fontSize: fontSize,
                         fontWeight: .medium
                     )
                 ),
@@ -685,7 +649,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         ring1: .iob,
                         primary: .glucose,
                         bottom: .trend,
-                        fontSize: 100,
+                        fontSize: fontSize,
                         fontWeight: .medium
                     )
                 ),
@@ -704,7 +668,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         primary: .glucose,
                         top: .ring,
                         bottom: .trend,
-                        fontSize: 100,
+                        fontSize: fontSize,
                         fontWeight: .medium
                     )
                 ),
@@ -723,7 +687,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         primary: .glucose,
                         top: .none,
                         bottom: .trend,
-                        fontSize: 100,
+                        fontSize: fontSize,
                         fontWeight: .medium
                     )
                 ),
@@ -741,7 +705,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         primary: .glucose,
                         top: .none,
                         bottom: .eventualBG,
-                        fontSize: 100,
+                        fontSize: fontSize,
                         fontWeight: .medium
                     )
                 ),
@@ -759,7 +723,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         primary: .lastLoopDate,
                         top: .none,
                         bottom: .none,
-                        fontSize: 100,
+                        fontSize: fontSize,
                         fontWeight: .medium
                     )
                 ),
@@ -777,7 +741,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         primary: .glucose,
                         top: .none,
                         bottom: .none,
-                        fontSize: 100,
+                        fontSize: fontSize,
                         fontWeight: .medium
                     )
                 ),
@@ -796,7 +760,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         layout: .split,
                         top: .iob,
                         bottom: .cob,
-                        fontSize: 100,
+                        fontSize: fontSize,
                         fontWeight: .medium
                     )
                 ),
@@ -814,9 +778,9 @@ struct ContactPicture_Previews: PreviewProvider {
                         layout: .single,
                         ring1: .iobcob,
                         primary: .none,
-                        ringWidth: 8,
-                        ringGap: 3,
-                        fontSize: 100,
+                        ringWidth: .regular,
+                        ringGap: .regular,
+                        fontSize: fontSize,
                         fontWeight: .medium
                     )
                 ),
@@ -836,7 +800,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         layout: .single,
                         ring1: .iobcob,
                         primary: .none,
-                        fontSize: 100,
+                        fontSize: fontSize,
                         fontWeight: .medium
                     )
                 ),
@@ -856,7 +820,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         layout: .single,
                         ring1: .iobcob,
                         primary: .none,
-                        fontSize: 100,
+                        fontSize: fontSize,
                         fontWeight: .medium
                     )
                 ),
@@ -877,7 +841,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         ring1: .iobcob,
                         primary: .glucose,
                         bottom: .trend,
-                        fontSize: 100,
+                        fontSize: fontSize,
                         fontWeight: .medium
                     )
                 ),
