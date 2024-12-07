@@ -619,7 +619,7 @@ struct ContactPicture_Previews: PreviewProvider {
     struct Preview: View {
         @State var rangeIndicator: Bool = true
         @State var darkMode: Bool = true
-        @State var fontSize: ContactTrickEntry.fontSize = .small
+        @State var fontSize: ContactTrickEntry.FontSize = .small
         @State var fontWeight: UIFont.Weight = .bold
         @State var fontName: String? = "AmericanTypewriter"
 

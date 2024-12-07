@@ -271,10 +271,10 @@ extension ContactTrick {
                         ) {
                             ForEach(
                                 [
-                                    ContactTrickEntry.fontSize.tiny,
-                                    ContactTrickEntry.fontSize.small,
-                                    ContactTrickEntry.fontSize.regular,
-                                    ContactTrickEntry.fontSize.large
+                                    ContactTrickEntry.FontSize.tiny,
+                                    ContactTrickEntry.FontSize.small,
+                                    ContactTrickEntry.FontSize.regular,
+                                    ContactTrickEntry.FontSize.large
                                 ],
                                 id: \.self
                             ) { size in
@@ -287,10 +287,10 @@ extension ContactTrick {
                         ) {
                             ForEach(
                                 [
-                                    ContactTrickEntry.fontSize.tiny,
-                                    ContactTrickEntry.fontSize.small,
-                                    ContactTrickEntry.fontSize.regular,
-                                    ContactTrickEntry.fontSize.large
+                                    ContactTrickEntry.FontSize.tiny,
+                                    ContactTrickEntry.FontSize.small,
+                                    ContactTrickEntry.FontSize.regular,
+                                    ContactTrickEntry.FontSize.large
                                 ],
                                 id: \.self
                             ) { size in
@@ -374,30 +374,6 @@ extension ContactTrick {
                     }
                 }
             }
-        }
-    }
-}
-
-extension Font.Width {
-    var displayName: String {
-        switch self {
-        case .condensed: return "Condensed"
-        case .expanded: return "Expanded"
-        case .compressed: return "Compressed"
-        case .standard: return "Standard"
-        default: return "Unknown"
-        }
-    }
-}
-
-extension Font.Weight {
-    var displayName: String {
-        switch self {
-        case .light: return "Light"
-        case .regular: return "Regular"
-        case .medium: return "Medium"
-        case .bold: return "Bold"
-        default: return "Unknown"
         }
     }
 }

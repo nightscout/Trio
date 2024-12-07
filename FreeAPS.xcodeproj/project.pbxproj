@@ -465,6 +465,7 @@
 		DD9ECB712CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB6E2CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift */; };
 		DD9ECB722CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB6F2CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift */; };
 		DD9ECB742CA9A0C300AA7C45 /* RemoteControlConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB732CA9A0C300AA7C45 /* RemoteControlConfig.swift */; };
+		DDB37CC52D05048F00D99BF4 /* ContactTrickStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC42D05048F00D99BF4 /* ContactTrickStorage.swift */; };
 		DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */; };
 		DDD163122C4C689900CD525A /* OverrideStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163112C4C689900CD525A /* OverrideStateModel.swift */; };
 		DDD163142C4C68D300CD525A /* OverrideProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163132C4C68D300CD525A /* OverrideProvider.swift */; };
@@ -1153,6 +1154,9 @@
 		DD9ECB6E2CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteControlConfigProvider.swift; sourceTree = "<group>"; };
 		DD9ECB6F2CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteControlConfigDataFlow.swift; sourceTree = "<group>"; };
 		DD9ECB732CA9A0C300AA7C45 /* RemoteControlConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteControlConfig.swift; sourceTree = "<group>"; };
+		DDB37CC22D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataClass.swift"; sourceTree = "<group>"; };
+		DDB37CC32D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDB37CC42D05048F00D99BF4 /* ContactTrickStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickStorage.swift; sourceTree = "<group>"; };
 		DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LiveActivity+Helper.swift"; sourceTree = "<group>"; };
 		DDD163112C4C689900CD525A /* OverrideStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideStateModel.swift; sourceTree = "<group>"; };
 		DDD163132C4C68D300CD525A /* OverrideProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideProvider.swift; sourceTree = "<group>"; };
@@ -2063,6 +2067,7 @@
 		38A0362725ECF05300FCBB52 /* Storage */ = {
 			isa = PBXGroup;
 			children = (
+				DDB37CC42D05048F00D99BF4 /* ContactTrickStorage.swift */,
 				385CEAC325F2F154002D6D5B /* AnnouncementsStorage.swift */,
 				38AEE75625F0F18E0013F05B /* CarbsStorage.swift */,
 				38A0363A25ECF07E00FCBB52 /* GlucoseStorage.swift */,
@@ -2819,38 +2824,40 @@
 		DDE179112C9100FA003CDDB7 /* Classes+Properties */ = {
 			isa = PBXGroup;
 			children = (
-				DDE179322C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift */,
-				DDE179332C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift */,
-				DDE179342C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift */,
-				DDE179352C910127003CDDB7 /* LoopStatRecord+CoreDataProperties.swift */,
 				DDE179362C910127003CDDB7 /* BolusStored+CoreDataClass.swift */,
 				DDE179372C910127003CDDB7 /* BolusStored+CoreDataProperties.swift */,
-				DDE179382C910127003CDDB7 /* ForecastValue+CoreDataClass.swift */,
-				DDE179392C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift */,
 				DDE1793A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift */,
 				DDE1793B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift */,
-				DDE1793C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift */,
-				DDE1793D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift */,
+				DDB37CC22D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataClass.swift */,
+				DDB37CC32D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataProperties.swift */,
+				DDE179422C910127003CDDB7 /* Forecast+CoreDataClass.swift */,
+				DDE179432C910127003CDDB7 /* Forecast+CoreDataProperties.swift */,
+				DDE179382C910127003CDDB7 /* ForecastValue+CoreDataClass.swift */,
+				DDE179392C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift */,
+				DDE179442C910127003CDDB7 /* GlucoseStored+CoreDataClass.swift */,
+				DDE179452C910127003CDDB7 /* GlucoseStored+CoreDataProperties.swift */,
+				DDE179342C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift */,
+				DDE179352C910127003CDDB7 /* LoopStatRecord+CoreDataProperties.swift */,
+				DDE179322C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift */,
+				DDE179332C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift */,
+				DDE179462C910127003CDDB7 /* OpenAPS_Battery+CoreDataClass.swift */,
+				DDE179472C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift */,
+				DDE1794E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift */,
+				DDE1794F2C910127003CDDB7 /* OrefDetermination+CoreDataProperties.swift */,
+				DDE1794C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift */,
+				DDE1794D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift */,
+				DDE179502C910127003CDDB7 /* OverrideStored+CoreDataClass.swift */,
+				DDE179512C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift */,
 				DDE1793E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift */,
 				DDE1793F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift */,
 				DDE179402C910127003CDDB7 /* StatsData+CoreDataClass.swift */,
 				DDE179412C910127003CDDB7 /* StatsData+CoreDataProperties.swift */,
-				DDE179422C910127003CDDB7 /* Forecast+CoreDataClass.swift */,
-				DDE179432C910127003CDDB7 /* Forecast+CoreDataProperties.swift */,
-				DDE179442C910127003CDDB7 /* GlucoseStored+CoreDataClass.swift */,
-				DDE179452C910127003CDDB7 /* GlucoseStored+CoreDataProperties.swift */,
-				DDE179462C910127003CDDB7 /* OpenAPS_Battery+CoreDataClass.swift */,
-				DDE179472C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift */,
 				DDE179482C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift */,
 				DDE179492C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift */,
+				DDE1793C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift */,
+				DDE1793D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift */,
 				DDE1794A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift */,
 				DDE1794B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift */,
-				DDE1794C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift */,
-				DDE1794D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift */,
-				DDE1794E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift */,
-				DDE1794F2C910127003CDDB7 /* OrefDetermination+CoreDataProperties.swift */,
-				DDE179502C910127003CDDB7 /* OverrideStored+CoreDataClass.swift */,
-				DDE179512C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift */,
 			);
 			path = "Classes+Properties";
 			sourceTree = "<group>";
@@ -3627,6 +3634,7 @@
 				6632A0DC746872439A858B44 /* ISFEditorDataFlow.swift in Sources */,
 				DD17454B2C55C62800211FAC /* AutosensSettingsRootView.swift in Sources */,
 				DDF847DF2C5C28780049BB3B /* LiveActivitySettingsProvider.swift in Sources */,
+				DDB37CC52D05048F00D99BF4 /* ContactTrickStorage.swift in Sources */,
 				DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */,
 				BDF34EBE2C0A31D100D51995 /* CustomNotification.swift in Sources */,
 				BDC2EA472C3045AD00E5BBD0 /* Override.swift in Sources */,
