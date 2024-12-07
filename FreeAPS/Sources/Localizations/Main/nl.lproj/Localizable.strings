@@ -1835,7 +1835,8 @@ Enact a temp Basal or a temp target */
 /* HbA1c for all glucose storage days */
 "all" = "alle ";
 
-/* ---------------------------------------------------------------------------------------------------------------
+/* --------------------------------------------------------  Dexcom G7 --------------------------------------*/
+
 "CGM Configuration" = "CGM instellingen";
 
 "Heartbeat" = "Hartslag";
