@@ -233,12 +233,13 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
                     }
 
                     // When we create new contacts we store the IDs, in that case we need to write into the settings storage
-                    // Save the new entries into Core Data
-                    for newEntry in newEntries {
-                        Task {
-                            await self.contactTrickStorage.storeContactTrickEntry(newEntry)
-                        }
-                    }
+                    // TODO: We actually need to UPDATE the respective entry in CD, so rather RETURN the contactId here and UPDATE the respective entry in CD.
+//                    // Save the new entries into Core Data
+//                    for newEntry in newEntries {
+//                        Task {
+//                            await self.contactTrickStorage.storeContactTrickEntry(newEntry)
+//                        }
+//                    }
 
                     contacts = newContacts
                 }

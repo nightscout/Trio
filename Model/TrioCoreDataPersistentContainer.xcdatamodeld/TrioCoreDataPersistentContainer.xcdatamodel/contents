@@ -36,7 +36,7 @@
         <attribute name="isDarkMode" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="layout" optional="YES" attributeType="String"/>
         <attribute name="primary" optional="YES" attributeType="String"/>
-        <attribute name="ring1" optional="YES" attributeType="String"/>
+        <attribute name="ring" optional="YES" attributeType="String"/>
         <attribute name="ringGap" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="ringWidth" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="top" optional="YES" attributeType="String"/>

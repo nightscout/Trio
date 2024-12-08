@@ -40,7 +40,7 @@ struct ContactPicture: View {
         let ringGap = Double(contact.ringGap.rawValue) / 100.0
         let outerGap = 0.03
 
-        if contact.ring1 != .none {
+        if contact.ring != .none {
             rect = CGRect(
                 x: rect.minX + width * outerGap,
                 y: rect.minY + height * outerGap,
@@ -55,7 +55,7 @@ struct ContactPicture: View {
                 height: rect.height - height * ringWidth
             )
 
-            drawRing(ring: contact.ring1, contact: contact, state: state, rect: ringRect, strokeWidth: width * ringWidth)
+            drawRing(ring: contact.ring, contact: contact, state: state, rect: ringRect, strokeWidth: width * ringWidth)
 
             rect = CGRect(
                 x: rect.minX + width * (ringWidth + ringGap),
@@ -98,12 +98,12 @@ struct ContactPicture: View {
 
             if contact.bottom != .none, contact.top == .none {
                 // move things around a little bit to give more space to the bottom area
-                if contact.ring1 == .iob || contact.ring1 == .cob || contact.ring1 == .iobcob ||
-                    (contact.bottom == .trend && contact.ring1 == .loop)
+                if contact.ring == .iob || contact.ring == .cob || contact.ring == .iobcob ||
+                    (contact.bottom == .trend && contact.ring == .loop)
                 {
                     bottomHeight = bottomHeight + height * ringWidth * 2
                     bottomWidth = bottomWidth + width * ringWidth * 2
-                } else if contact.ring1 == .loop {
+                } else if contact.ring == .loop {
                     primaryHeight = primaryHeight - height * ringWidth
                     bottomY = primaryY + primaryHeight
                     bottomHeight = bottomHeight + height * ringWidth * 2
@@ -646,7 +646,7 @@ struct ContactPicture_Previews: PreviewProvider {
             ContactPicturePreview(
                 contact: .constant(
                     ContactTrickEntry(
-                        ring1: .iob,
+                        ring: .iob,
                         primary: .glucose,
                         bottom: .trend,
                         fontSize: fontSize,
@@ -683,7 +683,7 @@ struct ContactPicture_Previews: PreviewProvider {
             ContactPicturePreview(
                 contact: .constant(
                     ContactTrickEntry(
-                        ring1: .loop,
+                        ring: .loop,
                         primary: .glucose,
                         top: .none,
                         bottom: .trend,
@@ -696,12 +696,12 @@ struct ContactPicture_Previews: PreviewProvider {
                     trend: "→",
                     lastLoopDate: .now
                 ))
-            ).previewDisplayName("bg + trend + ring1")
+            ).previewDisplayName("bg + trend + ring")
 
             ContactPicturePreview(
                 contact: .constant(
                     ContactTrickEntry(
-                        ring1: .loop,
+                        ring: .loop,
                         primary: .glucose,
                         top: .none,
                         bottom: .eventualBG,
@@ -714,12 +714,12 @@ struct ContactPicture_Previews: PreviewProvider {
                     lastLoopDate: .now - 7.minutes,
                     eventualBG: "6.2"
                 ))
-            ).previewDisplayName("bg + eventual + ring1")
+            ).previewDisplayName("bg + eventual + ring")
 
             ContactPicturePreview(
                 contact: .constant(
                     ContactTrickEntry(
-                        ring1: .loop,
+                        ring: .loop,
                         primary: .lastLoopDate,
                         top: .none,
                         bottom: .none,
@@ -732,12 +732,12 @@ struct ContactPicture_Previews: PreviewProvider {
                     trend: "↗︎",
                     lastLoopDate: .now - 2.minutes
                 ))
-            ).previewDisplayName("lastLoopDate + ring1")
+            ).previewDisplayName("lastLoopDate + ring")
 
             ContactPicturePreview(
                 contact: .constant(
                     ContactTrickEntry(
-                        ring1: .loop,
+                        ring: .loop,
                         primary: .glucose,
                         top: .none,
                         bottom: .none,
@@ -752,7 +752,7 @@ struct ContactPicture_Previews: PreviewProvider {
                     iobText: "6.1",
                     maxIOB: 8.0
                 ))
-            ).previewDisplayName("bg + ring1 + ring2")
+            ).previewDisplayName("bg + ring + ring2")
 
             ContactPicturePreview(
                 contact: .constant(
@@ -776,7 +776,7 @@ struct ContactPicture_Previews: PreviewProvider {
                 contact: .constant(
                     ContactTrickEntry(
                         layout: .single,
-                        ring1: .iobcob,
+                        ring: .iobcob,
                         primary: .none,
                         ringWidth: .regular,
                         ringGap: .regular,
@@ -798,7 +798,7 @@ struct ContactPicture_Previews: PreviewProvider {
                 contact: .constant(
                     ContactTrickEntry(
                         layout: .single,
-                        ring1: .iobcob,
+                        ring: .iobcob,
                         primary: .none,
                         fontSize: fontSize,
                         fontWeight: .medium
@@ -818,7 +818,7 @@ struct ContactPicture_Previews: PreviewProvider {
                 contact: .constant(
                     ContactTrickEntry(
                         layout: .single,
-                        ring1: .iobcob,
+                        ring: .iobcob,
                         primary: .none,
                         fontSize: fontSize,
                         fontWeight: .medium
@@ -838,7 +838,7 @@ struct ContactPicture_Previews: PreviewProvider {
                 contact: .constant(
                     ContactTrickEntry(
                         layout: .single,
-                        ring1: .iobcob,
+                        ring: .iobcob,
                         primary: .glucose,
                         bottom: .trend,
                         fontSize: fontSize,

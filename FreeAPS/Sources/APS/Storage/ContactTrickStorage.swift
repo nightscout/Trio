@@ -33,7 +33,7 @@ final class BaseContactTrickStorage: ContactTrickStorage, Injectable {
         return fetchedContactTrickEntries.map { entry in
             ContactTrickEntry(
                 layout: ContactTrickLayout.init(rawValue: entry.layout ?? "Single") ?? .single,
-                ring1: ContactTrickLargeRing.init(rawValue: entry.ring1 ?? "DontShowRing") ?? .none,
+                ring: ContactTrickLargeRing.init(rawValue: entry.ring ?? "DontShowRing") ?? .none,
                 primary: ContactTrickValue.init(rawValue: entry.primary ?? "GlucoseContactValue") ?? .glucose,
                 top: ContactTrickValue.init(rawValue: entry.top ?? "NoneContactValue") ?? .none,
                 bottom: ContactTrickValue.init(rawValue: entry.top ?? "NoneContactValue") ?? .none,
@@ -56,11 +56,11 @@ final class BaseContactTrickStorage: ContactTrickStorage, Injectable {
             newContactTrickEntry.id = UUID()
             newContactTrickEntry.contactId = contactTrickEntry.contactId
             newContactTrickEntry.layout = contactTrickEntry.layout.rawValue
-            newContactTrickEntry.ring1 = contactTrickEntry.ring1.rawValue
+            newContactTrickEntry.ring = contactTrickEntry.ring.rawValue
             newContactTrickEntry.primary = contactTrickEntry.primary.rawValue
             newContactTrickEntry.top = contactTrickEntry.top.rawValue
             newContactTrickEntry.bottom = contactTrickEntry.bottom.rawValue
-            newContactTrickEntry.contactId = contactTrickEntry.ring1.rawValue
+            newContactTrickEntry.contactId = contactTrickEntry.ring.rawValue
             newContactTrickEntry.isDarkMode = contactTrickEntry.darkMode
             newContactTrickEntry.ringWidth = Int16(contactTrickEntry.ringWidth.rawValue)
             newContactTrickEntry.ringGap = Int16(contactTrickEntry.ringGap.rawValue)

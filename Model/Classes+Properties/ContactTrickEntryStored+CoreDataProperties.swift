@@ -7,7 +7,7 @@ public extension ContactTrickEntryStored {
     }
 
     @NSManaged var layout: String?
-    @NSManaged var ring1: String?
+    @NSManaged var ring: String?
     @NSManaged var primary: String?
     @NSManaged var top: String?
     @NSManaged var bottom: String?

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ContactTrickEntry: Hashable, Sendable {
     var layout: ContactTrickLayout = .single
-    var ring1: ContactTrickLargeRing = .none
+    var ring: ContactTrickLargeRing = .none
     var primary: ContactTrickValue = .glucose
     var top: ContactTrickValue = .none
     var bottom: ContactTrickValue = .none

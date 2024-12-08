@@ -162,16 +162,7 @@ extension ContactTrick {
 
         var body: some View {
             HStack {
-                Text(
-                    NSLocalizedString("Contact", comment: "") + ": " + "Trio \(index + 1)"
-                )
-                .font(.body)
-                .minimumScaleFactor(0.5)
-                .lineLimit(1)
-
-                Spacer()
-
-                VStack {
+                VStack(alignment: .leading) {
                     GeometryReader { geometry in
                         ZStack {
                             Circle()
@@ -191,6 +182,25 @@ extension ContactTrick {
                 }
                 .fixedSize(horizontal: true, vertical: false)
                 .padding(.horizontal, 30)
+
+                Spacer()
+
+                VStack {
+                    Text("Contact: Trio \(index + 1)").bold()
+//                    HStack {
+//                        Text("Layout: \(entry.layout.displayName)")
+//                        Text("\(entry.ring.displayName)")
+//                        if entry.layout == .single {
+//                            Text("\(entry.primary.displayName)")
+//                        }
+//                        Text("\(entry.top.displayName), \(entry.bottom.displayName)")
+//                    }.foregroundStyle(.secondary)
+//                    HStack {
+//                        Text("Font Size \(entry.fontSize.displayName)")
+//                        Text("Font Width \(entry.fontWidth.displayName)")
+//                        Text("Font Weight \(entry.fontWeight.displayName)")
+//                    }.foregroundStyle(.secondary)
+                }
             }
             .frame(maxWidth: .infinity)
         }
@@ -240,27 +250,48 @@ extension ContactTrick {
 
                     Section(header: Text("Ring")) {
                         Picker(
-                            selection: $entry.ring1,
+                            selection: $entry.ring,
                             label: Text("Outer")
                         ) {
                             ForEach(ContactTrickLargeRing.allCases, id: \.self) { ring in
                                 Text(ring.displayName).tag(ring)
                             }
                         }
-                        Picker(
-                            selection: $entry.ringWidth,
-                            label: Text("Width")
-                        ) {
-                            ForEach(ringWidths, id: \.self) { width in
-                                Text("\(width)").tag(width)
+
+                        if entry.ring != .none {
+                            Picker(
+                                selection: $entry.ringWidth,
+                                label: Text("Width")
+                            ) {
+                                ForEach(
+                                    [
+                                        ContactTrickEntry.RingWidth.tiny,
+                                        ContactTrickEntry.RingWidth.small,
+                                        ContactTrickEntry.RingWidth.regular,
+                                        ContactTrickEntry.RingWidth.medium,
+                                        ContactTrickEntry.RingWidth.large
+                                    ],
+                                    id: \.self
+                                ) { width in
+                                    Text(width.displayName).tag(width)
+                                }
                             }
-                        }
-                        Picker(
-                            selection: $entry.ringGap,
-                            label: Text("Gap")
-                        ) {
-                            ForEach(ringGaps, id: \.self) { gap in
-                                Text("\(gap)").tag(gap)
+                            Picker(
+                                selection: $entry.ringGap,
+                                label: Text("Gap")
+                            ) {
+                                ForEach(
+                                    [
+                                        ContactTrickEntry.RingGap.tiny,
+                                        ContactTrickEntry.RingGap.small,
+                                        ContactTrickEntry.RingGap.regular,
+                                        ContactTrickEntry.RingGap.medium,
+                                        ContactTrickEntry.RingGap.large
+                                    ],
+                                    id: \.self
+                                ) { gap in
+                                    Text(gap.displayName).tag(gap)
+                                }
                             }
                         }
                     }
@@ -279,7 +310,7 @@ extension ContactTrick {
                                 ],
                                 id: \.self
                             ) { size in
-                                Text("\(size)").tag(size)
+                                Text(size.displayName).tag(size)
                             }
                         }
                         Picker(
@@ -295,12 +326,12 @@ extension ContactTrick {
                                 ],
                                 id: \.self
                             ) { size in
-                                Text("\(size)").tag(size)
+                                Text(size.displayName).tag(size)
                             }
                         }
                         Picker(
                             selection: $entry.fontWidth,
-                            label: Text("Tracking")
+                            label: Text("Width")
                         ) {
                             ForEach(
                                 [Font.Width.standard, Font.Width.condensed, Font.Width.expanded],
@@ -314,7 +345,7 @@ extension ContactTrick {
                             label: Text("Weight")
                         ) {
                             ForEach(
-                                [Font.Weight.regular, Font.Weight.bold, Font.Weight.black],
+                                [Font.Weight.light, Font.Weight.regular, Font.Weight.medium, Font.Weight.bold, Font.Weight.black],
                                 id: \.self
                             ) { weight in
                                 Text(weight.displayName).tag(weight)
