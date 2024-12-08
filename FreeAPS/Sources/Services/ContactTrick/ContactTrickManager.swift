@@ -6,16 +6,13 @@ import Foundation
 import Swinject
 
 protocol ContactTrickManager {
-    func updateContacts(contacts: [ContactTrickEntry], completion: @escaping (Result<[ContactTrickEntry], Error>) -> Void)
+    func updateContacts(contacts: [ContactTrickEntry]) async
     var currentContacts: [ContactTrickEntry] { get }
 }
 
 final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
     private var state = ContactTrickState()
-    private let processQueue = DispatchQueue(label: "BaseContactTrickManager.processQueue")
-
     private let contactStore = CNContactStore()
-    private var workItem: DispatchWorkItem?
 
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settingsManager: SettingsManager!
@@ -80,10 +77,6 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
                 .share()
                 .eraseToAnyPublisher()
 
-        // TODO: fetch this from CD
-//        contacts = storage.retrieve(OpenAPS.Settings.contactTrick, as: [ContactTrickEntry].self)
-//            ?? [ContactTrickEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.contactTrick))
-//            ?? []
         Task {
             contacts = await contactTrickStorage.fetchContactTrickEntries()
         }
@@ -91,11 +84,10 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         knownIds = contacts.compactMap(\.contactId)
 
         Task {
-            await configureState()
+            await configureContactTrickState()
         }
 
         broadcaster.register(SettingsObserver.self, observer: self)
-        broadcaster.register(CarbsObserver.self, observer: self)
     }
 
     private func registerSubscribers() {
@@ -104,7 +96,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task {
-                    await self.configureState()
+                    await self.configureContactTrickState()
                 }
             }
             .store(in: &subscriptions)
@@ -114,15 +106,21 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
-                await self.configureState()
+                await self.configureContactTrickState()
             }
         }.store(in: &subscriptions)
 
-        // Observes Deletion of Glucose Objects
+        coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task {
+                await self.configureContactTrickState()
+            }
+        }.store(in: &subscriptions)
+
         coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
-                await self.configureState()
+                await self.configureContactTrickState()
             }
         }.store(in: &subscriptions)
     }
@@ -171,7 +169,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         }
     }
 
-    @MainActor private func configureState() async {
+    @MainActor private func configureContactTrickState() async {
         let glucoseValuesIds = await fetchGlucose()
         async let getLatestDeterminationIds = fetchlastDetermination()
         guard let lastDeterminationId = await getLatestDeterminationIds.first else {
@@ -203,7 +201,6 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
                 }
 
                 self.state.lastLoopDate = lastDetermination?.timestamp
-                self.state.maxCOB = self.settingsManager.preferences.maxCOB
 
                 self.state.iob = lastDetermination?.iob as? Decimal
                 if let cobValue = lastDetermination?.cob {
@@ -220,7 +217,31 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
                     self.state.eventualBG = eventualBGAsString.map { "⇢ " + $0 }
                 }
 
-                self.sendState()
+                guard (try? JSONEncoder().encode(state)) != nil else {
+                    warning(.service, "Cannot encode watch state")
+                    return
+                }
+
+                if contacts.isNotEmpty, CNContactStore.authorizationStatus(for: .contacts) == .authorized {
+                    let newContacts = contacts.enumerated().map { index, entry in
+                        self.renderContact(entry, index + 1, self.state)
+                    }
+
+                    // Find new entries in newContacts that are not in contacts
+                    let newEntries = newContacts.filter { newContact in
+                        !self.contacts.contains(where: { $0.contactId == newContact.contactId })
+                    }
+
+                    // When we create new contacts we store the IDs, in that case we need to write into the settings storage
+                    // Save the new entries into Core Data
+                    for newEntry in newEntries {
+                        Task {
+                            await self.contactTrickStorage.storeContactTrickEntry(newEntry)
+                        }
+                    }
+
+                    contacts = newContacts
+                }
             }
 
         } catch let error as NSError {
@@ -228,58 +249,38 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         }
     }
 
-    private func sendState() {
-        // TODO: why does this have to be JSON ?!
-        guard ((try? JSONEncoder().encode(state)) != nil) else {
-            warning(.service, "Cannot encode watch state")
-            return
-        }
-
-        if contacts.isNotEmpty, CNContactStore.authorizationStatus(for: .contacts) == .authorized {
-            let newContacts = contacts.enumerated().map { index, entry in
-                renderContact(entry, index + 1, self.state)
-            }
-            //            if newContacts != contacts {
-            //                // when we create new contacts we store the IDs, in that case we need to write into the settings storage
-            //
-            //                // TODO: save this in CD
-            ////                storage.save(newContacts, as: OpenAPS.Settings.contactTrick)
-            //            }
-
-            // Find new entries in newContacts that are not in contacts
-            let newEntries = newContacts.filter { newContact in
-                !contacts.contains(where: { $0.contactId == newContact.contactId })
-            }
-
-            // When we create new contacts we store the IDs, in that case we need to write into the settings storage
-            // Save the new entries into Core Data
-            for newEntry in newEntries {
-                Task {
-                    await contactTrickStorage.storeContactTrickEntry(newEntry)
-                }
-            }
-
-            contacts = newContacts
-        }
-    }
-
-    func updateContacts(contacts: [ContactTrickEntry], completion: @escaping (Result<[ContactTrickEntry], Error>) -> Void) {
+    func updateContacts(contacts: [ContactTrickEntry]) async {
         self.contacts = contacts
         let newIds = contacts.compactMap(\.contactId)
-
         let knownSet = Set(knownIds)
         let newSet = Set(newIds)
         let removedIds = knownSet.subtracting(newSet)
 
-        processQueue.async {
-            removedIds.forEach { contactId in
-                if !self.deleteContact(contactId) {
-                    print("contacts cleanup, failed to delete contact \(contactId)")
+        await viewContext.perform {
+            let fetchRequest: NSFetchRequest<ContactTrickEntryStored> = ContactTrickEntryStored.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "contactId IN %@", removedIds)
+
+            do {
+                let objectIDsToDelete = try self.viewContext.fetch(fetchRequest).compactMap(\.objectID)
+
+                guard !objectIDsToDelete.isEmpty else { return }
+
+                for objectID in objectIDsToDelete {
+                    Task {
+                        await self.contactTrickStorage.deleteContactTrickEntry(objectID)
+                    }
                 }
+
+                Task {
+                    await self.configureContactTrickState()
+                }
+                self.knownIds = self.contacts.compactMap(\.contactId)
+
+            } catch let error as NSError {
+                debugPrint(
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to delete Contact Trick Entry: \(error.userInfo)"
+                )
             }
-            self.sendState()
-            self.knownIds = self.contacts.compactMap(\.contactId)
-            completion(.success(self.contacts))
         }
     }
 
@@ -444,18 +445,11 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
 }
 
 extension BaseContactTrickManager:
-    CarbsObserver,
     SettingsObserver
 {
-    func carbsDidUpdate(_: [CarbsEntry]) {
-        Task {
-            await configureState()
-        }
-    }
-
     func settingsDidChange(_: FreeAPSSettings) {
         Task {
-            await configureState()
+            await configureContactTrickState()
         }
     }
 }

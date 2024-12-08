@@ -23,8 +23,8 @@ final class BaseContactTrickStorage: ContactTrickStorage, Injectable {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: ContactTrickEntryStored.self,
             onContext: backgroundContext,
-            predicate: NSPredicate.lastActiveOverrideNotYetUploadedToNightscout,
-            key: "date",
+            predicate: NSPredicate.all,
+            key: "contactId",
             ascending: false
         )
 
