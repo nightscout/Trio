@@ -34,23 +34,21 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
                     async let carbs = self.nightscoutManager.fetchCarbs()
                     async let tempTargets = self.nightscoutManager.fetchTempTargets()
 
-                    // Store carbs if available
-                    let fetchedCarbs = await carbs
-                    if fetchedCarbs.isNotEmpty {
-                        await self.carbsStorage.storeCarbs(fetchedCarbs, areFetchedFromRemote: true)
+                    // Filter and store if not from "Trio"
+                    let filteredCarbs = await carbs.filter { $0.enteredBy != CarbsEntry.local }
+                    if filteredCarbs.isNotEmpty {
+                        await self.carbsStorage.storeCarbs(filteredCarbs, areFetchedFromRemote: true)
                     }
 
-                    // Store temp targets if available
-                    let fetchedTargets = await tempTargets
-                    if fetchedTargets.isNotEmpty {
-                        // Sort temp targets by date
-                        let sortedTargets = fetchedTargets.sorted { lhs, rhs in
-                            lhs.createdAt < rhs.createdAt
-                        }
+                    // Filter and store if not from Trio
+                    let filteredTargets = await tempTargets.filter { $0.enteredBy != TempTarget.local }
+                    if filteredTargets.isNotEmpty {
+                        // Sort temp targets by creation date
+                        let sortedTargets = filteredTargets.sorted { $0.createdAt < $1.createdAt }
 
-                        // Iterate over all temp targets
+                        // Iterate and store each temp target
                         for (index, tempTarget) in sortedTargets.enumerated() {
-                            // Skip saving if a Temp Target with the same date already exists
+                            // Skip saving if a Temp Target with the same date already exists or it's a cancel target
                             guard await !self.tempTargetsStorage.existsTempTarget(with: tempTarget.createdAt),
                                   tempTarget.reason != TempTarget.cancel
                             else {
@@ -61,10 +59,8 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
                                 continue
                             }
 
-                            // Create a mutable copy of tempTarget
+                            // Create a mutable copy and set enabled for the last temp target
                             var mutableTempTarget = tempTarget
-
-                            // Set enabled to true only for the last temp target
                             mutableTempTarget.enabled = (index == sortedTargets.count - 1)
 
                             // Save to Core Data
