@@ -35,7 +35,7 @@ struct ContactTrickEntry: Hashable, Sendable {
         Font.Width.fromString(string)
     }
 
-    enum FontSize: Int, Sendable {
+    enum FontSize: Int, Codable, Sendable {
         case tiny = 200
         case small = 250
         case regular = 300
@@ -51,7 +51,7 @@ struct ContactTrickEntry: Hashable, Sendable {
         }
     }
 
-    enum RingWidth: Int, Sendable {
+    enum RingWidth: Int, Codable, Sendable {
         case tiny = 3
         case small = 5
         case regular = 7
@@ -69,7 +69,7 @@ struct ContactTrickEntry: Hashable, Sendable {
         }
     }
 
-    enum RingGap: Int, Sendable {
+    enum RingGap: Int, Codable, Sendable {
         case tiny = 1
         case small = 2
         case regular = 3
@@ -88,89 +88,82 @@ struct ContactTrickEntry: Hashable, Sendable {
     }
 }
 
-// TODO: is this required?
 protocol ContactTrickObserver: Sendable {
-    func basalProfileDidChange(_ entry: [ContactTrickEntry])
+    // TODO: is this required?
+//    func basalProfileDidChange(_ entry: [ContactTrickEntry])
 }
 
-extension Font.Weight {
+enum ContactTrickValue: String, JSON, CaseIterable, Identifiable, Codable {
+    var id: String { rawValue }
+    case none
+    case glucose
+    case eventualBG
+    case delta
+    case trend
+    case lastLoopDate
+    case cob
+    case iob
+    case ring
+
     var displayName: String {
         switch self {
-        case .light: return "Light"
-        case .regular: return "Regular"
-        case .medium: return "Medium"
-        case .bold: return "Bold"
-        default: return "Unknown"
+        case .none:
+            return NSLocalizedString("NoneContactValue", comment: "")
+        case .glucose:
+            return NSLocalizedString("GlucoseContactValue", comment: "")
+        case .eventualBG:
+            return NSLocalizedString("EventualBGContactValue", comment: "")
+        case .delta:
+            return NSLocalizedString("DeltaContactValue", comment: "")
+        case .trend:
+            return NSLocalizedString("TrendContactValue", comment: "")
+        case .lastLoopDate:
+            return NSLocalizedString("LastLoopTimeContactValue", comment: "")
+        case .cob:
+            return NSLocalizedString("COBContactValue", comment: "")
+        case .iob:
+            return NSLocalizedString("IOBContactValue", comment: "")
+        case .ring:
+            return NSLocalizedString("LoopStatusContactValue", comment: "")
         }
-    }
-
-    private static let stringToFontWeight: [String: Font.Weight] = [
-        "ultraLight": .ultraLight,
-        "thin": .thin,
-        "light": .light,
-        "regular": .regular,
-        "medium": .medium,
-        "semibold": .semibold,
-        "bold": .bold,
-        "heavy": .heavy,
-        "black": .black
-    ]
-
-    private static let fontWeightToString: [Font.Weight: String] = [
-        .ultraLight: "ultraLight",
-        .thin: "thin",
-        .light: "light",
-        .regular: "regular",
-        .medium: "medium",
-        .semibold: "semibold",
-        .bold: "bold",
-        .heavy: "heavy",
-        .black: "black"
-    ]
-
-    /// Initialize `Font.Weight` from a string
-    static func fromString(_ string: String) -> Font.Weight {
-        stringToFontWeight[string] ?? .regular // Default fallback
-    }
-
-    /// Convert `Font.Weight` to a string
-    var asString: String {
-        Font.Weight.fontWeightToString[self] ?? "regular" // Default fallback
     }
 }
 
-extension Font.Width {
+enum ContactTrickLayout: String, JSON, CaseIterable, Identifiable, Codable {
+    var id: String { rawValue }
+    case single
+    case split
+
     var displayName: String {
         switch self {
-        case .condensed: return "Condensed"
-        case .expanded: return "Expanded"
-        case .compressed: return "Compressed"
-        case .standard: return "Standard"
-        default: return "Unknown"
+        case .single:
+            return NSLocalizedString("Single", comment: "")
+        case .split:
+            return NSLocalizedString("Split", comment: "")
         }
     }
+}
 
-    private static let stringToFontWidth: [String: Font.Width] = [
-        "compressed": .compressed,
-        "condensed": .condensed,
-        "standard": .standard,
-        "expanded": .expanded
-    ]
+enum ContactTrickLargeRing: String, JSON, CaseIterable, Identifiable, Codable {
+    var id: String { rawValue }
+    case none
+    case loop
+    case iob
+    case cob
+    case iobcob
 
-    private static let fontWidthToString: [Font.Width: String] = [
-        .compressed: "compressed",
-        .condensed: "condensed",
-        .standard: "standard",
-        .expanded: "expanded"
-    ]
-
-    /// Initialize `Font.Width` from a string
-    static func fromString(_ string: String) -> Font.Width {
-        stringToFontWidth[string] ?? .standard // Default fallback
-    }
-
-    /// Convert `Font.Width` to a string
-    var asString: String {
-        Font.Width.fontWidthToString[self] ?? "standard" // Default fallback
+    var displayName: String {
+        switch self {
+        case .none:
+            return NSLocalizedString("DontShowRing", comment: "")
+        case .loop:
+            return NSLocalizedString("LoopStatusRing", comment: "")
+        case .iob:
+            return NSLocalizedString("IOBRing", comment: "")
+        case .cob:
+            return NSLocalizedString("COBRing", comment: "")
+        case .iobcob:
+            return NSLocalizedString("IOB+COBRing", comment: "")
+        }
     }
 }

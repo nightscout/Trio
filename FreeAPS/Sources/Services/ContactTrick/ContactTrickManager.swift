@@ -20,7 +20,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var apsManager: APSManager!
-    @Injected() private var storage: FileStorage!
+    @Injected() private var contactTrickStorage: ContactTrickStorage!
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var tempTargetsStorage: TempTargetsStorage!
     @Injected() private var glucoseStorage: GlucoseStorage!
@@ -84,6 +84,9 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
 //        contacts = storage.retrieve(OpenAPS.Settings.contactTrick, as: [ContactTrickEntry].self)
 //            ?? [ContactTrickEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.contactTrick))
 //            ?? []
+        Task {
+            contacts = await contactTrickStorage.fetchContactTrickEntries()
+        }
 
         knownIds = contacts.compactMap(\.contactId)
 
@@ -109,13 +112,6 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
 
     private func registerHandlers() {
         coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task {
-                await self.configureState()
-            }
-        }.store(in: &subscriptions)
-
-        coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.configureState()
@@ -152,24 +148,6 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
             guard let fetchedResults = results as? [OrefDetermination] else { return [] }
 
             return fetchedResults.map(\.objectID)
-        }
-    }
-
-    private func fetchLatestOverride() async -> NSManagedObjectID? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OverrideStored.self,
-            onContext: context,
-            predicate: NSPredicate.predicateForOneDayAgo,
-            key: "date",
-            ascending: false,
-            fetchLimit: 1,
-            propertiesToFetch: ["enabled", "percentage", "objectID"]
-        )
-
-        return await context.perform {
-            guard let fetchedResults = results as? [[String: Any]] else { return nil }
-
-            return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }.first
         }
     }
 
@@ -251,19 +229,36 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
     }
 
     private func sendState() {
+        // TODO: why does this have to be JSON ?!
         guard let data = try? JSONEncoder().encode(state) else {
             warning(.service, "Cannot encode watch state")
             return
         }
 
         if contacts.isNotEmpty, CNContactStore.authorizationStatus(for: .contacts) == .authorized {
-            let newContacts = contacts.enumerated().map { index, entry in renderContact(entry, index + 1, self.state) }
-            if newContacts != contacts {
-                // when we create new contacts we store the IDs, in that case we need to write into the settings storage
-
-                // TODO: save this in CD
-//                storage.save(newContacts, as: OpenAPS.Settings.contactTrick)
+            let newContacts = contacts.enumerated().map { index, entry in
+                renderContact(entry, index + 1, self.state)
             }
+            //            if newContacts != contacts {
+            //                // when we create new contacts we store the IDs, in that case we need to write into the settings storage
+            //
+            //                // TODO: save this in CD
+            ////                storage.save(newContacts, as: OpenAPS.Settings.contactTrick)
+            //            }
+
+            // Find new entries in newContacts that are not in contacts
+            let newEntries = newContacts.filter { newContact in
+                !contacts.contains(where: { $0.contactId == newContact.contactId })
+            }
+
+            // When we create new contacts we store the IDs, in that case we need to write into the settings storage
+            // Save the new entries into Core Data
+            for newEntry in newEntries {
+                Task {
+                    await contactTrickStorage.storeContactTrickEntry(newEntry)
+                }
+            }
+
             contacts = newContacts
         }
     }

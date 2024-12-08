@@ -466,6 +466,7 @@
 		DD9ECB722CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB6F2CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift */; };
 		DD9ECB742CA9A0C300AA7C45 /* RemoteControlConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB732CA9A0C300AA7C45 /* RemoteControlConfig.swift */; };
 		DDB37CC52D05048F00D99BF4 /* ContactTrickStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC42D05048F00D99BF4 /* ContactTrickStorage.swift */; };
+		DDB37CC72D05127500D99BF4 /* FontExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC62D05127500D99BF4 /* FontExtensions.swift */; };
 		DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */; };
 		DDD163122C4C689900CD525A /* OverrideStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163112C4C689900CD525A /* OverrideStateModel.swift */; };
 		DDD163142C4C68D300CD525A /* OverrideProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163132C4C68D300CD525A /* OverrideProvider.swift */; };
@@ -1157,6 +1158,7 @@
 		DDB37CC22D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDB37CC32D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDB37CC42D05048F00D99BF4 /* ContactTrickStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickStorage.swift; sourceTree = "<group>"; };
+		DDB37CC62D05127500D99BF4 /* FontExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtensions.swift; sourceTree = "<group>"; };
 		DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LiveActivity+Helper.swift"; sourceTree = "<group>"; };
 		DDD163112C4C689900CD525A /* OverrideStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideStateModel.swift; sourceTree = "<group>"; };
 		DDD163132C4C68D300CD525A /* OverrideProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideProvider.swift; sourceTree = "<group>"; };
@@ -2083,6 +2085,7 @@
 		38A504F625DDA0E200C5B9E8 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				DDB37CC62D05127500D99BF4 /* FontExtensions.swift */,
 				38A5049125DD9C4000C5B9E8 /* UserDefaultsExtensions.swift */,
 				38BF021625E7CBBC00579895 /* PumpManagerExtensions.swift */,
 				CEB434E628B9053300B70274 /* LoopUIColorPalette+Default.swift */,
@@ -3639,6 +3642,7 @@
 				BDF34EBE2C0A31D100D51995 /* CustomNotification.swift in Sources */,
 				BDC2EA472C3045AD00E5BBD0 /* Override.swift in Sources */,
 				1BBB001DAD60F3B8CEA4B1C7 /* ISFEditorStateModel.swift in Sources */,
+				DDB37CC72D05127500D99BF4 /* FontExtensions.swift in Sources */,
 				582DF9772C8CDBE7001F516D /* InsulinView.swift in Sources */,
 				F816826028DB441800054060 /* BluetoothTransmitter.swift in Sources */,
 				DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */,

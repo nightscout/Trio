@@ -10,6 +10,7 @@ extension ContactTrick {
 
         @State private var contactStore = CNContactStore()
         @State private var authorization = CNContactStore.authorizationStatus(for: .contacts)
+        @State private var contactTrickEntries = [ContactTrickEntry]()
 
         var body: some View {
             Form {

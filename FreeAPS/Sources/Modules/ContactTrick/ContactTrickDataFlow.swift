@@ -24,7 +24,4 @@ enum ContactTrick {
     }
 }
 
-protocol ContactTrickProvider: Provider {
-    var contacts: [ContactTrickEntry] { get }
-    func saveContacts(_ contacts: [ContactTrickEntry]) -> AnyPublisher<[ContactTrickEntry], Error>
-}
+protocol ContactTrickProvider: Provider {}
