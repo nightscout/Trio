@@ -8,7 +8,7 @@ enum StateIntentError: Error {
     case NoIOBCOB
 }
 
-@available(iOS 16, *) struct StateResults: AppEntity {
+struct StateResults: AppEntity {
     static var defaultQuery = StateBGQuery()
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Trio State Result"
@@ -44,7 +44,7 @@ enum StateIntentError: Error {
     }
 }
 
-@available(iOS 16.0, *) struct StateBGQuery: EntityQuery {
+struct StateBGQuery: EntityQuery {
     func entities(for _: [StateResults.ID]) async throws -> [StateResults] {
         []
     }
@@ -54,7 +54,7 @@ enum StateIntentError: Error {
     }
 }
 
-@available(iOS 16.0, *) final class StateIntentRequest: BaseIntentsRequest {
+final class StateIntentRequest: BaseIntentsRequest {
     let moc = CoreDataStack.shared.newTaskContext()
 
     func getLastGlucose(onContext: NSManagedObjectContext) throws

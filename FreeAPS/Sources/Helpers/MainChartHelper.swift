@@ -1,5 +1,7 @@
+import Charts
 import CoreData
 import Foundation
+import SwiftUICore
 
 enum MainChartHelper {
     // Calculates the glucose value thats the nearest to parameter 'time'
@@ -47,53 +49,161 @@ enum MainChartHelper {
         static let minGlucose = 45
     }
 
-    static var bolusFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.minimumIntegerDigits = 0
-        formatter.maximumFractionDigits = 2
-        formatter.decimalSeparator = "."
-        return formatter
-    }
-
-    static var carbsFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }
-
     static func bolusOffset(units: GlucoseUnits) -> Decimal {
         units == .mgdL ? 30 : 1.66
     }
 
-    static func calculateDuration(objectID: NSManagedObjectID, context: NSManagedObjectContext) -> TimeInterval? {
+    static func calculateDuration(
+        objectID: NSManagedObjectID,
+        attribute: String,
+        context: NSManagedObjectContext
+    ) -> TimeInterval? {
         do {
-            if let override = try context.existingObject(with: objectID) as? OverrideStored,
-               let overrideDuration = override.duration as? Double, overrideDuration != 0
-            {
-                return TimeInterval(overrideDuration * 60) // return seconds
+            let object = try context.existingObject(with: objectID)
+            if let attributeValue = object.value(forKey: attribute) as? NSDecimalNumber {
+                let doubleValue = attributeValue.doubleValue
+                if doubleValue != 0 {
+                    return TimeInterval(doubleValue * 60) // return seconds
+                }
+            } else {
+                debugPrint("Attribute \(attribute) not found or not of type NSDecimalNumber")
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate Override Target with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate duration for object with error: \(error.localizedDescription)"
+            )
+        }
+
+        return nil
+    }
+
+    static func calculateTarget(objectID: NSManagedObjectID, attribute: String, context: NSManagedObjectContext) -> Decimal? {
+        do {
+            let object = try context.existingObject(with: objectID)
+            if let attributeValue = object.value(forKey: attribute) as? NSDecimalNumber, attributeValue != 0 {
+                return attributeValue.decimalValue
+            }
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate target for object with error: \(error.localizedDescription)"
             )
         }
         return nil
     }
+}
 
-    static func calculateTarget(objectID: NSManagedObjectID, context: NSManagedObjectContext) -> Decimal? {
-        do {
-            if let override = try context.existingObject(with: objectID) as? OverrideStored,
-               let overrideTarget = override.target, overrideTarget != 0
-            {
-                return overrideTarget.decimalValue
-            }
-        } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate Override Target with error: \(error.localizedDescription)"
+// MARK: - Rule Marks and Charts configurations
+
+extension MainChartView {
+    func drawCurrentTimeMarker() -> some ChartContent {
+        RuleMark(
+            x: .value(
+                "",
+                Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970)),
+                unit: .second
             )
+        ).lineStyle(.init(lineWidth: 2, dash: [3])).foregroundStyle(Color(.systemGray2))
+    }
+
+    func drawStartRuleMark() -> some ChartContent {
+        RuleMark(
+            x: .value(
+                "",
+                startMarker,
+                unit: .second
+            )
+        ).foregroundStyle(Color.clear)
+    }
+
+    func drawEndRuleMark() -> some ChartContent {
+        RuleMark(
+            x: .value(
+                "",
+                endMarker,
+                unit: .second
+            )
+        ).foregroundStyle(Color.clear)
+    }
+
+    func basalChartPlotStyle(_ plotContent: ChartPlotContent) -> some View {
+        plotContent
+            .rotationEffect(.degrees(180))
+            .scaleEffect(x: -1, y: 1)
+    }
+
+    var mainChartXAxis: some AxisContent {
+        AxisMarks(values: .stride(by: .hour, count: screenHours > 6 ? (screenHours > 12 ? 4 : 2) : 1)) { _ in
+            if displayXgridLines {
+                AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
+            } else {
+                AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
+            }
         }
-        return nil
+    }
+
+    var basalChartXAxis: some AxisContent {
+        AxisMarks(values: .stride(by: .hour, count: screenHours > 6 ? (screenHours > 12 ? 4 : 2) : 1)) { _ in
+            if displayXgridLines {
+                AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
+            } else {
+                AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
+            }
+            AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
+                .font(.footnote).foregroundStyle(Color.primary)
+        }
+    }
+
+    var mainChartYAxis: some AxisContent {
+        AxisMarks(position: .trailing) { value in
+
+            if displayYgridLines {
+                AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
+            } else {
+                AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
+            }
+
+            if let glucoseValue = value.as(Double.self), glucoseValue > 0 {
+                /// fix offset between the two charts...
+                if units == .mmolL {
+                    AxisTick(length: 7, stroke: .init(lineWidth: 7)).foregroundStyle(Color.clear)
+                }
+                AxisValueLabel().font(.footnote).foregroundStyle(Color.primary)
+            }
+        }
+    }
+
+    var cobIobChartYAxis: some AxisContent {
+        AxisMarks(position: .trailing) { _ in
+            if displayYgridLines {
+                AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
+            } else {
+                AxisGridLine(stroke: .init(lineWidth: 0, dash: [2, 3]))
+            }
+        }
+    }
+}
+
+// MARK: - Calculations and formatting
+
+extension MainChartView {
+    func fullWidth(viewWidth: CGFloat) -> CGFloat {
+        viewWidth * CGFloat(hours) / CGFloat(min(max(screenHours, 2), 24))
+    }
+
+    // Update start and  end marker to fix scroll update problem with x axis
+    func updateStartEndMarkers() {
+        startMarker = Date(timeIntervalSince1970: TimeInterval(NSDate().timeIntervalSince1970 - 86400))
+
+        let threeHourSinceNow = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
+
+        // min is 1.5h -> (1.5*1h = 1.5*(5*12*60))
+        let dynamicFutureDateForCone = Date(timeIntervalSinceNow: TimeInterval(
+            Int(1.5) * 5 * state
+                .minCount * 60
+        ))
+
+        endMarker = state
+            .forecastDisplayType == .lines ? threeHourSinceNow : dynamicFutureDateForCone <= threeHourSinceNow ?
+            dynamicFutureDateForCone.addingTimeInterval(TimeInterval(minutes: 30)) : threeHourSinceNow
     }
 }

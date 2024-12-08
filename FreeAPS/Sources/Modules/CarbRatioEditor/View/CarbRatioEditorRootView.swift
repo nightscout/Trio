@@ -9,22 +9,7 @@ extension CarbRatioEditor {
         @State private var editMode = EditMode.inactive
 
         @Environment(\.colorScheme) var colorScheme
-        var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         private var dateFormatter: DateFormatter {
             let formatter = DateFormatter()
@@ -109,7 +94,7 @@ extension CarbRatioEditor {
                 }.listRowBackground(Color.chart)
             }
             .safeAreaInset(edge: .bottom, spacing: 30) { saveButton }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
             .navigationTitle("Carb Ratios")
             .navigationBarTitleDisplayMode(.automatic)
@@ -160,7 +145,7 @@ extension CarbRatioEditor {
                 }.listRowBackground(Color.chart)
             }
             .padding(.top)
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Set Ratio")
             .navigationBarTitleDisplayMode(.automatic)
         }

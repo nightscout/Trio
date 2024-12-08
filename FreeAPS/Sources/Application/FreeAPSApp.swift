@@ -15,6 +15,8 @@ import Swinject
 
     let coreDataStack = CoreDataStack.shared
 
+    @State private var appState = AppState()
+
     // Dependencies Assembler
     // contain all dependencies Assemblies
     // TODO: Remove static key after update "Use Dependencies" logic
@@ -60,43 +62,29 @@ import Swinject
     init() {
         debug(
             .default,
-            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(BuildDetails.default.buildDate())] [buildExpires: \(BuildDetails.default.calculateExpirationDate())]"
+            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.default.buildDate()))] [buildExpires: \(String(describing: BuildDetails.default.calculateExpirationDate()))]"
         )
-
-        // Configure global appearance for UITabBar
-        configureTabBarAppearance()
 
         // Load services
         loadServices()
+
+        // Fix bug in iOS 18 related to the translucent tab bar
+        configureTabBarAppearance()
 
         // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
         cleanupOldData()
     }
 
-    // Function to configure global tab bar appearance
-    private func configureTabBarAppearance() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithDefaultBackground()
-
-        // Blur the background
-        appearance.backgroundEffect = UIBlurEffect(style: .systemChromeMaterial)
-
-        // Keep background semi-transparent
-        appearance.backgroundColor = UIColor.clear
-
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
-    }
-
     var body: some Scene {
         WindowGroup {
             Main.RootView(resolver: resolver)
-                .preferredColorScheme(colorScheme(for: colorSchemePreference ?? .systemDefault) ?? nil)
+                .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
                 .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
+                .environment(appState)
                 .environmentObject(Icons())
                 .onOpenURL(perform: handleURL)
         }
-        .onChange(of: scenePhase) { newScenePhase in
+        .onChange(of: scenePhase) { _, newScenePhase in
             debug(.default, "APPLICATION PHASE: \(newScenePhase)")
 
             /// If the App goes to the background we should ensure that all the changes are saved from the viewContext to the Persistent Container
@@ -108,6 +96,16 @@ import Swinject
             await scheduleDatabaseCleaning()
             await cleanupOldData()
         }
+    }
+
+    func configureTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+        appearance.backgroundEffect = UIBlurEffect(style: .systemChromeMaterial)
+        appearance.backgroundColor = UIColor.clear
+
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 
     private func colorScheme(for colorScheme: ColorSchemeOption) -> ColorScheme? {

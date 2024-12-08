@@ -1,27 +1,17 @@
 import AppIntents
 import Foundation
 
-@available(iOS 16.0, *) struct CancelTempPresetIntent: AppIntent {
+struct CancelTempPresetIntent: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title: LocalizedStringResource = "Cancel a temporary Preset"
+    static var title: LocalizedStringResource = "Cancel a Temporary Target"
 
     // Description of the action in the Shortcuts app
-    static var description = IntentDescription("Cancel temporary preset.")
-
-    internal var intentRequest: TempPresetsIntentRequest
-
-    init() {
-        intentRequest = TempPresetsIntentRequest()
-    }
+    static var description = IntentDescription("Cancel Temporary Target.")
 
     @MainActor func perform() async throws -> some ProvidesDialog {
-        do {
-            try intentRequest.cancelTempTarget()
-            return .result(
-                dialog: IntentDialog(stringLiteral: "Temporary Target canceled")
-            )
-        } catch {
-            throw error
-        }
+        await TempPresetsIntentRequest().cancelTempTarget()
+        return .result(
+            dialog: IntentDialog(stringLiteral: "Temporary Target canceled")
+        )
     }
 }

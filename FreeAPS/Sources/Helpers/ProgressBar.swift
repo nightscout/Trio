@@ -17,7 +17,7 @@ struct ProgressBar: View {
                         height: geometry.size.height
                     )
                     .foregroundColor(.accentColor)
-                    .animation(.linear)
+                    .animation(.linear, value: value)
             }
         }
         .frame(height: 20)

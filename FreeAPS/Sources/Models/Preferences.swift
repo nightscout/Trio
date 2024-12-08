@@ -1,6 +1,6 @@
 import Foundation
 
-struct Preferences: JSON {
+struct Preferences: JSON, Equatable {
     var maxIOB: Decimal = 0
     var maxDailySafetyMultiplier: Decimal = 3
     var currentBasalSafetyMultiplier: Decimal = 4
@@ -119,4 +119,221 @@ enum InsulinCurve: String, JSON, Identifiable, CaseIterable {
     case bilinear
 
     var id: InsulinCurve { self }
+}
+
+extension Preferences: Decodable {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        var preferences = Preferences()
+
+        if let maxIOB = try? container.decode(Decimal.self, forKey: .maxIOB) {
+            preferences.maxIOB = maxIOB
+        }
+
+        if let maxDailySafetyMultiplier = try? container.decode(Decimal.self, forKey: .maxDailySafetyMultiplier) {
+            preferences.maxDailySafetyMultiplier = maxDailySafetyMultiplier
+        }
+
+        if let currentBasalSafetyMultiplier = try? container.decode(Decimal.self, forKey: .currentBasalSafetyMultiplier) {
+            preferences.currentBasalSafetyMultiplier = currentBasalSafetyMultiplier
+        }
+
+        if let autosensMax = try? container.decode(Decimal.self, forKey: .autosensMax) {
+            preferences.autosensMax = autosensMax
+        }
+
+        if let autosensMin = try? container.decode(Decimal.self, forKey: .autosensMin) {
+            preferences.autosensMin = autosensMin
+        }
+
+        if let smbDeliveryRatio = try? container.decode(Decimal.self, forKey: .smbDeliveryRatio) {
+            preferences.smbDeliveryRatio = smbDeliveryRatio
+        }
+
+        if let rewindResetsAutosens = try? container.decode(Bool.self, forKey: .rewindResetsAutosens) {
+            preferences.rewindResetsAutosens = rewindResetsAutosens
+        }
+
+        if let highTemptargetRaisesSensitivity = try? container.decode(Bool.self, forKey: .highTemptargetRaisesSensitivity) {
+            preferences.highTemptargetRaisesSensitivity = highTemptargetRaisesSensitivity
+        }
+
+        if let lowTemptargetLowersSensitivity = try? container.decode(Bool.self, forKey: .lowTemptargetLowersSensitivity) {
+            preferences.lowTemptargetLowersSensitivity = lowTemptargetLowersSensitivity
+        }
+
+        if let sensitivityRaisesTarget = try? container.decode(Bool.self, forKey: .sensitivityRaisesTarget) {
+            preferences.sensitivityRaisesTarget = sensitivityRaisesTarget
+        }
+
+        if let resistanceLowersTarget = try? container.decode(Bool.self, forKey: .resistanceLowersTarget) {
+            preferences.resistanceLowersTarget = resistanceLowersTarget
+        }
+
+        if let advTargetAdjustments = try? container.decode(Bool.self, forKey: .advTargetAdjustments) {
+            preferences.advTargetAdjustments = advTargetAdjustments
+        }
+
+        if let exerciseMode = try? container.decode(Bool.self, forKey: .exerciseMode) {
+            preferences.exerciseMode = exerciseMode
+        }
+
+        if let halfBasalExerciseTarget = try? container.decode(Decimal.self, forKey: .halfBasalExerciseTarget) {
+            preferences.halfBasalExerciseTarget = halfBasalExerciseTarget
+        }
+
+        if let maxCOB = try? container.decode(Decimal.self, forKey: .maxCOB) {
+            preferences.maxCOB = maxCOB
+        }
+
+        if let wideBGTargetRange = try? container.decode(Bool.self, forKey: .wideBGTargetRange) {
+            preferences.wideBGTargetRange = wideBGTargetRange
+        }
+
+        if let skipNeutralTemps = try? container.decode(Bool.self, forKey: .skipNeutralTemps) {
+            preferences.skipNeutralTemps = skipNeutralTemps
+        }
+
+        if let unsuspendIfNoTemp = try? container.decode(Bool.self, forKey: .unsuspendIfNoTemp) {
+            preferences.unsuspendIfNoTemp = unsuspendIfNoTemp
+        }
+
+        if let min5mCarbimpact = try? container.decode(Decimal.self, forKey: .min5mCarbimpact) {
+            preferences.min5mCarbimpact = min5mCarbimpact
+        }
+
+        if let autotuneISFAdjustmentFraction = try? container.decode(Decimal.self, forKey: .autotuneISFAdjustmentFraction) {
+            preferences.autotuneISFAdjustmentFraction = autotuneISFAdjustmentFraction
+        }
+
+        if let remainingCarbsFraction = try? container.decode(Decimal.self, forKey: .remainingCarbsFraction) {
+            preferences.remainingCarbsFraction = remainingCarbsFraction
+        }
+
+        if let remainingCarbsCap = try? container.decode(Decimal.self, forKey: .remainingCarbsCap) {
+            preferences.remainingCarbsCap = remainingCarbsCap
+        }
+
+        if let enableUAM = try? container.decode(Bool.self, forKey: .enableUAM) {
+            preferences.enableUAM = enableUAM
+        }
+
+        if let a52RiskEnable = try? container.decode(Bool.self, forKey: .a52RiskEnable) {
+            preferences.a52RiskEnable = a52RiskEnable
+        }
+
+        if let enableSMBWithCOB = try? container.decode(Bool.self, forKey: .enableSMBWithCOB) {
+            preferences.enableSMBWithCOB = enableSMBWithCOB
+        }
+
+        if let enableSMBWithTemptarget = try? container.decode(Bool.self, forKey: .enableSMBWithTemptarget) {
+            preferences.enableSMBWithTemptarget = enableSMBWithTemptarget
+        }
+
+        if let enableSMBAlways = try? container.decode(Bool.self, forKey: .enableSMBAlways) {
+            preferences.enableSMBAlways = enableSMBAlways
+        }
+
+        if let enableSMBAfterCarbs = try? container.decode(Bool.self, forKey: .enableSMBAfterCarbs) {
+            preferences.enableSMBAfterCarbs = enableSMBAfterCarbs
+        }
+
+        if let allowSMBWithHighTemptarget = try? container.decode(Bool.self, forKey: .allowSMBWithHighTemptarget) {
+            preferences.allowSMBWithHighTemptarget = allowSMBWithHighTemptarget
+        }
+
+        if let maxSMBBasalMinutes = try? container.decode(Decimal.self, forKey: .maxSMBBasalMinutes) {
+            preferences.maxSMBBasalMinutes = maxSMBBasalMinutes
+        }
+
+        if let maxUAMSMBBasalMinutes = try? container.decode(Decimal.self, forKey: .maxUAMSMBBasalMinutes) {
+            preferences.maxUAMSMBBasalMinutes = maxUAMSMBBasalMinutes
+        }
+
+        if let smbInterval = try? container.decode(Decimal.self, forKey: .smbInterval) {
+            preferences.smbInterval = smbInterval
+        }
+
+        if let bolusIncrement = try? container.decode(Decimal.self, forKey: .bolusIncrement) {
+            preferences.bolusIncrement = bolusIncrement
+        }
+
+        if let curve = try? container.decode(InsulinCurve.self, forKey: .curve) {
+            preferences.curve = curve
+        }
+
+        if let useCustomPeakTime = try? container.decode(Bool.self, forKey: .useCustomPeakTime) {
+            preferences.useCustomPeakTime = useCustomPeakTime
+        }
+
+        if let insulinPeakTime = try? container.decode(Decimal.self, forKey: .insulinPeakTime) {
+            preferences.insulinPeakTime = insulinPeakTime
+        }
+
+        if let carbsReqThreshold = try? container.decode(Decimal.self, forKey: .carbsReqThreshold) {
+            preferences.carbsReqThreshold = carbsReqThreshold
+        }
+
+        if let noisyCGMTargetMultiplier = try? container.decode(Decimal.self, forKey: .noisyCGMTargetMultiplier) {
+            preferences.noisyCGMTargetMultiplier = noisyCGMTargetMultiplier
+        }
+
+        if let suspendZerosIOB = try? container.decode(Bool.self, forKey: .suspendZerosIOB) {
+            preferences.suspendZerosIOB = suspendZerosIOB
+        }
+
+        if let maxDeltaBGthreshold = try? container.decode(Decimal.self, forKey: .maxDeltaBGthreshold) {
+            preferences.maxDeltaBGthreshold = maxDeltaBGthreshold
+        }
+
+        if let adjustmentFactor = try? container.decode(Decimal.self, forKey: .adjustmentFactor) {
+            preferences.adjustmentFactor = adjustmentFactor
+        }
+
+        if let adjustmentFactorSigmoid = try? container.decode(Decimal.self, forKey: .adjustmentFactorSigmoid) {
+            preferences.adjustmentFactorSigmoid = adjustmentFactorSigmoid
+        }
+
+        if let sigmoid = try? container.decode(Bool.self, forKey: .sigmoid) {
+            preferences.sigmoid = sigmoid
+        }
+
+        if let enableDynamicCR = try? container.decode(Bool.self, forKey: .enableDynamicCR) {
+            preferences.enableDynamicCR = enableDynamicCR
+        }
+
+        if let useNewFormula = try? container.decode(Bool.self, forKey: .useNewFormula) {
+            preferences.useNewFormula = useNewFormula
+        }
+
+        if let useWeightedAverage = try? container.decode(Bool.self, forKey: .useWeightedAverage) {
+            preferences.useWeightedAverage = useWeightedAverage
+        }
+
+        if let weightPercentage = try? container.decode(Decimal.self, forKey: .weightPercentage) {
+            preferences.weightPercentage = weightPercentage
+        }
+
+        if let tddAdjBasal = try? container.decode(Bool.self, forKey: .tddAdjBasal) {
+            preferences.tddAdjBasal = tddAdjBasal
+        }
+
+        if let enableSMB_high_bg = try? container.decode(Bool.self, forKey: .enableSMB_high_bg) {
+            preferences.enableSMB_high_bg = enableSMB_high_bg
+        }
+
+        if let enableSMB_high_bg_target = try? container.decode(Decimal.self, forKey: .enableSMB_high_bg_target) {
+            preferences.enableSMB_high_bg_target = enableSMB_high_bg_target
+        }
+
+        if let threshold_setting = try? container.decode(Decimal.self, forKey: .threshold_setting) {
+            preferences.threshold_setting = threshold_setting
+        }
+
+        if let updateInterval = try? container.decode(Decimal.self, forKey: .updateInterval) {
+            preferences.updateInterval = updateInterval
+        }
+
+        self = preferences
+    }
 }

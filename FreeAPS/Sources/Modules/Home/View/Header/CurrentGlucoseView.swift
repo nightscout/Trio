@@ -24,20 +24,6 @@ struct CurrentGlucoseView: View {
 
     @Environment(\.colorScheme) var colorScheme
 
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-
-        if units == .mmolL {
-            formatter.maximumFractionDigits = 1
-            formatter.minimumFractionDigits = 1
-            formatter.roundingMode = .halfUp
-        } else {
-            formatter.maximumFractionDigits = 0
-        }
-        return formatter
-    }
-
     private var deltaFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -58,12 +44,6 @@ struct CurrentGlucoseView: View {
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 0
         formatter.negativePrefix = ""
-        return formatter
-    }
-
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
         return formatter
     }
 

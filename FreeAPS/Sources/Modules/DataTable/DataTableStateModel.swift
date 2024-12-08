@@ -114,7 +114,7 @@ extension DataTable {
             // Delete from Apple Health/Tidepool
             await deleteCarbsFromServices(treatmentObjectID)
 
-            // Delete from Core Data
+            // Delete carbs from Core Data
             await carbsStorage.deleteCarbs(treatmentObjectID)
 
             // Perform a determine basal sync to update cob
@@ -166,7 +166,7 @@ extension DataTable {
                                 withSyncId: id,
                                 carbs: Decimal(carbEntry.carbs),
                                 at: entryDate,
-                                enteredBy: CarbsEntry.manual
+                                enteredBy: CarbsEntry.local
                             )
                         }
                     }

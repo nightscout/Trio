@@ -12,30 +12,10 @@ struct PumpView: View {
 
     @Environment(\.colorScheme) var colorScheme
 
-    private var reservoirFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }
-
     private var batteryFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .percent
         return formatter
-    }
-
-    private var numberFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 2
-        return formatter
-    }
-
-    private var dateFormatter: DateFormatter {
-        let dateFormatter = DateFormatter()
-        dateFormatter.timeStyle = .short
-        return dateFormatter
     }
 
     var body: some View {
@@ -71,7 +51,7 @@ struct PumpView: View {
                                 .font(.system(size: 15, design: .rounded))
                         } else {
                             Text(
-                                reservoirFormatter
+                                Formatter.integerFormatter
                                     .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
                             )
                             .font(.system(size: 16, design: .rounded))

@@ -19,7 +19,6 @@
 		110AEDEE2C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE92C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift */; };
 		118DF76A2C5ECBC60067FEB7 /* ApplyOverridePresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7642C5ECBC60067FEB7 /* ApplyOverridePresetIntent.swift */; };
 		118DF76B2C5ECBC60067FEB7 /* CancelOverrideIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7652C5ECBC60067FEB7 /* CancelOverrideIntent.swift */; };
-		118DF76C2C5ECBC60067FEB7 /* ListOverridePresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7662C5ECBC60067FEB7 /* ListOverridePresetIntent.swift */; };
 		118DF76D2C5ECBC60067FEB7 /* OverridePresetEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */; };
 		118DF76E2C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */; };
 		17A9D0899046B45E87834820 /* CarbRatioEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8D5F457B5AFF763F8CF3DF /* CarbRatioEditorProvider.swift */; };
@@ -247,6 +246,7 @@
 		581516A92BCEEDF800BF67D7 /* NSPredicates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581516A82BCEEDF800BF67D7 /* NSPredicates.swift */; };
 		581AC4392BE22ED10038760C /* JSONConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581AC4382BE22ED10038760C /* JSONConverter.swift */; };
 		58237D9E2BCF0A6B00A47A79 /* PopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58237D9D2BCF0A6B00A47A79 /* PopupView.swift */; };
+		5825A1BE2C97335C0046467E /* EditTempTargetForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5825A1BD2C97335C0046467E /* EditTempTargetForm.swift */; };
 		582DF9752C8CDB92001F516D /* GlucoseChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582DF9742C8CDB92001F516D /* GlucoseChartView.swift */; };
 		582DF9772C8CDBE7001F516D /* InsulinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582DF9762C8CDBE7001F516D /* InsulinView.swift */; };
 		582DF9792C8CE1E5001F516D /* MainChartHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582DF9782C8CE1E5001F516D /* MainChartHelper.swift */; };
@@ -267,11 +267,16 @@
 		5864E8592C42CFAE00294306 /* DeterminationStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5864E8582C42CFAE00294306 /* DeterminationStorage.swift */; };
 		587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */; };
 		5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5887527B2BD986E1008B081D /* OpenAPSBattery.swift */; };
+		58A3D53A2C96D4DE003F90FC /* AddTempTargetForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */; };
+		58A3D5442C96DE11003F90FC /* TempTargetStored+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D5432C96DE11003F90FC /* TempTargetStored+Helper.swift */; };
+		58A3D5512C96EFA8003F90FC /* TempTargetStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D54D2C96EFA8003F90FC /* TempTargetStored+CoreDataClass.swift */; };
+		58A3D5522C96EFA8003F90FC /* TempTargetStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D54E2C96EFA8003F90FC /* TempTargetStored+CoreDataProperties.swift */; };
+		58A3D5532C96EFA8003F90FC /* TempTargetRunStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D54F2C96EFA8003F90FC /* TempTargetRunStored+CoreDataClass.swift */; };
+		58A3D5542C96EFA8003F90FC /* TempTargetRunStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D5502C96EFA8003F90FC /* TempTargetRunStored+CoreDataProperties.swift */; };
 		58D08B222C8DAA8E00AA37D3 /* OverrideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */; };
 		58D08B302C8DEA7500AA37D3 /* ForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B2F2C8DEA7500AA37D3 /* ForecastView.swift */; };
 		58D08B322C8DF88900AA37D3 /* DummyCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B312C8DF88900AA37D3 /* DummyCharts.swift */; };
-		58D08B342C8DF9A700AA37D3 /* CobChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B332C8DF9A700AA37D3 /* CobChart.swift */; };
-		58D08B362C8DFAC600AA37D3 /* IobChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B352C8DFAC600AA37D3 /* IobChart.swift */; };
+		58D08B342C8DF9A700AA37D3 /* CobIobChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B332C8DF9A700AA37D3 /* CobIobChart.swift */; };
 		58D08B382C8DFB6000AA37D3 /* BasalChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B372C8DFB6000AA37D3 /* BasalChart.swift */; };
 		58D08B3A2C8DFECD00AA37D3 /* TempTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D08B392C8DFECD00AA37D3 /* TempTargets.swift */; };
 		58F107742BD1A4D000B1A680 /* Determination+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58F107732BD1A4D000B1A680 /* Determination+helper.swift */; };
@@ -322,11 +327,15 @@
 		BD2FF1A02AE29D43005D1C5D /* CheckboxToggleStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */; };
 		BD3CC0722B0B89D50013189E /* MainChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3CC0712B0B89D50013189E /* MainChartView.swift */; };
 		BD4064D12C4ED26900582F43 /* CoreDataObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */; };
+		BD4ED4FD2CF9D5E8000EDC9C /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4ED4FC2CF9D5E8000EDC9C /* AppState.swift */; };
 		BD6EB2D62C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6EB2D52C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift */; };
+		BD793CB02CE7C61500D669AC /* OverrideRunStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */; };
+		BD793CB22CE8033500D669AC /* TempTargetRunStored.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD793CB12CE8032E00D669AC /* TempTargetRunStored.swift */; };
 		BD7DA9A52AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A42AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift */; };
 		BD7DA9A72AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */; };
 		BD7DA9A92AE06E9200601B20 /* BolusCalculatorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */; };
 		BD7DA9AC2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9AB2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift */; };
+		BDA6CC882CAF219B00F942F9 /* TempTargetSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */; };
 		BDB3C1192C03DD1000CEEAA1 /* UserDefaultsExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB3C1182C03DD1000CEEAA1 /* UserDefaultsExtension.swift */; };
 		BDB899882C564509006F3298 /* ForecastChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB899872C564509006F3298 /* ForecastChart.swift */; };
 		BDB8998A2C565D0C006F3298 /* CarbsGlucose+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB899892C565D0B006F3298 /* CarbsGlucose+helper.swift */; };
@@ -335,6 +344,7 @@
 		BDC2EA472C3045AD00E5BBD0 /* Override.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC2EA462C3045AD00E5BBD0 /* Override.swift */; };
 		BDCAF2382C639F35002DC907 /* SettingItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCAF2372C639F35002DC907 /* SettingItems.swift */; };
 		BDCD47AF2C1F3F1700F8BCD5 /* OverrideStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */; };
+		BDDAF9EF2D00554500B34E7A /* SelectionPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDAF9EE2D00553E00B34E7A /* SelectionPopoverView.swift */; };
 		BDF34EBE2C0A31D100D51995 /* CustomNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF34EBD2C0A31D000D51995 /* CustomNotification.swift */; };
 		BDF34F832C10C5B600D51995 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF34F822C10C5B600D51995 /* DataManager.swift */; };
 		BDF34F852C10C62E00D51995 /* GlucoseData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF34F842C10C62E00D51995 /* GlucoseData.swift */; };
@@ -367,8 +377,7 @@
 		CE7CA34F2A064973004BE681 /* BaseIntentsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA3442A064973004BE681 /* BaseIntentsRequest.swift */; };
 		CE7CA3502A064973004BE681 /* CancelTempPresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA3462A064973004BE681 /* CancelTempPresetIntent.swift */; };
 		CE7CA3512A064973004BE681 /* ApplyTempPresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA3472A064973004BE681 /* ApplyTempPresetIntent.swift */; };
-		CE7CA3522A064973004BE681 /* ListTempPresetsIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA3482A064973004BE681 /* ListTempPresetsIntent.swift */; };
-		CE7CA3532A064973004BE681 /* tempPresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA3492A064973004BE681 /* tempPresetIntent.swift */; };
+		CE7CA3532A064973004BE681 /* TempPresetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA3492A064973004BE681 /* TempPresetIntent.swift */; };
 		CE7CA3542A064973004BE681 /* TempPresetsIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA34A2A064973004BE681 /* TempPresetsIntentRequest.swift */; };
 		CE7CA3552A064973004BE681 /* ListStateIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA34C2A064973004BE681 /* ListStateIntent.swift */; };
 		CE7CA3562A064973004BE681 /* StateIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA34D2A064973004BE681 /* StateIntentRequest.swift */; };
@@ -449,6 +458,11 @@
 		DD32CF9E2CC824C5003686D6 /* TrioRemoteControl+Override.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF9D2CC824C2003686D6 /* TrioRemoteControl+Override.swift */; };
 		DD32CFA02CC824D6003686D6 /* TrioRemoteControl+APNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF9F2CC824D3003686D6 /* TrioRemoteControl+APNS.swift */; };
 		DD32CFA22CC824E2003686D6 /* TrioRemoteControl+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CFA12CC824E1003686D6 /* TrioRemoteControl+Helpers.swift */; };
+		DD5DC9F12CF3D97C00AB8703 /* AdjustmentsStateModel+Overrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F02CF3D96E00AB8703 /* AdjustmentsStateModel+Overrides.swift */; };
+		DD5DC9F32CF3D9DD00AB8703 /* AdjustmentsStateModel+TempTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F22CF3D9D600AB8703 /* AdjustmentsStateModel+TempTargets.swift */; };
+		DD5DC9F72CF3DA9300AB8703 /* TargetPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F62CF3DA9300AB8703 /* TargetPicker.swift */; };
+		DD5DC9F92CF3DAA900AB8703 /* RadioButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F82CF3DAA900AB8703 /* RadioButton.swift */; };
+		DD5DC9FB2CF3E1B100AB8703 /* AdjustmentsStateModel+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9FA2CF3E1AA00AB8703 /* AdjustmentsStateModel+Helpers.swift */; };
 		DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */; };
 		DD6B7CB22C7B6F0800B75029 /* Rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB12C7B6F0800B75029 /* Rounding.swift */; };
 		DD6B7CB42C7B71F700B75029 /* ForecastDisplayType.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */; };
@@ -466,10 +480,10 @@
 		DD9ECB722CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB6F2CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift */; };
 		DD9ECB742CA9A0C300AA7C45 /* RemoteControlConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB732CA9A0C300AA7C45 /* RemoteControlConfig.swift */; };
 		DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */; };
-		DDD163122C4C689900CD525A /* OverrideStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163112C4C689900CD525A /* OverrideStateModel.swift */; };
-		DDD163142C4C68D300CD525A /* OverrideProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163132C4C68D300CD525A /* OverrideProvider.swift */; };
-		DDD163162C4C690300CD525A /* OverrideDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163152C4C690300CD525A /* OverrideDataFlow.swift */; };
-		DDD163182C4C694000CD525A /* OverrideRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163172C4C694000CD525A /* OverrideRootView.swift */; };
+		DDD163122C4C689900CD525A /* AdjustmentsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */; };
+		DDD163142C4C68D300CD525A /* AdjustmentsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163132C4C68D300CD525A /* AdjustmentsProvider.swift */; };
+		DDD163162C4C690300CD525A /* AdjustmentsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163152C4C690300CD525A /* AdjustmentsDataFlow.swift */; };
+		DDD163182C4C694000CD525A /* AdjustmentsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163172C4C694000CD525A /* AdjustmentsRootView.swift */; };
 		DDD1631A2C4C695E00CD525A /* EditOverrideForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163192C4C695E00CD525A /* EditOverrideForm.swift */; };
 		DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */; };
 		DDD1631F2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */; };
@@ -483,8 +497,6 @@
 		DDE179592C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179392C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift */; };
 		DDE1795A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift */; };
 		DDE1795B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift */; };
-		DDE1795C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift */; };
-		DDE1795D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift */; };
 		DDE1795E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift */; };
 		DDE1795F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1793F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift */; };
 		DDE179602C910127003CDDB7 /* StatsData+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179402C910127003CDDB7 /* StatsData+CoreDataClass.swift */; };
@@ -497,8 +509,6 @@
 		DDE179672C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179472C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift */; };
 		DDE179682C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179482C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift */; };
 		DDE179692C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179492C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift */; };
-		DDE1796A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift */; };
-		DDE1796B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift */; };
 		DDE1796C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift */; };
 		DDE1796D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift */; };
 		DDE1796E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift */; };
@@ -634,7 +644,6 @@
 		110AEDE92C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutsConfigStateModel.swift; sourceTree = "<group>"; };
 		118DF7642C5ECBC60067FEB7 /* ApplyOverridePresetIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ApplyOverridePresetIntent.swift; sourceTree = "<group>"; };
 		118DF7652C5ECBC60067FEB7 /* CancelOverrideIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CancelOverrideIntent.swift; sourceTree = "<group>"; };
-		118DF7662C5ECBC60067FEB7 /* ListOverridePresetIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ListOverridePresetIntent.swift; sourceTree = "<group>"; };
 		118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetEntity.swift; sourceTree = "<group>"; };
 		118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OverridePresetsIntentRequest.swift; sourceTree = "<group>"; };
 		19012CDB291D2CB900FB8210 /* LoopStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStats.swift; sourceTree = "<group>"; };
@@ -924,6 +933,7 @@
 		581516A82BCEEDF800BF67D7 /* NSPredicates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSPredicates.swift; sourceTree = "<group>"; };
 		581AC4382BE22ED10038760C /* JSONConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONConverter.swift; sourceTree = "<group>"; };
 		58237D9D2BCF0A6B00A47A79 /* PopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupView.swift; sourceTree = "<group>"; };
+		5825A1BD2C97335C0046467E /* EditTempTargetForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTempTargetForm.swift; sourceTree = "<group>"; };
 		582DF9742C8CDB92001F516D /* GlucoseChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseChartView.swift; sourceTree = "<group>"; };
 		582DF9762C8CDBE7001F516D /* InsulinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsulinView.swift; sourceTree = "<group>"; };
 		582DF9782C8CE1E5001F516D /* MainChartHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChartHelper.swift; sourceTree = "<group>"; };
@@ -944,11 +954,16 @@
 		5864E8582C42CFAE00294306 /* DeterminationStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterminationStorage.swift; sourceTree = "<group>"; };
 		587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRowView.swift; sourceTree = "<group>"; };
 		5887527B2BD986E1008B081D /* OpenAPSBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSBattery.swift; sourceTree = "<group>"; };
+		58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTempTargetForm.swift; sourceTree = "<group>"; };
+		58A3D5432C96DE11003F90FC /* TempTargetStored+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetStored+Helper.swift"; sourceTree = "<group>"; };
+		58A3D54D2C96EFA8003F90FC /* TempTargetStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		58A3D54E2C96EFA8003F90FC /* TempTargetStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
+		58A3D54F2C96EFA8003F90FC /* TempTargetRunStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetRunStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		58A3D5502C96EFA8003F90FC /* TempTargetRunStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetRunStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideView.swift; sourceTree = "<group>"; };
 		58D08B2F2C8DEA7500AA37D3 /* ForecastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastView.swift; sourceTree = "<group>"; };
 		58D08B312C8DF88900AA37D3 /* DummyCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyCharts.swift; sourceTree = "<group>"; };
-		58D08B332C8DF9A700AA37D3 /* CobChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CobChart.swift; sourceTree = "<group>"; };
-		58D08B352C8DFAC600AA37D3 /* IobChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobChart.swift; sourceTree = "<group>"; };
+		58D08B332C8DF9A700AA37D3 /* CobIobChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CobIobChart.swift; sourceTree = "<group>"; };
 		58D08B372C8DFB6000AA37D3 /* BasalChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasalChart.swift; sourceTree = "<group>"; };
 		58D08B392C8DFECD00AA37D3 /* TempTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargets.swift; sourceTree = "<group>"; };
 		58F107732BD1A4D000B1A680 /* Determination+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Determination+helper.swift"; sourceTree = "<group>"; };
@@ -1000,11 +1015,15 @@
 		BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckboxToggleStyle.swift; sourceTree = "<group>"; };
 		BD3CC0712B0B89D50013189E /* MainChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChartView.swift; sourceTree = "<group>"; };
 		BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataObserver.swift; sourceTree = "<group>"; };
+		BD4ED4FC2CF9D5E8000EDC9C /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		BD6EB2D52C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityWidgetConfiguration.swift; sourceTree = "<group>"; };
+		BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+helper.swift"; sourceTree = "<group>"; };
+		BD793CB12CE8032E00D669AC /* TempTargetRunStored.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetRunStored.swift; sourceTree = "<group>"; };
 		BD7DA9A42AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigDataFlow.swift; sourceTree = "<group>"; };
 		BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigProvider.swift; sourceTree = "<group>"; };
 		BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorStateModel.swift; sourceTree = "<group>"; };
 		BD7DA9AB2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigRootView.swift; sourceTree = "<group>"; };
+		BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetSetup.swift; sourceTree = "<group>"; };
 		BDB3C1182C03DD1000CEEAA1 /* UserDefaultsExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsExtension.swift; sourceTree = "<group>"; };
 		BDB899872C564509006F3298 /* ForecastChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastChart.swift; sourceTree = "<group>"; };
 		BDB899892C565D0B006F3298 /* CarbsGlucose+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbsGlucose+helper.swift"; sourceTree = "<group>"; };
@@ -1013,6 +1032,7 @@
 		BDC2EA462C3045AD00E5BBD0 /* Override.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Override.swift; sourceTree = "<group>"; };
 		BDCAF2372C639F35002DC907 /* SettingItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingItems.swift; sourceTree = "<group>"; };
 		BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+helper.swift"; sourceTree = "<group>"; };
+		BDDAF9EE2D00553E00B34E7A /* SelectionPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionPopoverView.swift; sourceTree = "<group>"; };
 		BDF34EBD2C0A31D000D51995 /* CustomNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNotification.swift; sourceTree = "<group>"; };
 		BDF34F822C10C5B600D51995 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		BDF34F842C10C62E00D51995 /* GlucoseData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseData.swift; sourceTree = "<group>"; };
@@ -1050,8 +1070,7 @@
 		CE7CA3442A064973004BE681 /* BaseIntentsRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseIntentsRequest.swift; sourceTree = "<group>"; };
 		CE7CA3462A064973004BE681 /* CancelTempPresetIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CancelTempPresetIntent.swift; sourceTree = "<group>"; };
 		CE7CA3472A064973004BE681 /* ApplyTempPresetIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ApplyTempPresetIntent.swift; sourceTree = "<group>"; };
-		CE7CA3482A064973004BE681 /* ListTempPresetsIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ListTempPresetsIntent.swift; sourceTree = "<group>"; };
-		CE7CA3492A064973004BE681 /* tempPresetIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = tempPresetIntent.swift; sourceTree = "<group>"; };
+		CE7CA3492A064973004BE681 /* TempPresetIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TempPresetIntent.swift; sourceTree = "<group>"; };
 		CE7CA34A2A064973004BE681 /* TempPresetsIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TempPresetsIntentRequest.swift; sourceTree = "<group>"; };
 		CE7CA34C2A064973004BE681 /* ListStateIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ListStateIntent.swift; sourceTree = "<group>"; };
 		CE7CA34D2A064973004BE681 /* StateIntentRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StateIntentRequest.swift; sourceTree = "<group>"; };
@@ -1129,6 +1148,11 @@
 		DD32CF9D2CC824C2003686D6 /* TrioRemoteControl+Override.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Override.swift"; sourceTree = "<group>"; };
 		DD32CF9F2CC824D3003686D6 /* TrioRemoteControl+APNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+APNS.swift"; sourceTree = "<group>"; };
 		DD32CFA12CC824E1003686D6 /* TrioRemoteControl+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Helpers.swift"; sourceTree = "<group>"; };
+		DD5DC9F02CF3D96E00AB8703 /* AdjustmentsStateModel+Overrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentsStateModel+Overrides.swift"; sourceTree = "<group>"; };
+		DD5DC9F22CF3D9D600AB8703 /* AdjustmentsStateModel+TempTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentsStateModel+TempTargets.swift"; sourceTree = "<group>"; };
+		DD5DC9F62CF3DA9300AB8703 /* TargetPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetPicker.swift; sourceTree = "<group>"; };
+		DD5DC9F82CF3DAA900AB8703 /* RadioButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioButton.swift; sourceTree = "<group>"; };
+		DD5DC9FA2CF3E1AA00AB8703 /* AdjustmentsStateModel+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentsStateModel+Helpers.swift"; sourceTree = "<group>"; };
 		DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutExercise.swift; sourceTree = "<group>"; };
 		DD6B7CB12C7B6F0800B75029 /* Rounding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rounding.swift; sourceTree = "<group>"; };
 		DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastDisplayType.swift; sourceTree = "<group>"; };
@@ -1146,10 +1170,10 @@
 		DD9ECB6F2CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteControlConfigDataFlow.swift; sourceTree = "<group>"; };
 		DD9ECB732CA9A0C300AA7C45 /* RemoteControlConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteControlConfig.swift; sourceTree = "<group>"; };
 		DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LiveActivity+Helper.swift"; sourceTree = "<group>"; };
-		DDD163112C4C689900CD525A /* OverrideStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideStateModel.swift; sourceTree = "<group>"; };
-		DDD163132C4C68D300CD525A /* OverrideProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideProvider.swift; sourceTree = "<group>"; };
-		DDD163152C4C690300CD525A /* OverrideDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideDataFlow.swift; sourceTree = "<group>"; };
-		DDD163172C4C694000CD525A /* OverrideRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideRootView.swift; sourceTree = "<group>"; };
+		DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentsStateModel.swift; sourceTree = "<group>"; };
+		DDD163132C4C68D300CD525A /* AdjustmentsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentsProvider.swift; sourceTree = "<group>"; };
+		DDD163152C4C690300CD525A /* AdjustmentsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentsDataFlow.swift; sourceTree = "<group>"; };
+		DDD163172C4C694000CD525A /* AdjustmentsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentsRootView.swift; sourceTree = "<group>"; };
 		DDD163192C4C695E00CD525A /* EditOverrideForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditOverrideForm.swift; sourceTree = "<group>"; };
 		DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOverrideForm.swift; sourceTree = "<group>"; };
 		DDD1631E2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrioCoreDataPersistentContainer.xcdatamodel; sourceTree = "<group>"; };
@@ -1163,8 +1187,6 @@
 		DDE179392C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ForecastValue+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE1793A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDE1793B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbEntryStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		DDE1793C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargets+CoreDataClass.swift"; sourceTree = "<group>"; };
-		DDE1793D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargets+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE1793E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpEventStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDE1793F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpEventStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE179402C910127003CDDB7 /* StatsData+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatsData+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -1177,8 +1199,6 @@
 		DDE179472C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenAPS_Battery+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE179482C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempBasalStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDE179492C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempBasalStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		DDE1794A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetsSlider+CoreDataClass.swift"; sourceTree = "<group>"; };
-		DDE1794B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetsSlider+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE1794C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDE1794D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE1794E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrefDetermination+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -1343,7 +1363,6 @@
 			children = (
 				118DF7642C5ECBC60067FEB7 /* ApplyOverridePresetIntent.swift */,
 				118DF7652C5ECBC60067FEB7 /* CancelOverrideIntent.swift */,
-				118DF7662C5ECBC60067FEB7 /* ListOverridePresetIntent.swift */,
 				118DF7672C5ECBC60067FEB7 /* OverridePresetEntity.swift */,
 				118DF7682C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift */,
 			);
@@ -1503,6 +1522,7 @@
 		3811DE0325C9D31700A708ED /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				DDD163032C4C67B400CD525A /* Adjustments */,
 				DD1745382C55BF8B00211FAC /* AlgorithmAdvancedSettings */,
 				DD1745422C55C5C400211FAC /* AutosensSettings */,
 				672F63EEAE27400625E14BAD /* AutotuneConfig */,
@@ -1527,9 +1547,7 @@
 				5031FE61F63C2A8A8B7674DD /* ManualTempBasal */,
 				19D466A129AA2B0A004D5F33 /* MealSettings */,
 				D533BF261CDC1C3F871E7BFD /* NightscoutConfig */,
-				DDD163032C4C67B400CD525A /* OverrideConfig */,
 				99C01B871ACAB3F32CE755C7 /* PumpConfig */,
-				DD9ECB662CA99EFE00AA7C45 /* RemoteControl */,
 				DD9ECB6B2CA99FA400AA7C45 /* RemoteControlConfig */,
 				3811DE3825C9D4A100A708ED /* Settings */,
 				110AEDEA2C51A0AE00615CC9 /* ShortcutsConfig */,
@@ -1652,18 +1670,19 @@
 		3811DE9125C9D88200A708ED /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				6B1A8D2C2B156EC100E76752 /* LiveActivity */,
-				CEB434E128B8F9BC00B70274 /* Bluetooth */,
-				F90692A8274B7A980037068D /* HealthKit */,
-				38E8754D275556E100975559 /* WatchManager */,
-				38E87406274F9AA500975559 /* UserNotifications */,
-				3862CC2C2743F9DC00BF832C /* Calendar */,
-				38AEE75025F021F10013F05B /* SettingsManager */,
-				38B4F3C425E5016800E76A18 /* Notifications */,
 				3811DE9225C9D88200A708ED /* Appearance */,
+				CEB434E128B8F9BC00B70274 /* Bluetooth */,
+				3862CC2C2743F9DC00BF832C /* Calendar */,
+				F90692A8274B7A980037068D /* HealthKit */,
+				6B1A8D2C2B156EC100E76752 /* LiveActivity */,
 				3811DE9425C9D88200A708ED /* Network */,
+				38B4F3C425E5016800E76A18 /* Notifications */,
+				DD9ECB662CA99EFE00AA7C45 /* RemoteControl */,
+				38AEE75025F021F10013F05B /* SettingsManager */,
 				3811DE9825C9D88300A708ED /* Storage */,
 				3811DEA525C9D88300A708ED /* UnlockManager */,
+				38E87406274F9AA500975559 /* UserNotifications */,
+				38E8754D275556E100975559 /* WatchManager */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -1682,9 +1701,8 @@
 				38E44521274E3DDC00EC9A94 /* NetworkReachabilityManager.swift */,
 				38192E03261B82FA0094D973 /* ReachabilityManager.swift */,
 				3811DE9625C9D88300A708ED /* HTTPResponseStatus.swift */,
-				3811DE9725C9D88300A708ED /* NightscoutManager.swift */,
+				DDC9B9962CFD2332003E7721 /* Nightscout */,
 				38FE826925CC82DB001FF17A /* NetworkService.swift */,
-				38FE826C25CC8461001FF17A /* NightscoutAPI.swift */,
 				CE1F6DDA2BAE08B60064EB8D /* TidepoolManager.swift */,
 			);
 			path = Network;
@@ -1748,6 +1766,7 @@
 			children = (
 				38E4451D274DB04600EC9A94 /* AppDelegate.swift */,
 				388E595B25AD948C0019842D /* FreeAPSApp.swift */,
+				BD4ED4FC2CF9D5E8000EDC9C /* AppState.swift */,
 			);
 			path = Application;
 			sourceTree = "<group>";
@@ -1835,16 +1854,7 @@
 			isa = PBXGroup;
 			children = (
 				BD3CC0712B0B89D50013189E /* MainChartView.swift */,
-				582DF9742C8CDB92001F516D /* GlucoseChartView.swift */,
-				582DF9762C8CDBE7001F516D /* InsulinView.swift */,
-				582DF97A2C8CE209001F516D /* CarbView.swift */,
-				58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */,
-				58D08B2F2C8DEA7500AA37D3 /* ForecastView.swift */,
-				58D08B312C8DF88900AA37D3 /* DummyCharts.swift */,
-				58D08B332C8DF9A700AA37D3 /* CobChart.swift */,
-				58D08B352C8DFAC600AA37D3 /* IobChart.swift */,
-				58D08B372C8DFB6000AA37D3 /* BasalChart.swift */,
-				58D08B392C8DFECD00AA37D3 /* TempTargets.swift */,
+				BDDAF9F12D0055CC00B34E7A /* ChartElements */,
 			);
 			path = Chart;
 			sourceTree = "<group>";
@@ -2303,7 +2313,10 @@
 				582FAE422C05102C00D1C13F /* CoreDataError.swift */,
 				BDF34EBD2C0A31D000D51995 /* CustomNotification.swift */,
 				BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */,
+				BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */,
 				BDB899892C565D0B006F3298 /* CarbsGlucose+helper.swift */,
+				58A3D5432C96DE11003F90FC /* TempTargetStored+Helper.swift */,
+				BD793CB12CE8032E00D669AC /* TempTargetRunStored.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -2311,6 +2324,7 @@
 		58645B972CA2D16A008AFCE7 /* HomeStateModel+Setup */ = {
 			isa = PBXGroup;
 			children = (
+				BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */,
 				58645B982CA2D1A4008AFCE7 /* GlucoseSetup.swift */,
 				58645B9A2CA2D24F008AFCE7 /* CarbSetup.swift */,
 				58645B9C2CA2D275008AFCE7 /* DeterminationSetup.swift */,
@@ -2433,6 +2447,24 @@
 			path = View;
 			sourceTree = "<group>";
 		};
+		BD793CAD2CE7660C00D669AC /* Overrides */ = {
+			isa = PBXGroup;
+			children = (
+				DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */,
+				DDD163192C4C695E00CD525A /* EditOverrideForm.swift */,
+			);
+			path = Overrides;
+			sourceTree = "<group>";
+		};
+		BD793CAE2CE7661D00D669AC /* TempTargets */ = {
+			isa = PBXGroup;
+			children = (
+				58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */,
+				5825A1BD2C97335C0046467E /* EditTempTargetForm.swift */,
+			);
+			path = TempTargets;
+			sourceTree = "<group>";
+		};
 		BD7DA9A32AE06DBA00601B20 /* BolusCalculatorConfig */ = {
 			isa = PBXGroup;
 			children = (
@@ -2450,6 +2482,23 @@
 				BD7DA9AB2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift */,
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		BDDAF9F12D0055CC00B34E7A /* ChartElements */ = {
+			isa = PBXGroup;
+			children = (
+				BDDAF9EE2D00553E00B34E7A /* SelectionPopoverView.swift */,
+				582DF9742C8CDB92001F516D /* GlucoseChartView.swift */,
+				582DF9762C8CDBE7001F516D /* InsulinView.swift */,
+				582DF97A2C8CE209001F516D /* CarbView.swift */,
+				58D08B212C8DAA8E00AA37D3 /* OverrideView.swift */,
+				58D08B2F2C8DEA7500AA37D3 /* ForecastView.swift */,
+				58D08B312C8DF88900AA37D3 /* DummyCharts.swift */,
+				58D08B332C8DF9A700AA37D3 /* CobIobChart.swift */,
+				58D08B372C8DFB6000AA37D3 /* BasalChart.swift */,
+				58D08B392C8DFECD00AA37D3 /* TempTargets.swift */,
+			);
+			path = ChartElements;
 			sourceTree = "<group>";
 		};
 		BDF34F882C10C65E00D51995 /* Data */ = {
@@ -2500,10 +2549,9 @@
 		CE7CA3452A064973004BE681 /* TempPresets */ = {
 			isa = PBXGroup;
 			children = (
-				CE7CA3462A064973004BE681 /* CancelTempPresetIntent.swift */,
 				CE7CA3472A064973004BE681 /* ApplyTempPresetIntent.swift */,
-				CE7CA3482A064973004BE681 /* ListTempPresetsIntent.swift */,
-				CE7CA3492A064973004BE681 /* tempPresetIntent.swift */,
+				CE7CA3462A064973004BE681 /* CancelTempPresetIntent.swift */,
+				CE7CA3492A064973004BE681 /* TempPresetIntent.swift */,
 				CE7CA34A2A064973004BE681 /* TempPresetsIntentRequest.swift */,
 			);
 			path = TempPresets;
@@ -2734,6 +2782,25 @@
 			path = View;
 			sourceTree = "<group>";
 		};
+		DD5DC9EF2CF3D95400AB8703 /* AdjustmentsStateModel+Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				DD5DC9FA2CF3E1AA00AB8703 /* AdjustmentsStateModel+Helpers.swift */,
+				DD5DC9F22CF3D9D600AB8703 /* AdjustmentsStateModel+TempTargets.swift */,
+				DD5DC9F02CF3D96E00AB8703 /* AdjustmentsStateModel+Overrides.swift */,
+			);
+			path = "AdjustmentsStateModel+Extensions";
+			sourceTree = "<group>";
+		};
+		DD5DC9F52CF3DA8900AB8703 /* ViewElements */ = {
+			isa = PBXGroup;
+			children = (
+				DD5DC9F82CF3DAA900AB8703 /* RadioButton.swift */,
+				DD5DC9F62CF3DA9300AB8703 /* TargetPicker.swift */,
+			);
+			path = ViewElements;
+			sourceTree = "<group>";
+		};
 		DD6B7CB72C7BAC1B00B75029 /* ProfileImport */ = {
 			isa = PBXGroup;
 			children = (
@@ -2776,23 +2843,34 @@
 			path = View;
 			sourceTree = "<group>";
 		};
-		DDD163032C4C67B400CD525A /* OverrideConfig */ = {
+		DDC9B9962CFD2332003E7721 /* Nightscout */ = {
 			isa = PBXGroup;
 			children = (
-				DDD1630A2C4C67F000CD525A /* View */,
-				DDD163112C4C689900CD525A /* OverrideStateModel.swift */,
-				DDD163132C4C68D300CD525A /* OverrideProvider.swift */,
-				DDD163152C4C690300CD525A /* OverrideDataFlow.swift */,
+				3811DE9725C9D88300A708ED /* NightscoutManager.swift */,
+				38FE826C25CC8461001FF17A /* NightscoutAPI.swift */,
 			);
-			path = OverrideConfig;
+			path = Nightscout;
+			sourceTree = "<group>";
+		};
+		DDD163032C4C67B400CD525A /* Adjustments */ = {
+			isa = PBXGroup;
+			children = (
+				DD5DC9EF2CF3D95400AB8703 /* AdjustmentsStateModel+Extensions */,
+				DDD1630A2C4C67F000CD525A /* View */,
+				DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */,
+				DDD163132C4C68D300CD525A /* AdjustmentsProvider.swift */,
+				DDD163152C4C690300CD525A /* AdjustmentsDataFlow.swift */,
+			);
+			path = Adjustments;
 			sourceTree = "<group>";
 		};
 		DDD1630A2C4C67F000CD525A /* View */ = {
 			isa = PBXGroup;
 			children = (
-				DDD163172C4C694000CD525A /* OverrideRootView.swift */,
-				DDD163192C4C695E00CD525A /* EditOverrideForm.swift */,
-				DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */,
+				DD5DC9F52CF3DA8900AB8703 /* ViewElements */,
+				DDD163172C4C694000CD525A /* AdjustmentsRootView.swift */,
+				BD793CAD2CE7660C00D669AC /* Overrides */,
+				BD793CAE2CE7661D00D669AC /* TempTargets */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2800,6 +2878,10 @@
 		DDE179112C9100FA003CDDB7 /* Classes+Properties */ = {
 			isa = PBXGroup;
 			children = (
+				58A3D54D2C96EFA8003F90FC /* TempTargetStored+CoreDataClass.swift */,
+				58A3D54E2C96EFA8003F90FC /* TempTargetStored+CoreDataProperties.swift */,
+				58A3D54F2C96EFA8003F90FC /* TempTargetRunStored+CoreDataClass.swift */,
+				58A3D5502C96EFA8003F90FC /* TempTargetRunStored+CoreDataProperties.swift */,
 				DDE179322C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift */,
 				DDE179332C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift */,
 				DDE179342C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift */,
@@ -2810,8 +2892,6 @@
 				DDE179392C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift */,
 				DDE1793A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift */,
 				DDE1793B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift */,
-				DDE1793C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift */,
-				DDE1793D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift */,
 				DDE1793E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift */,
 				DDE1793F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift */,
 				DDE179402C910127003CDDB7 /* StatsData+CoreDataClass.swift */,
@@ -2824,8 +2904,6 @@
 				DDE179472C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift */,
 				DDE179482C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift */,
 				DDE179492C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift */,
-				DDE1794A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift */,
-				DDE1794B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift */,
 				DDE1794C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift */,
 				DDE1794D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift */,
 				DDE1794E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift */,
@@ -3267,6 +3345,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DD5DC9F12CF3D97C00AB8703 /* AdjustmentsStateModel+Overrides.swift in Sources */,
 				3811DE2325C9D48300A708ED /* MainDataFlow.swift in Sources */,
 				BD3CC0722B0B89D50013189E /* MainChartView.swift in Sources */,
 				3811DEEB25CA063400A708ED /* PersistedProperty.swift in Sources */,
@@ -3274,6 +3353,7 @@
 				388E5A6025B6F2310019842D /* Autosens.swift in Sources */,
 				DD9ECB6A2CA99F6C00AA7C45 /* PushMessage.swift in Sources */,
 				3811DE8F25C9D80400A708ED /* User.swift in Sources */,
+				5825A1BE2C97335C0046467E /* EditTempTargetForm.swift in Sources */,
 				19D466A329AA2B80004D5F33 /* MealSettingsDataFlow.swift in Sources */,
 				3811DEB225C9D88300A708ED /* KeychainItemAccessibility.swift in Sources */,
 				385CEAC425F2F154002D6D5B /* AnnouncementsStorage.swift in Sources */,
@@ -3286,6 +3366,7 @@
 				CE7CA3552A064973004BE681 /* ListStateIntent.swift in Sources */,
 				BDF530D82B40F8AC002CAF43 /* LockScreenView.swift in Sources */,
 				195D80B72AF697B800D25097 /* DynamicSettingsDataFlow.swift in Sources */,
+				58A3D5512C96EFA8003F90FC /* TempTargetStored+CoreDataClass.swift in Sources */,
 				3862CC2E2743F9F700BF832C /* CalendarManager.swift in Sources */,
 				CEA4F62329BE10F70011ADF7 /* SavitzkyGolayFilter.swift in Sources */,
 				38B4F3C325E2A20B00E76A18 /* PumpSetupView.swift in Sources */,
@@ -3329,6 +3410,7 @@
 				DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */,
 				384E803825C388640086DB71 /* Script.swift in Sources */,
 				CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */,
+				58A3D5542C96EFA8003F90FC /* TempTargetRunStored+CoreDataProperties.swift in Sources */,
 				3883583425EEB38000E024B2 /* PumpSettings.swift in Sources */,
 				38DAB280260CBB7F00F74C1A /* PumpView.swift in Sources */,
 				DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */,
@@ -3337,6 +3419,7 @@
 				CE95BF572BA5F5FE00DC3DE3 /* PluginManager.swift in Sources */,
 				382C133725F13A1E00715CE1 /* InsulinSensitivities.swift in Sources */,
 				19D466A529AA2BD4004D5F33 /* MealSettingsProvider.swift in Sources */,
+				DD5DC9F72CF3DA9300AB8703 /* TargetPicker.swift in Sources */,
 				383948D625CD4D8900E91849 /* FileStorage.swift in Sources */,
 				CEE9A6572BBB418300EB5194 /* CalibrationsChart.swift in Sources */,
 				3811DE4125C9D4A100A708ED /* SettingsRootView.swift in Sources */,
@@ -3367,6 +3450,7 @@
 				389A572026079BAA00BC102F /* Interpolation.swift in Sources */,
 				DD9ECB702CA9A0BA00AA7C45 /* RemoteControlConfigStateModel.swift in Sources */,
 				19A910382A24EF3200C8951B /* ChartsView.swift in Sources */,
+				58A3D5522C96EFA8003F90FC /* TempTargetStored+CoreDataProperties.swift in Sources */,
 				DD32CF9A2CC8247B003686D6 /* TrioRemoteControl+Meal.swift in Sources */,
 				BDF34F832C10C5B600D51995 /* DataManager.swift in Sources */,
 				38B4F3C625E5017E00E76A18 /* NotificationCenter.swift in Sources */,
@@ -3410,6 +3494,7 @@
 				BD0B2EF32C5998E600B3298F /* MealPresetView.swift in Sources */,
 				DD6D67E42C9C253500660C9B /* ColorSchemeOption.swift in Sources */,
 				582DF9752C8CDB92001F516D /* GlucoseChartView.swift in Sources */,
+				58A3D53A2C96D4DE003F90FC /* AddTempTargetForm.swift in Sources */,
 				DD1745302C55AE5300211FAC /* TargetBehaviorProvider.swift in Sources */,
 				58D08B382C8DFB6000AA37D3 /* BasalChart.swift in Sources */,
 				118DF76D2C5ECBC60067FEB7 /* OverridePresetEntity.swift in Sources */,
@@ -3417,6 +3502,7 @@
 				DD17454E2C55CA4D00211FAC /* UnitsLimitsSettingsDataFlow.swift in Sources */,
 				DDF847E62C5D66490049BB3B /* AddMealPresetView.swift in Sources */,
 				3811DEAE25C9D88300A708ED /* Cache.swift in Sources */,
+				BDA6CC882CAF219B00F942F9 /* TempTargetSetup.swift in Sources */,
 				383420D625FFE38C002D46C1 /* LoopView.swift in Sources */,
 				DD1745192C543B5700211FAC /* NotificationsView.swift in Sources */,
 				3811DEAD25C9D88300A708ED /* UserDefaults+Cache.swift in Sources */,
@@ -3434,10 +3520,10 @@
 				CEE9A6592BBB418300EB5194 /* CalibrationsDataFlow.swift in Sources */,
 				3811DE3525C9D49500A708ED /* HomeRootView.swift in Sources */,
 				38E98A2925F52C9300C0CED0 /* Error+Extensions.swift in Sources */,
-				118DF76C2C5ECBC60067FEB7 /* ListOverridePresetIntent.swift in Sources */,
 				38EA05DA261F6E7C0064E39B /* SimpleLogReporter.swift in Sources */,
 				3811DE6125C9D4D500A708ED /* ViewModifiers.swift in Sources */,
 				3811DEAC25C9D88300A708ED /* NightscoutManager.swift in Sources */,
+				BD793CB22CE8033500D669AC /* TempTargetRunStored.swift in Sources */,
 				19A910302A24BF6300C8951B /* StatsView.swift in Sources */,
 				BD7DA9A92AE06E9200601B20 /* BolusCalculatorStateModel.swift in Sources */,
 				CEB434E528B8FF5D00B70274 /* UIColor.swift in Sources */,
@@ -3445,11 +3531,12 @@
 				3811DEA925C9D88300A708ED /* AppearanceManager.swift in Sources */,
 				CE7950242997D81700FA576E /* CGMSettingsView.swift in Sources */,
 				58237D9E2BCF0A6B00A47A79 /* PopupView.swift in Sources */,
+				BD793CB02CE7C61500D669AC /* OverrideRunStored+helper.swift in Sources */,
 				38D0B3D925EC07C400CB6E88 /* CarbsEntry.swift in Sources */,
 				DD32CF9C2CC82499003686D6 /* TrioRemoteControl+TempTarget.swift in Sources */,
 				38A9260525F012D8009E3739 /* CarbRatios.swift in Sources */,
 				38FCF3D625E8FDF40078B0D1 /* MD5.swift in Sources */,
-				DDD163142C4C68D300CD525A /* OverrideProvider.swift in Sources */,
+				DDD163142C4C68D300CD525A /* AdjustmentsProvider.swift in Sources */,
 				3871F39C25ED892B0013ECB5 /* TempTarget.swift in Sources */,
 				191F62682AD6B05A004D7911 /* NightscoutSettings.swift in Sources */,
 				3811DEAB25C9D88300A708ED /* HTTPResponseStatus.swift in Sources */,
@@ -3482,7 +3569,6 @@
 				BDCD47AF2C1F3F1700F8BCD5 /* OverrideStored+helper.swift in Sources */,
 				3811DE3F25C9D4A100A708ED /* SettingsStateModel.swift in Sources */,
 				CE7CA3582A064E2F004BE681 /* ListStateView.swift in Sources */,
-				58D08B362C8DFAC600AA37D3 /* IobChart.swift in Sources */,
 				193F6CDD2A512C8F001240FD /* Loops.swift in Sources */,
 				38B4F3CB25E502E200E76A18 /* WeakObjectSet.swift in Sources */,
 				38E989DD25F5021400C0CED0 /* PumpStatus.swift in Sources */,
@@ -3508,7 +3594,7 @@
 				E39E418C56A5A46B61D960EE /* ConfigEditorStateModel.swift in Sources */,
 				45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */,
 				DD32CFA02CC824D6003686D6 /* TrioRemoteControl+APNS.swift in Sources */,
-				CE7CA3532A064973004BE681 /* tempPresetIntent.swift in Sources */,
+				CE7CA3532A064973004BE681 /* TempPresetIntent.swift in Sources */,
 				D6DEC113821A7F1056C4AA1E /* NightscoutConfigDataFlow.swift in Sources */,
 				DD6B7CBB2C7FBBFA00B75029 /* ReviewInsulinActionView.swift in Sources */,
 				38E98A3025F52FF700C0CED0 /* Config.swift in Sources */,
@@ -3524,7 +3610,7 @@
 				38A43598262E0E4900E80935 /* FetchAnnouncementsManager.swift in Sources */,
 				DD1745442C55C60E00211FAC /* AutosensSettingsDataFlow.swift in Sources */,
 				BDCAF2382C639F35002DC907 /* SettingItems.swift in Sources */,
-				58D08B342C8DF9A700AA37D3 /* CobChart.swift in Sources */,
+				58D08B342C8DF9A700AA37D3 /* CobIobChart.swift in Sources */,
 				642F76A05A4FF530463A9FD0 /* NightscoutConfigRootView.swift in Sources */,
 				BD7DA9AC2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift in Sources */,
 				AD3D2CD42CD01B9EB8F26522 /* PumpConfigDataFlow.swift in Sources */,
@@ -3535,7 +3621,6 @@
 				E974172296125A5AE99E634C /* PumpConfigRootView.swift in Sources */,
 				DD1745502C55CA5500211FAC /* UnitsLimitsSettingsProvider.swift in Sources */,
 				581AC4392BE22ED10038760C /* JSONConverter.swift in Sources */,
-				CE7CA3522A064973004BE681 /* ListTempPresetsIntent.swift in Sources */,
 				BD4064D12C4ED26900582F43 /* CoreDataObserver.swift in Sources */,
 				58645B9B2CA2D24F008AFCE7 /* CarbSetup.swift in Sources */,
 				38E44536274E411700EC9A94 /* Disk.swift in Sources */,
@@ -3604,7 +3689,10 @@
 				58D08B3A2C8DFECD00AA37D3 /* TempTargets.swift in Sources */,
 				38E98A2325F52C9300C0CED0 /* Signpost.swift in Sources */,
 				CE7CA3542A064973004BE681 /* TempPresetsIntentRequest.swift in Sources */,
+				58A3D5442C96DE11003F90FC /* TempTargetStored+Helper.swift in Sources */,
+				58A3D5532C96EFA8003F90FC /* TempTargetRunStored+CoreDataClass.swift in Sources */,
 				DD6B7CB42C7B71F700B75029 /* ForecastDisplayType.swift in Sources */,
+				DD5DC9F32CF3D9DD00AB8703 /* AdjustmentsStateModel+TempTargets.swift in Sources */,
 				F5F7E6C1B7F098F59EB67EC5 /* TargetsEditorDataFlow.swift in Sources */,
 				DD17453A2C55BFA600211FAC /* AlgorithmAdvancedSettingsDataFlow.swift in Sources */,
 				5075C1608E6249A51495C422 /* TargetsEditorProvider.swift in Sources */,
@@ -3612,7 +3700,7 @@
 				9702FF92A09C53942F20D7EA /* TargetsEditorRootView.swift in Sources */,
 				1967DFBE29D052C200759F30 /* Icons.swift in Sources */,
 				38E8754F275556FA00975559 /* WatchManager.swift in Sources */,
-				DDD163182C4C694000CD525A /* OverrideRootView.swift in Sources */,
+				DDD163182C4C694000CD525A /* AdjustmentsRootView.swift in Sources */,
 				389ECE052601144100D86C4F /* ConcurrentMap.swift in Sources */,
 				110AEDEC2C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift in Sources */,
 				CE7CA3562A064973004BE681 /* StateIntentRequest.swift in Sources */,
@@ -3620,12 +3708,13 @@
 				DD09D4822C5986F6003FEA5D /* CalendarEventSettingsRootView.swift in Sources */,
 				CE48C86428CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift in Sources */,
 				38E8755427561E9800975559 /* DataFlow.swift in Sources */,
+				DD5DC9F92CF3DAA900AB8703 /* RadioButton.swift in Sources */,
 				38E44522274E3DDC00EC9A94 /* NetworkReachabilityManager.swift in Sources */,
 				CE7CA34F2A064973004BE681 /* BaseIntentsRequest.swift in Sources */,
 				CE82E02728E869DF00473A9C /* AlertEntry.swift in Sources */,
 				38E4451E274DB04600EC9A94 /* AppDelegate.swift in Sources */,
 				BD2FF1A02AE29D43005D1C5D /* CheckboxToggleStyle.swift in Sources */,
-				DDD163162C4C690300CD525A /* OverrideDataFlow.swift in Sources */,
+				DDD163162C4C690300CD525A /* AdjustmentsDataFlow.swift in Sources */,
 				BDF34F932C10D0E100D51995 /* LiveActivityAttributes+Helper.swift in Sources */,
 				E0D4F80527513ECF00BDF1FE /* HealthKitSample.swift in Sources */,
 				38A00B1F25FC00F7006BC0B0 /* Autotune.swift in Sources */,
@@ -3657,7 +3746,7 @@
 				7BCFACB97C821041BA43A114 /* ManualTempBasalRootView.swift in Sources */,
 				38E44534274E411700EC9A94 /* Disk+InternalHelpers.swift in Sources */,
 				38A00B2325FC2B55006BC0B0 /* LRUCache.swift in Sources */,
-				DDD163122C4C689900CD525A /* OverrideStateModel.swift in Sources */,
+				DDD163122C4C689900CD525A /* AdjustmentsStateModel.swift in Sources */,
 				3083261C4B268E353F36CD0B /* AutotuneConfigDataFlow.swift in Sources */,
 				DD1745132C54169400211FAC /* DevicesView.swift in Sources */,
 				891DECF7BC20968D7F566161 /* AutotuneConfigProvider.swift in Sources */,
@@ -3682,6 +3771,7 @@
 				BD7DA9A52AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift in Sources */,
 				6EADD581738D64431902AC0A /* (null) in Sources */,
 				CE94598729E9E4110047C9C6 /* WatchConfigRootView.swift in Sources */,
+				DD5DC9FB2CF3E1B100AB8703 /* AdjustmentsStateModel+Helpers.swift in Sources */,
 				DDF847E42C5C288F0049BB3B /* LiveActivitySettingsRootView.swift in Sources */,
 				DD88C8E22C50420800F2D558 /* DefinitionRow.swift in Sources */,
 				B7C465E9472624D8A2BE2A6A /* (null) in Sources */,
@@ -3703,9 +3793,8 @@
 				DDE179592C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift in Sources */,
 				DDE1795A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift in Sources */,
 				DDE1795B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift in Sources */,
-				DDE1795C2C910127003CDDB7 /* TempTargets+CoreDataClass.swift in Sources */,
-				DDE1795D2C910127003CDDB7 /* TempTargets+CoreDataProperties.swift in Sources */,
 				DDE1795E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift in Sources */,
+				BDDAF9EF2D00554500B34E7A /* SelectionPopoverView.swift in Sources */,
 				DDE1795F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift in Sources */,
 				DDE179602C910127003CDDB7 /* StatsData+CoreDataClass.swift in Sources */,
 				DDE179612C910127003CDDB7 /* StatsData+CoreDataProperties.swift in Sources */,
@@ -3717,8 +3806,6 @@
 				DDE179672C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift in Sources */,
 				DDE179682C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift in Sources */,
 				DDE179692C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift in Sources */,
-				DDE1796A2C910127003CDDB7 /* TempTargetsSlider+CoreDataClass.swift in Sources */,
-				DDE1796B2C910127003CDDB7 /* TempTargetsSlider+CoreDataProperties.swift in Sources */,
 				DDE1796C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift in Sources */,
 				DDE1796D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift in Sources */,
 				DDE1796E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift in Sources */,
@@ -3730,6 +3817,7 @@
 				CE7CA3502A064973004BE681 /* CancelTempPresetIntent.swift in Sources */,
 				6B1F539F9FF75646D1606066 /* SnoozeDataFlow.swift in Sources */,
 				6FFAE524D1D9C262F2407CAE /* SnoozeProvider.swift in Sources */,
+				BD4ED4FD2CF9D5E8000EDC9C /* AppState.swift in Sources */,
 				DDF847DD2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift in Sources */,
 				8194B80890CDD6A3C13B0FEE /* SnoozeStateModel.swift in Sources */,
 				0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */,
