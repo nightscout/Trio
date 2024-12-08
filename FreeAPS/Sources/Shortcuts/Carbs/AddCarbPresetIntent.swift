@@ -10,10 +10,7 @@ import Swinject
     // Description of the action in the Shortcuts app
     static var description = IntentDescription("Allow to add carbs in Trio.")
 
-    internal var carbRequest: CarbPresetIntentRequest
-
     init() {
-        carbRequest = CarbPresetIntentRequest()
         dateAdded = Date()
     }
 
@@ -89,7 +86,7 @@ import Swinject
                 )
             }
 
-            let finalQuantityCarbsDisplay = try await carbRequest.addCarbs(
+            let finalQuantityCarbsDisplay = try await CarbPresetIntentRequest().addCarbs(
                 quantityCarbs,
                 fatQuantity,
                 proteinQuantity,

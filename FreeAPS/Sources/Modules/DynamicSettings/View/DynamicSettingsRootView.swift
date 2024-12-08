@@ -4,7 +4,7 @@ import Swinject
 extension DynamicSettings {
     struct RootView: BaseView {
         let resolver: Resolver
-        @State var state = StateModel()
+        @StateObject var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: String?
@@ -21,22 +21,7 @@ extension DynamicSettings {
         }
 
         @Environment(\.colorScheme) var colorScheme
-        var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -214,13 +199,10 @@ extension DynamicSettings {
                     sheetTitle: "Help"
                 )
             }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
             .navigationBarTitle("Dynamic Settings")
             .navigationBarTitleDisplayMode(.automatic)
-            .onDisappear {
-                state.saveIfChanged()
-            }
         }
     }
 }

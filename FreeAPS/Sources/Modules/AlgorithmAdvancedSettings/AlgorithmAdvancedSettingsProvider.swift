@@ -15,6 +15,15 @@ extension AlgorithmAdvancedSettings {
                 ?? PumpSettings(insulinActionCurve: 6.0, maxBolus: 10, maxBasal: 2)
         }
 
+        func savePreferences(_ preferences: Preferences) {
+            storage.save(preferences, as: OpenAPS.Settings.preferences)
+            processQueue.async {
+                self.broadcaster.notify(PreferencesObserver.self, on: self.processQueue) {
+                    $0.preferencesDidChange(preferences)
+                }
+            }
+        }
+
         func save(settings: PumpSettings) -> AnyPublisher<Void, Error> {
             func save(_ settings: PumpSettings) {
                 storage.save(settings, as: OpenAPS.Settings.settings)

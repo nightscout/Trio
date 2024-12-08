@@ -24,7 +24,7 @@ import Foundation
                 fat: Decimal(quantityFat),
                 protein: Decimal(quantityProtein),
                 note: (note?.isEmpty ?? true) ? "Via Shortcut" : note!,
-                enteredBy: CarbsEntry.manual,
+                enteredBy: CarbsEntry.local,
                 isFPU: false, fpuID: nil
             )],
             areFetchedFromRemote: false
