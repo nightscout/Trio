@@ -69,7 +69,10 @@ extension Home.StateModel {
             guard viewContext.hasChanges else { return }
             try viewContext.save()
 
-            await saveToTempTargetRunStored(object: profileToCancel)
+            // Do not save Cancel-Temp Targets from Nightscout to RunStoredEntity
+            if profileToCancel.duration != 0, profileToCancel.target != 0 {
+                await saveToTempTargetRunStored(object: profileToCancel)
+            }
 
             // We also need to update the storage for temp targets
             tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())])
