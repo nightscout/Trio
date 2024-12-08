@@ -230,7 +230,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
 
     private func sendState() {
         // TODO: why does this have to be JSON ?!
-        guard let data = try? JSONEncoder().encode(state) else {
+        guard ((try? JSONEncoder().encode(state)) != nil) else {
             warning(.service, "Cannot encode watch state")
             return
         }
