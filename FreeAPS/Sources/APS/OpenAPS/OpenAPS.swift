@@ -915,7 +915,7 @@ extension OpenAPS {
             key: "date",
             ascending: false,
             fetchLimit: 1
-        )
+        ) as? [TempTargetStored] ?? []
     }
 
     func fetchActiveOverrides() -> [OverrideStored] {
@@ -926,7 +926,7 @@ extension OpenAPS {
             key: "date",
             ascending: false,
             fetchLimit: 1
-        )
+        ) as? [OverrideStored] ?? []
     }
 
     func fetchHistoricalTDDData(from date: Date) -> [[String: Any]] {

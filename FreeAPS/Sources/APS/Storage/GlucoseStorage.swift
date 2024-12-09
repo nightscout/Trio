@@ -264,14 +264,14 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     func fetchLatestGlucose() -> GlucoseStored? {
         let predicate = NSPredicate.predicateFor20MinAgo
-        return CoreDataStack.shared.fetchEntities(
+        return (CoreDataStack.shared.fetchEntities(
             ofType: GlucoseStored.self,
             onContext: coredataContext,
             predicate: predicate,
             key: "date",
             ascending: false,
             fetchLimit: 1
-        ).first
+        ) as? [GlucoseStored] ?? []).first
     }
 
     // Fetch glucose that is not uploaded to Nightscout yet
