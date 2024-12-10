@@ -198,7 +198,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             key: "date",
             ascending: false,
             fetchLimit: 6
-        )
+        ) as? [GlucoseStored]
     }
 
     private func processGlucose() -> [BloodGlucose] {
