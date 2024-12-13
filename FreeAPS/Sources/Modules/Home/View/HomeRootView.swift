@@ -4,41 +4,47 @@ import SwiftDate
 import SwiftUI
 import Swinject
 
+struct TimePicker: Identifiable {
+    let label: String
+    let number: String
+    var active: Bool
+    let hours: Int16
+    var id: String { label }
+}
+
 extension Home {
     struct RootView: BaseView {
         let resolver: Resolver
+        let safeAreaSize: CGFloat = 0.08
+
+        @Environment(\.managedObjectContext) var moc
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
 
         @State var state = StateModel()
+
+        @State var settingsPath = NavigationPath()
         @State var isStatusPopupPresented = false
         @State var showCancelAlert = false
+        @State var showCancelConfirmDialog = false
+        @State var isConfirmStopOverrideShown = false
+        @State var isConfirmStopOverridePresented = false
+        @State var isConfirmStopTempTargetShown = false
         @State var isMenuPresented = false
         @State var showTreatments = false
         @State var selectedTab: Int = 0
         @State private var statusTitle: String = ""
         @State var showPumpSelection: Bool = false
         @State var notificationsDisabled = false
-        @State var alertSafetyNotificationsViewHeight = 0
-
-        struct Buttons: Identifiable {
-            let label: String
-            let number: String
-            var active: Bool
-            let hours: Int16
-            var id: String { label }
-        }
-
-        @State var timeButtons: [Buttons] = [
-            Buttons(label: "2 hours", number: "2", active: false, hours: 2),
-            Buttons(label: "4 hours", number: "4", active: false, hours: 4),
-            Buttons(label: "6 hours", number: "6", active: false, hours: 6),
-            Buttons(label: "12 hours", number: "12", active: false, hours: 12),
-            Buttons(label: "24 hours", number: "24", active: false, hours: 24)
+        @State var timeButtons: [TimePicker] = [
+            TimePicker(label: "2 hours", number: "2", active: false, hours: 2),
+            TimePicker(label: "4 hours", number: "4", active: false, hours: 4),
+            TimePicker(label: "6 hours", number: "6", active: false, hours: 6),
+            TimePicker(label: "12 hours", number: "12", active: false, hours: 12),
+            TimePicker(label: "24 hours", number: "24", active: false, hours: 24)
         ]
 
         let buttonFont = Font.custom("TimeButtonFont", size: 14)
-
-        @Environment(\.managedObjectContext) var moc
-        @Environment(\.colorScheme) var colorScheme
 
         @FetchRequest(fetchRequest: OverrideStored.fetch(
             NSPredicate.lastActiveOverride,
@@ -46,17 +52,11 @@ extension Home {
             fetchLimit: 1
         )) var latestOverride: FetchedResults<OverrideStored>
 
-        @FetchRequest(
-            entity: TempTargets.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
-        ) var sliderTTpresets: FetchedResults<TempTargets>
-
-        @FetchRequest(
-            entity: TempTargetsSlider.entity(),
-            sortDescriptors: [NSSortDescriptor(key: "date", ascending: false)]
-        ) var enactedSliderTT: FetchedResults<TempTargetsSlider>
-
-        // TODO: end todo
+        @FetchRequest(fetchRequest: TempTargetStored.fetch(
+            NSPredicate.lastActiveTempTarget,
+            ascending: false,
+            fetchLimit: 1
+        )) var latestTempTarget: FetchedResults<TempTargetStored>
 
         var bolusProgressFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -69,13 +69,6 @@ extension Home {
             return formatter
         }
 
-        private var numberFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 2
-            return formatter
-        }
-
         private var fetchedTargetFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -83,43 +76,6 @@ extension Home {
                 formatter.maximumFractionDigits = 1
             } else { formatter.maximumFractionDigits = 0 }
             return formatter
-        }
-
-        private var targetFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 1
-            return formatter
-        }
-
-        private var tirFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 0
-            return formatter
-        }
-
-        private var dateFormatter: DateFormatter {
-            let dateFormatter = DateFormatter()
-            dateFormatter.timeStyle = .short
-            return dateFormatter
-        }
-
-        private var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
         }
 
         private var historySFSymbol: String {
@@ -176,7 +132,7 @@ extension Home {
             guard let lastTempBasal = state.tempBasals.last?.tempBasal, let tempRate = lastTempBasal.rate else {
                 return nil
             }
-            let rateString = numberFormatter.string(from: tempRate as NSNumber) ?? "0"
+            let rateString = Formatter.decimalFormatterWithTwoFractionDigits.string(from: tempRate as NSNumber) ?? "0"
             var manualBasalString = ""
 
             if let apsManager = state.apsManager, apsManager.isManualTempBasal {
@@ -219,11 +175,10 @@ extension Home {
 
             if !indefinite {
                 if newDuration >= 1 {
-                    durationString =
-                        "\(newDuration.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) min"
+                    durationString = formatHrMin(Int(newDuration))
                 } else if newDuration > 0 {
-                    durationString =
-                        "\((newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) s"
+                    durationString = "\(Int(newDuration * 60)) s"
+
                 } else {
                     /// Do not show the Override anymore
                     Task {
@@ -233,66 +188,62 @@ extension Home {
                 }
             }
 
-            let smbToggleString = latestOverride.smbIsOff ? " \u{20e0}" : ""
+            let smbScheduleString = latestOverride
+                .smbIsScheduledOff && ((latestOverride.start?.stringValue ?? "") != (latestOverride.end?.stringValue ?? ""))
+                ? " \(formatTimeRange(start: latestOverride.start?.stringValue, end: latestOverride.end?.stringValue))"
+                : ""
 
-            let components = [percentString, targetString, durationString, smbToggleString].filter { !$0.isEmpty }
+            let smbToggleString = latestOverride.smbIsOff || latestOverride
+                .smbIsScheduledOff ? "SMBs Off\(smbScheduleString)" : ""
+
+            let components = [durationString, percentString, targetString, smbToggleString].filter { !$0.isEmpty }
             return components.isEmpty ? nil : components.joined(separator: ", ")
         }
 
         var tempTargetString: String? {
-            guard let tempTarget = state.tempTarget else {
+            guard let latestTempTarget = latestTempTarget.first else {
                 return nil
             }
-            let target = tempTarget.targetBottom ?? 0
-            let unitString = targetFormatter.string(from: (tempTarget.targetBottom?.asMmolL ?? 0) as NSNumber) ?? ""
-            let rawString = (tirFormatter.string(from: (tempTarget.targetBottom ?? 0) as NSNumber) ?? "") + " " + state.units
-                .rawValue
+            let duration = latestTempTarget.duration
+            let addedMinutes = Int(truncating: duration ?? 0)
+            let date = latestTempTarget.date ?? Date()
+            let newDuration = max(
+                Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes),
+                0
+            )
+            var durationString = ""
+            var percentageString = ""
+            var target = (latestTempTarget.target ?? 100) as Decimal
+            var halfBasalTarget: Decimal = 160
+            if latestTempTarget.halfBasalTarget != nil {
+                halfBasalTarget = latestTempTarget.halfBasalTarget! as Decimal
+            } else { halfBasalTarget = state.settingHalfBasalTarget }
+            var showPercentage = false
+            if target > 100, state.isExerciseModeActive || state.highTTraisesSens { showPercentage = true }
+            if target < 100, state.lowTTlowersSens { showPercentage = true }
+            if showPercentage {
+                percentageString =
+                    " \(state.computeAdjustedPercentage(halfBasalTargetValue: halfBasalTarget, tempTargetValue: target))%" }
+            target = state.units == .mmolL ? target.asMmolL : target
+            let targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " +
+                state.units.rawValue + percentageString
 
-            var string = ""
-            if sliderTTpresets.first?.active ?? false {
-                let hbt = sliderTTpresets.first?.hbt ?? 0
-                string = ", " + (tirFormatter.string(from: state.infoPanelTTPercentage(hbt, target) as NSNumber) ?? "") + " %"
-            }
-
-            let percentString = state
-                .units == .mmolL ? (unitString + " mmol/L" + string) : (rawString + (string == "0" ? "" : string))
-            return tempTarget.displayName + " " + percentString
-        }
-
-        var infoPanel: some View {
-            HStack(alignment: .center) {
-                if state.pumpSuspended {
-                    Text("Pump suspended")
-                        .font(.system(size: 15, weight: .bold)).foregroundColor(.loopGray)
-                        .padding(.leading, 8)
-                } else if let tempBasalString = tempBasalString {
-                    Text(tempBasalString)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(.insulin)
-                        .padding(.leading, 8)
-                }
-                if state.totalInsulinDisplayType == .totalInsulinInScope {
-                    Text(
-                        "TINS: \(state.calculateTINS())" +
-                            NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
-                    )
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(.insulin)
-                }
-
-                if let tempTargetString = tempTargetString {
-                    Text(tempTargetString)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                Spacer()
-
-                if state.closedLoop, state.settingsManager.preferences.maxIOB == 0 {
-                    Text("Max IOB: 0").font(.callout).foregroundColor(.orange).padding(.trailing, 20)
+            if newDuration >= 1 {
+                durationString =
+                    "\(newDuration.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) min"
+            } else if newDuration > 0 {
+                durationString =
+                    "\((newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) s"
+            } else {
+                /// Do not show the Temp Target anymore
+                Task {
+                    guard let objectID = self.latestTempTarget.first?.objectID else { return }
+                    await state.cancelTempTarget(withID: objectID)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: 30)
+
+            let components = [targetString, durationString].filter { !$0.isEmpty }
+            return components.isEmpty ? nil : components.joined(separator: ", ")
         }
 
         var timeInterval: some View {
@@ -340,6 +291,7 @@ extension Home {
             ZStack {
                 MainChartView(
                     geo: geo,
+                    safeAreaSize: notificationsDisabled == true ? safeAreaSize : 0,
                     units: state.units,
                     hours: state.filteredHours,
                     tempTargets: state.tempTargets,
@@ -389,7 +341,7 @@ extension Home {
                         Image(systemName: "arrow.right.circle")
                             .font(.system(size: 16, weight: .bold))
                         Text(
-                            numberFormatter.string(
+                            Formatter.decimalFormatterWithTwoFractionDigits.string(
                                 from: (
                                     state.units == .mmolL ? bg
                                         .asMmolL : bg
@@ -417,7 +369,7 @@ extension Home {
                         .foregroundColor(Color.insulin)
                     Text(
                         (
-                            numberFormatter
+                            Formatter.decimalFormatterWithTwoFractionDigits
                                 .string(from: (state.enactedAndNonEnactedDeterminations.first?.iob ?? 0) as NSNumber) ?? "0"
                         ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
@@ -433,7 +385,7 @@ extension Home {
                         .foregroundColor(.loopYellow)
                     Text(
                         (
-                            numberFormatter.string(
+                            Formatter.decimalFormatterWithTwoFractionDigits.string(
                                 from: NSNumber(value: state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
                             ) ?? "0"
                         ) +
@@ -467,7 +419,7 @@ extension Home {
                     Text(
                         "TDD: " +
                             (
-                                numberFormatter
+                                Formatter.decimalFormatterWithTwoFractionDigits
                                     .string(from: (state.determinationsFromPersistence.first?.totalDailyDose ?? 0) as NSNumber) ??
                                     "0"
                             ) +
@@ -495,113 +447,210 @@ extension Home {
             }.padding(.horizontal, 10)
         }
 
-        @ViewBuilder func profileView(geo: GeometryProxy) -> some View {
+        @ViewBuilder func adjustmentsOverrideView(_ overrideString: String) -> some View {
+            Group {
+                Image(systemName: "clock.arrow.2.circlepath")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Color.primary, Color.purple)
+                VStack(alignment: .leading) {
+                    Text(latestOverride.first?.name ?? "Custom Override")
+                        .font(.subheadline)
+                        .frame(alignment: .leading)
+
+                    Text(overrideString)
+                        .font(.caption)
+                }
+            }
+            .onTapGesture {
+                selectedTab = 2
+            }
+        }
+
+        @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: String) -> some View {
+            Group {
+                Image(systemName: "target")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Color.loopGreen)
+                VStack(alignment: .leading) {
+                    Text(latestTempTarget.first?.name ?? "Temp Target")
+                        .font(.subheadline)
+                    Text(tempTargetString)
+                        .font(.caption)
+                }
+            }
+            .onTapGesture {
+                selectedTab = 2
+            }
+        }
+
+        @ViewBuilder func adjustmentsCancelView(_ cancelAction: @escaping () -> Void) -> some View {
+            Image(systemName: "xmark.app")
+                .font(.system(size: 24))
+                .onTapGesture {
+                    cancelAction()
+                }
+        }
+
+        @ViewBuilder func adjustmentsCancelTempTargetView() -> some View {
+            Image(systemName: "xmark.app")
+                .font(.system(size: 24))
+                .confirmationDialog(
+                    "Stop the Temp Target \"\(latestTempTarget.first?.name ?? "")\"?",
+                    isPresented: $isConfirmStopTempTargetShown,
+                    titleVisibility: .visible
+                ) {
+                    Button("Stop", role: .destructive) {
+                        Task {
+                            guard let objectID = latestTempTarget.first?.objectID else { return }
+                            await state.cancelTempTarget(withID: objectID)
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                }
+                .padding(.trailing, 8)
+                .onTapGesture {
+                    if !latestTempTarget.isEmpty {
+                        isConfirmStopTempTargetShown = true
+                    }
+                }
+        }
+
+        @ViewBuilder func adjustmentsCancelOverrideView() -> some View {
+            Image(systemName: "xmark.app")
+                .font(.system(size: 24))
+                .confirmationDialog(
+                    "Stop the Override \"\(latestOverride.first?.name ?? "")\"?",
+                    isPresented: $isConfirmStopOverridePresented,
+                    titleVisibility: .visible
+                ) {
+                    Button("Stop", role: .destructive) {
+                        Task {
+                            guard let objectID = latestOverride.first?.objectID else { return }
+                            await state.cancelOverride(withID: objectID)
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                }
+                .padding(.trailing, 8)
+                .onTapGesture {
+                    if !latestOverride.isEmpty {
+                        isConfirmStopOverridePresented = true
+                    }
+                }
+        }
+
+        @ViewBuilder func noActiveAdjustmentsView() -> some View {
+            Group {
+                VStack {
+                    Text("No Active Adjustment")
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text("Profile at 100 %")
+                        .font(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }.padding(.leading, 10)
+
+                Spacer()
+
+                /// to ensure the same position....
+                Image(systemName: "xmark.app")
+                    .font(.system(size: 25))
+                    // clear color for the icon
+                    .foregroundStyle(Color.clear)
+            }.onTapGesture {
+                selectedTab = 2
+            }
+        }
+
+        @ViewBuilder func adjustmentView(geo: GeometryProxy) -> some View {
             ZStack {
                 /// rectangle as background
                 RoundedRectangle(cornerRadius: 15)
                     .fill(
-                        colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) : Color.insulin
-                            .opacity(0.1)
+                        (overrideString != nil || tempTargetString != nil) ?
+                            (
+                                colorScheme == .dark ?
+                                    Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) :
+                                    Color.insulin.opacity(0.1)
+                            ) : Color.clear // Use clear and add the Material in the background
                     )
+                    .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 15))
                     .frame(height: geo.size.height * 0.08)
                     .shadow(
-                        color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
-                            Color.black.opacity(0.33),
+                        color: (overrideString != nil || tempTargetString != nil) ?
+                            (
+                                colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
+                                    Color.black.opacity(0.33)
+                            ) : Color.clear,
                         radius: 3
                     )
                 HStack {
-                    /// actual profile view
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 25))
+                    if let overrideString = overrideString, let tempTargetString = tempTargetString {
+                        HStack {
+                            adjustmentsOverrideView(overrideString)
 
-                    Spacer()
-
-                    if let overrideString = overrideString {
-                        VStack {
-                            Text(latestOverride.first?.name ?? "Custom Override")
-                                .font(.subheadline)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                            Text("\(overrideString)")
-                                .font(.caption)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                        }.padding(.leading, 5)
-                        Spacer()
-                        Image(systemName: "xmark.app")
-                            .font(.system(size: 25))
-                    } else {
-                        if tempTargetString == nil {
-                            VStack {
-                                Text("Normal Profile")
-                                    .font(.subheadline)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                Text("100 %")
-                                    .font(.caption)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }.padding(.leading, 5)
                             Spacer()
-                            /// to ensure the same position....
-                            Image(systemName: "xmark.app")
-                                .font(.system(size: 25))
-                                .foregroundStyle(Color.clear)
+
+                            Divider()
+                                .frame(height: geo.size.height * 0.05)
+                                .padding(.horizontal, 2)
+
+                            adjustmentsTempTargetView(tempTargetString)
+
+                            Spacer()
+
+                            adjustmentsCancelView({
+                                if !latestTempTarget.isEmpty, !latestOverride.isEmpty {
+                                    showCancelConfirmDialog = true
+                                } else if !latestOverride.isEmpty {
+                                    showCancelAlert = true
+                                } else if !latestTempTarget.isEmpty {
+                                    showCancelAlert = true
+                                }
+                            })
                         }
+                    } else if let overrideString = overrideString {
+                        adjustmentsOverrideView(overrideString)
+                        Spacer()
+                        adjustmentsCancelOverrideView()
+
+                    } else if let tempTargetString = tempTargetString {
+                        HStack {
+                            adjustmentsTempTargetView(tempTargetString)
+                            Spacer()
+                            adjustmentsCancelTempTargetView()
+                        }
+                    } else {
+                        noActiveAdjustmentsView()
                     }
                 }.padding(.horizontal, 10)
-                    .alert(
-                        "Return to Normal?", isPresented: $showCancelAlert,
-                        actions: {
-                            Button("No", role: .cancel) {}
-                            Button("Yes", role: .destructive) {
-                                Task {
-                                    guard let objectID = latestOverride.first?.objectID else { return }
-                                    await state.cancelOverride(withID: objectID)
-                                }
+                    .confirmationDialog("Adjustment to Stop", isPresented: $showCancelConfirmDialog) {
+                        Button("Stop Override", role: .destructive) {
+                            Task {
+                                guard let objectID = latestOverride.first?.objectID else { return }
+                                await state.cancelOverride(withID: objectID)
                             }
-                        }, message: { Text("This will change settings back to your normal profile.") }
-                    )
-                    .padding(.trailing, 8)
-                    .onTapGesture {
-                        if !latestOverride.isEmpty {
-                            showCancelAlert = true
                         }
+                        Button("Stop Temp Target", role: .destructive) {
+                            Task {
+                                guard let objectID = latestTempTarget.first?.objectID else { return }
+                                await state.cancelTempTarget(withID: objectID)
+                            }
+                        }
+                        Button("Stop All Adjustments", role: .destructive) {
+                            Task {
+                                guard let overrideObjectID = latestOverride.first?.objectID else { return }
+                                await state.cancelOverride(withID: overrideObjectID)
+
+                                guard let tempTargetObjectID = latestTempTarget.first?.objectID else { return }
+                                await state.cancelTempTarget(withID: tempTargetObjectID)
+                            }
+                        }
+                    } message: {
+                        Text("Select Adjustment")
                     }
             }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
-                .overlay {
-                    /// just show temp target if no profile is already active
-                    if overrideString == nil, let tempTargetString = tempTargetString {
-                        ZStack {
-                            /// rectangle as background
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(
-                                    colorScheme == .dark ? Color(red: 0.03921568627, green: 0.133333333, blue: 0.2156862745) :
-                                        Color
-                                        .insulin
-                                        .opacity(0.2)
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 15))
-                                .frame(height: UIScreen.main.bounds.height / 18)
-                                .shadow(
-                                    color: colorScheme == .dark ? Color(
-                                        red: 0.02745098039,
-                                        green: 0.1098039216,
-                                        blue: 0.1411764706
-                                    ) :
-                                        Color.black.opacity(0.33),
-                                    radius: 3
-                                )
-                            HStack {
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 25))
-                                Spacer()
-                                Text(tempTargetString)
-                                    .font(.subheadline)
-                                Spacer()
-                            }.padding(.horizontal, 10)
-                        }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
-                    }
-                }
         }
 
         @ViewBuilder func bolusProgressBar(_ progress: Decimal) -> some View {
@@ -634,7 +683,7 @@ extension Home {
                 let bolusString =
                     (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
                         + " of " +
-                        (numberFormatter.string(from: bolusTotal as NSNumber) ?? "0")
+                        (Formatter.decimalFormatterWithTwoFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
                         + NSLocalizedString(" U", comment: "Insulin unit")
 
                 ZStack {
@@ -700,7 +749,7 @@ extension Home {
                         )
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 15))
-                    .frame(height: geo.size.height * 0.08)
+                    .frame(height: geo.size.height * safeAreaSize)
                     .coordinateSpace(name: "alertSafetyNotificationsView")
                     .shadow(
                         color: colorScheme == .dark ? Color(red: 0.02745098039, green: 0.1098039216, blue: 0.1411764706) :
@@ -711,19 +760,20 @@ extension Home {
                     Spacer()
                     VStack {
                         Text("⚠️ Safety Notifications are OFF")
-                            .font(.subheadline)
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .fontDesign(.rounded)
                             .foregroundStyle(.white.gradient)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         Text("Fix now by turning Notifications ON.")
-                            .font(.caption)
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .font(.footnote)
+                            .fontDesign(.rounded)
                             .foregroundStyle(.white.gradient)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }.padding(.leading, 5)
                     Spacer()
                     Image(systemName: "chevron.right").foregroundColor(.white)
-                        .font(.system(size: 15, design: .rounded))
+                        .font(.headline)
                 }.padding(.horizontal, 10)
                     .padding(.trailing, 8)
                     .onTapGesture {
@@ -733,20 +783,8 @@ extension Home {
                 .padding(.top, 0)
         }
 
-        @ViewBuilder func mainViewWithScrollView() -> some View {
-            GeometryReader { geo in
-                ScrollView(.vertical, showsIndicators: false) {
-                    mainViewViews(geo)
-                }
-            }
-        }
-
-        @ViewBuilder func mainViewViews(_ geo: GeometryProxy) -> some View {
+        @ViewBuilder func mainViewElements(_ geo: GeometryProxy) -> some View {
             VStack(spacing: 0) {
-                if notificationsDisabled {
-                    alertSafetyNotificationsView(geo: geo)
-                        .padding(.top, UIDevice.adjustPadding(min: nil, max: 40))
-                }
                 ZStack {
                     /// glucose bobble
                     glucoseView
@@ -763,6 +801,11 @@ extension Home {
                         Spacer()
                     }.padding(.leading, 20)
                 }.padding(.top, 10)
+                    .safeAreaInset(edge: .top, spacing: 0) {
+                        if notificationsDisabled {
+                            alertSafetyNotificationsView(geo: geo)
+                        }
+                    }
 
                 mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
                     .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
@@ -776,10 +819,10 @@ extension Home {
                     bolusView(geo: geo, progress)
                         .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                 } else {
-                    profileView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
+                    adjustmentView(geo: geo).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 40))
                 }
             }
-            .background(color)
+            .background(appState.trioBackgroundColor(for: colorScheme))
             .onReceive(
                 resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled,
                 perform: {
@@ -795,15 +838,7 @@ extension Home {
 
         @ViewBuilder func mainView() -> some View {
             GeometryReader { geo in
-                if notificationsDisabled {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        mainViewViews(geo)
-                    }
-                } else {
-                    GeometryReader { geo in
-                        mainViewViews(geo)
-                    }
-                }
+                mainViewElements(geo)
             }
             .onChange(of: state.hours) {
                 highlightButtons()
@@ -862,7 +897,13 @@ extension Home {
                 }
             }
             .sheet(isPresented: $state.isLegendPresented) {
-                NavigationStack {
+                legendSheetView()
+            }
+        }
+
+        @ViewBuilder func legendSheetView() -> some View {
+            NavigationStack {
+                VStack(alignment: .leading, spacing: 16) {
                     Text(
                         "The oref algorithm determines insulin dosing based on a number of scenarios that it estimates with different types of forecasts."
                     )
@@ -870,61 +911,19 @@ extension Home {
                     .foregroundColor(.secondary)
 
                     if state.forecastDisplayType == .lines {
-                        List {
-                            DefinitionRow(
-                                term: "IOB (Insulin on Board)",
-                                definition: Text(
-                                    "Forecasts future glucose readings based on the amount of insulin still active in the body."
-                                ),
-                                color: .insulin
-                            )
-                            DefinitionRow(
-                                term: "ZT (Zero-Temp)",
-                                definition: Text(
-                                    "Forecasts the worst-case future glucose reading scenario if no carbs are absorbed and insulin delivery is stopped until glucose starts rising."
-                                ),
-                                color: .zt
-                            )
-                            DefinitionRow(
-                                term: "COB (Carbs on Board)",
-                                definition: Text(
-                                    "Forecasts future glucose reading changes by considering the amount of carbohydrates still being absorbed in the body."
-                                ),
-                                color: .loopYellow
-                            )
-                            DefinitionRow(
-                                term: "UAM (Unannounced Meal)",
-                                definition: Text(
-                                    "Forecasts future glucose levels and insulin dosing needs for unexpected meals or other causes of glucose reading increases without prior notice."
-                                ),
-                                color: .uam
-                            )
-                        }
-                        .padding(.trailing, 10)
-                        .navigationBarTitle("Legend", displayMode: .inline)
+                        legendLinesView()
                     } else {
-                        List {
-                            DefinitionRow(
-                                term: "Cone of Uncertainty",
-                                definition: VStack {
-                                    Text(
-                                        "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
-                                    )
-                                    Text(
-                                        "Note: To modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type."
-                                    )
-                                },
-                                color: Color.blue.opacity(0.5)
-                            )
-                        }
-                        .padding(.trailing, 10)
-                        .navigationBarTitle("Legend", displayMode: .inline)
+                        legendConeOfUncertaintyView()
                     }
 
-                    Button { state.isLegendPresented.toggle() }
-                    label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
-                        .buttonStyle(.bordered)
-                        .padding(.top)
+                    Button {
+                        state.isLegendPresented.toggle()
+                    } label: {
+                        Text("Got it!")
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                    .buttonStyle(.bordered)
+                    .padding(.top)
                 }
                 .padding()
                 .presentationDetents(
@@ -934,7 +933,59 @@ extension Home {
             }
         }
 
-        @State var settingsPath = NavigationPath()
+        @ViewBuilder func legendLinesView() -> some View {
+            List {
+                DefinitionRow(
+                    term: "IOB (Insulin on Board)",
+                    definition: Text(
+                        "Forecasts future glucose readings based on the amount of insulin still active in the body."
+                    ),
+                    color: .insulin
+                )
+                DefinitionRow(
+                    term: "ZT (Zero-Temp)",
+                    definition: Text(
+                        "Forecasts the worst-case future glucose reading scenario if no carbs are absorbed and insulin delivery is stopped until glucose starts rising."
+                    ),
+                    color: .zt
+                )
+                DefinitionRow(
+                    term: "COB (Carbs on Board)",
+                    definition: Text(
+                        "Forecasts future glucose reading changes by considering the amount of carbohydrates still being absorbed in the body."
+                    ),
+                    color: .loopYellow
+                )
+                DefinitionRow(
+                    term: "UAM (Unannounced Meal)",
+                    definition: Text(
+                        "Forecasts future glucose levels and insulin dosing needs for unexpected meals or other causes of glucose reading increases without prior notice."
+                    ),
+                    color: .uam
+                )
+            }
+            .padding(.trailing, 10)
+            .navigationBarTitle("Legend", displayMode: .inline)
+        }
+
+        @ViewBuilder func legendConeOfUncertaintyView() -> some View {
+            List {
+                DefinitionRow(
+                    term: "Cone of Uncertainty",
+                    definition: VStack {
+                        Text(
+                            "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
+                        )
+                        Text(
+                            "Note: To modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type."
+                        )
+                    },
+                    color: Color.blue.opacity(0.5)
+                )
+            }
+            .padding(.trailing, 10)
+            .navigationBarTitle("Legend", displayMode: .inline)
+        }
 
         @ViewBuilder func tabBar() -> some View {
             ZStack(alignment: .bottom) {
@@ -948,7 +999,7 @@ extension Home {
                         let carbsRequiredDecimal = Decimal(carbsRequired)
                         if carbsRequiredDecimal > state.settingsManager.settings.carbsRequiredThreshold {
                             let numberAsNSNumber = NSDecimalNumber(decimal: carbsRequiredDecimal)
-                            return (numberFormatter.string(from: numberAsNSNumber) ?? "") + " g"
+                            return (Formatter.decimalFormatterWithTwoFractionDigits.string(from: numberAsNSNumber) ?? "") + " g"
                         }
                         return nil
                     }()
@@ -962,7 +1013,7 @@ extension Home {
 
                     Spacer()
 
-                    NavigationStack { OverrideConfig.RootView(resolver: resolver) }
+                    NavigationStack { Adjustments.RootView(resolver: resolver) }
                         .tabItem {
                             Label(
                                 "Adjustments",
@@ -1074,7 +1125,7 @@ extension Home {
                 }
 
                 if let errorMessage = state.errorMessage, let date = state.errorDate {
-                    Text(NSLocalizedString("Error at", comment: "") + " " + dateFormatter.string(from: date))
+                    Text(NSLocalizedString("Error at", comment: "") + " " + Formatter.dateFormatter.string(from: date))
                         .foregroundColor(.white)
                         .font(.headline)
                         .padding(.bottom, 4)
@@ -1130,5 +1181,62 @@ extension UIScreen {
 
     static var screenWidth: CGFloat {
         UIScreen.main.bounds.width
+    }
+}
+
+/// Checks if the device is using a 24-hour time format.
+func is24HourFormat() -> Bool {
+    let formatter = DateFormatter()
+    formatter.locale = Locale.current
+    formatter.dateStyle = .none
+    formatter.timeStyle = .short
+    let dateString = formatter.string(from: Date())
+
+    return !dateString.contains("AM") && !dateString.contains("PM")
+}
+
+/// Converts a duration in minutes to a formatted string (e.g., "1 hr 30 min").
+func formatHrMin(_ durationInMinutes: Int) -> String {
+    let hours = durationInMinutes / 60
+    let minutes = durationInMinutes % 60
+
+    switch (hours, minutes) {
+    case let (0, m):
+        return "\(m) min"
+    case let (h, 0):
+        return "\(h) hr"
+    default:
+        return "\(hours) hr \(minutes) min"
+    }
+}
+
+// Helper function to convert a start and end hour to either 24-hour or AM/PM format
+func formatTimeRange(start: String?, end: String?) -> String {
+    guard let start = start, let end = end else {
+        return ""
+    }
+
+    // Check if the format is 24-hour or AM/PM
+    if is24HourFormat() {
+        // Return the original 24-hour format
+        return "\(start)-\(end)"
+    } else {
+        // Convert to AM/PM format using DateFormatter
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH"
+
+        if let startHour = Int(start), let endHour = Int(end) {
+            let startDate = Calendar.current.date(bySettingHour: startHour, minute: 0, second: 0, of: Date()) ?? Date()
+            let endDate = Calendar.current.date(bySettingHour: endHour, minute: 0, second: 0, of: Date()) ?? Date()
+
+            // Customize the format to "2p" or "2a"
+            formatter.dateFormat = "ha"
+            let startFormatted = formatter.string(from: startDate).lowercased().replacingOccurrences(of: "m", with: "")
+            let endFormatted = formatter.string(from: endDate).lowercased().replacingOccurrences(of: "m", with: "")
+
+            return "\(startFormatted)-\(endFormatted)"
+        } else {
+            return ""
+        }
     }
 }

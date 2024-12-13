@@ -207,7 +207,7 @@ final class BaseAPSManager: APSManager, Injectable {
             backGroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") {
                 guard let backgroundTask = self.backGroundTaskID else { return }
                 Task {
-                    await UIApplication.shared.endBackgroundTask(backgroundTask)
+                    UIApplication.shared.endBackgroundTask(backgroundTask)
                 }
                 self.backGroundTaskID = .invalid
             }
@@ -391,7 +391,7 @@ final class BaseAPSManager: APSManager, Injectable {
             let now = Date()
 
             // Start fetching asynchronously
-            let (currentTemp, profiles, autosense, dailyAutotune) = try await (
+            let (currentTemp, _, _, _) = try await (
                 fetchCurrentTempBasal(date: now),
                 makeProfiles(),
                 autosense(),

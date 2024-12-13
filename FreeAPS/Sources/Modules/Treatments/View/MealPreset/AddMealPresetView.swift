@@ -13,22 +13,7 @@ struct AddMealPresetView: View {
     var onCancel: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
-    private var color: LinearGradient {
-        colorScheme == .dark ? LinearGradient(
-            gradient: Gradient(colors: [
-                Color.bgDarkBlue,
-                Color.bgDarkerDarkBlue
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        )
-            :
-            LinearGradient(
-                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-    }
+    @Environment(AppState.self) var appState
 
     private var mealFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -57,7 +42,8 @@ struct AddMealPresetView: View {
 
                 savePresetButton
             }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Add Meal Preset")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(content: {

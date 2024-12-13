@@ -15,7 +15,7 @@ protocol OverrideStorage {
     func getPresetOverridesForNightscout() async -> [NightscoutPresetOverride]
 }
 
-final class BaseOverrideStorage: OverrideStorage, Injectable {
+final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
     @Injected() private var settingsManager: SettingsManager!
 
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -89,7 +89,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
 
     @MainActor func calculateTarget(override: OverrideStored) -> Decimal {
         guard let overrideTarget = override.target, overrideTarget != 0 else {
-            return 100 // default
+            return 0
         }
         return overrideTarget.decimalValue
     }
@@ -125,36 +125,29 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
             newOverride.duration = override.duration as NSDecimalNumber
             newOverride.indefinite = override.indefinite
             newOverride.percentage = override.percentage
+            newOverride.isfAndCr = override.isfAndCr
+            newOverride.isf = override.isf
+            newOverride.cr = override.cr
             newOverride.enabled = override.enabled
             newOverride.smbIsOff = override.smbIsOff
             if override.overrideTarget {
-                newOverride.target = (
-                    self.settingsManager.settings.units == .mmolL ? override.target.asMgdL : override.target
-                ) as NSDecimalNumber
+                newOverride.target = override.target as NSDecimalNumber
             } else {
                 newOverride.target = 0
             }
             if override.advancedSettings {
                 newOverride.advancedSettings = true
 
-                if !override.isfAndCr {
-                    newOverride.isfAndCr = false
-                    newOverride.isf = override.isf
-                    newOverride.cr = override.cr
-                } else {
-                    newOverride.isfAndCr = true
-                }
-
-                if override.smbIsAlwaysOff {
-                    newOverride.smbIsAlwaysOff = true
-                    newOverride.start = override.start as NSDecimalNumber
-                    newOverride.end = override.end as NSDecimalNumber
-                } else {
-                    newOverride.smbIsAlwaysOff = false
-                }
-
                 newOverride.smbMinutes = override.smbMinutes as NSDecimalNumber
                 newOverride.uamMinutes = override.uamMinutes as NSDecimalNumber
+            }
+
+            if override.smbIsScheduledOff {
+                newOverride.smbIsScheduledOff = true
+                newOverride.start = override.start as NSDecimalNumber
+                newOverride.end = override.end as NSDecimalNumber
+            } else {
+                newOverride.smbIsScheduledOff = false
             }
 
             do {
@@ -185,7 +178,7 @@ final class BaseOverrideStorage: OverrideStorage, Injectable {
         newOverride.isfAndCr = override.isfAndCr
         newOverride.isf = override.isf
         newOverride.cr = override.cr
-        newOverride.smbIsAlwaysOff = override.smbIsAlwaysOff
+        newOverride.smbIsScheduledOff = override.smbIsScheduledOff
         newOverride.start = override.start
         newOverride.end = override.end
         newOverride.smbMinutes = override.smbMinutes

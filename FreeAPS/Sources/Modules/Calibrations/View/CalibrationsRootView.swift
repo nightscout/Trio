@@ -7,22 +7,7 @@ extension Calibrations {
         @State var state = StateModel()
 
         @Environment(\.colorScheme) var colorScheme
-        var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -107,7 +92,7 @@ extension Calibrations {
                     }
                 }
             }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .dynamicTypeSize(...DynamicTypeSize.xxLarge)
             .onAppear(perform: configureView)
             .navigationTitle("Calibrations")

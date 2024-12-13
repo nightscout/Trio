@@ -12,22 +12,7 @@ extension BasalProfileEditor {
             .date(from: DateComponents(year: 2001, month: 01, day: 01, hour: 0, minute: 0, second: 0))
 
         @Environment(\.colorScheme) var colorScheme
-        var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         private var dateFormatter: DateFormatter {
             let formatter = DateFormatter()
@@ -123,6 +108,16 @@ extension BasalProfileEditor {
 
         var body: some View {
             Form {
+                if !state.canAdd {
+                    Section {
+                        VStack(alignment: .leading) {
+                            Text(
+                                "Basal profile covers 24 hours. You cannot add more rates. Please remove or adjust existing rates to make space."
+                            ).bold()
+                        }
+                    }.listRowBackground(Color.tabBar)
+                }
+
                 Section(header: Text("Schedule")) {
                     if !state.items.isEmpty {
                         basalScheduleChart.padding(.vertical)
@@ -154,24 +149,26 @@ extension BasalProfileEditor {
             }
             .onChange(of: state.items) {
                 state.calcTotal()
-                state.caluclateChartData()
+                state.calculateChartData()
             }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Basal Profile")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {
-                ToolbarItem(placement: .topBarTrailing) {
-                    EditButton()
+                if state.items.isNotEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        EditButton()
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    addButton
+                    Button(action: { state.add() }) { Image(systemName: "plus") }.disabled(!state.canAdd)
                 }
             })
             .environment(\.editMode, $editMode)
             .onAppear {
                 configureView()
                 state.validate()
-                state.caluclateChartData()
+                state.calculateChartData()
             }
         }
 
@@ -207,7 +204,7 @@ extension BasalProfileEditor {
                 }.listRowBackground(Color.chart)
             }
             .padding(.top)
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Set Rate")
             .navigationBarTitleDisplayMode(.automatic)
         }
@@ -234,28 +231,10 @@ extension BasalProfileEditor {
             }
         }
 
-        private var addButton: some View {
-            guard state.canAdd else {
-                return AnyView(EmptyView())
-            }
-
-            switch editMode {
-            case .inactive:
-                return AnyView(Button(action: onAdd) { Image(systemName: "plus") })
-            default:
-                return AnyView(EmptyView())
-            }
-        }
-
-        func onAdd() {
-            state.add()
-        }
-
         private func onDelete(offsets: IndexSet) {
             state.items.remove(atOffsets: offsets)
             state.validate()
-            state.calcTotal()
-            state.caluclateChartData()
+            state.calculateChartData()
         }
     }
 }

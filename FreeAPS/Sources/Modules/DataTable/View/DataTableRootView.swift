@@ -21,6 +21,7 @@ extension DataTable {
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.managedObjectContext) var context
+        @Environment(AppState.self) var appState
 
         @FetchRequest(
             entity: GlucoseStored.entity(),
@@ -43,26 +44,19 @@ extension DataTable {
             animation: .bouncy
         ) var carbEntryStored: FetchedResults<CarbEntryStored>
 
-        private var insulinFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 2
-            return formatter
-        }
+        @FetchRequest(
+            entity: OverrideRunStored.entity(),
+            sortDescriptors: [NSSortDescriptor(keyPath: \OverrideRunStored.startDate, ascending: false)],
+            predicate: NSPredicate.overridesRunStoredFromOneDayAgo,
+            animation: .bouncy
+        ) var overrideRunStored: FetchedResults<OverrideRunStored>
 
-        private var glucoseFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-
-            if state.units == .mmolL {
-                formatter.maximumFractionDigits = 1
-                formatter.minimumFractionDigits = 1
-                formatter.roundingMode = .halfUp
-            } else {
-                formatter.maximumFractionDigits = 0
-            }
-            return formatter
-        }
+        @FetchRequest(
+            entity: TempTargetRunStored.entity(),
+            sortDescriptors: [NSSortDescriptor(keyPath: \TempTargetRunStored.startDate, ascending: false)],
+            predicate: NSPredicate.tempTargetRunStoredFromOneDayAgo,
+            animation: .bouncy
+        ) var tempTargetRunStored: FetchedResults<TempTargetRunStored>
 
         private var manualGlucoseFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -74,36 +68,6 @@ extension DataTable {
             }
             formatter.roundingMode = .halfUp
             return formatter
-        }
-
-        private var dateFormatter: DateFormatter {
-            let formatter = DateFormatter()
-            formatter.timeStyle = .short
-            return formatter
-        }
-
-        private var numberFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 2
-            return formatter
-        }
-
-        private var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
         }
 
         var body: some View {
@@ -125,9 +89,10 @@ extension DataTable {
                         case .treatments: treatmentsList
                         case .glucose: glucoseList
                         case .meals: mealsList
+                        case .adjustments: adjustmentsList
                         }
                     }.scrollContentBackground(.hidden)
-                        .background(color)
+                        .background(appState.trioBackgroundColor(for: colorScheme))
                 }.blur(radius: state.waitForSuggestion ? 8 : 0)
 
                 // Show custom progress view
@@ -136,7 +101,7 @@ extension DataTable {
                     CustomProgressView(text: progressText.rawValue)
                 }
             })
-                .background(color)
+                .background(appState.trioBackgroundColor(for: colorScheme))
                 .onAppear(perform: configureView)
                 .onDisappear {
                     state.carbEntryDeleted = false
@@ -246,6 +211,129 @@ extension DataTable {
             }.listRowBackground(Color.chart)
         }
 
+        private var adjustmentsList: some View {
+            List {
+                HStack {
+                    Text("Adjustment").foregroundStyle(.secondary)
+                    Spacer()
+                }
+                if !combinedAdjustments.isEmpty {
+                    ForEach(combinedAdjustments) { item in
+                        adjustmentView(for: item)
+                    }
+                } else {
+                    HStack {
+                        Text("No data.")
+                    }
+                }
+            }
+            .listRowBackground(Color.chart)
+        }
+
+        private var combinedAdjustments: [AdjustmentItem] {
+            let overrides = overrideRunStored.map { override -> AdjustmentItem in
+                AdjustmentItem(
+                    id: override.objectID,
+                    name: override.name ?? "Override",
+                    startDate: override.startDate ?? Date(),
+                    endDate: override.endDate ?? Date(),
+                    target: override.target?.decimalValue,
+                    type: .override
+                )
+            }
+
+            let tempTargets = tempTargetRunStored.map { tempTarget -> AdjustmentItem in
+                AdjustmentItem(
+                    id: tempTarget.objectID,
+                    name: tempTarget.name ?? "Temp Target",
+                    startDate: tempTarget.startDate ?? Date(),
+                    endDate: tempTarget.endDate ?? Date(),
+                    target: tempTarget.target?.decimalValue,
+                    type: .tempTarget
+                )
+            }
+
+            let combined = overrides + tempTargets
+            return combined.sorted(by: { $0.startDate > $1.startDate })
+        }
+
+        private struct AdjustmentItem: Identifiable {
+            let id: NSManagedObjectID
+            let name: String
+            let startDate: Date
+            let endDate: Date
+            let target: Decimal?
+            let type: AdjustmentType
+        }
+
+        private enum AdjustmentType {
+            case override
+            case tempTarget
+
+            var symbolName: String {
+                switch self {
+                case .override:
+                    return "clock.arrow.2.circlepath"
+                case .tempTarget:
+                    return "target"
+                }
+            }
+
+            var symbolColor: Color {
+                switch self {
+                case .override:
+                    return .orange
+                case .tempTarget:
+                    return .blue
+                }
+            }
+        }
+
+        @ViewBuilder private func adjustmentView(for item: AdjustmentItem) -> some View {
+            let formattedDates =
+                "\(Formatter.dateFormatter.string(from: item.startDate)) - \(Formatter.dateFormatter.string(from: item.endDate))"
+
+            let targetDescription: String = {
+                guard let target = item.target, target != 0 else {
+                    return ""
+                }
+                return "\(state.units == .mgdL ? target : target.asMmolL) \(state.units.rawValue)"
+            }()
+
+            let labels: [String] = [
+                targetDescription,
+                formattedDates
+            ].filter { !$0.isEmpty }
+
+            ZStack(alignment: .trailing) {
+                HStack {
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Image(systemName: item.type.symbolName)
+                                .foregroundStyle(item.type == .override ? Color.purple : Color.green)
+                            Text(item.name)
+                                .font(.headline)
+                            Spacer()
+                        }
+                        HStack(spacing: 5) {
+                            ForEach(labels, id: \.self) { label in
+                                Text(label)
+                                if label != labels.last {
+                                    Divider()
+                                }
+                            }
+                            Spacer()
+                        }
+                        .padding(.top, 2)
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                    }
+                    .contentShape(Rectangle())
+                }
+            }
+            .padding(.vertical, 8)
+        }
+
         private var glucoseList: some View {
             List {
                 HStack {
@@ -267,7 +355,7 @@ extension DataTable {
 
                             Spacer()
 
-                            Text(dateFormatter.string(from: glucose.date ?? Date()))
+                            Text(Formatter.dateFormatter.string(from: glucose.date ?? Date()))
                         }.swipeActions {
                             Button(
                                 "Delete",
@@ -277,9 +365,9 @@ extension DataTable {
                                     alertGlucoseToDelete = glucose
 
                                     alertTitle = "Delete Glucose?"
-                                    alertMessage = dateFormatter
+                                    alertMessage = Formatter.dateFormatter
                                         .string(from: glucose.date ?? Date()) + ", " +
-                                        (numberFormatter.string(for: glucose.glucose) ?? "0")
+                                        (Formatter.decimalFormatterWithTwoFractionDigits.string(for: glucose.glucose) ?? "0")
 
                                     isRemoveHistoryItemAlertPresented = true
                                 }
@@ -369,7 +457,7 @@ extension DataTable {
                                 .manualGlucose > limitHigh ? Color(.systemGray4) : Color(.systemBlue)
                         )
                         .tint(.white)
-                    }.scrollContentBackground(.hidden).background(color)
+                    }.scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
                 }
                 .onAppear(perform: configureView)
                 .navigationTitle("Add Glucose")
@@ -399,8 +487,11 @@ extension DataTable {
                 if let bolus = item.bolus, let amount = bolus.amount {
                     Image(systemName: "circle.fill").foregroundColor(Color.insulin)
                     Text(bolus.isSMB ? "SMB" : item.type ?? "Bolus")
-                    Text((insulinFormatter.string(from: amount) ?? "0") + NSLocalizedString(" U", comment: "Insulin unit"))
-                        .foregroundColor(.secondary)
+                    Text(
+                        (Formatter.decimalFormatterWithTwoFractionDigits.string(from: amount) ?? "0") +
+                            NSLocalizedString(" U", comment: "Insulin unit")
+                    )
+                    .foregroundColor(.secondary)
                     if bolus.isExternal {
                         Text(NSLocalizedString("External", comment: "External Insulin")).foregroundColor(.secondary)
                     }
@@ -408,7 +499,7 @@ extension DataTable {
                     Image(systemName: "circle.fill").foregroundColor(Color.insulin.opacity(0.4))
                     Text("Temp Basal")
                     Text(
-                        (insulinFormatter.string(from: rate) ?? "0") +
+                        (Formatter.decimalFormatterWithTwoFractionDigits.string(from: rate) ?? "0") +
                             NSLocalizedString(" U/hr", comment: "Unit insulin per hour")
                     )
                     .foregroundColor(.secondary)
@@ -420,7 +511,7 @@ extension DataTable {
                     Text(item.type ?? "Pump Event")
                 }
                 Spacer()
-                Text(dateFormatter.string(from: item.timestamp ?? Date())).moveDisabled(true)
+                Text(Formatter.dateFormatter.string(from: item.timestamp ?? Date())).moveDisabled(true)
             }
             .swipeActions {
                 if item.bolus != nil {
@@ -431,9 +522,9 @@ extension DataTable {
                         action: {
                             alertTreatmentToDelete = item
                             alertTitle = "Delete Insulin?"
-                            alertMessage = dateFormatter
+                            alertMessage = Formatter.dateFormatter
                                 .string(from: item.timestamp ?? Date()) + ", " +
-                                (insulinFormatter.string(from: item.bolus?.amount ?? 0) ?? "0") +
+                                (Formatter.decimalFormatterWithTwoFractionDigits.string(from: item.bolus?.amount ?? 0) ?? "0") +
                                 NSLocalizedString(" U", comment: "Insulin unit")
 
                             if let bolus = item.bolus {
@@ -471,19 +562,22 @@ extension DataTable {
                     if meal.isFPU {
                         Image(systemName: "circle.fill").foregroundColor(Color.orange.opacity(0.5))
                         Text("Fat / Protein")
-                        Text((numberFormatter.string(for: meal.carbs) ?? "0") + NSLocalizedString(" g", comment: "gram of carbs"))
+                        Text(
+                            (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
+                                NSLocalizedString(" g", comment: "gram of carbs")
+                        )
                     } else {
                         Image(systemName: "circle.fill").foregroundColor(Color.loopYellow)
                         Text("Carbs")
                         Text(
-                            (numberFormatter.string(for: meal.carbs) ?? "0") +
+                            (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
                                 NSLocalizedString(" g", comment: "gram of carb equilvalents")
                         )
                     }
 
                     Spacer()
 
-                    Text(dateFormatter.string(from: meal.date ?? Date()))
+                    Text(Formatter.dateFormatter.string(from: meal.date ?? Date()))
                         .moveDisabled(true)
                 }
                 if let note = meal.note, note != "" {
@@ -504,8 +598,9 @@ extension DataTable {
 
                         if !meal.isFPU {
                             alertTitle = "Delete Carbs?"
-                            alertMessage = dateFormatter
-                                .string(from: meal.date ?? Date()) + ", " + (numberFormatter.string(for: meal.carbs) ?? "0") +
+                            alertMessage = Formatter.dateFormatter
+                                .string(from: meal.date ?? Date()) + ", " +
+                                (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
                                 NSLocalizedString(" g", comment: "gram of carbs")
                         } else {
                             alertTitle = "Delete Carb Equivalents?"
@@ -538,7 +633,7 @@ extension DataTable {
         // MARK: - Format glucose
 
         private func formatGlucose(_ value: Decimal, isManual: Bool) -> String {
-            let formatter = isManual ? manualGlucoseFormatter : glucoseFormatter
+            let formatter = isManual ? manualGlucoseFormatter : Formatter.glucoseFormatter(for: state.units)
             let glucoseValue = state.units == .mmolL ? value.asMmolL : value
             let formattedValue = formatter.string(from: glucoseValue as NSNumber) ?? "--"
 

@@ -21,7 +21,7 @@ public extension OverrideStored {
     @NSManaged var name: String?
     @NSManaged var orderPosition: Int16
     @NSManaged var percentage: Double
-    @NSManaged var smbIsAlwaysOff: Bool
+    @NSManaged var smbIsScheduledOff: Bool
     @NSManaged var smbIsOff: Bool
     @NSManaged var smbMinutes: NSDecimalNumber?
     @NSManaged var start: NSDecimalNumber?

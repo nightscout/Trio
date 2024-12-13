@@ -357,194 +357,66 @@ final class OpenAPS {
 
     func oref2() async -> RawJSON {
         await context.perform {
-            let preferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
-            var hbt_ = preferences?.halfBasalExerciseTarget ?? 160
-            let wp = preferences?.weightPercentage ?? 0.35
-            let smbMinutes = (preferences?.maxSMBBasalMinutes ?? 30) as NSDecimalNumber
-            let uamMinutes = (preferences?.maxUAMSMBBasalMinutes ?? 30) as NSDecimalNumber
+            // Retrieve user preferences
+            let userPreferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
+            let weightPercentage = userPreferences?.weightPercentage ?? 1.0
+            let maxSMBBasalMinutes = userPreferences?.maxSMBBasalMinutes ?? 30
+            let maxUAMBasalMinutes = userPreferences?.maxUAMSMBBasalMinutes ?? 30
 
+            // Fetch historical events for Total Daily Dose (TDD) calculation
             let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
             let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
+            let historicalTDDData = self.fetchHistoricalTDDData(from: tenDaysAgo)
 
-            var uniqueEvents = [[String: Any]]()
-            let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
-            requestTDD.predicate = NSPredicate(format: "timestamp > %@ AND totalDailyDose > 0", tenDaysAgo as NSDate)
-            requestTDD.propertiesToFetch = ["timestamp", "totalDailyDose"]
-            let sortTDD = NSSortDescriptor(key: "timestamp", ascending: true)
-            requestTDD.sortDescriptors = [sortTDD]
-            requestTDD.resultType = .dictionaryResultType
+            // Fetch the last active Override
+            let activeOverrides = self.fetchActiveOverrides()
+            let isOverrideActive = activeOverrides.first?.enabled ?? false
+            let overridePercentage = Decimal(activeOverrides.first?.percentage ?? 100)
+            let isOverrideIndefinite = activeOverrides.first?.indefinite ?? true
+            let disableSMBs = activeOverrides.first?.smbIsOff ?? false
+            let overrideTargetBG = activeOverrides.first?.target?.decimalValue ?? 0
 
-            do {
-                if let fetchedResults = try self.context.fetch(requestTDD) as? [[String: Any]] {
-                    uniqueEvents = fetchedResults
-                }
-            } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch TDD Data")
-            }
+            // Calculate averages for Total Daily Dose (TDD)
+            let totalTDD = historicalTDDData.compactMap { ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue }.reduce(0, +)
+            let totalDaysCount = max(historicalTDDData.count, 1)
 
-            var sliderArray = [TempTargetsSlider]()
-            let requestIsEnbled = TempTargetsSlider.fetchRequest() as NSFetchRequest<TempTargetsSlider>
-            let sortIsEnabled = NSSortDescriptor(key: "date", ascending: false)
-            requestIsEnbled.sortDescriptors = [sortIsEnabled]
-            // requestIsEnbled.fetchLimit = 1
-            try? sliderArray = self.context.fetch(requestIsEnbled)
-
-            /// Get the last active Override as only this information is apparently used in oref2
-            var overrideArray = [OverrideStored]()
-            let requestOverrides = OverrideStored.fetchRequest() as NSFetchRequest<OverrideStored>
-            let sortOverride = NSSortDescriptor(key: "date", ascending: false)
-            requestOverrides.sortDescriptors = [sortOverride]
-            requestOverrides.predicate = NSPredicate.lastActiveOverride
-            requestOverrides.fetchLimit = 1
-            try? overrideArray = self.context.fetch(requestOverrides)
-
-            var tempTargetsArray = [TempTargets]()
-            let requestTempTargets = TempTargets.fetchRequest() as NSFetchRequest<TempTargets>
-            let sortTT = NSSortDescriptor(key: "date", ascending: false)
-            requestTempTargets.sortDescriptors = [sortTT]
-            requestTempTargets.fetchLimit = 1
-            try? tempTargetsArray = self.context.fetch(requestTempTargets)
-
-            let total = uniqueEvents.compactMap({ ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue ?? 0 }).reduce(0, +)
-            var indeces = uniqueEvents.count
-            // Only fetch once. Use same (previous) fetch
-            let twoHoursArray = uniqueEvents.filter({ ($0["timestamp"] as? Date ?? Date()) >= twoHoursAgo })
-            var nrOfIndeces = twoHoursArray.count
-            let totalAmount = twoHoursArray.compactMap({ ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue ?? 0 })
+            // Fetch recent TDD data for the past two hours
+            let recentTDDData = historicalTDDData.filter { ($0["timestamp"] as? Date ?? Date()) >= twoHoursAgo }
+            let recentDataCount = max(recentTDDData.count, 1)
+            let recentTotalTDD = recentTDDData.compactMap { ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue }
                 .reduce(0, +)
 
-            var temptargetActive = tempTargetsArray.first?.active ?? false
-            let isPercentageEnabled = sliderArray.first?.enabled ?? false
+            let currentTDD = historicalTDDData.last?["totalDailyDose"] as? Decimal ?? 0
+            let averageTDDLastTwoHours = recentTotalTDD / Decimal(recentDataCount)
+            let averageTDDLastTenDays = totalTDD / Decimal(totalDaysCount)
+            let weightedTDD = weightPercentage * averageTDDLastTwoHours + (1 - weightPercentage) * averageTDDLastTenDays
 
-            var useOverride = overrideArray.first?.enabled ?? false
-            var overridePercentage = Decimal(overrideArray.first?.percentage ?? 100)
-            var unlimited = overrideArray.first?.indefinite ?? true
-            var disableSMBs = overrideArray.first?.smbIsOff ?? false
+            // Prepare Oref2 variables
+            let oref2Data = Oref2_variables(
+                average_total_data: currentTDD > 0 ? averageTDDLastTenDays : 0,
+                weightedAverage: currentTDD > 0 ? weightedTDD : 1,
+                past2hoursAverage: currentTDD > 0 ? averageTDDLastTwoHours : 0,
+                date: Date(),
+                overridePercentage: overridePercentage,
+                useOverride: isOverrideActive,
+                duration: activeOverrides.first?.duration?.decimalValue ?? 0,
+                unlimited: isOverrideIndefinite,
+                overrideTarget: overrideTargetBG,
+                smbIsOff: disableSMBs,
+                advancedSettings: activeOverrides.first?.advancedSettings ?? false,
+                isfAndCr: activeOverrides.first?.isfAndCr ?? false,
+                isf: activeOverrides.first?.isf ?? false,
+                cr: activeOverrides.first?.cr ?? false,
+                smbIsScheduledOff: activeOverrides.first?.smbIsScheduledOff ?? false,
+                start: (activeOverrides.first?.start ?? 0) as Decimal,
+                end: (activeOverrides.first?.end ?? 0) as Decimal,
+                smbMinutes: activeOverrides.first?.smbMinutes?.decimalValue ?? maxSMBBasalMinutes,
+                uamMinutes: activeOverrides.first?.uamMinutes?.decimalValue ?? maxUAMBasalMinutes
+            )
 
-            let currentTDD = (uniqueEvents.last?["totalDailyDose"] as? NSDecimalNumber)?.decimalValue ?? 0
-
-            if indeces == 0 {
-                indeces = 1
-            }
-            if nrOfIndeces == 0 {
-                nrOfIndeces = 1
-            }
-
-            let average2hours = totalAmount / Decimal(nrOfIndeces)
-            let average14 = total / Decimal(indeces)
-
-            let weight = wp
-            let weighted_average = weight * average2hours + (1 - weight) * average14
-
-            var duration: Decimal = 0
-            var overrideTarget: Decimal = 0
-
-            if useOverride {
-                duration = (overrideArray.first?.duration ?? 0) as Decimal
-                overrideTarget = (overrideArray.first?.target ?? 0) as Decimal
-                let advancedSettings = overrideArray.first?.advancedSettings ?? false
-                let addedMinutes = Int(duration)
-                let date = overrideArray.first?.date ?? Date()
-                if date.addingTimeInterval(addedMinutes.minutes.timeInterval) < Date(),
-                   !unlimited
-                {
-                    useOverride = false
-                    let saveToCoreData = OverrideStored(context: self.context)
-                    saveToCoreData.enabled = false
-                    saveToCoreData.date = Date()
-                    saveToCoreData.duration = 0
-                    saveToCoreData.indefinite = false
-                    saveToCoreData.percentage = 100
-                    do {
-                        guard self.context.hasChanges else { return "{}" }
-                        try self.context.save()
-                    } catch {
-                        print(error.localizedDescription)
-                    }
-                }
-            }
-
-            if !useOverride {
-                unlimited = true
-                overridePercentage = 100
-                duration = 0
-                overrideTarget = 0
-                disableSMBs = false
-            }
-
-            if temptargetActive {
-                var duration_ = 0
-                var hbt = Double(hbt_)
-                var dd = 0.0
-
-                if temptargetActive {
-                    duration_ = Int(truncating: tempTargetsArray.first?.duration ?? 0)
-                    hbt = tempTargetsArray.first?.hbt ?? Double(hbt_)
-                    let startDate = tempTargetsArray.first?.startDate ?? Date()
-                    let durationPlusStart = startDate.addingTimeInterval(duration_.minutes.timeInterval)
-                    dd = durationPlusStart.timeIntervalSinceNow.minutes
-
-                    if dd > 0.1 {
-                        hbt_ = Decimal(hbt)
-                        temptargetActive = true
-                    } else {
-                        temptargetActive = false
-                    }
-                }
-            }
-
-            if currentTDD > 0 {
-                let averages = Oref2_variables(
-                    average_total_data: average14,
-                    weightedAverage: weighted_average,
-                    past2hoursAverage: average2hours,
-                    date: Date(),
-                    isEnabled: temptargetActive,
-                    presetActive: isPercentageEnabled,
-                    overridePercentage: overridePercentage,
-                    useOverride: useOverride,
-                    duration: duration,
-                    unlimited: unlimited,
-                    hbt: hbt_,
-                    overrideTarget: overrideTarget,
-                    smbIsOff: disableSMBs,
-                    advancedSettings: overrideArray.first?.advancedSettings ?? false,
-                    isfAndCr: overrideArray.first?.isfAndCr ?? false,
-                    isf: overrideArray.first?.isf ?? false,
-                    cr: overrideArray.first?.cr ?? false,
-                    smbMinutes: (overrideArray.first?.smbMinutes ?? smbMinutes) as Decimal,
-                    uamMinutes: (overrideArray.first?.uamMinutes ?? uamMinutes) as Decimal
-                )
-
-                self.storage.save(averages, as: OpenAPS.Monitor.oref2_variables)
-
-                return self.loadFileFromStorage(name: Monitor.oref2_variables)
-
-            } else {
-                let averages = Oref2_variables(
-                    average_total_data: 0,
-                    weightedAverage: 1,
-                    past2hoursAverage: 0,
-                    date: Date(),
-                    isEnabled: temptargetActive,
-                    presetActive: isPercentageEnabled,
-                    overridePercentage: overridePercentage,
-                    useOverride: useOverride,
-                    duration: duration,
-                    unlimited: unlimited,
-                    hbt: hbt_,
-                    overrideTarget: overrideTarget,
-                    smbIsOff: disableSMBs,
-                    advancedSettings: overrideArray.first?.advancedSettings ?? false,
-                    isfAndCr: overrideArray.first?.isfAndCr ?? false,
-                    isf: overrideArray.first?.isf ?? false,
-                    cr: overrideArray.first?.cr ?? false,
-                    smbMinutes: (overrideArray.first?.smbMinutes ?? smbMinutes) as Decimal,
-                    uamMinutes: (overrideArray.first?.uamMinutes ?? uamMinutes) as Decimal
-                )
-                self.storage.save(averages, as: OpenAPS.Monitor.oref2_variables)
-                return self.loadFileFromStorage(name: Monitor.oref2_variables)
-            }
+            // Save and return the Oref2 variables
+            self.storage.save(oref2Data, as: OpenAPS.Monitor.oref2_variables)
+            return self.loadFileFromStorage(name: Monitor.oref2_variables)
         }
     }
 
@@ -651,7 +523,7 @@ final class OpenAPS {
     func makeProfiles(useAutotune _: Bool) async -> Autotune? {
         debug(.openAPS, "Start makeProfiles")
 
-        async let getPreferences = loadFileFromStorageAsync(name: Settings.preferences)
+        // Load required settings and profiles asynchronously
         async let getPumpSettings = loadFileFromStorageAsync(name: Settings.settings)
         async let getBGTargets = loadFileFromStorageAsync(name: Settings.bgTargets)
         async let getBasalProfile = loadFileFromStorageAsync(name: Settings.basalProfile)
@@ -662,8 +534,7 @@ final class OpenAPS {
         async let getAutotune = loadFileFromStorageAsync(name: Settings.autotune)
         async let getFreeAPS = loadFileFromStorageAsync(name: FreeAPS.settings)
 
-        let (preferences, pumpSettings, bgTargets, basalProfile, isf, cr, tempTargets, model, autotune, freeaps) = await (
-            getPreferences,
+        let (pumpSettings, bgTargets, basalProfile, isf, cr, tempTargets, model, autotune, freeaps) = await (
             getPumpSettings,
             getBGTargets,
             getBasalProfile,
@@ -675,13 +546,26 @@ final class OpenAPS {
             getFreeAPS
         )
 
+        // Retrieve user preferences, or set defaults if not available
+        let preferences = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
+        let defaultHalfBasalTarget = preferences.halfBasalExerciseTarget
         var adjustedPreferences = preferences
-        if adjustedPreferences.isEmpty {
-            adjustedPreferences = Preferences().rawJSON
+
+        // Check for active Temp Targets and adjust HBT if necessary
+        await context.perform {
+            // Check if a Temp Target is active and if its HBT differs from user preferences
+            if let activeTempTarget = self.fetchActiveTempTargets().first,
+               activeTempTarget.enabled,
+               let activeHBT = activeTempTarget.halfBasalTarget?.decimalValue,
+               activeHBT != defaultHalfBasalTarget
+            {
+                // Overwrite the HBT in preferences
+                adjustedPreferences.halfBasalExerciseTarget = activeHBT
+                debug(.openAPS, "Updated halfBasalExerciseTarget to active Temp Target value: \(activeHBT)")
+            }
         }
 
         do {
-            // Pump Profile
             let pumpProfile = try await makeProfile(
                 preferences: adjustedPreferences,
                 pumpSettings: pumpSettings,
@@ -695,7 +579,6 @@ final class OpenAPS {
                 freeaps: freeaps
             )
 
-            // Profile
             let profile = try await makeProfile(
                 preferences: adjustedPreferences,
                 pumpSettings: pumpSettings,
@@ -709,24 +592,25 @@ final class OpenAPS {
                 freeaps: freeaps
             )
 
+            // Save the profiles
             await storage.saveAsync(pumpProfile, as: Settings.pumpProfile)
             await storage.saveAsync(profile, as: Settings.profile)
 
+            // Return the Autotune object, if available
             if let tunedProfile = Autotune(from: profile) {
                 return tunedProfile
             } else {
                 return nil
             }
         } catch {
+            // Handle errors and log failure
             debug(
                 .apsManager,
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to execute makeProfiles() to return Autoune results"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to execute makeProfiles()"
             )
             return nil
         }
     }
-
-    // MARK: - Private
 
     private func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async throws -> RawJSON {
         await withCheckedContinuation { continuation in
@@ -1018,5 +902,41 @@ final class OpenAPS {
             forecastValue.index = Int32(index)
             forecastValue.forecast = forecast
         }
+    }
+}
+
+// Non-Async fetch methods for oref2
+extension OpenAPS {
+    func fetchActiveTempTargets() -> [TempTargetStored] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: TempTargetStored.self,
+            onContext: context,
+            predicate: NSPredicate.lastActiveTempTarget,
+            key: "date",
+            ascending: false,
+            fetchLimit: 1
+        ) as? [TempTargetStored] ?? []
+    }
+
+    func fetchActiveOverrides() -> [OverrideStored] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: OverrideStored.self,
+            onContext: context,
+            predicate: NSPredicate.lastActiveOverride,
+            key: "date",
+            ascending: false,
+            fetchLimit: 1
+        ) as? [OverrideStored] ?? []
+    }
+
+    func fetchHistoricalTDDData(from date: Date) -> [[String: Any]] {
+        CoreDataStack.shared.fetchEntities(
+            ofType: OrefDetermination.self,
+            onContext: context,
+            predicate: NSPredicate(format: "timestamp > %@ AND totalDailyDose > 0", date as NSDate),
+            key: "timestamp",
+            ascending: true,
+            propertiesToFetch: ["timestamp", "totalDailyDose"]
+        ) as? [[String: Any]] ?? []
     }
 }

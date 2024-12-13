@@ -542,7 +542,7 @@ extension Treatments {
                 fat: fat,
                 protein: protein,
                 note: note,
-                enteredBy: CarbsEntry.manual,
+                enteredBy: CarbsEntry.local,
                 isFPU: false, fpuID: UUID().uuidString
             )]
             await carbsStorage.storeCarbs(carbsToStore, areFetchedFromRemote: false)

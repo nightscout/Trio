@@ -7,22 +7,7 @@ extension WatchConfig {
         @StateObject var state = StateModel()
 
         @Environment(\.colorScheme) var colorScheme
-        var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         var body: some View {
             List {
@@ -34,8 +19,7 @@ extension WatchConfig {
                     }
                 ).listRowBackground(Color.chart)
             }
-            .listSectionSpacing(sectionSpacing)
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
             .navigationTitle("Watch")
             .navigationBarTitleDisplayMode(.automatic)

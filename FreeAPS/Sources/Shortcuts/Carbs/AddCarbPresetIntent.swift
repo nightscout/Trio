@@ -8,12 +8,9 @@ import Swinject
     static var title: LocalizedStringResource = "Add carbs"
 
     // Description of the action in the Shortcuts app
-    static var description = IntentDescription("Allow to add carbs in iAPS.")
-
-    internal var carbRequest: CarbPresetIntentRequest
+    static var description = IntentDescription("Allow to add carbs in Trio.")
 
     init() {
-        carbRequest = CarbPresetIntentRequest()
         dateAdded = Date()
     }
 
@@ -45,6 +42,11 @@ import Swinject
     ) var dateAdded: Date
 
     @Parameter(
+        title: "Notes",
+        description: "Emoji or short text"
+    ) var note: String?
+
+    @Parameter(
         title: "Confirm Before applying",
         description: "If toggled, you will need to confirm before applying",
         default: true
@@ -55,12 +57,14 @@ import Swinject
             Summary("Applying \(\.$carbQuantity) at \(\.$dateAdded)") {
                 \.$fatQuantity
                 \.$proteinQuantity
+                \.$note
                 \.$confirmBeforeApplying
             }
         }, otherwise: {
             Summary("Immediately applying \(\.$carbQuantity) at \(\.$dateAdded)") {
                 \.$fatQuantity
                 \.$proteinQuantity
+                \.$note
                 \.$confirmBeforeApplying
             }
         })
@@ -82,7 +86,13 @@ import Swinject
                 )
             }
 
-            let finalQuantityCarbsDisplay = try await carbRequest.addCarbs(quantityCarbs, fatQuantity, proteinQuantity, dateAdded)
+            let finalQuantityCarbsDisplay = try await CarbPresetIntentRequest().addCarbs(
+                quantityCarbs,
+                fatQuantity,
+                proteinQuantity,
+                dateAdded,
+                note
+            )
             return .result(
                 dialog: IntentDialog(stringLiteral: finalQuantityCarbsDisplay)
             )

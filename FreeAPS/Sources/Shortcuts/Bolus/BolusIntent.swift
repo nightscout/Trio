@@ -10,12 +10,6 @@ import Swinject
     // Description of the action in the Shortcuts app
     static var description = IntentDescription(.init("Allow to send a bolus to the app", table: "ShortcutsDetail"))
 
-    internal var bolusRequest: BolusIntentRequest
-
-    init() {
-        bolusRequest = BolusIntentRequest()
-    }
-
     @Parameter(
         title: LocalizedStringResource("Amount", table: "ShortcutsDetail"),
         description: LocalizedStringResource("Bolus amount in U", table: "ShortcutsDetail"),
@@ -64,7 +58,7 @@ import Swinject
                 )
             }
 
-            let finalBolusDisplay = try await bolusRequest.bolus(amount)
+            let finalBolusDisplay = try await BolusIntentRequest().bolus(amount)
             return .result(
                 dialog: IntentDialog(finalBolusDisplay)
             )
