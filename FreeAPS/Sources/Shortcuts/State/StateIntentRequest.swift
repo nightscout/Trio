@@ -68,7 +68,7 @@ final class StateIntentRequest: BaseIntentsRequest {
                 key: "date",
                 ascending: false,
                 fetchLimit: 2
-            )
+            ) as? [GlucoseStored] ?? []
 
             guard let lastValue = results.first else { throw StateIntentError.NoBG }
 
@@ -109,7 +109,8 @@ final class StateIntentRequest: BaseIntentsRequest {
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1
-        )
+        ) as? [OrefDetermination] ?? []
+
         let iobAsDouble = Double(truncating: (results.first?.iob ?? 0.0) as NSNumber)
         let cobAsDouble = Double(truncating: (results.first?.cob ?? 0) as NSNumber)
 
