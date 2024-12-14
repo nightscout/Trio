@@ -192,7 +192,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task {
-                    await self.uploadOverrides()
+                    await self.uploadTempTargets()
 
                     // Post a notification indicating that the upload has finished and that we can end the background task in the TempTargetPresetsIntentRequest
                     Foundation.NotificationCenter.default.post(name: .didUpdateTempTargetConfiguration, object: nil)

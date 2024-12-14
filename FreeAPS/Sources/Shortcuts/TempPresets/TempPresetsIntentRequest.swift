@@ -132,6 +132,26 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
 
                 // Await the notification
                 print("Waiting for notification...")
+
+                guard let tempTargetDate = tempTargetObject.date, let tempTarget = tempTargetObject.target,
+                      let tempTargetDuration = tempTargetObject.duration else { return false }
+
+                let tempTargetToStoreAsJSON = TempTarget(
+                    name: tempTargetObject.name,
+                    createdAt: tempTargetDate,
+                    targetTop: tempTarget as Decimal,
+                    targetBottom: tempTarget as Decimal,
+                    duration: tempTargetDuration as Decimal,
+                    enteredBy: TempTarget.local,
+                    reason: TempTarget.custom,
+                    isPreset: tempTargetObject.isPreset,
+                    enabled: tempTargetObject.enabled,
+                    halfBasalTarget: tempTargetObject.halfBasalTarget as Decimal?
+                )
+
+                // Save the temp targets to JSON so that they get used by oref
+                tempTargetsStorage.saveTempTargetsToStorage([tempTargetToStoreAsJSON])
+
                 await awaitNotification(.didUpdateTempTargetConfiguration)
                 print("Notification received, continuing...")
 

@@ -54,7 +54,7 @@ struct ApplyTempPresetIntent: AppIntent {
             let displayName: String = presetToApply.name
             if confirmBeforeApplying {
                 try await requestConfirmation(
-                    result: .result(dialog: "Confirm to apply temporary target '\(displayName)'")
+                    result: .result(dialog: "Confirm to apply Temporary Target '\(displayName)'")
                 )
             }
 
@@ -62,7 +62,7 @@ struct ApplyTempPresetIntent: AppIntent {
                 return .result(
                     dialog: IntentDialog(
                         LocalizedStringResource(
-                            "TempTarget '\(presetToApply.name)' applied",
+                            "Temporary Target '\(presetToApply.name)' applied",
                             table: "ShortcutsDetail"
                         )
                     )
@@ -71,7 +71,7 @@ struct ApplyTempPresetIntent: AppIntent {
                 return .result(
                     dialog: IntentDialog(
                         LocalizedStringResource(
-                            "TempTarget '\(presetToApply.name)' failed",
+                            "Temporary Target '\(presetToApply.name)' failed",
                             table: "ShortcutsDetail"
                         )
                     )
