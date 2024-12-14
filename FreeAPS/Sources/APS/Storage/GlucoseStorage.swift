@@ -61,114 +61,112 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     func storeGlucose(_ glucose: [BloodGlucose]) {
-        processQueue.sync {
-            self.coredataContext.perform {
-                let datesToCheck: Set<Date?> = Set(glucose.compactMap { $0.dateString as Date? })
-                let fetchRequest: NSFetchRequest<NSFetchRequestResult> = GlucoseStored.fetchRequest()
-                fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-                    NSPredicate(format: "date IN %@", datesToCheck),
-                    NSPredicate.predicateForOneDayAgo
-                ])
-                fetchRequest.propertiesToFetch = ["date"]
-                fetchRequest.resultType = .dictionaryResultType
+        coredataContext.perform {
+            let datesToCheck: Set<Date?> = Set(glucose.compactMap { $0.dateString as Date? })
+            let fetchRequest: NSFetchRequest<NSFetchRequestResult> = GlucoseStored.fetchRequest()
+            fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+                NSPredicate(format: "date IN %@", datesToCheck),
+                NSPredicate.predicateForOneDayAgo
+            ])
+            fetchRequest.propertiesToFetch = ["date"]
+            fetchRequest.resultType = .dictionaryResultType
 
-                var existingDates = Set<Date>()
-                do {
-                    let results = try self.coredataContext.fetch(fetchRequest) as? [NSDictionary]
-                    existingDates = Set(results?.compactMap({ $0["date"] as? Date }) ?? [])
-                } catch {
-                    debugPrint("Failed to fetch existing glucose dates: \(error)")
-                }
+            var existingDates = Set<Date>()
+            do {
+                let results = try self.coredataContext.fetch(fetchRequest) as? [NSDictionary]
+                existingDates = Set(results?.compactMap({ $0["date"] as? Date }) ?? [])
+            } catch {
+                debugPrint("Failed to fetch existing glucose dates: \(error)")
+            }
 
-                var filteredGlucose = glucose.filter { !existingDates.contains($0.dateString) }
+            var filteredGlucose = glucose.filter { !existingDates.contains($0.dateString) }
 
-                // prepare batch insert
-                let batchInsert = NSBatchInsertRequest(
-                    entity: GlucoseStored.entity(),
-                    managedObjectHandler: { (managedObject: NSManagedObject) -> Bool in
-                        guard let glucoseEntry = managedObject as? GlucoseStored, !filteredGlucose.isEmpty else {
-                            return true // Stop if there are no more items
-                        }
-                        let entry = filteredGlucose.removeFirst()
-                        glucoseEntry.id = UUID()
-                        glucoseEntry.glucose = Int16(entry.glucose ?? 0)
-                        glucoseEntry.date = entry.dateString
-                        glucoseEntry.direction = entry.direction?.rawValue
-                        glucoseEntry.isUploadedToNS = false /// the value is not uploaded to NS (yet)
-                        glucoseEntry.isUploadedToHealth = false /// the value is not uploaded to Health (yet)
-                        glucoseEntry.isUploadedToTidepool = false /// the value is not uploaded to Tidepool (yet)
-                        return false // Continue processing
+            // prepare batch insert
+            let batchInsert = NSBatchInsertRequest(
+                entity: GlucoseStored.entity(),
+                managedObjectHandler: { (managedObject: NSManagedObject) -> Bool in
+                    guard let glucoseEntry = managedObject as? GlucoseStored, !filteredGlucose.isEmpty else {
+                        return true // Stop if there are no more items
                     }
+                    let entry = filteredGlucose.removeFirst()
+                    glucoseEntry.id = UUID()
+                    glucoseEntry.glucose = Int16(entry.glucose ?? 0)
+                    glucoseEntry.date = entry.dateString
+                    glucoseEntry.direction = entry.direction?.rawValue
+                    glucoseEntry.isUploadedToNS = false /// the value is not uploaded to NS (yet)
+                    glucoseEntry.isUploadedToHealth = false /// the value is not uploaded to Health (yet)
+                    glucoseEntry.isUploadedToTidepool = false /// the value is not uploaded to Tidepool (yet)
+                    return false // Continue processing
+                }
+            )
+
+            // process batch insert
+            do {
+                try self.coredataContext.execute(batchInsert)
+
+                // Notify subscribers that there is a new glucose value
+                // We need to do this because the due to the batch insert there is no ManagedObjectContext notification
+                self.updateSubject.send(())
+            } catch {
+                debugPrint(
+                    "Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to execute batch insert: \(error)"
                 )
+            }
 
-                // process batch insert
-                do {
-                    try self.coredataContext.execute(batchInsert)
-
-                    // Notify subscribers that there is a new glucose value
-                    // We need to do this because the due to the batch insert there is no ManagedObjectContext notification
-                    self.updateSubject.send(())
-                } catch {
-                    debugPrint(
-                        "Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to execute batch insert: \(error)"
+            debug(.deviceManager, "start storage cgmState")
+            self.storage.transaction { storage in
+                let file = OpenAPS.Monitor.cgmState
+                var treatments = storage.retrieve(file, as: [NightscoutTreatment].self) ?? []
+                var updated = false
+                for x in glucose {
+                    debug(.deviceManager, "storeGlucose \(x)")
+                    guard let sessionStartDate = x.sessionStartDate else {
+                        continue
+                    }
+                    if let lastTreatment = treatments.last,
+                       let createdAt = lastTreatment.createdAt,
+                       // When a new Dexcom sensor is started, it produces multiple consecutive
+                       // startDates. Disambiguate them by only allowing a session start per minute.
+                       abs(createdAt.timeIntervalSince(sessionStartDate)) < TimeInterval(60)
+                    {
+                        continue
+                    }
+                    var notes = ""
+                    if let t = x.transmitterID {
+                        notes = t
+                    }
+                    if let a = x.activationDate {
+                        notes = "\(notes) activated on \(a)"
+                    }
+                    let treatment = NightscoutTreatment(
+                        duration: nil,
+                        rawDuration: nil,
+                        rawRate: nil,
+                        absolute: nil,
+                        rate: nil,
+                        eventType: .nsSensorChange,
+                        createdAt: sessionStartDate,
+                        enteredBy: NightscoutTreatment.local,
+                        bolus: nil,
+                        insulin: nil,
+                        notes: notes,
+                        carbs: nil,
+                        fat: nil,
+                        protein: nil,
+                        targetTop: nil,
+                        targetBottom: nil
                     )
+                    debug(.deviceManager, "CGM sensor change \(treatment)")
+                    treatments.append(treatment)
+                    updated = true
                 }
-
-                debug(.deviceManager, "start storage cgmState")
-                self.storage.transaction { storage in
-                    let file = OpenAPS.Monitor.cgmState
-                    var treatments = storage.retrieve(file, as: [NightscoutTreatment].self) ?? []
-                    var updated = false
-                    for x in glucose {
-                        debug(.deviceManager, "storeGlucose \(x)")
-                        guard let sessionStartDate = x.sessionStartDate else {
-                            continue
-                        }
-                        if let lastTreatment = treatments.last,
-                           let createdAt = lastTreatment.createdAt,
-                           // When a new Dexcom sensor is started, it produces multiple consecutive
-                           // startDates. Disambiguate them by only allowing a session start per minute.
-                           abs(createdAt.timeIntervalSince(sessionStartDate)) < TimeInterval(60)
-                        {
-                            continue
-                        }
-                        var notes = ""
-                        if let t = x.transmitterID {
-                            notes = t
-                        }
-                        if let a = x.activationDate {
-                            notes = "\(notes) activated on \(a)"
-                        }
-                        let treatment = NightscoutTreatment(
-                            duration: nil,
-                            rawDuration: nil,
-                            rawRate: nil,
-                            absolute: nil,
-                            rate: nil,
-                            eventType: .nsSensorChange,
-                            createdAt: sessionStartDate,
-                            enteredBy: NightscoutTreatment.local,
-                            bolus: nil,
-                            insulin: nil,
-                            notes: notes,
-                            carbs: nil,
-                            fat: nil,
-                            protein: nil,
-                            targetTop: nil,
-                            targetBottom: nil
-                        )
-                        debug(.deviceManager, "CGM sensor change \(treatment)")
-                        treatments.append(treatment)
-                        updated = true
-                    }
-                    if updated {
-                        // We have to keep quite a bit of history as sensors start only every 10 days.
-                        storage.save(
-                            treatments.filter
-                                { $0.createdAt != nil && $0.createdAt!.addingTimeInterval(30.days.timeInterval) > Date() },
-                            as: file
-                        )
-                    }
+                if updated {
+                    // We have to keep quite a bit of history as sensors start only every 10 days.
+                    storage.save(
+                        treatments.filter
+                            { $0.createdAt != nil && $0.createdAt!.addingTimeInterval(30.days.timeInterval) > Date() },
+                        as: file
+                    )
                 }
             }
         }

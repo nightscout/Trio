@@ -335,7 +335,9 @@ extension NightscoutConfig {
         }
 
         func backfillGlucose() async {
-            backfilling = true
+            await MainActor.run {
+                backfilling = true
+            }
 
             let glucose = await nightscoutManager.fetchGlucose(since: Date().addingTimeInterval(-1.days.timeInterval))
 
