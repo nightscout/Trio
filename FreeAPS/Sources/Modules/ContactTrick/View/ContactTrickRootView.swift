@@ -30,7 +30,7 @@ extension ContactTrick {
                             if state.syncInProgress {
                                 ProgressView().padding(.trailing, 10)
                             }
-                            Button { state.save() }
+                            Button { Task { await state.save() } }
                             label: {
                                 Text(state.syncInProgress ? "Saving..." : "Save")
                             }

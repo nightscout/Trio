@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ContactTrickEntry: Hashable, Sendable {
+    var id = UUID()
     var layout: ContactTrickLayout = .single
     var ring: ContactTrickLargeRing = .none
     var primary: ContactTrickValue = .glucose
