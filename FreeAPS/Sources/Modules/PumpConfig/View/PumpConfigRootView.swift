@@ -81,24 +81,6 @@ extension PumpConfig {
                 .navigationTitle("Insulin Pump")
                 .navigationBarTitleDisplayMode(.automatic)
                 .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
-                .sheet(isPresented: $state.setupPump) {
-                    if let pumpManager = state.provider.apsManager.pumpManager {
-                        PumpSettingsView(
-                            pumpManager: pumpManager,
-                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                            completionDelegate: state,
-                            setupDelegate: state
-                        )
-                    } else {
-                        PumpSetupView(
-                            pumpType: state.setupPumpType,
-                            pumpInitialSettings: state.initialSettings,
-                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                            completionDelegate: state,
-                            setupDelegate: state
-                        )
-                    }
-                }
                 .sheet(isPresented: $shouldDisplayHint) {
                     SettingInputHintView(
                         hintDetent: $hintDetent,
@@ -115,6 +97,24 @@ extension PumpConfig {
                     Button("Dana(RS/-i)") { state.addPump(.dana) }
                     Button("Pump Simulator") { state.addPump(.simulator) }
                 } message: { Text("Select Pump Model") }
+            }
+            .sheet(isPresented: $state.setupPump) {
+                if let pumpManager = state.provider.apsManager.pumpManager {
+                    PumpSettingsView(
+                        pumpManager: pumpManager,
+                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                        completionDelegate: state,
+                        setupDelegate: state
+                    )
+                } else {
+                    PumpSetupView(
+                        pumpType: state.setupPumpType,
+                        pumpInitialSettings: state.initialSettings,
+                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                        completionDelegate: state,
+                        setupDelegate: state
+                    )
+                }
             }
         }
     }
