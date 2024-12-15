@@ -6,13 +6,13 @@ import Foundation
 import Swinject
 
 protocol ContactTrickManager {
-    func updateContacts(contacts: [ContactTrickEntry]) async
+    func updateContacts(contacts: [ContactTrickEntry]) async -> Bool
     var currentContacts: [ContactTrickEntry] { get }
 }
 
 final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
     private var state = ContactTrickState()
-    private let contactStore = CNContactStore()
+    private let iOSContactStore = CNContactStore()
 
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settingsManager: SettingsManager!
@@ -217,30 +217,27 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
                     self.state.eventualBG = eventualBGAsString.map { "⇢ " + $0 }
                 }
 
-                guard (try? JSONEncoder().encode(state)) != nil else {
-                    warning(.service, "Cannot encode watch state")
-                    return
-                }
+//                guard (try? JSONEncoder().encode(state)) != nil else {
+//                    warning(.service, "Cannot encode watch state")
+//                    return
+//                }
 
                 if contacts.isNotEmpty, CNContactStore.authorizationStatus(for: .contacts) == .authorized {
-                    let newContacts = contacts.enumerated().map { index, entry in
-                        self.renderContact(entry, index + 1, self.state)
-                    }
-
-                    // Find new entries in newContacts that are not in contacts
-                    let newEntries = newContacts.filter { newContact in
-                        !self.contacts.contains(where: { $0.contactId == newContact.contactId })
-                    }
-
-                    // When we create new contacts we store the IDs, in that case we need to write into the settings storage
-                    // TODO: We actually need to UPDATE the respective entry in CD, so rather RETURN the contactId here and UPDATE the respective entry in CD.
-//                    // Save the new entries into Core Data
-//                    for newEntry in newEntries {
-//                        Task {
-//                            await self.contactTrickStorage.storeContactTrickEntry(newEntry)
-//                        }
-//                    }
-
+                    let newContacts = contacts.enumerated()
+                        .map { index, entry in self.renderContact(entry, index + 1, self.state) }
+                    
+                    // TODO: existiert die zurück gegebene contact ID in CD
+                    // wenn ja, eintrag ignorieren
+                    // wemnn nein, eintrag neu einlegen
+                
+                    
+                    if newContacts != contacts {
+                        // when we create new contacts we store the IDs, in that case we need to write into the settings storage
+                        for contactToStore in newContacts {
+                            Task {
+                                await self.contactTrickStorage.storeContactTrickEntry(contactToStore)
+                            }
+                        } }
                     contacts = newContacts
                 }
             }
@@ -250,21 +247,18 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         }
     }
 
-    func updateContacts(contacts: [ContactTrickEntry]) async {
+    func updateContacts(contacts: [ContactTrickEntry]) async -> Bool {
         self.contacts = contacts
         let newIds = contacts.compactMap(\.contactId)
         let knownSet = Set(knownIds)
         let newSet = Set(newIds)
         let removedIds = knownSet.subtracting(newSet)
 
-        await viewContext.perform {
-            let fetchRequest: NSFetchRequest<ContactTrickEntryStored> = ContactTrickEntryStored.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "contactId IN %@", removedIds)
-
+        return await context.perform {
             do {
+                let fetchRequest: NSFetchRequest<ContactTrickEntryStored> = ContactTrickEntryStored.fetchRequest()
+                fetchRequest.predicate = NSPredicate(format: "contactId IN %@", removedIds)
                 let objectIDsToDelete = try self.viewContext.fetch(fetchRequest).compactMap(\.objectID)
-
-                guard !objectIDsToDelete.isEmpty else { return }
 
                 for objectID in objectIDsToDelete {
                     Task {
@@ -276,11 +270,12 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
                     await self.configureContactTrickState()
                 }
                 self.knownIds = self.contacts.compactMap(\.contactId)
-
+                return true
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to delete Contact Trick Entry: \(error.userInfo)"
                 )
+                return false
             }
         }
     }
@@ -298,7 +293,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
 
         if let contactId = entry.contactId {
             do {
-                let contact = try contactStore.unifiedContact(withIdentifier: contactId, keysToFetch: keysToFetch)
+                let contact = try iOSContactStore.unifiedContact(withIdentifier: contactId, keysToFetch: keysToFetch)
 
                 mutableContact = contact.mutableCopy() as! CNMutableContact
                 updateContactFields(entry: entry, index: index, state: state, mutableContact: mutableContact)
@@ -320,7 +315,6 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
                 print("in handleEnabledContact, failed to fetch the contact: \(error.localizedDescription)")
                 return entry
             }
-
         } else {
             print("no contact \(index) - creating")
             mutableContact = createNewContact(
@@ -331,7 +325,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
             )
         }
 
-        saveUpdatedContact(saveRequest)
+        executeSaveRequest(saveRequest)
 
         entry.contactId = mutableContact.identifier
 
@@ -374,7 +368,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         do {
             print("deleting contact \(contactId)")
             let keysToFetch = [CNContactIdentifierKey as CNKeyDescriptor] // we don't really need any, so just ID
-            let contact = try contactStore.unifiedContact(withIdentifier: contactId, keysToFetch: keysToFetch)
+            let contact = try iOSContactStore.unifiedContact(withIdentifier: contactId, keysToFetch: keysToFetch)
 
             guard let mutableContact = contact.mutableCopy() as? CNMutableContact else {
                 print("in deleteContact, failed to get a mutable copy of the contact")
@@ -383,7 +377,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
 
             let saveRequest = CNSaveRequest()
             saveRequest.delete(mutableContact)
-            try contactStore.execute(saveRequest)
+            try iOSContactStore.execute(saveRequest)
             return true
         } catch let error as NSError {
             if error.code == 200 { // Updated Record Does Not Exist
@@ -398,9 +392,9 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         }
     }
 
-    private func saveUpdatedContact(_ saveRequest: CNSaveRequest) {
+    private func executeSaveRequest(_ saveRequest: CNSaveRequest) {
         do {
-            try contactStore.execute(saveRequest)
+            try iOSContactStore.execute(saveRequest)
         } catch let error as NSError {
             print("in updateContact, failed to update the contact - \(getContactsErrorDetails(error))")
         } catch {

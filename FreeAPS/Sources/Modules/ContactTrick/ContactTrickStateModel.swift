@@ -8,6 +8,7 @@ extension ContactTrick {
         private(set) var changed: Bool = false
 
         @ObservationIgnored @Injected() var contactTrickManager: ContactTrickManager!
+        @ObservationIgnored @Injected() var contactTrickStorage: ContactTrickStorage!
 
         var units: GlucoseUnits = .mmolL
 
@@ -42,10 +43,25 @@ extension ContactTrick {
             changed = true
         }
 
-        func save() {
+        @MainActor func save() async {
             syncInProgress = true
             let contacts = items.map { item -> ContactTrickEntry in
                 item.entry
+            }
+
+            let didUpdateStatus = await contactTrickManager.updateContacts(contacts: contacts)
+
+            //            for contact in contacts {
+            //                await contactTrickStorage.storeContactTrickEntry(contact)
+            //            }
+
+            syncInProgress = didUpdateStatus
+            changed = didUpdateStatus
+
+            if didUpdateStatus {
+                contacts.enumerated().forEach { index, item in
+                    self.items[index].entry = item
+                }
             }
 //            provider.saveContacts(contacts)
 //                .receive(on: DispatchQueue.main)
