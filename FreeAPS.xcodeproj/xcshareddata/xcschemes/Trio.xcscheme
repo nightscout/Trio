@@ -169,7 +169,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3E6007862D0C5D0C00B186D1"
-               BuildableName = "DanaKitPlugin.framework"
+               BuildableName = "DanaKitPlugin.loopplugin"
                BlueprintName = "DanaKitPlugin"
                ReferencedContainer = "container:DanaKit/DanaKit.xcodeproj">
             </BuildableReference>
