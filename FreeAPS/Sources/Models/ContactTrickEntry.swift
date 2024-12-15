@@ -1,7 +1,9 @@
+import CoreData
 import SwiftUI
 
 struct ContactTrickEntry: Hashable, Sendable {
     var id = UUID()
+    var name: String = ""
     var layout: ContactTrickLayout = .single
     var ring: ContactTrickLargeRing = .none
     var primary: ContactTrickValue = .glucose
@@ -15,6 +17,7 @@ struct ContactTrickEntry: Hashable, Sendable {
     var secondaryFontSize: FontSize = .small
     var fontWeight: Font.Weight = .medium
     var fontWidth: Font.Width = .standard
+    var managedObjectID: NSManagedObjectID?
 
     // Convert `fontWeight` to a String for Core Data storage
     var fontWeightString: String {
@@ -52,7 +55,7 @@ struct ContactTrickEntry: Hashable, Sendable {
         }
     }
 
-    enum RingWidth: Int, Codable, Sendable {
+    enum RingWidth: Int, Codable, Sendable, CaseIterable {
         case tiny = 3
         case small = 5
         case regular = 7
@@ -70,7 +73,7 @@ struct ContactTrickEntry: Hashable, Sendable {
         }
     }
 
-    enum RingGap: Int, Codable, Sendable {
+    enum RingGap: Int, Codable, Sendable, CaseIterable {
         case tiny = 1
         case small = 2
         case regular = 3

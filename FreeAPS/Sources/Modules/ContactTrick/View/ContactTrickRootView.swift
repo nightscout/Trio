@@ -6,406 +6,219 @@ import Swinject
 extension ContactTrick {
     struct RootView: BaseView {
         let resolver: Resolver
-        @StateObject var state = StateModel()
-
-        @State private var contactStore = CNContactStore()
-        @State private var authorization = CNContactStore.authorizationStatus(for: .contacts)
-        @State private var contactTrickEntries = [ContactTrickEntry]()
+        @State var state = StateModel()
+        @State private var isAddSheetPresented = false
 
         var body: some View {
-            Form {
-                switch authorization {
-                case .authorized:
-                    Section(header: Text("Contacts")) {
-                        list
-                        addButton
-                    }
-                    Section(
-                        header: state.changed ?
-                            Text("Don't forget to save your changes.")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .foregroundStyle(.primary) : nil
-                    ) {
-                        HStack {
-                            if state.syncInProgress {
-                                ProgressView().padding(.trailing, 10)
-                            }
-                            Button { Task { await state.save() } }
-                            label: {
-                                Text(state.syncInProgress ? "Saving..." : "Save")
-                            }
-                            .disabled(state.syncInProgress || !state.changed)
-                            .frame(maxWidth: .infinity, alignment: .center)
+            NavigationView {
+                List {
+                    ForEach(state.contactTrickEntries, id: \.id) { entry in
+                        NavigationLink(destination: ContactTrickDetailView(entry: entry, state: state)) {
+                            Text("\(entry.name)")
                         }
                     }
-
-                case .notDetermined:
-                    Section {
-                        Text(
-                            "Trio needs access to your contacts for this feature to work"
-                        )
-                    }
-                    Section {
-                        Button(action: onRequestContactsAccess) {
-                            Text("Grant Trio access to contacts")
-                        }
-                    }
-
-                case .denied:
-                    Section {
-                        Text(
-                            "Access to contacts denied"
-                        )
-                    }
-
-                case .restricted:
-                    Section {
-                        Text(
-                            "Access to contacts is restricted (parental control?)"
-                        )
-                    }
-
-                case .limited:
-                    Section {
-                        Text(
-                            "Access to contacts is limited. Trio needs full access to contacts for this feature to work"
-                        )
-                    }
-                @unknown default:
-                    Section {
-                        Text(
-                            "Access to contacts - unknown state"
-                        )
-                    }
+                    .onDelete(perform: onDelete)
                 }
-
-                Section {}
-                footer: {
-                    Text(
-                        "A Contact Image can be used to get live updates from Trio to your Apple Watch Contact complication and/or your iPhone Contact widget."
-                    )
-                    .frame(maxWidth: .infinity, alignment: .center)
-                }
-            }
-            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-            .onAppear(perform: configureView)
-            .navigationTitle("Contact Image")
-            .navigationBarTitleDisplayMode(.automatic)
-            .navigationBarItems(
-                trailing: EditButton()
-            )
-        }
-
-        private func contactSettings(for index: Int) -> some View {
-            EntryView(entry: Binding(
-                get: { state.items[index].entry },
-                set: { newValue in state.update(index, newValue) }
-            ), previewState: previewState)
-        }
-
-        var previewState: ContactTrickState {
-            let units = state.units
-
-            return ContactTrickState(
-                glucose: units == .mmolL ? "6,8" : "127",
-                trend: "↗︎",
-                delta: units == .mmolL ? "+0,3" : "+7",
-                lastLoopDate: .now,
-                iob: 6.1,
-                iobText: "6,1",
-                cob: 27.0,
-                cobText: "27",
-                eventualBG: units == .mmolL ? "8,9" : "163",
-                maxIOB: 12.0,
-                maxCOB: 120.0
-            )
-        }
-
-        private var list: some View {
-            List {
-                ForEach(state.items.indexed(), id: \.1.id) { index, item in
-                    NavigationLink(destination: contactSettings(for: index)) {
-                        EntryListView(entry: .constant(item.entry), index: .constant(index), previewState: previewState)
+                .navigationTitle("Contact Tricks")
+                .onAppear(perform: configureView)
+                .navigationBarItems(
+                    trailing: Button(action: {
+                        isAddSheetPresented.toggle()
+                    }) {
+                        Image(systemName: "plus")
                     }
-                    .moveDisabled(true)
-                }
-                .onDelete(perform: onDelete)
-            }
-        }
-
-        private var addButton: some View {
-            AnyView(Button(action: onAdd) { Text("Add") })
-        }
-
-        func onAdd() {
-            state.add()
-        }
-
-        func onRequestContactsAccess() {
-            contactStore.requestAccess(for: .contacts) { _, _ in
-                DispatchQueue.main.async {
-                    authorization = CNContactStore.authorizationStatus(for: .contacts)
+                )
+                .sheet(isPresented: $isAddSheetPresented) {
+                    AddContactTrickSheet(state: state)
                 }
             }
         }
 
         private func onDelete(offsets: IndexSet) {
-            state.remove(atOffsets: offsets)
+            Task {
+                for offset in offsets {
+                    let entry = state.contactTrickEntries[offset]
+                    await state.deleteContact(entry: entry)
+                }
+            }
+        }
+    }
+}
+
+struct AddContactTrickSheet: View {
+    @Environment(\.dismiss) var dismiss
+    var state: ContactTrick.StateModel
+
+    @State private var name: String = ""
+    @State private var isDarkMode: Bool = false
+    @State private var ringWidth: ContactTrickEntry.RingWidth = .regular
+    @State private var ringGap: ContactTrickEntry.RingGap = .small
+    @State private var layout: ContactTrickLayout = .single
+    @State private var primary: ContactTrickValue = .glucose
+    @State private var top: ContactTrickValue = .none
+    @State private var bottom: ContactTrickValue = .none
+
+    var body: some View {
+        NavigationView {
+            Form {
+                TextField("Name", text: $name)
+                Section(header: Text("Layout")) {
+                    Toggle("Dark Mode", isOn: $isDarkMode)
+                    Picker("Layout", selection: $layout) {
+                        ForEach(ContactTrickLayout.allCases, id: \.id) { layout in
+                            Text(layout.displayName).tag(layout)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                }
+
+                Section(header: Text("Primary Value")) {
+                    Picker("Primary", selection: $primary) {
+                        ForEach(ContactTrickValue.allCases, id: \.id) { value in
+                            Text(value.displayName).tag(value)
+                        }
+                    }
+                }
+
+                Section(header: Text("Additional Values")) {
+                    Picker("Top Value", selection: $top) {
+                        ForEach(ContactTrickValue.allCases, id: \.id) { value in
+                            Text(value.displayName).tag(value)
+                        }
+                    }
+
+                    Picker("Bottom Value", selection: $bottom) {
+                        ForEach(ContactTrickValue.allCases, id: \.id) { value in
+                            Text(value.displayName).tag(value)
+                        }
+                    }
+                }
+
+                Section(header: Text("Ring Settings")) {
+                    Picker("Ring Width", selection: $ringWidth) {
+                        ForEach(ContactTrickEntry.RingWidth.allCases, id: \.self) { width in
+                            Text(width.displayName).tag(width)
+                        }
+                    }
+
+                    Picker("Ring Gap", selection: $ringGap) {
+                        ForEach(ContactTrickEntry.RingGap.allCases, id: \.self) { gap in
+                            Text(gap.displayName).tag(gap)
+                        }
+                    }
+                }
+            }
+            .navigationBarTitle("Add Contact Trick", displayMode: .inline)
+            .navigationBarItems(
+                leading: Button("Cancel") {
+                    dismiss()
+                },
+                trailing: Button("Save") {
+                    saveNewEntry()
+                }
+            )
         }
     }
 
-    struct EntryListView: View {
-        @Binding var entry: ContactTrickEntry
-        @Binding var index: Int
-        @State private var refreshKey = UUID()
-        let previewState: ContactTrickState
-
-        var body: some View {
-            HStack {
-                VStack(alignment: .leading) {
-                    GeometryReader { geometry in
-                        ZStack {
-                            Circle()
-                                .fill(entry.darkMode ? .black : .white)
-                                .foregroundColor(.white)
-                            Image(uiImage: ContactPicture.getImage(contact: entry, state: previewState))
-                                .resizable()
-                                .aspectRatio(1, contentMode: .fit)
-                                .frame(width: geometry.size.height, height: geometry.size.height)
-                                .clipShape(Circle())
-                            Circle()
-                                .stroke(lineWidth: 2)
-                                .foregroundColor(.white)
-                        }
-                        .frame(width: geometry.size.height, height: geometry.size.height)
-                    }
-                }
-                .fixedSize(horizontal: true, vertical: false)
-                .padding(.horizontal, 30)
-
-                Spacer()
-
-                VStack {
-                    Text("Contact: Trio \(index + 1)").bold()
-//                    HStack {
-//                        Text("Layout: \(entry.layout.displayName)")
-//                        Text("\(entry.ring.displayName)")
-//                        if entry.layout == .single {
-//                            Text("\(entry.primary.displayName)")
-//                        }
-//                        Text("\(entry.top.displayName), \(entry.bottom.displayName)")
-//                    }.foregroundStyle(.secondary)
-//                    HStack {
-//                        Text("Font Size \(entry.fontSize.displayName)")
-//                        Text("Font Width \(entry.fontWidth.displayName)")
-//                        Text("Font Weight \(entry.fontWeight.displayName)")
-//                    }.foregroundStyle(.secondary)
-                }
-            }
-            .frame(maxWidth: .infinity)
+    private func saveNewEntry() {
+        let newEntry = ContactTrickEntry(
+            id: UUID(),
+            name: name,
+            layout: layout,
+            ring: .none,
+            primary: primary,
+            top: top,
+            bottom: bottom,
+            contactId: nil, // Wird später durch die API gesetzt
+            darkMode: isDarkMode,
+            ringWidth: ringWidth,
+            ringGap: ringGap,
+            fontSize: .regular,
+            secondaryFontSize: .small,
+            fontWeight: .medium,
+            fontWidth: .standard
+        )
+        Task {
+            await state.createAndSaveContactTrick(entry: newEntry, name: name)
+            dismiss()
         }
     }
+}
 
-    struct EntryView: View {
-        @Binding var entry: ContactTrickEntry
-        @State private var availableFonts: [String]? = nil
-        let previewState: ContactTrickState
+struct ContactTrickDetailView: View {
+    @Environment(\.dismiss) var dismiss
+    @ObservedObject var state: ContactTrick.StateModel
 
-        private let ringWidths: [Int] = [5, 10, 15]
-        private let ringGaps: [Int] = [0, 2, 4]
+    @State private var contactTrickEntry: ContactTrickEntry
 
-        var body: some View {
-            VStack {
-                Section {
-                    HStack {
-                        ZStack {
-                            Circle()
-                                .fill(entry.darkMode ? .black : .white)
-                            Image(uiImage: ContactPicture.getImage(contact: entry, state: previewState))
-                                .resizable()
-                                .aspectRatio(1, contentMode: .fit)
-                                .frame(width: 64, height: 64)
-                                .clipShape(Circle())
-                            Circle()
-                                .stroke(lineWidth: 2)
-                                .foregroundColor(.white)
-                        }
-                        .frame(width: 64, height: 64)
+    init(entry: ContactTrickEntry, state: ContactTrick.StateModel) {
+        self.state = state
+        _contactTrickEntry = State(initialValue: entry)
+    }
+
+    var body: some View {
+        Form {
+            TextField("Name", text: $contactTrickEntry.name)
+            Section(header: Text("Layout")) {
+                Toggle("Dark Mode", isOn: $contactTrickEntry.darkMode)
+                Picker("Layout", selection: $contactTrickEntry.layout) {
+                    ForEach(ContactTrickLayout.allCases, id: \.id) { layout in
+                        Text(layout.displayName).tag(layout)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+            }
+
+            Section(header: Text("Primary Value")) {
+                Picker("Primary", selection: $contactTrickEntry.primary) {
+                    ForEach(ContactTrickValue.allCases, id: \.id) { value in
+                        Text(value.displayName).tag(value)
+                    }
+                }
+            }
+
+            Section(header: Text("Additional Values")) {
+                Picker("Top Value", selection: $contactTrickEntry.top) {
+                    ForEach(ContactTrickValue.allCases, id: \.id) { value in
+                        Text(value.displayName).tag(value)
                     }
                 }
 
-                Form {
-                    Section {
-                        Picker(
-                            selection: $entry.layout,
-                            label: Text("Layout")
-                        ) {
-                            ForEach(ContactTrickLayout.allCases, id: \.self) { layout in
-                                Text(layout.displayName).tag(layout)
-                            }
-                        }
+                Picker("Bottom Value", selection: $contactTrickEntry.bottom) {
+                    ForEach(ContactTrickValue.allCases, id: \.id) { value in
+                        Text(value.displayName).tag(value)
                     }
+                }
+            }
 
-                    layoutSpecificSection
-
-                    Section(header: Text("Ring")) {
-                        Picker(
-                            selection: $entry.ring,
-                            label: Text("Outer")
-                        ) {
-                            ForEach(ContactTrickLargeRing.allCases, id: \.self) { ring in
-                                Text(ring.displayName).tag(ring)
-                            }
-                        }
-
-                        if entry.ring != .none {
-                            Picker(
-                                selection: $entry.ringWidth,
-                                label: Text("Width")
-                            ) {
-                                ForEach(
-                                    [
-                                        ContactTrickEntry.RingWidth.tiny,
-                                        ContactTrickEntry.RingWidth.small,
-                                        ContactTrickEntry.RingWidth.regular,
-                                        ContactTrickEntry.RingWidth.medium,
-                                        ContactTrickEntry.RingWidth.large
-                                    ],
-                                    id: \.self
-                                ) { width in
-                                    Text(width.displayName).tag(width)
-                                }
-                            }
-                            Picker(
-                                selection: $entry.ringGap,
-                                label: Text("Gap")
-                            ) {
-                                ForEach(
-                                    [
-                                        ContactTrickEntry.RingGap.tiny,
-                                        ContactTrickEntry.RingGap.small,
-                                        ContactTrickEntry.RingGap.regular,
-                                        ContactTrickEntry.RingGap.medium,
-                                        ContactTrickEntry.RingGap.large
-                                    ],
-                                    id: \.self
-                                ) { gap in
-                                    Text(gap.displayName).tag(gap)
-                                }
-                            }
-                        }
+            Section(header: Text("Ring Settings")) {
+                Picker("Ring Width", selection: $contactTrickEntry.ringWidth) {
+                    ForEach(ContactTrickEntry.RingWidth.allCases, id: \.self) { width in
+                        Text(width.displayName)
+                            .tag(width)
                     }
+                }
 
-                    Section(header: Text("Font")) {
-                        Picker(
-                            selection: $entry.fontSize,
-                            label: Text("Size")
-                        ) {
-                            ForEach(
-                                [
-                                    ContactTrickEntry.FontSize.tiny,
-                                    ContactTrickEntry.FontSize.small,
-                                    ContactTrickEntry.FontSize.regular,
-                                    ContactTrickEntry.FontSize.large
-                                ],
-                                id: \.self
-                            ) { size in
-                                Text(size.displayName).tag(size)
-                            }
-                        }
-                        Picker(
-                            selection: $entry.secondaryFontSize,
-                            label: Text("Secondary size")
-                        ) {
-                            ForEach(
-                                [
-                                    ContactTrickEntry.FontSize.tiny,
-                                    ContactTrickEntry.FontSize.small,
-                                    ContactTrickEntry.FontSize.regular,
-                                    ContactTrickEntry.FontSize.large
-                                ],
-                                id: \.self
-                            ) { size in
-                                Text(size.displayName).tag(size)
-                            }
-                        }
-                        Picker(
-                            selection: $entry.fontWidth,
-                            label: Text("Width")
-                        ) {
-                            ForEach(
-                                [Font.Width.standard, Font.Width.condensed, Font.Width.expanded],
-                                id: \.self
-                            ) { width in
-                                Text(width.displayName).tag(width)
-                            }
-                        }
-                        Picker(
-                            selection: $entry.fontWeight,
-                            label: Text("Weight")
-                        ) {
-                            ForEach(
-                                [Font.Weight.light, Font.Weight.regular, Font.Weight.medium, Font.Weight.bold, Font.Weight.black],
-                                id: \.self
-                            ) { weight in
-                                Text(weight.displayName).tag(weight)
-                            }
-                        }
-                    }
-
-                    Section {
-                        Toggle("Dark mode", isOn: $entry.darkMode)
+                Picker("Ring Gap", selection: $contactTrickEntry.ringGap) {
+                    ForEach(ContactTrickEntry.RingGap.allCases, id: \.self) { gap in
+                        Text(gap.displayName)
+                            .tag(gap)
                     }
                 }
             }
         }
-
-        private var layoutSpecificSection: some View {
-            Section {
-                if entry.layout == .single {
-                    Picker(
-                        selection: $entry.primary,
-                        label: Text("Primary")
-                    ) {
-                        ForEach(ContactTrickValue.allCases, id: \.self) { value in
-                            Text(value.displayName).tag(value)
-                        }
-                    }
-                    Picker(
-                        selection: $entry.top,
-                        label: Text("Top")
-                    ) {
-                        ForEach(ContactTrickValue.allCases, id: \.self) { value in
-                            Text(value.displayName).tag(value)
-                        }
-                    }
-                    Picker(
-                        selection: $entry.bottom,
-                        label: Text("Bottom")
-                    ) {
-                        ForEach(ContactTrickValue.allCases, id: \.self) { value in
-                            Text(value.displayName).tag(value)
-                        }
-                    }
-                } else if entry.layout == .split {
-                    Picker(
-                        selection: $entry.top,
-                        label: Text("Top")
-                    ) {
-                        ForEach(ContactTrickValue.allCases, id: \.self) { value in
-                            Text(value.displayName).tag(value)
-                        }
-                    }
-                    Picker(
-                        selection: $entry.bottom,
-                        label: Text("Bottom")
-                    ) {
-                        ForEach(ContactTrickValue.allCases, id: \.self) { value in
-                            Text(value.displayName).tag(value)
-                        }
-                    }
-                }
+        .navigationBarTitle("Edit Contact Trick", displayMode: .inline)
+        .navigationBarItems(
+            trailing: Button("Save") {
+                saveChanges()
             }
+        )
+    }
+
+    private func saveChanges() {
+        Task {
+            await state.updateContact(entry: contactTrickEntry, newName: contactTrickEntry.name)
+            dismiss()
         }
     }
 }
