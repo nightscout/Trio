@@ -8,6 +8,9 @@ extension ContactTrick {
         @ObservationIgnored @Injected() var contactTrickManager: ContactTrickManager!
         var contactTrickEntries = [ContactTrickEntry]()
         var units: GlucoseUnits = .mmolL
+        // Help Sheet
+        var isHelpSheetPresented: Bool = false
+        var helpSheetDetent = PresentationDetent.large
 
         var previewState: ContactTrickState {
             ContactTrickState(
@@ -33,7 +36,6 @@ extension ContactTrick {
                 await fetchContactTrickEntriesAndUpdateUI()
             }
         }
-
 
         /// Fetches all ContactTrickEntries from Core Data.
         func fetchContactTrickEntriesAndUpdateUI() async {
@@ -64,6 +66,7 @@ extension ContactTrick {
             // 3. Update the entry with the `contactId`.
             var updatedEntry = entry
             updatedEntry.contactId = contactId
+            updatedEntry.name = name
 
             // 4. Save the contact to Core Data.
             await addContactTrickEntry(updatedEntry)
@@ -122,16 +125,16 @@ extension ContactTrick {
             await updateContactTrick(entry)
 
             // 2. Update the contact in Apple Contacts.
-            
+
             /// Update name
             let contactUpdated = await contactTrickManager
                 .updateContact(withIdentifier: contactId, newName: entry.name) // TODO: - Probably not needed anymore
-            
+
             guard contactUpdated else {
                 debugPrint("\(DebuggingIdentifiers.failed) Failed to update contact.")
                 return
             }
-            
+
             /// Update state and image
             await contactTrickManager.updateContactTrickState()
             await contactTrickManager.setImageForContact(contactId: contactId)

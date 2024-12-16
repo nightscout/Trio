@@ -10,7 +10,7 @@ struct ContactTrickEntry: Hashable, Sendable {
     var top: ContactTrickValue = .none
     var bottom: ContactTrickValue = .none
     var contactId: String? = nil
-    var darkMode: Bool = true
+    var darkMode: Bool = false
     var ringWidth: RingWidth = .regular
     var ringGap: RingGap = .small
     var fontSize: FontSize = .regular

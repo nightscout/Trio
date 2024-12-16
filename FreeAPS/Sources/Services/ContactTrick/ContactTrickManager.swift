@@ -205,7 +205,6 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         let newImage = await ContactPicture.getImage(contact: contactEntry, state: state)
 
         do {
-
             let predicate = CNContact.predicateForContacts(withIdentifiers: [contactId])
             let contacts = try contactStore.unifiedContacts(
                 matching: predicate,
@@ -214,7 +213,6 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
                     CNContactImageDataKey as CNKeyDescriptor
                 ]
             )
-
 
             guard let contact = contacts.first else {
                 debugPrint("\(DebuggingIdentifiers.failed) Contact with ID \(contactId) not found.")

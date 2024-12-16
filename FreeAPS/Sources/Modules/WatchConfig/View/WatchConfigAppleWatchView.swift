@@ -97,11 +97,11 @@ struct WatchConfigAppleWatchView: BaseView {
             )
 
             Section(
-                header: Text("Complications"),
+                header: Text("Contact Trick"),
                 content: {
                     VStack {
                         HStack {
-                            NavigationLink("Contact image") {
+                            NavigationLink("Contacts Configuration") {
                                 ContactTrick.RootView(resolver: resolver)
                             }.foregroundStyle(Color.accentColor)
                         }
