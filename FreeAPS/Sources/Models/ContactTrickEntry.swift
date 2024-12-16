@@ -1,7 +1,7 @@
 import CoreData
 import SwiftUI
 
-struct ContactTrickEntry: Hashable, Sendable {
+struct ContactTrickEntry: Hashable, Equatable, Sendable {
     var id = UUID()
     var name: String = ""
     var layout: ContactTrickLayout = .single
@@ -18,6 +18,24 @@ struct ContactTrickEntry: Hashable, Sendable {
     var fontWeight: Font.Weight = .medium
     var fontWidth: Font.Width = .standard
     var managedObjectID: NSManagedObjectID?
+
+    static func == (lhs: ContactTrickEntry, rhs: ContactTrickEntry) -> Bool {
+        lhs.id == rhs.id &&
+            lhs.name == rhs.name &&
+            lhs.layout == rhs.layout &&
+            lhs.ring == rhs.ring &&
+            lhs.primary == rhs.primary &&
+            lhs.top == rhs.top &&
+            lhs.bottom == rhs.bottom &&
+            lhs.contactId == rhs.contactId &&
+            lhs.darkMode == rhs.darkMode &&
+            lhs.ringWidth == rhs.ringWidth &&
+            lhs.ringGap == rhs.ringGap &&
+            lhs.fontSize == rhs.fontSize &&
+            lhs.secondaryFontSize == rhs.secondaryFontSize &&
+            lhs.fontWeight == rhs.fontWeight &&
+            lhs.fontWidth == rhs.fontWidth
+    }
 
     // Convert `fontWeight` to a String for Core Data storage
     var fontWeightString: String {
@@ -112,23 +130,23 @@ enum ContactTrickValue: String, JSON, CaseIterable, Identifiable, Codable {
     var displayName: String {
         switch self {
         case .none:
-            return NSLocalizedString("NoneContactValue", comment: "")
+            return NSLocalizedString("None", comment: "")
         case .glucose:
-            return NSLocalizedString("GlucoseContactValue", comment: "")
+            return NSLocalizedString("Glucose Reading", comment: "")
         case .eventualBG:
-            return NSLocalizedString("EventualBGContactValue", comment: "")
+            return NSLocalizedString("Eventual Glucose", comment: "")
         case .delta:
-            return NSLocalizedString("DeltaContactValue", comment: "")
+            return NSLocalizedString("Glucose Delta", comment: "")
         case .trend:
-            return NSLocalizedString("TrendContactValue", comment: "")
+            return NSLocalizedString("Glucose Trend", comment: "")
         case .lastLoopDate:
-            return NSLocalizedString("LastLoopTimeContactValue", comment: "")
+            return NSLocalizedString("Last Loop Time", comment: "")
         case .cob:
-            return NSLocalizedString("COBContactValue", comment: "")
+            return NSLocalizedString("COB", comment: "")
         case .iob:
-            return NSLocalizedString("IOBContactValue", comment: "")
+            return NSLocalizedString("IOB", comment: "")
         case .ring:
-            return NSLocalizedString("LoopStatusContactValue", comment: "")
+            return NSLocalizedString("Loop Status", comment: "")
         }
     }
 }
@@ -159,15 +177,15 @@ enum ContactTrickLargeRing: String, JSON, CaseIterable, Identifiable, Codable {
     var displayName: String {
         switch self {
         case .none:
-            return NSLocalizedString("DontShowRing", comment: "")
+            return NSLocalizedString("Hidden", comment: "")
         case .loop:
-            return NSLocalizedString("LoopStatusRing", comment: "")
+            return NSLocalizedString("Loop Status", comment: "")
         case .iob:
-            return NSLocalizedString("IOBRing", comment: "")
+            return NSLocalizedString("Insulin on Board (IOB)", comment: "")
         case .cob:
-            return NSLocalizedString("COBRing", comment: "")
+            return NSLocalizedString("Carbs on Board (COB)", comment: "")
         case .iobcob:
-            return NSLocalizedString("IOB+COBRing", comment: "")
+            return NSLocalizedString("IOB + COB", comment: "")
         }
     }
 }

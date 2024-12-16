@@ -8,10 +8,12 @@ struct ContactTrickDetailView: View {
     @ObservedObject var state: ContactTrick.StateModel
 
     @State private var contactTrickEntry: ContactTrickEntry
+    @State private var initialContactTrickEntry: ContactTrickEntry
 
     init(entry: ContactTrickEntry, state: ContactTrick.StateModel) {
         self.state = state
         _contactTrickEntry = State(initialValue: entry)
+        _initialContactTrickEntry = State(initialValue: entry)
     }
 
     var body: some View {
@@ -70,23 +72,27 @@ struct ContactTrickDetailView: View {
                     }
                 }.listRowBackground(Color.chart)
 
-                if contactTrickEntry.ring != .none {
-                    Section(header: Text("Ring Settings")) {
+                // Ring Settings Section
+                Section(header: Text("Ring Settings")) {
+                    Picker("Ring Type", selection: $contactTrickEntry.ring) {
+                        ForEach(ContactTrickLargeRing.allCases, id: \.self) { ring in
+                            Text(ring.displayName).tag(ring)
+                        }
+                    }
+
+                    if contactTrickEntry.ring != .none {
                         Picker("Ring Width", selection: $contactTrickEntry.ringWidth) {
                             ForEach(ContactTrickEntry.RingWidth.allCases, id: \.self) { width in
-                                Text(width.displayName)
-                                    .tag(width)
+                                Text(width.displayName).tag(width)
                             }
                         }
-
                         Picker("Ring Gap", selection: $contactTrickEntry.ringGap) {
                             ForEach(ContactTrickEntry.RingGap.allCases, id: \.self) { gap in
-                                Text(gap.displayName)
-                                    .tag(gap)
+                                Text(gap.displayName).tag(gap)
                             }
                         }
-                    }.listRowBackground(Color.chart)
-                }
+                    }
+                }.listRowBackground(Color.chart)
 
                 // Font Settings Section
                 Section(header: Text("Font Settings")) {
@@ -146,7 +152,9 @@ struct ContactTrickDetailView: View {
     }
 
     var stickySaveButton: some View {
-        ZStack {
+        var isUnchanged: Bool { initialContactTrickEntry == contactTrickEntry }
+
+        return ZStack {
             Rectangle()
                 .frame(width: UIScreen.main.bounds.width, height: 65)
                 .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
@@ -160,7 +168,8 @@ struct ContactTrickDetailView: View {
                 Text("Save").padding(10)
             })
                 .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
-                .background(Color(.systemBlue))
+                .background(isUnchanged ? Color(.systemGray4) : Color(.systemBlue))
+                .disabled(isUnchanged)
                 .tint(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .padding(5)
