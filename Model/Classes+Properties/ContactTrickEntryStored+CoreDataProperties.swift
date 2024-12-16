@@ -6,6 +6,7 @@ public extension ContactTrickEntryStored {
         NSFetchRequest<ContactTrickEntryStored>(entityName: "ContactTrickEntryStored")
     }
 
+    @NSManaged var name: String
     @NSManaged var layout: String?
     @NSManaged var ring: String?
     @NSManaged var primary: String?

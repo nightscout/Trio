@@ -1,7 +1,7 @@
 import SwiftUI
 import Swinject
 
-struct WatchConfigAppleWatchView: View {
+struct WatchConfigAppleWatchView: BaseView {
     let resolver: Resolver
     @ObservedObject var state: WatchConfig.StateModel
 
@@ -101,13 +101,11 @@ struct WatchConfigAppleWatchView: View {
                 content: {
                     VStack {
                         HStack {
-                            NavigationLink(
-                                "Contact Image",
-                                destination: ContactTrick.RootView(resolver: resolver)
-                            ).foregroundStyle(Color.accentColor)
+                            NavigationLink("Contact image") {
+                                ContactTrick.RootView(resolver: resolver)
+                            }.foregroundStyle(Color.accentColor)
                         }
                     }
-//                        .padding(.bottom)
                 }
             ).listRowBackground(Color.chart)
         }
