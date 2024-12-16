@@ -101,13 +101,11 @@ struct WatchConfigAppleWatchView: BaseView {
                 content: {
                     VStack {
                         HStack {
-                            NavigationLink("contact image") {
+                            NavigationLink("Contact image") {
                                 ContactTrick.RootView(resolver: resolver)
                             }.foregroundStyle(Color.accentColor)
                         }
                     }
-
-//                        .padding(.bottom)
                 }
             ).listRowBackground(Color.chart)
         }

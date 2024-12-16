@@ -39,7 +39,7 @@ struct ContactTrickEntry: Hashable, Sendable {
         Font.Width.fromString(string)
     }
 
-    enum FontSize: Int, Codable, Sendable {
+    enum FontSize: Int, Codable, Sendable, CaseIterable {
         case tiny = 200
         case small = 250
         case regular = 300

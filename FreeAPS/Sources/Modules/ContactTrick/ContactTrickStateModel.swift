@@ -5,10 +5,25 @@ import SwiftUI
 extension ContactTrick {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var contactTrickStorage: ContactTrickStorage!
+        @ObservationIgnored @Injected() var contactTrickManager: ContactTrickManager!
         var contactTrickEntries = [ContactTrickEntry]()
-        private let contactManager = ContactManager()
-
         var units: GlucoseUnits = .mmolL
+
+        var previewState: ContactTrickState {
+            ContactTrickState(
+                glucose: self.units == .mmolL ? "6,8" : "127",
+                trend: "↗︎",
+                delta: units == .mmolL ? "+0,3" : "+7",
+                lastLoopDate: .now,
+                iob: 6.1,
+                iobText: "6,1",
+                cob: 27.0,
+                cobText: "27",
+                eventualBG: units == .mmolL ? "8,9" : "163",
+                maxIOB: 12.0,
+                maxCOB: 120.0
+            )
+        }
 
         /// Subscribes to updates and initializes data fetching.
         override func subscribe() {
@@ -33,15 +48,15 @@ extension ContactTrick {
         ///   - name: The name of the contact.
         func createAndSaveContactTrick(entry: ContactTrickEntry, name: String) async {
             // 1. Check for contact access permissions.
-            let hasAccess = await contactManager.requestAccess()
+            let hasAccess = await contactTrickManager.requestAccess()
             guard hasAccess else {
-                print("No access to contacts.")
+                debugPrint("\(DebuggingIdentifiers.failed) No access to contacts.")
                 return
             }
 
             // 2. Create the contact and retrieve its `identifier`.
-            guard let contactId = await contactManager.createContact(name: name) else {
-                print("Failed to create contact.")
+            guard let contactId = await contactTrickManager.createContact(name: name) else {
+                debugPrint("\(DebuggingIdentifiers.failed) Failed to create contact.")
                 return
             }
 
@@ -51,6 +66,10 @@ extension ContactTrick {
 
             // 4. Save the contact to Core Data.
             await addContactTrickEntry(updatedEntry)
+
+            // 5. Update ContactTrickState and set the image for the newly created contact
+            await contactTrickManager.updateContactTrickState()
+            await contactTrickManager.setImageForContact(contactId: contactId)
         }
 
         /// Adds a ContactTrickEntry to Core Data.
@@ -64,16 +83,16 @@ extension ContactTrick {
         /// - Parameter entry: The ContactTrickEntry representing the contact to be deleted.
         func deleteContact(entry: ContactTrickEntry) async {
             guard let contactId = entry.contactId else {
-                print("Contact does not have a valid ID.")
+                debugPrint("\(DebuggingIdentifiers.failed) Contact does not have a valid ID.")
                 return
             }
 
             // 1. Attempt to delete the contact from Apple Contacts.
-            let contactDeleted = await contactManager.deleteContact(withIdentifier: contactId)
+            let contactDeleted = await contactTrickManager.deleteContact(withIdentifier: contactId)
             if contactDeleted {
-                print("Contact successfully deleted from Apple Contacts: \(contactId)")
+                debugPrint("\(DebuggingIdentifiers.succeeded) Contact successfully deleted from Apple Contacts: \(contactId)")
             } else {
-                print("Failed to delete contact from Apple Contacts. Check if it exists.")
+                debugPrint("\(DebuggingIdentifiers.failed) Failed to delete contact from Apple Contacts. Check if it exists.")
             }
 
             // 2. Delete the entry from Core Data.
@@ -92,24 +111,29 @@ extension ContactTrick {
         /// Updates a contact in Apple Contacts and Core Data.
         /// - Parameters:
         ///   - entry: The ContactTrickEntry to be updated.
-        ///   - newName: The new name to assign to the contact.
-        func updateContact(entry: ContactTrickEntry, newName: String) async {
+        func updateContact(with entry: ContactTrickEntry) async {
             guard let contactId = entry.contactId else {
-                print("Contact does not have a valid ID.")
+                debugPrint("\(DebuggingIdentifiers.failed) Contact does not have a valid ID.")
                 return
             }
 
-            // 1. Update the contact in Apple Contacts.
-            let contactUpdated = await contactManager.updateContact(withIdentifier: contactId, newName: newName)
+            // 1. Update the entry in Core Data.
+            await updateContactTrick(entry)
+
+            // 2. Update the contact in Apple Contacts.
+            
+            /// Update name
+            let contactUpdated = await contactTrickManager
+                .updateContact(withIdentifier: contactId, newName: entry.name) // TODO: - Probably not needed anymore
+            
             guard contactUpdated else {
-                print("Failed to update contact in Apple Contacts.")
+                debugPrint("\(DebuggingIdentifiers.failed) Failed to update contact.")
                 return
             }
-
-            // 2. Update the entry in Core Data.
-            var updatedEntry = entry
-            updatedEntry.name = newName // Update additional fields if needed.
-            await updateContactTrick(updatedEntry)
+            
+            /// Update state and image
+            await contactTrickManager.updateContactTrickState()
+            await contactTrickManager.setImageForContact(contactId: contactId)
         }
 
         /// Updates a Core Data entry.
