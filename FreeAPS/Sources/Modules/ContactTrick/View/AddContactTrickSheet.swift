@@ -12,8 +12,8 @@ struct AddContactTrickSheet: View {
     @State private var ringGap: ContactTrickEntry.RingGap = .small
     @State private var layout: ContactTrickLayout = .single
     @State private var primary: ContactTrickValue = .glucose
-    @State private var top: ContactTrickValue = .delta
-    @State private var bottom: ContactTrickValue = .none
+    @State private var top: ContactTrickValue = .none
+    @State private var bottom: ContactTrickValue = .trend
     @State private var ring: ContactTrickLargeRing = .none
     @State private var fontSize: ContactTrickEntry.FontSize = .regular
     @State private var secondaryFontSize: ContactTrickEntry.FontSize = .small

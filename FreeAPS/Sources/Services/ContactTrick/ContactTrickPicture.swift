@@ -261,9 +261,23 @@ struct ContactPicture: View {
         default: nil
         }
 
+        let glucoseValue = Decimal(string: state.glucose ?? "100") ?? 100
+
+        let dynamicColor: Color = FreeAPS.getDynamicGlucoseColor(
+            glucoseValue: glucoseValue,
+            highGlucoseColorValue: state.highGlucoseColorValue,
+            lowGlucoseColorValue: state.lowGlucoseColorValue,
+            targetGlucose: state.targetGlucose,
+            glucoseColorScheme: state.glucoseColorScheme
+        )
+
         let textColor: Color = switch value {
-        case .cob: .loopYellow
-        default: color
+        case .cob:
+            .loopYellow
+        case .glucose:
+            dynamicColor
+        default:
+            color
         }
 
         if let text = text {
