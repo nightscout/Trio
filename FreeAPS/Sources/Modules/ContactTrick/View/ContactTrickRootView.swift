@@ -7,56 +7,76 @@ extension ContactTrick {
     struct RootView: BaseView {
         let resolver: Resolver
         @State var state = StateModel()
-        @State private var isAddSheetPresented = false
+        @State private var isAddSheetPresented: Bool = false
+
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
 
         var body: some View {
-            NavigationView {
+            Form {
                 contactTrickList
-                    .navigationTitle("Contact Tricks")
-                    .onAppear(perform: configureView)
-                    .navigationBarItems(
-                        trailing: Button(action: {
-                            isAddSheetPresented.toggle()
-                        }) {
+            }
+            .onAppear(perform: configureView)
+            .navigationTitle("Contacts Configuration")
+            .navigationBarTitleDisplayMode(.large)
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: {
+                        isAddSheetPresented.toggle()
+                    }) {
+                        HStack {
+                            Text("Add Contact")
                             Image(systemName: "plus")
                         }
-                    )
-                    .sheet(isPresented: $isAddSheetPresented) {
-                        AddContactTrickSheet(state: state)
                     }
+                }
+            }
+            .sheet(isPresented: $isAddSheetPresented) {
+                AddContactTrickSheet(state: state)
             }
         }
 
         private var contactTrickList: some View {
             List {
-                ForEach(state.contactTrickEntries, id: \.id) { entry in
-                    NavigationLink(destination: ContactTrickDetailView(entry: entry, state: state)) {
-                        HStack {
-                            // TODO: - make this beautiful @Dan
-                            ZStack {
-                                Circle()
-                                    .fill(entry.darkMode ? .black : .white)
-                                    .foregroundColor(.white)
-                                    .frame(width: 40, height: 40)
+                if state.contactTrickEntries.isEmpty {
+                    Section(
+                        header: Text(""),
+                        content: {
+                            Text("No Contact Trick Entries.")
+                        }
+                    ).listRowBackground(Color.chart)
+                } else {
+                    ForEach(state.contactTrickEntries, id: \.id) { entry in
+                        NavigationLink(destination: ContactTrickDetailView(entry: entry, state: state)) {
+                            HStack {
+                                // TODO: - make this beautiful @Dan
+                                ZStack {
+                                    Circle()
+                                        .fill(entry.darkMode ? .black : .white)
+                                        .foregroundColor(.white)
+                                        .frame(width: 40, height: 40)
 
-                                Image(uiImage: ContactPicture.getImage(contact: entry, state: state.previewState))
-                                    .resizable()
-                                    .frame(width: 40, height: 40)
-                                    .clipShape(Circle())
+                                    Image(uiImage: ContactPicture.getImage(contact: entry, state: state.previewState))
+                                        .resizable()
+                                        .frame(width: 40, height: 40)
+                                        .clipShape(Circle())
 
-                                Circle()
-                                    .stroke(lineWidth: 2)
-                                    .foregroundColor(.white)
-                                    .frame(width: 40, height: 40)
+                                    Circle()
+                                        .stroke(lineWidth: 2)
+                                        .foregroundColor(.white)
+                                        .frame(width: 40, height: 40)
+                                }
+
+                                // Entry name
+                                Text("\(entry.name)")
                             }
-
-                            // Entry name
-                            Text("\(entry.name)")
                         }
                     }
+                    .onDelete(perform: onDelete)
                 }
-                .onDelete(perform: onDelete)
-            }
+            }.listRowBackground(Color.chart)
         }
 
         private func onDelete(offsets: IndexSet) {

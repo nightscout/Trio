@@ -8,6 +8,9 @@ extension ContactTrick {
         @ObservationIgnored @Injected() var contactTrickManager: ContactTrickManager!
         var contactTrickEntries = [ContactTrickEntry]()
         var units: GlucoseUnits = .mmolL
+        // Help Sheet
+        var isHelpSheetPresented: Bool = false
+        var helpSheetDetent = PresentationDetent.large
 
         var previewState: ContactTrickState {
             ContactTrickState(
@@ -93,6 +96,7 @@ extension ContactTrick {
             // 3. Update the entry with the `contactId`.
             var updatedEntry = entry
             updatedEntry.contactId = contactId
+            updatedEntry.name = name
 
             // 4. Save the contact to Core Data.
             await addContactTrickEntry(updatedEntry)

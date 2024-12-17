@@ -12,4 +12,8 @@ struct ContactTrickState: Codable {
     var eventualBG: String?
     var maxIOB: Decimal = 10.0
     var maxCOB: Decimal = 120.0
+    var highGlucoseColorValue: Decimal = 180.0
+    var lowGlucoseColorValue: Decimal = 70.0
+    var glucoseColorScheme: GlucoseColorScheme = .staticColor
+    var targetGlucose: Decimal = 100.0
 }

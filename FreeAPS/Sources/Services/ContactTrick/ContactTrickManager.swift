@@ -17,6 +17,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var contactTrickStorage: ContactTrickStorage!
     @Injected() private var settingsManager: SettingsManager!
+    @Injected() private var fileStorage: FileStorage!
 
     private let contactStore = CNContactStore()
 
@@ -128,6 +129,55 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         }
     }
 
+    private func getCurrentGlucoseTarget() async -> Decimal? {
+        let now = Date()
+        let calendar = Calendar.current
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm"
+        dateFormatter.timeZone = TimeZone.current
+
+        let bgTargets = await fileStorage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
+            ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
+            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+        let entries: [(start: String, value: Decimal)] = bgTargets.targets.map { ($0.start, $0.low) }
+
+        for (index, entry) in entries.enumerated() {
+            guard let entryTime = dateFormatter.date(from: entry.start) else {
+                print("Invalid entry start time: \(entry.start)")
+                continue
+            }
+
+            let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
+            let entryStartTime = calendar.date(
+                bySettingHour: entryComponents.hour!,
+                minute: entryComponents.minute!,
+                second: entryComponents.second!,
+                of: now
+            )!
+
+            let entryEndTime: Date
+            if index < entries.count - 1,
+               let nextEntryTime = dateFormatter.date(from: entries[index + 1].start)
+            {
+                let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                entryEndTime = calendar.date(
+                    bySettingHour: nextEntryComponents.hour!,
+                    minute: nextEntryComponents.minute!,
+                    second: nextEntryComponents.second!,
+                    of: now
+                )!
+            } else {
+                entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+            }
+
+            if now >= entryStartTime, now < entryEndTime {
+                return entry.value
+            }
+        }
+
+        return nil
+    }
+
     // MARK: - Configure ContactTrickState in order to update ContactTrickImage
 
     /// Updates the `ContactTrickState` with the latest data from Core Data.
@@ -177,6 +227,18 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
             let eventualBGAsString = Formatter.decimalFormatterWithOneFractionDigit.string(from: eventualBG)
             state.eventualBG = eventualBGAsString.map { "⇢ " + $0 }
         }
+
+        // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+        let hardCodedLow = Decimal(55)
+        let hardCodedHigh = Decimal(220)
+        let isDynamicColorScheme = settingsManager.settings.glucoseColorScheme == .dynamicColor
+
+        state.highGlucoseColorValue = isDynamicColorScheme ? hardCodedHigh : settingsManager.settings.highGlucose
+        state.lowGlucoseColorValue = isDynamicColorScheme ? hardCodedLow : settingsManager.settings.lowGlucose
+        state
+            .targetGlucose = await getCurrentGlucoseTarget() ??
+            (settingsManager.settings.units == .mgdL ? Decimal(100) : 100.asMmolL)
+        state.glucoseColorScheme = settingsManager.settings.glucoseColorScheme
     }
 
     // MARK: - Interactions with CNContactStore API
