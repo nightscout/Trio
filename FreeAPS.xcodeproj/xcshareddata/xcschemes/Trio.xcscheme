@@ -168,6 +168,20 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "3E6007862D0C5D0C00B186D1"
+               BuildableName = "DanaKitPlugin.loopplugin"
+               BlueprintName = "DanaKitPlugin"
+               ReferencedContainer = "container:DanaKit/DanaKit.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "C17F511C291EACCD00555EB5"
                BuildableName = "G7SensorPlugin.loopplugin"
                BlueprintName = "G7SensorPlugin"
@@ -214,20 +228,6 @@
                BuildableName = "OmniBLEPlugin.loopplugin"
                BlueprintName = "OmniBLEPlugin"
                ReferencedContainer = "container:OmniBLE/OmniBLE.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "C187C166279086A8006E3557"
-               BuildableName = "DanaKitPlugin.loopplugin"
-               BlueprintName = "DanaKitPlugin"
-               ReferencedContainer = "container:DanaKit/DanaKit.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
