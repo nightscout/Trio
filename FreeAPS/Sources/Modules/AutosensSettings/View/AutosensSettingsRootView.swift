@@ -37,7 +37,7 @@ extension AutosensSettings {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 120%").bold()
                         Text(
-                            "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, or Sigmoid Formula."
+                            "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
                         )
                         Text(
                             "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
@@ -68,7 +68,7 @@ extension AutosensSettings {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 80%").bold()
                         Text(
-                            "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, or Sigmoid Formula."
+                            "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
                         )
                         Text(
                             "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
