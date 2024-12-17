@@ -253,15 +253,13 @@ extension DynamicSettings {
                         type: .boolean,
                         label: "Adjust Basal",
                         miniHint: "Use Dynamic Ratio to adjust basal rates.",
-                        verboseHint: VStack(spacing: 10) {
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
                                 "Turn this setting on to give basal adjustments more agility. Keep this setting off if your basal needs are not highly variable."
                             )
-                            Text("Normally, a new basal rate is set by autosens:")
-                            Text("New Basal Profile =\n(Current Basal Profile) x (Autosens Ratio)")
                             Text(
-                                "Adjust Basal replaces the standard Autosens Ratio calculation with its own Autosens Ratio calculated as such:"
+                                "Enabling Adjust Basal replaces the standard Autosens Ratio calculation with its own Autosens Ratio calculated as such:"
                             )
                             Text("Autosens Ratio =\n(Weighted Average of TDD) ÷ (10-day Average of TDD)")
                             Text("New Basal Profile =\n(Current Basal Profile) × (Autosens Ratio)")
