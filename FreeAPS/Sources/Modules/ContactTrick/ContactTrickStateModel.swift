@@ -3,37 +3,36 @@ import CoreData
 import SwiftUI
 
 extension ContactTrick {
-    @Observable final class StateModel: BaseStateModel<Provider> {
+    @Observable final class StateModel: BaseStateModel<Provider>, ContactTrickManagerDelegate {
         @ObservationIgnored @Injected() var contactTrickStorage: ContactTrickStorage!
         @ObservationIgnored @Injected() var contactTrickManager: ContactTrickManager!
+
         var contactTrickEntries = [ContactTrickEntry]()
         var units: GlucoseUnits = .mmolL
         // Help Sheet
         var isHelpSheetPresented: Bool = false
         var helpSheetDetent = PresentationDetent.large
 
-        var previewState: ContactTrickState {
-            ContactTrickState(
-                glucose: self.units == .mmolL ? "6,8" : "127",
-                trend: "↗︎",
-                delta: units == .mmolL ? "+0,3" : "+7",
-                lastLoopDate: .now,
-                iob: 6.1,
-                iobText: "6,1",
-                cob: 27.0,
-                cobText: "27",
-                eventualBG: units == .mmolL ? "8,9" : "163",
-                maxIOB: 12.0,
-                maxCOB: 120.0
-            )
-        }
+        // Current state for live preview
+        var state = ContactTrickState()
 
         /// Subscribes to updates and initializes data fetching.
         override func subscribe() {
             units = settingsManager.settings.units
+            contactTrickManager.delegate = self
+
             Task {
                 /// Initial fetch to fill the ContactTrickEntry array
                 await fetchContactTrickEntriesAndUpdateUI()
+
+                // Initial state update is needed for preview
+                await contactTrickManager.updateContactTrickState()
+            }
+        }
+
+        func contactTrickManagerDidUpdateState(_ state: ContactTrickState) {
+            Task { @MainActor in
+                self.state = state
             }
         }
 

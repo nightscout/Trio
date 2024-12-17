@@ -51,7 +51,7 @@ struct AddContactTrickSheet: View {
                             .fill(previewEntry.darkMode ? .black : .white)
                             .foregroundColor(.white)
                             .frame(width: 100, height: 100)
-                        Image(uiImage: ContactPicture.getImage(contact: previewEntry, state: state.previewState))
+                        Image(uiImage: ContactPicture.getImage(contact: previewEntry, state: state.state))
                             .resizable()
                             .frame(width: 100, height: 100)
                             .clipShape(Circle())

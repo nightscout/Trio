@@ -51,14 +51,13 @@ extension ContactTrick {
                     ForEach(state.contactTrickEntries, id: \.id) { entry in
                         NavigationLink(destination: ContactTrickDetailView(entry: entry, state: state)) {
                             HStack {
-                                // TODO: - make this beautiful @Dan
                                 ZStack {
                                     Circle()
                                         .fill(entry.darkMode ? .black : .white)
                                         .foregroundColor(.white)
                                         .frame(width: 40, height: 40)
 
-                                    Image(uiImage: ContactPicture.getImage(contact: entry, state: state.previewState))
+                                    Image(uiImage: ContactPicture.getImage(contact: entry, state: state.state))
                                         .resizable()
                                         .frame(width: 40, height: 40)
                                         .clipShape(Circle())
@@ -69,7 +68,6 @@ extension ContactTrick {
                                         .frame(width: 40, height: 40)
                                 }
 
-                                // Entry name
                                 Text("\(entry.name)")
                             }
                         }

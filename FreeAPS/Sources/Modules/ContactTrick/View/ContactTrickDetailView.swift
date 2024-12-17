@@ -26,7 +26,7 @@ struct ContactTrickDetailView: View {
                         .fill(contactTrickEntry.darkMode ? .black : .white)
                         .foregroundColor(.white)
                         .frame(width: 100, height: 100)
-                    Image(uiImage: ContactPicture.getImage(contact: contactTrickEntry, state: state.previewState))
+                    Image(uiImage: ContactPicture.getImage(contact: contactTrickEntry, state: state.state))
                         .resizable()
                         .frame(width: 100, height: 100)
                         .clipShape(Circle())

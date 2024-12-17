@@ -3,7 +3,12 @@ import Contacts
 import CoreData
 import Swinject
 
+protocol ContactTrickManagerDelegate: AnyObject {
+    func contactTrickManagerDidUpdateState(_ state: ContactTrickState)
+}
+
 protocol ContactTrickManager {
+    var delegate: ContactTrickManagerDelegate? { get set }
     func requestAccess() async -> Bool
     func createContact(name: String) async -> String?
     func deleteContact(withIdentifier identifier: String) async -> Bool
@@ -40,6 +45,8 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         formatter.negativePrefix = "-"
         return formatter
     }
+
+    weak var delegate: ContactTrickManagerDelegate?
 
     init(resolver: Resolver) {
         super.init()
@@ -239,6 +246,11 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
             .targetGlucose = await getCurrentGlucoseTarget() ??
             (settingsManager.settings.units == .mgdL ? Decimal(100) : 100.asMmolL)
         state.glucoseColorScheme = settingsManager.settings.glucoseColorScheme
+
+        // Notify delegate about state update on main thread
+        await MainActor.run {
+            delegate?.contactTrickManagerDidUpdateState(state)
+        }
     }
 
     // MARK: - Interactions with CNContactStore API
