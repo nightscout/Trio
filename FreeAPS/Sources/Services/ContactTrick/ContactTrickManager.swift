@@ -10,6 +10,7 @@ protocol ContactTrickManager {
     func updateContact(withIdentifier identifier: String, newName: String) async -> Bool
     @MainActor func updateContactTrickState() async
     func setImageForContact(contactId: String) async
+    func validateContactExists(withIdentifier identifier: String) async -> Bool
 }
 
 final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
@@ -283,11 +284,28 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         }
     }
 
-    /// Creates a new contact in the Apple contact list.
+    /// Creates a new contact in the Apple contact list or updates an existing one with the same name.
     /// - Parameter name: The name of the contact.
-    /// - Returns: The generated `identifier` of the contact, or `nil` if an error occurs.
+    /// - Returns: The `identifier` of the created/updated contact, or `nil` if an error occurs.
     func createContact(name: String) async -> String? {
         do {
+            // First check if a contact with this name already exists
+            let predicate = CNContact.predicateForContacts(matchingName: name)
+            let existingContacts = try contactStore.unifiedContacts(
+                matching: predicate,
+                keysToFetch: [
+                    CNContactIdentifierKey as CNKeyDescriptor,
+                    CNContactGivenNameKey as CNKeyDescriptor
+                ]
+            )
+
+            // If contact exists, return its identifier
+            if let existingContact = existingContacts.first {
+                debugPrint("Found existing contact with name: \(name)")
+                return existingContact.identifier
+            }
+
+            // If no existing contact, create a new one
             let contact = CNMutableContact()
             contact.givenName = name
 
@@ -296,22 +314,36 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
 
             try contactStore.execute(saveRequest)
 
-            // Re-fetch the contact to retrieve its `identifier`.
-            let predicate = CNContact.predicateForContacts(matchingName: name)
-            let contacts = try contactStore.unifiedContacts(
+            // Re-fetch to get the identifier
+            let newContacts = try contactStore.unifiedContacts(
                 matching: predicate,
                 keysToFetch: [CNContactIdentifierKey as CNKeyDescriptor]
             )
 
-            guard let createdContact = contacts.first else {
-                debugPrint("Contact creation failed: No contact found after save.")
+            guard let createdContact = newContacts.first else {
+                debugPrint("\(DebuggingIdentifiers.failed) Contact creation failed: No contact found after save.")
                 return nil
             }
 
             return createdContact.identifier
         } catch {
-            print("Error creating contact: \(error)")
+            debugPrint("\(DebuggingIdentifiers.failed) Error creating/finding contact: \(error)")
             return nil
+        }
+    }
+
+    /// Validates if a contact still exists in iOS Contacts.
+    func validateContactExists(withIdentifier identifier: String) async -> Bool {
+        let store = CNContactStore()
+        let predicate = CNContact.predicateForContacts(withIdentifiers: [identifier])
+        let keys = [CNContactIdentifierKey] as [CNKeyDescriptor]
+
+        do {
+            let contacts = try store.unifiedContacts(matching: predicate, keysToFetch: keys)
+            return !contacts.isEmpty
+        } catch {
+            debugPrint("\(DebuggingIdentifiers.failed) Error validating contact: \(error)")
+            return false
         }
     }
 

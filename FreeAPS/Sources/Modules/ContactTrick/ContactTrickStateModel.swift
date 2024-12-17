@@ -34,12 +34,42 @@ extension ContactTrick {
             }
         }
 
-        /// Fetches all ContactTrickEntries from Core Data.
+        /// Fetches all ContactTrickEntries and validates them against iOS Contacts.
         func fetchContactTrickEntriesAndUpdateUI() async {
-            let entries = await contactTrickStorage.fetchContactTrickEntries()
+            // 1. Get all entries from Core Data
+            let cdEntries = await contactTrickStorage.fetchContactTrickEntries()
+
+            // 2. Validate entries against iOS Contacts
+            let validatedEntries = await validateEntries(cdEntries)
+
+            // 3. Update UI with validated entries
             await MainActor.run {
-                self.contactTrickEntries = entries
+                self.contactTrickEntries = validatedEntries
             }
+        }
+
+        /// Validates entries against iOS Contacts and removes invalid ones
+        private func validateEntries(_ entries: [ContactTrickEntry]) async -> [ContactTrickEntry] {
+            var validated: [ContactTrickEntry] = []
+
+            for entry in entries {
+                if let contactId = entry.contactId {
+                    // Check if contact still exists in iOS Contacts
+                    let exists = await contactTrickManager.validateContactExists(withIdentifier: contactId)
+
+                    if exists {
+                        validated.append(entry)
+                    } else {
+                        // Contact was deleted in iOS, remove from Core Data
+                        if let objectID = entry.managedObjectID {
+                            await contactTrickStorage.deleteContactTrickEntry(objectID)
+                            debugPrint("Removed orphaned contact entry: \(entry.name)")
+                        }
+                    }
+                }
+            }
+
+            return validated
         }
 
         /// Creates a new contact in Apple Contacts and saves it to Core Data.
@@ -121,16 +151,16 @@ extension ContactTrick {
             await updateContactTrick(entry)
 
             // 2. Update the contact in Apple Contacts.
-            
+
             /// Update name
             let contactUpdated = await contactTrickManager
                 .updateContact(withIdentifier: contactId, newName: entry.name) // TODO: - Probably not needed anymore
-            
+
             guard contactUpdated else {
                 debugPrint("\(DebuggingIdentifiers.failed) Failed to update contact.")
                 return
             }
-            
+
             /// Update state and image
             await contactTrickManager.updateContactTrickState()
             await contactTrickManager.setImageForContact(contactId: contactId)
