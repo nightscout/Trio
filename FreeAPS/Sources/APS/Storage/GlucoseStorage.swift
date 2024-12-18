@@ -10,7 +10,6 @@ import Swinject
 protocol GlucoseStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func storeGlucose(_ glucose: [BloodGlucose])
-    func addManualGlucose(glucose: Int)
     func isGlucoseDataFresh(_ glucoseDate: Date?) -> Bool
     func syncDate() -> Date
     func filterTooFrequentGlucose(_ glucose: [BloodGlucose], at: Date) -> [BloodGlucose]
@@ -174,31 +173,6 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         }
     }
 
-    func addManualGlucose(glucose: Int) {
-        coredataContext.perform {
-            let newItem = GlucoseStored(context: self.coredataContext)
-            newItem.id = UUID()
-            newItem.date = Date()
-            newItem.glucose = Int16(glucose)
-            newItem.isManual = true
-            newItem.isUploadedToNS = false
-            newItem.isUploadedToHealth = false
-            newItem.isUploadedToTidepool = false
-
-            do {
-                guard self.coredataContext.hasChanges else { return }
-                try self.coredataContext.save()
-
-                // Glucose subscribers already listen to the update publisher, so call here to update glucose-related data.
-                self.updateSubject.send(())
-            } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save manual glucose to Core Data with error: \(error)"
-                )
-            }
-        }
-    }
-
     func isGlucoseDataFresh(_ glucoseDate: Date?) -> Bool {
         guard let glucoseDate = glucoseDate else { return false }
         return glucoseDate > Date().addingTimeInterval(-6 * 60)
@@ -264,14 +238,14 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     func fetchLatestGlucose() -> GlucoseStored? {
         let predicate = NSPredicate.predicateFor20MinAgo
-        return (CoreDataStack.shared.fetchEntities(
+        return CoreDataStack.shared.fetchEntities(
             ofType: GlucoseStored.self,
             onContext: coredataContext,
             predicate: predicate,
             key: "date",
             ascending: false,
             fetchLimit: 1
-        ) as? [GlucoseStored] ?? []).first
+        ).first
     }
 
     // Fetch glucose that is not uploaded to Nightscout yet
@@ -329,7 +303,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     rate: nil,
                     eventType: .capillaryGlucose,
                     createdAt: result.date,
-                    enteredBy: CarbsEntry.local,
+                    enteredBy: CarbsEntry.manual,
                     bolus: nil,
                     insulin: nil,
                     notes: "Trio User",

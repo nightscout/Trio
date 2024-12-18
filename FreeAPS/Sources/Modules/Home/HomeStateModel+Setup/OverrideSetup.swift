@@ -38,6 +38,13 @@ extension Home.StateModel {
         return TimeInterval(overrideDuration * 60) // return seconds
     }
 
+    @MainActor func calculateTarget(override: OverrideStored) -> Decimal {
+        guard let overrideTarget = override.target, overrideTarget != 0 else {
+            return 100 // default
+        }
+        return overrideTarget.decimalValue
+    }
+
     // Setup expired Overrides
     func setupOverrideRunStored() {
         Task {
@@ -69,42 +76,23 @@ extension Home.StateModel {
         overrideRunStored = objects
     }
 
-    /// Cancels the running Override, creates an entry in the OverrideRunStored Core Data entity and posts a custom notification so that the AdjustmentsView gets updated
-    @MainActor func cancelOverride(withID id: NSManagedObjectID) async {
-        do {
-            guard let profileToCancel = try viewContext.existingObject(with: id) as? OverrideStored else { return }
+    @MainActor func saveToOverrideRunStored(withID id: NSManagedObjectID) async {
+        await viewContext.perform {
+            do {
+                guard let object = try self.viewContext.existingObject(with: id) as? OverrideStored else { return }
 
-            profileToCancel.enabled = false
+                let newOverrideRunStored = OverrideRunStored(context: self.viewContext)
+                newOverrideRunStored.id = UUID()
+                newOverrideRunStored.name = object.name
+                newOverrideRunStored.startDate = object.date ?? .distantPast
+                newOverrideRunStored.endDate = Date()
+                newOverrideRunStored.target = NSDecimalNumber(decimal: self.calculateTarget(override: object))
+                newOverrideRunStored.override = object
+                newOverrideRunStored.isUploadedToNS = false
 
-            guard viewContext.hasChanges else { return }
-            try viewContext.save()
-
-            await saveToOverrideRunStored(object: profileToCancel)
-
-            Foundation.NotificationCenter.default.post(name: .didUpdateOverrideConfiguration, object: nil)
-        } catch let error as NSError {
-            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Profile with error: \(error)")
-        }
-    }
-
-    /// We can safely pass the NSManagedObject  as we are doing everything on the Main Actor
-    @MainActor func saveToOverrideRunStored(object: OverrideStored) async {
-        let newOverrideRunStored = OverrideRunStored(context: viewContext)
-        newOverrideRunStored.id = UUID()
-        newOverrideRunStored.name = object.name
-        newOverrideRunStored.startDate = object.date ?? .distantPast
-        newOverrideRunStored.endDate = Date()
-        newOverrideRunStored.target = NSDecimalNumber(decimal: overrideStorage.calculateTarget(override: object))
-        newOverrideRunStored.override = object
-        newOverrideRunStored.isUploadedToNS = false
-
-        do {
-            guard viewContext.hasChanges else { return }
-            try viewContext.save()
-        } catch let error as NSError {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save an Override to the OverrideRunStored entity with error: \(error)"
-            )
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to initialize a new Override Run Object")
+            }
         }
     }
 }

@@ -1,4 +1,3 @@
-import Charts
 import SwiftUI
 import Swinject
 
@@ -9,7 +8,22 @@ extension TargetsEditor {
         @State private var editMode = EditMode.inactive
 
         @Environment(\.colorScheme) var colorScheme
-        @Environment(AppState.self) var appState
+        var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.bgDarkBlue,
+                    Color.bgDarkerDarkBlue
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+                :
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+        }
 
         private var dateFormatter: DateFormatter {
             let formatter = DateFormatter()
@@ -18,67 +32,48 @@ extension TargetsEditor {
             return formatter
         }
 
-        var saveButton: some View {
-            ZStack {
-                let shouldDisableButton = state.shouldDisplaySaving || state.items.isEmpty || !state.hasChanges
-
-                Rectangle()
-                    .frame(width: UIScreen.main.bounds.width, height: 65)
-                    .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
-                    .background(.thinMaterial)
-                    .opacity(0.8)
-                    .clipShape(Rectangle())
-
-                Group {
-                    HStack {
-                        HStack {
-                            Button {
-                                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                                impactHeavy.impactOccurred()
-                                state.save()
-
-                                // deactivate saving display after 1.25 seconds
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
-                                    state.shouldDisplaySaving = false
-                                }
-                            } label: {
-                                HStack {
-                                    if state.shouldDisplaySaving {
-                                        ProgressView().padding(.trailing, 10)
-                                    }
-                                    Text(state.shouldDisplaySaving ? "Saving..." : "Save")
-                                }.padding(10)
-                            }
-                        }
-                        .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
-                        .disabled(shouldDisableButton)
-                        .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
-                        .tint(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                }.padding(5)
-            }
-        }
-
         var body: some View {
             Form {
+                let shouldDisableButton = state.shouldDisplaySaving || state.items.isEmpty || !state.hasChanges
+
                 Section(header: Text("Schedule")) {
                     list
                 }.listRowBackground(Color.chart)
+
+                Section {
+                    HStack {
+                        if state.shouldDisplaySaving {
+                            ProgressView().padding(.trailing, 10)
+                        }
+
+                        Button {
+                            let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                            impactHeavy.impactOccurred()
+                            state.save()
+
+                            // deactivate saving display after 1.25 seconds
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
+                                state.shouldDisplaySaving = false
+                            }
+                        } label: {
+                            Text(state.shouldDisplaySaving ? "Saving..." : "Save")
+                        }
+                        .disabled(shouldDisableButton)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .tint(.white)
+                    }
+                }.listRowBackground(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
             }
-            .safeAreaInset(edge: .bottom, spacing: 30) { saveButton }
-            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
+            .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
-            .navigationTitle("Glucose Targets")
+            .navigationTitle("Target Glucose")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {
-                if state.items.isNotEmpty {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        EditButton()
-                    }
+                ToolbarItem(placement: .topBarTrailing) {
+                    EditButton()
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: { state.add() }) { Image(systemName: "plus") }.disabled(!state.canAdd)
+                    addButton
                 }
             })
             .environment(\.editMode, $editMode)
@@ -89,16 +84,6 @@ extension TargetsEditor {
 
         private func pickers(for index: Int) -> some View {
             Form {
-                if !state.canAdd {
-                    Section {
-                        VStack(alignment: .leading) {
-                            Text(
-                                "Target Glucose covered for 24 hours. You cannot add more rates. Please remove or adjust existing rates to make space."
-                            ).bold()
-                        }
-                    }.listRowBackground(Color.tabBar)
-                }
-
                 Section {
                     Picker(
                         selection: $state.items[index].lowIndex,
@@ -126,14 +111,13 @@ extension TargetsEditor {
                 }.listRowBackground(Color.chart)
             }
             .padding(.top)
-            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
+            .scrollContentBackground(.hidden).background(color)
             .navigationTitle("Set Target")
             .navigationBarTitleDisplayMode(.automatic)
         }
 
         private var list: some View {
             List {
-                chart.padding(.vertical)
                 ForEach(state.items.indexed(), id: \.1.id) { index, item in
                     NavigationLink(destination: pickers(for: index)) {
                         HStack {
@@ -155,52 +139,21 @@ extension TargetsEditor {
             }
         }
 
-        let chartScale = Calendar.current
-            .date(from: DateComponents(year: 2001, month: 01, day: 01, hour: 0, minute: 0, second: 0))
-
-        var chart: some View {
-            Chart {
-                ForEach(state.items.indexed(), id: \.1.id) { index, item in
-                    let displayValue = state.units == .mgdL ? state.rateValues[item.lowIndex].description : state
-                        .rateValues[item.lowIndex].formattedAsMmolL
-
-                    // Convert from string so we know we use the same math as the rest of Trio.
-                    // However, swift doesn't understand languages that use comma as decimal delminator
-                    let displayValueFloat = Double(displayValue.replacingOccurrences(of: ",", with: "."))
-
-                    let tzOffset = TimeZone.current.secondsFromGMT() * -1
-                    let startDate = Date(timeIntervalSinceReferenceDate: state.timeValues[item.timeIndex])
-                        .addingTimeInterval(TimeInterval(tzOffset))
-                    let endDate = state.items
-                        .count > index + 1 ?
-                        Date(timeIntervalSinceReferenceDate: state.timeValues[state.items[index + 1].timeIndex])
-                        .addingTimeInterval(TimeInterval(tzOffset)) :
-                        Date(timeIntervalSinceReferenceDate: state.timeValues.last!).addingTimeInterval(30 * 60)
-                        .addingTimeInterval(TimeInterval(tzOffset))
-
-                    LineMark(x: .value("End Date", startDate), y: .value("Target", displayValueFloat ?? 0.0))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.green.gradient)
-
-                    LineMark(x: .value("Start Date", endDate), y: .value("Target", displayValueFloat ?? 0.0))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.green.gradient)
-                }
+        private var addButton: some View {
+            guard state.canAdd else {
+                return AnyView(EmptyView())
             }
-            .chartXAxis {
-                AxisMarks(values: .automatic(desiredCount: 6)) { _ in
-                    AxisValueLabel(format: .dateTime.hour())
-                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
-                }
+
+            switch editMode {
+            case .inactive:
+                return AnyView(Button(action: onAdd) { Image(systemName: "plus") })
+            default:
+                return AnyView(EmptyView())
             }
-            .chartXScale(
-                domain: Calendar.current.startOfDay(for: chartScale!) ... Calendar.current.startOfDay(for: chartScale!)
-                    .addingTimeInterval(60 * 60 * 24)
-            )
-            .chartYAxis {
-                AxisMarks(values: .automatic(desiredCount: 4)) { _ in
-                    AxisValueLabel()
-                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
-                }
-            }.chartYScale(domain: (state.units == .mgdL ? 72 : 4.0) ... (state.units == .mgdL ? 180 : 10))
+        }
+
+        func onAdd() {
+            state.add()
         }
 
         private func onDelete(offsets: IndexSet) {

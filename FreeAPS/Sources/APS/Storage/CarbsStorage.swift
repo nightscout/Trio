@@ -165,7 +165,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 fat: 0,
                 protein: 0,
                 note: nil,
-                enteredBy: CarbsEntry.local,
+                enteredBy: CarbsEntry.manual,
                 isFPU: true,
                 fpuID: fpuID
             )
@@ -365,7 +365,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     rate: nil,
                     eventType: .nsCarbCorrection,
                     createdAt: result.date,
-                    enteredBy: CarbsEntry.local,
+                    enteredBy: CarbsEntry.manual,
                     bolus: nil,
                     insulin: nil,
                     notes: result.note,
@@ -402,10 +402,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     rate: nil,
                     eventType: .nsCarbCorrection,
                     createdAt: result.date,
-                    enteredBy: CarbsEntry.local,
+                    enteredBy: CarbsEntry.manual,
                     bolus: nil,
                     insulin: nil,
-                    notes: result.note,
                     carbs: Decimal(result.carbs),
                     fat: Decimal(result.fat),
                     protein: Decimal(result.protein),
@@ -441,7 +440,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     fat: Decimal(result.fat),
                     protein: Decimal(result.protein),
                     note: result.note,
-                    enteredBy: CarbsEntry.local,
+                    enteredBy: CarbsEntry.manual,
                     isFPU: result.isFPU,
                     fpuID: result.fpuID?.uuidString
                 )
@@ -472,7 +471,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                     fat: nil,
                     protein: nil,
                     note: result.note,
-                    enteredBy: CarbsEntry.local,
+                    enteredBy: CarbsEntry.manual,
                     isFPU: nil,
                     fpuID: nil
                 )

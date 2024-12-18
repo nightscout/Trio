@@ -17,11 +17,26 @@ extension CGM {
         @State private var booleanPlaceholder: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
-        @Environment(AppState.self) var appState
+        var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.bgDarkBlue,
+                    Color.bgDarkerDarkBlue
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+                :
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+        }
 
         var body: some View {
             NavigationView {
-                List {
+                Form {
                     Section(
                         header: Text("CGM Integration to Trio"),
                         content: {
@@ -37,7 +52,7 @@ extension CGM {
 
                                 HStack(alignment: .center) {
                                     Text(
-                                        "Select your CGM."
+                                        "Select your CGM"
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -216,7 +231,7 @@ extension CGM {
                         }
                     )
                 }
-                .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
+                .scrollContentBackground(.hidden).background(color)
                 .onAppear(perform: configureView)
                 .navigationTitle("CGM")
                 .navigationBarTitleDisplayMode(.automatic)
@@ -252,10 +267,10 @@ extension CGM {
                         )
                     }
                 }
-                .onChange(of: setupCGM) { _, setupCGM in
+                .onChange(of: setupCGM) {
                     state.setupCGM = setupCGM
                 }
-                .onChange(of: state.setupCGM) { _, setupCGM in
+                .onChange(of: state.setupCGM) {
                     self.setupCGM = setupCGM
                 }
                 .screenNavigation(self)

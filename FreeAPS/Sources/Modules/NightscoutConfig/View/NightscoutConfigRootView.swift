@@ -18,11 +18,26 @@ extension NightscoutConfig {
         @State private var booleanPlaceholder: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
-        @Environment(AppState.self) var appState
+        var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.bgDarkBlue,
+                    Color.bgDarkerDarkBlue
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+                :
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+        }
 
         var body: some View {
             ZStack {
-                List {
+                Form {
                     Section(
                         header: Text("Nightscout Integration"),
                         content: {
@@ -55,7 +70,7 @@ extension NightscoutConfig {
                                         + Text("• Basal Rates\n")
                                         + Text("• Insulin Sensitivities\n")
                                         + Text("• Carb Ratios\n")
-                                        + Text("• Glucose Targets\n")
+                                        + Text("• Target Glucose\n")
                                         + Text("• Duration of Insulin Action"),
                                     primaryButton: .default(
                                         Text("Yes, Import!"),
@@ -100,15 +115,15 @@ extension NightscoutConfig {
                                         hintLabel = "Import Settings from Nightscout"
                                         selectedVerboseHint =
                                             AnyView(
-                                                VStack(alignment: .leading, spacing: 10) {
+                                                VStack(spacing: 10) {
                                                     Text(
                                                         "This will overwrite the following Trio therapy settings:"
                                                     )
-                                                    VStack(alignment: .leading) {
+                                                    VStack {
                                                         Text("• Basal Rates")
                                                         Text("• Insulin Sensitivities")
                                                         Text("• Carb Ratios")
-                                                        Text("• Glucose Targets")
+                                                        Text("• Target Glucose")
                                                         Text("• Duration of Insulin Action")
                                                     }
                                                 }
@@ -169,9 +184,7 @@ extension NightscoutConfig {
                             }.padding(.vertical)
                         }
                     ).listRowBackground(Color.chart)
-                }
-                .listSectionSpacing(sectionSpacing)
-                .blur(radius: state.importStatus == .running ? 5 : 0)
+                }.blur(radius: state.importStatus == .running ? 5 : 0)
 
                 if state.importStatus == .running {
                     CustomProgressView(text: "Importing Profile...")
@@ -194,7 +207,7 @@ extension NightscoutConfig {
             .alert(isPresented: $isImportAlertPresented) {
                 importAlert ?? Alert(title: Text("Unknown Error"))
             }
-            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
+            .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
         }
     }

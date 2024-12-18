@@ -19,7 +19,22 @@ struct NightscoutImportResultView: BaseView {
     @State private var hasVisitedPumpSettingsEditor = false
 
     @Environment(\.colorScheme) var colorScheme
-    @Environment(AppState.self) var appState
+    var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color.bgDarkBlue,
+                Color.bgDarkerDarkBlue
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
 
     private var allViewsVisited: Bool {
         hasVisitedBasalProfileEditor &&
@@ -119,8 +134,7 @@ struct NightscoutImportResultView: BaseView {
             }
             .navigationTitle("Review Import")
             .navigationBarTitleDisplayMode(.large)
-            .scrollContentBackground(.hidden)
-            .background(appState.trioBackgroundColor(for: colorScheme))
+            .scrollContentBackground(.hidden).background(color)
             .interactiveDismissDisabled(true)
             .screenNavigation(self)
         }

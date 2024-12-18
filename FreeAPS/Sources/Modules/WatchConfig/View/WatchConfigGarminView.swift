@@ -11,7 +11,22 @@ struct WatchConfigGarminView: View {
     @State private var booleanPlaceholder: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
-    @Environment(AppState.self) var appState
+    var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color.bgDarkBlue,
+                Color.bgDarkerDarkBlue
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
 
     private func onDelete(offsets: IndexSet) {
         state.devices.remove(atOffsets: offsets)
@@ -19,7 +34,7 @@ struct WatchConfigGarminView: View {
     }
 
     var body: some View {
-        List {
+        Form {
             Section(
                 header: Text("Garmin Configuration"),
                 content:
@@ -74,7 +89,6 @@ struct WatchConfigGarminView: View {
                 }.listRowBackground(Color.chart)
             }
         }
-        .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
                 hintDetent: $hintDetent,
@@ -86,7 +100,6 @@ struct WatchConfigGarminView: View {
         }
         .navigationTitle("Garmin")
         .navigationBarTitleDisplayMode(.automatic)
-        .scrollContentBackground(.hidden)
-        .background(appState.trioBackgroundColor(for: colorScheme))
+        .scrollContentBackground(.hidden).background(color)
     }
 }

@@ -45,7 +45,7 @@
   "enableDynamicCR" : false,
   "useNewFormula" : false,
   "useWeightedAverage" : false,
-  "weightPercentage" : 0.35,
+  "weightPercentage" : 0.65,
   "tddAdjBasal" : false,
   "enableSMB_high_bg" : false,
   "enableSMB_high_bg_target" : 110,

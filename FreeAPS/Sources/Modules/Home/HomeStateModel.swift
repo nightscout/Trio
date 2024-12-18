@@ -15,8 +15,6 @@ extension Home {
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
         @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
-        @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
-        @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         var manualGlucose: [BloodGlucose] = []
@@ -38,11 +36,6 @@ extension Home {
         var pumpName = ""
         var pumpExpiresAtDate: Date?
         var tempTarget: TempTarget?
-        var highTTraisesSens: Bool = false
-        var lowTTlowersSens: Bool = false
-        var isExerciseModeActive: Bool = false
-        var settingHalfBasalTarget: Decimal = 160
-        var percentage: Int = 100
         var setupPump = false
         var errorMessage: String?
         var errorDate: Date?
@@ -59,7 +52,7 @@ extension Home {
         var highGlucose: Decimal = 180
         var currentGlucoseTarget: Decimal = 100
         var glucoseColorScheme: GlucoseColorScheme = .staticColor
-        var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
+        var overrideUnit: Bool = false
         var displayXgridLines: Bool = false
         var displayYgridLines: Bool = false
         var thresholdLines: Bool = false
@@ -86,14 +79,13 @@ extension Home {
         var lastPumpBolus: PumpEventStored?
         var overrides: [OverrideStored] = []
         var overrideRunStored: [OverrideRunStored] = []
-        var tempTargetStored: [TempTargetStored] = []
-        var tempTargetRunStored: [TempTargetRunStored] = []
         var isOverrideCancelled: Bool = false
         var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         var pumpStatusHighlightMessage: String?
         var cgmAvailable: Bool = false
         var showCarbsRequiredBadge: Bool = true
         private(set) var setupPumpType: PumpConfig.PumpType = .minimed
+
         var minForecast: [Int] = []
         var maxForecast: [Int] = []
         var minCount: Int = 12 // count of Forecasts drawn in 5 min distances, i.e. 12 means a min of 1 hour
@@ -115,7 +107,6 @@ extension Home {
         let determinationFetchContext = CoreDataStack.shared.newTaskContext()
         let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
         let overrideFetchContext = CoreDataStack.shared.newTaskContext()
-        let tempTargetFetchContext = CoreDataStack.shared.newTaskContext()
         let batteryFetchContext = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
@@ -169,7 +160,13 @@ extension Home {
                         self.setupBasalProfile()
                     }
                     group.addTask {
+                        self.setupTempTargets()
+                    }
+                    group.addTask {
                         self.setupReservoir()
+                    }
+                    group.addTask {
+                        self.setupAnnouncements()
                     }
                     group.addTask {
                         self.setupCurrentPumpTimezone()
@@ -179,12 +176,6 @@ extension Home {
                     }
                     group.addTask {
                         self.setupOverrideRunStored()
-                    }
-                    group.addTask {
-                        self.setupTempTargetsStored()
-                    }
-                    group.addTask {
-                        self.setupTempTargetsRunStored()
                     }
                     group.addTask {
                         await self.setupSettings()
@@ -252,31 +243,22 @@ extension Home {
                 guard let self = self else { return }
                 self.setupOverrideRunStored()
             }.store(in: &subscriptions)
-
-            coreDataPublisher?.filterByEntityName("TempTargetStored").sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupTempTargetsStored()
-            }.store(in: &subscriptions)
-
-            coreDataPublisher?.filterByEntityName("TempTargetRunStored").sink { [weak self] _ in
-                guard let self = self else { return }
-                self.setupTempTargetsRunStored()
-            }.store(in: &subscriptions)
         }
 
         private func registerObservers() {
             broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(SettingsObserver.self, observer: self)
-            broadcaster.register(PreferencesObserver.self, observer: self)
             broadcaster.register(PumpSettingsObserver.self, observer: self)
             broadcaster.register(BasalProfileObserver.self, observer: self)
+            broadcaster.register(TempTargetsObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
             broadcaster.register(PumpDeactivatedObserver.self, observer: self)
 
             timer.eventHandler = {
                 DispatchQueue.main.async { [weak self] in
                     self?.timerDate = Date()
+                    self?.setupCurrentTempTarget()
                 }
             }
             timer.resume()
@@ -338,13 +320,6 @@ extension Home {
                 .store(in: &lifetime)
         }
 
-        private enum SettingType {
-            case basal
-            case carbRatio
-            case bgTarget
-            case isf
-        }
-
         @MainActor private func setupSettings() async {
             units = settingsManager.settings.units
             allowManualTemp = !settingsManager.settings.closedLoop
@@ -352,12 +327,13 @@ extension Home {
             lastLoopDate = apsManager.lastLoopDate
             alarm = provider.glucoseStorage.alarm
             manualTempBasal = apsManager.isManualTempBasal
+            setupCurrentTempTarget()
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
             glucoseColorScheme = settingsManager.settings.glucoseColorScheme
             maxValue = settingsManager.preferences.autosensMax
             lowGlucose = settingsManager.settings.low
             highGlucose = settingsManager.settings.high
-            hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
+            overrideUnit = settingsManager.settings.overrideHbA1cUnit
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
@@ -365,11 +341,6 @@ extension Home {
             cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
             showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
             forecastDisplayType = settingsManager.settings.forecastDisplayType
-            isExerciseModeActive = settingsManager.preferences.exerciseMode
-            highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
-            lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
-            settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
-            maxValue = settingsManager.preferences.autosensMax
         }
 
         func addPump(_ type: PumpConfig.PumpType) {
@@ -408,6 +379,22 @@ extension Home {
 
                 // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
                 await apsManager.determineBasalSync()
+            }
+        }
+
+        @MainActor func cancelOverride(withID id: NSManagedObjectID) async {
+            do {
+                let profileToCancel = try viewContext.existingObject(with: id) as? OverrideStored
+                profileToCancel?.enabled = false
+
+                await saveToOverrideRunStored(withID: id)
+
+                guard viewContext.hasChanges else { return }
+                try viewContext.save()
+
+                Foundation.NotificationCenter.default.post(name: .willUpdateOverrideConfiguration, object: nil)
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Profile")
             }
         }
 
@@ -475,11 +462,30 @@ extension Home {
             }
         }
 
+        private func setupTempTargets() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.manualTempBasal = self.apsManager.isManualTempBasal
+                self.tempTargets = self.provider.tempTargets(hours: self.filteredHours)
+            }
+        }
+
+        private func setupAnnouncements() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.announcement = self.provider.announcement(self.filteredHours)
+            }
+        }
+
         private func setupReservoir() {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 self.reservoir = self.provider.pumpReservoir()
             }
+        }
+
+        private func setupCurrentTempTarget() {
+            tempTarget = provider.tempTarget()
         }
 
         private func setupCurrentPumpTimezone() {
@@ -540,6 +546,15 @@ extension Home {
         func openCGM() {
             router.mainSecondaryModalView.send(router.view(for: .cgmDirect))
         }
+
+        func infoPanelTTPercentage(_ hbt_: Double, _ target: Decimal) -> Decimal {
+            guard hbt_ != 0 || target != 0 else {
+                return 0
+            }
+            let c = Decimal(hbt_ - 100)
+            let ratio = min(c / (target + c - 100), maxValue)
+            return (ratio * 100)
+        }
     }
 }
 
@@ -547,9 +562,9 @@ extension Home.StateModel:
     GlucoseObserver,
     DeterminationObserver,
     SettingsObserver,
-    PreferencesObserver,
     PumpSettingsObserver,
     BasalProfileObserver,
+    TempTargetsObserver,
     PumpReservoirObserver,
     PumpTimeZoneObserver,
     PumpDeactivatedObserver
@@ -574,7 +589,7 @@ extension Home.StateModel:
         Task {
             await getCurrentGlucoseTarget()
         }
-        hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
+        overrideUnit = settingsManager.settings.overrideHbA1cUnit
         glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
@@ -585,14 +600,6 @@ extension Home.StateModel:
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
         setupBatteryArray()
-    }
-
-    func preferencesDidChange(_: Preferences) {
-        maxValue = settingsManager.preferences.autosensMax
-        settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
-        highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
-        isExerciseModeActive = settingsManager.preferences.exerciseMode
-        lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
     }
 
     // TODO: is this ever really triggered? react to MOC changes?
@@ -607,6 +614,10 @@ extension Home.StateModel:
 
     func basalProfileDidChange(_: [BasalProfileEntry]) {
         setupBasalProfile()
+    }
+
+    func tempTargetsDidUpdate(_: [TempTarget]) {
+        setupTempTargets()
     }
 
     func pumpReservoirDidChange(_: Decimal) {

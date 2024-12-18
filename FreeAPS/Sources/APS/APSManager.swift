@@ -207,7 +207,7 @@ final class BaseAPSManager: APSManager, Injectable {
             backGroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") {
                 guard let backgroundTask = self.backGroundTaskID else { return }
                 Task {
-                    UIApplication.shared.endBackgroundTask(backgroundTask)
+                    await UIApplication.shared.endBackgroundTask(backgroundTask)
                 }
                 self.backGroundTaskID = .invalid
             }
@@ -391,7 +391,7 @@ final class BaseAPSManager: APSManager, Injectable {
             let now = Date()
 
             // Start fetching asynchronously
-            let (currentTemp, _, _, _) = try await (
+            let (currentTemp, profiles, autosense, dailyAutotune) = try await (
                 fetchCurrentTempBasal(date: now),
                 makeProfiles(),
                 autosense(),
@@ -1043,8 +1043,10 @@ final class BaseAPSManager: APSManager, Injectable {
                 scheduled_basal: 0,
                 total_average: 0
             )
-            let processedGlucoseStats = await glucoseStats
-            let hbA1cDisplayUnit = processedGlucoseStats.hbA1cDisplayUnit
+
+            let gs = await glucoseStats
+            let overrideHbA1cUnit = gs.overrideHbA1cUnit
+            let hbA1cUnit = !overrideHbA1cUnit ? (units == .mmolL ? "mmol/mol" : "%") : (units == .mmolL ? "%" : "mmol/mol")
 
             let dailystat = await Statistics(
                 created_at: Date(),
@@ -1062,15 +1064,14 @@ final class BaseAPSManager: APSManager, Injectable {
                 insulinType: insulin_type.rawValue,
                 peakActivityTime: iPa,
                 Carbs_24h: await carbTotal,
-                GlucoseStorage_Days: Decimal(roundDouble(processedGlucoseStats.numberofDays, 1)),
+                GlucoseStorage_Days: Decimal(roundDouble(gs.numberofDays, 1)),
                 Statistics: Stats(
-                    Distribution: processedGlucoseStats.TimeInRange,
-                    Glucose: processedGlucoseStats.avg,
-                    HbA1c: processedGlucoseStats.hbs,
-                    Units: Units(Glucose: units.rawValue, HbA1c: hbA1cDisplayUnit.rawValue),
+                    Distribution: gs.TimeInRange,
+                    Glucose: gs.avg,
+                    HbA1c: gs.hbs, Units: Units(Glucose: units.rawValue, HbA1c: hbA1cUnit),
                     LoopCycles: loopStats,
                     Insulin: insulin,
-                    Variance: processedGlucoseStats.variance
+                    Variance: gs.variance
                 )
             )
             storage.save(dailystat, as: file)
@@ -1233,7 +1234,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 cv: Double,
                 readings: Double
             ),
-            hbA1cDisplayUnit: HbA1cDisplayUnit,
+            overrideHbA1cUnit: Bool,
             numberofDays: Double,
             TimeInRange: TIRs,
             avg: Averages,
@@ -1269,7 +1270,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 cv: Double,
                 readings: Double
             ),
-            hbA1cDisplayUnit: HbA1cDisplayUnit,
+            overrideHbA1cUnit: Bool,
             numberofDays: Double,
             TimeInRange: TIRs,
             avg: Averages,
@@ -1300,18 +1301,18 @@ final class BaseAPSManager: APSManager, Injectable {
                 total: self.roundDecimal(Decimal(totalDaysGlucose.median), 1)
             )
 
-            let hbA1cDisplayUnit = self.settingsManager.settings.hbA1cDisplayUnit
+            let overrideHbA1cUnit = self.settingsManager.settings.overrideHbA1cUnit
 
             let hbs = Durations(
-                day: ((units == .mmolL && hbA1cDisplayUnit == .mmolMol) || (units == .mgdL && hbA1cDisplayUnit == .percent)) ?
+                day: ((units == .mmolL && !overrideHbA1cUnit) || (units == .mgdL && overrideHbA1cUnit)) ?
                     self.roundDecimal(Decimal(oneDayGlucose.ifcc), 1) : self.roundDecimal(Decimal(oneDayGlucose.ngsp), 1),
-                week: ((units == .mmolL && hbA1cDisplayUnit == .mmolMol) || (units == .mgdL && hbA1cDisplayUnit == .percent)) ?
+                week: ((units == .mmolL && !overrideHbA1cUnit) || (units == .mgdL && overrideHbA1cUnit)) ?
                     self.roundDecimal(Decimal(sevenDaysGlucose.ifcc), 1) : self
                     .roundDecimal(Decimal(sevenDaysGlucose.ngsp), 1),
-                month: ((units == .mmolL && hbA1cDisplayUnit == .mmolMol) || (units == .mgdL && hbA1cDisplayUnit == .percent)) ?
+                month: ((units == .mmolL && !overrideHbA1cUnit) || (units == .mgdL && overrideHbA1cUnit)) ?
                     self.roundDecimal(Decimal(thirtyDaysGlucose.ifcc), 1) : self
                     .roundDecimal(Decimal(thirtyDaysGlucose.ngsp), 1),
-                total: ((units == .mmolL && hbA1cDisplayUnit == .mmolMol) || (units == .mgdL && hbA1cDisplayUnit == .percent)) ?
+                total: ((units == .mmolL && !overrideHbA1cUnit) || (units == .mgdL && overrideHbA1cUnit)) ?
                     self.roundDecimal(Decimal(totalDaysGlucose.ifcc), 1) : self.roundDecimal(Decimal(totalDaysGlucose.ngsp), 1)
             )
 
@@ -1385,7 +1386,7 @@ final class BaseAPSManager: APSManager, Injectable {
             )
             let variance = Variance(SD: standardDeviations, CV: cvs)
 
-            result = (oneDayGlucose, hbA1cDisplayUnit, numberOfDays, TimeInRange, avg, hbs, variance)
+            result = (oneDayGlucose, overrideHbA1cUnit, numberOfDays, TimeInRange, avg, hbs, variance)
         }
 
         return result!

@@ -4,7 +4,7 @@ import Swinject
 extension DynamicSettings {
     struct RootView: BaseView {
         let resolver: Resolver
-        @StateObject var state = StateModel()
+        @State var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: AnyView?
@@ -21,7 +21,22 @@ extension DynamicSettings {
         }
 
         @Environment(\.colorScheme) var colorScheme
-        @Environment(AppState.self) var appState
+        var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.bgDarkBlue,
+                    Color.bgDarkerDarkBlue
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+                :
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+        }
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -66,7 +81,7 @@ extension DynamicSettings {
                             "Dynamic ISF produces a Dynamic Ratio, replacing the Autosens Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day."
                         )
                         Text(
-                            "You can influence the adjustments made by Dynamic ISF primarily by adjusting Autosens Max, Autosens Min, and Adjustment Factor. Other settings also influence Dynamic ISF's response, such as Glucose Target, Profile ISF, Peak Insulin Time, and Weighted Average of TDD."
+                            "You can influence the adjustments made by Dynamic ISF primarily by adjusting Autosens Max, Autosens Min, and Adjustment Factor. Other settings also influence Dynamic ISF's response, such as Target Glucose, Profile ISF, Peak Insulin Time, and Weighted Average of TDD."
                         )
                         Text(
                             "Warning: Before adjusting these settings, make sure you are fully aware of the impact those changes will have."
@@ -234,7 +249,7 @@ extension DynamicSettings {
                                 "This setting adjusts how much weight is given to your recent total daily insulin dose when calculating Dynamic ISF and Dynamic CR."
                             )
                             Text(
-                                "At the default setting, 35% of the calculation is based on the last 24 hours of insulin use, with the remaining 65% considering the last 10 days of data."
+                                "At the default setting, 65% of the calculation is based on the last 24 hours of insulin use, with the remaining 35% considering the last 10 days of data."
                             )
                             Text("Setting this to 100% means only the past 24 hours will be used.")
                             Text("A lower value smooths out these variations for more stability.")
@@ -256,13 +271,15 @@ extension DynamicSettings {
                         type: .boolean,
                         label: "Adjust Basal",
                         miniHint: "Use Dynamic Ratio to adjust basal rates.",
-                        verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        verboseHint: VStack(spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
                                 "Turn this setting on to give basal adjustments more agility. Keep this setting off if your basal needs are not highly variable."
                             )
+                            Text("Normally, a new basal rate is set by autosens:")
+                            Text("New Basal Profile =\n(Current Basal Profile) x (Autosens Ratio)")
                             Text(
-                                "Enabling Adjust Basal replaces the standard Autosens Ratio calculation with its own Autosens Ratio calculated as such:"
+                                "Adjust Basal replaces the standard Autosens Ratio calculation with its own Autosens Ratio calculated as such:"
                             )
                             Text("Autosens Ratio =\n(Weighted Average of TDD) ÷ (10-day Average of TDD)")
                             Text("New Basal Profile =\n(Current Basal Profile) × (Autosens Ratio)")
@@ -288,7 +305,7 @@ extension DynamicSettings {
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: Set by Algorithm").bold()
                             Text(
-                                "Minimum Threshold Setting is, by default, determined by your set Glucose Target. This threshold automatically suspends insulin delivery if your glucose levels are forecasted to fall below this value. It’s designed to protect against hypoglycemia, particularly during sleep or other vulnerable times."
+                                "Minimum Threshold Setting is, by default, determined by your set Target Glucose. This threshold automatically suspends insulin delivery if your glucose levels are forecasted to fall below this value. It’s designed to protect against hypoglycemia, particularly during sleep or other vulnerable times."
                             )
                             Text(
                                 "Trio will use the larger of the default setting calculation below and the value entered here."
@@ -296,7 +313,7 @@ extension DynamicSettings {
                             VStack(alignment: .leading, spacing: 10) {
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text("The default setting is based on this calculation:").bold()
-                                    Text("TargetGlucose - 0.5 × (TargetGlucose - 40)")
+                                    Text("Target Glucose - 0.5 × (Target Glucose - 40)")
                                 }
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text(
@@ -313,7 +330,6 @@ extension DynamicSettings {
                     )
                 }
             }
-            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
@@ -323,10 +339,13 @@ extension DynamicSettings {
                     sheetTitle: "Help"
                 )
             }
-            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
+            .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
             .navigationBarTitle("Dynamic Settings")
             .navigationBarTitleDisplayMode(.automatic)
+            .onDisappear {
+                state.saveIfChanged()
+            }
         }
     }
 }

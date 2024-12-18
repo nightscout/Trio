@@ -1,5 +1,4 @@
 import Combine
-import CoreData
 import Foundation
 import SwiftDate
 import Swinject
@@ -14,7 +13,6 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
 
     private var lifetime = Lifetime()
     private let timer = DispatchTimer(timeInterval: 1.minutes.timeInterval)
-    private var backgroundContext = CoreDataStack.shared.newTaskContext()
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -30,48 +28,17 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
                 debug(.nightscout, "Start fetching carbs and temptargets")
 
                 Task {
-                    // Fetch carbs and temp targets concurrently
                     async let carbs = self.nightscoutManager.fetchCarbs()
                     async let tempTargets = self.nightscoutManager.fetchTempTargets()
 
-                    // Filter and store if not from "Trio"
-                    let filteredCarbs = await carbs.filter { $0.enteredBy != CarbsEntry.local }
+                    let filteredCarbs = await carbs.filter { !($0.enteredBy?.contains(CarbsEntry.manual) ?? false) }
                     if filteredCarbs.isNotEmpty {
                         await self.carbsStorage.storeCarbs(filteredCarbs, areFetchedFromRemote: true)
                     }
 
-                    // Filter and store if not from Trio
-                    let filteredTargets = await tempTargets.filter { $0.enteredBy != TempTarget.local }
+                    let filteredTargets = await tempTargets.filter { !($0.enteredBy?.contains(TempTarget.manual) ?? false) }
                     if filteredTargets.isNotEmpty {
-                        // Sort temp targets by creation date
-                        let sortedTargets = filteredTargets.sorted { $0.createdAt < $1.createdAt }
-
-                        // Iterate and store each temp target
-                        for (index, tempTarget) in sortedTargets.enumerated() {
-                            // Skip saving if a Temp Target with the same date already exists or it's a cancel target
-                            guard await !self.tempTargetsStorage.existsTempTarget(with: tempTarget.createdAt),
-                                  tempTarget.reason != TempTarget.cancel
-                            else {
-                                debug(
-                                    .nightscout,
-                                    "Skipping temp target with date: \(tempTarget.date ?? Date.distantPast)"
-                                )
-                                continue
-                            }
-
-                            // Create a mutable copy and set enabled for the last temp target
-                            var mutableTempTarget = tempTarget
-                            mutableTempTarget.enabled = (index == sortedTargets.count - 1)
-
-                            // Save to Core Data
-                            await self.tempTargetsStorage.storeTempTarget(tempTarget: mutableTempTarget)
-                        }
-
-                        // Save the temp targets to JSON so that they get used by oref
-                        self.tempTargetsStorage.saveTempTargetsToStorage(sortedTargets)
-
-                        // Update Adjustments View
-                        Foundation.NotificationCenter.default.post(name: .didUpdateTempTargetConfiguration, object: nil)
+                        self.tempTargetsStorage.storeTempTargets(filteredTargets)
                     }
                 }
             }

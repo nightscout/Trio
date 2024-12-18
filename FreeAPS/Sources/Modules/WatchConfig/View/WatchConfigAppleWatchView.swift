@@ -11,7 +11,22 @@ struct WatchConfigAppleWatchView: View {
     @State private var booleanPlaceholder: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
-    @Environment(AppState.self) var appState
+    var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color.bgDarkBlue,
+                Color.bgDarkerDarkBlue
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
 
     private func onDelete(offsets: IndexSet) {
         state.devices.remove(atOffsets: offsets)
@@ -19,7 +34,7 @@ struct WatchConfigAppleWatchView: View {
     }
 
     var body: some View {
-        List {
+        Form {
             Section(
                 header: Text("Apple Watch Configuration"),
                 content: {
@@ -106,7 +121,6 @@ struct WatchConfigAppleWatchView: View {
                 )
             )
         }
-        .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
                 hintDetent: $hintDetent,
@@ -118,7 +132,6 @@ struct WatchConfigAppleWatchView: View {
         }
         .navigationTitle("Apple Watch")
         .navigationBarTitleDisplayMode(.automatic)
-        .scrollContentBackground(.hidden)
-        .background(appState.trioBackgroundColor(for: colorScheme))
+        .scrollContentBackground(.hidden).background(color)
     }
 }

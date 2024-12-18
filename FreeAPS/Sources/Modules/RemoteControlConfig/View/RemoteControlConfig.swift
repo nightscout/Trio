@@ -17,10 +17,26 @@ extension RemoteControlConfig {
         @State private var isCopied: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
-        @Environment(AppState.self) var appState
+
+        private var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.bgDarkBlue,
+                    Color.bgDarkerDarkBlue
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+                :
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+        }
 
         var body: some View {
-            List {
+            Form {
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
                     booleanValue: $state.isTrioRemoteControlEnabled,
@@ -36,7 +52,7 @@ extension RemoteControlConfig {
                     type: .boolean,
                     label: "Enable Remote Control",
                     miniHint: "Allow Trio to receive instructions, such as boluses and temp targets, from Loop Follow remotely.",
-                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                    verboseHint: VStack(spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
                             "When Remote Control is enabled, you can send boluses, overrides, temporary targets, carbs, and other commands to Trio via push notifications."
@@ -87,7 +103,6 @@ extension RemoteControlConfig {
                     }
                 ).listRowBackground(Color.chart)
             }
-            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
@@ -97,7 +112,7 @@ extension RemoteControlConfig {
                     sheetTitle: "Help"
                 )
             }
-            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
+            .scrollContentBackground(.hidden).background(color)
             .onAppear(perform: configureView)
             .navigationTitle("Remote Control")
             .navigationBarTitleDisplayMode(.automatic)

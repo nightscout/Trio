@@ -11,9 +11,13 @@ extension TargetsEditor {
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
         var rateValues: [Decimal] {
-            let settingsProvider = PickerSettingsProvider.shared
-            let glucoseSetting = PickerSetting(value: 0, step: 1, min: 72, max: 180, type: .glucose)
-            return settingsProvider.generatePickerValues(from: glucoseSetting, units: units)
+            var values = stride(from: 72.0, to: 180.01, by: 1.0).map { Decimal($0) }
+
+            if units == .mmolL {
+                values = values.filter { Int(truncating: $0 as NSNumber) % 2 == 0 }
+            }
+
+            return values
         }
 
         var canAdd: Bool {

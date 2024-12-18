@@ -1,14 +1,20 @@
 import AppIntents
 import Foundation
 
-struct ApplyTempPresetIntent: AppIntent {
+@available(iOS 16.0, *) struct ApplyTempPresetIntent: AppIntent {
     // Title of the action in the Shortcuts app
-    static var title: LocalizedStringResource = "Apply a Temporary Target"
+    static var title: LocalizedStringResource = "Apply a temporary target"
 
     // Description of the action in the Shortcuts app
-    static var description = IntentDescription("Enable a Temporary Target")
+    static var description = IntentDescription("Enable a temporary target")
 
-    @Parameter(title: "Preset") var preset: TempPreset?
+    internal var intentRequest: TempPresetsIntentRequest
+
+    init() {
+        intentRequest = TempPresetsIntentRequest()
+    }
+
+    @Parameter(title: "Preset") var preset: tempPreset?
 
     @Parameter(
         title: "Confirm Before applying",
@@ -40,13 +46,12 @@ struct ApplyTempPresetIntent: AppIntent {
 
     @MainActor func perform() async throws -> some ProvidesDialog {
         do {
-            let intentRequest = TempPresetsIntentRequest()
-            let presetToApply: TempPreset
+            let presetToApply: tempPreset
             if let preset = preset {
                 presetToApply = preset
             } else {
                 presetToApply = try await $preset.requestDisambiguation(
-                    among: intentRequest.fetchAndProcessTempTargets(),
+                    among: intentRequest.fetchAll(),
                     dialog: "Select Temporary Target"
                 )
             }
@@ -58,25 +63,15 @@ struct ApplyTempPresetIntent: AppIntent {
                 )
             }
 
-            if await intentRequest.enactTempTarget(presetToApply) {
-                return .result(
-                    dialog: IntentDialog(
-                        LocalizedStringResource(
-                            "TempTarget '\(presetToApply.name)' applied",
-                            table: "ShortcutsDetail"
-                        )
-                    )
-                )
-            } else {
-                return .result(
-                    dialog: IntentDialog(
-                        LocalizedStringResource(
-                            "TempTarget '\(presetToApply.name)' failed",
-                            table: "ShortcutsDetail"
-                        )
-                    )
-                )
-            }
+            // TODO: enact the temp target
+            let tempTarget = try intentRequest.findTempTarget(presetToApply)
+            let finalTempTargetApply = try intentRequest.enactTempTarget(tempTarget)
+            let formattedTime = decimalToTimeFormattedString(decimal: finalTempTargetApply.duration)
+            let displayDetail: String =
+                "Target '\(finalTempTargetApply.displayName)' applied for \(formattedTime)"
+            return .result(
+                dialog: IntentDialog(stringLiteral: displayDetail)
+            )
         } catch {
             throw error
         }

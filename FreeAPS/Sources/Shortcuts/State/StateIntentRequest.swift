@@ -8,7 +8,7 @@ enum StateIntentError: Error {
     case NoIOBCOB
 }
 
-struct StateResults: AppEntity {
+@available(iOS 16, *) struct StateResults: AppEntity {
     static var defaultQuery = StateBGQuery()
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Trio State Result"
@@ -44,7 +44,7 @@ struct StateResults: AppEntity {
     }
 }
 
-struct StateBGQuery: EntityQuery {
+@available(iOS 16.0, *) struct StateBGQuery: EntityQuery {
     func entities(for _: [StateResults.ID]) async throws -> [StateResults] {
         []
     }
@@ -54,7 +54,7 @@ struct StateBGQuery: EntityQuery {
     }
 }
 
-final class StateIntentRequest: BaseIntentsRequest {
+@available(iOS 16.0, *) final class StateIntentRequest: BaseIntentsRequest {
     let moc = CoreDataStack.shared.newTaskContext()
 
     func getLastGlucose(onContext: NSManagedObjectContext) throws
@@ -68,7 +68,7 @@ final class StateIntentRequest: BaseIntentsRequest {
                 key: "date",
                 ascending: false,
                 fetchLimit: 2
-            ) as? [GlucoseStored] ?? []
+            )
 
             guard let lastValue = results.first else { throw StateIntentError.NoBG }
 
@@ -109,8 +109,7 @@ final class StateIntentRequest: BaseIntentsRequest {
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1
-        ) as? [OrefDetermination] ?? []
-
+        )
         let iobAsDouble = Double(truncating: (results.first?.iob ?? 0.0) as NSNumber)
         let cobAsDouble = Double(truncating: (results.first?.cob ?? 0) as NSNumber)
 

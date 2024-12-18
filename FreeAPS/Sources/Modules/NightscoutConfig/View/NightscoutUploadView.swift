@@ -11,10 +11,25 @@ struct NightscoutUploadView: View {
     @State private var booleanPlaceholder: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
-    @Environment(AppState.self) var appState
+    var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color.bgDarkBlue,
+                Color.bgDarkerDarkBlue
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
 
     var body: some View {
-        List {
+        Form {
             SettingInputSection(
                 decimalValue: $decimalPlaceholder,
                 booleanValue: $state.isUploadEnabled,
@@ -71,7 +86,6 @@ struct NightscoutUploadView: View {
                 )
             }
         }
-        .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
                 hintDetent: $hintDetent,
@@ -83,7 +97,6 @@ struct NightscoutUploadView: View {
         }
         .navigationTitle("Upload")
         .navigationBarTitleDisplayMode(.automatic)
-        .scrollContentBackground(.hidden)
-        .background(appState.trioBackgroundColor(for: colorScheme))
+        .scrollContentBackground(.hidden).background(color)
     }
 }

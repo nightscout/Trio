@@ -5,6 +5,8 @@ import Foundation
     // Title of the action in the Shortcuts app
     static var title: LocalizedStringResource = "List last state available with Trio"
 
+    var stateIntent = StateIntentRequest()
+
     // Description of the action in the Shortcuts app
     static var description = IntentDescription(
         "Allow to list the last glucose reading, trends, IOB and COB available in Trio"
@@ -16,7 +18,6 @@ import Foundation
 
     @MainActor func perform() async throws -> some ReturnsValue<StateResults> & ShowsSnippetView {
         let context = CoreDataStack.shared.persistentContainer.viewContext
-        let stateIntent = StateIntentRequest()
 
         let glucoseValues = try? stateIntent.getLastGlucose(onContext: context)
         let iob_cob_value = try? stateIntent.getIobAndCob(onContext: context)

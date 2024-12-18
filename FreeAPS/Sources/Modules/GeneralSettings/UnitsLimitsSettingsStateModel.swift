@@ -29,11 +29,10 @@ extension UnitsLimitsSettings {
                 unitsIndex = $0 == .mgdL ? 0 : 1
             }
 
-            subscribePreferencesSetting(\.maxIOB, on: $maxIOB) { maxIOB = $0 }
-            subscribePreferencesSetting(\.maxCOB, on: $maxCOB) { maxCOB = $0 }
-
             maxBasal = pumpSettings.maxBasal
             maxBolus = pumpSettings.maxBolus
+            maxIOB = settings.preferences.maxIOB
+            maxCOB = settings.preferences.maxCOB
         }
 
         var isPumpSettingUnchanged: Bool {
@@ -41,7 +40,22 @@ extension UnitsLimitsSettings {
                 pumpSettings.maxBolus == maxBolus
         }
 
+        var isSettingUnchanged: Bool {
+            preferences.maxIOB == maxIOB &&
+                preferences.maxCOB == maxCOB
+        }
+
         func saveIfChanged() {
+            if !isSettingUnchanged {
+                var newSettings = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
+
+                newSettings.maxIOB = maxIOB
+                newSettings.maxCOB = maxCOB
+
+                newSettings.timestamp = Date()
+                storage.save(newSettings, as: OpenAPS.Settings.preferences)
+            }
+
             if !isPumpSettingUnchanged {
                 let settings = PumpSettings(
                     insulinActionCurve: pumpSettings.insulinActionCurve,

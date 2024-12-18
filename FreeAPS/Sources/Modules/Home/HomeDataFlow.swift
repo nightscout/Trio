@@ -14,5 +14,4 @@ protocol HomeProvider: Provider {
     func pumpReservoir() -> Decimal?
     func tempTarget() -> TempTarget?
     func announcement(_ hours: Int) -> [Announcement]
-    func getBGTarget() async -> BGTargets
 }

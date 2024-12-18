@@ -13,16 +13,44 @@ extension TargetBehavoir {
         @Published var resistanceLowersTarget: Bool = false
         @Published var halfBasalExerciseTarget: Decimal = 160
 
+        var preferences: Preferences {
+            settingsManager.preferences
+        }
+
         override func subscribe() {
             units = settingsManager.settings.units
 
-            subscribePreferencesSetting(\.highTemptargetRaisesSensitivity, on: $highTemptargetRaisesSensitivity) {
-                highTemptargetRaisesSensitivity = $0 }
-            subscribePreferencesSetting(\.lowTemptargetLowersSensitivity, on: $lowTemptargetLowersSensitivity) {
-                lowTemptargetLowersSensitivity = $0 }
-            subscribePreferencesSetting(\.sensitivityRaisesTarget, on: $sensitivityRaisesTarget) { sensitivityRaisesTarget = $0 }
-            subscribePreferencesSetting(\.resistanceLowersTarget, on: $resistanceLowersTarget) { resistanceLowersTarget = $0 }
-            subscribePreferencesSetting(\.halfBasalExerciseTarget, on: $halfBasalExerciseTarget) { halfBasalExerciseTarget = $0 }
+            highTemptargetRaisesSensitivity = settings.preferences.highTemptargetRaisesSensitivity
+            lowTemptargetLowersSensitivity = settings.preferences.lowTemptargetLowersSensitivity
+            sensitivityRaisesTarget = settings.preferences.sensitivityRaisesTarget
+            resistanceLowersTarget = settings.preferences.resistanceLowersTarget
+            halfBasalExerciseTarget = settings.preferences.halfBasalExerciseTarget
+
+            halfBasalExerciseTarget = settings
+                .preferences.halfBasalExerciseTarget
+        }
+
+        var isSettingUnchanged: Bool {
+            preferences.highTemptargetRaisesSensitivity == highTemptargetRaisesSensitivity &&
+                preferences.lowTemptargetLowersSensitivity == lowTemptargetLowersSensitivity &&
+                preferences.sensitivityRaisesTarget == sensitivityRaisesTarget &&
+                preferences.resistanceLowersTarget == resistanceLowersTarget &&
+                preferences.halfBasalExerciseTarget == halfBasalExerciseTarget
+        }
+
+        func saveIfChanged() {
+            if !isSettingUnchanged {
+                var newSettings = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
+
+                newSettings.highTemptargetRaisesSensitivity = highTemptargetRaisesSensitivity
+                newSettings.lowTemptargetLowersSensitivity = lowTemptargetLowersSensitivity
+                newSettings.sensitivityRaisesTarget = sensitivityRaisesTarget
+                newSettings.resistanceLowersTarget = resistanceLowersTarget
+                newSettings.halfBasalExerciseTarget = halfBasalExerciseTarget
+
+                newSettings.timestamp = Date()
+                storage.save(newSettings, as: OpenAPS.Settings.preferences)
+            }
         }
     }
 }

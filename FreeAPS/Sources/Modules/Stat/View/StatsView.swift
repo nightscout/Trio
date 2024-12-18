@@ -11,7 +11,7 @@ struct StatsView: View {
     var highLimit: Decimal
     var lowLimit: Decimal
     var units: GlucoseUnits
-    var hbA1cDisplayUnit: HbA1cDisplayUnit
+    var overrideUnit: Bool
 
     private let conversionFactor = 0.0555
 
@@ -30,7 +30,7 @@ struct StatsView: View {
         highLimit: Decimal,
         lowLimit: Decimal,
         units: GlucoseUnits,
-        hbA1cDisplayUnit: HbA1cDisplayUnit
+        overrideUnit: Bool
     ) {
         _fetchRequest = FetchRequest<LoopStatRecord>(
             sortDescriptors: [NSSortDescriptor(key: "start", ascending: false)],
@@ -45,7 +45,7 @@ struct StatsView: View {
         self.highLimit = highLimit
         self.lowLimit = lowLimit
         self.units = units
-        self.hbA1cDisplayUnit = hbA1cDisplayUnit
+        self.overrideUnit = overrideUnit
     }
 
     var loops: some View {
@@ -127,16 +127,8 @@ struct StatsView: View {
 
     var hba1c: some View {
         HStack(spacing: 50) {
-            let useUnit: GlucoseUnits = {
-                if units == .mmolL && hbA1cDisplayUnit == .mmolMol {
-                    return .mgdL
-                } else if (units == .mgdL && hbA1cDisplayUnit == .mmolMol) || units == .mmolL {
-                    return .mmolL
-                } else {
-                    return .mgdL
-                }
-            }()
-
+            let useUnit: GlucoseUnits = (units == .mmolL && overrideUnit) ? .mgdL :
+                (units == .mgdL && overrideUnit || units == .mmolL) ? .mmolL : .mgdL
             let hba1cs = glucoseStats()
             // First date
             let previous = glucose.last?.date ?? Date()

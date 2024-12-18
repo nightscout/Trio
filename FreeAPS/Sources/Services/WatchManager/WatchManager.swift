@@ -432,8 +432,8 @@ extension BaseWatchManager: WCSessionDelegate {
                         carbs: Decimal(carbs),
                         fat: Decimal(fat),
                         protein: Decimal(protein),
-                        note: message["note"] as? String,
-                        enteredBy: CarbsEntry.local,
+                        note: nil,
+                        enteredBy: CarbsEntry.manual,
                         isFPU: false,
                         fpuID: nil
                     )],
@@ -450,7 +450,7 @@ extension BaseWatchManager: WCSessionDelegate {
             Task {
                 if var preset = tempTargetsStorage.presets().first(where: { $0.id == tempTargetID }) {
                     preset.createdAt = Date()
-                    await tempTargetsStorage.storeTempTarget(tempTarget: preset)
+                    tempTargetsStorage.storeTempTargets([preset])
                     replyHandler(["confirmation": true])
                 } else if tempTargetID == "cancel" {
                     let entry = TempTarget(
@@ -459,13 +459,10 @@ extension BaseWatchManager: WCSessionDelegate {
                         targetTop: 0,
                         targetBottom: 0,
                         duration: 0,
-                        enteredBy: TempTarget.local,
-                        reason: TempTarget.cancel,
-                        isPreset: false,
-                        enabled: false,
-                        halfBasalTarget: 160
+                        enteredBy: TempTarget.manual,
+                        reason: TempTarget.cancel
                     )
-                    await tempTargetsStorage.storeTempTarget(tempTarget: entry)
+                    tempTargetsStorage.storeTempTargets([entry])
                     replyHandler(["confirmation": true])
                 } else {
                     replyHandler(["confirmation": false])

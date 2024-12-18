@@ -14,7 +14,22 @@ struct TherapySettingsView: BaseView {
     @ObservedObject var state: Settings.StateModel
 
     @Environment(\.colorScheme) var colorScheme
-    @Environment(AppState.self) var appState
+    var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color.bgDarkBlue,
+                Color.bgDarkerDarkBlue
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
 
     var body: some View {
         Form {
@@ -32,13 +47,12 @@ struct TherapySettingsView: BaseView {
                     Text("Basal Rates").navigationLink(to: .basalProfileEditor, from: self)
                     Text("Insulin Sensitivities").navigationLink(to: .isfEditor, from: self)
                     Text("Carb Ratios").navigationLink(to: .crEditor, from: self)
-                    Text("Glucose Targets").navigationLink(to: .targetsEditor, from: self)
+                    Text("Target Glucose").navigationLink(to: .targetsEditor, from: self)
                 }
             )
             .listRowBackground(Color.chart)
         }
-        .scrollContentBackground(.hidden)
-        .background(appState.trioBackgroundColor(for: colorScheme))
+        .scrollContentBackground(.hidden).background(color)
         .navigationTitle("Therapy Settings")
         .navigationBarTitleDisplayMode(.automatic)
     }

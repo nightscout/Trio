@@ -9,8 +9,8 @@ extension Stat {
         @ObservationIgnored @Injected() var settings: SettingsManager!
         var highLimit: Decimal = 10 / 0.0555
         var lowLimit: Decimal = 4 / 0.0555
-        var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
-        var timeInRangeChartStyle: TimeInRangeChartStyle = .vertical
+        var overrideUnit: Bool = false
+        var layingChart: Bool = false
         var units: GlucoseUnits = .mgdL
         var glucoseFromPersistence: [GlucoseStored] = []
 
@@ -34,8 +34,8 @@ extension Stat {
             highLimit = settingsManager.settings.high
             lowLimit = settingsManager.settings.low
             units = settingsManager.settings.units
-            hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
-            timeInRangeChartStyle = settingsManager.settings.timeInRangeChartStyle
+            overrideUnit = settingsManager.settings.overrideHbA1cUnit
+            layingChart = settingsManager.settings.oneDimensionalGraph
         }
 
         func setupGlucoseArray(for duration: Duration) {

@@ -10,7 +10,6 @@ enum DataTable {
         case treatments
         case meals
         case glucose
-        case adjustments
 
         var id: String { rawValue }
 
@@ -23,8 +22,6 @@ enum DataTable {
                 name = "Meals"
             case .glucose:
                 name = "Glucose"
-            case .adjustments:
-                name = "Adjustments"
             }
 
             return NSLocalizedString(name, comment: "History Mode")

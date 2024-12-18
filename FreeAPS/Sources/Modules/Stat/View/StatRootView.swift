@@ -10,13 +10,29 @@ extension Stat {
         @State var state = StateModel()
 
         @Environment(\.colorScheme) var colorScheme
-        @Environment(AppState.self) var appState
 
         @State var paddingAmount: CGFloat? = 10
         @State var headline: Color = .secondary
         @State var days: Double = 0
         @State var pointSize: CGFloat = 3
         @State var conversionFactor = 0.0555
+
+        private var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.bgDarkBlue,
+                    Color.bgDarkerDarkBlue
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+                :
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+        }
 
         @ViewBuilder func stats() -> some View {
             ZStack {
@@ -29,7 +45,7 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        hbA1cDisplayUnit: state.hbA1cDisplayUnit
+                        overrideUnit: state.overrideUnit
                     )
                 case .Day:
                     StatsView(
@@ -37,7 +53,7 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        hbA1cDisplayUnit: state.hbA1cDisplayUnit
+                        overrideUnit: state.overrideUnit
                     )
                 case .Week:
                     StatsView(
@@ -45,7 +61,7 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        hbA1cDisplayUnit: state.hbA1cDisplayUnit
+                        overrideUnit: state.overrideUnit
                     )
                 case .Month:
                     StatsView(
@@ -53,7 +69,7 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        hbA1cDisplayUnit: state.hbA1cDisplayUnit
+                        overrideUnit: state.overrideUnit
                     )
                 case .Total:
                     StatsView(
@@ -61,7 +77,7 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        hbA1cDisplayUnit: state.hbA1cDisplayUnit
+                        overrideUnit: state.overrideUnit
                     )
                 }
             }
@@ -74,8 +90,8 @@ extension Stat {
                     highLimit: state.highLimit,
                     lowLimit: state.lowLimit,
                     units: state.units,
-                    hbA1cDisplayUnit: state.hbA1cDisplayUnit,
-                    timeInRangeChartStyle: state.timeInRangeChartStyle,
+                    overrideUnit: state.overrideUnit,
+                    standing: state.layingChart,
                     glucose: state.glucoseFromPersistence
                 )
             case .Day:
@@ -83,8 +99,8 @@ extension Stat {
                     highLimit: state.highLimit,
                     lowLimit: state.lowLimit,
                     units: state.units,
-                    hbA1cDisplayUnit: state.hbA1cDisplayUnit,
-                    timeInRangeChartStyle: state.timeInRangeChartStyle,
+                    overrideUnit: state.overrideUnit,
+                    standing: state.layingChart,
                     glucose: state.glucoseFromPersistence
                 )
             case .Week:
@@ -92,8 +108,8 @@ extension Stat {
                     highLimit: state.highLimit,
                     lowLimit: state.lowLimit,
                     units: state.units,
-                    hbA1cDisplayUnit: state.hbA1cDisplayUnit,
-                    timeInRangeChartStyle: state.timeInRangeChartStyle,
+                    overrideUnit: state.overrideUnit,
+                    standing: state.layingChart,
                     glucose: state.glucoseFromPersistence
                 )
             case .Month:
@@ -101,8 +117,8 @@ extension Stat {
                     highLimit: state.highLimit,
                     lowLimit: state.lowLimit,
                     units: state.units,
-                    hbA1cDisplayUnit: state.hbA1cDisplayUnit,
-                    timeInRangeChartStyle: state.timeInRangeChartStyle,
+                    overrideUnit: state.overrideUnit,
+                    standing: state.layingChart,
                     glucose: state.glucoseFromPersistence
                 )
             case .Total:
@@ -110,8 +126,8 @@ extension Stat {
                     highLimit: state.highLimit,
                     lowLimit: state.lowLimit,
                     units: state.units,
-                    hbA1cDisplayUnit: state.hbA1cDisplayUnit,
-                    timeInRangeChartStyle: state.timeInRangeChartStyle,
+                    overrideUnit: state.overrideUnit,
+                    standing: state.layingChart,
                     glucose: state.glucoseFromPersistence
                 )
             }
@@ -124,12 +140,12 @@ extension Stat {
                     ForEach(Stat.StateModel.Duration.allCases) { duration in
                         Text(NSLocalizedString(duration.rawValue, comment: "")).tag(Optional(duration))
                     }
-                }.onChange(of: state.selectedDuration) { _, newValue in
+                }.onChange(of: state.selectedDuration) { newValue in
                     state.setupGlucoseArray(for: newValue)
                 }
                 .pickerStyle(.segmented).background(.cyan.opacity(0.2))
                 stats()
-            }.background(appState.trioBackgroundColor(for: colorScheme))
+            }.background(color)
                 .onAppear(perform: configureView)
                 .navigationBarTitle("Statistics")
                 .navigationBarTitleDisplayMode(.automatic)

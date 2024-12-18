@@ -3,27 +3,31 @@ import Observation
 import SwiftUI
 
 extension AlgorithmAdvancedSettings {
-    final class StateModel: BaseStateModel<Provider> {
-        @Injected() var settings: SettingsManager!
-        @Injected() var storage: FileStorage!
-        @Injected() var nightscout: NightscoutManager!
+    @Observable final class StateModel: BaseStateModel<Provider> {
+        @ObservationIgnored @Injected() var settings: SettingsManager!
+        @ObservationIgnored @Injected() var storage: FileStorage!
+        @ObservationIgnored @Injected() var nightscout: NightscoutManager!
 
         var units: GlucoseUnits = .mgdL
 
-        @Published var maxDailySafetyMultiplier: Decimal = 3
-        @Published var currentBasalSafetyMultiplier: Decimal = 4
-        @Published var useCustomPeakTime: Bool = false
-        @Published var insulinPeakTime: Decimal = 75
-        @Published var skipNeutralTemps: Bool = false
-        @Published var unsuspendIfNoTemp: Bool = false
-        @Published var suspendZerosIOB: Bool = false
-        @Published var min5mCarbimpact: Decimal = 8
-        @Published var autotuneISFAdjustmentFraction: Decimal = 1.0
-        @Published var remainingCarbsFraction: Decimal = 1.0
-        @Published var remainingCarbsCap: Decimal = 90
-        @Published var noisyCGMTargetMultiplier: Decimal = 1.3
+        var maxDailySafetyMultiplier: Decimal = 3
+        var currentBasalSafetyMultiplier: Decimal = 4
+        var useCustomPeakTime: Bool = false
+        var insulinPeakTime: Decimal = 75
+        var skipNeutralTemps: Bool = false
+        var unsuspendIfNoTemp: Bool = false
+        var suspendZerosIOB: Bool = false
+        var min5mCarbimpact: Decimal = 8
+        var autotuneISFAdjustmentFraction: Decimal = 1.0
+        var remainingCarbsFraction: Decimal = 1.0
+        var remainingCarbsCap: Decimal = 90
+        var noisyCGMTargetMultiplier: Decimal = 1.3
 
-        var insulinActionCurve: Decimal = 10
+        var insulinActionCurve: Decimal = 6
+
+        var preferences: Preferences {
+            settingsManager.preferences
+        }
 
         var pumpSettings: PumpSettings {
             provider.settings()
@@ -32,22 +36,18 @@ extension AlgorithmAdvancedSettings {
         override func subscribe() {
             units = settingsManager.settings.units
 
-            subscribePreferencesSetting(\.maxDailySafetyMultiplier, on: $maxDailySafetyMultiplier) {
-                maxDailySafetyMultiplier = $0 }
-            subscribePreferencesSetting(\.currentBasalSafetyMultiplier, on: $currentBasalSafetyMultiplier) {
-                currentBasalSafetyMultiplier = $0 }
-            subscribePreferencesSetting(\.useCustomPeakTime, on: $useCustomPeakTime) { useCustomPeakTime = $0 }
-            subscribePreferencesSetting(\.insulinPeakTime, on: $insulinPeakTime) { insulinPeakTime = $0 }
-            subscribePreferencesSetting(\.unsuspendIfNoTemp, on: $unsuspendIfNoTemp) { unsuspendIfNoTemp = $0 }
-            subscribePreferencesSetting(\.suspendZerosIOB, on: $suspendZerosIOB) { suspendZerosIOB = $0 }
-            subscribePreferencesSetting(\.suspendZerosIOB, on: $suspendZerosIOB) { suspendZerosIOB = $0 }
-            subscribePreferencesSetting(\.min5mCarbimpact, on: $min5mCarbimpact) { min5mCarbimpact = $0 }
-            subscribePreferencesSetting(\.autotuneISFAdjustmentFraction, on: $autotuneISFAdjustmentFraction) {
-                autotuneISFAdjustmentFraction = $0 }
-            subscribePreferencesSetting(\.remainingCarbsFraction, on: $remainingCarbsFraction) { remainingCarbsFraction = $0 }
-            subscribePreferencesSetting(\.remainingCarbsCap, on: $remainingCarbsCap) { remainingCarbsCap = $0 }
-            subscribePreferencesSetting(\.noisyCGMTargetMultiplier, on: $noisyCGMTargetMultiplier) {
-                noisyCGMTargetMultiplier = $0 }
+            maxDailySafetyMultiplier = settings.preferences.maxDailySafetyMultiplier
+            currentBasalSafetyMultiplier = settings.preferences.currentBasalSafetyMultiplier
+            useCustomPeakTime = settings.preferences.useCustomPeakTime
+            insulinPeakTime = settings.preferences.insulinPeakTime
+            skipNeutralTemps = settings.preferences.skipNeutralTemps
+            unsuspendIfNoTemp = settings.preferences.unsuspendIfNoTemp
+            suspendZerosIOB = settings.preferences.suspendZerosIOB
+            min5mCarbimpact = settings.preferences.min5mCarbimpact
+            autotuneISFAdjustmentFraction = settings.preferences.autotuneISFAdjustmentFraction
+            remainingCarbsFraction = settings.preferences.remainingCarbsFraction
+            remainingCarbsCap = settings.preferences.remainingCarbsCap
+            noisyCGMTargetMultiplier = settings.preferences.noisyCGMTargetMultiplier
 
             insulinActionCurve = pumpSettings.insulinActionCurve
         }
@@ -56,7 +56,42 @@ extension AlgorithmAdvancedSettings {
             pumpSettings.insulinActionCurve == insulinActionCurve
         }
 
+        var isSettingUnchanged: Bool {
+            preferences.maxDailySafetyMultiplier == maxDailySafetyMultiplier &&
+                preferences.currentBasalSafetyMultiplier == currentBasalSafetyMultiplier &&
+                preferences.useCustomPeakTime == useCustomPeakTime &&
+                preferences.insulinPeakTime == insulinPeakTime &&
+                preferences.skipNeutralTemps == skipNeutralTemps &&
+                preferences.unsuspendIfNoTemp == unsuspendIfNoTemp &&
+                preferences.suspendZerosIOB == suspendZerosIOB &&
+                preferences.min5mCarbimpact == min5mCarbimpact &&
+                preferences.autotuneISFAdjustmentFraction == autotuneISFAdjustmentFraction &&
+                preferences.remainingCarbsFraction == remainingCarbsFraction &&
+                preferences.remainingCarbsCap == remainingCarbsCap &&
+                preferences.noisyCGMTargetMultiplier == noisyCGMTargetMultiplier
+        }
+
         func saveIfChanged() {
+            if !isSettingUnchanged {
+                var newSettings = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
+
+                newSettings.maxDailySafetyMultiplier = maxDailySafetyMultiplier
+                newSettings.currentBasalSafetyMultiplier = currentBasalSafetyMultiplier
+                newSettings.useCustomPeakTime = useCustomPeakTime
+                newSettings.insulinPeakTime = insulinPeakTime
+                newSettings.skipNeutralTemps = skipNeutralTemps
+                newSettings.unsuspendIfNoTemp = unsuspendIfNoTemp
+                newSettings.suspendZerosIOB = suspendZerosIOB
+                newSettings.min5mCarbimpact = min5mCarbimpact
+                newSettings.autotuneISFAdjustmentFraction = autotuneISFAdjustmentFraction
+                newSettings.remainingCarbsFraction = remainingCarbsFraction
+                newSettings.remainingCarbsCap = remainingCarbsCap
+                newSettings.noisyCGMTargetMultiplier = noisyCGMTargetMultiplier
+
+                newSettings.timestamp = Date()
+                storage.save(newSettings, as: OpenAPS.Settings.preferences)
+            }
+
             if !isPumpSettingUnchanged {
                 let settings = PumpSettings(
                     insulinActionCurve: insulinActionCurve,

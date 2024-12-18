@@ -49,8 +49,8 @@ struct DecimalPickerSettings {
     var maxFat = PickerSetting(value: 250, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gram)
     var maxProtein = PickerSetting(value: 250, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gram)
     var overrideFactor = PickerSetting(value: 0.8, step: 0.05, min: 0.5, max: 1.5, type: PickerSetting.PickerSettingType.factor)
-    var fattyMealFactor = PickerSetting(value: 0.7, step: 0.05, min: 0.05, max: 1, type: PickerSetting.PickerSettingType.factor)
-    var sweetMealFactor = PickerSetting(value: 1, step: 0.05, min: 0.05, max: 2, type: PickerSetting.PickerSettingType.factor)
+    var fattyMealFactor = PickerSetting(value: 0.7, step: 0.05, min: 0.5, max: 2, type: PickerSetting.PickerSettingType.factor)
+    var sweetMealFactor = PickerSetting(value: 2, step: 0.05, min: 1, max: 3, type: PickerSetting.PickerSettingType.factor)
     var maxIOB = PickerSetting(value: 0, step: 1, min: 0, max: 20, type: PickerSetting.PickerSettingType.insulinUnit)
     var maxDailySafetyMultiplier = PickerSetting(
         value: 3,
@@ -71,9 +71,9 @@ struct DecimalPickerSettings {
     var smbDeliveryRatio = PickerSetting(value: 0.5, step: 0.05, min: 0.3, max: 0.7, type: PickerSetting.PickerSettingType.factor)
     var halfBasalExerciseTarget = PickerSetting(
         value: 160,
-        step: 5,
+        step: 1,
         min: 100,
-        max: 300,
+        max: 200,
         type: PickerSetting.PickerSettingType.glucose
     )
     var maxCOB = PickerSetting(value: 120, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gram)
@@ -119,15 +119,15 @@ struct DecimalPickerSettings {
         max: 0.4,
         type: PickerSetting.PickerSettingType.factor
     )
-    var adjustmentFactor = PickerSetting(value: 0.8, step: 0.05, min: 0.3, max: 1.5, type: PickerSetting.PickerSettingType.factor)
+    var adjustmentFactor = PickerSetting(value: 0.8, step: 0.1, min: 0.5, max: 1.5, type: PickerSetting.PickerSettingType.factor)
     var adjustmentFactorSigmoid = PickerSetting(
         value: 0.5,
-        step: 0.05,
-        min: 0.1,
+        step: 0.1,
+        min: 0.5,
         max: 2,
         type: PickerSetting.PickerSettingType.factor
     )
-    var weightPercentage = PickerSetting(value: 0.35, step: 0.05, min: 0.05, max: 1, type: PickerSetting.PickerSettingType.factor)
+    var weightPercentage = PickerSetting(value: 0.65, step: 0.1, min: 0.1, max: 1, type: PickerSetting.PickerSettingType.factor)
     var enableSMB_high_bg_target = PickerSetting(
         value: 110,
         step: 1,
@@ -141,7 +141,7 @@ struct DecimalPickerSettings {
     var minuteInterval = PickerSetting(value: 20, step: 5, min: 5, max: 60, type: PickerSetting.PickerSettingType.minute)
     var timeCap = PickerSetting(value: 8, step: 1, min: 5, max: 12, type: PickerSetting.PickerSettingType.hour)
     var hours = PickerSetting(value: 6, step: 0.5, min: 2, max: 24, type: PickerSetting.PickerSettingType.hour)
-    var dia = PickerSetting(value: 10, step: 0.5, min: 5, max: 10, type: PickerSetting.PickerSettingType.hour)
+    var dia = PickerSetting(value: 6, step: 0.5, min: 4, max: 10, type: PickerSetting.PickerSettingType.hour)
     var maxBolus = PickerSetting(value: 10, step: 0.5, min: 1, max: 30, type: PickerSetting.PickerSettingType.insulinUnit)
     var maxBasal = PickerSetting(value: 10, step: 0.5, min: 1, max: 30, type: PickerSetting.PickerSettingType.insulinUnit)
 }

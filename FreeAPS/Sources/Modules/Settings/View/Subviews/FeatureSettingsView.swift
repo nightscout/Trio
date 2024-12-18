@@ -14,7 +14,22 @@ struct FeatureSettingsView: BaseView {
     @ObservedObject var state: Settings.StateModel
 
     @Environment(\.colorScheme) var colorScheme
-    @Environment(AppState.self) var appState
+    var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color.bgDarkBlue,
+                Color.bgDarkerDarkBlue
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
 
     var body: some View {
         Form {
@@ -46,8 +61,7 @@ struct FeatureSettingsView: BaseView {
             // )
             .listRowBackground(Color.chart)
         }
-        .scrollContentBackground(.hidden)
-        .background(appState.trioBackgroundColor(for: colorScheme))
+        .scrollContentBackground(.hidden).background(color)
         .navigationTitle("Feature Settings")
         .navigationBarTitleDisplayMode(.automatic)
     }

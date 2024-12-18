@@ -33,10 +33,6 @@ struct FreeAPSSettings: JSON, Equatable {
     var displayCalendarIOBandCOB: Bool = false
     var displayCalendarEmojis: Bool = false
     var glucoseBadge: Bool = false
-    var notificationsPump: Bool = true
-    var notificationsCgm: Bool = true
-    var notificationsCarb: Bool = true
-    var notificationsAlgorithm: Bool = true
     var glucoseNotificationsAlways: Bool = false
     var useAlarmSound: Bool = false
     var addSourceInfoToGlucoseNotifications: Bool = false
@@ -53,14 +49,14 @@ struct FreeAPSSettings: JSON, Equatable {
     var useAppleHealth: Bool = false
     var smoothGlucose: Bool = false
     var displayOnWatch: AwConfig = .BGTarget
-    var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
+    var overrideHbA1cUnit: Bool = false
     var high: Decimal = 180
     var low: Decimal = 70
     var hours: Int = 6
     var glucoseColorScheme: GlucoseColorScheme = .staticColor
     var xGridLines: Bool = true
     var yGridLines: Bool = true
-    var timeInRangeChartStyle: TimeInRangeChartStyle = .vertical
+    var oneDimensionalGraph: Bool = false
     var rulerMarks: Bool = true
     var forecastDisplayType: ForecastDisplayType = .cone
     var maxCarbs: Decimal = 250
@@ -73,7 +69,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var fattyMeals: Bool = false
     var fattyMealFactor: Decimal = 0.7
     var sweetMeals: Bool = false
-    var sweetMealFactor: Decimal = 1
+    var sweetMealFactor: Decimal = 2
     var displayPresets: Bool = true
     var useLiveActivity: Bool = false
     var lockScreenView: LockScreenView = .simple
@@ -208,22 +204,6 @@ extension FreeAPSSettings: Decodable {
             settings.delay = delay
         }
 
-        if let notificationsPump = try? container.decode(Bool.self, forKey: .notificationsPump) {
-            settings.notificationsPump = notificationsPump
-        }
-
-        if let notificationsCgm = try? container.decode(Bool.self, forKey: .notificationsCgm) {
-            settings.notificationsCgm = notificationsCgm
-        }
-
-        if let notificationsCarb = try? container.decode(Bool.self, forKey: .notificationsCarb) {
-            settings.notificationsCarb = notificationsCarb
-        }
-
-        if let notificationsAlgorithm = try? container.decode(Bool.self, forKey: .notificationsAlgorithm) {
-            settings.notificationsAlgorithm = notificationsAlgorithm
-        }
-
         if let glucoseNotificationsAlways = try? container.decode(Bool.self, forKey: .glucoseNotificationsAlways) {
             settings.glucoseNotificationsAlways = glucoseNotificationsAlways
         }
@@ -283,8 +263,8 @@ extension FreeAPSSettings: Decodable {
             settings.yGridLines = yGridLines
         }
 
-        if let timeInRangeChartStyle = try? container.decode(TimeInRangeChartStyle.self, forKey: .timeInRangeChartStyle) {
-            settings.timeInRangeChartStyle = timeInRangeChartStyle
+        if let oneDimensionalGraph = try? container.decode(Bool.self, forKey: .oneDimensionalGraph) {
+            settings.oneDimensionalGraph = oneDimensionalGraph
         }
 
         if let rulerMarks = try? container.decode(Bool.self, forKey: .rulerMarks) {
@@ -295,8 +275,8 @@ extension FreeAPSSettings: Decodable {
             settings.forecastDisplayType = forecastDisplayType
         }
 
-        if let hbA1cDisplayUnit = try? container.decode(HbA1cDisplayUnit.self, forKey: .hbA1cDisplayUnit) {
-            settings.hbA1cDisplayUnit = hbA1cDisplayUnit
+        if let overrideHbA1cUnit = try? container.decode(Bool.self, forKey: .overrideHbA1cUnit) {
+            settings.overrideHbA1cUnit = overrideHbA1cUnit
         }
 
         if let maxCarbs = try? container.decode(Decimal.self, forKey: .maxCarbs) {

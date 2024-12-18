@@ -1,12 +1,18 @@
 import AppIntents
 import Foundation
 
-struct ApplyOverridePresetIntent: AppIntent {
+@available(iOS 16.0, *) struct ApplyOverridePresetIntent: AppIntent {
     // Title of the action in the Shortcuts app
     static var title = LocalizedStringResource("Activate an override", table: "ShortcutsDetail")
 
     // Description of the action in the Shortcuts app
     static var description = IntentDescription(.init("Activate an override", table: "ShortcutsDetail"))
+
+    internal var intentRequest: OverridePresetsIntentRequest
+
+    init() {
+        intentRequest = OverridePresetsIntentRequest()
+    }
 
     @Parameter(
         title: LocalizedStringResource("Override", table: "ShortcutsDetail"),
@@ -38,7 +44,7 @@ struct ApplyOverridePresetIntent: AppIntent {
                 presetToApply = preset
             } else {
                 presetToApply = try await $preset.requestDisambiguation(
-                    among: await OverridePresetsIntentRequest().fetchAndProcessOverrides(),
+                    among: await intentRequest.fetchAndProcessOverrides(),
                     dialog: IntentDialog(LocalizedStringResource("Select override", table: "ShortcutsDetail"))
                 )
             }
@@ -55,7 +61,7 @@ struct ApplyOverridePresetIntent: AppIntent {
                 )
             }
 
-            if await OverridePresetsIntentRequest().enactOverride(presetToApply) {
+            if await intentRequest.enactOverride(presetToApply) {
                 return .result(
                     dialog: IntentDialog(
                         LocalizedStringResource(

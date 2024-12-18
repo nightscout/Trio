@@ -16,6 +16,12 @@ struct LoopView: View {
 
     let determination: [OrefDetermination]
 
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter
+    }
+
     private let rect = CGRect(x: 0, y: 0, width: 18, height: 18)
 
     var body: some View {

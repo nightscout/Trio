@@ -12,10 +12,25 @@ struct NightscoutFetchView: View {
     @State private var booleanPlaceholder: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
-    @Environment(AppState.self) var appState
+    var color: LinearGradient {
+        colorScheme == .dark ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color.bgDarkBlue,
+                Color.bgDarkerDarkBlue
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+            :
+            LinearGradient(
+                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+    }
 
     var body: some View {
-        List {
+        Form {
             SettingInputSection(
                 decimalValue: $decimalPlaceholder,
                 booleanValue: $state.isDownloadEnabled,
@@ -73,7 +88,6 @@ struct NightscoutFetchView: View {
                 }.listRowBackground(Color.tabBar)
             }
         }
-        .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
                 hintDetent: $hintDetent,
@@ -85,7 +99,6 @@ struct NightscoutFetchView: View {
         }
         .navigationTitle("Fetch & Remote")
         .navigationBarTitleDisplayMode(.automatic)
-        .scrollContentBackground(.hidden)
-        .background(appState.trioBackgroundColor(for: colorScheme))
+        .scrollContentBackground(.hidden).background(color)
     }
 }

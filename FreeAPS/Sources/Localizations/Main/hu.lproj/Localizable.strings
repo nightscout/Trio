@@ -155,7 +155,7 @@
 "Duration" = "Duration";
 
 /*  */
-"Start Temp Target" = "Átmeneti cél bekapcsolása";
+"Enact Temp Target" = "Átmeneti cél bekapcsolása";
 
 /* */
 "Target" = "Cél";
@@ -360,7 +360,7 @@ Enact a temp Basal or a temp target */
 "Remote Control" = "Távirányítás";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Glucose Targets\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "\nMost kérlek alaposan nézd át a beállításokat:\n\n* Bázis Ceállítások\n * Szénhidrát Arány\n * Cukorszint Célpont\n * Inzulin Érzékenység\n * DIA\n\n Trio beállítások > Konfiguráció.\n\nHelytelen vagy rossz beállításoknak halálos következményei lehetnek.";
+"\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "\nMost kérlek alaposan nézd át a beállításokat:\n\n* Bázis Ceállítások\n * Szénhidrát Arány\n * Cukorszint Célpont\n * Inzulin Érzékenység\n * DIA\n\n Trio beállítások > Konfiguráció.\n\nHelytelen vagy rossz beállításoknak halálos következményei lehetnek.";
 
 /* Profile Import Alert */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Ez átállítja valamely, vagy az összes pumpa beállítását. Biztos vagy benne, hogy szeretnéd importálni a beállításokat a Nightscout-ból?";

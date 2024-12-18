@@ -60,7 +60,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         key: "timestamp",
                         ascending: false,
                         batchSize: 50
-                    ) as? [PumpEventStored] ?? []
+                    )
 
                     switch event.type {
                     case .bolus:

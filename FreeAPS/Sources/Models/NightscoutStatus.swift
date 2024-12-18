@@ -24,7 +24,6 @@ struct NSPumpStatus: JSON {
 struct Uploader: JSON {
     let batteryVoltage: Decimal?
     let battery: Int
-    let isCharging: Bool?
 }
 
 struct NightscoutTimevalue: JSON {

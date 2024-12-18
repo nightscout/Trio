@@ -648,6 +648,15 @@ extension BaseDeviceDataManager: AlertObserver {
     }
 
     private func ackAlert(alert: AlertEntry) {
+        let typeMessage: MessageType
+        let alertUp = alert.alertIdentifier.uppercased()
+        if alertUp.contains("FAULT") || alertUp.contains("ERROR") {
+            typeMessage = .errorPump
+        } else {
+            typeMessage = .warning
+        }
+
+        let messageCont = MessageContent(content: alert.contentBody ?? "Unknown", type: typeMessage)
         let alertIssueDate = alert.issuedDate
 
         processQueue.async {
@@ -667,6 +676,7 @@ extension BaseDeviceDataManager: AlertObserver {
             }
 
             self.pumpManager?.acknowledgeAlert(alertIdentifier: alert.alertIdentifier) { error in
+                self.router.alertMessage.send(messageCont)
                 if let error = error {
                     self.alertHistoryStorage.ackAlert(alertIssueDate, error.localizedDescription)
                     debug(.deviceManager, "acknowledge not succeeded with error \(error.localizedDescription)")

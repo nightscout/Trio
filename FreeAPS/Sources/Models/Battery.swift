@@ -10,6 +10,4 @@ struct Battery: JSON {
 enum BatteryState: String, JSON {
     case normal
     case low
-    case unknown
-    case error
 }

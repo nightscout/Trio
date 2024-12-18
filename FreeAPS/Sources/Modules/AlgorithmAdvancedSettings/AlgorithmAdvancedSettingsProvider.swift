@@ -12,16 +12,7 @@ extension AlgorithmAdvancedSettings {
         func settings() -> PumpSettings {
             storage.retrieve(OpenAPS.Settings.settings, as: PumpSettings.self)
                 ?? PumpSettings(from: OpenAPS.defaults(for: OpenAPS.Settings.settings))
-                ?? PumpSettings(insulinActionCurve: 10.0, maxBolus: 10, maxBasal: 2)
-        }
-
-        func savePreferences(_ preferences: Preferences) {
-            storage.save(preferences, as: OpenAPS.Settings.preferences)
-            processQueue.async {
-                self.broadcaster.notify(PreferencesObserver.self, on: self.processQueue) {
-                    $0.preferencesDidChange(preferences)
-                }
-            }
+                ?? PumpSettings(insulinActionCurve: 6.0, maxBolus: 10, maxBasal: 2)
         }
 
         func save(settings: PumpSettings) -> AnyPublisher<Void, Error> {

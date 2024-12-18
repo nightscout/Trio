@@ -16,7 +16,22 @@ extension PumpConfig {
         @State var showPumpSelection: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
-        @Environment(AppState.self) var appState
+        var color: LinearGradient {
+            colorScheme == .dark ? LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.bgDarkBlue,
+                    Color.bgDarkerDarkBlue
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+                :
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+        }
 
         var body: some View {
             NavigationView {
@@ -91,7 +106,7 @@ extension PumpConfig {
                     .padding(.top)
                     .listRowBackground(Color.chart)
                 }
-                .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
+                .scrollContentBackground(.hidden).background(color)
                 .onAppear(perform: configureView)
                 .navigationTitle("Insulin Pump")
                 .navigationBarTitleDisplayMode(.automatic)

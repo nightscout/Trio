@@ -58,19 +58,4 @@ class BaseStateModel<Provider>: StateModel, Injectable where Provider: FreeAPS.P
             }
             .store(in: &lifetime)
     }
-
-    func subscribePreferencesSetting<T: Equatable, U: Publisher>(
-        _ keyPath: WritableKeyPath<Preferences, T>,
-        on preferencesPublisher: U, initial: (T) -> Void, map: ((T) -> (T))? = nil, didSet: ((T) -> Void)? = nil
-    ) where U.Output == T, U.Failure == Never {
-        initial(settingsManager.preferences[keyPath: keyPath])
-        preferencesPublisher
-            .removeDuplicates()
-            .map(map ?? { $0 })
-            .sink { [weak self] value in
-                self?.settingsManager.preferences[keyPath: keyPath] = value
-                didSet?(value)
-            }
-            .store(in: &lifetime)
-    }
 }

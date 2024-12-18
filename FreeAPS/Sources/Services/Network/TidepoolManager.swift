@@ -66,6 +66,8 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
             .store(in: &subscriptions)
 
         registerHandlers()
+
+        subscribe()
     }
 
     /// Loads the Tidepool service from saved state
@@ -132,6 +134,10 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         }.store(in: &subscriptions)
     }
 
+    private func subscribe() {
+        broadcaster.register(TempTargetsObserver.self, observer: self)
+    }
+
     func sourceInfo() -> [String: Any]? {
         nil
     }
@@ -144,6 +150,10 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
             await uploadGlucose()
         }
     }
+}
+
+extension BaseTidepoolManager: TempTargetsObserver {
+    func tempTargetsDidUpdate(_: [TempTarget]) {}
 }
 
 extension BaseTidepoolManager: ServiceDelegate {

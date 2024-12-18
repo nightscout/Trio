@@ -18,7 +18,6 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    @Environment(AppState.self) var appState
 
     private var color: LinearGradient {
         colorScheme == .dark ? LinearGradient(
@@ -121,8 +120,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
             Spacer()
         }
         .padding()
-        .scrollContentBackground(.hidden)
-        .background(appState.trioBackgroundColor(for: colorScheme))
+        .scrollContentBackground(.hidden).background(color)
         .navigationTitle("Widget Configuration")
         .navigationBarTitleDisplayMode(.automatic)
         .onAppear {

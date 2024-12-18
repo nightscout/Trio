@@ -313,8 +313,8 @@ extension CoreDataStack {
         propertiesToFetch: [String]? = nil,
         callingFunction: String = #function,
         callingClass: String = #fileID
-    ) -> [Any] {
-        let request = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: type))
+    ) -> [T] {
+        let request = NSFetchRequest<T>(entityName: String(describing: type))
         request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
         request.predicate = predicate
         if let limit = fetchLimit {
@@ -323,9 +323,9 @@ extension CoreDataStack {
         if let batchSize = batchSize {
             request.fetchBatchSize = batchSize
         }
-        if let propertiesToFetch = propertiesToFetch {
-            request.propertiesToFetch = propertiesToFetch
-            request.resultType = .dictionaryResultType
+        if let propertiesTofetch = propertiesToFetch {
+            request.propertiesToFetch = propertiesTofetch
+            request.resultType = .managedObjectResultType
         } else {
             request.resultType = .managedObjectResultType
         }
@@ -333,22 +333,23 @@ extension CoreDataStack {
         context.name = "fetchContext"
         context.transactionAuthor = "fetchEntities"
 
+        var result: [T]?
+
         /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
-        return context.performAndWait {
+        context.performAndWait {
             do {
-                if propertiesToFetch != nil {
-                    return try context.fetch(request) as? [[String: Any]] ?? []
-                } else {
-                    return try context.fetch(request) as? [T] ?? []
-                }
+//                debugPrint(
+//                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on Thread: \(Thread.current)"
+//                )
+                result = try context.fetch(request)
             } catch let error as NSError {
                 debugPrint(
                     "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on Thread: \(Thread.current)"
                 )
-
-                return []
             }
         }
+
+        return result ?? []
     }
 
     // Fetch Async
@@ -385,6 +386,9 @@ extension CoreDataStack {
 
         return await context.perform {
             do {
+//                debugPrint(
+//                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on Thread: \(Thread.current)"
+//                )
                 if propertiesToFetch != nil {
                     return try context.fetch(request) as? [[String: Any]] ?? []
                 } else {

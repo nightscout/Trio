@@ -83,7 +83,7 @@ extension Screen {
         case .targetsEditor:
             TargetsEditor.RootView(resolver: resolver)
         case .bolus:
-            Treatments.RootView(resolver: resolver)
+            Bolus.RootView(resolver: resolver)
         case .manualTempBasal:
             ManualTempBasal.RootView(resolver: resolver)
         case .autotuneConfig:
@@ -103,7 +103,7 @@ extension Screen {
         case .iconConfig:
             IconConfig.RootView(resolver: resolver)
         case .overrideConfig:
-            Adjustments.RootView(resolver: resolver)
+            OverrideConfig.RootView(resolver: resolver)
         case .snooze:
             Snooze.RootView(resolver: resolver)
         case .watch:
