@@ -207,28 +207,26 @@ extension MealSettings {
                                 )
                             }
                         }
-                        VStack(alignment: .center, spacing: 5) {
+                        VStack(alignment: .leading, spacing: 5) {
                             Text("Fat Conversion").bold()
                             Text("𝑭 = fat(g) × 90%")
                         }
-                        VStack(alignment: .center, spacing: 5) {
+                        VStack(alignment: .leading, spacing: 5) {
                             Text("Protein Conversion").bold()
                             Text("𝑷 = protein(g) × 40%")
                         }
-                        VStack(alignment: .center, spacing: 5) {
+                        VStack(alignment: .leading, spacing: 5) {
                             Text("FPU Conversion").bold()
                             Text("𝑭 + 𝑷 = g CHO")
                         }
-                        VStack(spacing: 5) {
+                        VStack(alignment: .leading, spacing: 5) {
                             Text(
                                 "You can personalize the conversion calculation by adjusting the following settings that will appear when this option is enabled:"
                             )
-                            VStack(alignment: .leading) {
-                                Text("• Fat and Protein Delay")
-                                Text("• Maximum Duration")
-                                Text("• Spread Interval")
-                                Text("• Fat and Protein Percentage")
-                            }
+                            Text("• Fat and Protein Delay")
+                            Text("• Maximum Duration")
+                            Text("• Spread Interval")
+                            Text("• Fat and Protein Percentage")
                         }
                     },
                     headerText: "Fat and Protein"
@@ -347,7 +345,7 @@ extension MealSettings {
                                     Text("(Fat × 180%) + (Protein x 80%)")
                                 }
                                 Text(
-                                    "Tip: You may find that your normal carb ratio needs to increase to a larger number when you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 50% to ease"
+                                    "Tip: You may find that your normal carb ratio needs to increase to a larger number when you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 50%."
                                 )
                             }
                         }
