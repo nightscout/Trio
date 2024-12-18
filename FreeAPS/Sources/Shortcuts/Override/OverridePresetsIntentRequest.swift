@@ -80,11 +80,11 @@ import UIKit
     @MainActor func enactOverride(_ preset: OverridePreset) async -> Bool {
         // Start background task
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-        backgroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "Override Upload") {
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Override Upload") {
             guard backgroundTaskID != .invalid else { return }
             Task {
                 // End background task when the time is about to expire
-                await UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                UIApplication.shared.endBackgroundTask(backgroundTaskID)
             }
             backgroundTaskID = .invalid
         }
@@ -93,7 +93,7 @@ import UIKit
         defer {
             if backgroundTaskID != .invalid {
                 Task {
-                    await UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
                 }
                 backgroundTaskID = .invalid
             }
@@ -147,11 +147,11 @@ import UIKit
 
         if shouldStartBackgroundTask {
             // Start background task
-            backgroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "Override Cancel") {
+            backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Override Cancel") {
                 guard backgroundTaskID != .invalid else { return }
                 Task {
                     // End background task when the time is about to expire
-                    await UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
                 }
                 backgroundTaskID = .invalid
             }
@@ -161,7 +161,7 @@ import UIKit
         defer {
             if shouldStartBackgroundTask, backgroundTaskID != .invalid {
                 Task {
-                    await UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
                 }
                 backgroundTaskID = .invalid
             }

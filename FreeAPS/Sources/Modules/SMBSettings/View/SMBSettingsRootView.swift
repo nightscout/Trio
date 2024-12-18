@@ -4,7 +4,7 @@ import Swinject
 extension SMBSettings {
     struct RootView: BaseView {
         let resolver: Resolver
-        @State var state = StateModel()
+        @StateObject var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: AnyView?
@@ -14,23 +14,7 @@ extension SMBSettings {
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
-
-        private var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         var body: some View {
             List {
@@ -100,12 +84,12 @@ extension SMBSettings {
                         units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB With Temptarget", comment: "Enable SMB With Temptarget"),
-                        miniHint: "Allow SMB when a manual Temporary Target is set under \(state.units == .mgdL ? "100" : 100.formattedAsMmol ?? "100") \(state.units.rawValue).",
+                        miniHint: "Allow SMB when a manual Temporary Target is set under \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue).",
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
-                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) at times when a manual Temporary Target under \(state.units == .mgdL ? "100" : 100.formattedAsMmol ?? "100") \(state.units.rawValue) is set."
+                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) at times when a manual Temporary Target under \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set."
                             )
                             Text(
                                 "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
@@ -189,12 +173,12 @@ extension SMBSettings {
                         "Allow SMB With High Temptarget",
                         comment: "Allow SMB With High Temptarget"
                     ),
-                    miniHint: "Allow SMB when a manual Temporary Target is set greater than \(state.units == .mgdL ? "100" : 100.formattedAsMmol ?? "100") \(state.units.rawValue).",
+                    miniHint: "Allow SMB when a manual Temporary Target is set greater than \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue).",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when a manual Temporary Target above \(state.units == .mgdL ? "100" : 100.formattedAsMmol ?? "100") \(state.units.rawValue) is set."
+                            "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when a manual Temporary Target above \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set."
                         )
                         Text(
                             "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
@@ -251,11 +235,9 @@ extension SMBSettings {
                     label: NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes"),
                     miniHint: "Limits the size of a single Super Micro Bolus (SMB) dose.",
                     verboseHint: VStack(spacing: 10) {
-                        VStack(alignment: .leading, spacing: 1) {
+                        VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 30 minutes").bold()
                             Text("(50% current basal rate)").bold()
-                        }
-                        VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "This is a limit on the size of a single SMB. One SMB can only be as large as this many minutes of your current profile basal rate."
                             )
@@ -263,12 +245,14 @@ extension SMBSettings {
                                 "To calculate the maximum SMB allowed based on this setting, use the following formula:"
                             )
                         }
-                        VStack(alignment: .center, spacing: 5) {
+
+                        VStack(alignment: .center, spacing: 10) {
                             Text(
                                 "(𝒳 = Max SMB Basal Minutes)"
                             )
                             Text("(𝒳 ÷ 60) × current basal rate")
                         }
+
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Warning: Increasing this value above 90 minutes may impact Trio's ability to effectively zero temp and prevent lows."
@@ -398,6 +382,7 @@ extension SMBSettings {
                     }
                 )
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
@@ -407,13 +392,10 @@ extension SMBSettings {
                     sheetTitle: "Help"
                 )
             }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
             .navigationTitle("SMB Settings")
             .navigationBarTitleDisplayMode(.automatic)
-            .onDisappear {
-                state.saveIfChanged()
-            }
         }
     }
 }

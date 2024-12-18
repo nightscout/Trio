@@ -5,22 +5,7 @@ struct NightscoutConnectView: View {
     @State private var portFormatter: NumberFormatter
 
     @Environment(\.colorScheme) var colorScheme
-    var color: LinearGradient {
-        colorScheme == .dark ? LinearGradient(
-            gradient: Gradient(colors: [
-                Color.bgDarkBlue,
-                Color.bgDarkerDarkBlue
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        )
-            :
-            LinearGradient(
-                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-    }
+    @Environment(AppState.self) var appState
 
     init(state: NightscoutConfig.StateModel) {
         self.state = state
@@ -30,7 +15,7 @@ struct NightscoutConnectView: View {
     }
 
     var body: some View {
-        Form {
+        List {
             Section(
                 header: Text("Connect to Nightscout"),
                 content: {
@@ -105,8 +90,10 @@ struct NightscoutConnectView: View {
 //                }
 //            } header: { Text("Local glucose source") }.listRowBackground(Color.chart)
         }
+        .listSectionSpacing(sectionSpacing)
         .navigationTitle("Connect")
         .navigationBarTitleDisplayMode(.automatic)
-        .scrollContentBackground(.hidden).background(color)
+        .scrollContentBackground(.hidden)
+        .background(appState.trioBackgroundColor(for: colorScheme))
     }
 }

@@ -14,23 +14,7 @@ extension UnitsLimitsSettings {
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
-
-        private var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         var body: some View {
             List {
@@ -149,6 +133,7 @@ extension UnitsLimitsSettings {
                     }
                 )
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
@@ -158,7 +143,7 @@ extension UnitsLimitsSettings {
                     sheetTitle: "Help"
                 )
             }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
             .navigationTitle("General")
             .navigationBarTitleDisplayMode(.automatic)

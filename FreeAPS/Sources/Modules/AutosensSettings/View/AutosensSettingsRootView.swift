@@ -4,7 +4,7 @@ import Swinject
 extension AutosensSettings {
     struct RootView: BaseView {
         let resolver: Resolver
-        @State var state = StateModel()
+        @StateObject var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: AnyView?
@@ -14,23 +14,7 @@ extension AutosensSettings {
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
-
-        private var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         var body: some View {
             List {
@@ -53,7 +37,7 @@ extension AutosensSettings {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 120%").bold()
                         Text(
-                            "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, or Sigmoid Formula."
+                            "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
                         )
                         Text(
                             "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
@@ -84,7 +68,7 @@ extension AutosensSettings {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 80%").bold()
                         Text(
-                            "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, or Sigmoid Formula."
+                            "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
                         )
                         Text(
                             "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
@@ -127,6 +111,7 @@ extension AutosensSettings {
                     }
                 )
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
@@ -136,13 +121,10 @@ extension AutosensSettings {
                     sheetTitle: "Help"
                 )
             }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
             .navigationTitle("Autosens")
             .navigationBarTitleDisplayMode(.automatic)
-            .onDisappear {
-                state.saveIfChanged()
-            }
         }
     }
 }

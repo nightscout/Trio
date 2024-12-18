@@ -67,7 +67,7 @@ enum SettingItems {
         SettingItem(title: "ISF", view: .isfEditor, path: ["Therapy Settings"]),
         SettingItem(title: "Carb Ratios", view: .crEditor, path: ["Therapy Settings"]),
         SettingItem(title: "CR", view: .crEditor, path: ["Therapy Settings"]),
-        SettingItem(title: "Target Glucose", view: .targetsEditor, path: ["Therapy Settings"])
+        SettingItem(title: "Glucose Targets", view: .targetsEditor, path: ["Therapy Settings"])
     ]
 
     static let algorithmItems = [
@@ -208,10 +208,15 @@ enum SettingItems {
     ]
 
     static let notificationItems = [
+        SettingItem(title: "Manage iOS Preferences", view: .notificationSettings),
         SettingItem(
-            title: "Glucose Notifications",
+            title: "Trio Notifications",
             view: .glucoseNotificationSettings,
             searchContents: [
+                "Always Notify Pump",
+                "Always Notify CGM",
+                "Always Notify Carb",
+                "Always Notify Algorithm",
                 "Show Glucose App Badge",
                 "Always Notify Glucose",
                 "Play Alarm Sound",
@@ -219,7 +224,7 @@ enum SettingItems {
                 "Low Glucose Alarm Limit",
                 "High Glucose Alarm Limit"
             ],
-            path: ["Notifications", "Glucose Notifications"]
+            path: ["Notifications", "Trio Notifications"] // Glucose
         ),
         SettingItem(
             title: "Live Activity",

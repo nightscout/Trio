@@ -23,23 +23,7 @@ extension LiveActivitySettings {
         }()
 
         @Environment(\.colorScheme) var colorScheme
-
-        private var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         var body: some View {
             List {
@@ -170,6 +154,7 @@ extension LiveActivitySettings {
                     }
                 }
             }
+            .listSectionSpacing(sectionSpacing)
             .onReceive(resolver.resolve(LiveActivityBridge.self)!.$systemEnabled, perform: {
                 self.systemLiveActivitySetting = $0
             })
@@ -182,7 +167,7 @@ extension LiveActivitySettings {
                     sheetTitle: "Help"
                 )
             }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
             .navigationTitle("Live Activity")
             .navigationBarTitleDisplayMode(.automatic)

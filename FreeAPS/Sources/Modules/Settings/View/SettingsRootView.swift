@@ -21,30 +21,14 @@ extension Settings {
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
-
-        private var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         private var filteredItems: [FilteredSettingItem] {
             SettingItems.filteredItems(searchText: searchText)
         }
 
         var body: some View {
-            Form {
+            List {
                 if searchText.isEmpty {
                     let buildDetails = BuildDetails.default
 
@@ -60,6 +44,7 @@ extension Settings {
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
                                         .frame(width: 50, height: 50)
+                                        .cornerRadius(10)
                                         .padding(.trailing, 10)
                                     VStack(alignment: .leading) {
                                         Text("Trio v\(versionNumber) (\(buildNumber))")
@@ -303,42 +288,42 @@ extension Settings {
 //                        }
 //                    }
 //                }.listRowBackground(Color.chart)
-
-            }.scrollContentBackground(.hidden).background(color)
-                .sheet(isPresented: $shouldDisplayHint) {
-                    SettingInputHintView(
-                        hintDetent: $hintDetent,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                        sheetTitle: "Help"
+            }
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
+            .sheet(isPresented: $shouldDisplayHint) {
+                SettingInputHintView(
+                    hintDetent: $hintDetent,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    hintLabel: hintLabel ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                    sheetTitle: "Help"
+                )
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ShareSheet(activityItems: state.logItems())
+            }
+            .onAppear(perform: configureView)
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.automatic)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(
+                        action: {
+                            if let url = URL(string: "https://triodocs.org/") {
+                                UIApplication.shared.open(url)
+                            }
+                        },
+                        label: {
+                            HStack {
+                                Text("Trio Docs")
+                                Image(systemName: "questionmark.circle")
+                            }
+                        }
                     )
                 }
-                .sheet(isPresented: $showShareSheet) {
-                    ShareSheet(activityItems: state.logItems())
-                }
-                .onAppear(perform: configureView)
-                .navigationTitle("Settings")
-                .navigationBarTitleDisplayMode(.automatic)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(
-                            action: {
-                                if let url = URL(string: "https://triodocs.org/") {
-                                    UIApplication.shared.open(url)
-                                }
-                            },
-                            label: {
-                                HStack {
-                                    Text("Trio Docs")
-                                    Image(systemName: "questionmark.circle")
-                                }
-                            }
-                        )
-                    }
-                }
-                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-                .screenNavigation(self)
+            }
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
+            .screenNavigation(self)
         }
     }
 }

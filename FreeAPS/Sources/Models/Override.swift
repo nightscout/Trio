@@ -16,7 +16,7 @@ struct Override {
     let isfAndCr: Bool
     let isf: Bool
     let cr: Bool
-    let smbIsAlwaysOff: Bool
+    let smbIsScheduledOff: Bool
     let start: Decimal
     let end: Decimal
     let smbMinutes: Decimal
