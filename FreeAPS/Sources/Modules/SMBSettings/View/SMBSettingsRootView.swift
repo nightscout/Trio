@@ -236,19 +236,22 @@ extension SMBSettings {
                     miniHint: "Limits the size of a single Super Micro Bolus (SMB) dose.",
                     verboseHint: VStack(spacing: 10) {
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("Default: 30 minutes").bold()
-                            Text("(50% current basal rate)").bold()
-                            Text(
-                                "This is a limit on the size of a single SMB. One SMB can only be as large as this many minutes of your current profile basal rate."
-                            )
-                            Text(
-                                "To calculate the maximum SMB allowed based on this setting, use the following formula:"
-                            )
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("Default: 30 minutes").bold()
+                                Text("(50% current basal rate)").bold()
+                            }
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(
+                                    "This is a limit on the size of a single SMB. One SMB can only be as large as this many minutes of your current profile basal rate."
+                                )
+                                Text(
+                                    "To calculate the maximum SMB allowed based on this setting, use the following formula:"
+                                )
+                            }
                         }
-
-                        VStack(alignment: .center, spacing: 10) {
+                        VStack(alignment: .center, spacing: 5) {
                             Text(
-                                "(𝒳 = Max SMB Basal Minutes)"
+                                "𝒳 = Max SMB Basal Minutes"
                             )
                             Text("(𝒳 ÷ 60) × current basal rate")
                         }
@@ -257,7 +260,7 @@ extension SMBSettings {
                             Text(
                                 "Warning: Increasing this value above 90 minutes may impact Trio's ability to effectively zero temp and prevent lows."
                             ).bold()
-                            Text("Note: SMBs must be enabled to use this limit")
+                            Text("Note: SMBs must be enabled to use this limit.")
                         }
                     }
                 )
@@ -278,17 +281,19 @@ extension SMBSettings {
                     label: NSLocalizedString("Max UAM Basal Minutes", comment: "Max UAM Basal Minutes"),
                     miniHint: "Limits the size of a single Unannounced Meal (UAM) SMB dose.",
                     verboseHint: VStack(spacing: 10) {
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("Default: 30 minutes").bold()
-                            Text("(50% current basal rate)").bold()
-                        }
                         VStack(alignment: .leading, spacing: 10) {
-                            Text(
-                                "This is a limit on the size of a single UAM SMB. One UAM SMB can only be as large as this many minutes of your current profile basal rate."
-                            )
-                            Text(
-                                "To calculate the maximum UAM SMB allowed based on this setting, use the following formula"
-                            )
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("Default: 30 minutes").bold()
+                                Text("(50% current basal rate)").bold()
+                            }
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(
+                                    "This is a limit on the size of a single UAM SMB. One UAM SMB can only be as large as this many minutes of your current profile basal rate."
+                                )
+                                Text(
+                                    "To calculate the maximum UAM SMB allowed based on this setting, use the following formula:"
+                                )
+                            }
                         }
                         VStack(alignment: .center, spacing: 5) {
                             Text(
@@ -300,7 +305,7 @@ extension SMBSettings {
                             Text(
                                 "Warning: Increasing this value above 90 minutes may impact Trio's ability to effectively zero temp and prevent lows."
                             ).bold()
-                            Text("Note: UAM SMBs must be enabled to use this limit")
+                            Text("Note: UAM SMBs must be enabled to use this limit.")
                         }
                     }
                 )
@@ -354,7 +359,7 @@ extension SMBSettings {
                         Text(
                             "Due to SMBs occurring every 5 minutes, it is important to set this value to a reasonable level that allows Trio to safely zero temp should dosing needs suddenly change. Increase this value with caution."
                         )
-                        Text("Note: Limited to a range of 30 - 70%")
+                        Text("Note: Allowed range is 30 - 70%")
                     }
                 )
 
