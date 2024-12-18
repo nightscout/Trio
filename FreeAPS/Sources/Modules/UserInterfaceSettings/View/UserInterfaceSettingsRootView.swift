@@ -69,14 +69,19 @@ extension UserInterfaceSettings {
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 10) {
                                                     Text(
-                                                        "Set the app color scheme using the following options:"
+                                                        "Set the app color scheme. Descriptions of each option found below."
                                                     )
-                                                    VStack(alignment: .leading, spacing: 10) {
-                                                        Text(
-                                                            "System Default: Follows the phone's current color scheme setting at that time"
-                                                        )
-                                                        Text("Light: Always in Light mode")
-                                                        Text("Dark: Always in Dark mode")
+                                                    VStack(alignment: .leading, spacing: 5) {
+                                                        Text("System Default:").bold()
+                                                        Text("Follows the phone's current color scheme setting at that time.")
+                                                    }
+                                                    VStack(alignment: .leading, spacing: 5) {
+                                                        Text("Light:").bold()
+                                                        Text("Always in Light mode")
+                                                    }
+                                                    VStack(alignment: .leading, spacing: 5) {
+                                                        Text("Dark:").bold()
+                                                        Text("Always in Dark mode")
                                                     }
                                                 }
                                             )
@@ -117,16 +122,24 @@ extension UserInterfaceSettings {
                                     hintLabel = "Glucose Color Scheme"
                                     selectedVerboseHint =
                                         AnyView(
-                                            VStack(spacing: 10) {
+                                            VStack(alignment: .leading, spacing: 10) {
                                                 Text(
-                                                    "Set the color scheme for glucose readings on the main glucose graph, live activities, and bolus calculator using the following options:"
+                                                    "Set the color scheme for glucose readings on the main glucose graph, live activities, and bolus calculator. Descriptions for each option found below."
                                                 )
-                                                VStack {
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Static:").bold()
+                                                    Text("Red = Below-Range")
+                                                    Text("Green = In-Range")
+                                                    Text("Yellow = Above-Range")
+                                                }
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Dynamic:").bold()
+                                                    Text("Green = At Target")
                                                     Text(
-                                                        "Static: Below-Range Target readings will be in RED, In-Range will be GREEN, Above-Range will be YELLOW."
+                                                        "Gradient Red = As readings approach and exceed below target, they gradually become more red."
                                                     )
                                                     Text(
-                                                        "Dynamic: Readings on Target will be GREEN. As readings approach and exceed below target, they become more RED. As readings approach and exceed above targer, they become more PURPLE."
+                                                        "Gradient Purple = As readings approach and exceed above target, they become more purple."
                                                     )
                                                 }
                                             }
@@ -288,9 +301,9 @@ extension UserInterfaceSettings {
                                                 VStack(alignment: .leading, spacing: 10) {
                                                     Text(
                                                         "Default values are based on internationally accepted Time in Range values of \(state.units == .mgdL ? "70" : 70.formattedAsMmolL)-\(state.units == .mgdL ? "180" : 180.formattedAsMmolL) \(state.units.rawValue)."
-                                                    )
+                                                    ).bold()
                                                     Text(
-                                                        "Set the values used in the main screen glucose graph and to determine Time in Range for Statistics."
+                                                        "Adjust these values if you would like the statistics to reflect different values than the internationally accepted Time In Range values used as the default."
                                                     )
                                                     Text("Note: These values are not used to calculate insulin dosing.")
                                                 }
@@ -335,14 +348,20 @@ extension UserInterfaceSettings {
                                         AnyView(
                                             VStack(alignment: .leading, spacing: 10) {
                                                 Text(
-                                                    "This setting allows you to choose between the following two options for the glucose forecast:"
+                                                    "This setting allows you to choose between Cone of Uncertainty and OpenAPS Forecast Lines for the glucose forecast. Descriptions for each option found below."
                                                 )
-                                                Text(
-                                                    "Cone of Uncertainty: Uses a combined range of all possible forecasts from the OpenAPS lines and provides you with a range of possible forecasts. This option has shown to reduce confusion and stress around algorithm forecasts by providing a less concerning visual representation."
-                                                )
-                                                Text(
-                                                    "Forecast Lines: Uses the IOB, COB, UAM, and ZT forecast lines from OpenAPS. This option provides a more detailed view of the algorithm's forecast, but may be more confusing for some users."
-                                                )
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Cone:").bold()
+                                                    Text(
+                                                        "Uses a combined range of all possible forecasts from the OpenAPS lines and provides you with a range of possible forecasts. This option has shown to reduce confusion and stress around algorithm forecasts by providing a less concerning visual representation."
+                                                    )
+                                                }
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Forecast Lines:").bold()
+                                                    Text(
+                                                        "Uses the IOB, COB, UAM, and ZT forecast lines from OpenAPS. This option provides a more detailed view of the algorithm's forecast, but may be more confusing for some users."
+                                                    )
+                                                }
                                             }
                                         )
                                     shouldDisplayHint.toggle()
@@ -383,14 +402,20 @@ extension UserInterfaceSettings {
                                         AnyView(
                                             VStack(alignment: .leading, spacing: 10) {
                                                 Text(
-                                                    "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph."
+                                                    "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph. Descriptions for each option found below."
                                                 )
-                                                Text(
-                                                    "Total Daily Dose: Displays the last 24 hours of total insulin administered, both basal and bolus."
-                                                )
-                                                Text(
-                                                    "Total Insulin in Scope: Displays the total insulin administered since midnight, both basal and bolus."
-                                                )
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Total Daily Dose:").bold()
+                                                    Text(
+                                                        "Displays the last 24 hours of total insulin administered, both basal and bolus."
+                                                    )
+                                                }
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Total Insulin in Scope:").bold()
+                                                    Text(
+                                                        "Displays the total insulin administered since midnight, both basal and bolus."
+                                                    )
+                                                }
                                             }
                                         )
                                     shouldDisplayHint.toggle()
@@ -505,7 +530,7 @@ extension UserInterfaceSettings {
                     conditionalLabel: "Carbs Required Threshold",
                     miniHint: "Show carbs required as a notification badge on the home screen.",
                     verboseHint: Text(
-                        "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon."
+                        "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number."
                     ),
                     headerText: "Carbs Required Badge"
                 )
