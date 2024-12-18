@@ -102,7 +102,7 @@ extension UnitsLimitsSettings {
                     miniHint: "Largest basal rate allowed.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: 2.0 units").bold()
+                        Text("Default: 2 units").bold()
                         Text("The maximum basal rate allowed to be set or scheduled.")
                         Text("This applies to both automatic or manual basal rates.")
                     }
