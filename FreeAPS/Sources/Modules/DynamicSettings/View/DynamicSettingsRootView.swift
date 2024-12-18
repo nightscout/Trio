@@ -140,6 +140,9 @@ extension DynamicSettings {
                             )
                             Text("Careful tuning is essential to avoid overly aggressive insulin changes.")
                             Text("It is not recommended to set Autosens Max above 150% to maintain safe insulin dosing.")
+                            Text(
+                                "There has been no empirical data analysis to support the use of the Sigmoid Formula for dynamic sensitivity determination."
+                            ).bold()
                         }
                     )
 
