@@ -64,7 +64,7 @@ extension PumpConfig {
                                                             Text(
                                                                 "Current Pump Models Supported:"
                                                             )
-                                                            VStack {
+                                                            VStack(alignment: .leading) {
                                                                 Text("• Medtronic")
                                                                 Text("• Omnipod Eros")
                                                                 Text("• Omnipod Dash")
