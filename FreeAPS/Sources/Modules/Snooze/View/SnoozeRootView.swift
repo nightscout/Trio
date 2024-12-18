@@ -8,22 +8,7 @@ extension Snooze {
         @State var state = StateModel()
 
         @Environment(\.colorScheme) var colorScheme
-        var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         @State private var selectedInterval = 0
         @State private var snoozeDescription = "nothing to see here"
@@ -133,7 +118,7 @@ extension Snooze {
                     snoozeButton
                 }
             }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .navigationBarTitle("Snooze Alerts")
             .navigationBarTitleDisplayMode(.automatic)
             .navigationBarItems(trailing: Button("Close", action: state.hideModal))

@@ -4,7 +4,7 @@ import Swinject
 extension AlgorithmAdvancedSettings {
     struct RootView: BaseView {
         let resolver: Resolver
-        @State var state = StateModel()
+        @StateObject var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: AnyView?
@@ -14,23 +14,7 @@ extension AlgorithmAdvancedSettings {
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
-
-        private var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         var body: some View {
             List {
@@ -120,7 +104,7 @@ extension AlgorithmAdvancedSettings {
                     miniHint: "Number of hours insulin is active in your body.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: 6 hours").bold()
+                        Text("Default: 10 hours").bold()
                         Text(
                             "The Duration of Insulin Action (DIA) defines how long your insulin continues to lower glucose readings after a dose."
                         )
@@ -130,7 +114,6 @@ extension AlgorithmAdvancedSettings {
                         Text(
                             "Tip: It is better to use Custom Peak Time rather than adjust your Duration of Insulin Action (DIA)"
                         )
-                        Text("Warning: Decreasing this setting is not advised.").bold()
                     }
                 )
 
@@ -381,6 +364,7 @@ extension AlgorithmAdvancedSettings {
                     }
                 )
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
@@ -390,7 +374,8 @@ extension AlgorithmAdvancedSettings {
                     sheetTitle: "Help"
                 )
             }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
             .navigationTitle("Additionals")
             .navigationBarTitleDisplayMode(.automatic)
