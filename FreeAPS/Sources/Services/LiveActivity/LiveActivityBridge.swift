@@ -149,6 +149,9 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
         }
         var content: LiveActivityAttributes.ContentState?
 
+        widgetItems = UserDefaults.standard.loadLiveActivityOrderFromUserDefaults() ?? LiveActivityAttributes
+            .LiveActivityItem.defaultItems
+
         if let determination = update as? DeterminationData {
             content = LiveActivityAttributes.ContentState(
                 new: latestGlucose,

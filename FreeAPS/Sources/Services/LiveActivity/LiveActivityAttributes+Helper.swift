@@ -115,7 +115,7 @@ extension LiveActivityAttributes.ContentState {
                 overrideDate: override?.date ?? Date(),
                 overrideDuration: override?.duration ?? 0,
                 overrideTarget: override?.target ?? 0,
-                widgetItems: widgetItems ?? LiveActivityAttributes.LiveActivityItem.defaultItems
+                widgetItems: widgetItems ?? [] // set empty array here to silence compiler; this can never be nil
             )
 
         case .simple:
