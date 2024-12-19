@@ -167,12 +167,13 @@ enum ContactTrickLayout: String, JSON, CaseIterable, Identifiable, Codable {
 }
 
 enum ContactTrickLargeRing: String, JSON, CaseIterable, Identifiable, Codable {
+    // TODO: revisit rings for iob, cob and combined iob+cob with more user feedback
     var id: String { rawValue }
     case none
     case loop
-    case iob
-    case cob
-    case iobcob
+//    case iob
+//    case cob
+//    case iobcob
 
     var displayName: String {
         switch self {
@@ -180,12 +181,12 @@ enum ContactTrickLargeRing: String, JSON, CaseIterable, Identifiable, Codable {
             return NSLocalizedString("Hidden", comment: "")
         case .loop:
             return NSLocalizedString("Loop Status", comment: "")
-        case .iob:
-            return NSLocalizedString("Insulin on Board (IOB)", comment: "")
-        case .cob:
-            return NSLocalizedString("Carbs on Board (COB)", comment: "")
-        case .iobcob:
-            return NSLocalizedString("IOB + COB", comment: "")
+//        case .iob:
+//            return NSLocalizedString("Insulin on Board (IOB)", comment: "")
+//        case .cob:
+//            return NSLocalizedString("Carbs on Board (COB)", comment: "")
+//        case .iobcob:
+//            return NSLocalizedString("IOB + COB", comment: "")
         }
     }
 }

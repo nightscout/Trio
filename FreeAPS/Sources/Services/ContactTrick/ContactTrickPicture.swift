@@ -98,9 +98,12 @@ struct ContactPicture: View {
 
             if contact.bottom != .none, contact.top == .none {
                 // move things around a little bit to give more space to the bottom area
-                if contact.ring == .iob || contact.ring == .cob || contact.ring == .iobcob ||
-                    (contact.bottom == .trend && contact.ring == .loop)
-                {
+                
+                // TODO: revisit rings for iob, cob and combined iob+cob with more user feedback
+                if contact.bottom == .trend && contact.ring == .loop {
+//                if contact.ring == .iob || contact.ring == .cob || contact.ring == .iobcob ||
+//                    (contact.bottom == .trend && contact.ring == .loop)
+//                {
                     bottomHeight = bottomHeight + height * ringWidth * 2
                     bottomWidth = bottomWidth + width * ringWidth * 2
                 } else if contact.ring == .loop {
@@ -357,35 +360,35 @@ struct ContactPicture: View {
             context.addArc(center: center, radius: radius, startAngle: 0, endAngle: 2 * .pi, clockwise: false)
 
             context.strokePath()
-        case .iob:
-            if let iob = state.iob, state.maxIOB > 0.1 {
-                drawProgressBar(
-                    rect: rect,
-                    progress: Double(iob) / Double(state.maxIOB),
-                    colors: [contact.darkMode ? .blue : .blue, contact.darkMode ? .pink : .red],
-                    strokeWidth: strokeWidth
-                )
-            }
-        case .cob:
-            if let cob = state.cob, state.maxCOB > 0.01 {
-                drawProgressBar(
-                    rect: rect,
-                    progress: Double(cob) / Double(state.maxCOB),
-                    colors: [.loopYellow, .red],
-                    strokeWidth: strokeWidth
-                )
-            }
-        case .iobcob:
-            if state.maxIOB > 0.01, state.maxCOB > 0.01 {
-                drawDoubleProgressBar(
-                    rect: rect,
-                    progress1: state.iob.map { Double($0) / Double(state.maxIOB) },
-                    progress2: state.cob.map { Double($0) / Double(state.maxCOB) },
-                    colors1: [contact.darkMode ? .blue : .blue, contact.darkMode ? .pink : .red],
-                    colors2: [.loopYellow, .red],
-                    strokeWidth: strokeWidth
-                )
-            }
+//        case .iob:
+//            if let iob = state.iob, state.maxIOB > 0.1 {
+//                drawProgressBar(
+//                    rect: rect,
+//                    progress: Double(iob) / Double(state.maxIOB),
+//                    colors: [contact.darkMode ? .blue : .blue, contact.darkMode ? .pink : .red],
+//                    strokeWidth: strokeWidth
+//                )
+//            }
+//        case .cob:
+//            if let cob = state.cob, state.maxCOB > 0.01 {
+//                drawProgressBar(
+//                    rect: rect,
+//                    progress: Double(cob) / Double(state.maxCOB),
+//                    colors: [.loopYellow, .red],
+//                    strokeWidth: strokeWidth
+//                )
+//            }
+//        case .iobcob:
+//            if state.maxIOB > 0.01, state.maxCOB > 0.01 {
+//                drawDoubleProgressBar(
+//                    rect: rect,
+//                    progress1: state.iob.map { Double($0) / Double(state.maxIOB) },
+//                    progress2: state.cob.map { Double($0) / Double(state.maxCOB) },
+//                    colors1: [contact.darkMode ? .blue : .blue, contact.darkMode ? .pink : .red],
+//                    colors2: [.loopYellow, .red],
+//                    strokeWidth: strokeWidth
+//                )
+//            }
         default:
             break
         }
@@ -657,24 +660,24 @@ struct ContactPicture_Previews: PreviewProvider {
                 ))
             ).previewDisplayName("bg + trend + delta")
 
-            ContactPicturePreview(
-                contact: .constant(
-                    ContactTrickEntry(
-                        ring: .iob,
-                        primary: .glucose,
-                        bottom: .trend,
-                        fontSize: fontSize,
-                        fontWeight: .medium
-                    )
-                ),
-                state: .constant(ContactTrickState(
-                    glucose: "6.8",
-                    trend: "↗︎",
-                    iob: 6.1,
-                    iobText: "6.1",
-                    maxIOB: 8.0
-                ))
-            ).previewDisplayName("bg + trend + iob ring")
+//            ContactPicturePreview(
+//                contact: .constant(
+//                    ContactTrickEntry(
+//                        ring: .iob,
+//                        primary: .glucose,
+//                        bottom: .trend,
+//                        fontSize: fontSize,
+//                        fontWeight: .medium
+//                    )
+//                ),
+//                state: .constant(ContactTrickState(
+//                    glucose: "6.8",
+//                    trend: "↗︎",
+//                    iob: 6.1,
+//                    iobText: "6.1",
+//                    maxIOB: 8.0
+//                ))
+//            ).previewDisplayName("bg + trend + iob ring")
 
             ContactPicturePreview(
                 contact: .constant(
@@ -786,90 +789,90 @@ struct ContactPicture_Previews: PreviewProvider {
                 ))
             ).previewDisplayName("iob + cob")
 
-            ContactPicturePreview(
-                contact: .constant(
-                    ContactTrickEntry(
-                        layout: .single,
-                        ring: .iobcob,
-                        primary: .none,
-                        ringWidth: .regular,
-                        ringGap: .regular,
-                        fontSize: fontSize,
-                        fontWeight: .medium
-                    )
-                ),
-                state: .constant(ContactTrickState(
-                    iob: 1,
-                    iobText: "5.5",
-                    cob: 25,
-                    cobText: "25",
-                    maxIOB: 10,
-                    maxCOB: 120
-                ))
-            ).previewDisplayName("iobcob ring")
-
-            ContactPicturePreview(
-                contact: .constant(
-                    ContactTrickEntry(
-                        layout: .single,
-                        ring: .iobcob,
-                        primary: .none,
-                        fontSize: fontSize,
-                        fontWeight: .medium
-                    )
-                ),
-                state: .constant(ContactTrickState(
-                    iob: -0.2,
-                    iobText: "0.0",
-                    cob: 0,
-                    cobText: "0",
-                    maxIOB: 10,
-                    maxCOB: 120
-                ))
-            ).previewDisplayName("iobcob ring (0/0)")
-
-            ContactPicturePreview(
-                contact: .constant(
-                    ContactTrickEntry(
-                        layout: .single,
-                        ring: .iobcob,
-                        primary: .none,
-                        fontSize: fontSize,
-                        fontWeight: .medium
-                    )
-                ),
-                state: .constant(ContactTrickState(
-                    iob: 10,
-                    iobText: "0.0",
-                    cob: 120,
-                    cobText: "0",
-                    maxIOB: 10,
-                    maxCOB: 120
-                ))
-            ).previewDisplayName("iobcob ring (max/max)")
-
-            ContactPicturePreview(
-                contact: .constant(
-                    ContactTrickEntry(
-                        layout: .single,
-                        ring: .iobcob,
-                        primary: .glucose,
-                        bottom: .trend,
-                        fontSize: fontSize,
-                        fontWeight: .medium
-                    )
-                ),
-                state: .constant(ContactTrickState(
-                    glucose: "6.8",
-                    trend: "↗︎",
-                    iob: 5.5,
-                    iobText: "5.5",
-                    cob: 25,
-                    cobText: "25",
-                    maxIOB: 10,
-                    maxCOB: 120
-                ))
-            ).previewDisplayName("bg + trend + iobcob ring")
+//            ContactPicturePreview(
+//                contact: .constant(
+//                    ContactTrickEntry(
+//                        layout: .single,
+//                        ring: .iobcob,
+//                        primary: .none,
+//                        ringWidth: .regular,
+//                        ringGap: .regular,
+//                        fontSize: fontSize,
+//                        fontWeight: .medium
+//                    )
+//                ),
+//                state: .constant(ContactTrickState(
+//                    iob: 1,
+//                    iobText: "5.5",
+//                    cob: 25,
+//                    cobText: "25",
+//                    maxIOB: 10,
+//                    maxCOB: 120
+//                ))
+//            ).previewDisplayName("iobcob ring")
+//
+//            ContactPicturePreview(
+//                contact: .constant(
+//                    ContactTrickEntry(
+//                        layout: .single,
+//                        ring: .iobcob,
+//                        primary: .none,
+//                        fontSize: fontSize,
+//                        fontWeight: .medium
+//                    )
+//                ),
+//                state: .constant(ContactTrickState(
+//                    iob: -0.2,
+//                    iobText: "0.0",
+//                    cob: 0,
+//                    cobText: "0",
+//                    maxIOB: 10,
+//                    maxCOB: 120
+//                ))
+//            ).previewDisplayName("iobcob ring (0/0)")
+//
+//            ContactPicturePreview(
+//                contact: .constant(
+//                    ContactTrickEntry(
+//                        layout: .single,
+//                        ring: .iobcob,
+//                        primary: .none,
+//                        fontSize: fontSize,
+//                        fontWeight: .medium
+//                    )
+//                ),
+//                state: .constant(ContactTrickState(
+//                    iob: 10,
+//                    iobText: "0.0",
+//                    cob: 120,
+//                    cobText: "0",
+//                    maxIOB: 10,
+//                    maxCOB: 120
+//                ))
+//            ).previewDisplayName("iobcob ring (max/max)")
+//
+//            ContactPicturePreview(
+//                contact: .constant(
+//                    ContactTrickEntry(
+//                        layout: .single,
+//                        ring: .iobcob,
+//                        primary: .glucose,
+//                        bottom: .trend,
+//                        fontSize: fontSize,
+//                        fontWeight: .medium
+//                    )
+//                ),
+//                state: .constant(ContactTrickState(
+//                    glucose: "6.8",
+//                    trend: "↗︎",
+//                    iob: 5.5,
+//                    iobText: "5.5",
+//                    cob: 25,
+//                    cobText: "25",
+//                    maxIOB: 10,
+//                    maxCOB: 120
+//                ))
+//            ).previewDisplayName("bg + trend + iobcob ring")
         }
     }
 
