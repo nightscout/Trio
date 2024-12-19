@@ -220,12 +220,13 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
 
         state.lastLoopDate = lastDetermination?.timestamp
 
-        state.iob = lastDetermination?.iob as? Decimal
-        if let cobValue = lastDetermination?.cob {
-            state.cob = Decimal(cobValue)
-        } else {
-            state.cob = 0
-        }
+        let iobValue = lastDetermination?.iob as? Decimal ?? 0.0
+        state.iob = iobValue
+        state.iobText = Formatter.decimalFormatterWithOneFractionDigit.string(from: iobValue as NSNumber)
+
+        let cobValue = lastDetermination?.cob as? Decimal ?? 0.0
+        state.cob = cobValue
+        state.cobText = Formatter.integerFormatter.string(from: cobValue as NSNumber)
 
         if let eventualBG = settingsManager.settings.units == .mgdL ? lastDetermination?
             .eventualBG : lastDetermination?
