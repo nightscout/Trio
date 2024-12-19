@@ -220,6 +220,7 @@ extension CGM {
                 .onAppear(perform: configureView)
                 .navigationTitle("CGM")
                 .navigationBarTitleDisplayMode(.automatic)
+                .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
                 .sheet(isPresented: $shouldDisplayHint) {
                     SettingInputHintView(
                         hintDetent: $hintDetent,
@@ -229,29 +230,6 @@ extension CGM {
                         sheetTitle: "Help"
                     )
                 }
-                .sheet(isPresented: $setupCGM) {
-                    if let cgmFetchManager = state.cgmManager,
-                       let cgmManager = cgmFetchManager.cgmManager,
-                       state.cgmCurrent.type == cgmFetchManager.cgmGlucoseSourceType,
-                       state.cgmCurrent.id == cgmFetchManager.cgmGlucosePluginId
-                    {
-                        CGMSettingsView(
-                            cgmManager: cgmManager,
-                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                            unit: state.settingsManager.settings.units,
-                            completionDelegate: state
-                        )
-                    } else {
-                        CGMSetupView(
-                            CGMType: state.cgmCurrent,
-                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                            unit: state.settingsManager.settings.units,
-                            completionDelegate: state,
-                            setupDelegate: state,
-                            pluginCGMManager: self.state.pluginCGMManager
-                        )
-                    }
-                }
                 .onChange(of: setupCGM) { _, setupCGM in
                     state.setupCGM = setupCGM
                 }
@@ -259,6 +237,29 @@ extension CGM {
                     self.setupCGM = setupCGM
                 }
                 .screenNavigation(self)
+            }
+            .sheet(isPresented: $setupCGM) {
+                if let cgmFetchManager = state.cgmManager,
+                   let cgmManager = cgmFetchManager.cgmManager,
+                   state.cgmCurrent.type == cgmFetchManager.cgmGlucoseSourceType,
+                   state.cgmCurrent.id == cgmFetchManager.cgmGlucosePluginId
+                {
+                    CGMSettingsView(
+                        cgmManager: cgmManager,
+                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                        unit: state.settingsManager.settings.units,
+                        completionDelegate: state
+                    )
+                } else {
+                    CGMSetupView(
+                        CGMType: state.cgmCurrent,
+                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                        unit: state.settingsManager.settings.units,
+                        completionDelegate: state,
+                        setupDelegate: state,
+                        pluginCGMManager: self.state.pluginCGMManager
+                    )
+                }
             }
         }
     }
