@@ -23,7 +23,7 @@ struct ContactTrickDetailView: View {
                 Spacer()
                 ZStack {
                     Circle()
-                        .fill(contactTrickEntry.darkMode ? .black : .white)
+                        .fill(contactTrickEntry.hasHighContrast ? .black : .white)
                         .foregroundColor(.white)
                         .frame(width: 100, height: 100)
                     Image(uiImage: ContactPicture.getImage(contact: contactTrickEntry, state: state.state))
@@ -47,7 +47,7 @@ struct ContactTrickDetailView: View {
                             Text(layout.displayName).tag(layout)
                         }
                     }
-                    Toggle("Dark Mode", isOn: $contactTrickEntry.darkMode)
+                    Toggle("High Contrast Mode", isOn: $contactTrickEntry.hasHighContrast)
                 }.listRowBackground(Color.chart)
 
                 Section(header: Text("Display Values")) {

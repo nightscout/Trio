@@ -10,7 +10,7 @@ struct ContactTrickEntry: Hashable, Equatable, Sendable {
     var top: ContactTrickValue = .none
     var bottom: ContactTrickValue = .none
     var contactId: String? = nil
-    var darkMode: Bool = false
+    var hasHighContrast: Bool = true
     var ringWidth: RingWidth = .regular
     var ringGap: RingGap = .small
     var fontSize: FontSize = .regular
@@ -28,7 +28,7 @@ struct ContactTrickEntry: Hashable, Equatable, Sendable {
             lhs.top == rhs.top &&
             lhs.bottom == rhs.bottom &&
             lhs.contactId == rhs.contactId &&
-            lhs.darkMode == rhs.darkMode &&
+            lhs.hasHighContrast == rhs.hasHighContrast &&
             lhs.ringWidth == rhs.ringWidth &&
             lhs.ringGap == rhs.ringGap &&
             lhs.fontSize == rhs.fontSize &&

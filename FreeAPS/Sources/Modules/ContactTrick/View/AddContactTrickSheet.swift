@@ -7,7 +7,7 @@ struct AddContactTrickSheet: View {
 
     @ObservedObject var state: ContactTrick.StateModel
 
-    @State private var isDarkMode: Bool = false
+    @State private var hasHighContrast: Bool = true
     @State private var ringWidth: ContactTrickEntry.RingWidth = .regular
     @State private var ringGap: ContactTrickEntry.RingGap = .small
     @State private var layout: ContactTrickLayout = .single
@@ -30,7 +30,7 @@ struct AddContactTrickSheet: View {
             top: top,
             bottom: bottom,
             contactId: nil, // not needed for preview, gets set later in ContactTrickStateModel via ContactTrickManager
-            darkMode: isDarkMode,
+            hasHighContrast: hasHighContrast,
             ringWidth: ringWidth,
             ringGap: ringGap,
             fontSize: fontSize,
@@ -48,7 +48,7 @@ struct AddContactTrickSheet: View {
                     Spacer()
                     ZStack {
                         Circle()
-                            .fill(previewEntry.darkMode ? .black : .white)
+                            .fill(previewEntry.hasHighContrast ? .black : .white)
                             .foregroundColor(.white)
                             .frame(width: 100, height: 100)
                         Image(uiImage: ContactPicture.getImage(contact: previewEntry, state: state.state))
@@ -73,7 +73,7 @@ struct AddContactTrickSheet: View {
                                 Text(layout.displayName).tag(layout)
                             }
                         }
-                        Toggle("Dark Mode", isOn: $isDarkMode)
+                        Toggle("High Contrast Mode", isOn: $hasHighContrast)
                     }.listRowBackground(Color.chart)
 
                     // Primary Value Section

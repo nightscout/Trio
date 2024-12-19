@@ -30,7 +30,7 @@ final class BaseContactTrickStorage: ContactTrickStorage, Injectable {
             ofType: ContactTrickEntryStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.all,
-            key: "isDarkMode",
+            key: "hasHighContrast",
             ascending: false
         )
 
@@ -46,7 +46,7 @@ final class BaseContactTrickStorage: ContactTrickStorage, Injectable {
                     top: ContactTrickValue(rawValue: entry.top ?? "None") ?? .none,
                     bottom: ContactTrickValue(rawValue: entry.bottom ?? "None") ?? .none,
                     contactId: entry.contactId?.string,
-                    darkMode: entry.isDarkMode,
+                    hasHighContrast: entry.hasHighContrast,
                     ringWidth: ContactTrickEntry.RingWidth(rawValue: Int(entry.ringWidth)) ?? .regular,
                     ringGap: ContactTrickEntry.RingGap(rawValue: Int(entry.ringGap)) ?? .small,
                     fontSize: ContactTrickEntry.FontSize(rawValue: Int(entry.fontSize)) ?? .regular,
@@ -78,7 +78,7 @@ final class BaseContactTrickStorage: ContactTrickStorage, Injectable {
             newContactTrickEntry.primary = contactTrickEntry.primary.rawValue
             newContactTrickEntry.top = contactTrickEntry.top.rawValue
             newContactTrickEntry.bottom = contactTrickEntry.bottom.rawValue
-            newContactTrickEntry.isDarkMode = contactTrickEntry.darkMode
+            newContactTrickEntry.hasHighContrast = contactTrickEntry.hasHighContrast
             newContactTrickEntry.ringWidth = Int16(contactTrickEntry.ringWidth.rawValue)
             newContactTrickEntry.ringGap = Int16(contactTrickEntry.ringGap.rawValue)
             newContactTrickEntry.fontSize = Int16(contactTrickEntry.fontSize.rawValue)
@@ -118,7 +118,7 @@ final class BaseContactTrickStorage: ContactTrickStorage, Injectable {
                     existingEntry.primary = contactTrickEntry.primary.rawValue
                     existingEntry.top = contactTrickEntry.top.rawValue
                     existingEntry.bottom = contactTrickEntry.bottom.rawValue
-                    existingEntry.isDarkMode = contactTrickEntry.darkMode
+                    existingEntry.hasHighContrast = contactTrickEntry.hasHighContrast
                     existingEntry.ringWidth = Int16(contactTrickEntry.ringWidth.rawValue)
                     existingEntry.ringGap = Int16(contactTrickEntry.ringGap.rawValue)
                     existingEntry.fontSize = Int16(contactTrickEntry.fontSize.rawValue)

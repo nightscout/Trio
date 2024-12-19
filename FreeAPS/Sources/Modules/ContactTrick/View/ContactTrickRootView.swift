@@ -53,7 +53,7 @@ extension ContactTrick {
                             HStack {
                                 ZStack {
                                     Circle()
-                                        .fill(entry.darkMode ? .black : .white)
+                                        .fill(entry.hasHighContrast ? .black : .white)
                                         .foregroundColor(.white)
                                         .frame(width: 40, height: 40)
 

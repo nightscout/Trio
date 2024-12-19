@@ -22,10 +22,10 @@ struct ContactPicture: View {
         let width = 1024.0
         let height = 1024.0
         var rect = CGRect(x: 0, y: 0, width: width, height: height)
-        let textColor: Color = contact.darkMode ?
+        let textColor: Color = contact.hasHighContrast ?
             Color(red: 250 / 256, green: 250 / 256, blue: 250 / 256) :
             Color(red: 20 / 256, green: 20 / 256, blue: 20 / 256)
-        let secondaryTextColor: Color = contact.darkMode ?
+        let secondaryTextColor: Color = contact.hasHighContrast ?
             Color(red: 220 / 256, green: 220 / 256, blue: 220 / 256) :
             Color(red: 40 / 256, green: 40 / 256, blue: 40 / 256)
         let fontWeight = contact.fontWeight
@@ -98,9 +98,9 @@ struct ContactPicture: View {
 
             if contact.bottom != .none, contact.top == .none {
                 // move things around a little bit to give more space to the bottom area
-                
+
                 // TODO: revisit rings for iob, cob and combined iob+cob with more user feedback
-                if contact.bottom == .trend && contact.ring == .loop {
+                if contact.bottom == .trend, contact.ring == .loop {
 //                if contact.ring == .iob || contact.ring == .cob || contact.ring == .iobcob ||
 //                    (contact.bottom == .trend && contact.ring == .loop)
 //                {
@@ -365,7 +365,7 @@ struct ContactPicture: View {
 //                drawProgressBar(
 //                    rect: rect,
 //                    progress: Double(iob) / Double(state.maxIOB),
-//                    colors: [contact.darkMode ? .blue : .blue, contact.darkMode ? .pink : .red],
+//                    colors: [contact.hasHighContrast ? .blue : .blue, contact.hasHighContrast ? .pink : .red],
 //                    strokeWidth: strokeWidth
 //                )
 //            }
@@ -384,7 +384,7 @@ struct ContactPicture: View {
 //                    rect: rect,
 //                    progress1: state.iob.map { Double($0) / Double(state.maxIOB) },
 //                    progress2: state.cob.map { Double($0) / Double(state.maxCOB) },
-//                    colors1: [contact.darkMode ? .blue : .blue, contact.darkMode ? .pink : .red],
+//                    colors1: [contact.hasHighContrast ? .blue : .blue, contact.hasHighContrast ? .pink : .red],
 //                    colors2: [.loopYellow, .red],
 //                    strokeWidth: strokeWidth
 //                )
@@ -628,14 +628,14 @@ struct ContactPicturePreview: View {
         }
         .frame(width: 256, height: 256)
         .clipShape(Circle())
-        .preferredColorScheme($contact.wrappedValue.darkMode ? .dark : .light)
+        .preferredColorScheme($contact.wrappedValue.hasHighContrast ? .dark : .light)
     }
 }
 
 struct ContactPicture_Previews: PreviewProvider {
     struct Preview: View {
         @State var rangeIndicator: Bool = true
-        @State var darkMode: Bool = true
+        @State var hasHighContrast: Bool = true
         @State var fontSize: ContactTrickEntry.FontSize = .small
         @State var fontWeight: UIFont.Weight = .bold
         @State var fontName: String? = "AmericanTypewriter"

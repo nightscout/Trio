@@ -13,7 +13,7 @@ public extension ContactTrickEntryStored {
     @NSManaged var top: String?
     @NSManaged var bottom: String?
     @NSManaged var contactId: String?
-    @NSManaged var isDarkMode: Bool
+    @NSManaged var hasHighContrast: Bool
     @NSManaged var ringWidth: Int16
     @NSManaged var ringGap: Int16
     @NSManaged var id: UUID?
