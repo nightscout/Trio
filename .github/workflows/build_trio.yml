@@ -186,7 +186,7 @@ jobs:
   build:
     name: Build
     needs: [validate, check_alive_and_permissions, check_latest_from_upstream]
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       contents: write
     if:
@@ -198,7 +198,7 @@ jobs:
       )
     steps:
       - name: Select Xcode version
-        run: "sudo xcode-select --switch /Applications/Xcode_15.4.app/Contents/Developer"
+        run: "sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer"
       
       - name: Checkout Repo for syncing
         if: |
