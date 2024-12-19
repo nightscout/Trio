@@ -45,15 +45,13 @@ struct WatchConfigAppleWatchView: View {
                                 action: {
                                     hintLabel = "Display on Watch"
                                     selectedVerboseHint =
-                                        AnyView(VStack(alignment: .leading, spacing: 10) {
-                                            Text("Choose between the following options:")
-                                            VStack(alignment: .leading, spacing: 5) {
-                                                Text("• Heart Rate")
-                                                Text("• Glucose Target")
-                                                Text("• Steps")
-                                                Text("• ISF")
-                                                Text("• % Override")
-                                            }
+                                        AnyView(VStack(alignment: .leading, spacing: 5) {
+                                            Text("Choose between the following:")
+                                            Text("• Heart Rate")
+                                            Text("• Glucose Target")
+                                            Text("• Steps")
+                                            Text("• ISF")
+                                            Text("• % Override")
                                         })
                                     shouldDisplayHint.toggle()
                                 },
