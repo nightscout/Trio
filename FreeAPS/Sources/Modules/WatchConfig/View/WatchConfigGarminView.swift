@@ -47,7 +47,7 @@ struct WatchConfigGarminView: View {
                                     selectedVerboseHint =
                                         AnyView(
                                             Text(
-                                                "Add Garmin Device to Trio. Please look at the docs to see which device are supported."
+                                                "Add Garmin Device to Trio. Please look at the docs to see which devices are supported."
                                             )
                                         )
                                     shouldDisplayHint.toggle()
