@@ -229,7 +229,7 @@ extension DynamicSettings {
                         miniHint: "Weight of 24-hr TDD against 10-day TDD.",
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("Default: 65%").bold()
+                            Text("Default: 35%").bold()
                             Text(
                                 "This setting adjusts how much weight is given to your recent total daily insulin dose when calculating Dynamic ISF and Dynamic CR."
                             )
