@@ -105,7 +105,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
             ofType: OrefDetermination.self,
             onContext: backgroundContext,
             predicate: NSPredicate(format: "deliverAt >= %@", Date.halfHourAgo as NSDate), // fetches enacted and suggested
-            key: "timestamp",
+            key: "deliverAt",
             ascending: false,
             fetchLimit: 1
         )
@@ -224,9 +224,15 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         state.iob = iobValue
         state.iobText = Formatter.decimalFormatterWithOneFractionDigit.string(from: iobValue as NSNumber)
 
-        let cobValue = lastDetermination?.cob as? Decimal ?? 0.0
-        state.cob = cobValue
-        state.cobText = Formatter.integerFormatter.string(from: cobValue as NSNumber)
+        // we need to do it complex and unelegant, otherwise unwrapping and parsing of cob results in 0
+        if let cobValue = lastDetermination?.cob {
+            state.cob = Decimal(cobValue)
+            state.cobText = Formatter.integerFormatter.string(from: Int(cobValue) as NSNumber)
+
+        } else {
+            state.cob = 0
+            state.cobText = "0"
+        }
 
         if let eventualBG = settingsManager.settings.units == .mgdL ? lastDetermination?
             .eventualBG : lastDetermination?
