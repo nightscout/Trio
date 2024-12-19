@@ -104,7 +104,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: backgroundContext,
-            predicate: NSPredicate.enactedDetermination,
+            predicate: NSPredicate(format: "deliverAt >= %@", Date.halfHourAgo as NSDate), // fetches enacted and suggested
             key: "timestamp",
             ascending: false,
             fetchLimit: 1
