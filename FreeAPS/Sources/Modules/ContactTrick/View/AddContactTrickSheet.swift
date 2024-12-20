@@ -10,7 +10,7 @@ struct AddContactTrickSheet: View {
     @State private var hasHighContrast: Bool = true
     @State private var ringWidth: ContactTrickEntry.RingWidth = .regular
     @State private var ringGap: ContactTrickEntry.RingGap = .small
-    @State private var layout: ContactTrickLayout = .single
+    @State private var layout: ContactTrickLayout = .default
     @State private var primary: ContactTrickValue = .glucose
     @State private var top: ContactTrickValue = .none
     @State private var bottom: ContactTrickValue = .trend
@@ -72,23 +72,28 @@ struct AddContactTrickSheet: View {
                             ForEach(ContactTrickLayout.allCases, id: \.id) { layout in
                                 Text(layout.displayName).tag(layout)
                             }
-                        }
+                        }.onChange(of: layout, { oldLayout, newLayout in
+                            if oldLayout != newLayout, newLayout == .split {
+                                top = .glucose
+                            } else {
+                                top = .none
+                            }
+                        })
                         Toggle("High Contrast Mode", isOn: $hasHighContrast)
                     }.listRowBackground(Color.chart)
 
                     // Primary Value Section
                     Section(header: Text("Display Values")) {
-                        if layout == .single {
+                        Picker("Top Value", selection: $top) {
+                            ForEach(ContactTrickValue.allCases, id: \.id) { value in
+                                Text(value.displayName).tag(value)
+                            }
+                        }
+                        if layout == .default {
                             Picker("Primary", selection: $primary) {
                                 ForEach(ContactTrickValue.allCases, id: \.id) { value in
                                     Text(value.displayName).tag(value)
                                 }
-                            }
-                        }
-
-                        Picker("Top Value", selection: $top) {
-                            ForEach(ContactTrickValue.allCases, id: \.id) { value in
-                                Text(value.displayName).tag(value)
                             }
                         }
                         Picker("Bottom Value", selection: $bottom) {
@@ -124,7 +129,9 @@ struct AddContactTrickSheet: View {
                     // Font Settings Section
                     Section(header: Text("Font Settings")) {
                         fontSizePicker
-                        secondaryFontSizePicker
+                        if layout == .split {
+                            secondaryFontSizePicker
+                        }
                         fontWeightPicker
                         fontWidthPicker
                     }.listRowBackground(Color.chart)
@@ -230,7 +237,7 @@ struct AddContactTrickSheet: View {
     private var fontWidthPicker: some View {
         Picker("Font Width", selection: $fontWidth) {
             ForEach(
-                [Font.Width.standard, Font.Width.condensed, Font.Width.expanded],
+                [Font.Width.standard, Font.Width.expanded],
                 id: \.self
             ) { width in
                 Text("\(width.displayName)".capitalized).tag(width)

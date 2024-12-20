@@ -40,7 +40,7 @@ final class BaseContactTrickStorage: ContactTrickStorage, Injectable {
             return fetchedContactTrickEntries.compactMap { entry in
                 ContactTrickEntry(
                     name: entry.name ?? "No name provided",
-                    layout: ContactTrickLayout(rawValue: entry.layout ?? "Single") ?? .single,
+                    layout: ContactTrickLayout(rawValue: entry.layout ?? "Default") ?? .default,
                     ring: ContactTrickLargeRing(rawValue: entry.ring ?? "Hidden") ?? .none,
                     primary: ContactTrickValue(rawValue: entry.primary ?? "Glucose Reading") ?? .glucose,
                     top: ContactTrickValue(rawValue: entry.top ?? "None") ?? .none,

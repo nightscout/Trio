@@ -66,7 +66,7 @@ struct ContactPicture: View {
         }
 
         switch contact.layout {
-        case .single:
+        case .default:
             let showTop = contact.top != .none
             let showBottom = contact.bottom != .none
 
@@ -277,6 +277,8 @@ struct ContactPicture: View {
         let textColor: Color = switch value {
         case .cob:
             .loopYellow
+        case .iob:
+            .insulin
         case .glucose:
             dynamicColor
         default:
@@ -792,7 +794,7 @@ struct ContactPicture_Previews: PreviewProvider {
 //            ContactPicturePreview(
 //                contact: .constant(
 //                    ContactTrickEntry(
-//                        layout: .single,
+//                        layout: .default,
 //                        ring: .iobcob,
 //                        primary: .none,
 //                        ringWidth: .regular,
@@ -814,7 +816,7 @@ struct ContactPicture_Previews: PreviewProvider {
 //            ContactPicturePreview(
 //                contact: .constant(
 //                    ContactTrickEntry(
-//                        layout: .single,
+//                        layout: .default,
 //                        ring: .iobcob,
 //                        primary: .none,
 //                        fontSize: fontSize,
@@ -834,7 +836,7 @@ struct ContactPicture_Previews: PreviewProvider {
 //            ContactPicturePreview(
 //                contact: .constant(
 //                    ContactTrickEntry(
-//                        layout: .single,
+//                        layout: .default,
 //                        ring: .iobcob,
 //                        primary: .none,
 //                        fontSize: fontSize,
@@ -854,7 +856,7 @@ struct ContactPicture_Previews: PreviewProvider {
 //            ContactPicturePreview(
 //                contact: .constant(
 //                    ContactTrickEntry(
-//                        layout: .single,
+//                        layout: .default,
 //                        ring: .iobcob,
 //                        primary: .glucose,
 //                        bottom: .trend,

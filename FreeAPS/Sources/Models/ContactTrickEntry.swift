@@ -4,7 +4,7 @@ import SwiftUI
 struct ContactTrickEntry: Hashable, Equatable, Sendable {
     var id = UUID()
     var name: String = ""
-    var layout: ContactTrickLayout = .single
+    var layout: ContactTrickLayout = .default
     var ring: ContactTrickLargeRing = .none
     var primary: ContactTrickValue = .glucose
     var top: ContactTrickValue = .none
@@ -153,13 +153,13 @@ enum ContactTrickValue: String, JSON, CaseIterable, Identifiable, Codable {
 
 enum ContactTrickLayout: String, JSON, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
-    case single
+    case `default`
     case split
 
     var displayName: String {
         switch self {
-        case .single:
-            return NSLocalizedString("Single", comment: "")
+        case .default:
+            return NSLocalizedString("Default", comment: "")
         case .split:
             return NSLocalizedString("Split", comment: "")
         }

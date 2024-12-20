@@ -46,22 +46,29 @@ struct ContactTrickDetailView: View {
                         ForEach(ContactTrickLayout.allCases, id: \.id) { layout in
                             Text(layout.displayName).tag(layout)
                         }
-                    }
+                    }.onChange(of: contactTrickEntry.layout, { oldLayout, newLayout in
+                        if oldLayout != newLayout, newLayout == .split {
+                            contactTrickEntry.top = .glucose
+                        } else {
+                            contactTrickEntry.top = .none
+                        }
+                    })
+
                     Toggle("High Contrast Mode", isOn: $contactTrickEntry.hasHighContrast)
                 }.listRowBackground(Color.chart)
 
                 Section(header: Text("Display Values")) {
-                    if contactTrickEntry.layout == .single {
+                    Picker("Top Value", selection: $contactTrickEntry.top) {
+                        ForEach(ContactTrickValue.allCases, id: \.id) { value in
+                            Text(value.displayName).tag(value)
+                        }
+                    }
+
+                    if contactTrickEntry.layout == .default {
                         Picker("Primary", selection: $contactTrickEntry.primary) {
                             ForEach(ContactTrickValue.allCases, id: \.id) { value in
                                 Text(value.displayName).tag(value)
                             }
-                        }
-                    }
-
-                    Picker("Top Value", selection: $contactTrickEntry.top) {
-                        ForEach(ContactTrickValue.allCases, id: \.id) { value in
-                            Text(value.displayName).tag(value)
                         }
                     }
 
@@ -97,7 +104,9 @@ struct ContactTrickDetailView: View {
                 // Font Settings Section
                 Section(header: Text("Font Settings")) {
                     fontSizePicker
-                    secondaryFontSizePicker
+                    if contactTrickEntry.layout == .split {
+                        secondaryFontSizePicker
+                    }
                     fontWeightPicker
                     fontWidthPicker
                 }.listRowBackground(Color.chart)
@@ -206,7 +215,7 @@ struct ContactTrickDetailView: View {
     private var fontWidthPicker: some View {
         Picker("Font Width", selection: $contactTrickEntry.fontWidth) {
             ForEach(
-                [Font.Width.standard, Font.Width.condensed, Font.Width.expanded],
+                [Font.Width.standard, Font.Width.expanded],
                 id: \.self
             ) { width in
                 Text("\(width.displayName)".capitalized).tag(width)

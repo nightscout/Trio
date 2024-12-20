@@ -75,21 +75,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
     // MARK: - Core Data observation
 
     private func registerHandlers() {
-        /*
-         TODO: - Do we really need to update in both cases, i.e. when OrefDetermination entity AND GlucoseStored entity have received updates ?
-         The main use case is showing glucose values and both updates happen ~ at the same time and if a new glucose value arrives the latest Determination gets fetched with that as well. Moreover, we don't need to update on Determination updates at all if the user hasn't chosen to display anything Determination related
-         */
-//
-//        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
-//            guard let self = self else { return }
-//            Task {
-//                await self.updateContactTrickState()
-//                await self.updateContactImages()
-//            }
-//        }.store(in: &subscriptions)
-
-        // Only needed for manual glucose entries
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.updateContactTrickState()
