@@ -13,6 +13,7 @@ final class StorageAssembly: Assembly {
         container.register(GlucoseStorage.self) { r in BaseGlucoseStorage(resolver: r) }
         container.register(TempTargetsStorage.self) { r in BaseTempTargetsStorage(resolver: r) }
         container.register(CarbsStorage.self) { r in BaseCarbsStorage(resolver: r) }
+        container.register(ContactTrickStorage.self) { r in BaseContactTrickStorage(resolver: r) }
         container.register(AnnouncementsStorage.self) { r in BaseAnnouncementsStorage(resolver: r) }
         container.register(SettingsManager.self) { r in BaseSettingsManager(resolver: r) }
         container.register(Keychain.self) { _ in BaseKeychain() }
