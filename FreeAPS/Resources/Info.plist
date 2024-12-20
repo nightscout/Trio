@@ -78,6 +78,8 @@
 	<string>Calendar is used to create a new glucose events.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>For authorized acces to bolus</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Contact is used to create a Apple Watch complication</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Health App is used to store blood glucose, carbs and insulin</string>
 	<key>NSHealthUpdateUsageDescription</key>
@@ -101,6 +103,7 @@
 		<string>bluetooth-peripheral</string>
 		<string>fetch</string>
 		<string>processing</string>
+                <string>remote-notification</string>
 	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>

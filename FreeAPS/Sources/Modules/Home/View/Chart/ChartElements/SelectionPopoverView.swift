@@ -70,9 +70,7 @@ struct SelectionPopoverView: ChartContent {
             .font(.body).padding(.bottom, 5)
 
             HStack {
-                Text(units == .mgdL ? glucoseToDisplay.description : glucoseToDisplay.formattedAsMmolL)
-                    .bold()
-                    + Text(" \(units.rawValue)")
+                Text(glucoseToDisplay.description).bold() + Text(" \(units.rawValue)")
             }
             .foregroundStyle(pointMarkColor)
             .font(.body)
