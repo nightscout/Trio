@@ -69,6 +69,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var deviceDataManager: DeviceDataManager!
     @Injected() private var nightscout: NightscoutManager!
     @Injected() private var settingsManager: SettingsManager!
+    @Injected() private var tddStorage: TDDStorage!
     @Injected() private var broadcaster: Broadcaster!
     @Persisted(key: "lastAutotuneDate") private var lastAutotuneDate = Date()
     @Persisted(key: "lastLoopStartDate") private var lastLoopStartDate: Date = .distantPast
@@ -351,8 +352,43 @@ final class BaseAPSManager: APSManager, Injectable {
         return false
     }
 
+    /// Calculates and stores the Total Daily Dose (TDD)
+    private func calculateAndStoreTDD() async {
+        // Get required data
+        let pumpHistory = await pumpHistoryStorage.getPumpHistory()
+        let basalProfile = await storage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ?? []
+
+        // Calculate TDD
+        let tddResult = await tddStorage.calculateTDD(
+            pumpHistory: pumpHistory,
+            basalProfile: basalProfile
+        )
+
+        // TODO: Move this to storage as well
+        // Store TDD in Core Data
+        await privateContext.perform {
+            let tddStored = TDDStored(context: self.privateContext)
+            tddStored.id = UUID()
+            tddStored.date = Date()
+            tddStored.total = NSDecimalNumber(decimal: tddResult.total)
+            tddStored.bolus = NSDecimalNumber(decimal: tddResult.bolus)
+            tddStored.tempBasal = NSDecimalNumber(decimal: tddResult.tempBasal)
+            tddStored.scheduledBasal = NSDecimalNumber(decimal: tddResult.scheduledBasal)
+            tddStored.weightedAverage = tddResult.weightedAverage.map { NSDecimalNumber(decimal: $0) }
+
+            do {
+                guard self.privateContext.hasChanges else { return }
+                try self.privateContext.save()
+            } catch {
+                debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to save TDD: \(error.localizedDescription)")
+            }
+        }
+    }
+
     func determineBasal() async -> Bool {
         debug(.apsManager, "Start determine basal")
+
+        await calculateAndStoreTDD()
 
         // Fetch glucose asynchronously
         let glucose = await fetchGlucose(predicate: NSPredicate.predicateForOneHourAgo, fetchLimit: 6)

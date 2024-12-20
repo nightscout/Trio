@@ -11,6 +11,7 @@ protocol PumpHistoryObserver {
 
 protocol PumpHistoryStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
+    func getPumpHistory() async -> [PumpHistoryEvent]
     func storePumpEvents(_ events: [NewPumpEvent])
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
     func recent() -> [PumpHistoryEvent]
@@ -253,6 +254,43 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             } catch {
                 print(error.localizedDescription)
             }
+        }
+    }
+
+    func getPumpHistory() async -> [PumpHistoryEvent] {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: NSPredicate.pumpHistoryLast24h,
+            key: "timestamp",
+            ascending: false,
+            fetchLimit: 288
+        )
+
+        return await context.perform {
+            guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+
+            return fetchedPumpEvents.map { event in
+                switch event.type {
+                case PumpEventStored.EventType.bolus.rawValue:
+                    return PumpHistoryEvent(
+                        id: event.id ?? UUID().uuidString,
+                        type: .bolus,
+                        timestamp: event.timestamp ?? Date(),
+                        amount: event.bolus?.amount as Decimal?
+                    )
+                case PumpEventStored.EventType.tempBasal.rawValue:
+                    return PumpHistoryEvent(
+                        id: event.id ?? UUID().uuidString,
+                        type: .tempBasal,
+                        timestamp: event.timestamp ?? Date(),
+                        amount: event.tempBasal?.rate as Decimal?,
+                        duration: Int(event.tempBasal?.duration ?? 0)
+                    )
+                default:
+                    return nil
+                }
+            }.compactMap { $0 }
         }
     }
 
