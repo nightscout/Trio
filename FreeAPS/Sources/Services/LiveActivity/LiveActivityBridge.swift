@@ -241,6 +241,7 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
                 let expired = ActivityContent(
                     state: LiveActivityAttributes
                         .ContentState(
+                            unit: settings.units.rawValue,
                             bg: "--",
                             direction: nil,
                             change: "--",
