@@ -19,6 +19,8 @@ struct TDDResult {
 
 /// Implementation of the TDD Calculator
 final class BaseTDDStorage: TDDStorage, Injectable {
+    @Injected() private var storage: FileStorage!
+    
     init(resolver: Resolver) {
         injectServices(resolver)
     }
@@ -67,7 +69,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         debug(.apsManager, "Total temp basal insulin: \(tempInsulin)U")
 
         let total = bolusInsulin + tempInsulin + scheduledBasalInsulin
-        let weightedAverage = calculateWeightedAverage()
+        let weightedAverage = await calculateWeightedAverage()
 
         debug(.apsManager, """
         TDD Summary:
@@ -299,12 +301,59 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         return difference
     }
 
-    /// Calculates weighted average of TDD from historical data
-    /// - Returns: Weighted average if available
-    private func calculateWeightedAverage() -> Decimal? {
-        // Implementation of weighted average calculation
-        // Would use historical TDD data from Core Data
-        nil
+    /// Calculates a weighted average of Total Daily Dose (TDD) based on recent and historical data
+    ///
+    /// The weighted average is calculated using two time periods:
+    /// - Recent: Last 2 hours of TDD data
+    /// - Historical: Last 10 days of TDD data
+    ///
+    /// The formula used is:
+    /// ```
+    /// weightedTDD = (weightPercentage × recent_average) + ((1 - weightPercentage) × historical_average)
+    /// ```
+    /// where weightPercentage defaults to 0.65 if not set in preferences
+    ///
+    /// - Returns: A weighted average of TDD as Decimal, or nil if insufficient data
+    /// - Note: The weight percentage can be configured in preferences. Default is 0.65 (65% recent, 35% historical)
+    private func calculateWeightedAverage() async -> Decimal? {
+        // Fetch data from Core Data
+        let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
+        let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
+
+        let predicate = NSPredicate(format: "date >= %@", tenDaysAgo as NSDate)
+
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TDDStored.self,
+            onContext: privateContext,
+            predicate: predicate,
+            key: "date",
+            ascending: false
+        )
+        return await privateContext.perform { () -> Decimal? in
+            guard let results = results as? [TDDStored], !results.isEmpty else { return 0 }
+
+            // Calculate recent (2h) average
+            let recentResults = results.filter { $0.date?.timeIntervalSince(twoHoursAgo) ?? 0 > 0 }
+            let recentTotal = recentResults.compactMap { $0.total?.decimalValue }.reduce(0, +)
+            let recentCount = max(Decimal(recentResults.count), 1)
+            let averageTDDLastTwoHours = recentTotal / recentCount
+
+            // Calculate 10-day average
+            let totalTDD = results.compactMap { $0.total?.decimalValue }.reduce(0, +)
+            let totalCount = max(Decimal(results.count), 1)
+            let averageTDDLastTenDays = totalTDD / totalCount
+
+            // Get weight percentage from preferences (default 0.65 if not set)
+            let userPreferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
+            let weightPercentage = userPreferences?.weightPercentage ?? Decimal(0.65) // why is this 1 as default in oref2??
+
+            // Calculate weighted average using the formula:
+            // weightedTDD = (weightPercentage × recent_average) + ((1 - weightPercentage) × historical_average)
+            let weightedTDD = weightPercentage * averageTDDLastTwoHours +
+                (1 - weightPercentage) * averageTDDLastTenDays
+
+            return weightedTDD
+        }
     }
 }
 
