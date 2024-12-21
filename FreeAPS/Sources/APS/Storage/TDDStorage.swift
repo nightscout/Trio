@@ -4,6 +4,7 @@ import Swinject
 protocol TDDStorage {
     func calculateTDD(pumpHistory: [PumpHistoryEvent], basalProfile: [BasalProfileEntry], basalIncrement: Decimal) async
         -> TDDResult
+    func storeTDD(_ tddResult: TDDResult) async
 }
 
 /// Structure containing the results of TDD calculations
@@ -21,6 +22,8 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     init(resolver: Resolver) {
         injectServices(resolver)
     }
+
+    private let privateContext = CoreDataStack.shared.newTaskContext()
 
     /// Main function to calculate TDD from pump history and basal profile
     /// - Parameters:
@@ -84,6 +87,28 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             weightedAverage: weightedAverage,
             hoursOfData: pumpData
         )
+    }
+
+    /// Stores the Total Daily Dose (TDD) result in Core Data
+    /// - Parameter tddResult: The TDD result to store, containing total insulin, bolus, temp basal, scheduled basal and weighted average
+    func storeTDD(_ tddResult: TDDResult) async {
+        await privateContext.perform {
+            let tddStored = TDDStored(context: self.privateContext)
+            tddStored.id = UUID()
+            tddStored.date = Date()
+            tddStored.total = NSDecimalNumber(decimal: tddResult.total)
+            tddStored.bolus = NSDecimalNumber(decimal: tddResult.bolus)
+            tddStored.tempBasal = NSDecimalNumber(decimal: tddResult.tempBasal)
+            tddStored.scheduledBasal = NSDecimalNumber(decimal: tddResult.scheduledBasal)
+            tddStored.weightedAverage = tddResult.weightedAverage.map { NSDecimalNumber(decimal: $0) }
+
+            do {
+                guard self.privateContext.hasChanges else { return }
+                try self.privateContext.save()
+            } catch {
+                debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to save TDD: \(error.localizedDescription)")
+            }
+        }
     }
 
     /// Calculates the number of hours of available pump history data
