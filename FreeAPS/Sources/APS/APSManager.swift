@@ -356,7 +356,9 @@ final class BaseAPSManager: APSManager, Injectable {
     private func calculateAndStoreTDD() async {
         // Get required data
         let pumpHistory = await pumpHistoryStorage.getPumpHistory()
-        let basalProfile = await storage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ?? []
+        let basalProfile = await storage
+            .retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ??
+            [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile)) ?? [] // OpenAPS.defaults ensures we at least get default rate of 1u/hr for 24 hrs
 
         // Calculate TDD
         let tddResult = await tddStorage.calculateTDD(

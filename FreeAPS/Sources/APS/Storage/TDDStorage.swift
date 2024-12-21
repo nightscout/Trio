@@ -41,10 +41,10 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             debug(.apsManager, "Filling \(missingHours) missing hours with scheduled basals")
             if let lastEntry = pumpHistory.last {
                 let endDate = lastEntry.timestamp
-                let endDateAdjusted = endDate.addingTimeInterval(-missingHours * 3600)
+                let calculatedGapStart = endDate.addingTimeInterval(-missingHours * 3600)
                 scheduledBasalInsulin = calculateScheduledBasalInsulin(
-                    from: endDate,
-                    to: endDateAdjusted,
+                    from: calculatedGapStart,
+                    to: endDate,
                     basalProfile: basalProfile
                 )
                 debug(.apsManager, "Added scheduled basal insulin: \(scheduledBasalInsulin)U")
@@ -149,12 +149,12 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             guard let basalRate = findBasalRate(for: timeString, in: basalProfile) else { continue }
 
             let nextScheduleTime = findNextScheduleTime(after: timeString, in: basalProfile)
-            let duration = calculateDuration(currentTime: timeString, nextScheduleTime: nextScheduleTime, endDate: to)
+            let durationInHours = calculateDuration(currentTime: timeString, nextScheduleTime: nextScheduleTime, endDate: to)
 
-            let insulin = accountForIncrements(basalRate * Decimal(duration))
+            let insulin = accountForIncrements(basalRate * Decimal(durationInHours))
             totalInsulin += insulin
 
-            currentDate = currentDate.addingTimeInterval(duration * 3600)
+            currentDate = currentDate.addingTimeInterval(durationInHours * 3600)
         }
 
         return totalInsulin
@@ -195,13 +195,35 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         return formatter.string(from: date)
     }
 
-    /// Finds the basal rate for a specific time in the profile
+    /// Finds the basal rate for a specific time in the profile, considering closest increments or wide coverage.
     /// - Parameters:
     ///   - timeString: Time string in "HH:mm:ss" format
     ///   - profile: Array of basal profile entries
     /// - Returns: Basal rate if found
     private func findBasalRate(for timeString: String, in profile: [BasalProfileEntry]) -> Decimal? {
-        profile.first { $0.start == timeString }?.rate
+        // Convert the timeString to minutes since midnight
+        let timeComponents = timeString.split(separator: ":").compactMap { Int($0) }
+        guard timeComponents.count == 3 else { return nil }
+        let totalMinutes = timeComponents[0] * 60 + timeComponents[1]
+
+        // If only one entry exists, return its rate (covers full 24 hours)
+        guard profile.count > 1 else {
+            return profile.first?.rate
+        }
+
+        // Find the closest matching basal entry
+        for (index, entry) in profile.enumerated() {
+            // Check if the time falls within the range of the current entry
+            let startMinutes = entry.minutes
+            let endMinutes = (index + 1 < profile.count) ? profile[index + 1].minutes : 1440 // End of the day
+
+            if totalMinutes >= startMinutes, totalMinutes < endMinutes {
+                return entry.rate
+            }
+        }
+
+        // Default to nil if no match found
+        return nil
     }
 
     /// Finds the next scheduled time in the basal profile
