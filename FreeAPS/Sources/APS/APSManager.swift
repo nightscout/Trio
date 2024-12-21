@@ -354,16 +354,24 @@ final class BaseAPSManager: APSManager, Injectable {
 
     /// Calculates and stores the Total Daily Dose (TDD)
     private func calculateAndStoreTDD() async {
+        guard let pumpManager else { return }
+
         // Get required data
         let pumpHistory = await pumpHistoryStorage.getPumpHistory()
         let basalProfile = await storage
             .retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ??
-            [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile)) ?? [] // OpenAPS.defaults ensures we at least get default rate of 1u/hr for 24 hrs
+            [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile)) ??
+            [] // OpenAPS.defaults ensures we at least get default rate of 1u/hr for 24 hrs
+
+        let basalIncrements = pumpManager.supportedBasalRates
 
         // Calculate TDD
         let tddResult = await tddStorage.calculateTDD(
             pumpHistory: pumpHistory,
-            basalProfile: basalProfile
+            basalProfile: basalProfile,
+            basalIncrement: Decimal(
+                basalIncrements.first(where: { $0 > 0.0 }) ?? 0.05
+            ) // supportedBasalRates must be non-empty, so we could force-unwrap here… but apparently sim-pump does not like that?!
         )
 
         // TODO: Move this to storage as well

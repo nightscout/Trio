@@ -2,7 +2,8 @@ import Foundation
 import Swinject
 
 protocol TDDStorage {
-    func calculateTDD(pumpHistory: [PumpHistoryEvent], basalProfile: [BasalProfileEntry]) async -> TDDResult
+    func calculateTDD(pumpHistory: [PumpHistoryEvent], basalProfile: [BasalProfileEntry], basalIncrement: Decimal) async
+        -> TDDResult
 }
 
 /// Structure containing the results of TDD calculations
@@ -26,7 +27,11 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     ///   - pumpHistory: Array of pump history events
     ///   - basalProfile: Array of basal profile entries
     /// - Returns: TDDResult containing all calculated values
-    func calculateTDD(pumpHistory: [PumpHistoryEvent], basalProfile: [BasalProfileEntry]) async -> TDDResult {
+    func calculateTDD(
+        pumpHistory: [PumpHistoryEvent],
+        basalProfile: [BasalProfileEntry],
+        basalIncrement: Decimal
+    ) async -> TDDResult {
         debug(.apsManager, "Starting TDD calculation with \(pumpHistory.count) pump events")
 
         var bolusInsulin: Decimal = 0
@@ -45,7 +50,8 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                 scheduledBasalInsulin = calculateScheduledBasalInsulin(
                     from: calculatedGapStart,
                     to: endDate,
-                    basalProfile: basalProfile
+                    basalProfile: basalProfile,
+                    basalIncrement: basalIncrement
                 )
                 debug(.apsManager, "Added scheduled basal insulin: \(scheduledBasalInsulin)U")
             }
@@ -54,7 +60,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         bolusInsulin = calculateBolusInsulin(pumpHistory)
         debug(.apsManager, "Total bolus insulin: \(bolusInsulin)U")
 
-        tempInsulin = calculateTempBasalInsulin(pumpHistory)
+        tempInsulin = calculateTempBasalInsulin(pumpHistory, basalIncrement: basalIncrement)
         debug(.apsManager, "Total temp basal insulin: \(tempInsulin)U")
 
         let total = bolusInsulin + tempInsulin + scheduledBasalInsulin
@@ -115,7 +121,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     /// Calculates insulin delivered via temporary basal rates
     /// - Parameter pumpHistory: Array of pump history events
     /// - Returns: Total temporary basal insulin
-    private func calculateTempBasalInsulin(_ pumpHistory: [PumpHistoryEvent]) -> Decimal {
+    private func calculateTempBasalInsulin(_ pumpHistory: [PumpHistoryEvent], basalIncrement: Decimal) -> Decimal {
         var totalInsulin: Decimal = 0
 
         for (index, event) in pumpHistory.enumerated() {
@@ -125,7 +131,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                   index > 0 else { continue }
 
             let duration = Decimal(pumpHistory[index - 1].duration ?? 0) / 60 // Convert to hours
-            let insulin = accountForIncrements(rate * duration)
+            let insulin = accountForIncrements(rate * duration, basalIncrement: basalIncrement)
             totalInsulin += insulin
 
             debug(.apsManager, "Temp basal: \(rate)U/hr for \(duration)hr = \(insulin)U")
@@ -140,7 +146,12 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     ///   - to: End date
     ///   - basalProfile: Array of basal profile entries
     /// - Returns: Total scheduled basal insulin
-    private func calculateScheduledBasalInsulin(from: Date, to: Date, basalProfile: [BasalProfileEntry]) -> Decimal {
+    private func calculateScheduledBasalInsulin(
+        from: Date,
+        to: Date,
+        basalProfile: [BasalProfileEntry],
+        basalIncrement: Decimal
+    ) -> Decimal {
         var totalInsulin: Decimal = 0
         var currentDate = from
 
@@ -151,7 +162,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             let nextScheduleTime = findNextScheduleTime(after: timeString, in: basalProfile)
             let durationInHours = calculateDuration(currentTime: timeString, nextScheduleTime: nextScheduleTime, endDate: to)
 
-            let insulin = accountForIncrements(basalRate * Decimal(durationInHours))
+            let insulin = accountForIncrements(basalRate * Decimal(durationInHours), basalIncrement: basalIncrement)
             totalInsulin += insulin
 
             currentDate = currentDate.addingTimeInterval(durationInHours * 3600)
@@ -163,9 +174,8 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     /// Rounds insulin amounts according to pump increment constraints
     /// - Parameter insulin: Raw insulin amount
     /// - Returns: Rounded insulin amount
-    private func accountForIncrements(_ insulin: Decimal) -> Decimal {
-        let minimalDose: Decimal = 0.05 // For Omnipod, 0.1 for other pumps
-        let incrementsRaw = insulin / minimalDose
+    private func accountForIncrements(_ insulin: Decimal, basalIncrement: Decimal) -> Decimal {
+        let incrementsRaw = insulin / basalIncrement
 
         if incrementsRaw >= 1 {
             // Convert to NSDecimalNumber to use its rounding capabilities
@@ -181,7 +191,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                     raiseOnDivideByZero: false
                 )
             )
-            return (roundedIncrements.decimalValue * minimalDose).rounded(toPlaces: 3)
+            return (roundedIncrements.decimalValue * basalIncrement).rounded(toPlaces: 3)
         }
         return 0
     }
