@@ -430,6 +430,14 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         if var suggestion = fetchedSuggestedDetermination {
             suggestion.timestamp = suggestion.deliverAt
             
+            if settingsManager.settings.units == .mmolL {
+                suggestion.reason = parseReasonGlucoseValuesToMmolL(suggestion.reason)
+                // TODO: verify that these parsings are needed for 3rd party apps, e.g., LoopFollow
+                suggestion.current_target = suggestion.current_target?.asMmolL
+                suggestion.minGuardBG = suggestion.minGuardBG?.asMmolL
+                suggestion.minPredBG = suggestion.minPredBG?.asMmolL
+                suggestion.threshold = suggestion.threshold?.asMmolL
+            }
             // Check whether the last suggestion that was uploaded is the same that is fetched again when we are attempting to upload the enacted determination
             // Apparently we are too fast; so the flag update is not fast enough to have the predicate filter last suggestion out
             // If this check is truthy, set suggestion to nil so it's not uploaded again
@@ -437,14 +445,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 modifiedSuggestedDetermination = nil
             } else {
                 modifiedSuggestedDetermination = suggestion
-                if settingsManager.settings.units == .mmolL {
-                    modifiedSuggestedDetermination?.reason = parseReasonGlucoseValuesToMmolL(suggestion.reason)
-                    
-                    modifiedSuggestedDetermination?.current_target = suggestion.current_target?.asMmolL
-                    modifiedSuggestedDetermination?.minGuardBG = suggestion.minGuardBG?.asMmolL
-                    modifiedSuggestedDetermination?.minPredBG = suggestion.minPredBG?.asMmolL
-                    modifiedSuggestedDetermination?.threshold = suggestion.threshold?.asMmolL
-                }
             }
         }
 
@@ -452,7 +452,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             var modifiedFetchedEnactedDetermination = fetchedEnactedDetermination
             modifiedFetchedEnactedDetermination?
                 .reason = parseReasonGlucoseValuesToMmolL(fetchedEnacted.reason)
-            
+            // TODO: verify that these parsings are needed for 3rd party apps, e.g., LoopFollow
             modifiedFetchedEnactedDetermination?.current_target = fetchedEnacted.current_target?.asMmolL
             modifiedFetchedEnactedDetermination?.minGuardBG = fetchedEnacted.minGuardBG?.asMmolL
             modifiedFetchedEnactedDetermination?.minPredBG = fetchedEnacted.minPredBG?.asMmolL
