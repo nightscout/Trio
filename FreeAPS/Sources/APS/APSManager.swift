@@ -362,15 +362,11 @@ final class BaseAPSManager: APSManager, Injectable {
             [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile)) ??
             [] // OpenAPS.defaults ensures we at least get default rate of 1u/hr for 24 hrs
 
-        let basalIncrements = pumpManager.supportedBasalRates
-
         // Calculate TDD
         let tddResult = await tddStorage.calculateTDD(
+            pumpManager: pumpManager,
             pumpHistory: await pumpHistory,
-            basalProfile: await basalProfile,
-            basalIncrement: Decimal(
-                basalIncrements.first(where: { $0 > 0.0 }) ?? 0.05
-            ) // supportedBasalRates must be non-empty, so we could force-unwrap here… but apparently sim-pump does not like that?!
+            basalProfile: await basalProfile
         )
 
         // Store TDD in Core Data

@@ -1,8 +1,9 @@
 import Foundation
+import LoopKitUI
 import Swinject
 
 protocol TDDStorage {
-    func calculateTDD(pumpHistory: [PumpHistoryEvent], basalProfile: [BasalProfileEntry], basalIncrement: Decimal) async
+    func calculateTDD(pumpManager: any PumpManagerUI, pumpHistory: [PumpHistoryEvent], basalProfile: [BasalProfileEntry]) async
         -> TDDResult
     func storeTDD(_ tddResult: TDDResult) async
 }
@@ -29,18 +30,19 @@ final class BaseTDDStorage: TDDStorage, Injectable {
 
     /// Main function to calculate TDD from pump history and basal profile
     /// - Parameters:
+    ///   - pumpManager: Representation of paired pump's PumpManagerUI
     ///   - pumpHistory: Array of pump history events
     ///   - basalProfile: Array of basal profile entries
     /// - Returns: TDDResult containing all calculated values
     func calculateTDD(
+        pumpManager: any PumpManagerUI,
         pumpHistory: [PumpHistoryEvent],
-        basalProfile: [BasalProfileEntry],
-        basalIncrement: Decimal
+        basalProfile: [BasalProfileEntry]
     ) async -> TDDResult {
         debug(.apsManager, "Starting TDD calculation with \(pumpHistory.count) pump events")
 
         var bolusInsulin: Decimal = 0
-        var tempInsulin: Decimal = 0
+        var tempBasalInsulin: Decimal = 0
         var scheduledBasalInsulin: Decimal = 0
 
         let pumpData = calculatePumpDataHours(pumpHistory)
@@ -49,36 +51,44 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         let bolusEvents = pumpHistory.filter({ $0.type == .bolus })
         let tempBasalEvents = pumpHistory.filter({ $0.type == .tempBasal })
 
-        let gaps = findBasalGaps(in: tempBasalEvents)
+        debug(.apsManager, "Temp basal events: \(tempBasalEvents.description)")
 
+        let gaps = findBasalGaps(in: tempBasalEvents)
         if !gaps.isEmpty {
-            scheduledBasalInsulin = calculateScheduledBasalInsulin(gaps: gaps, profile: basalProfile).rounded(toPlaces: 2)
+            scheduledBasalInsulin = calculateScheduledBasalInsulin(
+                gaps: gaps,
+                profile: basalProfile,
+                roundToSupportedBasalRate: pumpManager.roundToSupportedBasalRate
+            )
             debug(.apsManager, "Total scheduled basal insulin: \(scheduledBasalInsulin)U")
         }
 
-        bolusInsulin = calculateBolusInsulin(bolusEvents).rounded(toPlaces: 2)
+        bolusInsulin = calculateBolusInsulin(bolusEvents)
         debug(.apsManager, "Total bolus insulin: \(bolusInsulin)U")
 
-        tempInsulin = calculateTempBasalInsulin(tempBasalEvents, basalIncrement: basalIncrement).rounded(toPlaces: 2)
-        debug(.apsManager, "Total temp basal insulin: \(tempInsulin)U")
+        tempBasalInsulin = calculateTempBasalInsulin(
+            tempBasalEvents,
+            roundToSupportedBasalRate: pumpManager.roundToSupportedBasalRate
+        )
+        debug(.apsManager, "Total temp basal insulin: \(tempBasalInsulin)U")
 
-        let total = bolusInsulin + tempInsulin + scheduledBasalInsulin
+        let total = bolusInsulin + tempBasalInsulin + scheduledBasalInsulin
         let weightedAverage = await calculateWeightedAverage()
 
         debug(.apsManager, """
         TDD Summary:
-        - Total: \(total)U
-        - Bolus: \(bolusInsulin)U (\((bolusInsulin / total * 100).rounded(toPlaces: 1))%)
-        - Temp Basal: \(tempInsulin)U (\((tempInsulin / total * 100).rounded(toPlaces: 1))%)
-        - Scheduled Basal: \(scheduledBasalInsulin)U (\((scheduledBasalInsulin / total * 100).rounded(toPlaces: 1))%)
-        - WeightedAverage: \(weightedAverage ?? 0)
+        - Total: \(total) U
+        - Bolus: \(bolusInsulin) U (\((bolusInsulin / total * 100).rounded(toPlaces: 1)) %)
+        - Temp Basal: \(tempBasalInsulin) U (\((tempBasalInsulin / total * 100).rounded(toPlaces: 1)) %)
+        - Scheduled Basal: \(scheduledBasalInsulin) U (\((scheduledBasalInsulin / total * 100).rounded(toPlaces: 1)) %)
+        - WeightedAverage: \(weightedAverage ?? 0) U
         - Hours of Data: \(pumpData)
         """)
 
         return TDDResult(
             total: total,
             bolus: bolusInsulin,
-            tempBasal: tempInsulin,
+            tempBasal: tempBasalInsulin,
             scheduledBasal: scheduledBasalInsulin,
             weightedAverage: weightedAverage,
             hoursOfData: pumpData
@@ -174,8 +184,9 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         let startDate = firstEvent.timestamp
         var endDate = lastEvent.timestamp
 
-        // If last event is a temp basal, use current time
-        if lastEvent.type == .tempBasalDuration {
+        // If last event in the list is tempBasal, check if it is running longer than current time
+        // If yes, set current date, else ignore
+        if lastEvent.type == .tempBasal, lastEvent.timestamp > Date().addingTimeInterval(-1) {
             endDate = Date()
         }
 
@@ -195,9 +206,11 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     /// Calculates insulin delivered via temporary basal rates, accounting for interruptions
     /// - Parameters:
     ///   - tempBasalEvents: Array of pump history events of type tempBasal
-    ///   - basalIncrement: The smallest increment for basal rates
     /// - Returns: Total temporary basal insulin
-    private func calculateTempBasalInsulin(_ tempBasalEvents: [PumpHistoryEvent], basalIncrement: Decimal) -> Decimal {
+    private func calculateTempBasalInsulin(
+        _ tempBasalEvents: [PumpHistoryEvent],
+        roundToSupportedBasalRate: @escaping (_ unitsPerHour: Double) -> Double
+    ) -> Decimal {
         guard !tempBasalEvents.isEmpty else { return Decimal(0) }
 
         let sortedEvents = tempBasalEvents.sorted { $0.timestamp < $1.timestamp }
@@ -217,26 +230,33 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                 let nextEvent = sortedEvents[index + 1]
                 let currentEndTime = event.timestamp.addingTimeInterval(TimeInterval(durationMinutes * 60))
 
-                if nextEvent.timestamp < currentEndTime {
+                // Include a small buffer for timestamp comparison
+                if nextEvent.timestamp.addingTimeInterval(-1) < currentEndTime {
                     // Interrupted; calculate the actual duration
                     let interruptedDuration = nextEvent.timestamp.timeIntervalSince(event.timestamp) / 60
-                    actualDurationMinutes = Int(interruptedDuration)
+                    actualDurationMinutes = max(0, Int(interruptedDuration)) // Ensure non-negative duration
                 } else {
                     // Not interrupted; use full duration
                     actualDurationMinutes = durationMinutes
                 }
             } else {
-                // Last event in the list; use its full duration
-                actualDurationMinutes = durationMinutes
+                // Last event in the list; calculate if it is running longer than current time
+                let currentEndTime = event.timestamp.addingTimeInterval(TimeInterval(durationMinutes * 60))
+                if currentEndTime > Date().addingTimeInterval(-1) {
+                    let interruptedDuration = Date().timeIntervalSince(event.timestamp) / 60
+                    actualDurationMinutes = max(0, Int(interruptedDuration)) // Ensure non-negative duration
+                } else {
+                    actualDurationMinutes = durationMinutes
+                }
             }
 
             // Convert the duration to hours and calculate insulin
             let durationHours = Decimal(actualDurationMinutes) / 60
-            let insulin = accountForIncrements(rate * durationHours, basalIncrement: basalIncrement)
+            let insulin = Decimal(roundToSupportedBasalRate(Double(rate * durationHours)))
 
             debug(
                 .apsManager,
-                "Temp basal: \(rate)U/hr for \(Decimal(actualDurationMinutes) / 60)hr = \(insulin)U (adjusted for interruptions if needed)"
+                "Temp basal: \(rate) U/hr for \(Decimal(actualDurationMinutes) / 60) hr = \(insulin) U"
             )
 
             return totalInsulin + insulin
@@ -250,7 +270,8 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     /// - Returns: Total scheduled basal insulin
     private func calculateScheduledBasalInsulin(
         gaps: [(start: Date, end: Date)],
-        profile: [BasalProfileEntry]
+        profile: [BasalProfileEntry],
+        roundToSupportedBasalRate: @escaping (_ unitsPerHour: Double) -> Double
     ) -> Decimal {
         var totalInsulin: Decimal = 0
 
@@ -269,10 +290,10 @@ final class BaseTDDStorage: TDDStorage, Injectable {
 
                 // Calculate duration in hours and insulin delivered
                 let duration = Decimal(endTime.timeIntervalSince(currentTime)) / 3600
-                let insulin = rate * duration
+                let insulin = Decimal(roundToSupportedBasalRate(Double(rate * duration)))
                 totalInsulin += insulin
 
-                debug(.apsManager, "Scheduled basal: \(rate)U/hr from \(currentTime) to \(endTime) = \(insulin)U")
+                debug(.apsManager, "Scheduled basal: \(rate) U/hr from \(currentTime) to \(endTime) = \(insulin) U")
 
                 // Move to the next time block
                 currentTime = endTime
@@ -338,31 +359,6 @@ final class BaseTDDStorage: TDDStorage, Injectable {
 
         // Default to nil if no match found
         return nil
-    }
-
-    /// Rounds insulin amounts according to pump increment constraints
-    /// - Parameter insulin: Raw insulin amount
-    /// - Returns: Rounded insulin amount
-    private func accountForIncrements(_ insulin: Decimal, basalIncrement: Decimal) -> Decimal {
-        let incrementsRaw = insulin / basalIncrement
-
-        if incrementsRaw >= 1 {
-            // Convert to NSDecimalNumber to use its rounding capabilities
-            let nsIncrements = NSDecimalNumber(decimal: incrementsRaw)
-            let roundedIncrements = nsIncrements.rounding(
-                accordingToBehavior:
-                NSDecimalNumberHandler(
-                    roundingMode: .down,
-                    scale: 0,
-                    raiseOnExactness: false,
-                    raiseOnOverflow: false,
-                    raiseOnUnderflow: false,
-                    raiseOnDivideByZero: false
-                )
-            )
-            return (roundedIncrements.decimalValue * basalIncrement).rounded(toPlaces: 3)
-        }
-        return 0
     }
 
     /// Calculates a weighted average of Total Daily Dose (TDD) based on recent and historical data
