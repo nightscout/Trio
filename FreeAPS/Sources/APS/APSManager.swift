@@ -356,9 +356,8 @@ final class BaseAPSManager: APSManager, Injectable {
     private func calculateAndStoreTDD() async {
         guard let pumpManager else { return }
 
-        // Get required data
-        let pumpHistory = await pumpHistoryStorage.getPumpHistory()
-        let basalProfile = await storage
+        async let pumpHistory = pumpHistoryStorage.getPumpHistory()
+        async let basalProfile = storage
             .retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ??
             [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile)) ??
             [] // OpenAPS.defaults ensures we at least get default rate of 1u/hr for 24 hrs
@@ -367,32 +366,15 @@ final class BaseAPSManager: APSManager, Injectable {
 
         // Calculate TDD
         let tddResult = await tddStorage.calculateTDD(
-            pumpHistory: pumpHistory,
-            basalProfile: basalProfile,
+            pumpHistory: await pumpHistory,
+            basalProfile: await basalProfile,
             basalIncrement: Decimal(
                 basalIncrements.first(where: { $0 > 0.0 }) ?? 0.05
             ) // supportedBasalRates must be non-empty, so we could force-unwrap here… but apparently sim-pump does not like that?!
         )
 
-        // TODO: Move this to storage as well
         // Store TDD in Core Data
-        await privateContext.perform {
-            let tddStored = TDDStored(context: self.privateContext)
-            tddStored.id = UUID()
-            tddStored.date = Date()
-            tddStored.total = NSDecimalNumber(decimal: tddResult.total)
-            tddStored.bolus = NSDecimalNumber(decimal: tddResult.bolus)
-            tddStored.tempBasal = NSDecimalNumber(decimal: tddResult.tempBasal)
-            tddStored.scheduledBasal = NSDecimalNumber(decimal: tddResult.scheduledBasal)
-            tddStored.weightedAverage = tddResult.weightedAverage.map { NSDecimalNumber(decimal: $0) }
-
-            do {
-                guard self.privateContext.hasChanges else { return }
-                try self.privateContext.save()
-            } catch {
-                debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to save TDD: \(error.localizedDescription)")
-            }
-        }
+        await tddStorage.storeTDD(tddResult)
     }
 
     func determineBasal() async -> Bool {

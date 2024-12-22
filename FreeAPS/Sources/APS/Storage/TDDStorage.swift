@@ -4,6 +4,7 @@ import Swinject
 protocol TDDStorage {
     func calculateTDD(pumpHistory: [PumpHistoryEvent], basalProfile: [BasalProfileEntry], basalIncrement: Decimal) async
         -> TDDResult
+    func storeTDD(_ tddResult: TDDResult) async
 }
 
 /// Structure containing the results of TDD calculations
@@ -18,9 +19,13 @@ struct TDDResult {
 
 /// Implementation of the TDD Calculator
 final class BaseTDDStorage: TDDStorage, Injectable {
+    @Injected() private var storage: FileStorage!
+
     init(resolver: Resolver) {
         injectServices(resolver)
     }
+
+    private let privateContext = CoreDataStack.shared.newTaskContext()
 
     /// Main function to calculate TDD from pump history and basal profile
     /// - Parameters:
@@ -48,6 +53,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
 
         if !gaps.isEmpty {
             scheduledBasalInsulin = calculateScheduledBasalInsulin(gaps: gaps, profile: basalProfile).rounded(toPlaces: 2)
+            debug(.apsManager, "Total scheduled basal insulin: \(scheduledBasalInsulin)U")
         }
 
         bolusInsulin = calculateBolusInsulin(bolusEvents).rounded(toPlaces: 2)
@@ -57,7 +63,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         debug(.apsManager, "Total temp basal insulin: \(tempInsulin)U")
 
         let total = bolusInsulin + tempInsulin + scheduledBasalInsulin
-        let weightedAverage = calculateWeightedAverage()
+        let weightedAverage = await calculateWeightedAverage()
 
         debug(.apsManager, """
         TDD Summary:
@@ -78,7 +84,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             hoursOfData: pumpData
         )
     }
-    
+
     /// Finds gaps between tempBasal events where scheduled basal ran
     /// - Parameter tempBasalEvents: Array of pump history events of type tempBasal
     /// - Returns: Array of gaps, where each gap has a start and end time
@@ -133,6 +139,28 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         return gaps
     }
 
+    /// Stores the Total Daily Dose (TDD) result in Core Data
+    /// - Parameter tddResult: The TDD result to store, containing total insulin, bolus, temp basal, scheduled basal and weighted average
+    func storeTDD(_ tddResult: TDDResult) async {
+        await privateContext.perform {
+            let tddStored = TDDStored(context: self.privateContext)
+            tddStored.id = UUID()
+            tddStored.date = Date()
+            tddStored.total = NSDecimalNumber(decimal: tddResult.total)
+            tddStored.bolus = NSDecimalNumber(decimal: tddResult.bolus)
+            tddStored.tempBasal = NSDecimalNumber(decimal: tddResult.tempBasal)
+            tddStored.scheduledBasal = NSDecimalNumber(decimal: tddResult.scheduledBasal)
+            tddStored.weightedAverage = tddResult.weightedAverage.map { NSDecimalNumber(decimal: $0) }
+
+            do {
+                guard self.privateContext.hasChanges else { return }
+                try self.privateContext.save()
+            } catch {
+                debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to save TDD: \(error.localizedDescription)")
+            }
+        }
+    }
+
     /// Calculates the number of hours of available pump history data
     /// - Parameter pumpHistory: Array of pump history events
     /// - Returns: Number of hours of available data
@@ -172,13 +200,12 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     private func calculateTempBasalInsulin(_ tempBasalEvents: [PumpHistoryEvent], basalIncrement: Decimal) -> Decimal {
         guard !tempBasalEvents.isEmpty else { return Decimal(0) }
 
-        // Sort events by timestamp to ensure proper order
         let sortedEvents = tempBasalEvents.sorted { $0.timestamp < $1.timestamp }
 
         return sortedEvents.enumerated().reduce(Decimal(0)) { totalInsulin, currentEvent in
             let (index, event) = currentEvent
 
-            // Ensure the event is of type tempBasal and has valid data
+            // Ensure the event has valid data
             guard let rate = event.amount, // Rate in U/hr
                   let durationMinutes = event.duration, // Duration in minutes
                   rate > 0, durationMinutes > 0 else { return totalInsulin }
@@ -212,7 +239,6 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                 "Temp basal: \(rate)U/hr for \(Decimal(actualDurationMinutes) / 60)hr = \(insulin)U (adjusted for interruptions if needed)"
             )
 
-            // Add the calculated insulin to the total
             return totalInsulin + insulin
         }
     }
@@ -283,31 +309,6 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         return formatter.string(from: date)
     }
 
-    /// Rounds insulin amounts according to pump increment constraints
-    /// - Parameter insulin: Raw insulin amount
-    /// - Returns: Rounded insulin amount
-    private func accountForIncrements(_ insulin: Decimal, basalIncrement: Decimal) -> Decimal {
-        let incrementsRaw = insulin / basalIncrement
-
-        if incrementsRaw >= 1 {
-            // Convert to NSDecimalNumber to use its rounding capabilities
-            let nsIncrements = NSDecimalNumber(decimal: incrementsRaw)
-            let roundedIncrements = nsIncrements.rounding(
-                accordingToBehavior:
-                NSDecimalNumberHandler(
-                    roundingMode: .down,
-                    scale: 0,
-                    raiseOnExactness: false,
-                    raiseOnOverflow: false,
-                    raiseOnUnderflow: false,
-                    raiseOnDivideByZero: false
-                )
-            )
-            return (roundedIncrements.decimalValue * basalIncrement).rounded(toPlaces: 3)
-        }
-        return 0
-    }
-
     /// Finds the basal rate for a specific time in the profile, considering closest increments or wide coverage.
     /// - Parameters:
     ///   - timeString: Time string in "HH:mm:ss" format
@@ -339,12 +340,84 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         return nil
     }
 
-    /// Calculates weighted average of TDD from historical data
-    /// - Returns: Weighted average if available
-    private func calculateWeightedAverage() -> Decimal? {
-        // Implementation of weighted average calculation
-        // Would use historical TDD data from Core Data
-        nil
+    /// Rounds insulin amounts according to pump increment constraints
+    /// - Parameter insulin: Raw insulin amount
+    /// - Returns: Rounded insulin amount
+    private func accountForIncrements(_ insulin: Decimal, basalIncrement: Decimal) -> Decimal {
+        let incrementsRaw = insulin / basalIncrement
+
+        if incrementsRaw >= 1 {
+            // Convert to NSDecimalNumber to use its rounding capabilities
+            let nsIncrements = NSDecimalNumber(decimal: incrementsRaw)
+            let roundedIncrements = nsIncrements.rounding(
+                accordingToBehavior:
+                NSDecimalNumberHandler(
+                    roundingMode: .down,
+                    scale: 0,
+                    raiseOnExactness: false,
+                    raiseOnOverflow: false,
+                    raiseOnUnderflow: false,
+                    raiseOnDivideByZero: false
+                )
+            )
+            return (roundedIncrements.decimalValue * basalIncrement).rounded(toPlaces: 3)
+        }
+        return 0
+    }
+
+    /// Calculates a weighted average of Total Daily Dose (TDD) based on recent and historical data
+    ///
+    /// The weighted average is calculated using two time periods:
+    /// - Recent: Last 2 hours of TDD data
+    /// - Historical: Last 10 days of TDD data
+    ///
+    /// The formula used is:
+    /// ```
+    /// weightedTDD = (weightPercentage × recent_average) + ((1 - weightPercentage) × historical_average)
+    /// ```
+    /// where weightPercentage defaults to 0.65 if not set in preferences
+    ///
+    /// - Returns: A weighted average of TDD as Decimal, or nil if insufficient data
+    /// - Note: The weight percentage can be configured in preferences. Default is 0.65 (65% recent, 35% historical)
+    private func calculateWeightedAverage() async -> Decimal? {
+        // Fetch data from Core Data
+        let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
+        let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
+
+        let predicate = NSPredicate(format: "date >= %@", tenDaysAgo as NSDate)
+
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TDDStored.self,
+            onContext: privateContext,
+            predicate: predicate,
+            key: "date",
+            ascending: false
+        )
+        return await privateContext.perform { () -> Decimal? in
+            guard let results = results as? [TDDStored], !results.isEmpty else { return 0 }
+
+            // Calculate recent (2h) average
+            let recentResults = results.filter { $0.date?.timeIntervalSince(twoHoursAgo) ?? 0 > 0 }
+            let recentTotal = recentResults.compactMap { $0.total?.decimalValue }.reduce(0, +)
+            let recentCount = max(Decimal(recentResults.count), 1)
+            let averageTDDLastTwoHours = recentTotal / recentCount
+
+            // Calculate 10-day average
+            let totalTDD = results.compactMap { $0.total?.decimalValue }.reduce(0, +)
+            let totalCount = max(Decimal(results.count), 1)
+            let averageTDDLastTenDays = totalTDD / totalCount
+
+            // Get weight percentage from preferences (default 0.65 if not set)
+            let userPreferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
+            let weightPercentage = userPreferences?.weightPercentage ?? Decimal(0.65) // why is this 1 as default in oref2??
+
+            // Calculate weighted average using the formula:
+            // weightedTDD = (weightPercentage × recent_average) + ((1 - weightPercentage) × historical_average)
+            let weightedTDD = weightPercentage * averageTDDLastTwoHours +
+                (1 - weightPercentage) * averageTDDLastTenDays
+
+            return weightedTDD
+        }
     }
 }
 
