@@ -41,57 +41,57 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     ) async -> TDDResult {
         debug(.apsManager, "Starting TDD calculation with \(pumpHistory.count) pump events")
 
-        var bolusInsulin: Decimal = 0
-        var tempBasalInsulin: Decimal = 0
-        var scheduledBasalInsulin: Decimal = 0
+        // Group events by type once to avoid multiple filters
+        let groupedEvents = Dictionary(grouping: pumpHistory, by: { $0.type })
+        let bolusEvents = groupedEvents[.bolus] ?? []
+        let tempBasalEvents = groupedEvents[.tempBasal] ?? []
 
-        let pumpData = calculatePumpDataHours(pumpHistory)
-        debug(.apsManager, "Hours of pump data available: \(pumpData)")
-
-        let bolusEvents = pumpHistory.filter({ $0.type == .bolus })
-        let tempBasalEvents = pumpHistory.filter({ $0.type == .tempBasal })
-
-        debug(.apsManager, "Temp basal events: \(tempBasalEvents.description)")
+        // Calculate all components concurrently
+        async let pumpDataHours = calculatePumpDataHours(pumpHistory)
+        async let bolusInsulin = calculateBolusInsulin(bolusEvents)
 
         let gaps = findBasalGaps(in: tempBasalEvents)
-        if !gaps.isEmpty {
-            scheduledBasalInsulin = calculateScheduledBasalInsulin(
-                gaps: gaps,
-                profile: basalProfile,
-                roundToSupportedBasalRate: pumpManager.roundToSupportedBasalRate
-            )
-            debug(.apsManager, "Total scheduled basal insulin: \(scheduledBasalInsulin)U")
-        }
+        async let scheduledBasalInsulin = !gaps.isEmpty ? calculateScheduledBasalInsulin(
+            gaps: gaps,
+            profile: basalProfile,
+            roundToSupportedBasalRate: pumpManager.roundToSupportedBasalRate
+        ) : 0
 
-        bolusInsulin = calculateBolusInsulin(bolusEvents)
-        debug(.apsManager, "Total bolus insulin: \(bolusInsulin)U")
-
-        tempBasalInsulin = calculateTempBasalInsulin(
+        async let tempBasalInsulin = calculateTempBasalInsulin(
             tempBasalEvents,
             roundToSupportedBasalRate: pumpManager.roundToSupportedBasalRate
         )
-        debug(.apsManager, "Total temp basal insulin: \(tempBasalInsulin)U")
 
-        let total = bolusInsulin + tempBasalInsulin + scheduledBasalInsulin
-        let weightedAverage = await calculateWeightedAverage()
+        async let weightedAverage = calculateWeightedAverage()
+
+        // Await all concurrent calculations
+        let (hours, bolus, scheduled, temp, weighted) = await (
+            pumpDataHours,
+            bolusInsulin,
+            scheduledBasalInsulin,
+            tempBasalInsulin,
+            weightedAverage
+        )
+
+        let total = bolus + temp + scheduled
 
         debug(.apsManager, """
         TDD Summary:
         - Total: \(total) U
-        - Bolus: \(bolusInsulin) U (\((bolusInsulin / total * 100).rounded(toPlaces: 1)) %)
-        - Temp Basal: \(tempBasalInsulin) U (\((tempBasalInsulin / total * 100).rounded(toPlaces: 1)) %)
-        - Scheduled Basal: \(scheduledBasalInsulin) U (\((scheduledBasalInsulin / total * 100).rounded(toPlaces: 1)) %)
-        - WeightedAverage: \(weightedAverage ?? 0) U
-        - Hours of Data: \(pumpData)
+        - Bolus: \(bolus) U (\((bolus / total * 100).rounded(toPlaces: 1)) %)
+        - Temp Basal: \(temp) U (\((temp / total * 100).rounded(toPlaces: 1)) %)
+        - Scheduled Basal: \(scheduled) U (\((scheduled / total * 100).rounded(toPlaces: 1)) %)
+        - WeightedAverage: \(weighted ?? 0) U
+        - Hours of Data: \(hours)
         """)
 
         return TDDResult(
             total: total,
-            bolus: bolusInsulin,
-            tempBasal: tempBasalInsulin,
-            scheduledBasal: scheduledBasalInsulin,
-            weightedAverage: weightedAverage,
-            hoursOfData: pumpData
+            bolus: bolus,
+            tempBasal: temp,
+            scheduledBasal: scheduled,
+            weightedAverage: weighted,
+            hoursOfData: hours
         )
     }
 
@@ -100,50 +100,48 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     /// - Returns: Array of gaps, where each gap has a start and end time
     private func findBasalGaps(in tempBasalEvents: [PumpHistoryEvent]) -> [(start: Date, end: Date)] {
         guard !tempBasalEvents.isEmpty else {
-            // No events = full day gap
             let startOfDay = Calendar.current.startOfDay(for: Date())
-            let endOfDay = startOfDay.addingTimeInterval(24 * 60 * 60 - 1)
-            return [(start: startOfDay, end: endOfDay)]
+            return [(start: startOfDay, end: startOfDay.addingTimeInterval(24 * 60 * 60 - 1))]
         }
 
-        // Sort events by timestamp
+        // Pre-sort events and create array with capacity
         let sortedEvents = tempBasalEvents.sorted { $0.timestamp < $1.timestamp }
+        var gaps = [(start: Date, end: Date)]()
+        gaps.reserveCapacity(sortedEvents.count + 1)
 
-        var gaps: [(start: Date, end: Date)] = []
+        // Use first event's date for calendar operations
+        let startOfDay = Calendar.current.startOfDay(for: sortedEvents.first!.timestamp)
+        let endOfDay = startOfDay.addingTimeInterval(24 * 60 * 60 - 1)
 
-        // Track the end time of the last temp basal event
-        var lastEndTime: Date?
+        // Process events in a single pass
+        var lastEndTime = sortedEvents.first!.timestamp
 
-        for (index, event) in sortedEvents.enumerated() {
-            // Calculate the actual end time for the current event
+        for i in 0 ..< sortedEvents.count {
+            let event = sortedEvents[i]
             guard let duration = event.duration else { continue }
+
+            // Calculate end time for current event
             var currentEndTime = event.timestamp.addingTimeInterval(TimeInterval(duration * 60))
 
-            // Check for a cancellation
-            if index < sortedEvents.count - 1 {
-                let nextEvent = sortedEvents[index + 1]
+            // Check for cancellation by next event
+            if i < sortedEvents.count - 1 {
+                let nextEvent = sortedEvents[i + 1]
                 if nextEvent.timestamp < currentEndTime {
-                    // The next event cancels this one, adjust the end time
                     currentEndTime = nextEvent.timestamp
                 }
             }
 
-            // If there’s a gap between the last event's end time and the current event's start time, record it
-            if let lastEnd = lastEndTime, event.timestamp > lastEnd {
-                gaps.append((start: lastEnd, end: event.timestamp))
+            // Record gap if exists
+            if event.timestamp > lastEndTime {
+                gaps.append((start: lastEndTime, end: event.timestamp))
             }
 
-            // Update the last end time to the current event's (possibly adjusted) end time
             lastEndTime = currentEndTime
         }
 
-        // Handle gap at the end of the dataset (if needed)
-        if let lastEnd = lastEndTime {
-            let endOfDay = Calendar.current.startOfDay(for: sortedEvents.first!.timestamp)
-                .addingTimeInterval(24 * 60 * 60 - 1)
-            if lastEnd < endOfDay {
-                gaps.append((start: lastEnd, end: endOfDay))
-            }
+        // Add final gap if needed
+        if lastEndTime < endOfDay {
+            gaps.append((start: lastEndTime, end: endOfDay))
         }
 
         return gaps
@@ -203,161 +201,171 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             }
     }
 
-    /// Calculates insulin delivered via temporary basal rates, accounting for interruptions
+    /// Calculates temporary basal insulin delivery for a given time period
     /// - Parameters:
-    ///   - tempBasalEvents: Array of pump history events of type tempBasal
-    /// - Returns: Total temporary basal insulin
+    ///   - tempBasalEvents: Array of temporary basal events sorted by timestamp
+    ///   - roundToSupportedBasalRate: Closure to round rates to pump-supported values
+    /// - Returns: Total insulin delivered via temporary basal rates in units
     private func calculateTempBasalInsulin(
         _ tempBasalEvents: [PumpHistoryEvent],
         roundToSupportedBasalRate: @escaping (_ unitsPerHour: Double) -> Double
     ) -> Decimal {
-        guard !tempBasalEvents.isEmpty else { return Decimal(0) }
+        guard !tempBasalEvents.isEmpty else { return 0 }
 
         let sortedEvents = tempBasalEvents.sorted { $0.timestamp < $1.timestamp }
+        let currentDate = Date()
 
-        return sortedEvents.enumerated().reduce(Decimal(0)) { totalInsulin, currentEvent in
+        return sortedEvents.enumerated().reduce(into: Decimal(0)) { totalInsulin, currentEvent in
             let (index, event) = currentEvent
 
-            // Ensure the event has valid data
-            guard let rate = event.amount, // Rate in U/hr
-                  let durationMinutes = event.duration, // Duration in minutes
-                  rate > 0, durationMinutes > 0 else { return totalInsulin }
+            // Validate required event data (rate and duration)
+            guard let rate = event.amount,
+                  let durationMinutes = event.duration,
+                  rate > 0, durationMinutes > 0
+            else { return }
 
-            // Calculate the actual duration in minutes the temp basal ran
             let actualDurationMinutes: Int
+
             if index < sortedEvents.count - 1 {
-                // Next event exists; calculate if it interrupts the current event
+                // Handle interruption by subsequent temp basal
                 let nextEvent = sortedEvents[index + 1]
                 let currentEndTime = event.timestamp.addingTimeInterval(TimeInterval(durationMinutes * 60))
 
-                // Include a small buffer for timestamp comparison
-                if nextEvent.timestamp.addingTimeInterval(-1) < currentEndTime {
-                    // Interrupted; calculate the actual duration
-                    let interruptedDuration = nextEvent.timestamp.timeIntervalSince(event.timestamp) / 60
-                    actualDurationMinutes = max(0, Int(interruptedDuration)) // Ensure non-negative duration
-                } else {
-                    // Not interrupted; use full duration
-                    actualDurationMinutes = durationMinutes
-                }
+                actualDurationMinutes = nextEvent.timestamp.addingTimeInterval(-1) < currentEndTime
+                    ? max(0, Int(nextEvent.timestamp.timeIntervalSince(event.timestamp) / 60))
+                    : durationMinutes
             } else {
-                // Last event in the list; calculate if it is running longer than current time
+                // Handle currently running temp basal
                 let currentEndTime = event.timestamp.addingTimeInterval(TimeInterval(durationMinutes * 60))
-                if currentEndTime > Date().addingTimeInterval(-1) {
-                    let interruptedDuration = Date().timeIntervalSince(event.timestamp) / 60
-                    actualDurationMinutes = max(0, Int(interruptedDuration)) // Ensure non-negative duration
-                } else {
-                    actualDurationMinutes = durationMinutes
-                }
+                actualDurationMinutes = currentEndTime > currentDate.addingTimeInterval(-1)
+                    ? max(0, Int(currentDate.timeIntervalSince(event.timestamp) / 60))
+                    : durationMinutes
             }
 
-            // Convert the duration to hours and calculate insulin
+            // Calculate and accumulate insulin delivery
             let durationHours = Decimal(actualDurationMinutes) / 60
             let insulin = Decimal(roundToSupportedBasalRate(Double(rate * durationHours)))
 
-            debug(
-                .apsManager,
-                "Temp basal: \(rate) U/hr for \(Decimal(actualDurationMinutes) / 60) hr = \(insulin) U"
-            )
-
-            return totalInsulin + insulin
+            totalInsulin += insulin
         }
     }
 
-    /// Calculates total scheduled basal insulin within gaps
+    /// Calculates scheduled basal insulin delivery during gaps between temporary basals
     /// - Parameters:
-    ///   - tempBasalEvents: Array of pump history events of type tempBasal
-    ///   - profile: Array of basal profile entries
-    /// - Returns: Total scheduled basal insulin
+    ///   - gaps: Array of time periods where scheduled basal was active
+    ///   - profile: Basal profile entries defining rates throughout the day
+    ///   - roundToSupportedBasalRate: Closure to round rates to pump-supported values
+    /// - Returns: Total insulin delivered via scheduled basal in units
     private func calculateScheduledBasalInsulin(
         gaps: [(start: Date, end: Date)],
         profile: [BasalProfileEntry],
         roundToSupportedBasalRate: @escaping (_ unitsPerHour: Double) -> Double
     ) -> Decimal {
-        var totalInsulin: Decimal = 0
+        // Initialize cached formatter for time string conversion
+        let timeFormatter: DateFormatter = {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "HH:mm:ss"
+            return formatter
+        }()
 
-        for gap in gaps {
+        // Pre-calculate profile switch times for efficient lookup
+        let profileSwitches = profile.map(\.minutes)
+
+        return gaps.reduce(into: Decimal(0)) { totalInsulin, gap in
             var currentTime = gap.start
 
             while currentTime < gap.end {
-                guard let rate = findBasalRate(for: getTimeString(from: currentTime), in: profile) else {
-                    debug(.apsManager, "No basal rate found for time \(currentTime)")
-                    break
-                }
+                // Find applicable basal rate for current time
+                guard let rate = findBasalRate(
+                    for: timeFormatter.string(from: currentTime),
+                    in: profile
+                ) else { break }
 
-                // Determine the next switch time in the basal profile or the end of the gap
-                let nextSwitchTime = getNextBasalRateSwitch(after: currentTime, in: profile) ?? gap.end
+                // Determine when rate changes (either profile switch or gap end)
+                let nextSwitchTime = getNextBasalRateSwitch(
+                    after: currentTime,
+                    switches: profileSwitches,
+                    calendar: Calendar.current
+                ) ?? gap.end
+
                 let endTime = min(nextSwitchTime, gap.end)
-
-                // Calculate duration in hours and insulin delivered
                 let duration = Decimal(endTime.timeIntervalSince(currentTime)) / 3600
-                let insulin = Decimal(roundToSupportedBasalRate(Double(rate * duration)))
-                totalInsulin += insulin
 
-                debug(.apsManager, "Scheduled basal: \(rate) U/hr from \(currentTime) to \(endTime) = \(insulin) U")
-
-                // Move to the next time block
+                totalInsulin += Decimal(roundToSupportedBasalRate(Double(rate * duration)))
                 currentTime = endTime
             }
         }
-
-        return totalInsulin
     }
 
-    /// Finds the next basal profile switch after a given time
+    /// Finds the next basal rate switch time after a given time
     /// - Parameters:
-    ///   - time: Current time
-    ///   - profile: Array of basal profile entries
-    /// - Returns: The time of the next switch, if any
-    private func getNextBasalRateSwitch(after time: Date, in profile: [BasalProfileEntry]) -> Date? {
-        let calendar = Calendar.current
+    ///   - time: Reference time to find next switch after
+    ///   - switches: Pre-calculated array of minutes when profile rates change
+    ///   - calendar: Calendar instance for date calculations
+    /// - Returns: Date of next basal rate switch, or nil if none found
+    private func getNextBasalRateSwitch(
+        after time: Date,
+        switches: [Int],
+        calendar: Calendar
+    ) -> Date? {
         let timeMinutes = calendar.component(.hour, from: time) * 60 + calendar.component(.minute, from: time)
 
-        // Find the next entry in the profile after the current time
-        for entry in profile {
-            if entry.minutes > timeMinutes {
-                let nextSwitchTime = calendar.startOfDay(for: time).addingTimeInterval(TimeInterval(entry.minutes * 60))
-                return nextSwitchTime
-            }
+        // Find first switch time after current time
+        guard let nextSwitch = switches.first(where: { $0 > timeMinutes }) else {
+            return nil
         }
 
-        return nil // No further switches; end of day
+        // Convert switch time to absolute date
+        return calendar.startOfDay(for: time).addingTimeInterval(TimeInterval(nextSwitch * 60))
     }
 
-    /// Converts a Date to a time string in "HH:mm:ss" format
-    private func getTimeString(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
-        return formatter.string(from: date)
-    }
-
-    /// Finds the basal rate for a specific time in the profile, considering closest increments or wide coverage.
+    /// Finds the basal rate for a specific time using binary search
     /// - Parameters:
-    ///   - timeString: Time string in "HH:mm:ss" format
-    ///   - profile: Array of basal profile entries
-    /// - Returns: Basal rate if found
+    ///   - timeString: Time in format "HH:mm:ss"
+    ///   - profile: Array of basal profile entries sorted by time
+    /// - Returns: Basal rate in units per hour, or nil if not found
     private func findBasalRate(for timeString: String, in profile: [BasalProfileEntry]) -> Decimal? {
-        // Convert the timeString to minutes since midnight
-        let timeComponents = timeString.split(separator: ":").compactMap { Int($0) }
-        guard timeComponents.count == 3 else { return nil }
-        let totalMinutes = timeComponents[0] * 60 + timeComponents[1]
+        // Parse time string in "HH:mm:ss" format into hours and minutes components
+        let timeComponents = timeString.split(separator: ":")
+        guard timeComponents.count == 3,
+              let hours = Int(timeComponents[0]),
+              let minutes = Int(timeComponents[1])
+        else { return nil }
 
-        // If only one entry exists, return its rate (covers full 24 hours)
-        guard profile.count > 1 else {
-            return profile.first?.rate
+        // Convert time to total minutes since midnight for easier comparison
+        let totalMinutes = hours * 60 + minutes
+
+        // Special case: If profile has only one entry, it applies for full 24 hours
+        // Return its rate immediately without searching
+        if profile.count == 1 {
+            return profile[0].rate
         }
 
-        // Find the closest matching basal entry
-        for (index, entry) in profile.enumerated() {
-            // Check if the time falls within the range of the current entry
-            let startMinutes = entry.minutes
-            let endMinutes = (index + 1 < profile.count) ? profile[index + 1].minutes : 1440 // End of the day
+        // Use binary search to efficiently find the applicable basal rate
+        // Profile entries are sorted by minutes, so we can divide and conquer
+        var left = 0
+        var right = profile.count - 1
 
-            if totalMinutes >= startMinutes, totalMinutes < endMinutes {
+        while left <= right {
+            let mid = (left + right) / 2
+            let entry = profile[mid]
+            // Get end time for current entry - either next entry's start time or end of day (1440 mins)
+            let nextMinutes = mid + 1 < profile.count ? profile[mid + 1].minutes : 1440
+
+            // Check if target time falls within current entry's time range
+            if totalMinutes >= entry.minutes, totalMinutes < nextMinutes {
                 return entry.rate
             }
+
+            // Adjust search range based on comparison
+            if totalMinutes < entry.minutes {
+                right = mid - 1 // Search in left half if target time is earlier
+            } else {
+                left = mid + 1 // Search in right half if target time is later
+            }
         }
 
-        // Default to nil if no match found
+        // No applicable rate found for the given time
         return nil
     }
 
