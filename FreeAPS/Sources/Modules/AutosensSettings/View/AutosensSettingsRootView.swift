@@ -32,7 +32,7 @@ extension AutosensSettings {
                     units: state.units,
                     type: .decimal("autosensMax"),
                     label: NSLocalizedString("Autosens Max", comment: "Autosens Max"),
-                    miniHint: "The higher limit of the Autosens Ratio.",
+                    miniHint: "Upper limit of the Autosens Ratio.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 120%").bold()
@@ -63,7 +63,7 @@ extension AutosensSettings {
                     units: state.units,
                     type: .decimal("autosensMin"),
                     label: NSLocalizedString("Autosens Min", comment: "Autosens Min"),
-                    miniHint: "The lower limit of the Autosens Ratio.",
+                    miniHint: "Lower limit of the Autosens Ratio.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 80%").bold()
@@ -94,7 +94,7 @@ extension AutosensSettings {
                     type: .boolean,
                     label: NSLocalizedString("Rewind Resets Autosens", comment: "Rewind Resets Autosens"),
                     miniHint: "Pump rewind initiates a reset in Autosens Ratio.",
-                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                    verboseHint: VStack(alignment: .leading, spacing: 5) {
                         Text("Default: ON").bold()
                         Text("Medtronic Users Only").bold()
                         VStack(alignment: .leading, spacing: 10) {
