@@ -1131,69 +1131,99 @@ extension BaseNightscoutManager {
 
      - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BG`.
      */
-    func parseReasonGlucoseValuesToMmolL(_ reason: String) -> String {
-        // Updated pattern to handle cases like minGuardBG 34, minGuardBG 34<70, and "maxDelta 37 > 20% of BG 95", and ensure "Target:" is handled correctly
-        let pattern =
-            "(ISF:\\s*-?\\d+→-?\\d+|Dev:\\s*-?\\d+|Target:\\s*-?\\d+|(?:minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG|maxDelta|BG)\\s*-?\\d+(?:<\\d+)?(?:>\\s*\\d+%\\s*of\\s*BG\\s*\\d+)?)"
-
+        func parseReasonGlucoseValuesToMmolL(_ reason: String) -> String {
+        let patterns = [
+            "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",
+            "Dev:\\s*-?\\d+\\.?\\d*",
+            "BGI:\\s*-?\\d+\\.?\\d*",
+            "Target:\\s*-?\\d+\\.?\\d*",
+            "(?:minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG)\\s+-?\\d+\\.?\\d*(?:<-?\\d+\\.?\\d*)?",
+            "minGuardBG\\s+-?\\d+\\.?\\d*<-?\\d+\\.?\\d*",
+            "Eventual BG\\s+-?\\d+\\.?\\d*\\s*>=\\s*-?\\d+\\.?\\d*"
+        ]
+        let pattern = patterns.joined(separator: "|")
         let regex = try! NSRegularExpression(pattern: pattern)
 
         func convertToMmolL(_ value: String) -> String {
             if let glucoseValue = Double(value.replacingOccurrences(of: "[^\\d.-]", with: "", options: .regularExpression)) {
-                return glucoseValue.asMmolL.description
+                let mmolValue = Decimal(glucoseValue).asMmolL
+                return mmolValue.description
             }
             return value
         }
 
         let matches = regex.matches(in: reason, range: NSRange(reason.startIndex..., in: reason))
         var updatedReason = reason
-
-        for match in matches.reversed() {
+        for (index, match) in matches.reversed().enumerated() {
             if let range = Range(match.range, in: reason) {
                 let glucoseValueString = String(reason[range])
 
                 if glucoseValueString.contains("→") {
-                    // Handle ISF case with an arrow (e.g., ISF: 54→54)
+                    // Handle ISF case
                     let values = glucoseValueString.components(separatedBy: "→")
-                    let firstValue = convertToMmolL(values[0])
-                    let secondValue = convertToMmolL(values[1])
-                    let formattedGlucoseValueString = "\(values[0].components(separatedBy: ":")[0]): \(firstValue)→\(secondValue)"
-                    updatedReason.replaceSubrange(range, with: formattedGlucoseValueString)
+                    let firstNumber = values[0].components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
+                    let secondNumber = values[1].trimmingCharacters(in: .whitespaces)
+                    let firstValue = convertToMmolL(firstNumber)
+                    let secondValue = convertToMmolL(secondNumber)
+                    let formattedString = "ISF: \(firstValue)→\(secondValue)"
+                    updatedReason.replaceSubrange(range, with: formattedString)
+
                 } else if glucoseValueString.contains("<") {
-                    // Handle range case for minGuardBG like "minGuardBG 34<70"
-                    let values = glucoseValueString.components(separatedBy: "<")
-                    let firstValue = convertToMmolL(values[0])
-                    let secondValue = convertToMmolL(values[1])
-                    let formattedGlucoseValueString = "\(values[0].components(separatedBy: ":")[0]) \(firstValue)<\(secondValue)"
-                    updatedReason.replaceSubrange(range, with: formattedGlucoseValueString)
-                } else if glucoseValueString.contains(">"), glucoseValueString.contains("BG") {
-                    // Handle cases like "maxDelta 37 > 20% of BG 95"
-                    let pattern = "(\\d+) > \\d+% of BG (\\d+)"
-                    let matches = try! NSRegularExpression(pattern: pattern)
-                        .matches(in: glucoseValueString, range: NSRange(glucoseValueString.startIndex..., in: glucoseValueString))
-
-                    if let match = matches.first, match.numberOfRanges == 3 {
-                        let firstValueRange = Range(match.range(at: 1), in: glucoseValueString)!
-                        let secondValueRange = Range(match.range(at: 2), in: glucoseValueString)!
-
-                        let firstValue = convertToMmolL(String(glucoseValueString[firstValueRange]))
-                        let secondValue = convertToMmolL(String(glucoseValueString[secondValueRange]))
-
-                        let formattedGlucoseValueString = glucoseValueString.replacingOccurrences(
-                            of: "\(glucoseValueString[firstValueRange]) > 20% of BG \(glucoseValueString[secondValueRange])",
-                            with: "\(firstValue) > 20% of BG \(secondValue)"
-                        )
-                        updatedReason.replaceSubrange(range, with: formattedGlucoseValueString)
+                    // Handle minGuardBG x<target case
+                    let components = glucoseValueString
+                        .split(whereSeparator: { "<".contains($0) || CharacterSet.whitespaces.contains($0.unicodeScalars.first!)
+                        })
+                        .filter { !$0.isEmpty }
+                    if components.count >= 3 {
+                        let firstValue = convertToMmolL(String(components[1]))
+                        let secondValue = convertToMmolL(String(components[2]))
+                        let formattedString = "\(components[0]) \(firstValue)<\(secondValue)"
+                        updatedReason.replaceSubrange(range, with: formattedString)
                     }
+                } else if glucoseValueString.contains(">=") {
+                    // Handle Eventual BG x >= y case
+                    let components = glucoseValueString
+                        .split(whereSeparator: { " >= ".contains($0) ||
+                                CharacterSet.whitespaces.contains($0.unicodeScalars.first!) })
+                        .filter { !$0.isEmpty }
+                    if components.count == 4 {
+                        let firstValue = convertToMmolL(String(components[2]))
+                        let secondValue = convertToMmolL(String(components[3]))
+                        let formattedString = "\(components[0]) \(components[1]) \(firstValue) >= \(secondValue)"
+                        updatedReason.replaceSubrange(range, with: formattedString)
+                    }
+                } else if glucoseValueString.starts(with: "Dev:") {
+                    // Handle Dev case
+                    let value = glucoseValueString.components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
+                    let formattedValue = convertToMmolL(value)
+                    let formattedString = "Dev: \(formattedValue)"
+                    updatedReason.replaceSubrange(range, with: formattedString)
+                } else if glucoseValueString.starts(with: "BGI:") {
+                    // Handle BGI case
+                    let value = glucoseValueString.components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
+                    let formattedValue = convertToMmolL(value)
+                    let formattedString = "BGI: \(formattedValue)"
+                    updatedReason.replaceSubrange(range, with: formattedString)
+                } else if glucoseValueString.starts(with: "Target:") {
+                    // Handle Target case
+                    let value = glucoseValueString.components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
+                    let formattedValue = convertToMmolL(value)
+                    let formattedString = "Target: \(formattedValue)"
+                    updatedReason.replaceSubrange(range, with: formattedString)
+
                 } else {
-                    // General case for single glucose values like "Target: 100" or "minGuardBG 34"
-                    let parts = glucoseValueString.components(separatedBy: CharacterSet(charactersIn: ": "))
-                    let formattedValue = convertToMmolL(parts.last!.trimmingCharacters(in: .whitespaces))
-                    updatedReason.replaceSubrange(range, with: "\(parts[0]): \(formattedValue)")
+                    // Handle standard BG metrics
+                    let parts = glucoseValueString.components(separatedBy: .whitespaces)
+                    if parts.count >= 2 {
+                        let metric = parts[0]
+                        let value = parts[1]
+                        let formattedValue = convertToMmolL(value)
+                        let formattedString = "\(metric): \(formattedValue)"
+                        updatedReason.replaceSubrange(range, with: formattedString)
+                    }
                 }
             }
         }
-
         return updatedReason
     }
 }
