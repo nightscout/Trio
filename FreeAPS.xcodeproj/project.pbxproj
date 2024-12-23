@@ -342,11 +342,11 @@
 		BDBAACFA2C2D439700370AAE /* OverrideData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDBAACF92C2D439700370AAE /* OverrideData.swift */; };
 		BDC2EA452C3043B000E5BBD0 /* OverrideStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC2EA442C3043B000E5BBD0 /* OverrideStorage.swift */; };
 		BDC2EA472C3045AD00E5BBD0 /* Override.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC2EA462C3045AD00E5BBD0 /* Override.swift */; };
-		BDC530FF2D0F6BE300088832 /* ContactTrickManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC530FE2D0F6BE300088832 /* ContactTrickManager.swift */; };
-		BDC531122D1060FA00088832 /* ContactTrickDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC531112D1060FA00088832 /* ContactTrickDetailView.swift */; };
-		BDC531142D10611D00088832 /* AddContactTrickSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC531132D10611D00088832 /* AddContactTrickSheet.swift */; };
-		BDC531162D10629000088832 /* ContactTrickPicture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC531152D10629000088832 /* ContactTrickPicture.swift */; };
-		BDC531182D1062F200088832 /* ContactTrickState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC531172D1062F200088832 /* ContactTrickState.swift */; };
+		BDC530FF2D0F6BE300088832 /* ContactImageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC530FE2D0F6BE300088832 /* ContactImageManager.swift */; };
+		BDC531122D1060FA00088832 /* ContactImageDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC531112D1060FA00088832 /* ContactImageDetailView.swift */; };
+		BDC531142D10611D00088832 /* AddContactImageSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC531132D10611D00088832 /* AddContactImageSheet.swift */; };
+		BDC531162D10629000088832 /* ContactPicture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC531152D10629000088832 /* ContactPicture.swift */; };
+		BDC531182D1062F200088832 /* ContactImageState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC531172D1062F200088832 /* ContactImageState.swift */; };
 		BDCAF2382C639F35002DC907 /* SettingItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCAF2372C639F35002DC907 /* SettingItems.swift */; };
 		BDCD47AF2C1F3F1700F8BCD5 /* OverrideStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */; };
 		BDDAF9EF2D00554500B34E7A /* SelectionPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDAF9EE2D00553E00B34E7A /* SelectionPopoverView.swift */; };
@@ -484,7 +484,7 @@
 		DD9ECB712CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB6E2CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift */; };
 		DD9ECB722CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB6F2CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift */; };
 		DD9ECB742CA9A0C300AA7C45 /* RemoteControlConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB732CA9A0C300AA7C45 /* RemoteControlConfig.swift */; };
-		DDB37CC52D05048F00D99BF4 /* ContactTrickStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC42D05048F00D99BF4 /* ContactTrickStorage.swift */; };
+		DDB37CC52D05048F00D99BF4 /* ContactImageStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */; };
 		DDB37CC72D05127500D99BF4 /* FontExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC62D05127500D99BF4 /* FontExtensions.swift */; };
 		DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */; };
 		DDD163122C4C689900CD525A /* AdjustmentsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */; };
@@ -543,10 +543,10 @@
 		E39E418C56A5A46B61D960EE /* ConfigEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D5B4F8B4194BB7E260EF251 /* ConfigEditorStateModel.swift */; };
 		E3A08AAE59538BC8A8ABE477 /* GlucoseNotificationSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3260468377DA9DB4DEE9AF6D /* GlucoseNotificationSettingsDataFlow.swift */; };
 		E592A3702CEEC01E009A472C /* ContactTrickEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */; };
-		E592A3772CEEC038009A472C /* ContactTrickStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3752CEEC038009A472C /* ContactTrickStateModel.swift */; };
-		E592A3782CEEC038009A472C /* ContactTrickDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3732CEEC038009A472C /* ContactTrickDataFlow.swift */; };
-		E592A3792CEEC038009A472C /* ContactTrickRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3712CEEC038009A472C /* ContactTrickRootView.swift */; };
-		E592A37A2CEEC038009A472C /* ContactTrickProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3742CEEC038009A472C /* ContactTrickProvider.swift */; };
+		E592A3772CEEC038009A472C /* ContactImageStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3752CEEC038009A472C /* ContactImageStateModel.swift */; };
+		E592A3782CEEC038009A472C /* ContactImageDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3732CEEC038009A472C /* ContactImageDataFlow.swift */; };
+		E592A3792CEEC038009A472C /* ContactImageRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3712CEEC038009A472C /* ContactImageRootView.swift */; };
+		E592A37A2CEEC038009A472C /* ContactImageProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E592A3742CEEC038009A472C /* ContactImageProvider.swift */; };
 		E974172296125A5AE99E634C /* PumpConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD22C985B79A2F0D2EA3D9D /* PumpConfigRootView.swift */; };
 		F5CA3DB1F9DC8B05792BBFAA /* CGMDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B5C0607505A38F256BF99A /* CGMDataFlow.swift */; };
 		F5F7E6C1B7F098F59EB67EC5 /* TargetsEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA49538D56989D8DA6FCF538 /* TargetsEditorDataFlow.swift */; };
@@ -1042,11 +1042,11 @@
 		BDBAACF92C2D439700370AAE /* OverrideData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideData.swift; sourceTree = "<group>"; };
 		BDC2EA442C3043B000E5BBD0 /* OverrideStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideStorage.swift; sourceTree = "<group>"; };
 		BDC2EA462C3045AD00E5BBD0 /* Override.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Override.swift; sourceTree = "<group>"; };
-		BDC530FE2D0F6BE300088832 /* ContactTrickManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickManager.swift; sourceTree = "<group>"; };
-		BDC531112D1060FA00088832 /* ContactTrickDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickDetailView.swift; sourceTree = "<group>"; };
-		BDC531132D10611D00088832 /* AddContactTrickSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddContactTrickSheet.swift; sourceTree = "<group>"; };
-		BDC531152D10629000088832 /* ContactTrickPicture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickPicture.swift; sourceTree = "<group>"; };
-		BDC531172D1062F200088832 /* ContactTrickState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickState.swift; sourceTree = "<group>"; };
+		BDC530FE2D0F6BE300088832 /* ContactImageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageManager.swift; sourceTree = "<group>"; };
+		BDC531112D1060FA00088832 /* ContactImageDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageDetailView.swift; sourceTree = "<group>"; };
+		BDC531132D10611D00088832 /* AddContactImageSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddContactImageSheet.swift; sourceTree = "<group>"; };
+		BDC531152D10629000088832 /* ContactPicture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactPicture.swift; sourceTree = "<group>"; };
+		BDC531172D1062F200088832 /* ContactImageState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageState.swift; sourceTree = "<group>"; };
 		BDCAF2372C639F35002DC907 /* SettingItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingItems.swift; sourceTree = "<group>"; };
 		BDCD47AE2C1F3F1700F8BCD5 /* OverrideStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+helper.swift"; sourceTree = "<group>"; };
 		BDDAF9EE2D00553E00B34E7A /* SelectionPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionPopoverView.swift; sourceTree = "<group>"; };
@@ -1188,7 +1188,7 @@
 		DD9ECB732CA9A0C300AA7C45 /* RemoteControlConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteControlConfig.swift; sourceTree = "<group>"; };
 		DDB37CC22D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDB37CC32D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		DDB37CC42D05048F00D99BF4 /* ContactTrickStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickStorage.swift; sourceTree = "<group>"; };
+		DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageStorage.swift; sourceTree = "<group>"; };
 		DDB37CC62D05127500D99BF4 /* FontExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtensions.swift; sourceTree = "<group>"; };
 		DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LiveActivity+Helper.swift"; sourceTree = "<group>"; };
 		DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentsStateModel.swift; sourceTree = "<group>"; };
@@ -1245,10 +1245,10 @@
 		E0D4F80427513ECF00BDF1FE /* HealthKitSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSample.swift; sourceTree = "<group>"; };
 		E26904AACA8D9C15D229D675 /* SnoozeStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeStateModel.swift; sourceTree = "<group>"; };
 		E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickEntry.swift; sourceTree = "<group>"; };
-		E592A3712CEEC038009A472C /* ContactTrickRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickRootView.swift; sourceTree = "<group>"; };
-		E592A3732CEEC038009A472C /* ContactTrickDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickDataFlow.swift; sourceTree = "<group>"; };
-		E592A3742CEEC038009A472C /* ContactTrickProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickProvider.swift; sourceTree = "<group>"; };
-		E592A3752CEEC038009A472C /* ContactTrickStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactTrickStateModel.swift; sourceTree = "<group>"; };
+		E592A3712CEEC038009A472C /* ContactImageRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageRootView.swift; sourceTree = "<group>"; };
+		E592A3732CEEC038009A472C /* ContactImageDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageDataFlow.swift; sourceTree = "<group>"; };
+		E592A3742CEEC038009A472C /* ContactImageProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageProvider.swift; sourceTree = "<group>"; };
+		E592A3752CEEC038009A472C /* ContactImageStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageStateModel.swift; sourceTree = "<group>"; };
 		E625985B47742D498CB1681A /* GlucoseNotificationSettingsProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlucoseNotificationSettingsProvider.swift; sourceTree = "<group>"; };
 		F816825D28DB441200054060 /* HeartBeatManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HeartBeatManager.swift; sourceTree = "<group>"; };
 		F816825F28DB441800054060 /* BluetoothTransmitter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BluetoothTransmitter.swift; sourceTree = "<group>"; };
@@ -1560,7 +1560,7 @@
 				E42231DBF0DBE2B4B92D1B15 /* CarbRatioEditor */,
 				F75CB57ED6971B46F8756083 /* CGM */,
 				0610F7D6D2EC00E3BA1569F0 /* ConfigEditor */,
-				E592A3762CEEC038009A472C /* ContactTrick */,
+				E592A3762CEEC038009A472C /* ContactImage */,
 				9E56E3626FAD933385101B76 /* DataTable */,
 				195D80B22AF696EE00D25097 /* DynamicSettings */,
 				DD17454C2C55CA0200211FAC /* GeneralSettings */,
@@ -1700,7 +1700,7 @@
 				3811DE9225C9D88200A708ED /* Appearance */,
 				CEB434E128B8F9BC00B70274 /* Bluetooth */,
 				3862CC2C2743F9DC00BF832C /* Calendar */,
-				E592A37E2CEEC046009A472C /* ContactTrick */,
+				E592A37E2CEEC046009A472C /* ContactImage */,
 				F90692A8274B7A980037068D /* HealthKit */,
 				6B1A8D2C2B156EC100E76752 /* LiveActivity */,
 				3811DE9425C9D88200A708ED /* Network */,
@@ -2083,15 +2083,15 @@
 		38A0362725ECF05300FCBB52 /* Storage */ = {
 			isa = PBXGroup;
 			children = (
-				DDB37CC42D05048F00D99BF4 /* ContactTrickStorage.swift */,
+				CE82E02428E867BA00473A9C /* AlertStorage.swift */,
 				385CEAC325F2F154002D6D5B /* AnnouncementsStorage.swift */,
 				38AEE75625F0F18E0013F05B /* CarbsStorage.swift */,
+				DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */,
+				5864E8582C42CFAE00294306 /* DeterminationStorage.swift */,
 				38A0363A25ECF07E00FCBB52 /* GlucoseStorage.swift */,
+				BDC2EA442C3043B000E5BBD0 /* OverrideStorage.swift */,
 				38FCF3FC25E997A80078B0D1 /* PumpHistoryStorage.swift */,
 				38F3B2EE25ED8E2A005C48AA /* TempTargetsStorage.swift */,
-				CE82E02428E867BA00473A9C /* AlertStorage.swift */,
-				BDC2EA442C3043B000E5BBD0 /* OverrideStorage.swift */,
-				5864E8582C42CFAE00294306 /* DeterminationStorage.swift */,
 			);
 			path = Storage;
 			sourceTree = "<group>";
@@ -2994,32 +2994,32 @@
 		E592A3722CEEC038009A472C /* View */ = {
 			isa = PBXGroup;
 			children = (
-				E592A3712CEEC038009A472C /* ContactTrickRootView.swift */,
-				BDC531112D1060FA00088832 /* ContactTrickDetailView.swift */,
-				BDC531132D10611D00088832 /* AddContactTrickSheet.swift */,
+				E592A3712CEEC038009A472C /* ContactImageRootView.swift */,
+				BDC531112D1060FA00088832 /* ContactImageDetailView.swift */,
+				BDC531132D10611D00088832 /* AddContactImageSheet.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
 		};
-		E592A3762CEEC038009A472C /* ContactTrick */ = {
+		E592A3762CEEC038009A472C /* ContactImage */ = {
 			isa = PBXGroup;
 			children = (
 				E592A3722CEEC038009A472C /* View */,
-				E592A3732CEEC038009A472C /* ContactTrickDataFlow.swift */,
-				E592A3742CEEC038009A472C /* ContactTrickProvider.swift */,
-				E592A3752CEEC038009A472C /* ContactTrickStateModel.swift */,
+				E592A3732CEEC038009A472C /* ContactImageDataFlow.swift */,
+				E592A3742CEEC038009A472C /* ContactImageProvider.swift */,
+				E592A3752CEEC038009A472C /* ContactImageStateModel.swift */,
 			);
-			path = ContactTrick;
+			path = ContactImage;
 			sourceTree = "<group>";
 		};
-		E592A37E2CEEC046009A472C /* ContactTrick */ = {
+		E592A37E2CEEC046009A472C /* ContactImage */ = {
 			isa = PBXGroup;
 			children = (
-				BDC530FE2D0F6BE300088832 /* ContactTrickManager.swift */,
-				BDC531152D10629000088832 /* ContactTrickPicture.swift */,
-				BDC531172D1062F200088832 /* ContactTrickState.swift */,
+				BDC530FE2D0F6BE300088832 /* ContactImageManager.swift */,
+				BDC531152D10629000088832 /* ContactPicture.swift */,
+				BDC531172D1062F200088832 /* ContactImageState.swift */,
 			);
-			path = ContactTrick;
+			path = ContactImage;
 			sourceTree = "<group>";
 		};
 		EEC747824D6593B5CD87E195 /* View */ = {
@@ -3725,7 +3725,7 @@
 				6632A0DC746872439A858B44 /* ISFEditorDataFlow.swift in Sources */,
 				DD17454B2C55C62800211FAC /* AutosensSettingsRootView.swift in Sources */,
 				DDF847DF2C5C28780049BB3B /* LiveActivitySettingsProvider.swift in Sources */,
-				DDB37CC52D05048F00D99BF4 /* ContactTrickStorage.swift in Sources */,
+				DDB37CC52D05048F00D99BF4 /* ContactImageStorage.swift in Sources */,
 				DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */,
 				BDF34EBE2C0A31D100D51995 /* CustomNotification.swift in Sources */,
 				BDC2EA472C3045AD00E5BBD0 /* Override.swift in Sources */,
@@ -3778,11 +3778,11 @@
 				DD5DC9F92CF3DAA900AB8703 /* RadioButton.swift in Sources */,
 				38E44522274E3DDC00EC9A94 /* NetworkReachabilityManager.swift in Sources */,
 				CE7CA34F2A064973004BE681 /* BaseIntentsRequest.swift in Sources */,
-				E592A3772CEEC038009A472C /* ContactTrickStateModel.swift in Sources */,
-				E592A3782CEEC038009A472C /* ContactTrickDataFlow.swift in Sources */,
-				E592A3792CEEC038009A472C /* ContactTrickRootView.swift in Sources */,
-				BDC531182D1062F200088832 /* ContactTrickState.swift in Sources */,
-				E592A37A2CEEC038009A472C /* ContactTrickProvider.swift in Sources */,
+				E592A3772CEEC038009A472C /* ContactImageStateModel.swift in Sources */,
+				E592A3782CEEC038009A472C /* ContactImageDataFlow.swift in Sources */,
+				E592A3792CEEC038009A472C /* ContactImageRootView.swift in Sources */,
+				BDC531182D1062F200088832 /* ContactImageState.swift in Sources */,
+				E592A37A2CEEC038009A472C /* ContactImageProvider.swift in Sources */,
 				CE82E02728E869DF00473A9C /* AlertEntry.swift in Sources */,
 				38E4451E274DB04600EC9A94 /* AppDelegate.swift in Sources */,
 				BD2FF1A02AE29D43005D1C5D /* CheckboxToggleStyle.swift in Sources */,
@@ -3801,7 +3801,7 @@
 				69A31254F2451C20361D172F /* TreatmentsStateModel.swift in Sources */,
 				1967DFC029D053AC00759F30 /* IconSelection.swift in Sources */,
 				19D4E4EB29FC6A9F00351451 /* Charts.swift in Sources */,
-				BDC531162D10629000088832 /* ContactTrickPicture.swift in Sources */,
+				BDC531162D10629000088832 /* ContactPicture.swift in Sources */,
 				FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */,
 				F90692D3274B9A130037068D /* AppleHealthKitRootView.swift in Sources */,
 				BDF34F852C10C62E00D51995 /* GlucoseData.swift in Sources */,
@@ -3859,8 +3859,8 @@
 				DDE179522C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift in Sources */,
 				DDE179532C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift in Sources */,
 				DDE179542C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift in Sources */,
-				BDC530FF2D0F6BE300088832 /* ContactTrickManager.swift in Sources */,
-				BDC531122D1060FA00088832 /* ContactTrickDetailView.swift in Sources */,
+				BDC530FF2D0F6BE300088832 /* ContactImageManager.swift in Sources */,
+				BDC531122D1060FA00088832 /* ContactImageDetailView.swift in Sources */,
 				DDE179552C910127003CDDB7 /* LoopStatRecord+CoreDataProperties.swift in Sources */,
 				DDE179562C910127003CDDB7 /* BolusStored+CoreDataClass.swift in Sources */,
 				DDE179572C910127003CDDB7 /* BolusStored+CoreDataProperties.swift in Sources */,
@@ -3877,7 +3877,7 @@
 				DDE179632C910127003CDDB7 /* Forecast+CoreDataProperties.swift in Sources */,
 				DDE179642C910127003CDDB7 /* GlucoseStored+CoreDataClass.swift in Sources */,
 				DDE179652C910127003CDDB7 /* GlucoseStored+CoreDataProperties.swift in Sources */,
-				BDC531142D10611D00088832 /* AddContactTrickSheet.swift in Sources */,
+				BDC531142D10611D00088832 /* AddContactImageSheet.swift in Sources */,
 				DDE179662C910127003CDDB7 /* OpenAPS_Battery+CoreDataClass.swift in Sources */,
 				DDE179672C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift in Sources */,
 				DDE179682C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift in Sources */,

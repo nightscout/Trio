@@ -3,31 +3,31 @@ import Contacts
 import CoreData
 import Swinject
 
-protocol ContactTrickManagerDelegate: AnyObject {
-    func contactTrickManagerDidUpdateState(_ state: ContactTrickState)
+protocol ContactImageManagerDelegate: AnyObject {
+    func contactImageManagerDidUpdateState(_ state: ContactImageState)
 }
 
-protocol ContactTrickManager {
-    var delegate: ContactTrickManagerDelegate? { get set }
+protocol ContactImageManager {
+    var delegate: ContactImageManagerDelegate? { get set }
     func requestAccess() async -> Bool
     func createContact(name: String) async -> String?
     func deleteContact(withIdentifier identifier: String) async -> Bool
     func updateContact(withIdentifier identifier: String, newName: String) async -> Bool
-    @MainActor func updateContactTrickState() async
+    @MainActor func updateContactImageState() async
     func setImageForContact(contactId: String) async
     func validateContactExists(withIdentifier identifier: String) async -> Bool
 }
 
-final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
+final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     @Injected() private var glucoseStorage: GlucoseStorage!
-    @Injected() private var contactTrickStorage: ContactTrickStorage!
+    @Injected() private var contactImageStorage: ContactImageStorage!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var fileStorage: FileStorage!
 
     private let contactStore = CNContactStore()
 
     // Make it read-only from outside the class
-    private(set) var state = ContactTrickState()
+    private(set) var state = ContactImageState()
 
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
     private let backgroundContext = CoreDataStack.shared.newTaskContext()
@@ -46,7 +46,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         return formatter
     }
 
-    weak var delegate: ContactTrickManagerDelegate?
+    weak var delegate: ContactImageManagerDelegate?
 
     init(resolver: Resolver) {
         super.init()
@@ -63,7 +63,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task {
-                    await self.updateContactTrickState()
+                    await self.updateContactImageState()
                     await self.updateContactImages()
                 }
             }
@@ -78,7 +78,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
-                await self.updateContactTrickState()
+                await self.updateContactImageState()
                 await self.updateContactImages()
             }
         }.store(in: &subscriptions)
@@ -171,13 +171,13 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
         return nil
     }
 
-    // MARK: - Configure ContactTrickState in order to update ContactTrickImage
+    // MARK: - Configure ContactImageState in order to update ContactImageImage
 
-    /// Updates the `ContactTrickState` with the latest data from Core Data.
+    /// Updates the `ContactImageState` with the latest data from Core Data.
     /// This function fetches glucose values and determination entries, processes the data,
     /// and updates the `state` object, which represents the current contact trick state.
     /// - Important: This function must be called on the main actor to ensure thread safety. Otherwise, we would need to ensure thread safety by either using an actor or a perform closure
-    @MainActor func updateContactTrickState() async {
+    @MainActor func updateContactImageState() async {
         // Get NSManagedObjectIDs on backgroundContext
         let glucoseValuesIds = await fetchGlucose()
         let determinationIds = await fetchlastDetermination()
@@ -242,7 +242,7 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
 
         // Notify delegate about state update on main thread
         await MainActor.run {
-            delegate?.contactTrickManagerDidUpdateState(state)
+            delegate?.contactImageManagerDidUpdateState(state)
         }
     }
 
@@ -258,14 +258,14 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
     }
 
     /// Sets the image for a specific contact in Apple Contacts.
-    /// This function fetches the associated `ContactTrickEntry` for the provided contact ID, generates an image
-    /// based on the current `ContactTrickState`, and updates the contact in the user's Apple Contacts.
+    /// This function fetches the associated `ContactImageEntry` for the provided contact ID, generates an image
+    /// based on the current `ContactImageState`, and updates the contact in the user's Apple Contacts.
     /// - Parameter contactId: The unique identifier of the contact in Apple Contacts.
     /// - Important: This function should be called when a new contact is created and needs its initial image set.
     func setImageForContact(contactId: String) async {
-        guard let contactEntry = await contactTrickStorage.fetchContactTrickEntries().first(where: { $0.contactId == contactId })
+        guard let contactEntry = await contactImageStorage.fetchContactImageEntries().first(where: { $0.contactId == contactId })
         else {
-            debugPrint("\(DebuggingIdentifiers.failed) No matching ContactTrickEntry found for contact ID: \(contactId)")
+            debugPrint("\(DebuggingIdentifiers.failed) No matching ContactImageEntry found for contact ID: \(contactId)")
             return
         }
 
@@ -302,12 +302,12 @@ final class BaseContactTrickManager: NSObject, ContactTrickManager, Injectable {
     }
 
     /// Updates the images of all contacts stored in Core Data.
-    /// This function iterates through all stored `ContactTrickEntry` objects, generates a new contact image
-    /// based on the current `ContactTrickState`, and updates the image in the user's Apple Contacts.
-    /// - Important: This function should be called whenever the `ContactTrickState` changes.
+    /// This function iterates through all stored `ContactImageEntry` objects, generates a new contact image
+    /// based on the current `ContactImageState`, and updates the image in the user's Apple Contacts.
+    /// - Important: This function should be called whenever the `ContactImageState` changes.
     func updateContactImages() async {
-        // Iterate through all stored ContactTrickEntry objects
-        for contactEntry in await contactTrickStorage.fetchContactTrickEntries() {
+        // Iterate through all stored ContactImageEntry objects
+        for contactEntry in await contactImageStorage.fetchContactImageEntries() {
             // Ensure the contact has a valid contact ID
             guard let contactId = contactEntry.contactId else { continue }
 

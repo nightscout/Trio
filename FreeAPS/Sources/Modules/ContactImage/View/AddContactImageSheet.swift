@@ -1,27 +1,27 @@
 import SwiftUI
 
-struct AddContactTrickSheet: View {
+struct AddContactImageSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     @Environment(AppState.self) var appState
 
-    @ObservedObject var state: ContactTrick.StateModel
+    @ObservedObject var state: ContactImage.StateModel
 
     @State private var hasHighContrast: Bool = true
-    @State private var ringWidth: ContactTrickEntry.RingWidth = .regular
-    @State private var ringGap: ContactTrickEntry.RingGap = .small
-    @State private var layout: ContactTrickLayout = .default
-    @State private var primary: ContactTrickValue = .glucose
-    @State private var top: ContactTrickValue = .none
-    @State private var bottom: ContactTrickValue = .trend
-    @State private var ring: ContactTrickLargeRing = .none
-    @State private var fontSize: ContactTrickEntry.FontSize = .regular
-    @State private var secondaryFontSize: ContactTrickEntry.FontSize = .small
+    @State private var ringWidth: ContactImageEntry.RingWidth = .regular
+    @State private var ringGap: ContactImageEntry.RingGap = .small
+    @State private var layout: ContactImageLayout = .default
+    @State private var primary: ContactImageValue = .glucose
+    @State private var top: ContactImageValue = .none
+    @State private var bottom: ContactImageValue = .trend
+    @State private var ring: ContactImageLargeRing = .none
+    @State private var fontSize: ContactImageEntry.FontSize = .regular
+    @State private var secondaryFontSize: ContactImageEntry.FontSize = .small
     @State private var fontWeight: Font.Weight = .medium
     @State private var fontWidth: Font.Width = .standard
 
-    private var previewEntry: ContactTrickEntry {
-        ContactTrickEntry(
+    private var previewEntry: ContactImageEntry {
+        ContactImageEntry(
             id: UUID(),
             name: "", // automatically set and populated
             layout: layout,
@@ -29,7 +29,7 @@ struct AddContactTrickSheet: View {
             primary: primary,
             top: top,
             bottom: bottom,
-            contactId: nil, // not needed for preview, gets set later in ContactTrickStateModel via ContactTrickManager
+            contactId: nil, // not needed for preview, gets set later in ContactImageStateModel via ContactImageManager
             hasHighContrast: hasHighContrast,
             ringWidth: ringWidth,
             ringGap: ringGap,
@@ -48,7 +48,7 @@ struct AddContactTrickSheet: View {
                     Spacer()
                     ZStack {
                         Circle()
-                            .fill(previewEntry.hasHighContrast ? .black : .white)
+                            .fill(.black)
                             .foregroundColor(.white)
                             .frame(width: 100, height: 100)
                         Image(uiImage: ContactPicture.getImage(contact: previewEntry, state: state.state))
@@ -57,7 +57,7 @@ struct AddContactTrickSheet: View {
                             .clipShape(Circle())
                         Circle()
                             .stroke(lineWidth: 2)
-                            .foregroundColor(.white)
+                            .foregroundColor(colorScheme == .dark ? .white : .black)
                             .frame(width: 100, height: 100)
                     }
                     Spacer()
@@ -69,7 +69,7 @@ struct AddContactTrickSheet: View {
                     // Layout Section
                     Section(header: Text("Style")) {
                         Picker("Layout", selection: $layout) {
-                            ForEach(ContactTrickLayout.allCases, id: \.id) { layout in
+                            ForEach(ContactImageLayout.allCases, id: \.id) { layout in
                                 Text(layout.displayName).tag(layout)
                             }
                         }.onChange(of: layout, { oldLayout, newLayout in
@@ -85,19 +85,19 @@ struct AddContactTrickSheet: View {
                     // Primary Value Section
                     Section(header: Text("Display Values")) {
                         Picker("Top Value", selection: $top) {
-                            ForEach(ContactTrickValue.allCases, id: \.id) { value in
+                            ForEach(ContactImageValue.allCases, id: \.id) { value in
                                 Text(value.displayName).tag(value)
                             }
                         }
                         if layout == .default {
                             Picker("Primary", selection: $primary) {
-                                ForEach(ContactTrickValue.allCases, id: \.id) { value in
+                                ForEach(ContactImageValue.allCases, id: \.id) { value in
                                     Text(value.displayName).tag(value)
                                 }
                             }
                         }
                         Picker("Bottom Value", selection: $bottom) {
-                            ForEach(ContactTrickValue.allCases, id: \.id) { value in
+                            ForEach(ContactImageValue.allCases, id: \.id) { value in
                                 Text(value.displayName).tag(value)
                             }
                         }
@@ -107,19 +107,19 @@ struct AddContactTrickSheet: View {
                     // Ring Settings Section
                     Section(header: Text("Ring Settings")) {
                         Picker("Ring Type", selection: $ring) {
-                            ForEach(ContactTrickLargeRing.allCases, id: \.self) { ring in
+                            ForEach(ContactImageLargeRing.allCases, id: \.self) { ring in
                                 Text(ring.displayName).tag(ring)
                             }
                         }
 
                         if ring != .none {
                             Picker("Ring Width", selection: $ringWidth) {
-                                ForEach(ContactTrickEntry.RingWidth.allCases, id: \.self) { width in
+                                ForEach(ContactImageEntry.RingWidth.allCases, id: \.self) { width in
                                     Text(width.displayName).tag(width)
                                 }
                             }
                             Picker("Ring Gap", selection: $ringGap) {
-                                ForEach(ContactTrickEntry.RingGap.allCases, id: \.self) { gap in
+                                ForEach(ContactImageEntry.RingGap.allCases, id: \.self) { gap in
                                     Text(gap.displayName).tag(gap)
                                 }
                             }
@@ -209,7 +209,7 @@ struct AddContactTrickSheet: View {
 
     private var fontSizePicker: some View {
         Picker("Font Size", selection: $fontSize) {
-            ForEach(ContactTrickEntry.FontSize.allCases, id: \.self) { size in
+            ForEach(ContactImageEntry.FontSize.allCases, id: \.self) { size in
                 Text(size.displayName).tag(size)
             }
         }
@@ -217,7 +217,7 @@ struct AddContactTrickSheet: View {
 
     private var secondaryFontSizePicker: some View {
         Picker("Secondary Font Size", selection: $secondaryFontSize) {
-            ForEach(ContactTrickEntry.FontSize.allCases, id: \.self) { size in
+            ForEach(ContactImageEntry.FontSize.allCases, id: \.self) { size in
                 Text(size.displayName).tag(size)
             }
         }
@@ -248,7 +248,7 @@ struct AddContactTrickSheet: View {
     private func saveNewEntry() {
         // Save the currently previewed entry
         Task {
-            await state.createAndSaveContactTrick(entry: previewEntry, name: "Trio \(state.contactTrickEntries.count + 1)")
+            await state.createAndSaveContactImage(entry: previewEntry, name: "Trio \(state.contactImageEntries.count + 1)")
             dismiss()
         }
     }

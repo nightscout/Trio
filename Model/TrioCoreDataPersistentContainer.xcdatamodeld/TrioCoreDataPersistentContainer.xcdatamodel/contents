@@ -25,7 +25,7 @@
             <fetchIndexElement property="isFPU" type="Binary" order="ascending"/>
         </fetchIndex>
     </entity>
-    <entity name="ContactTrickEntryStored" representedClassName="ContactTrickEntryStored" syncable="YES" codeGenerationType="class">
+    <entity name="ContactImageEntryStored" representedClassName="ContactImageEntryStored" syncable="YES" codeGenerationType="class">
         <attribute name="bottom" optional="YES" attributeType="String"/>
         <attribute name="contactId" optional="YES" attributeType="String"/>
         <attribute name="fontSize" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
