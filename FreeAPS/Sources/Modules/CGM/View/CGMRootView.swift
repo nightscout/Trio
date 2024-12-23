@@ -37,7 +37,7 @@ extension CGM {
 
                                 HStack(alignment: .center) {
                                     Text(
-                                        "Select your CGM."
+                                        "Select your CGM. See hint for compatible devices."
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -152,7 +152,7 @@ extension CGM {
 
                                 HStack(alignment: .center) {
                                     Text(
-                                        "A heartbeat tells Trio to start a loop cycle. \nThis is required to keep looping."
+                                        "A heartbeat tells Trio to start a loop cycle. This is required for closed loop."
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -208,10 +208,10 @@ extension CGM {
                                 "This filter looks at small groups of nearby readings and fits them to a simple mathematical curve. This process doesn't change the overall pattern of your glucose data but helps smooth out the \"noise\" or irregular fluctuations that could lead to false highs or lows."
                             )
                             Text(
-                                "Because your glucose readings are taken at regular intervals, the filter can use a set of pre-calculated \"weights\" to adjust each group of readings, making the calculations fast and efficient. It's designed to keep the important trends in your data while minimizing those small, misleading variations, giving you and Trio a clearer sense of where your blood sugar is really headed."
+                                "It's designed to keep the important trends in your data while minimizing those small, misleading variations, giving you and Trio a clearer sense of where your blood sugar is really headed. This type of filtering is useful in Trio, as it can help prevent over-corrections based on inaccurate glucose readings. This can help reduce the impact of sudden spikes or dips that might not reflect your true blood glucose levels."
                             )
                             Text(
-                                "This type of filtering is useful in Trio, as it can help prevent over-corrections based on inaccurate glucose readings. This can help reduce the impact of sudden spikes or dips that might not reflect your true blood glucose levels."
+                                "Note: If enabled, the smoothed values you see in Trio may differ from what is shown in your CGM app."
                             )
                         }
                     )

@@ -111,7 +111,7 @@ extension SMBSettings {
                         units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB After Carbs", comment: "Enable SMB After Carbs"),
-                        miniHint: "Allow SMB for 6 hrs after carbs are logged.",
+                        miniHint: "Allow SMB for 6 hrs after a carb entry.",
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -203,7 +203,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Enable UAM", comment: "Enable UAM"),
-                    miniHint: "Automatically adjust insulin delivery when carbs are not announced or miscalculated.",
+                    miniHint: "Enable Unannounced Meals SMB.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -214,7 +214,7 @@ extension SMBSettings {
                             "It uses the SMB (Super Micro Bolus) algorithm to deliver insulin in small amounts to correct glucose spikes. UAM also works in reverse, reducing or stopping SMBs if glucose levels drop unexpectedly."
                         )
                         Text(
-                            "This feature ensures more accurate insulin adjustments even when carb entries are missing or incorrect."
+                            "This feature ensures more accurate insulin adjustments when carb entries are missing or incorrect."
                         )
                     }
                 )
@@ -233,7 +233,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("maxSMBBasalMinutes"),
                     label: NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes"),
-                    miniHint: "Limits the size of a single Super Micro Bolus (SMB) dose.",
+                    miniHint: "Limit the size of a single Super Micro Bolus (SMB) dose.",
                     verboseHint: VStack(spacing: 10) {
                         VStack(alignment: .leading, spacing: 10) {
                             VStack(alignment: .leading, spacing: 1) {
@@ -343,12 +343,12 @@ extension SMBSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("SMB DeliveryRatio", comment: "SMB DeliveryRatio")
+                            hintLabel = NSLocalizedString("SMB Delivery Ratio", comment: "SMB Delivery Ratio")
                         }
                     ),
                     units: state.units,
                     type: .decimal("smbDeliveryRatio"),
-                    label: NSLocalizedString("SMB DeliveryRatio", comment: "SMB DeliveryRatio"),
+                    label: NSLocalizedString("SMB Delivery Ratio", comment: "SMB Delivery Ratio"),
                     miniHint: "Limits % of total insulin required that can be given as SMB.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {

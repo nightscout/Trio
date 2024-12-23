@@ -49,7 +49,7 @@ extension PumpConfig {
 
                                     HStack(alignment: .center) {
                                         Text(
-                                            "Pair a compatible pump with Trio. See details for available devices."
+                                            "Pair your insulin pump with Trio. See hint for compatible devices."
                                         )
                                         .font(.footnote)
                                         .foregroundColor(.secondary)
