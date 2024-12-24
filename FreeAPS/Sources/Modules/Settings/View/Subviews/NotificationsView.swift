@@ -37,7 +37,8 @@ struct NotificationsView: BaseView {
                 content: {
                     manageNotifications
                 }
-            )
+            ).listRowBackground(Color.chart)
+
             Section {
                 VStack {
                     notificationsEnabledStatus
@@ -71,6 +72,7 @@ struct NotificationsView: BaseView {
                     }.padding(.top)
                 }.padding(.bottom)
             }.listRowBackground(Color.chart)
+
             Section(
                 header: Text("Notification Center"),
                 content: {
@@ -83,8 +85,7 @@ struct NotificationsView: BaseView {
 
                     Text("Calendar Events").navigationLink(to: .calendarEventSettings, from: self)
                 }
-            )
-            .listRowBackground(Color.chart)
+            ).listRowBackground(Color.chart)
         }
         .listSectionSpacing(sectionSpacing)
         .onReceive(

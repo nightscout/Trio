@@ -1,6 +1,8 @@
 import SwiftUI
+import Swinject
 
-struct WatchConfigAppleWatchView: View {
+struct WatchConfigAppleWatchView: BaseView {
+    let resolver: Resolver
     @ObservedObject var state: WatchConfig.StateModel
 
     @State private var shouldDisplayHint: Bool = false
@@ -103,6 +105,19 @@ struct WatchConfigAppleWatchView: View {
                     "Enabling this feature lowers the number of turns on the crown dial required when confirming a bolus."
                 )
             )
+
+            Section(
+                header: Text("Contact Trick"),
+                content: {
+                    VStack {
+                        HStack {
+                            NavigationLink("Contacts Configuration") {
+                                ContactTrick.RootView(resolver: resolver)
+                            }.foregroundStyle(Color.accentColor)
+                        }
+                    }
+                }
+            ).listRowBackground(Color.chart)
         }
         .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {

@@ -574,7 +574,7 @@ extension Home {
                                     Color.insulin.opacity(0.1)
                             ) : Color.clear // Use clear and add the Material in the background
                     )
-                    .background(.ultraThinMaterial)
+                    .background(.ultraThinMaterial.opacity(colorScheme == .dark ? 0.35 : 0))
                     .clipShape(RoundedRectangle(cornerRadius: 15))
                     .frame(height: geo.size.height * 0.08)
                     .shadow(
