@@ -132,7 +132,7 @@ extension AlgorithmAdvancedSettings {
                     type: .conditionalDecimal("insulinPeakTime"),
                     label: NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time"),
                     conditionalLabel: NSLocalizedString("Insulin Peak Time", comment: "Insulin Peak Time"),
-                    miniHint: "Sets time of insulin's peak effect.",
+                    miniHint: "Set a custom time for peak insulin effect.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: Set by Insulin Type").bold()
@@ -187,7 +187,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Unsuspend If No Temp", comment: "Unsuspend If No Temp"),
-                    miniHint: "Automatically resumes pump after suspension.",
+                    miniHint: "Resume pump automatically after suspension.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -212,7 +212,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Suspend Zeros IOB", comment: "Suspend Zeros IOB"),
-                    miniHint: "Clears temporary basal rates and resets IOB when suspended.",
+                    miniHint: "Clear temporary basal rates and reset IOB when suspended.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -267,7 +267,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("min5mCarbimpact"),
                     label: NSLocalizedString("Min 5m Carb Impact", comment: "Min 5m Carb Impact"),
-                    miniHint: "Estimates the impact of carb absorbtion after 5 minutes.",
+                    miniHint: "Default impact of carb absorption over a 5 minute interval.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text(
@@ -350,7 +350,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("noisyCGMTargetMultiplier"),
                     label: NSLocalizedString("Noisy CGM Target Increase", comment: "Noisy CGM Target Increase"),
-                    miniHint: "Increase glucose target when noisy CGM data detected.",
+                    miniHint: "Percentage increase of glucose target when CGM is inconsistent.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 130%").bold()

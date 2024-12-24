@@ -56,7 +56,7 @@ extension UserInterfaceSettings {
 
                             HStack(alignment: .center) {
                                 Text(
-                                    "Choose between Light, Dark, or System Default for the app color scheme."
+                                    "Choose app color scheme. See hint for more details."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -111,7 +111,7 @@ extension UserInterfaceSettings {
 
                         HStack(alignment: .center) {
                             Text(
-                                "Choose between Static or Dynamic coloring for glucose readings."
+                                "Choose glucose reading color scheme. See hint for more details."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -335,7 +335,7 @@ extension UserInterfaceSettings {
 
                         HStack(alignment: .center) {
                             Text(
-                                "Choose between the Cone of Uncertainty or the OpenAPS colored lines for the algorithm's forecast."
+                                "Choose glucose forecast presentation. See hint for more details."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -348,7 +348,7 @@ extension UserInterfaceSettings {
                                         AnyView(
                                             VStack(alignment: .leading, spacing: 10) {
                                                 Text(
-                                                    "This setting allows you to choose between Cone of Uncertainty and OpenAPS Forecast Lines for the glucose forecast. Descriptions for each option found below."
+                                                    "This setting allows you to choose between Cone of Uncertainty (Cone) and OpenAPS Forecast Lines (Forecast Lines) for the glucose forecast. Descriptions for each option found below."
                                                 )
                                                 VStack(alignment: .leading, spacing: 5) {
                                                     Text("Cone:").bold()
@@ -389,7 +389,7 @@ extension UserInterfaceSettings {
 
                         HStack(alignment: .center) {
                             Text(
-                                "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph."
+                                "Choose which total insulin calculation is displayed on the home screen. See hint for more details."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -445,7 +445,7 @@ extension UserInterfaceSettings {
 
                             HStack(alignment: .center) {
                                 Text(
-                                    "Choose to display HbA1c in % or mmol/mol."
+                                    "Choose to display HbA1c in percent or mmol/mol."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -486,7 +486,7 @@ extension UserInterfaceSettings {
 
                         HStack(alignment: .center) {
                             Text(
-                                "Choose to display the Time in Range chart as a vertical bar chart or horizontal line chart."
+                                "Choose the orientation of the Time in Range Chart."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -528,7 +528,7 @@ extension UserInterfaceSettings {
                     type: .conditionalDecimal("carbsRequiredThreshold"),
                     label: "Show Carbs Required Badge",
                     conditionalLabel: "Carbs Required Threshold",
-                    miniHint: "Show carbs required as a notification badge on the home screen.",
+                    miniHint: "Show carbs required as a red icon on the main graph icon.",
                     verboseHint: Text(
                         "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number."
                     ),

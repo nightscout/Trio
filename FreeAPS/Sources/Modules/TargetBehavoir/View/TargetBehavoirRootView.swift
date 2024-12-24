@@ -38,12 +38,12 @@ extension TargetBehavoir {
                         "High Temp Target Raises Sensitivity",
                         comment: "High Temp Target Raises Sensitivity"
                     ),
-                    miniHint: "A Temp Target > \(state.units == .mgdL ? "110" : 110.formattedAsMmolL) \(state.units.rawValue) increases sensitivity when glucose is above target.",
+                    miniHint: "Increase sensitivity when glucose is above target if a manual Temp Target > \(state.units == .mgdL ? "110" : 110.formattedAsMmolL) \(state.units.rawValue) is set.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "When this feature is enabled, setting a temporary target above \(state.units == .mgdL ? "110" : 110.formattedAsMmolL) \(state.units.rawValue) will decrease the Autosens Ratio used for ISF and basal adjustments, resulting in less insulin delivered overall. This scales with the temporary target set; the higher the temp target, the lower the Autosens Ratio used."
+                            "When this feature is enabled, manually setting a temporary target above \(state.units == .mgdL ? "110" : 110.formattedAsMmolL) \(state.units.rawValue) will decrease the Autosens Ratio used for ISF and basal adjustments, resulting in less insulin delivered overall. This scales with the temporary target set; the higher the temp target, the lower the Autosens Ratio used."
                         )
                         Text(
                             "If Half Basal Exercise Target is set to \(state.units == .mgdL ? "160" : 160.formattedAsMmolL) \(state.units.rawValue), a temp target of \(state.units == .mgdL ? "120" : 120.formattedAsMmolL) \(state.units.rawValue) uses an Autosens Ratio of 0.75. A temp target of \(state.units == .mgdL ? "140" : 140.formattedAsMmolL) \(state.units.rawValue) uses an Autosens Ratio of 0.6."
@@ -73,7 +73,7 @@ extension TargetBehavoir {
                         "Low Temp Target Lowers Sensitivity",
                         comment: "Low Temp Target Lowers Sensitivity"
                     ),
-                    miniHint: "Temp Target < \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) decreases sensitivity when glucose is below target.",
+                    miniHint: "Decrease sensitivity when glucose is below target if a manual Temp Target < \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -101,10 +101,12 @@ extension TargetBehavoir {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Sensitivity Raises Target", comment: "Sensitivity Raises Target"),
-                    miniHint: "Automatically raise target glucose if sensitivity is detected.",
+                    miniHint: "Raise target glucose if when Autosens Ratio is >1.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
-                        Text("Automatically increase target glucose if it detects an increase in sensitivity.")
+                        Text(
+                            "Enabling this feature causes Trio to automatically raise the targeted glucose if it detects an increase in insulin sensitivity from your baseline."
+                        )
                     }
                 )
 
@@ -122,11 +124,11 @@ extension TargetBehavoir {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Resistance Lowers Target", comment: "Resistance Lowers Target"),
-                    miniHint: "Automatically lower target glucose if resistance is detected.",
+                    miniHint: "Lower target glucose when Autosens Ratio is <1.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "Enabling this feature causes Trio to automatically reduce the targeted glucose if it detects a decrease in sensitivity (resistance)."
+                            "Enabling this feature causes Trio to automatically reduce the targeted glucose if it detects a decrease in sensitivity (resistance) from your baseline."
                         )
                     }
                 )

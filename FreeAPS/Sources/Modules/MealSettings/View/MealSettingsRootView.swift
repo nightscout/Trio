@@ -160,10 +160,13 @@ extension MealSettings {
                                         hintLabel = "Limits per Entry"
                                         selectedVerboseHint =
                                             AnyView(
-                                                VStack(alignment: .leading, spacing: 10) {
-                                                    Text("Max Carbs: Enter the largest carbohydrate value allowed per meal entry")
-                                                    Text("Max Fat: Enter the largest fat value allowed per meal entry")
-                                                    Text("Max Protein: Enter the largest protein value allowed per meal entry")
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Max Carbs:").bold()
+                                                    Text("Enter the largest carbohydrate value allowed per meal entry")
+                                                    Text("Max Fat:").bold()
+                                                    Text("Enter the largest fat value allowed per meal entry")
+                                                    Text("Max Protein:").bold()
+                                                    Text("Enter the largest protein value allowed per meal entry")
                                                 }
                                             )
                                         shouldDisplayHint.toggle()
@@ -193,7 +196,7 @@ extension MealSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Enable Fat and Protein Entries",
-                    miniHint: "Allows you to add fat and protein macros to meals.",
+                    miniHint: "Add fat and protein macros to meal entries.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -331,7 +334,7 @@ extension MealSettings {
                         units: state.units,
                         type: .decimal("individualAdjustmentFactor"),
                         label: "Fat and Protein Percentage",
-                        miniHint: "Influences the conversion rate used in the Warsaw Method.",
+                        miniHint: "Adjust the Warsaw Method FPU Conversion rate.",
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 50%").bold()
                             VStack(spacing: 10) {

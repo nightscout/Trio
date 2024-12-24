@@ -47,7 +47,7 @@ extension BolusCalculatorConfig {
                     units: state.units,
                     type: .boolean,
                     label: "Display Meal Presets",
-                    miniHint: "Allows you to create and save preset meals.",
+                    miniHint: "Allow the creation of saved, preset meals.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: ON").bold()
                         Text("Enabling this feature allows you to create and save preset meals.")
@@ -68,7 +68,7 @@ extension BolusCalculatorConfig {
                     units: state.units,
                     type: .decimal("overrideFactor"),
                     label: "Recommended Bolus Percentage",
-                    miniHint: "Percentage of bolus used in bolus calculator.",
+                    miniHint: "Percentage of bolus suggested in bolus calculator.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 80%").bold()
@@ -100,7 +100,7 @@ extension BolusCalculatorConfig {
                     type: .conditionalDecimal("fattyMealFactor"),
                     label: "Enable Fatty Meal Option",
                     conditionalLabel: "Fatty Meal Bolus Percentage",
-                    miniHint: "Adds a \"Fatty Meal\" option to the bolus calculator.",
+                    miniHint: "Add and set a bolus option for meals that absorb slowly.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -134,7 +134,7 @@ extension BolusCalculatorConfig {
                     type: .conditionalDecimal("sweetMealFactor"),
                     label: "Enable Super Bolus Option",
                     conditionalLabel: "Super Bolus Percentage",
-                    miniHint: "Adds a \"Super Bolus\" option to the bolus calculator.",
+                    miniHint: "Add and set a bolus option for meals that absorb quickly.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()

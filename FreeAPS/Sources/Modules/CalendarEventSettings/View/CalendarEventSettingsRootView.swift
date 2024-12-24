@@ -32,7 +32,7 @@ extension CalendarEventSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Create Events in Calendar",
-                    miniHint: "Uses calendar events to display current data.",
+                    miniHint: "Use calendar events to display current data.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -75,7 +75,7 @@ extension CalendarEventSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Display Emojis as Labels",
-                        miniHint: "Emojis used instead of text for data labels.",
+                        miniHint: "Use emojis for calendar events. See hint for more details.",
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 5) {

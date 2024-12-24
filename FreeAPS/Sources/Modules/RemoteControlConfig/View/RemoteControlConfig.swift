@@ -35,7 +35,7 @@ extension RemoteControlConfig {
                     units: state.units,
                     type: .boolean,
                     label: "Enable Remote Control",
-                    miniHint: "Allow Trio to receive instructions, such as boluses and temp targets, from Loop Follow remotely.",
+                    miniHint: "Allow Trio to receive commands from Loop Follow remotely.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(

@@ -54,7 +54,7 @@ extension GlucoseNotificationSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Always Notify Pump",
-                    miniHint: "Always Notify Pump Warnings",
+                    miniHint: "Always Notify Pump Warnings.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: ON").bold()
@@ -80,7 +80,7 @@ extension GlucoseNotificationSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Always Notify CGM",
-                    miniHint: "Always Notify CGM Warnings",
+                    miniHint: "Always Notify CGM Warnings.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: ON").bold()
@@ -105,7 +105,7 @@ extension GlucoseNotificationSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Always Notify Carb",
-                    miniHint: "Always Notify Carb Warnings",
+                    miniHint: "Always Notify Carb Warnings.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: ON").bold()
@@ -130,7 +130,7 @@ extension GlucoseNotificationSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Always Notify Algorithm",
-                    miniHint: "Always Notify Algorithm Warnings",
+                    miniHint: "Always Notify Algorithm Warnings.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: ON").bold()

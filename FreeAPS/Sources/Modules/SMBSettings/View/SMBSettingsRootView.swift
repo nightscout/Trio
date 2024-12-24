@@ -233,7 +233,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("maxSMBBasalMinutes"),
                     label: NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes"),
-                    miniHint: "Limit the size of a single Super Micro Bolus (SMB) dose.",
+                    miniHint: "Limits the size of a single Super Micro Bolus (SMB) dose.",
                     verboseHint: VStack(spacing: 10) {
                         VStack(alignment: .leading, spacing: 10) {
                             VStack(alignment: .leading, spacing: 1) {
@@ -349,7 +349,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("smbDeliveryRatio"),
                     label: NSLocalizedString("SMB Delivery Ratio", comment: "SMB Delivery Ratio"),
-                    miniHint: "Limits % of total insulin required that can be given as SMB.",
+                    miniHint: "Percentage of calculated insulin required that is given as SMB.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 50%").bold()

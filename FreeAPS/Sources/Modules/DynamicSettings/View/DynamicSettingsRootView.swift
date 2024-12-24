@@ -55,7 +55,7 @@ extension DynamicSettings {
                     units: state.units,
                     type: .boolean,
                     label: "Activate Dynamic ISF",
-                    miniHint: "Adjusts ISF dynamically based on multiple data points.",
+                    miniHint: "Dynamically adjust insulin sensitivity using Dynamic Ratio rather than Autosens Ratio.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -91,7 +91,7 @@ extension DynamicSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Activate Dynamic CR (Carb Ratio)",
-                        miniHint: "Dynamically adjusts your Carb Ratio (CR).",
+                        miniHint: "Dynamically adjust your Carb Ratio (CR).",
                         verboseHint:
 
                         VStack(alignment: .leading, spacing: 10) {
@@ -125,7 +125,7 @@ extension DynamicSettings {
                         units: state.units,
                         type: .boolean,
                         label: "Use Sigmoid Formula",
-                        miniHint: "Adjusts ISF using a sigmoid-shaped curve.",
+                        miniHint: "Adjust insulin sensitivity using a sigmoid-shaped curve.",
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -162,7 +162,7 @@ extension DynamicSettings {
                             units: state.units,
                             type: .decimal("adjustmentFactor"),
                             label: "Adjustment Factor (AF)",
-                            miniHint: "Influences the rate of Dynamic ISF (Sensitivity) adjustments.",
+                            miniHint: "ALter the rate of Dynamic ISF (Sensitivity) adjustments.",
                             verboseHint:
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Default: 80%").bold()
@@ -192,7 +192,7 @@ extension DynamicSettings {
                             units: state.units,
                             type: .decimal("adjustmentFactorSigmoid"),
                             label: "Sigmoid Adjustment Factor",
-                            miniHint: "Influences the rate of dynamic sensitivity adjustments for Sigmoid.",
+                            miniHint: "Alter the rate of dynamic sensitivity adjustments for Sigmoid.",
                             verboseHint:
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Default: 50%").bold()

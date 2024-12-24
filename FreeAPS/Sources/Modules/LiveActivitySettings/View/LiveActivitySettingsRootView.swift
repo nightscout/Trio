@@ -31,7 +31,7 @@ extension LiveActivitySettings {
                     Section(
                         header: Text("Display Live Data From Trio"),
                         content: {
-                            Text("Live Activities must be enabled under iOS Settings to allow Trio to display live data")
+                            Text("Live Activities must be enabled under iOS Settings to allow Trio to display live data.")
                         }
                     ).listRowBackground(Color.chart)
 
@@ -95,7 +95,7 @@ extension LiveActivitySettings {
 
                                 HStack(alignment: .center) {
                                     Text(
-                                        "Choose between simple or detailed style."
+                                        "Select simple or detailed style. See hint for more details."
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
