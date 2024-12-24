@@ -210,15 +210,15 @@ extension MealSettings {
                                 )
                             }
                         }
-                        VStack(alignment: .leading, spacing: 5) {
+                        VStack(alignment: .center, spacing: 5) {
                             Text("Fat Conversion").bold()
                             Text("𝑭 = fat(g) × 90%")
                         }
-                        VStack(alignment: .leading, spacing: 5) {
+                        VStack(alignment: .center, spacing: 5) {
                             Text("Protein Conversion").bold()
                             Text("𝑷 = protein(g) × 40%")
                         }
-                        VStack(alignment: .leading, spacing: 5) {
+                        VStack(alignment: .center, spacing: 5) {
                             Text("FPU Conversion").bold()
                             Text("𝑭 + 𝑷 = g CHO")
                         }
@@ -254,7 +254,7 @@ extension MealSettings {
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 60 min").bold()
                             Text(
-                                "The Fat Protein Delay setting defines the time between when you log fat and protein and when the system starts delivering insulin for the Fat-Protein Unit Carb Equivalents (FPUs)."
+                                "The Fat and Protein Delay setting defines the time between when you log fat and protein and when the system starts delivering insulin for the Fat-Protein Unit Carb Equivalents (FPUs)."
                             )
                             Text(
                                 "This delay accounts for the slower absorption of fat and protein, as calculated by the Warsaw Method, ensuring insulin delivery is properly timed to manage glucose spikes caused by high-fat, high-protein meals."

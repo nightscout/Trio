@@ -109,10 +109,10 @@ extension AlgorithmAdvancedSettings {
                             "The Duration of Insulin Action (DIA) defines how long your insulin continues to lower glucose readings after a dose."
                         )
                         Text(
-                            "This helps the system accurately track Insulin on Board (IOB), avoiding over- or under-corrections by considering the tail end of insulin's effect"
+                            "This helps the system accurately track Insulin on Board (IOB), avoiding over- or under-corrections by considering the tail end of insulin's effect."
                         )
                         Text(
-                            "Tip: It is better to use Custom Peak Time rather than adjust your Duration of Insulin Action (DIA)"
+                            "Tip: It is better to use Custom Peak Time rather than adjust your Duration of Insulin Action (DIA)."
                         )
                     }
                 )
@@ -222,7 +222,7 @@ extension AlgorithmAdvancedSettings {
                         Text(
                             "This prevents lingering insulin effects when your pump is suspended, ensuring safer management of insulin on board."
                         )
-                        Text("Note: Applies to only to pumps with on-pump suspend options.")
+                        Text("Note: Applies only to pumps with on-pump suspend options.")
                     }
                 )
 
@@ -355,7 +355,7 @@ extension AlgorithmAdvancedSettings {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 130%").bold()
                         Text(
-                            "The Noisy CGM Target Multiplier increases your glucose target when the system detects noisy or raw CGM data. By default, the target is increased by 130% to account for the less reliable glucose readings."
+                            "The Noisy CGM Target Increase raises your glucose target when the system detects noisy or raw CGM data. By default, the target is increased to 130% of your set target glucose to account for the less reliable glucose readings."
                         )
                         Text(
                             "This helps reduce the risk of incorrect insulin dosing based on inaccurate sensor data, ensuring safer insulin adjustments during periods of poor CGM accuracy."

@@ -60,7 +60,7 @@ extension DynamicSettings {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "Enabling this feature allows Trio to calculate a new Insulin Sensitivity Factor with each loop cycle by considering your current glucose, the weighted total daily dose of insulin, the set adjustment factor, and a few other data points. This helps tailor your insulin response more accurately in real-time."
+                            "Enabling this feature allows Trio to calculate a new Insulin Sensitivity Factor with each loop cycle by considering your current glucose, the weighted total daily dose of insulin, the set adjustment factor, and a few other data points. This helps tailor your insulin response more accurately in real time."
                         )
                         Text(
                             "Dynamic ISF produces a Dynamic Ratio, replacing the Autosens Ratio, determining how much your profile ISF will be adjusted every loop cycle, ensuring it stays within safe limits set by your Autosens Min/Max settings. It provides more precise insulin dosing by responding to changes in insulin needs throughout the day."
@@ -173,7 +173,7 @@ extension DynamicSettings {
                                     "Adjusting this value not only can adjust how quickly your sensitivity will respond to changing glucose readings, but also at what glucose readings you reach your Autosens Max/Min limits."
                                 )
                                 Text(
-                                    "Increasing this setting can make ISF adjustments quicker, but will also change the glucose value that coincides with the ISF used at your Autosens Max and Autosens Min limits. Likewise, decreasing this settings can make ISF adjustments slower, but will also change the glucose value that coincides with the ISF used at your Autosens Max and Autosens Min limits. It is best to utilize the Desmos graphs from the Trio Docs to optimize all Dynamic Settings."
+                                    "Increasing this setting can make ISF adjustments quicker, but will also change the glucose value that coincides with the ISF used at your Autosens Max and Autosens Min limits. Likewise, decreasing this setting can make ISF adjustments slower and will also change the glucose value that coincides with the ISF used when it reaches the Autosens Max and Autosens Min limits. It is best to utilize the Desmos graphs from TrioDocs.org to optimize all Dynamic Settings."
                                 )
                             }
                         )

@@ -65,7 +65,7 @@ extension SMBSettings {
                                 "When the carb on board (COB) forecast line is active, enabling this feature allows Trio to use Super Micro Boluses (SMB) to deliver the insulin required."
                             )
                             Text(
-                                "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                                "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
                             )
                         }
                     )
@@ -92,7 +92,7 @@ extension SMBSettings {
                                 "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) at times when a manual Temporary Target under \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set."
                             )
                             Text(
-                                "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                                "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
                             )
                         }
                     )
@@ -119,7 +119,7 @@ extension SMBSettings {
                                 "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) for 6 hours after a carb entry, regardless of whether there are active carbs on board (COB)."
                             )
                             Text(
-                                "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                                "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
                             )
                         }
                     )
@@ -147,7 +147,7 @@ extension SMBSettings {
                                 "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when glucose reading is above the value set as High BG Target."
                             )
                             Text(
-                                "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                                "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
                             )
                         }
                     )
@@ -181,7 +181,7 @@ extension SMBSettings {
                             "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when a manual Temporary Target above \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set."
                         )
                         Text(
-                            "Note: If this is enabled and the criteria is met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                            "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
                         )
                         Text(
                             "Warning: High Temp Targets are often set when recovering from lows. If you use High Temp Targets for that purpose, this feature should remain disabled."
@@ -354,10 +354,10 @@ extension SMBSettings {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 50%").bold()
                         Text(
-                            "Once the total insulin required is calculated, this safety limit specifies what share of the total insulin required can be delivered as an SMB."
+                            "Once the total insulin required is calculated, this safety limit specifies what percentage of the insulin required can be delivered as an SMB."
                         )
                         Text(
-                            "Due to SMBs occurring every 5 minutes, it is important to set this value to a reasonable level that allows Trio to safely zero temp should dosing needs suddenly change. Increase this value with caution."
+                            "Due to SMBs potentially occurring every 5 minutes with each loop cycle, it is important to set this value to a reasonable level that allows Trio to safely zero temp should dosing needs suddenly change. Increase this value with caution."
                         )
                         Text("Note: Allowed range is 30 - 70%")
                     }

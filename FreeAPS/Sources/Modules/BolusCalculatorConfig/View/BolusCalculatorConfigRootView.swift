@@ -76,7 +76,7 @@ extension BolusCalculatorConfig {
                             "Recommended Bolus Percentage is a safety feature built into Trio. Trio first calculates an insulin required value, which is the full dosage. That dosage is then multiplied by your Recommended Bolus Percentage to display your suggested insulin dose in the bolus calculator."
                         )
                         Text(
-                            "Because Trio utilizes SMBs and UAM SMBs to help you reach your target glucose, this is initially set to below the full calculated amount (<100%) because other AID systems do not bolus for COB the same way Trio does. When SMBs and UAM SMBs are enabled, you may find your current CR results in lows and needs to be increased before you increase this setting closer to or at 100%."
+                            "Because Trio utilizes SMBs and UAM SMBs to help you reach your target glucose and other AID systems do not bolus for COB the same way Trio does, this is initially set to below the full calculated amount (80%). When SMBs and UAM SMBs are enabled, you may find your current CR results in lows and needs to be increased before you increase this setting closer to or at 100%."
                         )
                         Text(
                             "Tip: If you are a new Trio user, it is not advised to set this to 100% until you have verified that your core settings (basal rates, ISF, and CR) do not need adjusting."

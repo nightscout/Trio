@@ -40,7 +40,7 @@ extension CalendarEventSettings {
                             "When enabled, Trio will create a customizable calendar event to keep you notified of your current glucose reading with every successful loop cycle."
                         )
                         Text(
-                            "This is useful if you use CarPlay or a variety of other external services that limit the view of most apps, but allows the calendar app"
+                            "This is useful if you use CarPlay or a variety of other external services that limit the view of most apps, but allow the calendar app."
                         )
                         Text(
                             "Once enabled, the available customizations will appear. You can customize with the calendar of your choosing, use of emoji labels, and the inclusion of IOB & COB data."

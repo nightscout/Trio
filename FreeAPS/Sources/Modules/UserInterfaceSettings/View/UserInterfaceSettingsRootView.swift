@@ -73,7 +73,7 @@ extension UserInterfaceSettings {
                                                     )
                                                     VStack(alignment: .leading, spacing: 5) {
                                                         Text("System Default:").bold()
-                                                        Text("Follows the phone's current color scheme setting at that time.")
+                                                        Text("Follows the phone's current color scheme setting at that time")
                                                     }
                                                     VStack(alignment: .leading, spacing: 5) {
                                                         Text("Light:").bold()
@@ -128,9 +128,9 @@ extension UserInterfaceSettings {
                                                 )
                                                 VStack(alignment: .leading, spacing: 5) {
                                                     Text("Static:").bold()
-                                                    Text("Red = Below-Range")
-                                                    Text("Green = In-Range")
-                                                    Text("Yellow = Above-Range")
+                                                    Text("Red = Below Range")
+                                                    Text("Green = In Range")
+                                                    Text("Yellow = Above Range")
                                                 }
                                                 VStack(alignment: .leading, spacing: 5) {
                                                     Text("Dynamic:").bold()
@@ -530,7 +530,7 @@ extension UserInterfaceSettings {
                     conditionalLabel: "Carbs Required Threshold",
                     miniHint: "Show carbs required as a red icon on the main graph icon.",
                     verboseHint: Text(
-                        "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number."
+                        "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
                     ),
                     headerText: "Carbs Required Badge"
                 )
