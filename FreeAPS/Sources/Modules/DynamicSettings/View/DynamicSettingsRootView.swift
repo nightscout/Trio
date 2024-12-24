@@ -105,9 +105,6 @@ extension DynamicSettings {
                             Text(
                                 "When Dynamic Ratio decreases, indicating you need less insulin, the carb ratio value is increased to avoid over-delivery."
                             )
-                            Text(
-                                "Note: It's recommended not to use this feature with a high Insulin Fraction (>2), as it can cause insulin dosing to become too aggressive."
-                            )
                         }
                     )
 
