@@ -45,6 +45,12 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         let groupedEvents = Dictionary(grouping: pumpHistory, by: { $0.type })
         let bolusEvents = groupedEvents[.bolus] ?? []
         let tempBasalEvents = groupedEvents[.tempBasal] ?? []
+        // Extract pumpSuspend and pumpResume events, then create pairs of suspend + resume events
+        let pumpSuspendEvents = groupedEvents[.pumpSuspend] ?? []
+        let pumpResumeEvents = groupedEvents[.pumpResume] ?? []
+        let suspendResumePairs = zip(pumpSuspendEvents, pumpResumeEvents).filter { suspend, resume in
+            resume.timestamp > suspend.timestamp
+        }
 
         // Calculate all components concurrently
         async let pumpDataHours = calculatePumpDataHours(pumpHistory)
@@ -58,7 +64,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         ) : 0
 
         async let tempBasalInsulin = calculateTempBasalInsulin(
-            tempBasalEvents,
+            tempBasalEvents, suspendResumePairs: suspendResumePairs,
             roundToSupportedBasalRate: pumpManager.roundToSupportedBasalRate
         )
 
@@ -93,58 +99,6 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             weightedAverage: weighted,
             hoursOfData: hours
         )
-    }
-
-    /// Finds gaps between tempBasal events where scheduled basal ran
-    /// - Parameter tempBasalEvents: Array of pump history events of type tempBasal
-    /// - Returns: Array of gaps, where each gap has a start and end time
-    private func findBasalGaps(in tempBasalEvents: [PumpHistoryEvent]) -> [(start: Date, end: Date)] {
-        guard !tempBasalEvents.isEmpty else {
-            let startOfDay = Calendar.current.startOfDay(for: Date())
-            return [(start: startOfDay, end: startOfDay.addingTimeInterval(24 * 60 * 60 - 1))]
-        }
-
-        // Pre-sort events and create array with capacity
-        let sortedEvents = tempBasalEvents.sorted { $0.timestamp < $1.timestamp }
-        var gaps = [(start: Date, end: Date)]()
-        gaps.reserveCapacity(sortedEvents.count + 1)
-
-        // Use first event's date for calendar operations
-        let startOfDay = Calendar.current.startOfDay(for: sortedEvents.first!.timestamp)
-        let endOfDay = startOfDay.addingTimeInterval(24 * 60 * 60 - 1)
-
-        // Process events in a single pass
-        var lastEndTime = sortedEvents.first!.timestamp
-
-        for i in 0 ..< sortedEvents.count {
-            let event = sortedEvents[i]
-            guard let duration = event.duration else { continue }
-
-            // Calculate end time for current event
-            var currentEndTime = event.timestamp.addingTimeInterval(TimeInterval(duration * 60))
-
-            // Check for cancellation by next event
-            if i < sortedEvents.count - 1 {
-                let nextEvent = sortedEvents[i + 1]
-                if nextEvent.timestamp < currentEndTime {
-                    currentEndTime = nextEvent.timestamp
-                }
-            }
-
-            // Record gap if exists
-            if event.timestamp > lastEndTime {
-                gaps.append((start: lastEndTime, end: event.timestamp))
-            }
-
-            lastEndTime = currentEndTime
-        }
-
-        // Add final gap if needed
-        if lastEndTime < endOfDay {
-            gaps.append((start: lastEndTime, end: endOfDay))
-        }
-
-        return gaps
     }
 
     /// Stores the Total Daily Dose (TDD) result in Core Data
@@ -201,53 +155,85 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             }
     }
 
-    /// Calculates temporary basal insulin delivery for a given time period
+    /// Calculates temporary basal insulin delivery for a given time period, accounting for interruptions and suspensions
     /// - Parameters:
-    ///   - tempBasalEvents: Array of temporary basal events sorted by timestamp
+    ///   - tempBasalEvents: Array of temporary basal events
+    ///   - suspendResumePairs: Array of suspend and resume event pairs
     ///   - roundToSupportedBasalRate: Closure to round rates to pump-supported values
     /// - Returns: Total insulin delivered via temporary basal rates in units
     private func calculateTempBasalInsulin(
         _ tempBasalEvents: [PumpHistoryEvent],
+        suspendResumePairs: [(suspend: PumpHistoryEvent, resume: PumpHistoryEvent)],
         roundToSupportedBasalRate: @escaping (_ unitsPerHour: Double) -> Double
     ) -> Decimal {
         guard !tempBasalEvents.isEmpty else { return 0 }
 
-        let sortedEvents = tempBasalEvents.sorted { $0.timestamp < $1.timestamp }
-        let currentDate = Date()
+        // Merge temp basal events and suspend-resume pairs into a single timeline
+        var timeline = [(start: Date, end: Date, type: EventType, rate: Decimal?)]()
 
-        return sortedEvents.enumerated().reduce(into: Decimal(0)) { totalInsulin, currentEvent in
-            let (index, event) = currentEvent
-
-            // Validate required event data (rate and duration)
-            guard let rate = event.amount,
-                  let durationMinutes = event.duration,
-                  rate > 0, durationMinutes > 0
-            else { return }
-
-            let actualDurationMinutes: Int
-
-            if index < sortedEvents.count - 1 {
-                // Handle interruption by subsequent temp basal
-                let nextEvent = sortedEvents[index + 1]
-                let currentEndTime = event.timestamp.addingTimeInterval(TimeInterval(durationMinutes * 60))
-
-                actualDurationMinutes = nextEvent.timestamp.addingTimeInterval(-1) < currentEndTime
-                    ? max(0, Int(nextEvent.timestamp.timeIntervalSince(event.timestamp) / 60))
-                    : durationMinutes
-            } else {
-                // Handle currently running temp basal
-                let currentEndTime = event.timestamp.addingTimeInterval(TimeInterval(durationMinutes * 60))
-                actualDurationMinutes = currentEndTime > currentDate.addingTimeInterval(-1)
-                    ? max(0, Int(currentDate.timeIntervalSince(event.timestamp) / 60))
-                    : durationMinutes
-            }
-
-            // Calculate and accumulate insulin delivery
-            let durationHours = Decimal(actualDurationMinutes) / 60
-            let insulin = Decimal(roundToSupportedBasalRate(Double(rate * durationHours)))
-
-            totalInsulin += insulin
+        // Add temp basal events to the timeline
+        for event in tempBasalEvents {
+            guard let duration = event.duration, let rate = event.amount, rate > 0 else { continue }
+            let end = event.timestamp.addingTimeInterval(TimeInterval(duration * 60))
+            timeline.append((start: event.timestamp, end: end, type: .tempBasal, rate: rate))
         }
+
+        // Add suspend-resume events to the timeline
+        for suspendResume in suspendResumePairs {
+            timeline.append((
+                start: suspendResume.suspend.timestamp,
+                end: suspendResume.resume.timestamp,
+                type: .pumpSuspend,
+                rate: nil
+            ))
+        }
+
+        // Sort the timeline by start time
+        timeline.sort { $0.start < $1.start }
+
+        // Calculate insulin delivery while accounting for suspensions and premature interruptions
+        var totalInsulin: Decimal = 0
+        let currentDate = Date()
+        var lastEndTime: Date?
+
+        for (index, event) in timeline.enumerated() {
+            if event.type == .tempBasal {
+                let effectiveEnd = min(event.end, currentDate) // Adjust for ongoing temp basals
+                var actualStart = event.start
+                var actualEnd = effectiveEnd
+
+                // Check for interruption by the next event
+                if index < timeline.count - 1 {
+                    let nextEvent = timeline[index + 1]
+                    if nextEvent.start < actualEnd, nextEvent.type != .pumpSuspend {
+                        actualEnd = nextEvent.start
+                    }
+                }
+
+                // Adjust for overlapping suspensions
+                if let lastSuspendEnd = lastEndTime, lastSuspendEnd > actualStart {
+                    actualStart = lastSuspendEnd
+                }
+
+                // Calculate insulin if the duration is valid
+                let durationMinutes = max(0, actualEnd.timeIntervalSince(actualStart) / 60)
+                if durationMinutes > 0, let rate = event.rate {
+                    let durationHours = Decimal(durationMinutes) / 60
+                    let insulin = Decimal(roundToSupportedBasalRate(Double(rate * durationHours)))
+                    totalInsulin += insulin
+
+                    debug(
+                        .apsManager,
+                        "Temp basal: \(rate) U/hr for \(durationHours) hr (from \(actualStart) until \(actualEnd)) = \(insulin) U"
+                    )
+                }
+            } else if event.type == .pumpSuspend {
+                // Update the last suspend end time to adjust future temp basal durations
+                lastEndTime = event.end
+            }
+        }
+
+        return totalInsulin
     }
 
     /// Calculates scheduled basal insulin delivery during gaps between temporary basals
@@ -289,13 +275,183 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                 ) ?? gap.end
 
                 let endTime = min(nextSwitchTime, gap.end)
-                let duration = Decimal(endTime.timeIntervalSince(currentTime)) / 3600
+                let durationHours = Decimal(endTime.timeIntervalSince(currentTime)) / 3600
+                let insulin = rate * durationHours
+                totalInsulin += Decimal(roundToSupportedBasalRate(Double(insulin)))
 
-                totalInsulin += Decimal(roundToSupportedBasalRate(Double(rate * duration)))
+                debug(
+                    .apsManager,
+                    "Scheduled Insulin added: \(insulin) U. Duration: \(durationHours) hrs (\(currentTime)-\(endTime))"
+                )
+
                 currentTime = endTime
             }
         }
     }
+
+    /// Finds gaps between tempBasal events where scheduled basal ran
+    /// - Parameter tempBasalEvents: Array of pump history events of type tempBasal
+    /// - Returns: Array of gaps, where each gap has a start and end time
+    private func findBasalGaps(in tempBasalEvents: [PumpHistoryEvent]) -> [(start: Date, end: Date)] {
+        guard !tempBasalEvents.isEmpty else {
+            let startOfDay = Calendar.current.startOfDay(for: Date())
+            return [(start: startOfDay, end: startOfDay.addingTimeInterval(24 * 60 * 60 - 1))]
+        }
+
+        // Pre-sort events and create array with capacity
+        let sortedEvents = tempBasalEvents.sorted { $0.timestamp < $1.timestamp }
+        var gaps = [(start: Date, end: Date)]()
+        gaps.reserveCapacity(sortedEvents.count + 1)
+
+        // Use first event's date for calendar operations
+        let startOfDay = Calendar.current.startOfDay(for: sortedEvents.first!.timestamp)
+        let endOfDay = startOfDay.addingTimeInterval(24 * 60 * 60 - 1)
+
+        // Process events in a single pass
+        var lastEndTime = sortedEvents.first!.timestamp
+
+        for i in 0 ..< sortedEvents.count {
+            let event = sortedEvents[i]
+            guard let duration = event.duration else { continue }
+
+            // Calculate end time for current event
+            var currentEndTime = event.timestamp.addingTimeInterval(TimeInterval(duration * 60))
+
+            // Check for cancellation by next event
+            if i < sortedEvents.count - 1 {
+                let nextEvent = sortedEvents[i + 1]
+                if nextEvent.timestamp < currentEndTime {
+                    currentEndTime = nextEvent.timestamp
+                }
+            }
+
+            // Record gap if exists
+            if event.timestamp > lastEndTime {
+                gaps.append((start: lastEndTime, end: event.timestamp))
+            }
+
+            lastEndTime = currentEndTime
+        }
+
+        // Add final gap if needed
+        if lastEndTime < endOfDay {
+            gaps.append((start: lastEndTime, end: endOfDay))
+        }
+
+        return gaps
+    }
+
+//    /// Finds gaps between tempBasal events where scheduled basal ran, excluding suspend-resume periods
+//    /// - Parameters:
+//    ///   - tempBasalEvents: Array of pump history events of type tempBasal
+//    ///   - suspendResumePairs: Array of suspend and resume event pairs
+//    /// - Returns: Array of gaps, where each gap has a start and end time
+//    private func findBasalGaps(
+//        in tempBasalEvents: [PumpHistoryEvent],
+//        excluding suspendResumePairs: [(suspend: PumpHistoryEvent, resume: PumpHistoryEvent)]
+//    ) -> [(start: Date, end: Date)] {
+//        guard !tempBasalEvents.isEmpty else {
+//            let startOfDay = Calendar.current.startOfDay(for: Date())
+//            return [(start: startOfDay, end: startOfDay.addingTimeInterval(24 * 60 * 60 - 1))]
+//        }
+//
+//        // Merge temp basal and suspend-resume events into a unified timeline
+//        var timeline = [(start: Date, end: Date, type: EventType)]()
+//
+//        for event in tempBasalEvents {
+//            guard let duration = event.duration else { continue }
+//            let eventEnd = event.timestamp.addingTimeInterval(TimeInterval(duration * 60))
+//            timeline.append((start: event.timestamp, end: eventEnd, type: .tempBasal))
+//        }
+//
+//        for suspendResume in suspendResumePairs {
+//            timeline.append((start: suspendResume.suspend.timestamp, end: suspendResume.resume.timestamp, type: .pumpSuspend))
+//        }
+//
+//        // Sort the timeline by start time
+//        timeline.sort { $0.start < $1.start }
+//
+//        // Process the timeline to calculate gaps
+//        var gaps = [(start: Date, end: Date)]()
+//        var lastEndTime = Calendar.current.startOfDay(for: timeline.first!.start)
+//        let endOfDay = lastEndTime.addingTimeInterval(24 * 60 * 60 - 1)
+//
+//        for interval in timeline {
+//            if interval.type == .pumpSuspend {
+//                // Extend lastEndTime for suspend periods
+//                lastEndTime = max(lastEndTime, interval.end)
+//                continue
+//            }
+//
+//            if interval.start > lastEndTime {
+//                // Add a gap if there is a gap between lastEndTime and interval.start
+//                gaps.append((start: lastEndTime, end: interval.start))
+//            }
+//
+//            // Update lastEndTime to the maximum end time encountered
+//            lastEndTime = max(lastEndTime, interval.end)
+//        }
+//
+//        if lastEndTime < endOfDay {
+//            // Add a final gap if the lastEndTime is before the end of the day
+//            gaps.append((start: lastEndTime, end: endOfDay))
+//        }
+//
+//        return gaps
+//    }
+
+//    /// Calculates scheduled basal insulin delivery during gaps between temporary basals
+//    /// - Parameters:
+//    ///   - gaps: Array of time periods where scheduled basal was active
+//    ///   - profile: Basal profile entries defining rates throughout the day
+//    ///   - roundToSupportedBasalRate: Closure to round rates to pump-supported values
+//    /// - Returns: Total insulin delivered via scheduled basal in units
+//    private func calculateScheduledBasalInsulin(
+//        gaps: [(start: Date, end: Date)],
+//        profile: [BasalProfileEntry],
+//        roundToSupportedBasalRate: @escaping (_ unitsPerHour: Double) -> Double
+//    ) -> Decimal {
+//        // Initialize cached formatter for time string conversion
+//        let timeFormatter: DateFormatter = {
+//            let formatter = DateFormatter()
+//            formatter.dateFormat = "HH:mm:ss"
+//            return formatter
+//        }()
+//
+//        // Pre-calculate profile switch times for efficient lookup
+//        let profileSwitches = profile.map(\.minutes)
+//
+//        return gaps.reduce(into: Decimal(0)) { totalInsulin, gap in
+//            var currentTime = gap.start
+//
+//            while currentTime < gap.end {
+//                // Find applicable basal rate for the current time
+//                guard let rate = findBasalRate(
+//                    for: timeFormatter.string(from: currentTime),
+//                    in: profile
+//                ) else { break }
+//
+//                // Determine when the rate changes (profile switch or gap end)
+//                let nextSwitchTime = getNextBasalRateSwitch(
+//                    after: currentTime,
+//                    switches: profileSwitches,
+//                    calendar: Calendar.current
+//                ) ?? gap.end
+//                let endTime = min(nextSwitchTime, gap.end)
+//                let durationHours = Decimal(endTime.timeIntervalSince(currentTime)) / 3600
+//
+//                let insulin = Decimal(roundToSupportedBasalRate(Double(rate * durationHours)))
+//                totalInsulin += insulin
+//
+//                debug(
+//                    .apsManager,
+//                    "Scheduled Insulin added: \(insulin) U. Duration: \(durationHours) hrs (\(currentTime)-\(endTime))"
+//                )
+//
+//                currentTime = endTime
+//            }
+//        }
+//    }
 
     /// Finds the next basal rate switch time after a given time
     /// - Parameters:
