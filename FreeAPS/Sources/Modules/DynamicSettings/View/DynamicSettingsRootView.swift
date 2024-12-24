@@ -100,10 +100,10 @@ extension DynamicSettings {
                                 "Dynamic CR adjusts your carb ratio based on your Dynamic Ratio, adapting automatically to changes in insulin sensitivity."
                             )
                             Text(
-                                "When Dynamic Ratio increases, indicating you need more insulin, the carb ratio is adjusted to make your insulin dosing more effective."
+                                "When Dynamic Ratio increases, indicating you need more insulin, the carb ratio value is decreased to make your insulin dosing more effective."
                             )
                             Text(
-                                "When Dynamic Ratio decreases, indicating you need less insulin, the carb ratio is scaled back to avoid over-delivery."
+                                "When Dynamic Ratio decreases, indicating you need less insulin, the carb ratio value is increased to avoid over-delivery."
                             )
                             Text(
                                 "Note: It's recommended not to use this feature with a high Insulin Fraction (>2), as it can cause insulin dosing to become too aggressive."
