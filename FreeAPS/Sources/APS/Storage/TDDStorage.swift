@@ -88,7 +88,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         - Temp Basal: \(temp) U (\((temp / total * 100).rounded(toPlaces: 1)) %)
         - Scheduled Basal: \(scheduled) U (\((scheduled / total * 100).rounded(toPlaces: 1)) %)
         - WeightedAverage: \(weighted ?? 0) U
-        - Hours of Data: \(hours)
+        - Hours of Data: \(Decimal(hours).truncated(toPlaces: 5))
         """)
 
         return TDDResult(
@@ -218,14 +218,16 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                 // Calculate insulin if the duration is valid
                 let durationMinutes = max(0, actualEnd.timeIntervalSince(actualStart) / 60)
                 if durationMinutes > 0, let rate = event.rate {
-                    let durationHours = Decimal(durationMinutes) / 60
+                    let durationHours = (Decimal(durationMinutes) / 60).truncated(toPlaces: 5)
                     let insulin = Decimal(roundToSupportedBasalRate(Double(rate * durationHours)))
-                    totalInsulin += insulin
+                    if insulin > 0 {
+                        totalInsulin += insulin
 
-                    debug(
-                        .apsManager,
-                        "Temp basal: \(rate) U/hr for \(durationHours) hr (from \(actualStart) until \(actualEnd)) = \(insulin) U"
-                    )
+                        debug(
+                            .apsManager,
+                            "Temp basal: \(rate) U/hr for \(durationHours) hr (Start: \(actualStart.ISO8601Format()), End: \(actualEnd.ISO8601Format())) = \(insulin) U"
+                        )
+                    }
                 }
             } else if event.type == .pumpSuspend {
                 // Update the last suspend end time to adjust future temp basal durations
@@ -275,14 +277,17 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                 ) ?? gap.end
 
                 let endTime = min(nextSwitchTime, gap.end)
-                let durationHours = Decimal(endTime.timeIntervalSince(currentTime)) / 3600
-                let insulin = rate * durationHours
-                totalInsulin += Decimal(roundToSupportedBasalRate(Double(insulin)))
+                let durationHours = (Decimal(endTime.timeIntervalSince(currentTime)) / 3600).truncated(toPlaces: 5)
+                let insulin = Decimal(roundToSupportedBasalRate(Double(rate * durationHours)))
 
-                debug(
-                    .apsManager,
-                    "Scheduled Insulin added: \(insulin) U. Duration: \(durationHours) hrs (\(currentTime)-\(endTime))"
-                )
+                if insulin > 0 {
+                    totalInsulin += insulin
+
+                    debug(
+                        .apsManager,
+                        "Scheduled Insulin added: \(insulin) U. Duration: \(durationHours) hrs (Start: \(currentTime.ISO8601Format()), End: \(endTime.ISO8601Format()))"
+                    )
+                }
 
                 currentTime = endTime
             }
@@ -576,7 +581,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             let weightedTDD = weightPercentage * averageTDDLastTwoHours +
                 (1 - weightPercentage) * averageTDDLastTenDays
 
-            return weightedTDD
+            return weightedTDD.truncated(toPlaces: 3)
         }
     }
 }
@@ -590,6 +595,17 @@ extension Decimal {
         var value = self
         var result = Decimal()
         NSDecimalRound(&result, &value, places, .plain)
+        return result
+    }
+
+    /// Truncates the `Decimal` to the specified number of decimal places without rounding.
+    ///
+    /// - Parameter places: The number of decimal places to retain.
+    /// - Returns: A `Decimal` truncated to the specified precision.
+    func truncated(toPlaces places: Int) -> Decimal {
+        var original = self
+        var result = Decimal()
+        NSDecimalRound(&result, &original, places, .down)
         return result
     }
 }
