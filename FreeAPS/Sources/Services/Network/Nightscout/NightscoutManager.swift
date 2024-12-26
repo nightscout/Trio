@@ -1156,7 +1156,6 @@ extension BaseNightscoutManager {
         }
 
         let matches = regex.matches(in: reason, range: NSRange(reason.startIndex..., in: reason))
-
         var updatedReason = reason
 
         for match in matches.reversed() {
