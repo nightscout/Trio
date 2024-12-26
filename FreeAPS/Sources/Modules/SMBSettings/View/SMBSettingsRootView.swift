@@ -38,7 +38,9 @@ extension SMBSettings {
                         Text(
                             "When enabled, Super Micro Boluses (SMBs) will always be allowed if dosing calculations determine insulin is needed via the SMB delivery method, except when a high Temp Target is set. Enabling SMB Always will remove redundant \"Enable SMB\" options when this setting is enacted."
                         )
-                        Text("Note: If you would like to allow SMBs when a high Temp Target is set, enable the \"Allow SMBs with High Temptarget\" setting.)
+                        Text(
+                            "Note: If you would like to allow SMBs when a high Temp Target is set, enable the \"Allow SMBs with High Temptarget\" setting."
+                        )
                     },
                     headerText: "Super-Micro-Bolus"
                 )
