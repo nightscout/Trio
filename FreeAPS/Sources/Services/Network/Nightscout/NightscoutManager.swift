@@ -1129,7 +1129,7 @@ extension BaseNightscoutManager {
      - Returns:
        A string with glucose values converted to mmol/L.
 
-     - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BG`.
+     - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BGI`.
      */
     func parseReasonGlucoseValuesToMmolL(_ reason: String) -> String {
         let patterns = [
@@ -1246,7 +1246,7 @@ extension BaseNightscoutManager {
                 }
                 
             } else {
-                // -- Handle everything else, e.g. "minPredBG 39", "COB 29", etc.
+                // -- Handle everything else, e.g. "minPredBG 39" etc.
                 let parts = glucoseValueString.components(separatedBy: .whitespaces)
                 if parts.count >= 2 {
                     let metric = parts[0]

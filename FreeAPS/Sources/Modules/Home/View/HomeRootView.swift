@@ -1046,38 +1046,88 @@ extension Home {
             }
         }
 
-        private func parseReasonConclusion(_ reasonConclusion: String, isMmolL: Bool) -> String {
-            var updatedConclusion = reasonConclusion
+        private func parseReasonConclusion(_ reasonConclusion: String, isMmolL _: Bool) -> String {
+            let patterns = [
+                "minGuardBG\\s*-?\\d+\\.?\\d*<-?\\d+\\.?\\d*",
+                "Eventual BG\\s*-?\\d+\\.?\\d*\\s*>=\\s*-?\\d+\\.?\\d*",
+                "\\S+\\s+-?\\d+\\.?\\d*\\s*>\\s*\\d+%\\s+of\\s+BG\\s+-?\\d+\\.?\\d*"
+            ]
+            let pattern = patterns.joined(separator: "|")
+            let regex = try! NSRegularExpression(pattern: pattern)
 
-            // Handle "minGuardBG x<y" pattern
-            if let range = updatedConclusion.range(of: "minGuardBG\\s*-?\\d+<\\d+", options: .regularExpression) {
-                let matchedString = updatedConclusion[range]
-                let parts = matchedString.components(separatedBy: "<")
-
-                if let firstValue = Double(parts[0].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()),
-                   let secondValue = Double(parts[1])
-                {
-                    let formattedFirstValue = isMmolL ? Double(firstValue.asMmolL) : firstValue
-                    let formattedSecondValue = isMmolL ? Double(secondValue.asMmolL) : secondValue
-
-                    let formattedString = "minGuardBG \(formattedFirstValue)<\(formattedSecondValue)"
-                    updatedConclusion = updatedConclusion.replacingOccurrences(of: matchedString, with: formattedString)
+            func convertToMmolL(_ value: String) -> String {
+                if let glucoseValue = Double(value.replacingOccurrences(of: "[^\\d.-]", with: "", options: .regularExpression)) {
+                    let mmolValue = Decimal(glucoseValue).asMmolL
+                    return mmolValue.description
                 }
+                return value
             }
 
-            // Handle "Eventual BG x >= target" pattern
-            if let range = updatedConclusion.range(of: "Eventual BG\\s*\\d+\\s*>?=\\s*\\d+", options: .regularExpression) {
-                let matchedString = updatedConclusion[range]
-                let parts = matchedString.components(separatedBy: " >= ")
+            let matches = regex.matches(
+                in: reasonConclusion,
+                range: NSRange(reasonConclusion.startIndex..., in: reasonConclusion)
+            )
+            var updatedConclusion = reasonConclusion
 
-                if let firstValue = Double(parts[0].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()),
-                   let secondValue = Double(parts[1])
-                {
-                    let formattedFirstValue = isMmolL ? Double(firstValue.asMmolL) : firstValue
-                    let formattedSecondValue = isMmolL ? Double(secondValue.asMmolL) : secondValue
+            for match in matches.reversed() {
+                guard let range = Range(match.range, in: reasonConclusion) else { continue }
+                let matchedString = String(reasonConclusion[range])
 
-                    let formattedString = "Eventual BG \(formattedFirstValue) >= \(formattedSecondValue)"
-                    updatedConclusion = updatedConclusion.replacingOccurrences(of: matchedString, with: formattedString)
+                if matchedString.contains("<") {
+                    // Handle "minGuardBG x<y" pattern
+                    let parts = matchedString.components(separatedBy: "<")
+                    if parts.count == 2,
+                       let firstValue = Double(
+                           parts[0]
+                               .components(separatedBy: CharacterSet(charactersIn: "0123456789.-").inverted).joined()
+                       ),
+                       let secondValue = Double(
+                           parts[1]
+                               .components(separatedBy: CharacterSet(charactersIn: "0123456789.-").inverted).joined()
+                       )
+                    {
+                        let formattedFirstValue = convertToMmolL(String(firstValue))
+                        let formattedSecondValue = convertToMmolL(String(secondValue))
+                        let formattedString = "minGuardBG \(formattedFirstValue)<\(formattedSecondValue)"
+                        updatedConclusion.replaceSubrange(range, with: formattedString)
+                    }
+                } else if matchedString.contains(">=") {
+                    // Handle "Eventual BG x >= target" pattern
+                    let parts = matchedString.components(separatedBy: " >= ")
+                    if parts.count == 2,
+                       let firstValue = Double(
+                           parts[0]
+                               .components(separatedBy: CharacterSet(charactersIn: "0123456789.-").inverted).joined()
+                       ),
+                       let secondValue = Double(
+                           parts[1]
+                               .components(separatedBy: CharacterSet(charactersIn: "0123456789.-").inverted).joined()
+                       )
+                    {
+                        let formattedFirstValue = convertToMmolL(String(firstValue))
+                        let formattedSecondValue = convertToMmolL(String(secondValue))
+                        let formattedString = "Eventual BG \(formattedFirstValue) >= \(formattedSecondValue)"
+                        updatedConclusion.replaceSubrange(range, with: formattedString)
+                    }
+                } else if matchedString.contains(">") {
+                    // Handle "maxDelta 37 > 20% of BG 95" style
+                    let pattern = "(\\S+)\\s+(-?\\d+\\.?\\d*)\\s*>\\s*(\\d+)%\\s+of\\s+BG\\s+(-?\\d+\\.?\\d*)"
+                    let localRegex = try! NSRegularExpression(pattern: pattern)
+                    if let localMatch = localRegex.firstMatch(
+                        in: matchedString,
+                        range: NSRange(matchedString.startIndex..., in: matchedString)
+                    ) {
+                        let metric = String(matchedString[Range(localMatch.range(at: 1), in: matchedString)!])
+                        let firstValue = String(matchedString[Range(localMatch.range(at: 2), in: matchedString)!])
+                        let percentage = String(matchedString[Range(localMatch.range(at: 3), in: matchedString)!])
+                        let bgValue = String(matchedString[Range(localMatch.range(at: 4), in: matchedString)!])
+
+                        let formattedFirstValue = convertToMmolL(firstValue)
+                        let formattedBGValue = convertToMmolL(bgValue)
+
+                        let formattedString = "\(metric) \(formattedFirstValue) > \(percentage)% of BG \(formattedBGValue)"
+                        updatedConclusion.replaceSubrange(range, with: formattedString)
+                    }
                 }
             }
 

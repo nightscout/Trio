@@ -101,18 +101,24 @@ struct TagCloudView: View {
      - Returns:
        A string with glucose values converted to mmol/L.
 
-     - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BG`.
+     - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BGI`.
      */
-    private func formatGlucoseTags(_ tag: String, isMmolL: Bool) -> String {
-        // Updated pattern to handle cases like minGuardBG 34, minGuardBG 34<70, "maxDelta 37 > 20% of BG 95", and ensure "Target:" is handled correctly
-        let pattern =
-            "(ISF:\\s*-?\\d+→-?\\d+|Dev:\\s*-?\\d+|Target:\\s*-?\\d+|(?:minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG|maxDelta|BG)\\s*-?\\d+(?:<\\d+)?(?:>\\s*\\d+%\\s*of\\s*BG\\s*\\d+)?)"
-
+     private func formatGlucoseTags(_ tag: String, isMmolL: Bool) -> String {
+        let patterns = [
+            "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",
+            "Dev:\\s*-?\\d+\\.?\\d*",
+            "BGI:\\s*-?\\d+\\.?\\d*",
+            "Target:\\s*-?\\d+\\.?\\d*",
+            "(?:minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG)\\s*-?\\d+\\.?\\d*"
+        ]
+        let pattern = patterns.joined(separator: "|")
         let regex = try! NSRegularExpression(pattern: pattern)
 
+        // Convert only if isMmolL == true; otherwise return original mg/dL string
         func convertToMmolL(_ value: String) -> String {
             if let glucoseValue = Double(value.replacingOccurrences(of: "[^\\d.-]", with: "", options: .regularExpression)) {
-                return isMmolL ? glucoseValue.asMmolL.description : value
+                let mmolValue = Decimal(glucoseValue).asMmolL // your mg/dL → mmol/L routine
+                return isMmolL ? mmolValue.description : value
             }
             return value
         }
@@ -120,48 +126,52 @@ struct TagCloudView: View {
         let matches = regex.matches(in: tag, range: NSRange(tag.startIndex..., in: tag))
         var updatedTag = tag
 
+        // Process each match in reverse order
         for match in matches.reversed() {
-            if let range = Range(match.range, in: tag) {
-                let glucoseValueString = String(tag[range])
+            guard let range = Range(match.range, in: tag) else { continue }
+            let glucoseValueString = String(tag[range])
 
-                if glucoseValueString.contains("→") {
-                    // Handle ISF case with an arrow (e.g., ISF: 54→54)
-                    let values = glucoseValueString.components(separatedBy: "→")
-                    let firstValue = convertToMmolL(values[0])
-                    let secondValue = convertToMmolL(values[1])
-                    let formattedGlucoseValueString = "\(values[0].components(separatedBy: ":")[0]): \(firstValue)→\(secondValue)"
-                    updatedTag.replaceSubrange(range, with: formattedGlucoseValueString)
-                } else if glucoseValueString.contains("<") {
-                    // Handle range case for minGuardBG like "minGuardBG 34<70"
-                    let values = glucoseValueString.components(separatedBy: "<")
-                    let firstValue = convertToMmolL(values[0])
-                    let secondValue = convertToMmolL(values[1])
-                    let formattedGlucoseValueString = "\(values[0].components(separatedBy: ":")[0]) \(firstValue)<\(secondValue)"
-                    updatedTag.replaceSubrange(range, with: formattedGlucoseValueString)
-                } else if glucoseValueString.contains(">"), glucoseValueString.contains("BG") {
-                    // Handle cases like "maxDelta 37 > 20% of BG 95"
-                    let pattern = "(\\d+) > \\d+% of BG (\\d+)"
-                    let matches = try! NSRegularExpression(pattern: pattern)
-                        .matches(in: glucoseValueString, range: NSRange(glucoseValueString.startIndex..., in: glucoseValueString))
+            if glucoseValueString.contains("→") {
+                // -- Handle ISF: X→Y
+                let values = glucoseValueString.components(separatedBy: "→")
+                // For example "ISF: 162"
+                let firstNumber = values[0].components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
+                let secondNumber = values[1].trimmingCharacters(in: .whitespaces)
+                let firstValue = convertToMmolL(firstNumber)
+                let secondValue = convertToMmolL(secondNumber)
+                let formattedString = "ISF: \(firstValue)→\(secondValue)"
+                updatedTag.replaceSubrange(range, with: formattedString)
 
-                    if let match = matches.first, match.numberOfRanges == 3 {
-                        let firstValueRange = Range(match.range(at: 1), in: glucoseValueString)!
-                        let secondValueRange = Range(match.range(at: 2), in: glucoseValueString)!
+            } else if glucoseValueString.starts(with: "Dev:") {
+                // -- Handle Dev
+                let value = glucoseValueString.components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
+                let formattedValue = convertToMmolL(value)
+                let formattedString = "Dev: \(formattedValue)"
+                updatedTag.replaceSubrange(range, with: formattedString)
 
-                        let firstValue = convertToMmolL(String(glucoseValueString[firstValueRange]))
-                        let secondValue = convertToMmolL(String(glucoseValueString[secondValueRange]))
+            } else if glucoseValueString.starts(with: "BGI:") {
+                // -- Handle BGI
+                let value = glucoseValueString.components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
+                let formattedValue = convertToMmolL(value)
+                let formattedString = "BGI: \(formattedValue)"
+                updatedTag.replaceSubrange(range, with: formattedString)
 
-                        let formattedGlucoseValueString = glucoseValueString.replacingOccurrences(
-                            of: "\(glucoseValueString[firstValueRange]) > 20% of BG \(glucoseValueString[secondValueRange])",
-                            with: "\(firstValue) > 20% of BG \(secondValue)"
-                        )
-                        updatedTag.replaceSubrange(range, with: formattedGlucoseValueString)
-                    }
-                } else {
-                    // General case for single glucose values like "Target: 100" or "minGuardBG 34"
-                    let parts = glucoseValueString.components(separatedBy: CharacterSet(charactersIn: ": "))
-                    let formattedValue = convertToMmolL(parts.last!.trimmingCharacters(in: .whitespaces))
-                    updatedTag.replaceSubrange(range, with: "\(parts[0]): \(formattedValue)")
+            } else if glucoseValueString.starts(with: "Target:") {
+                // -- Handle Target
+                let value = glucoseValueString.components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
+                let formattedValue = convertToMmolL(value)
+                let formattedString = "Target: \(formattedValue)"
+                updatedTag.replaceSubrange(range, with: formattedString)
+
+            } else {
+                // -- Handle everything else (e.g., "minPredBG 39" etc.)
+                let parts = glucoseValueString.components(separatedBy: .whitespaces)
+                if parts.count >= 2 {
+                    let metric = parts[0]
+                    let value = parts[1]
+                    let formattedValue = convertToMmolL(value)
+                    let formattedString = "\(metric): \(formattedValue)"
+                    updatedTag.replaceSubrange(range, with: formattedString)
                 }
             }
         }
