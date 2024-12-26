@@ -1131,7 +1131,7 @@ extension BaseNightscoutManager {
 
      - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BG`.
      */
-            func parseReasonGlucoseValuesToMmolL(_ reason: String) -> String {
+    func parseReasonGlucoseValuesToMmolL(_ reason: String) -> String {
         let patterns = [
             "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",
             "Dev:\\s*-?\\d+\\.?\\d*",
@@ -1260,6 +1260,7 @@ extension BaseNightscoutManager {
                 }
             }
         }
+
         return updatedReason
     }
 }
