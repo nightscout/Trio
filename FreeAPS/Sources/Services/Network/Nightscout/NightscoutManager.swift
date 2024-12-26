@@ -1146,9 +1146,8 @@ extension BaseNightscoutManager {
         let regex = try! NSRegularExpression(pattern: pattern)
 
         func convertToMmolL(_ value: String) -> String {
-            if let glucoseValue = Double(
-                value.replacingOccurrences(of: "[^\\d.-]", with: "", options: .regularExpression)
-            ) {
+            if let glucoseValue = Double(value.replacingOccurrences(of: "[^\\d.-]", with: "", options: .regularExpression))
+            {
                 let mmolValue = Decimal(glucoseValue).asMmolL
                 return mmolValue.description
             }
