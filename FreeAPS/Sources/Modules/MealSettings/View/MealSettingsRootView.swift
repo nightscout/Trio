@@ -199,37 +199,37 @@ extension MealSettings {
                     miniHint: "Add fat and protein macros to meal entries.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
-                        VStack(alignment: .leading, spacing: 10) {
+                        VStack(spacing: 10) {
                             Text(
                                 "Enabling this setting allows you to log fat and protein, which are then converted into future carb equivalents using the Warsaw Method."
                             )
                             VStack(alignment: .leading, spacing: 5) {
-                                Text("Warsaw Method").bold()
+                                Text("Warsaw Method:").bold()
                                 Text(
                                     "The Warsaw Method helps account for the delayed glucose spikes caused by fat and protein in meals. It uses Fat-Protein Units (FPU) to calculate the carb effect from fat and protein. The system spreads insulin delivery over several hours to mimic natural insulin release, helping to manage post-meal glucose spikes."
                                 )
                             }
-                        }
-                        VStack(alignment: .center, spacing: 5) {
-                            Text("Fat Conversion").bold()
-                            Text("𝑭 = fat(g) × 90%")
-                        }
-                        VStack(alignment: .center, spacing: 5) {
-                            Text("Protein Conversion").bold()
-                            Text("𝑷 = protein(g) × 40%")
-                        }
-                        VStack(alignment: .center, spacing: 5) {
-                            Text("FPU Conversion").bold()
-                            Text("𝑭 + 𝑷 = g CHO")
-                        }
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(
-                                "You can personalize the conversion calculation by adjusting the following settings that will appear when this option is enabled:"
-                            )
-                            Text("• Fat and Protein Delay")
-                            Text("• Maximum Duration")
-                            Text("• Spread Interval")
-                            Text("• Fat and Protein Percentage")
+                            VStack(alignment: .center, spacing: 5) {
+                                Text("Fat Conversion").bold()
+                                Text("𝑭 = fat(g) × 90%")
+                            }
+                            VStack(alignment: .center, spacing: 5) {
+                                Text("Protein Conversion").bold()
+                                Text("𝑷 = protein(g) × 40%")
+                            }
+                            VStack(alignment: .center, spacing: 5) {
+                                Text("FPU Conversion").bold()
+                                Text("𝑭 + 𝑷 = g CHO")
+                            }
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(
+                                    "You can personalize the conversion calculation by adjusting the following settings that will appear when this option is enabled:"
+                                )
+                                Text("• Fat and Protein Delay")
+                                Text("• Maximum Duration")
+                                Text("• Spread Interval")
+                                Text("• Fat and Protein Percentage")
+                            }
                         }
                     },
                     headerText: "Fat and Protein"
