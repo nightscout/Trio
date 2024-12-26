@@ -162,14 +162,16 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps"),
-                    miniHint: "Skip neutral temporary basal rates to reduce pump alerts.",
+                    miniHint: "Skip neutral temporary basal rates to reduce MDT pump alerts.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "When Skip Neutral Temps is enabled, Trio will not set neutral basal rates, minimizing hourly pump alerts. This can help light sleepers avoid alerts but may delay basal adjustments if the pump loses connection."
+                            "When Skip Neutral Temps is enabled, Trio will not set neutral basal rates shortly before the hour, minimizing hourly pump alerts on MDT pumps. This can help light sleepers avoid alerts but will delay basal adjustments. This will also only come into effect if SMB's are disabled for whatever reason."
                         )
-                        Text("For most users, leaving this OFF is recommended to ensure consistent basal delivery.")
+                        Text(
+                            "For most users, leaving this OFF is recommended to ensure consistent basal delivery and loop calculation. If this option is effective, loops will be skipped during the last 5 minutes of the hour."
+                        )
                     }
                 )
 
