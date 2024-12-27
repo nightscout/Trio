@@ -197,7 +197,7 @@ extension Treatments {
             }
         }
 
-        /// Observes changes to the `bolusProgress` published by the `apsManager` to update the `isBolusInProgress` property in real time.
+        /// Observes changes to the `bolusProgress` published by the `apsd2oManager` to update the `isBolusInProgress` property in real time.
         ///
         /// - Important:
         ///   - `apsManager.bolusProgress` is a `CurrentValueSubject<Decimal?, Never>`.
