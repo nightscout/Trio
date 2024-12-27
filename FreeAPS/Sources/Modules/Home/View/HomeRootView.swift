@@ -1046,6 +1046,7 @@ extension Home {
             }
         }
 
+        //TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
         private func parseReasonConclusion(_ reasonConclusion: String, isMmolL _: Bool) -> String {
             let patterns = [
                 "minGuardBG\\s*-?\\d+\\.?\\d*<-?\\d+\\.?\\d*",

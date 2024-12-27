@@ -103,6 +103,8 @@ struct TagCloudView: View {
 
      - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BGI`.
      */
+
+     //TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
     private func formatGlucoseTags(_ tag: String, isMmolL: Bool) -> String {
         let patterns = [
             "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",

@@ -1131,6 +1131,8 @@ extension BaseNightscoutManager {
 
      - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BGI`.
      */
+
+     //TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
     func parseReasonGlucoseValuesToMmolL(_ reason: String) -> String {
         let patterns = [
             "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",
