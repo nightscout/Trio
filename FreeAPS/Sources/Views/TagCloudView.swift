@@ -103,7 +103,7 @@ struct TagCloudView: View {
 
      - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BGI`.
      */
-     private func formatGlucoseTags(_ tag: String, isMmolL: Bool) -> String {
+    private func formatGlucoseTags(_ tag: String, isMmolL: Bool) -> String {
         let patterns = [
             "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",
             "Dev:\\s*-?\\d+\\.?\\d*",
