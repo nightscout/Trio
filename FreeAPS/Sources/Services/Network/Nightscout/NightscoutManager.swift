@@ -1244,7 +1244,7 @@ extension BaseNightscoutManager {
                     let replaced = glucoseValueString.replacingOccurrences(of: oldSnippet, with: newSnippet)
                     updatedReason.replaceSubrange(range, with: replaced)
                 }
-   
+
             } else {
                 // -- Handle everything else, e.g. "minPredBG 39" etc.
                 let parts = glucoseValueString.components(separatedBy: .whitespaces)
