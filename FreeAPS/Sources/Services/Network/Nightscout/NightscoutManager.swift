@@ -42,6 +42,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() var healthkitManager: HealthKitManager!
 
     private let uploadOverridesSubject = PassthroughSubject<Void, Never>()
+    private let uploadPumpHistorySubject = PassthroughSubject<Void, Never>()
+    private let uploadCarbsSubject = PassthroughSubject<Void, Never>()
     private let processQueue = DispatchQueue(label: "BaseNetworkManager.processQueue")
     private var ping: TimeInterval?
 
@@ -111,6 +113,26 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
             .store(in: &subscriptions)
 
+        uploadPumpHistorySubject
+            .debounce(for: .seconds(1), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] in
+                guard let self = self else { return }
+                Task {
+                    await self.uploadPumpHistory()
+                }
+            }
+            .store(in: &subscriptions)
+
+        uploadCarbsSubject
+            .debounce(for: .seconds(1), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] in
+                guard let self = self else { return }
+                Task {
+                    await self.uploadCarbs()
+                }
+            }
+            .store(in: &subscriptions)
+
         registerHandlers()
         setupNotification()
     }
@@ -154,17 +176,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task.detached {
-                await self.uploadPumpHistory()
-            }
+            self?.uploadPumpHistorySubject.send()
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task.detached {
-                await self.uploadCarbs()
-            }
+            self?.uploadCarbsSubject.send()
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
