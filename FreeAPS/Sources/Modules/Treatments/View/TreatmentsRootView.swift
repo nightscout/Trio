@@ -364,26 +364,38 @@ extension Treatments {
         }
 
         var treatmentButton: some View {
-            Button {
+            var treatmentButtonBackground = Color(.systemBlue)
+            if limitExceeded {
+                treatmentButtonBackground = Color(.systemRed)
+            } else if disableTaskButton {
+                treatmentButtonBackground = Color(.systemGray)
+            }
+
+            return Button {
                 state.invokeTreatmentsTask()
             } label: {
-                taskButtonLabel
-                    .font(.headline)
-                    .foregroundStyle(Color.white)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .frame(height: 35)
+                HStack {
+                    if state.isBolusInProgress {
+                        Image(systemName: "stopwatch.fill")
+                    }
+                    taskButtonLabel
+                }
+                .font(.headline)
+                .foregroundStyle(Color.white)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(height: 35)
             }
             .disabled(disableTaskButton)
-            .listRowBackground(
-                limitExceeded ? Color(.systemRed) :
-                    disableTaskButton ? Color(.systemGray) :
-                    Color(.systemBlue)
-            )
+            .listRowBackground(treatmentButtonBackground)
             .shadow(radius: 3)
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
 
         private var taskButtonLabel: some View {
+            if state.isBolusInProgress {
+                return Text("Bolus In Progress...")
+            }
+
             if pumpBolusLimitExceeded {
                 return Text("Max Bolus of \(state.maxBolus.description) U Exceeded")
             } else if externalBolusLimitExceeded {
@@ -446,7 +458,7 @@ extension Treatments {
         }
 
         private var disableTaskButton: Bool {
-            state.addButtonPressed || limitExceeded
+            state.isBolusInProgress || state.addButtonPressed || limitExceeded
         }
     }
 
