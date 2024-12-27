@@ -1,14 +1,14 @@
 import CoreData
 import SwiftUI
 
-struct ContactTrickEntry: Hashable, Equatable, Sendable {
+struct ContactImageEntry: Hashable, Equatable, Sendable {
     var id = UUID()
     var name: String = ""
-    var layout: ContactTrickLayout = .single
-    var ring: ContactTrickLargeRing = .none
-    var primary: ContactTrickValue = .glucose
-    var top: ContactTrickValue = .none
-    var bottom: ContactTrickValue = .none
+    var layout: ContactImageLayout = .default
+    var ring: ContactImageLargeRing = .none
+    var primary: ContactImageValue = .glucose
+    var top: ContactImageValue = .none
+    var bottom: ContactImageValue = .none
     var contactId: String? = nil
     var hasHighContrast: Bool = true
     var ringWidth: RingWidth = .regular
@@ -19,7 +19,7 @@ struct ContactTrickEntry: Hashable, Equatable, Sendable {
     var fontWidth: Font.Width = .standard
     var managedObjectID: NSManagedObjectID?
 
-    static func == (lhs: ContactTrickEntry, rhs: ContactTrickEntry) -> Bool {
+    static func == (lhs: ContactImageEntry, rhs: ContactImageEntry) -> Bool {
         lhs.id == rhs.id &&
             lhs.name == rhs.name &&
             lhs.layout == rhs.layout &&
@@ -110,12 +110,12 @@ struct ContactTrickEntry: Hashable, Equatable, Sendable {
     }
 }
 
-protocol ContactTrickObserver: Sendable {
+protocol ContactImageObserver: Sendable {
     // TODO: is this required?
-//    func basalProfileDidChange(_ entry: [ContactTrickEntry])
+//    func basalProfileDidChange(_ entry: [ContactImageEntry])
 }
 
-enum ContactTrickValue: String, JSON, CaseIterable, Identifiable, Codable {
+enum ContactImageValue: String, JSON, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
     case none
     case glucose
@@ -151,22 +151,22 @@ enum ContactTrickValue: String, JSON, CaseIterable, Identifiable, Codable {
     }
 }
 
-enum ContactTrickLayout: String, JSON, CaseIterable, Identifiable, Codable {
+enum ContactImageLayout: String, JSON, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
-    case single
+    case `default`
     case split
 
     var displayName: String {
         switch self {
-        case .single:
-            return NSLocalizedString("Single", comment: "")
+        case .default:
+            return NSLocalizedString("Default", comment: "")
         case .split:
             return NSLocalizedString("Split", comment: "")
         }
     }
 }
 
-enum ContactTrickLargeRing: String, JSON, CaseIterable, Identifiable, Codable {
+enum ContactImageLargeRing: String, JSON, CaseIterable, Identifiable, Codable {
     // TODO: revisit rings for iob, cob and combined iob+cob with more user feedback
     var id: String { rawValue }
     case none

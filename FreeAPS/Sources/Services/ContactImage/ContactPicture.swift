@@ -6,8 +6,8 @@ struct ContactPicture: View {
         static let lag: TimeInterval = 30
     }
 
-    @Binding var contact: ContactTrickEntry
-    @Binding var state: ContactTrickState
+    @Binding var contact: ContactImageEntry
+    @Binding var state: ContactImageState
 
     private static let formatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -16,18 +16,14 @@ struct ContactPicture: View {
     }()
 
     static func getImage(
-        contact: ContactTrickEntry,
-        state: ContactTrickState
+        contact: ContactImageEntry,
+        state: ContactImageState
     ) -> UIImage {
         let width = 1024.0
         let height = 1024.0
         var rect = CGRect(x: 0, y: 0, width: width, height: height)
-        let textColor: Color = contact.hasHighContrast ?
-            Color(red: 250 / 256, green: 250 / 256, blue: 250 / 256) :
-            Color(red: 20 / 256, green: 20 / 256, blue: 20 / 256)
-        let secondaryTextColor: Color = contact.hasHighContrast ?
-            Color(red: 220 / 256, green: 220 / 256, blue: 220 / 256) :
-            Color(red: 40 / 256, green: 40 / 256, blue: 40 / 256)
+        let textColor: Color = .white.opacity(contact.hasHighContrast ? 1 : 0.8)
+        let secondaryTextColor: Color = .loopGray.opacity(contact.hasHighContrast ? 1 : 0.8)
         let fontWeight = contact.fontWeight
 
         UIGraphicsBeginImageContext(rect.size)
@@ -66,7 +62,7 @@ struct ContactPicture: View {
         }
 
         switch contact.layout {
-        case .single:
+        case .default:
             let showTop = contact.top != .none
             let showBottom = contact.bottom != .none
 
@@ -227,9 +223,9 @@ struct ContactPicture: View {
     }
 
     private static func displayPiece(
-        value: ContactTrickValue,
-        contact: ContactTrickEntry,
-        state: ContactTrickState,
+        value: ContactImageValue,
+        contact: ContactImageEntry,
+        state: ContactImageState,
         rect: CGRect,
         fitHeigh: Bool,
         fontSize: Int,
@@ -277,6 +273,8 @@ struct ContactPicture: View {
         let textColor: Color = switch value {
         case .cob:
             .loopYellow
+        case .iob:
+            .insulin
         case .glucose:
             dynamicColor
         default:
@@ -337,9 +335,9 @@ struct ContactPicture: View {
     }
 
     private static func drawRing(
-        ring: ContactTrickLargeRing,
-        contact: ContactTrickEntry,
-        state: ContactTrickState,
+        ring: ContactImageLargeRing,
+        contact: ContactImageEntry,
+        state: ContactImageState,
         rect: CGRect,
         strokeWidth: Double
     ) {
@@ -566,8 +564,8 @@ struct ContactPicture: View {
     }
 
     private static func ringColor(
-        contact _: ContactTrickEntry,
-        state: ContactTrickState
+        contact _: ContactImageEntry,
+        state: ContactImageState
     ) -> Color {
         guard let lastLoopDate = state.lastLoopDate else {
             return .loopGray
@@ -616,8 +614,8 @@ enum GradientDirection: Int {
 }
 
 struct ContactPicturePreview: View {
-    @Binding var contact: ContactTrickEntry
-    @Binding var state: ContactTrickState
+    @Binding var contact: ContactImageEntry
+    @Binding var state: ContactImageState
 
     var body: some View {
         ZStack {
@@ -628,7 +626,7 @@ struct ContactPicturePreview: View {
         }
         .frame(width: 256, height: 256)
         .clipShape(Circle())
-        .preferredColorScheme($contact.wrappedValue.hasHighContrast ? .dark : .light)
+        .preferredColorScheme(.dark)
     }
 }
 
@@ -636,14 +634,14 @@ struct ContactPicture_Previews: PreviewProvider {
     struct Preview: View {
         @State var rangeIndicator: Bool = true
         @State var hasHighContrast: Bool = true
-        @State var fontSize: ContactTrickEntry.FontSize = .small
+        @State var fontSize: ContactImageEntry.FontSize = .small
         @State var fontWeight: UIFont.Weight = .bold
         @State var fontName: String? = "AmericanTypewriter"
 
         var body: some View {
             ContactPicturePreview(
                 contact: .constant(
-                    ContactTrickEntry(
+                    ContactImageEntry(
                         primary: .glucose,
                         top: .delta,
                         bottom: .trend,
@@ -651,7 +649,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         fontWeight: .medium
                     )
                 ),
-                state: .constant(ContactTrickState(
+                state: .constant(ContactImageState(
                     glucose: "6.8",
                     trend: "↗︎",
                     delta: "+0.2",
@@ -662,7 +660,7 @@ struct ContactPicture_Previews: PreviewProvider {
 
 //            ContactPicturePreview(
 //                contact: .constant(
-//                    ContactTrickEntry(
+//                    ContactImageEntry(
 //                        ring: .iob,
 //                        primary: .glucose,
 //                        bottom: .trend,
@@ -670,7 +668,7 @@ struct ContactPicture_Previews: PreviewProvider {
 //                        fontWeight: .medium
 //                    )
 //                ),
-//                state: .constant(ContactTrickState(
+//                state: .constant(ContactImageState(
 //                    glucose: "6.8",
 //                    trend: "↗︎",
 //                    iob: 6.1,
@@ -681,7 +679,7 @@ struct ContactPicture_Previews: PreviewProvider {
 
             ContactPicturePreview(
                 contact: .constant(
-                    ContactTrickEntry(
+                    ContactImageEntry(
                         primary: .glucose,
                         top: .ring,
                         bottom: .trend,
@@ -689,7 +687,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         fontWeight: .medium
                     )
                 ),
-                state: .constant(ContactTrickState(
+                state: .constant(ContactImageState(
                     glucose: "6.8",
                     trend: "↗︎",
                     lastLoopDate: .now
@@ -699,7 +697,7 @@ struct ContactPicture_Previews: PreviewProvider {
 
             ContactPicturePreview(
                 contact: .constant(
-                    ContactTrickEntry(
+                    ContactImageEntry(
                         ring: .loop,
                         primary: .glucose,
                         top: .none,
@@ -708,7 +706,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         fontWeight: .medium
                     )
                 ),
-                state: .constant(ContactTrickState(
+                state: .constant(ContactImageState(
                     glucose: "8.8",
                     trend: "→",
                     lastLoopDate: .now
@@ -717,7 +715,7 @@ struct ContactPicture_Previews: PreviewProvider {
 
             ContactPicturePreview(
                 contact: .constant(
-                    ContactTrickEntry(
+                    ContactImageEntry(
                         ring: .loop,
                         primary: .glucose,
                         top: .none,
@@ -726,7 +724,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         fontWeight: .medium
                     )
                 ),
-                state: .constant(ContactTrickState(
+                state: .constant(ContactImageState(
                     glucose: "6.8",
                     lastLoopDate: .now - 7.minutes,
                     eventualBG: "6.2"
@@ -735,7 +733,7 @@ struct ContactPicture_Previews: PreviewProvider {
 
             ContactPicturePreview(
                 contact: .constant(
-                    ContactTrickEntry(
+                    ContactImageEntry(
                         ring: .loop,
                         primary: .lastLoopDate,
                         top: .none,
@@ -744,7 +742,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         fontWeight: .medium
                     )
                 ),
-                state: .constant(ContactTrickState(
+                state: .constant(ContactImageState(
                     glucose: "6.8",
                     trend: "↗︎",
                     lastLoopDate: .now - 2.minutes
@@ -753,7 +751,7 @@ struct ContactPicture_Previews: PreviewProvider {
 
             ContactPicturePreview(
                 contact: .constant(
-                    ContactTrickEntry(
+                    ContactImageEntry(
                         ring: .loop,
                         primary: .glucose,
                         top: .none,
@@ -762,7 +760,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         fontWeight: .medium
                     )
                 ),
-                state: .constant(ContactTrickState(
+                state: .constant(ContactImageState(
                     glucose: "6.8",
                     lastLoopDate: .now,
                     iob: 6.1,
@@ -773,7 +771,7 @@ struct ContactPicture_Previews: PreviewProvider {
 
             ContactPicturePreview(
                 contact: .constant(
-                    ContactTrickEntry(
+                    ContactImageEntry(
                         layout: .split,
                         top: .iob,
                         bottom: .cob,
@@ -781,7 +779,7 @@ struct ContactPicture_Previews: PreviewProvider {
                         fontWeight: .medium
                     )
                 ),
-                state: .constant(ContactTrickState(
+                state: .constant(ContactImageState(
                     iob: 1.5,
                     iobText: "1.5",
                     cob: 25,
@@ -791,8 +789,8 @@ struct ContactPicture_Previews: PreviewProvider {
 
 //            ContactPicturePreview(
 //                contact: .constant(
-//                    ContactTrickEntry(
-//                        layout: .single,
+//                    ContactImageEntry(
+//                        layout: .default,
 //                        ring: .iobcob,
 //                        primary: .none,
 //                        ringWidth: .regular,
@@ -801,7 +799,7 @@ struct ContactPicture_Previews: PreviewProvider {
 //                        fontWeight: .medium
 //                    )
 //                ),
-//                state: .constant(ContactTrickState(
+//                state: .constant(ContactImageState(
 //                    iob: 1,
 //                    iobText: "5.5",
 //                    cob: 25,
@@ -813,15 +811,15 @@ struct ContactPicture_Previews: PreviewProvider {
 //
 //            ContactPicturePreview(
 //                contact: .constant(
-//                    ContactTrickEntry(
-//                        layout: .single,
+//                    ContactImageEntry(
+//                        layout: .default,
 //                        ring: .iobcob,
 //                        primary: .none,
 //                        fontSize: fontSize,
 //                        fontWeight: .medium
 //                    )
 //                ),
-//                state: .constant(ContactTrickState(
+//                state: .constant(ContactImageState(
 //                    iob: -0.2,
 //                    iobText: "0.0",
 //                    cob: 0,
@@ -833,15 +831,15 @@ struct ContactPicture_Previews: PreviewProvider {
 //
 //            ContactPicturePreview(
 //                contact: .constant(
-//                    ContactTrickEntry(
-//                        layout: .single,
+//                    ContactImageEntry(
+//                        layout: .default,
 //                        ring: .iobcob,
 //                        primary: .none,
 //                        fontSize: fontSize,
 //                        fontWeight: .medium
 //                    )
 //                ),
-//                state: .constant(ContactTrickState(
+//                state: .constant(ContactImageState(
 //                    iob: 10,
 //                    iobText: "0.0",
 //                    cob: 120,
@@ -853,8 +851,8 @@ struct ContactPicture_Previews: PreviewProvider {
 //
 //            ContactPicturePreview(
 //                contact: .constant(
-//                    ContactTrickEntry(
-//                        layout: .single,
+//                    ContactImageEntry(
+//                        layout: .default,
 //                        ring: .iobcob,
 //                        primary: .glucose,
 //                        bottom: .trend,
@@ -862,7 +860,7 @@ struct ContactPicture_Previews: PreviewProvider {
 //                        fontWeight: .medium
 //                    )
 //                ),
-//                state: .constant(ContactTrickState(
+//                state: .constant(ContactImageState(
 //                    glucose: "6.8",
 //                    trend: "↗︎",
 //                    iob: 5.5,
