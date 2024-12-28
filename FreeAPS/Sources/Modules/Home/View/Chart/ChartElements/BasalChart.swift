@@ -153,7 +153,7 @@ extension MainChartView {
         return tempBasals.compactMap { temp -> (start: Date, end: Date, rate: Double)? in
             let duration = temp.tempBasal?.duration ?? 0
             let timestamp = temp.timestamp ?? Date()
-            let end = min(timestamp + duration.minutes, now)
+            let end = timestamp + duration.minutes
             let isInsulinSuspended = state.suspensions.contains { $0.timestamp ?? now >= timestamp && $0.timestamp ?? now <= end }
 
             let rate = Double(truncating: temp.tempBasal?.rate ?? Decimal.zero as NSDecimalNumber) * (isInsulinSuspended ? 0 : 1)
@@ -197,7 +197,7 @@ extension MainChartView {
 
         return basalPoints
     }
-    
+
     func calculateBasals() {
         Task {
             let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
