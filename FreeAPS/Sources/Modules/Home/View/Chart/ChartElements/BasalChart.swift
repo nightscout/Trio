@@ -197,46 +197,7 @@ extension MainChartView {
 
         return basalPoints
     }
-
-//    func calculateBasals() {
-//        Task {
-//            let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
-//
-//            // Get Regular and Autotuned Basal parallel
-//            async let getRegularBasalPoints = findRegularBasalPoints(
-//                timeBegin: dayAgoTime,
-//                timeEnd: endMarker.timeIntervalSince1970,
-//                autotuned: false
-//            )
-//
-//            async let getAutotunedBasalPoints = findRegularBasalPoints(
-//                timeBegin: dayAgoTime,
-//                timeEnd: endMarker.timeIntervalSince1970,
-//                autotuned: true
-//            )
-//
-//            let (regularPoints, autotunedBasalPoints) = await (getRegularBasalPoints, getAutotunedBasalPoints)
-//
-//            var totalBasal = regularPoints + autotunedBasalPoints
-//            totalBasal.sort {
-//                $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970
-//            }
-//
-//            var basals: [BasalProfile] = []
-//            totalBasal.indices.forEach { index in
-//                basals.append(BasalProfile(
-//                    amount: totalBasal[index].amount,
-//                    isOverwritten: totalBasal[index].isOverwritten,
-//                    startDate: totalBasal[index].startDate,
-//                    endDate: totalBasal.count > index + 1 ? totalBasal[index + 1].startDate : endMarker
-//                ))
-//            }
-//
-//            await MainActor.run {
-//                basalProfiles = basals
-//            }
-//        }
-//    }
+    
     func calculateBasals() {
         Task {
             let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
@@ -293,7 +254,6 @@ extension MainChartView {
                 }
             }
 
-            // Push it all back onto the main thread for your chart
             await MainActor.run {
                 basalProfiles = basals
             }
