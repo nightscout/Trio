@@ -876,6 +876,7 @@ extension Home {
                 Button("Medtronic") { state.addPump(.minimed) }
                 Button("Omnipod Eros") { state.addPump(.omnipod) }
                 Button("Omnipod Dash") { state.addPump(.omnipodBLE) }
+                Button("Dana(RS/-i)") { state.addPump(.dana) }
                 Button("Pump Simulator") { state.addPump(.simulator) }
             } message: { Text("Select Pump Model") }
             .sheet(isPresented: $state.setupPump) {
