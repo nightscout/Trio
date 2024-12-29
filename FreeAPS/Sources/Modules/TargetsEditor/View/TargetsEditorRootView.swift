@@ -69,7 +69,7 @@ extension TargetsEditor {
             .safeAreaInset(edge: .bottom, spacing: 30) { saveButton }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
-            .navigationTitle("Target Glucose")
+            .navigationTitle("Glucose Targets")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {
                 if state.items.isNotEmpty {

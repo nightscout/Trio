@@ -1,9 +1,9 @@
 import Foundation
 import SwiftUI
 
-struct DefinitionRow: View {
+struct DefinitionRow<DefinitionView: View>: View {
     var term: String
-    var definition: String
+    var definition: DefinitionView
     var color: Color?
     var fontSize: Font?
 
@@ -15,7 +15,7 @@ struct DefinitionRow: View {
                 }
                 Text(term).font(fontSize ?? .subheadline).fontWeight(.semibold)
             }.padding(.bottom, 5)
-            Text(definition)
+            definition
                 .font(fontSize ?? .subheadline)
                 .foregroundColor(.secondary)
         }

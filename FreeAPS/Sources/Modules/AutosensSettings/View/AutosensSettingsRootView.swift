@@ -7,7 +7,7 @@ extension AutosensSettings {
         @StateObject var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -25,18 +25,27 @@ extension AutosensSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Autosens Max", comment: "Autosens Max")
                         }
                     ),
                     units: state.units,
                     type: .decimal("autosensMax"),
                     label: NSLocalizedString("Autosens Max", comment: "Autosens Max"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "This is a multiplier cap for autosens (and autotune) to set a 20% max limit on how high the autosens ratio can be, which in turn determines how high autosens can adjust basals, how low it can adjust ISF, and how low it can set the BG target.",
-                        comment: "Autosens Max"
-                    ),
+                    miniHint: "Upper limit of the Autosens Ratio.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: 120%").bold()
+                        Text(
+                            "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
+                        )
+                        Text(
+                            "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
+                        )
+                        Text(
+                            "Tip: Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower."
+                        )
+                    },
                     headerText: "Glucose Deviations Algorithm"
                 )
 
@@ -47,18 +56,27 @@ extension AutosensSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Autosens Min", comment: "Autosens Min")
                         }
                     ),
                     units: state.units,
                     type: .decimal("autosensMin"),
                     label: NSLocalizedString("Autosens Min", comment: "Autosens Min"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "The other side of the autosens safety limits, putting a cap on how low autosens can adjust basals, and how high it can adjust ISF and BG targets.",
-                        comment: "Autosens Min"
-                    )
+                    miniHint: "Lower limit of the Autosens Ratio.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: 80%").bold()
+                        Text(
+                            "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
+                        )
+                        Text(
+                            "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
+                        )
+                        Text(
+                            "Tip: Decreasing this value allows automatic adjustments of basal rates to be lower, ISF to be higher, and CR to be higher."
+                        )
+                    }
                 )
 
                 SettingInputSection(
@@ -68,26 +86,38 @@ extension AutosensSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Rewind Resets Autosens", comment: "Rewind Resets Autosens")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Rewind Resets Autosens", comment: "Rewind Resets Autosens"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "This feature, enabled by default, resets the autosens ratio to neutral when you rewind your pump, on the assumption that this corresponds to a probable site change. Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours. If you usually rewind your pump independently of site changes, you may want to consider disabling this feature.",
-                        comment: "Rewind Resets Autosens"
-                    )
+                    miniHint: "Pump rewind initiates a reset in Autosens Ratio.",
+                    verboseHint: VStack(alignment: .leading, spacing: 5) {
+                        Text("Default: ON").bold()
+                        Text("Medtronic Users Only").bold()
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(
+                                "This feature resets the Autosens Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change."
+                            )
+                            Text(
+                                "Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours."
+                            )
+                            Text(
+                                "Tip: If you usually rewind your pump independently of site changes, you may want to consider disabling this feature."
+                            )
+                        }
+                    }
                 )
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

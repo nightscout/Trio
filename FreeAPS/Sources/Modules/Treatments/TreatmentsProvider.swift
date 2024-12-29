@@ -3,7 +3,7 @@ extension Treatments {
         func getPumpSettings() async -> PumpSettings {
             await storage.retrieveAsync(OpenAPS.Settings.settings, as: PumpSettings.self)
                 ?? PumpSettings(from: OpenAPS.defaults(for: OpenAPS.Settings.settings))
-                ?? PumpSettings(insulinActionCurve: 6, maxBolus: 10, maxBasal: 2)
+                ?? PumpSettings(insulinActionCurve: 10, maxBolus: 10, maxBasal: 2)
         }
 
         func getBasalProfile() async -> [BasalProfileEntry] {
