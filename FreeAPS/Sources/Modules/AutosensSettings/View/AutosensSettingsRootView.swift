@@ -65,7 +65,7 @@ extension AutosensSettings {
 
                             HStack(alignment: .top) {
                                 Text(
-                                    "This is a snapshot in time and should not be used as your ISF setting."
+                                    "This adjusted ISF is temporary, will change with the next loop cycle, and should not be directly used as your profile ISF value."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -75,7 +75,7 @@ extension AutosensSettings {
                                     action: {
                                         hintLabel = "Autosens"
                                         selectedVerboseHint =
-                                            "Autosens automatically adjusts insulin delivery based on how sensitive or resistant you are to insulin, by analyzing past data to keep blood sugar levels stable.\n\nHow it works: It looks at the last 8-24 hours of data, excluding meal-related changes, and adjusts insulin settings like basal rates and targets when needed to match your sensitivity or resistance to insulin.\n\nWhat it adjusts: Autosens modifies insulin sensitivity factor (ISF), basal rates, and target blood sugar levels. It doesn’t account for carbs but adjusts for insulin effectiveness based on patterns in your glucose data.\n\nKey limitations: Autosens has safety limits (1.2 for resistance and 0.7 for sensitivity) to prevent over-adjusting, and it works alongside or can be disabled by other settings like Autotune or advanced target adjustments."
+                                            "Autosens automatically adjusts insulin delivery based on how sensitive or resistant you are to insulin at the time of the current loop cycle by analyzing past data to keep blood sugar levels stable.\n\nHow it works: It looks at the last 8-24 hours of data, excluding meal-related changes, and adjusts insulin settings like basal rates and targets when needed to match your sensitivity or resistance to insulin.\n\nWhat it adjusts: Autosens modifies Insulin Sensitivity Factor (ISF), basal rates, and target blood sugar levels. It doesn’t account for carbs but adjusts for insulin effectiveness based on patterns in your glucose data.\n\nKey limitations: Autosens has safety limits determined by your Autosens Max and Autosens Min settings. These settings prevent over-adjusting.\n\nAutosens functions alongside certain settings, like Super Micro Bolus (SMB). Other settings, like Dynamic ISF, alter portions of the Autosens formula. Please review the in-app hints for the Algorithm Settings prior to enabling them to understand how they may influence it."
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
