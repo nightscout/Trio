@@ -159,7 +159,7 @@ extension DynamicSettings {
                             units: state.units,
                             type: .decimal("adjustmentFactor"),
                             label: "Adjustment Factor (AF)",
-                            miniHint: "ALter the rate of Dynamic ISF (Sensitivity) adjustments.",
+                            miniHint: "Alter the rate of Dynamic ISF (Sensitivity) adjustments.",
                             verboseHint:
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Default: 80%").bold()

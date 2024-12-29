@@ -50,11 +50,13 @@ extension AppleHealthKit {
                                 Text("Give Apple Health Write Permissions")
                             }.padding(.bottom)
                             VStack(alignment: .leading, spacing: 5) {
-                                Text("1. Open the Settings app on your iOS device")
-                                Text("2. Scroll down or type \"Health\" in the settings search bar and select the \"Health\" app")
-                                Text("3. Tap on \"Data Access & Devices\"")
-                                Text("4. Find and select \"Trio\" from the list of apps")
-                                Text("5. Ensure that the \"Write Data\" option is enabled for the desired health metrics")
+                                Text("1. Open the Settings app on your iOS device.")
+                                Text(
+                                    "2. Scroll down or type \"Health\" in the settings search bar and select the \"Health\" app."
+                                )
+                                Text("3. Tap on \"Data Access & Devices\".")
+                                Text("4. Find and select \"Trio\" from the list of apps.")
+                                Text("5. Ensure that the \"Write Data\" option is enabled for the desired health metrics.")
                             }.font(.footnote)
                         }
                         .padding(.vertical)
