@@ -7,7 +7,7 @@ extension SMBSettings {
         @StateObject var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -25,18 +25,23 @@ extension SMBSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Enable SMB Always", comment: "Enable SMB Always")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Enable SMB Always", comment: "Enable SMB Always"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Defaults to false. When true, always enable supermicrobolus (unless disabled by high temptarget).",
-                        comment: "Enable SMB Always"
-                    ),
+                    miniHint: "Allow SMBs at all times except when a high Temp Target is set.",
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "When enabled, Super Micro Boluses (SMBs) will always be allowed if dosing calculations determine insulin is needed via the SMB delivery method, except when a high Temp Target is set. Enabling SMB Always will remove redundant \"Enable SMB\" options when this setting is enacted."
+                        )
+                        Text(
+                            "Note: If you would like to allow SMBs when a high Temp Target is set, enable the \"Allow SMBs with High Temptarget\" setting."
+                        )
+                    },
                     headerText: "Super-Micro-Bolus"
                 )
 
@@ -48,18 +53,24 @@ extension SMBSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = NSLocalizedString("Enable SMB With COB", comment: "Enable SMB With COB")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB With COB", comment: "Enable SMB With COB"),
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: NSLocalizedString(
-                            "This enables supermicrobolus (SMB) while carbs on board (COB) are positive.",
-                            comment: "Enable SMB With COB"
-                        )
+                        miniHint: "Allow SMB when carbs are on board.",
+                        verboseHint:
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+                            Text(
+                                "When the carb on board (COB) forecast line is active, enabling this feature allows Trio to use Super Micro Boluses (SMB) to deliver the insulin required."
+                            )
+                            Text(
+                                "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                            )
+                        }
                     )
 
                     SettingInputSection(
@@ -69,18 +80,24 @@ extension SMBSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = NSLocalizedString("Enable SMB With Temptarget", comment: "Enable SMB With Temptarget")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB With Temptarget", comment: "Enable SMB With Temptarget"),
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: NSLocalizedString(
-                            "This enables supermicrobolus (SMB) with eating soon / low temp targets. With this feature enabled, any temporary target below 100mg/dL, such as a temp target of 99 (or 80, the typical eating soon target) will enable SMB.",
-                            comment: "Enable SMB With Temptarget"
-                        )
+                        miniHint: "Allow SMB when a manual Temporary Target is set under \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue).",
+                        verboseHint:
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+                            Text(
+                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) at times when a manual Temporary Target under \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set."
+                            )
+                            Text(
+                                "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                            )
+                        }
                     )
 
                     SettingInputSection(
@@ -90,18 +107,24 @@ extension SMBSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = NSLocalizedString("Enable SMB After Carbs", comment: "Enable SMB After Carbs")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
                         label: NSLocalizedString("Enable SMB After Carbs", comment: "Enable SMB After Carbs"),
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: NSLocalizedString(
-                            "Defaults to false. When true, enables supermicrobolus (SMB) for 6h after carbs, even with 0 carbs on board (COB).",
-                            comment: "Enable SMB After Carbs"
-                        )
+                        miniHint: "Allow SMB for 6 hrs after a carb entry.",
+                        verboseHint:
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+                            Text(
+                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) for 6 hours after a carb entry, regardless of whether there are active carbs on board (COB)."
+                            )
+                            Text(
+                                "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                            )
+                        }
                     )
 
                     SettingInputSection(
@@ -111,7 +134,7 @@ extension SMBSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = NSLocalizedString("Enable SMB With High BG", comment: "Enable SMB With High BG")
                             }
                         ),
@@ -119,11 +142,17 @@ extension SMBSettings {
                         type: .conditionalDecimal("enableSMB_high_bg_target"),
                         label: NSLocalizedString("Enable SMB With High BG", comment: "Enable SMB With High BG"),
                         conditionalLabel: "High BG Target",
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: NSLocalizedString(
-                            "Enable SMBs when a high BG is detected, based on the high BG target (adjusted or profile)",
-                            comment: "Enable SMB With High BG"
-                        )
+                        miniHint: "Allow SMB when glucose is above the High BG Target value.",
+                        verboseHint:
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+                            Text(
+                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when glucose reading is above the value set as High BG Target."
+                            )
+                            Text(
+                                "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                            )
+                        }
                     )
                 }
 
@@ -134,7 +163,7 @@ extension SMBSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString(
                                 "Allow SMB With High Temptarget",
                                 comment: "Allow SMB With High Temptarget"
@@ -147,11 +176,20 @@ extension SMBSettings {
                         "Allow SMB With High Temptarget",
                         comment: "Allow SMB With High Temptarget"
                     ),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl).",
-                        comment: "Allow SMB With High Temptarget"
-                    )
+                    miniHint: "Allow SMB when a manual Temporary Target is set greater than \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue).",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when a manual Temporary Target above \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set."
+                        )
+                        Text(
+                            "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                        )
+                        Text(
+                            "Warning: High Temp Targets are often set when recovering from lows. If you use High Temp Targets for that purpose, this feature should remain disabled."
+                        ).bold()
+                    }
                 )
 
                 SettingInputSection(
@@ -161,18 +199,27 @@ extension SMBSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Enable UAM", comment: "Enable UAM")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Enable UAM", comment: "Enable UAM"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier.",
-                        comment: "Enable UAM"
-                    )
+                    miniHint: "Enable Unannounced Meals SMB.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "Enabling the UAM (Unannounced Meals) feature allows the system to detect and respond to unexpected rises in glucose readings caused by unannounced or miscalculated carbs, meals high in fat or protein, or other factors like adrenaline."
+                        )
+                        Text(
+                            "It uses the SMB (Super Micro Bolus) algorithm to deliver insulin in small amounts to correct glucose spikes. UAM also works in reverse, reducing or stopping SMBs if glucose levels drop unexpectedly."
+                        )
+                        Text(
+                            "This feature ensures more accurate insulin adjustments when carb entries are missing or incorrect."
+                        )
+                    }
                 )
 
                 SettingInputSection(
@@ -182,18 +229,43 @@ extension SMBSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxSMBBasalMinutes"),
                     label: NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Defaults to start at 30. This is the maximum minutes of basal that can be delivered as a single SMB with uncovered COB. This gives the ability to make SMB more aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. It is not recommended to set this value higher than 90 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs.",
-                        comment: "Max SMB Basal Minutes"
-                    )
+                    miniHint: "Limits the size of a single Super Micro Bolus (SMB) dose.",
+                    verboseHint: VStack(spacing: 10) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("Default: 30 minutes").bold()
+                                Text("(50% current basal rate)").bold()
+                            }
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(
+                                    "This is a limit on the size of a single SMB. One SMB can only be as large as this many minutes of your current profile basal rate."
+                                )
+                                Text(
+                                    "To calculate the maximum SMB allowed based on this setting, use the following formula:"
+                                )
+                            }
+                        }
+                        VStack(alignment: .center, spacing: 5) {
+                            Text(
+                                "𝒳 = Max SMB Basal Minutes"
+                            )
+                            Text("(𝒳 ÷ 60) × current basal rate")
+                        }
+
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(
+                                "Warning: Increasing this value above 90 minutes may impact Trio's ability to effectively zero temp and prevent lows."
+                            ).bold()
+                            Text("Note: SMBs must be enabled to use this limit.")
+                        }
+                    }
                 )
 
                 SettingInputSection(
@@ -203,18 +275,42 @@ extension SMBSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
-                            hintLabel = NSLocalizedString("Max UAM SMB Basal Minutes", comment: "Max UAM SMB Basal Minutes")
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = NSLocalizedString("Max UAM Basal Minutes", comment: "Max UAM Basal Minutes")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxUAMSMBBasalMinutes"),
-                    label: NSLocalizedString("Max UAM SMB Basal Minutes", comment: "Max UAM SMB Basal Minutes"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Defaults to start at 30. This is the maximum minutes of basal that can be delivered by UAM as a single SMB when IOB exceeds COB. This gives the ability to make UAM more or less aggressive if you choose. It is recommended that the value is set to start at 30, in line with the default, and if you choose to increase this value, do so in no more than 15 minute increments, keeping a close eye on the effects of the changes. Reducing the value will cause UAM to dose less insulin for each SMB. It is not recommended to set this value higher than 60 mins, as this may affect the ability for the algorithm to safely zero temp. It is also recommended that pushover is used when setting the value to be greater than default, so that alerts are generated for any predicted lows or highs.",
-                        comment: "Max UAM SMB Basal Minutes"
-                    )
+                    label: NSLocalizedString("Max UAM Basal Minutes", comment: "Max UAM Basal Minutes"),
+                    miniHint: "Limits the size of a single Unannounced Meal (UAM) SMB dose.",
+                    verboseHint: VStack(spacing: 10) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("Default: 30 minutes").bold()
+                                Text("(50% current basal rate)").bold()
+                            }
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(
+                                    "This is a limit on the size of a single UAM SMB. One UAM SMB can only be as large as this many minutes of your current profile basal rate."
+                                )
+                                Text(
+                                    "To calculate the maximum UAM SMB allowed based on this setting, use the following formula:"
+                                )
+                            }
+                        }
+                        VStack(alignment: .center, spacing: 5) {
+                            Text(
+                                "𝒳 = Max UAM SMB Basal Minutes"
+                            )
+                            Text("(𝒳 ÷ 60) × current basal rate")
+                        }
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(
+                                "Warning: Increasing this value above 90 minutes may impact Trio's ability to effectively zero temp and prevent lows."
+                            ).bold()
+                            Text("Note: UAM SMBs must be enabled to use this limit.")
+                        }
+                    }
                 )
 
                 SettingInputSection(
@@ -224,18 +320,22 @@ extension SMBSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxDeltaBGthreshold"),
                     label: NSLocalizedString("Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Defaults to 0.2 (20%). Maximum positive percentual change of BG level to use SMB, above that will disable SMB. Hardcoded cap of 40%. For UAM fully-closed-loop 30% is advisable. Observe in log and popup (maxDelta 27 > 20% of BG 100 - disabling SMB!).",
-                        comment: "Max Delta-BG Threshold"
-                    )
+                    miniHint: "Disables SMBs if last two glucose values differ by more than this percent.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: 20% increase").bold()
+                        Text(
+                            "Maximum allowed positive percentual change in glucose level to permit SMBs. If the difference in glucose is greater than this, Trio will disable SMBs."
+                        )
+                        Text("Note: This setting has a hard-coded cap of 40%")
+                    }
                 )
 
                 SettingInputSection(
@@ -245,18 +345,25 @@ extension SMBSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
-                            hintLabel = NSLocalizedString("SMB DeliveryRatio", comment: "SMB DeliveryRatio")
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = NSLocalizedString("SMB Delivery Ratio", comment: "SMB Delivery Ratio")
                         }
                     ),
                     units: state.units,
                     type: .decimal("smbDeliveryRatio"),
-                    label: NSLocalizedString("SMB DeliveryRatio", comment: "SMB DeliveryRatio"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Default value: 0.5 This is another key OpenAPS safety cap, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution.",
-                        comment: "SMB DeliveryRatio"
-                    )
+                    label: NSLocalizedString("SMB Delivery Ratio", comment: "SMB Delivery Ratio"),
+                    miniHint: "Percentage of calculated insulin required that is given as SMB.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: 50%").bold()
+                        Text(
+                            "Once the total insulin required is calculated, this safety limit specifies what percentage of the insulin required can be delivered as an SMB."
+                        )
+                        Text(
+                            "Due to SMBs potentially occurring every 5 minutes with each loop cycle, it is important to set this value to a reasonable level that allows Trio to safely zero temp should dosing needs suddenly change. Increase this value with caution."
+                        )
+                        Text("Note: Allowed range is 30 - 70%")
+                    }
                 )
 
                 SettingInputSection(
@@ -266,26 +373,30 @@ extension SMBSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = NSLocalizedString("SMB Interval", comment: "SMB Interval")
                         }
                     ),
                     units: state.units,
                     type: .decimal("smbInterval"),
                     label: NSLocalizedString("SMB Interval", comment: "SMB Interval"),
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: NSLocalizedString(
-                        "Minimum duration in minutes for new SMB since last SMB or manual bolus",
-                        comment: "SMB Interval"
-                    )
+                    miniHint: "Minimum minutes since the last SMB or manual bolus to allow an automated SMB.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: 3 min").bold()
+                        Text(
+                            "This is the minimum number of minutes since the last SMB or manual bolus before Trio will permit an automated SMB."
+                        )
+                    }
                 )
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

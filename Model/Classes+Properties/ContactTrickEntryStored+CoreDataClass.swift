@@ -1,4 +1,4 @@
 import CoreData
 import Foundation
 
-@objc(ContactTrickEntryStored) public class ContactTrickEntryStored: NSManagedObject {}
+@objc(ContactImageEntryStored) public class ContactImageEntryStored: NSManagedObject {}

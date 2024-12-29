@@ -9,7 +9,7 @@ extension PumpConfig {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -47,9 +47,9 @@ extension PumpConfig {
                                         .frame(maxWidth: .infinity, alignment: .center)
                                         .buttonStyle(.bordered)
 
-                                    HStack(alignment: .top) {
+                                    HStack(alignment: .center) {
                                         Text(
-                                            "Pair a compatible pump with Trio. See details for available devices."
+                                            "Pair your insulin pump with Trio. See hint for compatible devices."
                                         )
                                         .font(.footnote)
                                         .foregroundColor(.secondary)
@@ -59,7 +59,22 @@ extension PumpConfig {
                                             action: {
                                                 hintLabel = "Pump Pairing to Trio"
                                                 selectedVerboseHint =
-                                                    "Explanation… limitation… etc."
+                                                    AnyView(
+                                                        VStack(alignment: .leading, spacing: 10) {
+                                                            Text(
+                                                                "Current Pump Models Supported:"
+                                                            )
+                                                            VStack(alignment: .leading) {
+                                                                Text("• Medtronic")
+                                                                Text("• Omnipod Eros")
+                                                                Text("• Omnipod Dash")
+                                                                Text("• Pump Simulator")
+                                                            }
+                                                            Text(
+                                                                "Note: If using a pump simulator, you will not have continuous readings from the CGM in Trio. Using a pump simulator is only advisable for becoming familiar with the app user interface. It will not give you insight on how the algorithm will respond."
+                                                            )
+                                                        }
+                                                    )
                                                 shouldDisplayHint.toggle()
                                             },
                                             label: {
@@ -86,7 +101,7 @@ extension PumpConfig {
                         hintDetent: $hintDetent,
                         shouldDisplayHint: $shouldDisplayHint,
                         hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? "",
+                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                         sheetTitle: "Help"
                     )
                 }
@@ -94,6 +109,7 @@ extension PumpConfig {
                     Button("Medtronic") { state.addPump(.minimed) }
                     Button("Omnipod Eros") { state.addPump(.omnipod) }
                     Button("Omnipod Dash") { state.addPump(.omnipodBLE) }
+                    Button("Dana(RS/-i)") { state.addPump(.dana) }
                     Button("Pump Simulator") { state.addPump(.simulator) }
                 } message: { Text("Select Pump Model") }
             }

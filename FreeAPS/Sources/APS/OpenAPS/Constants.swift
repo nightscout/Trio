@@ -39,7 +39,6 @@ extension OpenAPS {
         static let carbRatios = "settings/carb_ratios.json"
         static let tempTargets = "settings/temptargets.json"
         static let model = "settings/model.json"
-        static let contactTrick = "settings/contact_trick.json"
     }
 
     enum Monitor {

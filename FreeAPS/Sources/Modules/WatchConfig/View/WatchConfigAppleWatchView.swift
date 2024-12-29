@@ -7,7 +7,7 @@ struct WatchConfigAppleWatchView: BaseView {
 
     @State private var shouldDisplayHint: Bool = false
     @State var hintDetent = PresentationDetent.large
-    @State var selectedVerboseHint: String?
+    @State var selectedVerboseHint: AnyView?
     @State var hintLabel: String?
     @State private var decimalPlaceholder: Decimal = 0.0
     @State private var booleanPlaceholder: Bool = false
@@ -21,7 +21,7 @@ struct WatchConfigAppleWatchView: BaseView {
     }
 
     var body: some View {
-        Form {
+        List {
             Section(
                 header: Text("Apple Watch Configuration"),
                 content: {
@@ -35,9 +35,9 @@ struct WatchConfigAppleWatchView: BaseView {
                             }
                         }.padding(.top)
 
-                        HStack(alignment: .top) {
+                        HStack(alignment: .center) {
                             Text(
-                                "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                "Select the information to display."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -46,7 +46,15 @@ struct WatchConfigAppleWatchView: BaseView {
                             Button(
                                 action: {
                                     hintLabel = "Display on Watch"
-                                    selectedVerboseHint = "Display on Watch… bla bla bla"
+                                    selectedVerboseHint =
+                                        AnyView(VStack(alignment: .leading, spacing: 5) {
+                                            Text("Choose between the following:")
+                                            Text("• Heart Rate")
+                                            Text("• Glucose Target")
+                                            Text("• Steps")
+                                            Text("• ISF")
+                                            Text("• % Override")
+                                        })
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -67,15 +75,15 @@ struct WatchConfigAppleWatchView: BaseView {
                 selectedVerboseHint: Binding(
                     get: { selectedVerboseHint },
                     set: {
-                        selectedVerboseHint = $0
+                        selectedVerboseHint = $0.map { AnyView($0) }
                         hintLabel = "Show Protein and Fat"
                     }
                 ),
                 units: state.units,
                 type: .boolean,
                 label: "Show Protein and Fat",
-                miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                verboseHint: "Show Protein and Fat… bla bla bla"
+                miniHint: "Allow protein and fat entries on watch.",
+                verboseHint: Text("When enabled, protein and fat will show in the carb entry screen of the Apple Watch.")
             )
 
             SettingInputSection(
@@ -85,36 +93,39 @@ struct WatchConfigAppleWatchView: BaseView {
                 selectedVerboseHint: Binding(
                     get: { selectedVerboseHint },
                     set: {
-                        selectedVerboseHint = $0
+                        selectedVerboseHint = $0.map { AnyView($0) }
                         hintLabel = "Confirm Bolus Faster"
                     }
                 ),
                 units: state.units,
                 type: .boolean,
                 label: "Confirm Bolus Faster",
-                miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                verboseHint: "Confirm Bolus Faster… bla bla bla"
+                miniHint: "Reduce the number of crown rotations required for bolus confirmation.",
+                verboseHint: Text(
+                    "Enabling this feature lowers the number of turns on the crown dial required when confirming a bolus."
+                )
             )
 
             Section(
-                header: Text("Contact Trick"),
+                header: Text("Contact Image"),
                 content: {
                     VStack {
                         HStack {
                             NavigationLink("Contacts Configuration") {
-                                ContactTrick.RootView(resolver: resolver)
+                                ContactImage.RootView(resolver: resolver)
                             }.foregroundStyle(Color.accentColor)
                         }
                     }
                 }
             ).listRowBackground(Color.chart)
         }
+        .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
-                hintText: selectedVerboseHint ?? "",
+                hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                 sheetTitle: "Help"
             )
         }

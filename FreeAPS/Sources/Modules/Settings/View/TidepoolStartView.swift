@@ -52,7 +52,7 @@ struct TidepoolStartView: BaseView {
                             }
                         }
 
-                        HStack(alignment: .top) {
+                        HStack(alignment: .center) {
                             Text("You can connect Trio to seamlessly upload and manage your diabetes data on Tidepool.")
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -98,7 +98,9 @@ struct TidepoolStartView: BaseView {
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: "Connect to Tidepool",
-                hintText: "When connected, uploading of carbs, bolus, basal and glucose from Trio to your Tidepool account is enabled.\n\nUse your Tidepool credentials to login. If you dont already have a Tidepool account, you can sign up for one on the login page.",
+                hintText: Text(
+                    "When connected, uploading of carbs, bolus, basal and glucose from Trio to your Tidepool account is enabled.\n\nUse your Tidepool credentials to login. If you dont already have a Tidepool account, you can sign up for one on the login page."
+                ),
                 sheetTitle: "Help"
             )
         }

@@ -1,9 +1,9 @@
 import CoreData
 import Foundation
 
-public extension ContactTrickEntryStored {
-    @nonobjc class func fetchRequest() -> NSFetchRequest<ContactTrickEntryStored> {
-        NSFetchRequest<ContactTrickEntryStored>(entityName: "ContactTrickEntryStored")
+public extension ContactImageEntryStored {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<ContactImageEntryStored> {
+        NSFetchRequest<ContactImageEntryStored>(entityName: "ContactImageEntryStored")
     }
 
     @NSManaged var name: String

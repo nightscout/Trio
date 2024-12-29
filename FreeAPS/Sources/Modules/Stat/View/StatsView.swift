@@ -11,7 +11,7 @@ struct StatsView: View {
     var highLimit: Decimal
     var lowLimit: Decimal
     var units: GlucoseUnits
-    var overrideUnit: Bool
+    var hbA1cDisplayUnit: HbA1cDisplayUnit
 
     private let conversionFactor = 0.0555
 
@@ -30,7 +30,7 @@ struct StatsView: View {
         highLimit: Decimal,
         lowLimit: Decimal,
         units: GlucoseUnits,
-        overrideUnit: Bool
+        hbA1cDisplayUnit: HbA1cDisplayUnit
     ) {
         _fetchRequest = FetchRequest<LoopStatRecord>(
             sortDescriptors: [NSSortDescriptor(key: "start", ascending: false)],
@@ -45,7 +45,7 @@ struct StatsView: View {
         self.highLimit = highLimit
         self.lowLimit = lowLimit
         self.units = units
-        self.overrideUnit = overrideUnit
+        self.hbA1cDisplayUnit = hbA1cDisplayUnit
     }
 
     var loops: some View {
@@ -127,8 +127,16 @@ struct StatsView: View {
 
     var hba1c: some View {
         HStack(spacing: 50) {
-            let useUnit: GlucoseUnits = (units == .mmolL && overrideUnit) ? .mgdL :
-                (units == .mgdL && overrideUnit || units == .mmolL) ? .mmolL : .mgdL
+            let useUnit: GlucoseUnits = {
+                if units == .mmolL && hbA1cDisplayUnit == .mmolMol {
+                    return .mgdL
+                } else if (units == .mgdL && hbA1cDisplayUnit == .mmolMol) || units == .mmolL {
+                    return .mmolL
+                } else {
+                    return .mgdL
+                }
+            }()
+
             let hba1cs = glucoseStats()
             // First date
             let previous = glucose.last?.date ?? Date()
@@ -144,7 +152,7 @@ struct StatsView: View {
                     + " %"
             )
             VStack(spacing: 5) {
-                Text("HbA1C").font(.subheadline).foregroundColor(headline)
+                Text("HbA1c").font(.subheadline).foregroundColor(headline)
                 Text(hba1cString)
             }
             VStack(spacing: 5) {
@@ -180,7 +188,7 @@ struct StatsView: View {
             let numberOfDays = (current - previous).timeInterval / 8.64E4
 
             VStack(spacing: 5) {
-                Text(numberOfDays < 1 ? "Readings" : "Readings / 24h").font(.subheadline)
+                Text(numberOfDays < 1 ? "Readings" : "Readings / 24 h").font(.subheadline)
                     .foregroundColor(.secondary)
                 Text(bgs.readings.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))))
             }

@@ -9,7 +9,7 @@ extension LiveActivitySettings {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -52,15 +52,32 @@ extension LiveActivitySettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Enable Live Activity"
                             }
                         ),
                         units: state.units,
                         type: .boolean,
                         label: "Enable Live Activity",
-                        miniHint: "Live Activities display Trio's glucose readings, and other current data on the iPhone Lock Screen and in the Dynamic Island",
-                        verboseHint: "With Live Activities, you can let Trio display most current data, e.g. glucose reading from CGM, insulin on board, carbohydrates on board, or even a glucose trend chart, on the iPhone Lock Screen and in the Dynamic Island. It allows you to refer to live information at a glance and perform quick actions in your diabetes management.",
+                        miniHint: "Display customizable data on Lock Screen and Dynamic Island.",
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(
+                                    "With Live Activities enabled, Trio displays your choice of the following current data on your iPhone's Lock Screen and in the Dynamic Island:"
+                                )
+                                VStack(alignment: .leading) {
+                                    Text("• Current Glucose Reading")
+                                    Text("• IOB: Insulin On Board")
+                                    Text("• COB: Carbohydrates On Board")
+                                    Text("• Last Updated: Time of Last Loop Cycle")
+                                    Text("• Glucose Trend Chart")
+                                }.font(.footnote)
+                                Text(
+                                    "It allows you to refer to live information at a glance and perform quick actions in your diabetes management."
+                                )
+                            }
+                        },
                         headerText: "Display Live Data From Trio"
                     )
 
@@ -76,9 +93,9 @@ extension LiveActivitySettings {
                                     }
                                 }.padding(.top)
 
-                                HStack(alignment: .top) {
+                                HStack(alignment: .center) {
                                     Text(
-                                        "Trio Live Activities can be simplistic or detailed in their information display. See hint for more details."
+                                        "Select simple or detailed style. See hint for more details."
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -88,7 +105,29 @@ extension LiveActivitySettings {
                                         action: {
                                             hintLabel = "Lock Screen Widget Style"
                                             selectedVerboseHint =
-                                                "Trio's simple lock screen widget only display current glucose reading, trend arrow, delta and the timestamp of the current reading.\n\nThe detailed Lock Screen widget offers users a glucose chart, glucose trend arrow, glucose delta, current insulin and carbohydrates on board, and an icon as an indicator for running overrides."
+                                                AnyView(
+                                                    VStack(alignment: .leading, spacing: 10) {
+                                                        Text("Default: Simple").bold()
+                                                        VStack(alignment: .leading, spacing: 10) {
+                                                            Text("Simple:").bold()
+                                                            Text(
+                                                                "Trio's Simple Lock Screen Widget displays current glucose reading, trend arrow, delta and the timestamp of the current reading."
+                                                            )
+                                                        }
+                                                        VStack(alignment: .leading, spacing: 10) {
+                                                            Text("Detailed:").bold()
+                                                            Text(
+                                                                "The Detailed Lock Screen Widget offers users a glucose chart as well as the ability to customize the information provided in the Detailed Widget using the following options:"
+                                                            )
+                                                        }
+                                                        VStack(alignment: .leading) {
+                                                            Text("• Current Glucose Reading")
+                                                            Text("• IOB: Insulin On Board")
+                                                            Text("• COB: Carbohydrates On Board")
+                                                            Text("• Last Updated: Time of Last Loop Cycle")
+                                                        }.font(.footnote)
+                                                    }
+                                                )
                                             shouldDisplayHint.toggle()
                                         },
                                         label: {
@@ -115,6 +154,7 @@ extension LiveActivitySettings {
                     }
                 }
             }
+            .listSectionSpacing(sectionSpacing)
             .onReceive(resolver.resolve(LiveActivityBridge.self)!.$systemEnabled, perform: {
                 self.systemLiveActivitySetting = $0
             })
@@ -123,7 +163,7 @@ extension LiveActivitySettings {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

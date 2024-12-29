@@ -1,6 +1,7 @@
-oref0 branch: dev - git version: 0ff47a3
+oref0 branch: dev - git version: 22603e2
 
 Last commits:
+22603e2 skip_NetralTemps only if SMB's somehow disabled
 0ff47a3 fix weightedAverage, always calculate TDD
 e274bb0 revert to standard HBT calculation
 363fd11 Merge pull request #28 from bjornoleh/harmonise_defaults

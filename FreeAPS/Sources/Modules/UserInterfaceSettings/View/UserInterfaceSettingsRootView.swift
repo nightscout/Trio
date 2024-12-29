@@ -9,7 +9,7 @@ extension UserInterfaceSettings {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -40,7 +40,7 @@ extension UserInterfaceSettings {
         }
 
         var body: some View {
-            Form {
+            List {
                 Section(
                     header: Text("General Appearance"),
                     content: {
@@ -54,9 +54,9 @@ extension UserInterfaceSettings {
                                 }
                             }.padding(.top)
 
-                            HStack(alignment: .top) {
+                            HStack(alignment: .center) {
                                 Text(
-                                    "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                    "Choose app color scheme. See hint for more details."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -65,7 +65,26 @@ extension UserInterfaceSettings {
                                 Button(
                                     action: {
                                         hintLabel = "Color Scheme Preference"
-                                        selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        selectedVerboseHint =
+                                            AnyView(
+                                                VStack(alignment: .leading, spacing: 10) {
+                                                    Text(
+                                                        "Set the app color scheme. Descriptions of each option found below."
+                                                    )
+                                                    VStack(alignment: .leading, spacing: 5) {
+                                                        Text("System Default:").bold()
+                                                        Text("Follows the phone's current color scheme setting at that time")
+                                                    }
+                                                    VStack(alignment: .leading, spacing: 5) {
+                                                        Text("Light:").bold()
+                                                        Text("Always in Light mode")
+                                                    }
+                                                    VStack(alignment: .leading, spacing: 5) {
+                                                        Text("Dark:").bold()
+                                                        Text("Always in Dark mode")
+                                                    }
+                                                }
+                                            )
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -90,9 +109,9 @@ extension UserInterfaceSettings {
                             }
                         }.padding(.top)
 
-                        HStack(alignment: .top) {
+                        HStack(alignment: .center) {
                             Text(
-                                "Glucose Color Scheme ... dynamic or static ... Lorem ipsum dolor"
+                                "Choose glucose reading color scheme. See hint for more details."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -102,7 +121,29 @@ extension UserInterfaceSettings {
                                 action: {
                                     hintLabel = "Glucose Color Scheme"
                                     selectedVerboseHint =
-                                        "Glucose Color Scheme... Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        AnyView(
+                                            VStack(alignment: .leading, spacing: 10) {
+                                                Text(
+                                                    "Set the color scheme for glucose readings on the main glucose graph, live activities, and bolus calculator. Descriptions for each option found below."
+                                                )
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Static:").bold()
+                                                    Text("Red = Below Range")
+                                                    Text("Green = In Range")
+                                                    Text("Yellow = Above Range")
+                                                }
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Dynamic:").bold()
+                                                    Text("Green = At Target")
+                                                    Text(
+                                                        "Gradient Red = As readings approach and exceed below target, they gradually become more red."
+                                                    )
+                                                    Text(
+                                                        "Gradient Purple = As readings approach and exceed above target, they become more purple."
+                                                    )
+                                                }
+                                            }
+                                        )
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -122,9 +163,9 @@ extension UserInterfaceSettings {
                             Toggle("Show X-Axis Grid Lines", isOn: $state.xGridLines)
                             Toggle("Show Y-Axis Grid Lines", isOn: $state.yGridLines)
 
-                            HStack(alignment: .top) {
+                            HStack(alignment: .center) {
                                 Text(
-                                    "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                    "Display the grid lines behind the glucose graph."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -133,7 +174,10 @@ extension UserInterfaceSettings {
                                 Button(
                                     action: {
                                         hintLabel = "Show Main Chart X- and Y-Axis Grid Lines"
-                                        selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        selectedVerboseHint =
+                                            AnyView(
+                                                Text("Choose whether or not to display one or both X- and Y-Axis grid lines.")
+                                            )
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -154,15 +198,18 @@ extension UserInterfaceSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Show Low and High Thresholds"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Show Low and High Thresholds",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Display Low and High Thresholds… bla bla bla"
+                    miniHint: "Display the Low and High glucose thresholds set below.",
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("This setting displays the upper and lower values for your glucose target range.")
+                        Text("This range is for display and statistical purposes only and does not influence insulin dosing.")
+                    }
                 )
 
                 if state.rulerMarks {
@@ -237,9 +284,9 @@ extension UserInterfaceSettings {
                                 .frame(maxWidth: .infinity)
                             }
 
-                            HStack(alignment: .top) {
+                            HStack(alignment: .center) {
                                 Text(
-                                    "Sets thresholds for low and high glucose in home view main chart and statistics view."
+                                    "Set low and high glucose values for the main screen glucose graph and statistics."
                                 )
                                 .lineLimit(nil)
                                 .font(.footnote)
@@ -249,7 +296,19 @@ extension UserInterfaceSettings {
                                 Button(
                                     action: {
                                         hintLabel = "Low and High Thresholds"
-                                        selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        selectedVerboseHint =
+                                            AnyView(
+                                                VStack(alignment: .leading, spacing: 10) {
+                                                    Text(
+                                                        "Default values are based on internationally accepted Time in Range values of \(state.units == .mgdL ? "70" : 70.formattedAsMmolL)-\(state.units == .mgdL ? "180" : 180.formattedAsMmolL) \(state.units.rawValue)."
+                                                    ).bold()
+                                                    Text(
+                                                        "Adjust these values if you would like the statistics to reflect different values than the internationally accepted Time In Range values used as the default."
+                                                    )
+                                                    Text("Note: These values are not used to calculate insulin dosing.")
+                                                }
+                                            )
+
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -274,9 +333,9 @@ extension UserInterfaceSettings {
                             }
                         }.padding(.top)
 
-                        HStack(alignment: .top) {
+                        HStack(alignment: .center) {
                             Text(
-                                "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                "Choose glucose forecast presentation. See hint for more details."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -285,7 +344,26 @@ extension UserInterfaceSettings {
                             Button(
                                 action: {
                                     hintLabel = "Forecast Display Type"
-                                    selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                    selectedVerboseHint =
+                                        AnyView(
+                                            VStack(alignment: .leading, spacing: 10) {
+                                                Text(
+                                                    "This setting allows you to choose between Cone of Uncertainty (Cone) and OpenAPS Forecast Lines (Forecast Lines) for the glucose forecast. Descriptions for each option found below."
+                                                )
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Cone:").bold()
+                                                    Text(
+                                                        "Uses a combined range of all possible forecasts from the OpenAPS lines and provides you with a range of possible forecasts. This option has shown to reduce confusion and stress around algorithm forecasts by providing a less concerning visual representation."
+                                                    )
+                                                }
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Forecast Lines:").bold()
+                                                    Text(
+                                                        "Uses the IOB, COB, UAM, and ZT forecast lines from OpenAPS. This option provides a more detailed view of the algorithm's forecast, but may be more confusing for some users."
+                                                    )
+                                                }
+                                            }
+                                        )
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -298,38 +376,20 @@ extension UserInterfaceSettings {
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
 
-                SettingInputSection(
-                    decimalValue: $state.hours,
-                    booleanValue: $booleanPlaceholder,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0
-                            hintLabel = "X-Axis Interval Step"
-                        }
-                    ),
-                    units: state.units,
-                    type: .decimal("hours"),
-                    label: "X-Axis Interval Step",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "X-Axis Interval Step… bla bla bla"
-                )
-
                 Section {
-                    VStack {
+                    VStack(alignment: .leading) {
                         Picker(
                             selection: $state.totalInsulinDisplayType,
-                            label: Text("Total Insulin Display Type")
+                            label: Text("Total Insulin Display Type").multilineTextAlignment(.leading)
                         ) {
                             ForEach(TotalInsulinDisplayType.allCases) { selection in
                                 Text(selection.displayName).tag(selection)
                             }
                         }.padding(.top)
 
-                        HStack(alignment: .top) {
+                        HStack(alignment: .center) {
                             Text(
-                                "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                "Choose which total insulin calculation is displayed on the home screen. See hint for more details."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -338,7 +398,26 @@ extension UserInterfaceSettings {
                             Button(
                                 action: {
                                     hintLabel = "Total Insulin Display Type"
-                                    selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                    selectedVerboseHint =
+                                        AnyView(
+                                            VStack(alignment: .leading, spacing: 10) {
+                                                Text(
+                                                    "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph. Descriptions for each option found below."
+                                                )
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Total Daily Dose:").bold()
+                                                    Text(
+                                                        "Displays the last 24 hours of total insulin administered, both basal and bolus."
+                                                    )
+                                                }
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Total Insulin in Scope:").bold()
+                                                    Text(
+                                                        "Displays the total insulin administered since midnight, both basal and bolus."
+                                                    )
+                                                }
+                                            }
+                                        )
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -351,44 +430,88 @@ extension UserInterfaceSettings {
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
 
-                // TODO: this needs to be a picker: mmol/L or %
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.overrideHbA1cUnit,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0
-                            hintLabel = "Override HbA1c Unit"
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: "Override HbA1c Unit",
-                    miniHint: "Display HbA1c in mmol/L or %. Default is percent.",
-                    verboseHint: "Override HbA1c Unit… bla bla bla",
-                    headerText: "Trio Statistics"
-                )
+                Section(
+                    header: Text("Trio Statistics"),
+                    content: {
+                        VStack {
+                            Picker(
+                                selection: $state.hbA1cDisplayUnit,
+                                label: Text("HbA1c Display Unit")
+                            ) {
+                                ForEach(HbA1cDisplayUnit.allCases) { selection in
+                                    Text(selection.displayName).tag(selection)
+                                }
+                            }.padding(.top)
 
-                // TODO: this needs to be a picker: choose bar chart or progress bar
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.oneDimensionalGraph,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0
-                            hintLabel = "Standing / Laying TIR Chart"
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: "Standing / Laying TIR Chart",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Standing / Laying TIR Chart… bla bla bla"
-                )
+                            HStack(alignment: .center) {
+                                Text(
+                                    "Choose to display HbA1c in percent or mmol/mol."
+                                )
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                                .lineLimit(nil)
+                                Spacer()
+                                Button(
+                                    action: {
+                                        hintLabel = "HbA1c Display Unit"
+                                        selectedVerboseHint =
+                                            AnyView(
+                                                Text(
+                                                    "Choose which format you'd prefer the HbA1c value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)."
+                                                )
+                                            )
+                                        shouldDisplayHint.toggle()
+                                    },
+                                    label: {
+                                        HStack {
+                                            Image(systemName: "questionmark.circle")
+                                        }
+                                    }
+                                ).buttonStyle(BorderlessButtonStyle())
+                            }.padding(.top)
+                        }.padding(.bottom)
+                    }
+                ).listRowBackground(Color.chart)
+
+                Section {
+                    VStack(alignment: .leading) {
+                        Picker(
+                            selection: $state.timeInRangeChartStyle,
+                            label: Text("Time in Range Chart Style").multilineTextAlignment(.leading)
+                        ) {
+                            ForEach(TimeInRangeChartStyle.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
+                            }
+                        }.padding(.top)
+
+                        HStack(alignment: .center) {
+                            Text(
+                                "Choose the orientation of the Time in Range Chart."
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = "Time in Range Chart Style"
+                                    selectedVerboseHint =
+                                        AnyView(
+                                            Text(
+                                                "Choose which style for the time in range chart you'd prefer: a standing, i.e., vertical, bar chart or a laying, i.e., horizontal, line chart."
+                                            )
+                                        )
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+                }.listRowBackground(Color.chart)
 
                 SettingInputSection(
                     decimalValue: $state.carbsRequiredThreshold,
@@ -397,7 +520,7 @@ extension UserInterfaceSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Show Carbs Required Badge"
                         }
                     ),
@@ -405,17 +528,20 @@ extension UserInterfaceSettings {
                     type: .conditionalDecimal("carbsRequiredThreshold"),
                     label: "Show Carbs Required Badge",
                     conditionalLabel: "Carbs Required Threshold",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Show Carbs Required Badge… bla bla bla",
+                    miniHint: "Show carbs required as a red icon on the main graph icon.",
+                    verboseHint: Text(
+                        "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
+                    ),
                     headerText: "Carbs Required Badge"
                 )
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

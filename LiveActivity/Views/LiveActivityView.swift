@@ -19,8 +19,7 @@ struct LiveActivityView: View {
 
     private var glucoseColor: Color {
         let state = context.state
-        let detailedState = state.detailedViewState
-        let isMgdL = detailedState?.unit == "mg/dL"
+        let isMgdL = state.unit == "mg/dL"
 
         // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
         let hardCodedLow = isMgdL ? Decimal(55) : 55.asMmolL
