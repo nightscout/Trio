@@ -136,7 +136,7 @@ extension UnitsLimitsSettings {
                             "This setting defines the maximum amount of Carbs On Board (COB) at any given time for Trio to use in dosing calculations. If more carbs are entered than allowed by this limit, Trio will cap the current COB in calculations to Max COB and remain at max until all remaining carbs have shown to be absorbed."
                         )
                         Text(
-                            "For example, if Max COB is 120g and you enter a meal containing 150g of carbs, your COB will remain at 120g until the remaining 30g have been absorbed."
+                            "For example, if Max COB is 120 g and you enter a meal containing 150 g of carbs, your COB will remain at 120 g until the remaining 30 g have been absorbed."
                         )
                         Text("This is an important limit when UAM is ON.")
                     }

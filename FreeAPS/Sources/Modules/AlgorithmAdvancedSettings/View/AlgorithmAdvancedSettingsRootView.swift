@@ -276,7 +276,7 @@ extension AlgorithmAdvancedSettings {
                             "Min 5m Carb Impact sets the expected glucose rise from carbs over 5 minutes when absorption isn't obvious from glucose data."
                         )
                         Text(
-                            "The default value of 8 mg/dL per 5 minutes corresponds to an absorption rate of 24g of carbs per hour."
+                            "The default value of 8 mg/dL per 5 minutes corresponds to an absorption rate of 24 g of carbs per hour."
                         )
                         Text(
                             "This setting helps the system estimate how much glucose your body is absorbing, even when it's not immediately visible in your glucose data, ensuring more accurate insulin dosing during carb absorption."
@@ -328,7 +328,7 @@ extension AlgorithmAdvancedSettings {
                     miniHint: "Maximum amount of carbs still available if no absorption is detected.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: 90g").bold()
+                        Text("Default: 90 g").bold()
                         Text(
                             "The Remaining Carbs Cap defines the upper limit for how many carbs the system will assume are absorbing over 4 hours, even when there's no clear sign of absorption from your glucose readings."
                         )
