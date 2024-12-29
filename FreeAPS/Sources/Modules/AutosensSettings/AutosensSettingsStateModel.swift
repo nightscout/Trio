@@ -26,7 +26,6 @@ extension AutosensSettings {
 
         override func subscribe() {
             units = settingsManager.settings.units
-
             autosensMax = settings.preferences.autosensMax
             autosensMin = settings.preferences.autosensMin
             rewindResetsAutosens = settings.preferences.rewindResetsAutosens

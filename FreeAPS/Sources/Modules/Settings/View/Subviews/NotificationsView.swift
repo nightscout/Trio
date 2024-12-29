@@ -22,22 +22,7 @@ struct NotificationsView: BaseView {
     @State var hintLabel: String? = "Manage iOS Preferences"
 
     @Environment(\.colorScheme) var colorScheme
-    var color: LinearGradient {
-        colorScheme == .dark ? LinearGradient(
-            gradient: Gradient(colors: [
-                Color.bgDarkBlue,
-                Color.bgDarkerDarkBlue
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        )
-            :
-            LinearGradient(
-                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-    }
+    @Environment(AppState.self) var appState
 
     var body: some View {
         Form {
@@ -46,7 +31,8 @@ struct NotificationsView: BaseView {
                 content: {
                     manageNotifications
                 }
-            )
+            ).listRowBackground(Color.chart)
+
             Section {
                 VStack {
                     notificationsEnabledStatus
@@ -74,6 +60,7 @@ struct NotificationsView: BaseView {
                     }.padding(.top)
                 }.padding(.bottom)
             }.listRowBackground(Color.chart)
+
             Section(
                 header: Text("Notification Center"),
                 content: {
@@ -86,8 +73,7 @@ struct NotificationsView: BaseView {
 
                     Text("Calendar Events").navigationLink(to: .calendarEventSettings, from: self)
                 }
-            )
-            .listRowBackground(Color.chart)
+            ).listRowBackground(Color.chart)
         }
         .onReceive(
             resolver.resolve(AlertPermissionsChecker.self)!.$notificationsDisabled,
@@ -113,7 +99,8 @@ struct NotificationsView: BaseView {
                 sheetTitle: "Help"
             )
         }
-        .scrollContentBackground(.hidden).background(color)
+        .scrollContentBackground(.hidden)
+        .background(appState.trioBackgroundColor(for: colorScheme))
         .navigationTitle("Notifications")
         .navigationBarTitleDisplayMode(.automatic)
     }

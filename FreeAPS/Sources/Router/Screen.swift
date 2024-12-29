@@ -42,6 +42,7 @@ enum Screen: Identifiable, Hashable {
     case liveActivitySettings
     case liveActivityBottomRowSettings
     case calendarEventSettings
+    case contactTrick
     case serviceSettings
     case remoteControlConfig
     case autosensSettings
@@ -103,7 +104,7 @@ extension Screen {
         case .iconConfig:
             IconConfig.RootView(resolver: resolver)
         case .overrideConfig:
-            OverrideConfig.RootView(resolver: resolver)
+            Adjustments.RootView(resolver: resolver)
         case .snooze:
             Snooze.RootView(resolver: resolver)
         case .watch:
@@ -138,6 +139,8 @@ extension Screen {
             LiveActivityWidgetConfiguration(resolver: resolver, state: LiveActivitySettings.StateModel())
         case .calendarEventSettings:
             CalendarEventSettings.RootView(resolver: resolver)
+        case .contactTrick:
+            ContactTrick.RootView(resolver: resolver)
         case .serviceSettings:
             ServicesView(resolver: resolver, state: Settings.StateModel())
         case .autosensSettings:

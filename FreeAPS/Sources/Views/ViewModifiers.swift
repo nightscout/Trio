@@ -171,14 +171,6 @@ struct Backport<Content: View> {
 }
 
 extension Backport {
-    @ViewBuilder func chartXSelection(value: Binding<Date?>) -> some View {
-        if #available(iOS 17, *) {
-            content.chartXSelection(value: value)
-        } else {
-            content
-        }
-    }
-
     @ViewBuilder func chartForegroundStyleScale(state: any StateModel) -> some View {
         if (state as? Treatments.StateModel)?.forecastDisplayType == ForecastDisplayType.lines ||
             (state as? Home.StateModel)?.forecastDisplayType == ForecastDisplayType.lines

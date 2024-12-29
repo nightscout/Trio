@@ -16,22 +16,7 @@ extension PumpConfig {
         @State var showPumpSelection: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
-        var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         var body: some View {
             NavigationView {
@@ -91,29 +76,11 @@ extension PumpConfig {
                     .padding(.top)
                     .listRowBackground(Color.chart)
                 }
-                .scrollContentBackground(.hidden).background(color)
+                .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
                 .onAppear(perform: configureView)
                 .navigationTitle("Insulin Pump")
                 .navigationBarTitleDisplayMode(.automatic)
                 .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
-                .sheet(isPresented: $state.setupPump) {
-                    if let pumpManager = state.provider.apsManager.pumpManager {
-                        PumpSettingsView(
-                            pumpManager: pumpManager,
-                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                            completionDelegate: state,
-                            setupDelegate: state
-                        )
-                    } else {
-                        PumpSetupView(
-                            pumpType: state.setupPumpType,
-                            pumpInitialSettings: state.initialSettings,
-                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                            completionDelegate: state,
-                            setupDelegate: state
-                        )
-                    }
-                }
                 .sheet(isPresented: $shouldDisplayHint) {
                     SettingInputHintView(
                         hintDetent: $hintDetent,
@@ -129,6 +96,24 @@ extension PumpConfig {
                     Button("Omnipod Dash") { state.addPump(.omnipodBLE) }
                     Button("Pump Simulator") { state.addPump(.simulator) }
                 } message: { Text("Select Pump Model") }
+            }
+            .sheet(isPresented: $state.setupPump) {
+                if let pumpManager = state.provider.apsManager.pumpManager {
+                    PumpSettingsView(
+                        pumpManager: pumpManager,
+                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                        completionDelegate: state,
+                        setupDelegate: state
+                    )
+                } else {
+                    PumpSetupView(
+                        pumpType: state.setupPumpType,
+                        pumpInitialSettings: state.initialSettings,
+                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                        completionDelegate: state,
+                        setupDelegate: state
+                    )
+                }
             }
         }
     }

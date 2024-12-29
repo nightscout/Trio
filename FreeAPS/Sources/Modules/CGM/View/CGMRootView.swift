@@ -17,22 +17,7 @@ extension CGM {
         @State private var booleanPlaceholder: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
-        var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         var body: some View {
             NavigationView {
@@ -210,10 +195,11 @@ extension CGM {
                         verboseHint: "Smooth Glucose Value… bla bla bla"
                     )
                 }
-                .scrollContentBackground(.hidden).background(color)
+                .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
                 .onAppear(perform: configureView)
                 .navigationTitle("CGM")
                 .navigationBarTitleDisplayMode(.automatic)
+                .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
                 .sheet(isPresented: $shouldDisplayHint) {
                     SettingInputHintView(
                         hintDetent: $hintDetent,
@@ -223,36 +209,36 @@ extension CGM {
                         sheetTitle: "Help"
                     )
                 }
-                .sheet(isPresented: $setupCGM) {
-                    if let cgmFetchManager = state.cgmManager,
-                       let cgmManager = cgmFetchManager.cgmManager,
-                       state.cgmCurrent.type == cgmFetchManager.cgmGlucoseSourceType,
-                       state.cgmCurrent.id == cgmFetchManager.cgmGlucosePluginId
-                    {
-                        CGMSettingsView(
-                            cgmManager: cgmManager,
-                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                            unit: state.settingsManager.settings.units,
-                            completionDelegate: state
-                        )
-                    } else {
-                        CGMSetupView(
-                            CGMType: state.cgmCurrent,
-                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                            unit: state.settingsManager.settings.units,
-                            completionDelegate: state,
-                            setupDelegate: state,
-                            pluginCGMManager: self.state.pluginCGMManager
-                        )
-                    }
-                }
-                .onChange(of: setupCGM) { setupCGM in
+                .onChange(of: setupCGM) { _, setupCGM in
                     state.setupCGM = setupCGM
                 }
-                .onChange(of: state.setupCGM) { setupCGM in
+                .onChange(of: state.setupCGM) { _, setupCGM in
                     self.setupCGM = setupCGM
                 }
                 .screenNavigation(self)
+            }
+            .sheet(isPresented: $setupCGM) {
+                if let cgmFetchManager = state.cgmManager,
+                   let cgmManager = cgmFetchManager.cgmManager,
+                   state.cgmCurrent.type == cgmFetchManager.cgmGlucoseSourceType,
+                   state.cgmCurrent.id == cgmFetchManager.cgmGlucosePluginId
+                {
+                    CGMSettingsView(
+                        cgmManager: cgmManager,
+                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                        unit: state.settingsManager.settings.units,
+                        completionDelegate: state
+                    )
+                } else {
+                    CGMSetupView(
+                        CGMType: state.cgmCurrent,
+                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                        unit: state.settingsManager.settings.units,
+                        completionDelegate: state,
+                        setupDelegate: state,
+                        pluginCGMManager: self.state.pluginCGMManager
+                    )
+                }
             }
         }
     }

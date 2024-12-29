@@ -155,7 +155,7 @@
 "Duration" = "Duration";
 
 /*  */
-"Enact Temp Target" = "Enact Temp Target";
+"Start Temp Target" = "Start Temp Target";
 
 /* */
 "Target" = "Target";
@@ -1859,10 +1859,10 @@ Enact a temp Basal or a temp target */
 /* Smoothing of CGM readings */
 "Smooth Glucose Value" = "Smooth Glucose Value";
 
- /* -----------------------------------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------------------------------------
 
-  Infotexts from openaps.docs and androidaps.docs
-  Trio
+ Infotexts from openaps.docs and androidaps.docs
+ Trio
 */
 
 /* Headline Rewind Resets Autosens */

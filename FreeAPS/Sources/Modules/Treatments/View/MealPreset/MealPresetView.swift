@@ -4,9 +4,11 @@ import SwiftUI
 
 struct MealPresetView: View {
     @Bindable var state: Treatments.StateModel
+
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
     @Environment(\.managedObjectContext) var moc
+    @Environment(AppState.self) var appState
 
     @State private var showAlert = false
     @State private var dish: String = ""
@@ -56,7 +58,8 @@ struct MealPresetView: View {
                 dishInfos()
                 addPresetToTreatmentsButton
             }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Meal Presets")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {

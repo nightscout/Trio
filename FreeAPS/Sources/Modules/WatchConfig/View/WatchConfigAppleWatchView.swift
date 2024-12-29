@@ -1,6 +1,8 @@
 import SwiftUI
+import Swinject
 
-struct WatchConfigAppleWatchView: View {
+struct WatchConfigAppleWatchView: BaseView {
+    let resolver: Resolver
     @ObservedObject var state: WatchConfig.StateModel
 
     @State private var shouldDisplayHint: Bool = false
@@ -11,22 +13,7 @@ struct WatchConfigAppleWatchView: View {
     @State private var booleanPlaceholder: Bool = false
 
     @Environment(\.colorScheme) var colorScheme
-    var color: LinearGradient {
-        colorScheme == .dark ? LinearGradient(
-            gradient: Gradient(colors: [
-                Color.bgDarkBlue,
-                Color.bgDarkerDarkBlue
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        )
-            :
-            LinearGradient(
-                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-    }
+    @Environment(AppState.self) var appState
 
     private func onDelete(offsets: IndexSet) {
         state.devices.remove(atOffsets: offsets)
@@ -108,6 +95,19 @@ struct WatchConfigAppleWatchView: View {
                 miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
                 verboseHint: "Confirm Bolus Faster… bla bla bla"
             )
+
+            Section(
+                header: Text("Contact Trick"),
+                content: {
+                    VStack {
+                        HStack {
+                            NavigationLink("Contacts Configuration") {
+                                ContactTrick.RootView(resolver: resolver)
+                            }.foregroundStyle(Color.accentColor)
+                        }
+                    }
+                }
+            ).listRowBackground(Color.chart)
         }
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
@@ -120,6 +120,7 @@ struct WatchConfigAppleWatchView: View {
         }
         .navigationTitle("Apple Watch")
         .navigationBarTitleDisplayMode(.automatic)
-        .scrollContentBackground(.hidden).background(color)
+        .scrollContentBackground(.hidden)
+        .background(appState.trioBackgroundColor(for: colorScheme))
     }
 }

@@ -9,22 +9,7 @@ extension CarbRatioEditor {
         @State private var editMode = EditMode.inactive
 
         @Environment(\.colorScheme) var colorScheme
-        var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-        }
+        @Environment(AppState.self) var appState
 
         private var dateFormatter: DateFormatter {
             let formatter = DateFormatter()
@@ -94,21 +79,33 @@ extension CarbRatioEditor {
                     }.listRowBackground(Color.chart)
                 }
 
+                if !state.canAdd {
+                    Section {
+                        VStack(alignment: .leading) {
+                            Text(
+                                "Carb Ratios cover 24 hours. You cannot add more rates. Please remove or adjust existing rates to make space."
+                            ).bold()
+                        }
+                    }.listRowBackground(Color.tabBar)
+                }
+
                 Section(header: Text("Schedule")) {
                     list
                 }.listRowBackground(Color.chart)
             }
             .safeAreaInset(edge: .bottom, spacing: 30) { saveButton }
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
             .navigationTitle("Carb Ratios")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {
-                ToolbarItem(placement: .topBarTrailing) {
-                    EditButton()
+                if state.items.isNotEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        EditButton()
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    addButton
+                    Button(action: { state.add() }) { Image(systemName: "plus") }.disabled(!state.canAdd)
                 }
             })
             .environment(\.editMode, $editMode)
@@ -148,7 +145,7 @@ extension CarbRatioEditor {
                 }.listRowBackground(Color.chart)
             }
             .padding(.top)
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .navigationTitle("Set Ratio")
             .navigationBarTitleDisplayMode(.automatic)
         }
@@ -232,23 +229,6 @@ extension CarbRatioEditor {
                     AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
                 }
             }
-        }
-
-        private var addButton: some View {
-            guard state.canAdd else {
-                return AnyView(EmptyView())
-            }
-
-            switch editMode {
-            case .inactive:
-                return AnyView(Button(action: onAdd) { Image(systemName: "plus") })
-            default:
-                return AnyView(EmptyView())
-            }
-        }
-
-        func onAdd() {
-            state.add()
         }
 
         private func onDelete(offsets: IndexSet) {

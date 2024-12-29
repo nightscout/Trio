@@ -31,6 +31,7 @@ extension Treatments {
         }
 
         @Environment(\.colorScheme) var colorScheme
+        @Environment(AppState.self) var appState
 
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -59,23 +60,6 @@ extension Treatments {
             if state.units == .mmolL {
                 return 1
             } else { return 0 }
-        }
-
-        private var color: LinearGradient {
-            colorScheme == .dark ? LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.bgDarkBlue,
-                    Color.bgDarkerDarkBlue
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-                :
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
         }
 
         /// Handles macro input (carb, fat, protein) in a debounced fashion.
@@ -319,7 +303,7 @@ extension Treatments {
             }
             .padding(.top)
             .ignoresSafeArea(edges: .top)
-            .scrollContentBackground(.hidden).background(color)
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .blur(radius: state.showInfo ? 3 : 0)
             .navigationTitle("Treatments")
             .navigationBarTitleDisplayMode(.inline)
