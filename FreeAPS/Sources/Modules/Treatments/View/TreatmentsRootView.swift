@@ -377,7 +377,7 @@ extension Treatments {
             } label: {
                 HStack {
                     if state.isBolusInProgress {
-                        Image(systemName: "stopwatch.fill")
+                        ProgressView()
                     }
                     taskButtonLabel
                 }
