@@ -11,7 +11,7 @@ extension CGM {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -21,7 +21,7 @@ extension CGM {
 
         var body: some View {
             NavigationView {
-                Form {
+                List {
                     Section(
                         header: Text("CGM Integration to Trio"),
                         content: {
@@ -35,9 +35,9 @@ extension CGM {
                                     }
                                 }.padding(.top)
 
-                                HStack(alignment: .top) {
+                                HStack(alignment: .center) {
                                     Text(
-                                        "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        "Select your CGM. See hint for compatible devices."
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -47,7 +47,11 @@ extension CGM {
                                         action: {
                                             hintLabel = "Available CGM Types for Trio"
                                             selectedVerboseHint =
-                                                "CGM Types… bla bla \n\nLorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                                AnyView(
+                                                    Text(
+                                                        "• Dexcom G5 \n• Dexcom G6 / ONE \n• Dexcom G7 / ONE+ \n• Dexcom Share \n• Freestyle Libre \n• Freestyle Libre Demo \n• Glucose Simulator \n• Medtronic Enlite \n• Nightscout \n• xDrip4iOS"
+                                                    )
+                                                )
                                             shouldDisplayHint.toggle()
                                         },
                                         label: {
@@ -146,9 +150,9 @@ extension CGM {
                                     Text("CGM is not used as heartbeat.").padding(.top)
                                 }
 
-                                HStack(alignment: .top) {
+                                HStack(alignment: .center) {
                                     Text(
-                                        "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                        "A heartbeat tells Trio to start a loop cycle. This is required for closed loop."
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -157,7 +161,12 @@ extension CGM {
                                     Button(
                                         action: {
                                             hintLabel = "CGM Heartbeat"
-                                            selectedVerboseHint = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                                            selectedVerboseHint =
+                                                AnyView(
+                                                    Text(
+                                                        "The CGM Heartbeat can come from either a CGM or a pump to wake up Trio when phone is locked or in the background. If CGM is on the same phone as Trio and xDrip4iOS is configured to use the same AppGroup as Trio and the heartbeat feature is turned on in xDrip4iOS, then the CGM can provide a heartbeat to wake up Trio when phone is locked or app is in the background."
+                                                    )
+                                                )
                                             shouldDisplayHint.toggle()
                                         },
                                         label: {
@@ -184,15 +193,27 @@ extension CGM {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Smooth Glucose Value"
                             }
                         ),
                         units: state.units,
                         type: .boolean,
                         label: "Smooth Glucose Value",
-                        miniHint: "Smooth CGM readings using Savitzky–Golay filtering.",
-                        verboseHint: "Smooth Glucose Value… bla bla bla"
+                        miniHint: "Smooth CGM readings using Savitzky-Golay filtering.",
+                        verboseHint:
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+                            Text(
+                                "This filter looks at small groups of nearby readings and fits them to a simple mathematical curve. This process doesn't change the overall pattern of your glucose data but helps smooth out the \"noise\" or irregular fluctuations that could lead to false highs or lows."
+                            )
+                            Text(
+                                "It's designed to keep the important trends in your data while minimizing those small, misleading variations, giving you and Trio a clearer sense of where your blood sugar is really headed. This type of filtering is useful in Trio, as it can help prevent over-corrections based on inaccurate glucose readings. This can help reduce the impact of sudden spikes or dips that might not reflect your true blood glucose levels."
+                            )
+                            Text(
+                                "Note: If enabled, the smoothed values you see in Trio may differ from what is shown in your CGM app."
+                            )
+                        }
                     )
                 }
                 .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
@@ -205,7 +226,7 @@ extension CGM {
                         hintDetent: $hintDetent,
                         shouldDisplayHint: $shouldDisplayHint,
                         hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? "",
+                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                         sheetTitle: "Help"
                     )
                 }

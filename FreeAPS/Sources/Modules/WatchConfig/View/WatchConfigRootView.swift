@@ -10,7 +10,7 @@ extension WatchConfig {
         @Environment(AppState.self) var appState
 
         var body: some View {
-            Form {
+            List {
                 Section(
                     header: Text("Smartwatch Configuration"),
                     content: {

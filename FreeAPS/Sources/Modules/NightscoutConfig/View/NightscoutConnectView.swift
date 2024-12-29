@@ -15,7 +15,7 @@ struct NightscoutConnectView: View {
     }
 
     var body: some View {
-        Form {
+        List {
             Section(
                 header: Text("Connect to Nightscout"),
                 content: {
@@ -90,6 +90,7 @@ struct NightscoutConnectView: View {
 //                }
 //            } header: { Text("Local glucose source") }.listRowBackground(Color.chart)
         }
+        .listSectionSpacing(sectionSpacing)
         .navigationTitle("Connect")
         .navigationBarTitleDisplayMode(.automatic)
         .scrollContentBackground(.hidden)
