@@ -2,19 +2,18 @@ import SwiftUI
 
 extension UserInterfaceSettings {
     final class StateModel: BaseStateModel<Provider> {
-        @Published var overrideHbA1cUnit = false
         @Published var low: Decimal = 70
         @Published var high: Decimal = 180
-        @Published var hours: Decimal = 6
         @Published var xGridLines = false
         @Published var yGridLines: Bool = false
-        @Published var oneDimensionalGraph = false
         @Published var rulerMarks: Bool = true
         @Published var forecastDisplayType: ForecastDisplayType = .cone
         @Published var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
         @Published var showCarbsRequiredBadge: Bool = true
         @Published var carbsRequiredThreshold: Decimal = 0
         @Published var glucoseColorScheme: GlucoseColorScheme = .staticColor
+        @Published var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
+        @Published var timeInRangeChartStyle: TimeInRangeChartStyle = .vertical
 
         var units: GlucoseUnits = .mgdL
 
@@ -22,11 +21,9 @@ extension UserInterfaceSettings {
             let units = settingsManager.settings.units
             self.units = units
 
-            subscribeSetting(\.overrideHbA1cUnit, on: $overrideHbA1cUnit) { overrideHbA1cUnit = $0 }
             subscribeSetting(\.xGridLines, on: $xGridLines) { xGridLines = $0 }
             subscribeSetting(\.yGridLines, on: $yGridLines) { yGridLines = $0 }
             subscribeSetting(\.rulerMarks, on: $rulerMarks) { rulerMarks = $0 }
-            subscribeSetting(\.oneDimensionalGraph, on: $oneDimensionalGraph) { oneDimensionalGraph = $0 }
 
             subscribeSetting(\.forecastDisplayType, on: $forecastDisplayType) { forecastDisplayType = $0 }
 
@@ -44,6 +41,10 @@ extension UserInterfaceSettings {
             ) { carbsRequiredThreshold = $0 }
 
             subscribeSetting(\.glucoseColorScheme, on: $glucoseColorScheme) { glucoseColorScheme = $0 }
+
+            subscribeSetting(\.hbA1cDisplayUnit, on: $hbA1cDisplayUnit) { hbA1cDisplayUnit = $0 }
+
+            subscribeSetting(\.timeInRangeChartStyle, on: $timeInRangeChartStyle) { timeInRangeChartStyle = $0 }
         }
     }
 }

@@ -48,7 +48,7 @@ struct Preferences: JSON, Equatable {
     var enableDynamicCR: Bool = false
     var useNewFormula: Bool = false
     var useWeightedAverage: Bool = false
-    var weightPercentage: Decimal = 0.65
+    var weightPercentage: Decimal = 0.35
     var tddAdjBasal: Bool = false
     var enableSMB_high_bg: Bool = false
     var enableSMB_high_bg_target: Decimal = 110

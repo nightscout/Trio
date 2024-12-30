@@ -10,7 +10,7 @@ struct ReviewInsulinActionView: BaseView {
 
     @State private var shouldDisplayHint: Bool = false
     @State private var hintDetent = PresentationDetent.large
-    @State private var selectedVerboseHint: String?
+    @State private var selectedVerboseHint: AnyView?
     @State private var hintLabel: String?
     @State private var decimalPlaceholder: Decimal = 0.0
     @State private var booleanPlaceholder: Bool = false
@@ -27,15 +27,22 @@ struct ReviewInsulinActionView: BaseView {
                 selectedVerboseHint: Binding(
                     get: { selectedVerboseHint },
                     set: {
-                        selectedVerboseHint = $0
+                        selectedVerboseHint = $0.map { AnyView($0) }
                         hintLabel = "Duration of Insulin Action"
                     }
                 ),
                 units: state.units,
                 type: .decimal("dia"),
                 label: "Duration of Insulin Action",
-                miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                verboseHint: "Duration of Insulin Action… bla bla bla",
+                miniHint: "Number of hours insulin is active in your body.",
+                verboseHint:
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Default: 10 hours").bold()
+                    Text("Number of hours insulin will contribute to IOB after dosing.")
+                    Text(
+                        "Tip: It is better to use a Custom Peak Time than to adjust Duration of Insulin Action (DIA)."
+                    )
+                },
                 headerText: "Review imported DIA"
             )
         }
@@ -44,7 +51,7 @@ struct ReviewInsulinActionView: BaseView {
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
-                hintText: selectedVerboseHint ?? "",
+                hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                 sheetTitle: "Help"
             )
         }

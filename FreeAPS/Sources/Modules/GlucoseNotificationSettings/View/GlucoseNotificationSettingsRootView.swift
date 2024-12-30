@@ -10,7 +10,7 @@ extension GlucoseNotificationSettings {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -39,7 +39,7 @@ extension GlucoseNotificationSettings {
         @Environment(AppState.self) var appState
 
         var body: some View {
-            Form {
+            List {
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
                     booleanValue: $state.notificationsPump,
@@ -47,15 +47,23 @@ extension GlucoseNotificationSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Always Notify Pump"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Always Notify Pump",
-                    miniHint: "Always Notify Pump Warnings",
-                    verboseHint: "With iOS Trio Notifications enabled, you can let Trio display most Pump Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue. Set iOS Notifications Banner Style to Persistent to display banners in the app until dismissed.\n\nIf iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.\n\nAn example of a Pump Warning is 'Pod Expiration Reminder'",
+                    miniHint: "Always Notify Pump Warnings.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: ON").bold()
+                        Text(
+                            "With iOS Trio Notifications enabled, you can let Trio display most Pump Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue. Set iOS Notifications Banner Style to Persistent to display banners in the app until dismissed."
+                        )
+                        Text("If iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.")
+                        Text("An example of a Pump Warning is 'Pod Expiration Reminder'")
+                    },
                     headerText: "Trio Information Notifications"
                 )
                 SettingInputSection(
@@ -65,15 +73,23 @@ extension GlucoseNotificationSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Always Notify CGM"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Always Notify CGM",
-                    miniHint: "Always Notify CGM Warnings",
-                    verboseHint: "With iOS Trio Notifications enabled, you can let Trio display most CGM Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue. Set iOS Notifications Banner Style to Persistent to display banners in the app until dismissed.\n\nIf iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.\n\nAn example of a CGM Warning is 'Unable to open the app'"
+                    miniHint: "Always Notify CGM Warnings.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: ON").bold()
+                        Text(
+                            "With iOS Trio Notifications enabled, you can let Trio display most CGM Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue. Set iOS Notifications Banner Style to Persistent to display banners in the app until dismissed."
+                        )
+                        Text("If iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.")
+                        Text("An example of a CGM Warning is 'Unable to open the app'")
+                    }
                 )
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
@@ -82,15 +98,23 @@ extension GlucoseNotificationSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Always Notify Carb"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Always Notify Carb",
-                    miniHint: "Always Notify Carb Warnings",
-                    verboseHint: "With iOS Trio Notifications enabled, you can let Trio display most Carb Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue. Set iOS Notifications Banner Style to Persistent to display banners in the app until dismissed.\n\nIf iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.\n\nAn example of a Carb Warning is 'Carbs required: 30 g'"
+                    miniHint: "Always Notify Carb Warnings.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: ON").bold()
+                        Text(
+                            "With iOS Trio Notifications enabled, you can let Trio display most Carb Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue. Set iOS Notifications Banner Style to Persistent to display banners in the app until dismissed."
+                        )
+                        Text("If iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.")
+                        Text("An example of a Carb Warning is 'Carbs required: 30 g'")
+                    }
                 )
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
@@ -99,15 +123,25 @@ extension GlucoseNotificationSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Always Notify Algorithm"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Always Notify Algorithm",
-                    miniHint: "Always Notify Algorithm Warnings",
-                    verboseHint: "With iOS Trio Notifications enabled, you can let Trio display most Algorithm Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue. Set iOS Notifications Banner Style to Persistent to display banners in the app until dismissed.\n\nIf iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.\n\nAn example of an Algorithm Warning is 'Error: Invalid glucose: Not enough glucose data'"
+                    miniHint: "Always Notify Algorithm Warnings.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: ON").bold()
+                        Text(
+                            "With iOS Trio Notifications enabled, you can let Trio display most Algorithm Notifications in iOS Notification Center as a Banner, List and on the Lock Screen. It allows you to refer to Trio Information at a glance and troubleshoot any informational issue. Set iOS Notifications Banner Style to Persistent to display banners in the app until dismissed."
+                        )
+                        Text("If iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.")
+                        Text(
+                            "An example of an Algorithm Warning is 'Error: Invalid glucose: Not enough glucose data'"
+                        )
+                    }
                 )
 
                 SettingInputSection(
@@ -117,15 +151,18 @@ extension GlucoseNotificationSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Show Glucose App Badge"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Show Glucose App Badge",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+                    miniHint: "Show your current glucose on Trio app icon.",
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text("This will add your current glucose on the top right of your Trio icon as a red notification badge.")
+                    },
                     headerText: "Various Glucose Notifications"
                 )
 
@@ -136,15 +173,18 @@ extension GlucoseNotificationSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
-                            hintLabel = "e"
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = "Always Notify Glucose"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Always Notify Glucose",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                    miniHint: "Trigger a notification every time your glucose is updated.",
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text("A notification will be triggered every time your glucose is updated in Trio.")
+                    }
                 )
 
                 SettingInputSection(
@@ -154,15 +194,18 @@ extension GlucoseNotificationSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Play Alarm Sound"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Play Alarm Sound",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                    miniHint: "Alarm with every Trio notification.",
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text("This will cause a sound to be triggered by every Trio notification.")
+                    }
                 )
 
                 SettingInputSection(
@@ -172,25 +215,29 @@ extension GlucoseNotificationSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Add Glucose Source to Alarm"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Add Glucose Source to Alarm",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+                    miniHint: "Source of the glucose reading will be added to the notification.",
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text("The source of the glucose reading will be added to the notification.")
+                    }
                 )
 
                 self.lowAndHighGlucoseAlertSection
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }
@@ -276,20 +323,30 @@ extension GlucoseNotificationSettings {
                         .frame(maxWidth: .infinity)
                     }
 
-                    HStack(alignment: .top) {
+                    HStack(alignment: .center) {
                         Text(
-                            "Set the lower and upper limit for glucose alarms. See hint for more details."
+                            "Sets the lower and upper limit for glucose alarms."
                         )
                         .lineLimit(nil)
                         .font(.footnote)
                         .foregroundColor(.secondary)
-
                         Spacer()
                         Button(
                             action: {
                                 hintLabel = "Low and High Glucose Alarm Limits"
                                 selectedVerboseHint =
-                                    "These two settings limit the range outside of which you will be notified via push notifications. If your CGM readings are below 'Low' or above 'High', you will receive an alarm via push notification."
+                                    AnyView(VStack(alignment: .leading, spacing: 10) {
+                                        Text("Low Default: 70 mg/dL").bold()
+                                        Text("High Default: 180 mg/dL").bold()
+                                        VStack(alignment: .leading, spacing: 10) {
+                                            Text(
+                                                "These two settings determine the range outside of which you will be notified via push notifications."
+                                            )
+                                            Text(
+                                                "If your CGM readings are below the Low value or above the High value, you will receive a glucose alarm."
+                                            )
+                                        }
+                                    })
                                 shouldDisplayHint.toggle()
                             },
                             label: {
