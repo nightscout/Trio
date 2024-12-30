@@ -2,4 +2,6 @@ enum AutosensSettings {
     enum Config {}
 }
 
-protocol AutosensSettingsProvider: Provider {}
+protocol AutosensSettingsProvider: Provider {
+    var autosense: Autosens { get }
+}
