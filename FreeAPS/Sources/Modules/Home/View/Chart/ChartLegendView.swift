@@ -61,7 +61,7 @@ struct ChartLegendView: View {
                             color: Color.loopGray.opacity(colorScheme == .dark ? 0.3 : 0.8),
                             iconString: "square.fill"
                         )
-                        
+
                         DefinitionRow(
                             term: "CGM Glucose Value",
                             definition: Text(
@@ -109,7 +109,7 @@ struct ChartLegendView: View {
                             definition: Text(
                                 "Indicates when an override is or was active, temporarily changing therapy settings (e.g., basal rate, insulin sensitivity, carb ratio, target glucose, or whether Trio can dose SMBs)."
                             ),
-                            color: Color.purple,
+                            color: Color.purple.opacity(0.4),
                             iconString: "button.horizontal.fill"
                         )
 
