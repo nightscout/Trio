@@ -162,9 +162,9 @@ struct EditOverrideForm: View {
                     Spacer()
                     Text("\(percentage.formatted(.number)) %")
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
-                }
-                .onTapGesture {
-                    displayPickerPercentage = toggleScrollWheel(displayPickerPercentage)
+                        .onTapGesture {
+                            displayPickerPercentage = toggleScrollWheel(displayPickerPercentage)
+                        }
                 }
 
                 if displayPickerPercentage {
@@ -304,6 +304,9 @@ struct EditOverrideForm: View {
                                 state.convertTo12HourFormat(Int(truncating: start! as NSNumber))
                         )
                         .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
+                        .onTapGesture {
+                            displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
+                        }
 
                         Spacer()
 
@@ -318,9 +321,9 @@ struct EditOverrideForm: View {
                                 state.convertTo12HourFormat(Int(truncating: end! as NSNumber))
                         )
                         .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
-                    }
-                    .onTapGesture {
-                        displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
+                        .onTapGesture {
+                            displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
+                        }
                     }
 
                     if displayPickerDisableSmbSchedule {
@@ -385,6 +388,9 @@ struct EditOverrideForm: View {
                             Spacer()
                             Text("\(smbMinutes?.formatted(.number) ?? "\(state.defaultSmbMinutes)") min")
                                 .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
+                                .onTapGesture {
+                                    displayPickerSmbMinutes = toggleScrollWheel(displayPickerSmbMinutes)
+                                }
 
                             Spacer()
 
@@ -396,9 +402,9 @@ struct EditOverrideForm: View {
                             Spacer()
                             Text("\(uamMinutes?.formatted(.number) ?? "\(state.defaultUamMinutes)") min")
                                 .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
-                        }
-                        .onTapGesture {
-                            displayPickerSmbMinutes = toggleScrollWheel(displayPickerSmbMinutes)
+                                .onTapGesture {
+                                    displayPickerSmbMinutes = toggleScrollWheel(displayPickerSmbMinutes)
+                                }
                         }
 
                         if displayPickerSmbMinutes {
@@ -454,9 +460,9 @@ struct EditOverrideForm: View {
                         Spacer()
                         Text(state.formatHrMin(Int(truncating: duration as NSNumber)))
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
-                    }
-                    .onTapGesture {
-                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                            .onTapGesture {
+                                displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                            }
                     }
 
                     if displayPickerDuration {

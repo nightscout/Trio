@@ -18,9 +18,9 @@ struct TargetPicker: View {
                 (units == .mgdL ? selection.description : selection.formattedAsMmolL) + " " + units.rawValue
             )
             .foregroundColor(!displayPickerTarget ? .primary : .accentColor)
-        }
-        .onTapGesture {
-            displayPickerTarget = toggleScrollWheel(displayPickerTarget)
+            .onTapGesture {
+                displayPickerTarget = toggleScrollWheel(displayPickerTarget)
+            }
         }
         if displayPickerTarget {
             HStack {

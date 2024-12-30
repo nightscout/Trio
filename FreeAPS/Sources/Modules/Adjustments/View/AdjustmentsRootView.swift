@@ -419,6 +419,7 @@ extension Adjustments {
                     .background(.thinMaterial)
                     .opacity(0.8)
                     .clipShape(Rectangle())
+
                 Group {
                     switch state.selectedTab {
                     case .overrides:
@@ -428,15 +429,16 @@ extension Adjustments {
                                 // Cancel ALL active Override
                                 await state.disableAllActiveOverrides(createOverrideRunEntry: true)
                             }
-                        }, label: {
+                        }) {
                             Text("Stop Override")
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .padding(10)
-                        })
-                            .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
-                            .disabled(!state.isEnabled)
-                            .background(!state.isEnabled ? Color(.systemGray4) : Color(.systemRed))
-                            .tint(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .frame(width: UIScreen.main.bounds.width * 0.9, height: 40)
+                        .background(state.isEnabled ? Color(.systemRed) : Color(.systemGray4))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .disabled(!state.isEnabled)
+                        .tint(.white)
                     case .tempTargets:
                         Button(action: {
                             Task {
@@ -446,17 +448,19 @@ extension Adjustments {
                                 // Update View
                                 state.updateLatestTempTargetConfiguration()
                             }
-                        }, label: {
+                        }) {
                             Text("Stop Temp Target")
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .padding(10)
-                        })
-                            .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
-                            .disabled(!state.isTempTargetEnabled)
-                            .background(!state.isTempTargetEnabled ? Color(.systemGray4) : Color(.systemRed))
-                            .tint(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .frame(width: UIScreen.main.bounds.width * 0.9, height: 40)
+                        .background(state.isTempTargetEnabled ? Color(.systemRed) : Color(.systemGray4))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .disabled(!state.isTempTargetEnabled)
+                        .tint(.white)
                     }
-                }.padding(5)
+                }
+                .padding(5)
             }
         }
 

@@ -221,9 +221,9 @@ struct EditTempTargetForm: View {
                         Spacer()
                         Text(state.formatHrMin(Int(duration)))
                             .foregroundColor(!displayPickerDuration ? (duration > 0 ? .primary : .secondary) : .accentColor)
-                    }
-                    .onTapGesture {
-                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                            .onTapGesture {
+                                displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                            }
                     }
 
                     if displayPickerDuration {

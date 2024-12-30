@@ -185,9 +185,9 @@ struct AddTempTargetForm: View {
                                 !displayPickerDuration ?
                                     (state.tempTargetDuration > 0 ? .primary : .secondary) : .accentColor
                             )
-                    }
-                    .onTapGesture {
-                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                            .onTapGesture {
+                                displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                            }
                     }
 
                     if displayPickerDuration {
