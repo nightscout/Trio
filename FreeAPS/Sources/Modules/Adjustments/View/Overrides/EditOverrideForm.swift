@@ -119,7 +119,9 @@ struct EditOverrideForm: View {
             .sheet(isPresented: $state.isHelpSheetPresented) {
                 NavigationStack {
                     List {
-                        Text("Lorem Ipsum Dolor Sit Amet")
+                        Text(
+                            "If a preset is running, editing that preset will also edit the current running override, but if you edit the currently running override directly, the preset will not be affected."
+                        )
                     }
                     .padding(.trailing, 10)
                     .navigationBarTitle("Help", displayMode: .inline)

@@ -57,7 +57,18 @@ struct AddOverrideForm: View {
             .sheet(isPresented: $state.isHelpSheetPresented) {
                 NavigationStack {
                     List {
-                        Text("Lorem Ipsum Dolor Sit Amet")
+                        Text(
+                            "This feature can be used to override these therepy settings for a chosen length of time:\n• Basal Rate\n  ◦ Insulin Sensitivity\n  ◦ Carb Ratio\n• Glucose Target"
+                        )
+                        Text(
+                            "You can also override your Max SMB Minutes and Max UAM SMB Minutes, as well as an option to disable SMBs."
+                        )
+                        Text(
+                            "Select \"Start Override\" to immediate start using the Override, or select \"Save as Preset\" to be able to easily start the Override at a later time."
+                        )
+                        Text(
+                            "If using Dynamic ISF (without Sigmoid), overriding your ISF will only adjust the limits of the ISF the algorithm is allowed to set.\n\nIf using Dynamic ISF (with Sigmoid), overriding your ISF will adjust the ISF used at your glucose target which extends to the ISF used at other glucose. Overriding your glucose target will change glucose level your ISF will be set to your profile ISF. Both of these can be combined in a single Override."
+                        )
                     }
                     .padding(.trailing, 10)
                     .navigationBarTitle("Help", displayMode: .inline)
