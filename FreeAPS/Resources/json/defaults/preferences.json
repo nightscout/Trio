@@ -18,6 +18,7 @@
   "skip_neutral_temps" : false,
   "unsuspend_if_no_temp" : false,
   "min_5m_carbimpact" : 8,
+  "autotune_isf_adjustmentFraction" : 1,
   "remainingCarbsFraction" : 1,
   "remainingCarbsCap" : 90,
   "enableUAM" : false,
