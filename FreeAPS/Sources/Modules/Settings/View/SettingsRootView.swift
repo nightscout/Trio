@@ -270,8 +270,6 @@ extension Settings {
 //                            //                                .navigationLink(to: .configEditor(file: OpenAPS.FreeAPS.announcements), from: self)
 //                            //                            Text("Enacted announcements")
 //                            //                                .navigationLink(to: .configEditor(file: OpenAPS.FreeAPS.announcementsEnacted), from: self)
-//                            Text("Autotune")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.autotune), from: self)
 //                        }
 //
 //                        Group {

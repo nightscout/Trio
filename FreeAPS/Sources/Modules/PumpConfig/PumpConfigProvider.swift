@@ -14,9 +14,10 @@ extension PumpConfig {
             apsManager.pumpDisplayState.eraseToAnyPublisher()
         }
 
-        func basalProfile() -> [BasalProfileEntry] {
-            storage.retrieve(OpenAPS.Settings.pumpProfile, as: Autotune.self)?.basalProfile
-                ?? [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1)]
+        func getBasalProfile() async -> [BasalProfileEntry] {
+            await storage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
+                ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
+                ?? []
         }
 
         func pumpSettings() -> PumpSettings {

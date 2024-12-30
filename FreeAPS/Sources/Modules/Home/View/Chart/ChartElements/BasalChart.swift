@@ -168,14 +168,13 @@ extension MainChartView {
 
     func findRegularBasalPoints(
         timeBegin: TimeInterval,
-        timeEnd: TimeInterval,
-        autotuned: Bool
+        timeEnd: TimeInterval
     ) async -> [BasalProfile] {
         guard timeBegin < timeEnd else { return [] }
 
         let beginDate = Date(timeIntervalSince1970: timeBegin)
         let startOfDay = Calendar.current.startOfDay(for: beginDate)
-        let profile = autotuned ? state.autotunedBasalProfile : state.basalProfile
+        let profile = state.basalProfile
         var basalPoints: [BasalProfile] = []
 
         // Iterate over the next three days, multiplying the time intervals
@@ -203,22 +202,13 @@ extension MainChartView {
         Task {
             let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
 
-            // Get Regular and Autotuned Basal parallel
-            async let getRegularBasalPoints = findRegularBasalPoints(
+            // Get Regular Basal
+            let basalPoints = await findRegularBasalPoints(
                 timeBegin: dayAgoTime,
-                timeEnd: endMarker.timeIntervalSince1970,
-                autotuned: false
+                timeEnd: endMarker.timeIntervalSince1970
             )
 
-            async let getAutotunedBasalPoints = findRegularBasalPoints(
-                timeBegin: dayAgoTime,
-                timeEnd: endMarker.timeIntervalSince1970,
-                autotuned: true
-            )
-
-            let (regularPoints, autotunedBasalPoints) = await (getRegularBasalPoints, getAutotunedBasalPoints)
-
-            var totalBasal = regularPoints + autotunedBasalPoints
+            var totalBasal = basalPoints
             totalBasal.sort {
                 $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970
             }

@@ -24,7 +24,6 @@ extension Home {
         var uploadStats = false
         var recentGlucose: BloodGlucose?
         var maxBasal: Decimal = 2
-        var autotunedBasalProfile: [BasalProfileEntry] = []
         var basalProfile: [BasalProfileEntry] = []
         var tempTargets: [TempTarget] = []
         var timerDate = Date()
@@ -166,7 +165,7 @@ extension Home {
                         self.setupPumpSettings()
                     }
                     group.addTask {
-                        self.setupBasalProfile()
+                        await self.setupBasalProfile()
                     }
                     group.addTask {
                         self.setupReservoir()
@@ -467,11 +466,10 @@ extension Home {
             }
         }
 
-        private func setupBasalProfile() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.autotunedBasalProfile = self.provider.autotunedBasalProfile()
-                self.basalProfile = self.provider.basalProfile()
+        private func setupBasalProfile() async {
+            let basalProfile = await provider.getBasalProfile()
+            await MainActor.run {
+                self.basalProfile = basalProfile
             }
         }
 
@@ -606,7 +604,9 @@ extension Home.StateModel:
     }
 
     func basalProfileDidChange(_: [BasalProfileEntry]) {
-        setupBasalProfile()
+        Task {
+            await setupBasalProfile()
+        }
     }
 
     func pumpReservoirDidChange(_: Decimal) {

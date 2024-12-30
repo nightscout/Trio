@@ -11,9 +11,5 @@ extension CarbRatioEditor {
         func saveProfile(_ profile: CarbRatios) {
             storage.save(profile, as: OpenAPS.Settings.carbRatios)
         }
-
-        var autotune: Autotune? {
-            storage.retrieve(OpenAPS.Settings.autotune, as: Autotune.self)
-        }
     }
 }

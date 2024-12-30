@@ -12,7 +12,6 @@ extension ISFEditor {
         var shouldDisplaySaving: Bool = false
         private(set) var autosensISF: Decimal?
         private(set) var autosensRatio: Decimal = 0
-        var autotune: Autotune?
         var determinationsFromPersistence: [OrefDetermination] = []
 
         let context = CoreDataStack.shared.newTaskContext()
@@ -53,8 +52,6 @@ extension ISFEditor {
             }
 
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
-
-            autotune = provider.autotune
 
             if let newISF = provider.autosense.newisf {
                 autosensISF = newISF

@@ -462,66 +462,8 @@ final class OpenAPS {
         }
     }
 
-    func autotune(categorizeUamAsBasal: Bool = false, tuneInsulinCurve: Bool = false) async -> Autotune? {
-        debug(.openAPS, "Start autotune")
-
-        // Perform asynchronous calls in parallel
-        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
-        async let carbs = fetchAndProcessCarbs()
-        async let glucose = fetchAndProcessGlucose()
-        async let getProfile = loadFileFromStorageAsync(name: Settings.profile)
-        async let getPumpProfile = loadFileFromStorageAsync(name: Settings.pumpProfile)
-        async let getPreviousAutotune = storage.retrieveAsync(Settings.autotune, as: RawJSON.self)
-
-        // Await the results of asynchronous tasks
-        let (pumpHistoryJSON, carbsAsJSON, glucoseAsJSON, profile, pumpProfile, previousAutotune) = await (
-            parsePumpHistory(await pumpHistoryObjectIDs),
-            carbs,
-            glucose,
-            getProfile,
-            getPumpProfile,
-            getPreviousAutotune
-        )
-
-        // Error need to be handled here because the function is not declared as throws
-        do {
-            // Autotune Prepare
-            let autotunePreppedGlucose = try await autotunePrepare(
-                pumphistory: pumpHistoryJSON,
-                profile: profile,
-                glucose: glucoseAsJSON,
-                pumpprofile: pumpProfile,
-                carbs: carbsAsJSON,
-                categorizeUamAsBasal: categorizeUamAsBasal,
-                tuneInsulinCurve: tuneInsulinCurve
-            )
-
-            debug(.openAPS, "AUTOTUNE PREP: \(autotunePreppedGlucose)")
-
-            // Autotune Run
-            let autotuneResult = try await autotuneRun(
-                autotunePreparedData: autotunePreppedGlucose,
-                previousAutotuneResult: previousAutotune ?? profile,
-                pumpProfile: pumpProfile
-            )
-
-            debug(.openAPS, "AUTOTUNE RESULT: \(autotuneResult)")
-
-            if let autotune = Autotune(from: autotuneResult) {
-                storage.save(autotuneResult, as: Settings.autotune)
-
-                return autotune
-            } else {
-                return nil
-            }
-        } catch {
-            debug(.openAPS, "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to prepare/run Autotune")
-            return nil
-        }
-    }
-
-    func makeProfiles(useAutotune _: Bool) async -> Autotune? {
-        debug(.openAPS, "Start makeProfiles")
+    func createInitialProfiles() async {
+        debug(.openAPS, "Start creating pump profile and user profile")
 
         // Load required settings and profiles asynchronously
         async let getPumpSettings = loadFileFromStorageAsync(name: Settings.settings)
@@ -531,10 +473,9 @@ final class OpenAPS {
         async let getCR = loadFileFromStorageAsync(name: Settings.carbRatios)
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
         async let getModel = loadFileFromStorageAsync(name: Settings.model)
-        async let getAutotune = loadFileFromStorageAsync(name: Settings.autotune)
         async let getFreeAPS = loadFileFromStorageAsync(name: FreeAPS.settings)
 
-        let (pumpSettings, bgTargets, basalProfile, isf, cr, tempTargets, model, autotune, freeaps) = await (
+        let (pumpSettings, bgTargets, basalProfile, isf, cr, tempTargets, model, freeaps) = await (
             getPumpSettings,
             getBGTargets,
             getBasalProfile,
@@ -542,7 +483,6 @@ final class OpenAPS {
             getCR,
             getTempTargets,
             getModel,
-            getAutotune,
             getFreeAPS
         )
 
@@ -588,27 +528,18 @@ final class OpenAPS {
                 carbRatio: cr,
                 tempTargets: tempTargets,
                 model: model,
-                autotune: autotune.isEmpty ? .null : autotune,
+                autotune: RawJSON.null,
                 freeaps: freeaps
             )
 
             // Save the profiles
             await storage.saveAsync(pumpProfile, as: Settings.pumpProfile)
             await storage.saveAsync(profile, as: Settings.profile)
-
-            // Return the Autotune object, if available
-            if let tunedProfile = Autotune(from: profile) {
-                return tunedProfile
-            } else {
-                return nil
-            }
         } catch {
-            // Handle errors and log failure
             debug(
                 .apsManager,
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to execute makeProfiles()"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to create pump profile and normal profile: \(error)"
             )
-            return nil
         }
     }
 
@@ -681,58 +612,6 @@ final class OpenAPS {
                     profile,
                     carbs,
                     temptargets
-                ])
-                continuation.resume(returning: result)
-            }
-        }
-    }
-
-    private func autotunePrepare(
-        pumphistory: JSON,
-        profile: JSON,
-        glucose: JSON,
-        pumpprofile: JSON,
-        carbs: JSON,
-        categorizeUamAsBasal: Bool,
-        tuneInsulinCurve: Bool
-    ) async throws -> RawJSON {
-        try await withCheckedThrowingContinuation { continuation in
-            jsWorker.inCommonContext { worker in
-                worker.evaluateBatch(scripts: [
-                    Script(name: Prepare.log),
-                    Script(name: Bundle.autotunePrep),
-                    Script(name: Prepare.autotunePrep)
-                ])
-                let result = worker.call(function: Function.generate, with: [
-                    pumphistory,
-                    profile,
-                    glucose,
-                    pumpprofile,
-                    carbs,
-                    categorizeUamAsBasal,
-                    tuneInsulinCurve
-                ])
-                continuation.resume(returning: result)
-            }
-        }
-    }
-
-    private func autotuneRun(
-        autotunePreparedData: JSON,
-        previousAutotuneResult: JSON,
-        pumpProfile: JSON
-    ) async throws -> RawJSON {
-        try await withCheckedThrowingContinuation { continuation in
-            jsWorker.inCommonContext { worker in
-                worker.evaluateBatch(scripts: [
-                    Script(name: Prepare.log),
-                    Script(name: Bundle.autotuneCore),
-                    Script(name: Prepare.autotuneCore)
-                ])
-                let result = worker.call(function: Function.generate, with: [
-                    autotunePreparedData,
-                    previousAutotuneResult,
-                    pumpProfile
                 ])
                 continuation.resume(returning: result)
             }
