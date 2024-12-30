@@ -376,7 +376,9 @@ extension Treatments {
                 state.invokeTreatmentsTask()
             } label: {
                 HStack {
-                    if state.isBolusInProgress {
+                    if state.isBolusInProgress && state
+                        .amount > 0 && !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
+                    {
                         ProgressView()
                     }
                     taskButtonLabel
@@ -393,12 +395,8 @@ extension Treatments {
         }
 
         private var taskButtonLabel: some View {
-            if state.isBolusInProgress {
-                return Text("Bolus In Progress...")
-            }
-
             if pumpBolusLimitExceeded {
-                return Text("Max Bolus of \(state.maxBolus.description) U Exceeded")
+                return Text("Max Bolus of \(state.maxBolus.description) U E== 0xceeded")
             } else if externalBolusLimitExceeded {
                 return Text("Max External Bolus of \(state.maxExternal.description) U Exceeded")
             } else if carbLimitExceeded {
@@ -413,6 +411,10 @@ extension Treatments {
             let hasCarbs = state.carbs > 0
             let hasFatOrProtein = state.fat > 0 || state.protein > 0
             let bolusString = state.externalInsulin ? "External Insulin" : "Enact Bolus"
+
+            if state.isBolusInProgress && hasInsulin && !state.externalInsulin && (!hasCarbs || !hasFatOrProtein) {
+                return Text("Bolus In Progress...")
+            }
 
             switch (hasInsulin, hasCarbs, hasFatOrProtein) {
             case (true, true, true):
@@ -459,7 +461,11 @@ extension Treatments {
         }
 
         private var disableTaskButton: Bool {
-            state.isBolusInProgress || state.addButtonPressed || limitExceeded
+            (
+                state.isBolusInProgress && state
+                    .amount > 0 && !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
+            ) || state
+                .addButtonPressed || limitExceeded
         }
     }
 
