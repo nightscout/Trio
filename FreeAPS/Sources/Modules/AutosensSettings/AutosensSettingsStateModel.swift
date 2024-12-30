@@ -39,25 +39,6 @@ extension AutosensSettings {
             setupDeterminationsArray()
         }
 
-        var isSettingUnchanged: Bool {
-            preferences.autosensMax == autosensMax &&
-                preferences.autosensMin == autosensMin &&
-                preferences.rewindResetsAutosens == rewindResetsAutosens
-        }
-
-        func saveIfChanged() {
-            if !isSettingUnchanged {
-                var newSettings = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
-
-                newSettings.autosensMax = autosensMax
-                newSettings.autosensMin = autosensMin
-                newSettings.rewindResetsAutosens = rewindResetsAutosens
-
-                newSettings.timestamp = Date()
-                storage.save(newSettings, as: OpenAPS.Settings.preferences)
-            }
-        }
-
         private func setupDeterminationsArray() {
             Task {
                 let ids = await determinationStorage.fetchLastDeterminationObjectID(
