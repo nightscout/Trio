@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct ChartLegendView: View {
+    @Environment(AppState.self) var appState
+    @Environment(\.colorScheme) var colorScheme
+
     var state: Home.StateModel
 
     @State var legendSheetDetent = PresentationDetent.large
@@ -8,32 +11,32 @@ struct ChartLegendView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
+                Text(
+                    "The main chart in Trio is made up of various elements and shapes. Find their meanings below."
+                )
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .padding(.top, 50)
+
                 List {
-                    Text(
-                        "The main chart in Trio is made up of various elements and shapes. Find their meanings below."
-                    )
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom)
-                    .listRowBackground(Color.clear)
-
-                    Text("Forecast").bold().listRowBackground(Color.clear)
-
                     VStack(alignment: .leading) {
+                        Text("Forecast").bold().padding(.bottom, 5)
                         Text(
                             "The oref algorithm determines insulin dosing based on a number of scenarios that it estimates with different types of forecasts."
                         )
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
 
                         if state.forecastDisplayType == .lines {
                             legendLinesView
                         } else {
                             legendConeOfUncertaintyView
                         }
-                    }
+                    }.listRowBackground(Color.chart)
 
-                    Text("Other Elements & Shapes").bold().listRowBackground(Color.clear).padding(.top)
+                    Spacer().listRowBackground(Color.chart)
+
+                    Text("Other Elements & Shapes").bold().listRowBackground(Color.chart)
 
                     DefinitionRow(
                         term: "CGM Glucose Value",
@@ -42,14 +45,14 @@ struct ChartLegendView: View {
                         ),
                         color: Color.green,
                         iconString: !state.settingsManager.settings.smoothGlucose ? "circle.fill" : "record.circle.fill"
-                    )
+                    ).listRowBackground(Color.chart)
 
                     DefinitionRow(
                         term: "Manual Glucose Measurement",
                         definition: Text("Manually entered blood glucose, such as a fingerstick test."),
                         color: Color.red,
                         iconString: "drop.fill"
-                    )
+                    ).listRowBackground(Color.chart)
 
                     DefinitionRow(
                         term: "Bolus",
@@ -58,7 +61,7 @@ struct ChartLegendView: View {
                         ),
                         color: Color.insulin,
                         iconString: "arrowtriangle.down.fill"
-                    )
+                    ).listRowBackground(Color.chart)
 
                     DefinitionRow(
                         term: "Carb Entry",
@@ -66,7 +69,7 @@ struct ChartLegendView: View {
                         color: Color.orange,
                         iconString: "arrowtriangle.down.fill",
                         shouldRotateIcon: true
-                    )
+                    ).listRowBackground(Color.chart)
 
                     DefinitionRow(
                         term: "Fat-Protein Carb Equivalent",
@@ -75,7 +78,7 @@ struct ChartLegendView: View {
                         ),
                         color: Color.brown,
                         iconString: "circle.fill"
-                    )
+                    ).listRowBackground(Color.chart)
 
                     DefinitionRow(
                         term: "Override",
@@ -84,7 +87,7 @@ struct ChartLegendView: View {
                         ),
                         color: Color.purple,
                         iconString: "button.horizontal.fill"
-                    )
+                    ).listRowBackground(Color.chart)
 
                     DefinitionRow(
                         term: "Temporary Target",
@@ -93,7 +96,7 @@ struct ChartLegendView: View {
                         ),
                         color: Color.green.opacity(0.4),
                         iconString: "button.horizontal.fill"
-                    )
+                    ).listRowBackground(Color.chart)
 
                     DefinitionRow(
                         term: "Past Insulin-on-Board (IOB)",
@@ -102,7 +105,7 @@ struct ChartLegendView: View {
                         ),
                         color: Color.darkerBlue.opacity(0.8),
                         iconString: "line.diagonal"
-                    )
+                    ).listRowBackground(Color.chart)
 
                     DefinitionRow(
                         term: "Past Carbs-on-Board (COB)",
@@ -111,9 +114,9 @@ struct ChartLegendView: View {
                         ),
                         color: Color.orange.opacity(0.8),
                         iconString: "line.diagonal"
-                    )
+                    ).listRowBackground(Color.chart)
                 }
-                .navigationBarTitle("Legend", displayMode: .inline)
+                .navigationBarTitle("Chart Legend", displayMode: .inline)
                 .padding(.trailing, 10)
                 .padding(.bottom, 15)
 
@@ -127,7 +130,10 @@ struct ChartLegendView: View {
                 .padding(.top)
             }
             .padding([.horizontal, .bottom])
+            .listSectionSpacing(10)
             .ignoresSafeArea(edges: .top)
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
             .presentationDetents(
                 [.fraction(0.9), .large],
                 selection: $legendSheetDetent
@@ -144,6 +150,7 @@ struct ChartLegendView: View {
                 ),
                 color: .insulin
             )
+
             DefinitionRow(
                 term: "ZT (Zero-Temp)",
                 definition: Text(
@@ -151,6 +158,7 @@ struct ChartLegendView: View {
                 ),
                 color: .zt
             )
+
             DefinitionRow(
                 term: "COB (Carbs on Board)",
                 definition: Text(
@@ -158,6 +166,7 @@ struct ChartLegendView: View {
                 ),
                 color: .loopYellow
             )
+
             DefinitionRow(
                 term: "UAM (Unannounced Meal)",
                 definition: Text(
@@ -169,19 +178,17 @@ struct ChartLegendView: View {
     }
 
     var legendConeOfUncertaintyView: some View {
-        Group {
-            DefinitionRow(
-                term: "Cone of Uncertainty",
-                definition: VStack(alignment: .leading, spacing: 10) {
-                    Text(
-                        "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
-                    )
-                    Text(
-                        "Note: To modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type."
-                    )
-                },
-                color: Color.blue.opacity(0.5)
-            )
-        }
+        DefinitionRow(
+            term: "Cone of Uncertainty",
+            definition: VStack(alignment: .leading, spacing: 10) {
+                Text(
+                    "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
+                )
+                Text(
+                    "Note: To modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type."
+                )
+            },
+            color: Color.blue.opacity(0.5)
+        ).listRowBackground(Color.chart)
     }
 }
