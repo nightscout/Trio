@@ -38,9 +38,34 @@ struct ChartLegendView: View {
                         Text("Other Elements & Shapes").bold().padding(.bottom, 5).textCase(.uppercase)
 
                         DefinitionRow(
+                            term: "Scheduled Basal",
+                            definition: Text(
+                                "This dotted line represents the hourly insulin rate of your scheduled basal insulin. Refer to Settings > Therapy > Basal Rates."
+                            ),
+                            color: Color.insulin,
+                            iconString: "ellipsis"
+                        )
+
+                        DefinitionRow(
+                            term: "Temporary Basal Rate (TBR)",
+                            definition: Text(
+                                "Shows current or past TBRs, which can be set by the oref algorithm or manually."
+                            ),
+                            color: Color.insulin,
+                            iconString: "square"
+                        )
+
+                        DefinitionRow(
+                            term: "Pump Suspension",
+                            definition: Text("Indicates when insulin delivery was paused, i.e. pump is suspended."),
+                            color: Color.loopGray.opacity(colorScheme == .dark ? 0.3 : 0.8),
+                            iconString: "square.fill"
+                        )
+                        
+                        DefinitionRow(
                             term: "CGM Glucose Value",
                             definition: Text(
-                                "Displays real-time glucose readings from a Continuous Glucose Monitor (CGM). Depending on your user interface settings, this may be displayed in a static (red, green, orange) or dynamic coloring scheme (full color spectrum)."
+                                "Displays real-time glucose readings from your CGM. Depending on your user interface settings, this may be displayed in a static (red, green, orange) or dynamic (full color spectrum) coloring scheme."
                             ),
                             color: Color.green,
                             iconString: !state.settingsManager.settings.smoothGlucose ? "circle.fill" : "record.circle.fill"
