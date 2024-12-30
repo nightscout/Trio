@@ -32,7 +32,7 @@ struct ChartLegendView: View {
                         } else {
                             legendConeOfUncertaintyView
                         }
-                    }.listRowBackground(Color.chart)
+                    }
 
                     VStack(alignment: .leading) {
                         Text("Other Elements & Shapes").bold().padding(.bottom, 5).textCase(.uppercase)
@@ -114,7 +114,7 @@ struct ChartLegendView: View {
                             color: Color.orange.opacity(0.8),
                             iconString: "line.diagonal"
                         )
-                    }.listRowBackground(Color.chart)
+                    }
                 }
                 .navigationBarTitle("Chart Legend", displayMode: .inline)
                 .padding(.trailing, 10)
@@ -132,8 +132,6 @@ struct ChartLegendView: View {
             .padding([.horizontal, .bottom])
             .listSectionSpacing(10)
             .ignoresSafeArea(edges: .top)
-            .scrollContentBackground(.hidden)
-            .background(appState.trioBackgroundColor(for: colorScheme))
             .presentationDetents(
                 [.fraction(0.9), .large],
                 selection: $legendSheetDetent
@@ -189,6 +187,6 @@ struct ChartLegendView: View {
                 )
             },
             color: Color.blue.opacity(0.5)
-        ).listRowBackground(Color.chart)
+        )
     }
 }
