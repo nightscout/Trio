@@ -38,10 +38,11 @@ struct ChartLegendView: View {
                         Text("Other Elements & Shapes").bold().padding(.bottom, 5).textCase(.uppercase)
 
                         DefinitionRow(
-                            term: "Scheduled Basal",
-                            definition: Text(
-                                "This dotted line represents the hourly insulin rate of your scheduled basal insulin. Refer to Settings > Therapy > Basal Rates."
-                            ),
+                            term: "Scheduled Basal Rate",
+                            definition: VStack(alignment: .leading, spacing: 10) {
+                                Text("This dotted line represents the hourly insulin rate of your scheduled basal insulin.")
+                                Text("To review or change your scheduled basal rates, go to Settings > Therapy > Basal Rates.")
+                            },
                             color: Color.insulin,
                             iconString: "ellipsis"
                         )
@@ -64,9 +65,14 @@ struct ChartLegendView: View {
 
                         DefinitionRow(
                             term: "CGM Glucose Value",
-                            definition: Text(
-                                "Displays real-time glucose readings from your CGM. Depending on your user interface settings, this may be displayed in a static (red, green, orange) or dynamic (full color spectrum) coloring scheme."
-                            ),
+                            definition: VStack(alignment: .leading, spacing: 10) {
+                                Text(
+                                    "Displays real-time glucose readings from your CGM. Depending on your user interface settings, this may be displayed in a static (red, green, orange) or dynamic (full color spectrum) coloring scheme."
+                                )
+                                Text(
+                                    "To modify how glucose readings are displayed, go to Settings > Features > User Interface > Glucose Color Scheme."
+                                )
+                            },
                             color: Color.green,
                             iconString: !state.settingsManager.settings.smoothGlucose ? "circle.fill" : "record.circle.fill"
                         )
@@ -97,9 +103,14 @@ struct ChartLegendView: View {
 
                         DefinitionRow(
                             term: "Fat-Protein Carb Equivalent",
-                            definition: Text(
-                                "Represents carb equivalent for fat and protein, calculated using the Warsaw Method"
-                            ),
+                            definition: VStack(alignment: .leading, spacing: 10) {
+                                Text(
+                                    "Represents carb equivalent for fat and protein, calculated using the Warsaw Method."
+                                )
+                                Text(
+                                    "To enable or configure Warsaw Method application in Trio, go to Settings > Features > Meal Settings."
+                                )
+                            },
                             color: Color.brown,
                             iconString: "circle.fill"
                         )
@@ -209,7 +220,7 @@ struct ChartLegendView: View {
                     "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
                 )
                 Text(
-                    "Note: To modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type."
+                    "To modify how the forecast is displayed, go to Settings > Features > User Interface > Forecast Display Type."
                 )
             },
             color: Color.blue.opacity(0.5)
