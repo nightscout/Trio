@@ -107,7 +107,6 @@ extension AutosensSettings {
                             action: {
                                 hintLabel = "Autosens"
                                 selectedVerboseHint = AnyView(autosensVerboseHint)
-//                                    ((shouldDisplayHint.wrappedValue != nil) ? AnyView(autosensVerboseHint) : nil)
                                 shouldDisplayHint.toggle()
                             },
                             label: {
