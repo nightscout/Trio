@@ -34,11 +34,5 @@ extension ISFEditor {
         func saveProfile(_ profile: InsulinSensitivities) {
             storage.save(profile, as: OpenAPS.Settings.insulinSensitivities)
         }
-
-        var autosense: Autosens {
-            storage.retrieve(OpenAPS.Settings.autosense, as: Autosens.self)
-                ?? Autosens(from: OpenAPS.defaults(for: OpenAPS.Settings.autosense))
-                ?? Autosens(ratio: 1, newisf: nil, timestamp: nil)
-        }
     }
 }

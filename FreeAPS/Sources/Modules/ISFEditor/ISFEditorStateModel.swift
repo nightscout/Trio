@@ -10,12 +10,8 @@ extension ISFEditor {
         var items: [Item] = []
         var initialItems: [Item] = []
         var shouldDisplaySaving: Bool = false
-        private(set) var autosensISF: Decimal?
-        private(set) var autosensRatio: Decimal = 0
-        var determinationsFromPersistence: [OrefDetermination] = []
 
         let context = CoreDataStack.shared.newTaskContext()
-        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
@@ -52,13 +48,6 @@ extension ISFEditor {
             }
 
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
-
-            if let newISF = provider.autosense.newisf {
-                autosensISF = newISF
-            }
-
-            autosensRatio = provider.autosense.ratio
-            setupDeterminationsArray()
         }
 
         func add() {
@@ -114,29 +103,6 @@ extension ISFEditor {
                         self.units = self.settingsManager.settings.units
                     }
                 }
-            }
-        }
-
-        private func setupDeterminationsArray() {
-            Task {
-                let ids = await determinationStorage.fetchLastDeterminationObjectID(
-                    predicate: NSPredicate.enactedDetermination
-                )
-                await updateDeterminationsArray(with: ids)
-            }
-        }
-
-        @MainActor private func updateDeterminationsArray(with IDs: [NSManagedObjectID]) {
-            do {
-                let objects = try IDs.compactMap { id in
-                    try viewContext.existingObject(with: id) as? OrefDetermination
-                }
-                determinationsFromPersistence = objects
-
-            } catch {
-                debugPrint(
-                    "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error.localizedDescription)"
-                )
             }
         }
     }
