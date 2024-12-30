@@ -445,7 +445,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         var modifiedSuggestedDetermination = fetchedSuggestedDetermination
         if var suggestion = fetchedSuggestedDetermination {
             suggestion.timestamp = suggestion.deliverAt
-            
+
             if settingsManager.settings.units == .mmolL {
                 suggestion.reason = parseReasonGlucoseValuesToMmolL(suggestion.reason)
                 // TODO: verify that these parsings are needed for 3rd party apps, e.g., LoopFollow
@@ -1152,7 +1152,7 @@ extension BaseNightscoutManager {
      - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BGI`.
      */
 
-     //TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
+    // TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
     func parseReasonGlucoseValuesToMmolL(_ reason: String) -> String {
         let patterns = [
             "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",

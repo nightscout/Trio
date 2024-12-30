@@ -68,7 +68,6 @@ extension Home {
         var totalBolus: Decimal = 0
         var isStatusPopupPresented: Bool = false
         var isLegendPresented: Bool = false
-        var legendSheetDetent = PresentationDetent.large
         var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
         var roundedTotalBolus: String = ""
         var selectedTab: Int = 0
