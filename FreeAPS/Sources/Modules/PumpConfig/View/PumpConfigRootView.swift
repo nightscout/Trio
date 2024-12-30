@@ -68,6 +68,7 @@ extension PumpConfig {
                                                                 Text("• Medtronic")
                                                                 Text("• Omnipod Eros")
                                                                 Text("• Omnipod Dash")
+                                                                Text("• Dana (RS/-i)")
                                                                 Text("• Pump Simulator")
                                                             }
                                                             Text(
