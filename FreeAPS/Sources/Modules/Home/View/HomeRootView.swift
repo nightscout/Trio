@@ -898,94 +898,8 @@ extension Home {
                 }
             }
             .sheet(isPresented: $state.isLegendPresented) {
-                legendSheetView()
+                ChartLegendView(state: state)
             }
-        }
-
-        @ViewBuilder func legendSheetView() -> some View {
-            NavigationStack {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text(
-                        "The oref algorithm determines insulin dosing based on a number of scenarios that it estimates with different types of forecasts."
-                    )
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                    if state.forecastDisplayType == .lines {
-                        legendLinesView()
-                    } else {
-                        legendConeOfUncertaintyView()
-                    }
-
-                    Button {
-                        state.isLegendPresented.toggle()
-                    } label: {
-                        Text("Got it!")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    }
-                    .buttonStyle(.bordered)
-                    .padding(.top)
-                }
-                .padding()
-                .presentationDetents(
-                    [.fraction(0.9), .large],
-                    selection: $state.legendSheetDetent
-                )
-            }
-        }
-
-        @ViewBuilder func legendLinesView() -> some View {
-            List {
-                DefinitionRow(
-                    term: "IOB (Insulin on Board)",
-                    definition: Text(
-                        "Forecasts future glucose readings based on the amount of insulin still active in the body."
-                    ),
-                    color: .insulin
-                )
-                DefinitionRow(
-                    term: "ZT (Zero-Temp)",
-                    definition: Text(
-                        "Forecasts the worst-case future glucose reading scenario if no carbs are absorbed and insulin delivery is stopped until glucose starts rising."
-                    ),
-                    color: .zt
-                )
-                DefinitionRow(
-                    term: "COB (Carbs on Board)",
-                    definition: Text(
-                        "Forecasts future glucose reading changes by considering the amount of carbohydrates still being absorbed in the body."
-                    ),
-                    color: .loopYellow
-                )
-                DefinitionRow(
-                    term: "UAM (Unannounced Meal)",
-                    definition: Text(
-                        "Forecasts future glucose levels and insulin dosing needs for unexpected meals or other causes of glucose reading increases without prior notice."
-                    ),
-                    color: .uam
-                )
-            }
-            .padding(.trailing, 10)
-            .navigationBarTitle("Legend", displayMode: .inline)
-        }
-
-        @ViewBuilder func legendConeOfUncertaintyView() -> some View {
-            List {
-                DefinitionRow(
-                    term: "Cone of Uncertainty",
-                    definition: VStack {
-                        Text(
-                            "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
-                        )
-                        Text(
-                            "Note: To modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type."
-                        )
-                    },
-                    color: Color.blue.opacity(0.5)
-                )
-            }
-            .padding(.trailing, 10)
-            .navigationBarTitle("Legend", displayMode: .inline)
         }
 
         @ViewBuilder func tabBar() -> some View {
@@ -1058,7 +972,7 @@ extension Home {
             }
         }
 
-        //TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
+        // TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
         private func parseReasonConclusion(_ reasonConclusion: String, isMmolL _: Bool) -> String {
             let patterns = [
                 "minGuardBG\\s*-?\\d+\\.?\\d*<-?\\d+\\.?\\d*",
