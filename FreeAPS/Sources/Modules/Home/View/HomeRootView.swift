@@ -561,6 +561,8 @@ extension Home {
         }
 
         @ViewBuilder func adjustmentView(geo: GeometryProxy) -> some View {
+//            let background = colorScheme == .dark ? Material.ultraThinMaterial.opacity(0.5) : Color.black.opacity(0.2)
+
             ZStack {
                 /// rectangle as background
                 RoundedRectangle(cornerRadius: 15)
@@ -572,7 +574,7 @@ extension Home {
                                     Color.insulin.opacity(0.1)
                             ) : Color.clear // Use clear and add the Material in the background
                     )
-                    .background(.ultraThinMaterial.opacity(colorScheme == .dark ? 0.35 : 0))
+                    .background(colorScheme == .dark ? Color.chart.opacity(0.25) : Color.black.opacity(0.075))
                     .clipShape(RoundedRectangle(cornerRadius: 15))
                     .frame(height: geo.size.height * 0.08)
                     .shadow(
@@ -850,7 +852,7 @@ extension Home {
             .navigationBarHidden(true)
             .ignoresSafeArea(.keyboard)
             .sheet(isPresented: $state.isLoopStatusPresented) {
-                LoopStatusSheetView(state: state)
+                LoopStatusView(state: state)
             }
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
                 Button("Medtronic") { state.addPump(.minimed) }

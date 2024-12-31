@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct LoopStatusSheetView: View {
+struct LoopStatusView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(AppState.self) var appState
 
@@ -12,21 +12,19 @@ struct LoopStatusSheetView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Spacer()
+//                HStack {
+                Text("Current Loop Status").bold().padding(.top, 20)
 
-                    Text(statusTitle)
-                        .font(.headline)
-                        .foregroundColor(statusBadgeTextColor)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(statusBadgeColor)
-                        .clipShape(Capsule())
+                Text(statusTitle)
+                    .font(.headline)
+                    .foregroundColor(statusBadgeTextColor)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(statusBadgeColor)
+                    .clipShape(Capsule())
 
-                    Spacer()
-                }
-                .padding(.top, 35)
-                .padding(.bottom)
+//                    Spacer()
+//                }
 
                 if let errorMessage = state.errorMessage, let date = state.errorDate {
                     Group {
@@ -41,7 +39,7 @@ struct LoopStatusSheetView: View {
                             .padding(.top, 8)
                         Text("SMBs and High Temps Disabled.").font(.caption).padding(.bottom, 4)
                     } else {
-                        Text("Latest Raw Algorithm Output").bold()
+                        Text("Latest Raw Algorithm Output").bold().padding(.top)
 
                         Text(
                             "Trio is currently using these metrics and values as determined by the oref algorithm:"
@@ -56,9 +54,7 @@ struct LoopStatusSheetView: View {
                         )
                         .animation(.none, value: false)
 
-                        Divider().padding(.vertical)
-
-                        Text("Current Algorithm Reasoning:").bold()
+                        Text("Current Algorithm Reasoning").bold().padding(.top)
 
                         Text(
                             self
@@ -91,7 +87,6 @@ struct LoopStatusSheetView: View {
             )
             .ignoresSafeArea(edges: .top)
             .background(appState.trioBackgroundColor(for: colorScheme))
-            .navigationBarTitle("Current Loop Status", displayMode: .inline)
             .onAppear {
                 setStatusTitle()
             }
