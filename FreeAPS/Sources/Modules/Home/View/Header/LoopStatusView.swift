@@ -6,11 +6,11 @@ struct LoopStatusView: View {
 
     var state: Home.StateModel
 
-    @State var sheetDetent = PresentationDetent.medium
+    @State var sheetDetent = PresentationDetent.fraction(0.8)
     @State private var statusTitle: String = ""
     // Help Sheet
     @State var isHelpSheetPresented: Bool = false
-    @State var helpSheetDetent = PresentationDetent.large
+    @State var helpSheetDetent = PresentationDetent.fraction(0.9)
 
     var body: some View {
         NavigationStack {
