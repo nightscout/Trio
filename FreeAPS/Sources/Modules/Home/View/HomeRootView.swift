@@ -732,7 +732,10 @@ extension Home {
 
                 }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                     .overlay(alignment: .bottom) {
-                        bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 48)
+                        // Use a geo-based offset here to position progress bar independent of device size
+                        let offset = geo.size.height * 0.0725
+                        bolusProgressBar(progress).padding(.horizontal, 18)
+                            .offset(y: offset)
                     }.clipShape(RoundedRectangle(cornerRadius: 15))
             }
         }
@@ -952,7 +955,7 @@ extension Home {
                             .font(.system(size: 40))
                             .foregroundStyle(Color.tabBar)
                             .padding(.bottom, 1)
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, 22.5)
                     }
                 )
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)

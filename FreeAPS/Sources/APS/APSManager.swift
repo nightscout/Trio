@@ -26,7 +26,6 @@ protocol APSManager {
     func roundBolus(amount: Decimal) -> Decimal
     var lastError: CurrentValueSubject<Error?, Never> { get }
     func cancelBolus() async
-    func enactAnnouncement(_ announcement: Announcement)
 }
 
 enum APSError: LocalizedError {
@@ -62,7 +61,6 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var alertHistoryStorage: AlertHistoryStorage!
     @Injected() private var tempTargetsStorage: TempTargetsStorage!
     @Injected() private var carbsStorage: CarbsStorage!
-    @Injected() private var announcementsStorage: AnnouncementsStorage!
     @Injected() private var determinationStorage: DeterminationStorage!
     @Injected() private var deviceDataManager: DeviceDataManager!
     @Injected() private var nightscout: NightscoutManager!
@@ -517,101 +515,6 @@ final class BaseAPSManager: APSManager, Injectable {
         } catch {
             debug(.apsManager, "Temp Basal failed with error: \(error.localizedDescription)")
             processError(APSError.pumpError(error))
-        }
-    }
-
-    func enactAnnouncement(_ announcement: Announcement) {
-        guard let action = announcement.action else {
-            warning(.apsManager, "Invalid Announcement action")
-            return
-        }
-
-        guard let pump = pumpManager else {
-            warning(.apsManager, "Pump is not set")
-            return
-        }
-
-        debug(.apsManager, "Start enact announcement: \(action)")
-
-        switch action {
-        case let .bolus(amount):
-            if let error = verifyStatus() {
-                processError(error)
-                return
-            }
-            let roundedAmount = pump.roundToSupportedBolusVolume(units: Double(amount))
-            pump.enactBolus(units: roundedAmount, activationType: .manualRecommendationAccepted) { error in
-                if let error = error {
-                    // warning(.apsManager, "Announcement Bolus failed with error: \(error.localizedDescription)")
-                    switch error {
-                    case .uncertainDelivery:
-                        // Do not generate notification on uncertain delivery error
-                        break
-                    default:
-                        // Do not generate notifications for automatic boluses that fail.
-                        warning(.apsManager, "Announcement Bolus failed with error: \(error.localizedDescription)")
-                    }
-
-                } else {
-                    debug(.apsManager, "Announcement Bolus succeeded")
-                    self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                    self.bolusProgress.send(0)
-                }
-            }
-        case let .pump(pumpAction):
-            switch pumpAction {
-            case .suspend:
-                if let error = verifyStatus() {
-                    processError(error)
-                    return
-                }
-                pump.suspendDelivery { error in
-                    if let error = error {
-                        debug(.apsManager, "Pump not suspended by Announcement: \(error.localizedDescription)")
-                    } else {
-                        debug(.apsManager, "Pump suspended by Announcement")
-                        self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                    }
-                }
-            case .resume:
-                guard pump.status.pumpStatus.suspended else {
-                    return
-                }
-                pump.resumeDelivery { error in
-                    if let error = error {
-                        warning(.apsManager, "Pump not resumed by Announcement: \(error.localizedDescription)")
-                    } else {
-                        debug(.apsManager, "Pump resumed by Announcement")
-                        self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                    }
-                }
-            }
-        case let .looping(closedLoop):
-            settings.closedLoop = closedLoop
-            debug(.apsManager, "Closed loop \(closedLoop) by Announcement")
-            announcementsStorage.storeAnnouncements([announcement], enacted: true)
-        case let .tempbasal(rate, duration):
-            if let error = verifyStatus() {
-                processError(error)
-                return
-            }
-            // unable to do temp basal during manual temp basal 😁
-            if isManualTempBasal {
-                processError(APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp"))
-                return
-            }
-            guard !settings.closedLoop else {
-                return
-            }
-            let roundedRate = pump.roundToSupportedBasalRate(unitsPerHour: Double(rate))
-            pump.enactTempBasal(unitsPerHour: roundedRate, for: TimeInterval(duration) * 60) { error in
-                if let error = error {
-                    warning(.apsManager, "Announcement TempBasal failed with error: \(error.localizedDescription)")
-                } else {
-                    debug(.apsManager, "Announcement TempBasal succeeded")
-                    self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                }
-            }
         }
     }
 

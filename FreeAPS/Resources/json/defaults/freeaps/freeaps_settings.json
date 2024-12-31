@@ -1,7 +1,6 @@
 {
   "units" : "mg/dL",
   "closedLoop" : false,
-  "allowAnnouncements" : false,
   "isUploadEnabled" : false,
   "isDownloadEnabled" : false,
   "useLocalGlucoseSource" : false,

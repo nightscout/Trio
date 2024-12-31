@@ -126,6 +126,9 @@ extension Treatments {
 
         typealias PumpEvent = PumpEventStored.EventType
 
+        var isBolusInProgress: Bool = false
+        private var bolusProgressCancellable: AnyCancellable?
+
         func unsubscribe() {
             subscriptions.forEach { $0.cancel() }
             subscriptions.removeAll()
@@ -145,6 +148,7 @@ extension Treatments {
             registerHandlers()
             registerSubscribers()
             setupBolusStateConcurrently()
+            subscribeToBolusProgress()
         }
 
         deinit {
@@ -154,6 +158,8 @@ extension Treatments {
 
             // Cancel Combine subscriptions
             unsubscribe()
+
+            bolusProgressCancellable?.cancel()
 
             debug(.bolusState, "Bolus.StateModel deinitialized")
         }
@@ -189,6 +195,24 @@ extension Treatments {
                     }
                 }
             }
+        }
+
+        /// Observes changes to the `bolusProgress` published by the `apsManager` to update the `isBolusInProgress` property in real time.
+        ///
+        /// - Important:
+        ///   - `apsManager.bolusProgress` is a `CurrentValueSubject<Decimal?, Never>`.
+        ///   - When a bolus starts, this subject emits `0` (or a fraction like `0.1, 0.5, etc.`).
+        ///   - When the bolus finishes, the subject is typically set to `nil`.
+        ///   - This treats ANY non-nil value as “bolus in progress.”
+        ///
+        private func subscribeToBolusProgress() {
+            bolusProgressCancellable = apsManager.bolusProgress
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] progressValue in
+                    guard let self = self else { return }
+                    // If progressValue is non-nil, a bolus is in progress.
+                    self.isBolusInProgress = (progressValue != nil)
+                }
         }
 
         // MARK: - Basal

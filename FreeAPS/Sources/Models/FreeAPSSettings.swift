@@ -18,7 +18,6 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
 struct FreeAPSSettings: JSON, Equatable {
     var units: GlucoseUnits = .mgdL
     var closedLoop: Bool = false
-    var allowAnnouncements: Bool = false
     var isUploadEnabled: Bool = false
     var isDownloadEnabled: Bool = false
     var useLocalGlucoseSource: Bool = false
@@ -90,10 +89,6 @@ extension FreeAPSSettings: Decodable {
 
         if let closedLoop = try? container.decode(Bool.self, forKey: .closedLoop) {
             settings.closedLoop = closedLoop
-        }
-
-        if let allowAnnouncements = try? container.decode(Bool.self, forKey: .allowAnnouncements) {
-            settings.allowAnnouncements = allowAnnouncements
         }
 
         if let isUploadEnabled = try? container.decode(Bool.self, forKey: .isUploadEnabled) {
