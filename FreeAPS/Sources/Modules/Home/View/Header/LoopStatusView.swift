@@ -115,7 +115,7 @@ struct LoopStatusView: View {
                     .navigationBarTitle("Help", displayMode: .inline)
 
                     Button { isHelpSheetPresented.toggle() }
-                    label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
+                    label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 44, alignment: .center) }
                         .buttonStyle(.bordered)
                         .padding(.top)
                 }

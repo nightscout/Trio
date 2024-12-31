@@ -7,6 +7,8 @@ struct TagCloudView: View {
     var tags: [String]
     var shouldParseToMmolL: Bool
 
+    @Environment(\.colorScheme) var colorScheme
+
     @State private var totalHeight = CGFloat.zero // << variant for ScrollView/List
 //    = CGFloat.infinity // << variant for VStack
 
@@ -27,7 +29,7 @@ struct TagCloudView: View {
         return ZStack(alignment: .topLeading) {
             ForEach(self.tags, id: \.self) { tag in
                 self.drawTag(for: tag, isMmolL: shouldParseToMmolL)
-                    .padding([.horizontal, .vertical], 2)
+                    .padding([.horizontal, .vertical], 3)
                     .alignmentGuide(.leading, computeValue: { dimensions in
                         if abs(width - dimensions.width) > geometry.size.width {
                             width = 0
@@ -88,9 +90,13 @@ struct TagCloudView: View {
                 .padding(.vertical, 5)
                 .font(.subheadline)
                 .fontWeight(.semibold)
-                .background(colorOfTag.opacity(0.8))
-                .foregroundColor(textTag.contains("Smoothing: On") ? Color.black : Color.white)
+                .background(colorOfTag.opacity(colorScheme == .dark ? 0.15 : 0.25))
+                .foregroundColor(colorOfTag == Color.white ? Color.black : colorOfTag)
                 .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .stroke(colorOfTag.opacity(0.4), lineWidth: 2)
+                )
         }
     }
 
