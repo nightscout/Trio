@@ -1193,12 +1193,6 @@ Enact a temp Basal or a temp target */
 /* Debug option view Enacted */
 "Enacted" = "Đã kích hoạt";
 
-/* Debug option view Announcements (from NS) */
-"Announcements" = "Các thông báo";
-
-/* Debug option view Enacted announcements announcements (from NS) */
-"Enacted announcements" = "Thông báo đã kích hoạt";
-
 /* Debug option view Autotune */
 "Autotune" = "Autotune";
 

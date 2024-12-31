@@ -20,7 +20,6 @@ extension Home {
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         var manualGlucose: [BloodGlucose] = []
-        var announcement: [Announcement] = []
         var uploadStats = false
         var recentGlucose: BloodGlucose?
         var maxBasal: Decimal = 2

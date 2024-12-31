@@ -9,7 +9,6 @@ protocol NightscoutManager: GlucoseSource {
     func fetchGlucose(since date: Date) async -> [BloodGlucose]
     func fetchCarbs() async -> [CarbsEntry]
     func fetchTempTargets() async -> [TempTarget]
-    func fetchAnnouncements() -> AnyPublisher<[Announcement], Never>
     func deleteCarbs(withID id: String) async
     func deleteInsulin(withID id: String) async
     func deleteManualGlucose(withID id: String) async
@@ -35,7 +34,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() private var storage: FileStorage!
-    @Injected() private var announcementsStorage: AnnouncementsStorage!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var reachabilityManager: ReachabilityManager!
@@ -319,22 +317,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    func fetchAnnouncements() -> AnyPublisher<[Announcement], Never> {
-        guard let nightscout = nightscoutAPI, isNetworkReachable, isDownloadEnabled else {
-            return Just([]).eraseToAnyPublisher()
-        }
-
-        let since = announcementsStorage.syncDate()
-        return nightscout.fetchAnnouncement(sinceDate: since)
-            .replaceError(with: [])
-            .eraseToAnyPublisher()
-    }
-
     func deleteCarbs(withID id: String) async {
         guard let nightscout = nightscoutAPI, isUploadEnabled else { return }
-
-        // TODO: - healthkit rewrite, deletion of FPUs
-//        healthkitManager.deleteCarbs(syncID: arg1, fpuID: arg2)
 
         do {
             try await nightscout.deleteCarbs(withId: id)
