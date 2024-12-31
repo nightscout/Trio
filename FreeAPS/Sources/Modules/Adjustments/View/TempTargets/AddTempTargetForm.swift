@@ -66,9 +66,20 @@ struct AddTempTargetForm: View {
             .sheet(isPresented: $state.isHelpSheetPresented) {
                 NavigationStack {
                     List {
-                        Text(
-                            "A Temporary Target replaces the current Target Glucose specified in Therapy settings.\n\nDepending on the Algorithm > Target Behavior settings these temporary glucose targets can also raise Insulin Sensitivity for high targets or lower sensitivity for low targets.\n\nFurthermore you could adjust that sensitivity change independently from the Half Basal Exercise Target specified in Algorithm > Target Behavior settings by deliberatly setting a customized Insulin Percentage for a Temp Target.\n\nA pre-condition to have Temp Targets adjust Sensitivity is that the respective Target Behavior settings High Temptarget Raises Sensitivity or Low Temptarget lowers Sensitivity are set to enabled!"
-                        )
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(
+                                "A Temporary Target replaces the current Target Glucose specified in Therapy settings."
+                            )
+                            Text(
+                                "Depending on the Algorithm > Target Behavior settings, these temporary glucose targets can also raise Insulin Sensitivity for high targets or lower sensitivity for low targets."
+                            )
+                            Text(
+                                "Furthermore, you could adjust that sensitivity change independently from the Half Basal Exercise Target specified in Algorithm > Target Behavior settings by deliberatly setting a customized Insulin Percentage for a Temp Target."
+                            )
+                            Text(
+                                "A pre-condition to have Temp Targets adjust Sensitivity is that the respective Target Behavior settings High Temp Target Raises Sensitivity or Low Temp Target Lowers Sensitivity are set to enabled!"
+                            )
+                        }
                     }
                     .padding(.trailing, 10)
                     .navigationBarTitle("Help", displayMode: .inline)
