@@ -46,7 +46,6 @@ import Swinject
         _ = resolver.resolve(APSManager.self)!
         _ = resolver.resolve(FetchGlucoseManager.self)!
         _ = resolver.resolve(FetchTreatmentsManager.self)!
-        _ = resolver.resolve(FetchAnnouncementsManager.self)!
         _ = resolver.resolve(CalendarManager.self)!
         _ = resolver.resolve(UserNotificationsManager.self)!
         _ = resolver.resolve(WatchManager.self)!
