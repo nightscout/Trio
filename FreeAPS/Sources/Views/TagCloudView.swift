@@ -7,7 +7,8 @@ struct TagCloudView: View {
     var tags: [String]
     var shouldParseToMmolL: Bool
 
-    @State private var totalHeight = CGFloat.infinity // << variant for VStack
+    @State private var totalHeight = CGFloat.zero // << variant for ScrollView/List
+//    = CGFloat.infinity // << variant for VStack
 
     var body: some View {
         VStack {
@@ -15,10 +16,11 @@ struct TagCloudView: View {
                 self.generateContent(in: geometry)
             }
         }
-        .frame(maxHeight: totalHeight) // << variant for VStack
+        .frame(height: totalHeight) // << variant for ScrollView/List
+//        .frame(maxHeight: totalHeight) // << variant for VStack
     }
 
-    private func generateContent(in g: GeometryProxy) -> some View {
+    private func generateContent(in geometry: GeometryProxy) -> some View {
         var width = CGFloat.zero
         var height = CGFloat.zero
 
@@ -26,16 +28,16 @@ struct TagCloudView: View {
             ForEach(self.tags, id: \.self) { tag in
                 self.drawTag(for: tag, isMmolL: shouldParseToMmolL)
                     .padding([.horizontal, .vertical], 2)
-                    .alignmentGuide(.leading, computeValue: { d in
-                        if abs(width - d.width) > g.size.width {
+                    .alignmentGuide(.leading, computeValue: { dimensions in
+                        if abs(width - dimensions.width) > geometry.size.width {
                             width = 0
-                            height -= d.height
+                            height -= dimensions.height
                         }
                         let result = width
                         if tag == self.tags.last! {
                             width = 0 // last item
                         } else {
-                            width -= d.width
+                            width -= dimensions.width
                         }
                         return result
                     })

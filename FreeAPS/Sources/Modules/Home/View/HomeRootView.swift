@@ -851,6 +851,7 @@ extension Home {
             .navigationTitle("Home")
             .navigationBarHidden(true)
             .ignoresSafeArea(.keyboard)
+            .blur(radius: state.isLoopStatusPresented ? 3 : 0)
             .sheet(isPresented: $state.isLoopStatusPresented) {
                 LoopStatusView(state: state)
             }

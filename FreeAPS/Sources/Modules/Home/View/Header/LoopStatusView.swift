@@ -12,7 +12,6 @@ struct LoopStatusView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 10) {
-//                HStack {
                 Text("Current Loop Status").bold().padding(.top, 20)
 
                 Text(statusTitle)
@@ -23,9 +22,6 @@ struct LoopStatusView: View {
                     .background(statusBadgeColor)
                     .clipShape(Capsule())
 
-//                    Spacer()
-//                }
-
                 if let errorMessage = state.errorMessage, let date = state.errorDate {
                     Group {
                         Text("Error During Algorithm Run at \(Formatter.dateFormatter.string(from: date))").font(.headline)
@@ -35,11 +31,18 @@ struct LoopStatusView: View {
 
                 if let determination = state.determinationsFromPersistence.first {
                     if determination.glucose == 400 {
-                        Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed)
-                            .padding(.top, 8)
-                        Text("SMBs and High Temps Disabled.").font(.caption).padding(.bottom, 4)
+                        Text("Invalid CGM reading (HIGH).")
+                            .bold()
+                            .padding(.top)
+                            .foregroundStyle(Color.loopRed)
+
+                        Text("SMBs and Non-Zero Temp. Basal Rates are disabled.")
+                            .font(.subheadline)
+
                     } else {
-                        Text("Latest Raw Algorithm Output").bold().padding(.top)
+                        Text("Latest Raw Algorithm Output")
+                            .bold()
+                            .padding(.top)
 
                         Text(
                             "Trio is currently using these metrics and values as determined by the oref algorithm:"
@@ -52,7 +55,6 @@ struct LoopStatusView: View {
                             tags: tags,
                             shouldParseToMmolL: state.units == .mmolL
                         )
-                        .animation(.none, value: false)
 
                         Text("Current Algorithm Reasoning").bold().padding(.top)
 
@@ -82,7 +84,7 @@ struct LoopStatusView: View {
             .padding(.vertical)
             .padding(.horizontal, 20)
             .presentationDetents(
-                [.fraction(0.75), .large],
+                [.fraction(0.8), .large],
                 selection: $sheetDetent
             )
             .ignoresSafeArea(edges: .top)
