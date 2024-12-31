@@ -33,7 +33,6 @@ extension Home {
         @State var isMenuPresented = false
         @State var showTreatments = false
         @State var selectedTab: Int = 0
-        @State private var statusTitle: String = ""
         @State var showPumpSelection: Bool = false
         @State var notificationsDisabled = false
         @State var timeButtons: [TimePicker] = [
@@ -326,8 +325,7 @@ extension Home {
                     manualTempBasal: state.manualTempBasal,
                     determination: state.determinationsFromPersistence
                 ).onTapGesture {
-                    state.isStatusPopupPresented = true
-                    setStatusTitle()
+                    state.isLoopStatusPresented = true
                 }.onLongPressGesture {
                     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                     impactHeavy.impactOccurred()
@@ -851,26 +849,8 @@ extension Home {
             .navigationTitle("Home")
             .navigationBarHidden(true)
             .ignoresSafeArea(.keyboard)
-            .popup(isPresented: state.isStatusPopupPresented, alignment: .top, direction: .top) {
-                popup
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(colorScheme == .dark ? Color(
-                                "Chart"
-                            ) : Color(UIColor.darkGray))
-                    )
-                    .onTapGesture {
-                        state.isStatusPopupPresented = false
-                    }
-                    .gesture(
-                        DragGesture(minimumDistance: 10, coordinateSpace: .local)
-                            .onEnded { value in
-                                if value.translation.height < 0 {
-                                    state.isStatusPopupPresented = false
-                                }
-                            }
-                    )
+            .sheet(isPresented: $state.isLoopStatusPresented) {
+                LoopStatusSheetView(state: state)
             }
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
                 Button("Medtronic") { state.addPump(.minimed) }
@@ -1055,149 +1035,6 @@ extension Home {
                 if state.waitForSuggestion {
                     CustomProgressView(text: "Updating IOB...")
                 }
-            }
-        }
-
-        //TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
-        private func parseReasonConclusion(_ reasonConclusion: String, isMmolL _: Bool) -> String {
-            let patterns = [
-                "minGuardBG\\s*-?\\d+\\.?\\d*<-?\\d+\\.?\\d*",
-                "Eventual BG\\s*-?\\d+\\.?\\d*\\s*>=\\s*-?\\d+\\.?\\d*",
-                "\\S+\\s+-?\\d+\\.?\\d*\\s*>\\s*\\d+%\\s+of\\s+BG\\s+-?\\d+\\.?\\d*"
-            ]
-            let pattern = patterns.joined(separator: "|")
-            let regex = try! NSRegularExpression(pattern: pattern)
-
-            func convertToMmolL(_ value: String) -> String {
-                if let glucoseValue = Double(value.replacingOccurrences(of: "[^\\d.-]", with: "", options: .regularExpression)) {
-                    let mmolValue = Decimal(glucoseValue).asMmolL
-                    return mmolValue.description
-                }
-                return value
-            }
-
-            let matches = regex.matches(
-                in: reasonConclusion,
-                range: NSRange(reasonConclusion.startIndex..., in: reasonConclusion)
-            )
-            var updatedConclusion = reasonConclusion
-
-            for match in matches.reversed() {
-                guard let range = Range(match.range, in: reasonConclusion) else { continue }
-                let matchedString = String(reasonConclusion[range])
-
-                if matchedString.contains("<") {
-                    // Handle "minGuardBG x<y" pattern
-                    let parts = matchedString.components(separatedBy: "<")
-                    if parts.count == 2,
-                       let firstValue = Double(
-                           parts[0]
-                               .components(separatedBy: CharacterSet(charactersIn: "0123456789.-").inverted).joined()
-                       ),
-                       let secondValue = Double(
-                           parts[1]
-                               .components(separatedBy: CharacterSet(charactersIn: "0123456789.-").inverted).joined()
-                       )
-                    {
-                        let formattedFirstValue = convertToMmolL(String(firstValue))
-                        let formattedSecondValue = convertToMmolL(String(secondValue))
-                        let formattedString = "minGuardBG \(formattedFirstValue)<\(formattedSecondValue)"
-                        updatedConclusion.replaceSubrange(range, with: formattedString)
-                    }
-                } else if matchedString.contains(">=") {
-                    // Handle "Eventual BG x >= target" pattern
-                    let parts = matchedString.components(separatedBy: " >= ")
-                    if parts.count == 2,
-                       let firstValue = Double(
-                           parts[0]
-                               .components(separatedBy: CharacterSet(charactersIn: "0123456789.-").inverted).joined()
-                       ),
-                       let secondValue = Double(
-                           parts[1]
-                               .components(separatedBy: CharacterSet(charactersIn: "0123456789.-").inverted).joined()
-                       )
-                    {
-                        let formattedFirstValue = convertToMmolL(String(firstValue))
-                        let formattedSecondValue = convertToMmolL(String(secondValue))
-                        let formattedString = "Eventual BG \(formattedFirstValue) >= \(formattedSecondValue)"
-                        updatedConclusion.replaceSubrange(range, with: formattedString)
-                    }
-                } else if matchedString.contains(">") {
-                    // Handle "maxDelta 37 > 20% of BG 95" style
-                    let pattern = "(\\S+)\\s+(-?\\d+\\.?\\d*)\\s*>\\s*(\\d+)%\\s+of\\s+BG\\s+(-?\\d+\\.?\\d*)"
-                    let localRegex = try! NSRegularExpression(pattern: pattern)
-                    if let localMatch = localRegex.firstMatch(
-                        in: matchedString,
-                        range: NSRange(matchedString.startIndex..., in: matchedString)
-                    ) {
-                        let metric = String(matchedString[Range(localMatch.range(at: 1), in: matchedString)!])
-                        let firstValue = String(matchedString[Range(localMatch.range(at: 2), in: matchedString)!])
-                        let percentage = String(matchedString[Range(localMatch.range(at: 3), in: matchedString)!])
-                        let bgValue = String(matchedString[Range(localMatch.range(at: 4), in: matchedString)!])
-
-                        let formattedFirstValue = convertToMmolL(firstValue)
-                        let formattedBGValue = convertToMmolL(bgValue)
-
-                        let formattedString = "\(metric) \(formattedFirstValue) > \(percentage)% of BG \(formattedBGValue)"
-                        updatedConclusion.replaceSubrange(range, with: formattedString)
-                    }
-                }
-            }
-
-            return updatedConclusion.capitalizingFirstLetter()
-        }
-
-        private var popup: some View {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(statusTitle).font(.headline).foregroundColor(.white)
-                    .padding(.bottom, 4)
-                if let determination = state.determinationsFromPersistence.first {
-                    if determination.glucose == 400 {
-                        Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
-                        Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
-                    } else {
-                        let tags = !state.isSmoothingEnabled ? determination.reasonParts : determination
-                            .reasonParts + ["Smoothing: On"]
-                        TagCloudView(
-                            tags: tags,
-                            shouldParseToMmolL: state.units == .mmolL
-                        )
-                        .animation(.none, value: false)
-
-                        Text(
-                            self
-                                .parseReasonConclusion(
-                                    determination.reasonConclusion,
-                                    isMmolL: state.units == .mmolL
-                                )
-                        ).font(.caption).foregroundColor(.white)
-                    }
-                } else {
-                    Text("No determination found").font(.body).foregroundColor(.white)
-                }
-
-                if let errorMessage = state.errorMessage, let date = state.errorDate {
-                    Text(NSLocalizedString("Error at", comment: "") + " " + Formatter.dateFormatter.string(from: date))
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .padding(.bottom, 4)
-                        .padding(.top, 8)
-                    Text(errorMessage).font(.caption).foregroundColor(.loopRed)
-                }
-            }
-        }
-
-        private func setStatusTitle() {
-            if let determination = state.determinationsFromPersistence.first {
-                let dateFormatter = DateFormatter()
-                dateFormatter.timeStyle = .short
-                statusTitle = NSLocalizedString("Oref Determination enacted at", comment: "Headline in enacted pop up") +
-                    " " +
-                    dateFormatter
-                    .string(from: determination.deliverAt ?? Date())
-            } else {
-                statusTitle = "No Oref determination"
-                return
             }
         }
     }

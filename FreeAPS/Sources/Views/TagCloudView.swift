@@ -24,7 +24,7 @@ struct TagCloudView: View {
 
         return ZStack(alignment: .topLeading) {
             ForEach(self.tags, id: \.self) { tag in
-                self.item(for: tag, isMmolL: shouldParseToMmolL)
+                self.drawTag(for: tag, isMmolL: shouldParseToMmolL)
                     .padding([.horizontal, .vertical], 2)
                     .alignmentGuide(.leading, computeValue: { d in
                         if abs(width - d.width) > g.size.width {
@@ -50,7 +50,7 @@ struct TagCloudView: View {
         }.background(viewHeightReader($totalHeight))
     }
 
-    private func item(for textTag: String, isMmolL: Bool) -> some View {
+    private func drawTag(for textTag: String, isMmolL: Bool) -> some View {
         var colorOfTag: Color {
             switch textTag {
             case textTag where textTag.contains("SMB Delivery Ratio:"):
@@ -82,12 +82,13 @@ struct TagCloudView: View {
 
         return ZStack {
             Text(formattedTextTag)
-                .padding(.vertical, 2)
-                .padding(.horizontal, 4)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
                 .font(.subheadline)
+                .fontWeight(.semibold)
                 .background(colorOfTag.opacity(0.8))
                 .foregroundColor(textTag.contains("Smoothing: On") ? Color.black : Color.white)
-                .cornerRadius(2)
+                .clipShape(Capsule())
         }
     }
 
@@ -104,7 +105,7 @@ struct TagCloudView: View {
      - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BGI`.
      */
 
-     //TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
+    // TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
     private func formatGlucoseTags(_ tag: String, isMmolL: Bool) -> String {
         let patterns = [
             "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",
