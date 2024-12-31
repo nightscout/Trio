@@ -8,6 +8,9 @@ struct LoopStatusView: View {
 
     @State var sheetDetent = PresentationDetent.medium
     @State private var statusTitle: String = ""
+    // Help Sheet
+    @State var isHelpSheetPresented: Bool = false
+    @State var helpSheetDetent = PresentationDetent.large
 
     var body: some View {
         NavigationStack {
@@ -16,9 +19,9 @@ struct LoopStatusView: View {
 
                 Text(statusTitle)
                     .font(.headline)
-                    .foregroundColor(statusBadgeTextColor)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
+                    .foregroundColor(statusBadgeTextColor)
                     .background(statusBadgeColor)
                     .clipShape(Capsule())
 
@@ -89,8 +92,38 @@ struct LoopStatusView: View {
             )
             .ignoresSafeArea(edges: .top)
             .background(appState.trioBackgroundColor(for: colorScheme))
+            .toolbar(content: {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(
+                        action: {
+                            isHelpSheetPresented.toggle()
+                        },
+                        label: {
+                            Image(systemName: "questionmark.circle")
+                        }
+                    )
+                }
+            })
             .onAppear {
                 setStatusTitle()
+            }
+            .sheet(isPresented: $isHelpSheetPresented) {
+                NavigationStack {
+                    List {
+                        DefinitionRow(term: "Placeholder for Algo Term", definition: Text("Lorem Ipsum Dolor Sit Amet"))
+                    }
+                    .navigationBarTitle("Help", displayMode: .inline)
+
+                    Button { isHelpSheetPresented.toggle() }
+                    label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
+                        .buttonStyle(.bordered)
+                        .padding(.top)
+                }
+                .padding()
+                .presentationDetents(
+                    [.fraction(0.9), .large],
+                    selection: $helpSheetDetent
+                ).scrollContentBackground(.hidden)
             }
         }
         .scrollContentBackground(.hidden)
