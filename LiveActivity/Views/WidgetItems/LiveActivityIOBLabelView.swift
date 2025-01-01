@@ -16,7 +16,6 @@ struct LiveActivityIOBLabelView: View {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 1
-        formatter.decimalSeparator = "."
         return formatter
     }
 

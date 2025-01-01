@@ -20,7 +20,6 @@ extension Home {
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         var manualGlucose: [BloodGlucose] = []
-        var announcement: [Announcement] = []
         var uploadStats = false
         var recentGlucose: BloodGlucose?
         var maxBasal: Decimal = 2
@@ -68,7 +67,6 @@ extension Home {
         var totalBolus: Decimal = 0
         var isStatusPopupPresented: Bool = false
         var isLegendPresented: Bool = false
-        var legendSheetDetent = PresentationDetent.large
         var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
         var roundedTotalBolus: String = ""
         var selectedTab: Int = 0
