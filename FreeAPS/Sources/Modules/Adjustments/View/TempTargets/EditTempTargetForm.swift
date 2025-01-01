@@ -73,9 +73,22 @@ struct EditTempTargetForm: View {
                         Text("Cancel")
                     })
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(
+                        action: {
+                            state.isHelpSheetPresented.toggle()
+                        },
+                        label: {
+                            Image(systemName: "questionmark.circle")
+                        }
+                    )
+                }
             }
             .onAppear {
                 if halfBasalTarget != state.settingHalfBasalTarget { tempTargetSensitivityAdjustmentType = .slider }
+            }
+            .sheet(isPresented: $state.isHelpSheetPresented) {
+                TempTargetHelpView(state: state, helpSheetDetent: $state.helpSheetDetent)
             }
         }
     }
@@ -221,9 +234,9 @@ struct EditTempTargetForm: View {
                         Spacer()
                         Text(state.formatHrMin(Int(duration)))
                             .foregroundColor(!displayPickerDuration ? (duration > 0 ? .primary : .secondary) : .accentColor)
-                    }
-                    .onTapGesture {
-                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                            .onTapGesture {
+                                displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                            }
                     }
 
                     if displayPickerDuration {
