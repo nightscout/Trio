@@ -1205,7 +1205,8 @@ extension BaseNightscoutManager {
                 // Handle "Eventual BG X >= Y"
                 let parts = glucoseValueString.components(separatedBy: " >= ")
                 if parts.count == 2 {
-                    let firstValue = parts[0].replacingOccurrences(of: "Eventual BG", with: "").trimmingCharacters(in: .whitespaces)
+                    let firstValue = parts[0].replacingOccurrences(of: "Eventual BG", with: "")
+                        .trimmingCharacters(in: .whitespaces)
                     let secondValue = parts[1].trimmingCharacters(in: .whitespaces)
                     let formattedFirstValue = convertToMmolL(firstValue)
                     let formattedSecondValue = convertToMmolL(secondValue)
