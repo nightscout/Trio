@@ -419,6 +419,7 @@ extension Adjustments {
                     .background(.thinMaterial)
                     .opacity(0.8)
                     .clipShape(Rectangle())
+
                 Group {
                     switch state.selectedTab {
                     case .overrides:
@@ -430,9 +431,10 @@ extension Adjustments {
                             }
                         }, label: {
                             Text("Stop Override")
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .padding(10)
                         })
-                            .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+                            .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
                             .disabled(!state.isEnabled)
                             .background(!state.isEnabled ? Color(.systemGray4) : Color(.systemRed))
                             .tint(.white)
@@ -448,15 +450,17 @@ extension Adjustments {
                             }
                         }, label: {
                             Text("Stop Temp Target")
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .padding(10)
                         })
-                            .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+                            .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
                             .disabled(!state.isTempTargetEnabled)
                             .background(!state.isTempTargetEnabled ? Color(.systemGray4) : Color(.systemRed))
                             .tint(.white)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
-                }.padding(5)
+                }
+                .padding(5)
             }
         }
 
