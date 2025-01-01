@@ -959,10 +959,6 @@ extension Home {
                     }
                 )
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
-//                .onChange(of: selectedTab) {
-//                    print("current path is empty: \(settingsPath.isEmpty)")
-//                    settingsPath = NavigationPath()
-//                }
                 .onChange(of: selectedTab) {
                     if !settingsPath.isEmpty {
                         settingsPath = NavigationPath()
