@@ -192,33 +192,25 @@ extension Settings {
                     Section(
                         header: Text("Search Results"),
                         content: {
-                            ForEach(filteredItems) { filteredItem in
-                                VStack(alignment: .leading) {
-                                    Text(filteredItem.matchedContent).bold()
-                                    if let path = filteredItem.settingItem.path {
-                                        Text(path.map(\.stringValue).joined(separator: " > "))
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }.navigationLink(to: filteredItem.settingItem.view, from: self)
+                            if filteredItems.isNotEmpty {
+                                ForEach(filteredItems) { filteredItem in
+                                    VStack(alignment: .leading) {
+                                        Text(filteredItem.matchedContent).bold()
+                                        if let path = filteredItem.settingItem.path {
+                                            Text(path.map(\.stringValue).joined(separator: " > "))
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }.navigationLink(to: filteredItem.settingItem.view, from: self)
+                                }
+                            } else {
+                                Text("No settings matching your search query")
+                                Text(" »\(searchText)« ").bold()
+                                Text("found.")
                             }
                         }
                     ).listRowBackground(Color.chart)
                 }
-
-//                Section {
-//                    Text("Targets")
-//                        .navigationLink(to: .configEditor(file: OpenAPS.Settings.bgTargets), from: self)
-//                    Text("Sensitivities")
-//                        .navigationLink(to: .configEditor(file: OpenAPS.Settings.insulinSensitivities), from: self)
-//                    Text("Profile")
-//                        .navigationLink(to: .configEditor(file: OpenAPS.Settings.profile), from: self)
-//                    Text("Preferences")
-//                        .navigationLink(
-//                            to: .configEditor(file: OpenAPS.Settings.preferences),
-//                            from: self
-//                        )
-//                }.listRowBackground(Color.chart)
 
                 // TODO: remove this more or less entirely; add build-time flag to enable Middleware; add settings export feature
 //                Section {
