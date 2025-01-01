@@ -1139,14 +1139,15 @@ extension BaseNightscoutManager {
     // TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
     func parseReasonGlucoseValuesToMmolL(_ reason: String) -> String {
         let patterns = [
-            "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",
-            "Dev:\\s*-?\\d+\\.?\\d*",
-            "BGI:\\s*-?\\d+\\.?\\d*",
-            "Target:\\s*-?\\d+\\.?\\d*",
-            "(?:minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG)\\s+-?\\d+\\.?\\d*(?:<-?\\d+\\.?\\d*)?",
-            "minGuardBG\\s+-?\\d+\\.?\\d*<-?\\d+\\.?\\d*",
-            "Eventual BG\\s+-?\\d+\\.?\\d*\\s*>=\\s*-?\\d+\\.?\\d*",
-            "\\S+\\s+\\d+\\s*>\\s*\\d+%\\s+of\\s+BG\\s+\\d+"
+            "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*", // ISF with arrow
+            "Dev:\\s*-?\\d+\\.?\\d*", // Dev pattern
+            "BGI:\\s*-?\\d+\\.?\\d*", // BGI pattern
+            "Target:\\s*-?\\d+\\.?\\d*", // Target pattern
+            "(?:minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG)\\s+-?\\d+\\.?\\d*(?:<-?\\d+\\.?\\d*)?", // minPredBG, etc.
+            "minGuardBG\\s+-?\\d+\\.?\\d*<-?\\d+\\.?\\d*", // minGuardBG x<y
+            "Eventual BG\\s+-?\\d+\\.?\\d*\\s*>=\\s*-?\\d+\\.?\\d*", // Eventual BG x >= target
+            "Eventual BG\\s+-?\\d+\\.?\\d*\\s*<\\s*-?\\d+\\.?\\d*", // Eventual BG x < target
+            "\\S+\\s+\\d+\\s*>\\s*\\d+%\\s+of\\s+BG\\s+\\d+" // maxDelta x > y% of BG z
         ]
         let pattern = patterns.joined(separator: "|")
         let regex = try! NSRegularExpression(pattern: pattern)
@@ -1167,7 +1168,7 @@ extension BaseNightscoutManager {
             let glucoseValueString = String(reason[range])
 
             if glucoseValueString.contains("→") {
-                // -- Handle ISF: X→Y
+                // Handle ISF: X→Y
                 let values = glucoseValueString.components(separatedBy: "→")
                 let firstNumber = values[0].components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
                 let secondNumber = values[1].trimmingCharacters(in: .whitespaces)
@@ -1176,58 +1177,44 @@ extension BaseNightscoutManager {
                 let formattedString = "ISF: \(firstValue)→\(secondValue)"
                 updatedReason.replaceSubrange(range, with: formattedString)
 
-            } else if glucoseValueString.contains("<") {
-                // -- Handle minGuardBG (or minPredBG, etc.) x < y
-                let components = glucoseValueString
-                    .split(whereSeparator: { "<".contains($0) ||
-                            CharacterSet.whitespaces.contains($0.unicodeScalars.first!) })
-                    .filter { !$0.isEmpty }
+            } else if glucoseValueString.contains("Eventual BG"), glucoseValueString.contains("<") {
+                // Handle Eventual BG XX < target
+                let parts = glucoseValueString.components(separatedBy: "<")
+                if parts.count == 2 {
+                    let bgPart = parts[0].replacingOccurrences(of: "Eventual BG", with: "").trimmingCharacters(in: .whitespaces)
+                    let targetValue = parts[1].trimmingCharacters(in: .whitespaces)
+                    let formattedBGPart = convertToMmolL(bgPart)
+                    let formattedTargetValue = convertToMmolL(targetValue)
+                    let formattedString = "Eventual BG \(formattedBGPart)<\(formattedTargetValue)"
+                    updatedReason.replaceSubrange(range, with: formattedString)
+                }
 
-                if components.count >= 3 {
-                    let firstValue = convertToMmolL(String(components[1]))
-                    let secondValue = convertToMmolL(String(components[2]))
-                    let formattedString = "\(components[0]) \(firstValue)<\(secondValue)"
+            } else if glucoseValueString.contains("<") {
+                // Handle minGuardBG (or minPredBG, etc.) x < y
+                let parts = glucoseValueString.components(separatedBy: "<")
+                if parts.count == 2 {
+                    let firstValue = parts[0].trimmingCharacters(in: .whitespaces)
+                    let secondValue = parts[1].trimmingCharacters(in: .whitespaces)
+                    let formattedFirstValue = convertToMmolL(firstValue)
+                    let formattedSecondValue = convertToMmolL(secondValue)
+                    let formattedString = "minGuardBG \(formattedFirstValue)<\(formattedSecondValue)"
                     updatedReason.replaceSubrange(range, with: formattedString)
                 }
 
             } else if glucoseValueString.contains(">=") {
-                // -- Handle "Eventual BG X >= Y"
-                let components = glucoseValueString
-                    .split(whereSeparator: { " >= ".contains($0) ||
-                            CharacterSet.whitespaces.contains($0.unicodeScalars.first!) })
-                    .filter { !$0.isEmpty }
-
-                if components.count == 4 {
-                    let firstValue = convertToMmolL(String(components[2]))
-                    let secondValue = convertToMmolL(String(components[3]))
-                    let formattedString = "\(components[0]) \(components[1]) \(firstValue) >= \(secondValue)"
+                // Handle "Eventual BG X >= Y"
+                let parts = glucoseValueString.components(separatedBy: " >= ")
+                if parts.count == 2 {
+                    let firstValue = parts[0].replacingOccurrences(of: "Eventual BG", with: "").trimmingCharacters(in: .whitespaces)
+                    let secondValue = parts[1].trimmingCharacters(in: .whitespaces)
+                    let formattedFirstValue = convertToMmolL(firstValue)
+                    let formattedSecondValue = convertToMmolL(secondValue)
+                    let formattedString = "Eventual BG \(formattedFirstValue) >= \(formattedSecondValue)"
                     updatedReason.replaceSubrange(range, with: formattedString)
                 }
 
-            } else if glucoseValueString.starts(with: "Dev:") {
-                // -- Handle Dev
-                let value = glucoseValueString.components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
-                let formattedValue = convertToMmolL(value)
-                let formattedString = "Dev: \(formattedValue)"
-                updatedReason.replaceSubrange(range, with: formattedString)
-
-            } else if glucoseValueString.starts(with: "BGI:") {
-                // -- Handle BGI
-                let value = glucoseValueString.components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
-                let formattedValue = convertToMmolL(value)
-                let formattedString = "BGI: \(formattedValue)"
-                updatedReason.replaceSubrange(range, with: formattedString)
-
-            } else if glucoseValueString.starts(with: "Target:") {
-                // -- Handle Target
-                let value = glucoseValueString.components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
-                let formattedValue = convertToMmolL(value)
-                let formattedString = "Target: \(formattedValue)"
-                updatedReason.replaceSubrange(range, with: formattedString)
-
             } else if glucoseValueString.contains(">"), glucoseValueString.contains("BG") {
-                // -- Handle "maxDelta 37 > 20% of BG 95" style
-                // Run a local regex that picks out the two BG values
+                // Handle "maxDelta 37 > 20% of BG 95" style
                 let localPattern = "(\\d+) > (\\d+)% of BG (\\d+)"
                 let localRegex = try! NSRegularExpression(pattern: localPattern)
                 let localMatches = localRegex.matches(
@@ -1242,7 +1229,6 @@ extension BaseNightscoutManager {
                     let firstValue = convertToMmolL(String(glucoseValueString[range1]))
                     let thirdValue = convertToMmolL(String(glucoseValueString[range3]))
 
-                    // e.g. "37 > 20% of BG 95" → "2.1 > 20% of BG 5.3"
                     let oldSnippet =
                         "\(glucoseValueString[range1]) > \(glucoseValueString[range2])% of BG \(glucoseValueString[range3])"
                     let newSnippet = "\(firstValue) > \(glucoseValueString[range2])% of BG \(thirdValue)"
@@ -1252,7 +1238,7 @@ extension BaseNightscoutManager {
                 }
 
             } else {
-                // -- Handle everything else, e.g. "minPredBG 39" etc.
+                // Handle everything else, e.g., "minPredBG 39", "COB 29", etc.
                 let parts = glucoseValueString.components(separatedBy: .whitespaces)
                 if parts.count >= 2 {
                     let metric = parts[0]
