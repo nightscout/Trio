@@ -57,7 +57,7 @@ platform :ios do
     BUNDLE_ID = ENV["BUNDLE_ID"]
 
     update_project_team(
-      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      path: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       teamid: "#{TEAMID}"
     )
 
@@ -75,7 +75,7 @@ platform :ios do
     current_build_number = previous_build_number + 1
 
     increment_build_number(
-      xcodeproj: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      xcodeproj: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       build_number: current_build_number
     )      
     
@@ -98,7 +98,7 @@ platform :ios do
     current_build_number = previous_build_number + 1
 
     increment_build_number(
-      xcodeproj: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      xcodeproj: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       build_number: current_build_number
     )
     
@@ -107,27 +107,27 @@ platform :ios do
     ]
 
     update_code_signing_settings(
-      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      path: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       profile_name: mapping["#{BUNDLE_ID}"],
       code_sign_identity: "iPhone Distribution",
-      targets: ["FreeAPS"]
+      targets: ["Trio"]
     )
 
     update_code_signing_settings(
-      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      path: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       profile_name: mapping["#{BUNDLE_ID}.watchkitapp.watchkitextension"],
       code_sign_identity: "iPhone Distribution",
-      targets: ["FreeAPSWatch WatchKit Extension"]
+      targets: ["TrioWatch WatchKit Extension"]
     )
     
     update_code_signing_settings(
-      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      path: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       profile_name: mapping["#{BUNDLE_ID}.watchkitapp"],
       code_sign_identity: "iPhone Distribution",
-      targets: ["FreeAPSWatch"]
+      targets: ["TrioWatch"]
     )
     update_code_signing_settings(
-      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      path: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       profile_name: mapping["#{BUNDLE_ID}.LiveActivity"],
       code_sign_identity: "iPhone Distribution",
       targets: ["LiveActivityExtension"]
