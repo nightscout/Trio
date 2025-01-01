@@ -14,8 +14,8 @@ struct OverrideHelpView: View {
                         )
                         .fixedSize(horizontal: false, vertical: true)
                         Text("• Basal Rate")
-                        Text("•  Insulin Sensitivity")
-                        Text("•  Carb Ratio")
+                        Text("• Insulin Sensitivity")
+                        Text("• Carb Ratio")
                         Text("• Glucose Target")
                     }
                     Text(
