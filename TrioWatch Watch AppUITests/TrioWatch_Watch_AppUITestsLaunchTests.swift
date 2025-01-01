@@ -9,7 +9,7 @@ final class TrioWatch_Watch_AppUITestsLaunchTests: XCTestCase {
         continueAfterFailure = false
     }
 
-    @MainActor  func testLaunch() throws {
+    @MainActor func testLaunch() throws {
         let app = XCUIApplication()
         app.launch()
 
