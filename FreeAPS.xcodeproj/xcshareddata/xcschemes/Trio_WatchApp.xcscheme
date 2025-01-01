@@ -54,6 +54,16 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "BDFF797B2D25AA870016C40C"
+            BuildableName = "TrioWatch Watch App.app"
+            BlueprintName = "TrioWatch Watch App"
+            ReferencedContainer = "container:FreeAPS.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
