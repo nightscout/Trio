@@ -25,6 +25,8 @@ extension Home {
         var maxBasal: Decimal = 2
         var autotunedBasalProfile: [BasalProfileEntry] = []
         var basalProfile: [BasalProfileEntry] = []
+        var bgTargets = BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
+            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
         var tempTargets: [TempTarget] = []
         var timerDate = Date()
         var closedLoop = false
@@ -167,6 +169,9 @@ extension Home {
                         self.setupBasalProfile()
                     }
                     group.addTask {
+                        self.setupGlucoseTargets()
+                    }
+                    group.addTask {
                         self.setupReservoir()
                     }
                     group.addTask {
@@ -269,6 +274,7 @@ extension Home {
             broadcaster.register(PreferencesObserver.self, observer: self)
             broadcaster.register(PumpSettingsObserver.self, observer: self)
             broadcaster.register(BasalProfileObserver.self, observer: self)
+            broadcaster.register(BGTargetsObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
             broadcaster.register(PumpDeactivatedObserver.self, observer: self)
 
@@ -473,6 +479,13 @@ extension Home {
             }
         }
 
+        private func setupGlucoseTargets() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.bgTargets = self.provider.getBGTargets()
+            }
+        }
+
         private func setupReservoir() {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
@@ -494,7 +507,6 @@ extension Home {
             dateFormatter.dateFormat = "HH:mm"
             dateFormatter.timeZone = TimeZone.current
 
-            let bgTargets = await provider.getBGTarget()
             let entries: [(start: String, value: Decimal)] = bgTargets.targets.map { ($0.start, $0.low) }
 
             for (index, entry) in entries.enumerated() {
@@ -548,6 +560,7 @@ extension Home.StateModel:
     PreferencesObserver,
     PumpSettingsObserver,
     BasalProfileObserver,
+    BGTargetsObserver,
     PumpReservoirObserver,
     PumpTimeZoneObserver,
     PumpDeactivatedObserver
@@ -605,6 +618,10 @@ extension Home.StateModel:
 
     func basalProfileDidChange(_: [BasalProfileEntry]) {
         setupBasalProfile()
+    }
+
+    func bgTargetsDidChange(_: BGTargets) {
+        setupGlucoseTargets()
     }
 
     func pumpReservoirDidChange(_: Decimal) {

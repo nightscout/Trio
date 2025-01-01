@@ -47,8 +47,8 @@ extension Home {
                 ?? [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1)]
         }
 
-        func getBGTarget() async -> BGTargets {
-            await storage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
+        func getBGTargets() -> BGTargets {
+            storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self)
                 ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
                 ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
         }

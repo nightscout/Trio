@@ -137,6 +137,14 @@ extension MainChartView {
                     viewContext: context
                 )
 
+                GlucoseTargetsView(
+                    startMarker: startMarker,
+                    endMarker: endMarker,
+                    units: state.units,
+
+                    bgTargets: state.bgTargets
+                )
+
                 GlucoseChartView(
                     glucoseData: state.glucoseFromPersistence,
                     units: state.units,
