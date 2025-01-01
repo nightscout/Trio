@@ -38,9 +38,7 @@
 		1967DFBE29D052C200759F30 /* Icons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1967DFBD29D052C200759F30 /* Icons.swift */; };
 		1967DFC029D053AC00759F30 /* IconSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1967DFBF29D053AC00759F30 /* IconSelection.swift */; };
 		1967DFC229D053D300759F30 /* IconImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1967DFC129D053D300759F30 /* IconImage.swift */; };
-		19795118275953E50044850D /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 198377D4266BFFF6004DE65E /* Localizable.strings */; };
 		198377D2266BFFF6004DE65E /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 198377D4266BFFF6004DE65E /* Localizable.strings */; };
-		199561C1275E61A50077B976 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 199561C0275E61A50077B976 /* HealthKit.framework */; };
 		19A910302A24BF6300C8951B /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A9102F2A24BF6300C8951B /* StatsView.swift */; };
 		19A910362A24D6D700C8951B /* DateFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A910352A24D6D700C8951B /* DateFilter.swift */; };
 		19A910382A24EF3200C8951B /* ChartsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A910372A24EF3200C8951B /* ChartsView.swift */; };
@@ -51,8 +49,6 @@
 		19D466AA29AA3099004D5F33 /* MealSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19D466A929AA3099004D5F33 /* MealSettingsRootView.swift */; };
 		19D4E4EB29FC6A9F00351451 /* Charts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19D4E4EA29FC6A9F00351451 /* Charts.swift */; };
 		19DA48E829CD339B00EEA1E7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 19DA487F29CD2B8400EEA1E7 /* Assets.xcassets */; };
-		19DA48E929CD339C00EEA1E7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 19DA487F29CD2B8400EEA1E7 /* Assets.xcassets */; };
-		19DA48EA29CD339C00EEA1E7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 19DA487F29CD2B8400EEA1E7 /* Assets.xcassets */; };
 		19E1F7E829D082D0005C8D20 /* IconConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19E1F7E729D082D0005C8D20 /* IconConfigDataFlow.swift */; };
 		19E1F7EA29D082ED005C8D20 /* IconConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19E1F7E929D082ED005C8D20 /* IconConfigProvider.swift */; };
 		19E1F7EC29D082FE005C8D20 /* IconConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19E1F7EB29D082FE005C8D20 /* IconConfigStateModel.swift */; };
@@ -190,29 +186,6 @@
 		38E87401274F77E400975559 /* CoreNFC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38E873FD274F761800975559 /* CoreNFC.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		38E87403274F78C000975559 /* libswiftCoreNFC.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 38E87402274F78C000975559 /* libswiftCoreNFC.tbd */; settings = {ATTRIBUTES = (Weak, ); }; };
 		38E87408274F9AD000975559 /* UserNotificationsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E87407274F9AD000975559 /* UserNotificationsManager.swift */; };
-		38E8752527554D5700975559 /* FreeAPSWatch WatchKit Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 38E8752427554D5700975559 /* FreeAPSWatch WatchKit Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		38E8752A27554D5700975559 /* FreeAPSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8752927554D5700975559 /* FreeAPSApp.swift */; };
-		38E8752C27554D5700975559 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8752B27554D5700975559 /* MainView.swift */; };
-		38E8752E27554D5700975559 /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8752D27554D5700975559 /* NotificationController.swift */; };
-		38E8753027554D5700975559 /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8752F27554D5700975559 /* NotificationView.swift */; };
-		38E8753227554D5700975559 /* ComplicationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8753127554D5700975559 /* ComplicationController.swift */; };
-		38E8753427554D5800975559 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 38E8753327554D5800975559 /* Assets.xcassets */; };
-		38E8753727554D5900975559 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 38E8753627554D5800975559 /* Preview Assets.xcassets */; };
-		38E8753C27554D5900975559 /* FreeAPSWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 38E8751C27554D5500975559 /* FreeAPSWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		38E8754727554DF100975559 /* Color+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F37827261260DC009DB701 /* Color+Extensions.swift */; };
-		38E8754A275550BB00975559 /* CarbsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E87549275550BB00975559 /* CarbsView.swift */; };
-		38E8754C2755548F00975559 /* WatchStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8754B2755548F00975559 /* WatchStateModel.swift */; };
-		38E8754F275556FA00975559 /* WatchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8754E275556FA00975559 /* WatchManager.swift */; };
-		38E8755127555D0500975559 /* DataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8755027555D0500975559 /* DataFlow.swift */; };
-		38E8755427561E9800975559 /* DataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8755027555D0500975559 /* DataFlow.swift */; };
-		38E8755827567AE400975559 /* SwiftDate in Frameworks */ = {isa = PBXBuildFile; productRef = 38E8755727567AE400975559 /* SwiftDate */; };
-		38E8755927567CA600975559 /* Decimal+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3871F39E25ED895A0013ECB5 /* Decimal+Extensions.swift */; };
-		38E8755B27568A6800975559 /* ConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8755A27568A6700975559 /* ConfirmationView.swift */; };
-		38E8757927579D9200975559 /* Publisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3811DE5525C9D4D500A708ED /* Publisher.swift */; };
-		38E8757B2757B1C300975559 /* TempTargetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8757A2757B1C300975559 /* TempTargetsView.swift */; };
-		38E8757D2757C45D00975559 /* BolusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8757C2757C45D00975559 /* BolusView.swift */; };
-		38E8757E2758C86A00975559 /* ConvenienceExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38192E0C261BAF980094D973 /* ConvenienceExtensions.swift */; };
-		38E8758027595DC600975559 /* BolusConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E8757F27595DC500975559 /* BolusConfirmationView.swift */; };
 		38E989DD25F5021400C0CED0 /* PumpStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E989DC25F5021400C0CED0 /* PumpStatus.swift */; };
 		38E98A2325F52C9300C0CED0 /* Signpost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A1B25F52C9300C0CED0 /* Signpost.swift */; };
 		38E98A2425F52C9300C0CED0 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E98A1C25F52C9300C0CED0 /* Logger.swift */; };
@@ -373,7 +346,6 @@
 		CE48C86628CA6B48007C0598 /* OmniPodManagerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE48C86528CA6B48007C0598 /* OmniPodManagerExtensions.swift */; };
 		CE51DD1C2A01970900F163F7 /* ConnectIQ 2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51DD1B2A01970800F163F7 /* ConnectIQ 2.xcframework */; };
 		CE51DD1D2A01970900F163F7 /* ConnectIQ 2.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CE51DD1B2A01970800F163F7 /* ConnectIQ 2.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CE6B025728F350FF000C5502 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE6B025628F350FF000C5502 /* HealthKit.framework */; };
 		CE7950242997D81700FA576E /* CGMSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7950232997D81700FA576E /* CGMSettingsView.swift */; };
 		CE7950262998056D00FA576E /* CGMSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7950252998056D00FA576E /* CGMSetupView.swift */; };
 		CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA3432A064973004BE681 /* AppShortcuts.swift */; };
@@ -483,9 +455,9 @@
 		DD9ECB712CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB6E2CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift */; };
 		DD9ECB722CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB6F2CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift */; };
 		DD9ECB742CA9A0C300AA7C45 /* RemoteControlConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB732CA9A0C300AA7C45 /* RemoteControlConfig.swift */; };
+		DDA6E2502D22187500C2988C /* ChartLegendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA6E24F2D22187500C2988C /* ChartLegendView.swift */; };
 		DDA6E3202D258E0500C2988C /* OverrideHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA6E31F2D258E0500C2988C /* OverrideHelpView.swift */; };
 		DDA6E3222D25901100C2988C /* TempTargetHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA6E3212D25901100C2988C /* TempTargetHelpView.swift */; };
-		DDA6E2502D22187500C2988C /* ChartLegendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA6E24F2D22187500C2988C /* ChartLegendView.swift */; };
 		DDB37CC52D05048F00D99BF4 /* ContactImageStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */; };
 		DDB37CC72D05127500D99BF4 /* FontExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC62D05127500D99BF4 /* FontExtensions.swift */; };
 		DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */; };
@@ -567,20 +539,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		38E8752627554D5700975559 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 388E595025AD948C0019842D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 38E8752327554D5700975559;
-			remoteInfo = "FreeAPSWatch WatchKit Extension";
-		};
-		38E8753A27554D5900975559 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 388E595025AD948C0019842D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 38E8751B27554D5500975559;
-			remoteInfo = FreeAPSWatch;
-		};
 		38FCF3F225E9028E0078B0D1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 388E595025AD948C0019842D /* Project object */;
@@ -621,20 +579,8 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
 			dstSubfolderSpec = 16;
 			files = (
-				38E8753C27554D5900975559 /* FreeAPSWatch.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		38E8754027554D5900975559 /* Embed App Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				38E8752527554D5700975559 /* FreeAPSWatch WatchKit Extension.appex in Embed App Extensions */,
-			);
-			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		6B1A8D122B14D88E00E76752 /* Embed Foundation Extensions */ = {
@@ -701,7 +647,6 @@
 		1967DFBD29D052C200759F30 /* Icons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Icons.swift; sourceTree = "<group>"; };
 		1967DFBF29D053AC00759F30 /* IconSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconSelection.swift; sourceTree = "<group>"; };
 		1967DFC129D053D300759F30 /* IconImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconImage.swift; sourceTree = "<group>"; };
-		1980131D29CC9839002FF024 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		198377D3266BFFF6004DE65E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		198377D5266C0A05004DE65E /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Localizable.strings; sourceTree = "<group>"; };
 		198377D6266C0A0A004DE65E /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = ca.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -886,28 +831,6 @@
 		38E873FD274F761800975559 /* CoreNFC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreNFC.framework; path = System/Library/Frameworks/CoreNFC.framework; sourceTree = SDKROOT; };
 		38E87402274F78C000975559 /* libswiftCoreNFC.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCoreNFC.tbd; path = usr/lib/swift/libswiftCoreNFC.tbd; sourceTree = SDKROOT; };
 		38E87407274F9AD000975559 /* UserNotificationsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserNotificationsManager.swift; sourceTree = "<group>"; };
-		38E8751C27554D5500975559 /* FreeAPSWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FreeAPSWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		38E8751E27554D5700975559 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		38E8752427554D5700975559 /* FreeAPSWatch WatchKit Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "FreeAPSWatch WatchKit Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
-		38E8752927554D5700975559 /* FreeAPSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeAPSApp.swift; sourceTree = "<group>"; };
-		38E8752B27554D5700975559 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
-		38E8752D27554D5700975559 /* NotificationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationController.swift; sourceTree = "<group>"; };
-		38E8752F27554D5700975559 /* NotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationView.swift; sourceTree = "<group>"; };
-		38E8753127554D5700975559 /* ComplicationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationController.swift; sourceTree = "<group>"; };
-		38E8753327554D5800975559 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		38E8753627554D5800975559 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		38E8753827554D5900975559 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		38E8753927554D5900975559 /* PushNotificationPayload.apns */ = {isa = PBXFileReference; lastKnownFileType = text; path = PushNotificationPayload.apns; sourceTree = "<group>"; };
-		38E87549275550BB00975559 /* CarbsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbsView.swift; sourceTree = "<group>"; };
-		38E8754B2755548F00975559 /* WatchStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchStateModel.swift; sourceTree = "<group>"; };
-		38E8754E275556FA00975559 /* WatchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchManager.swift; sourceTree = "<group>"; };
-		38E8755027555D0500975559 /* DataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataFlow.swift; sourceTree = "<group>"; };
-		38E8755527564B5000975559 /* FreeAPSWatch WatchKit Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "FreeAPSWatch WatchKit Extension.entitlements"; sourceTree = "<group>"; };
-		38E8755627564B6100975559 /* FreeAPSWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FreeAPSWatch.entitlements; sourceTree = "<group>"; };
-		38E8755A27568A6700975559 /* ConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmationView.swift; sourceTree = "<group>"; };
-		38E8757A2757B1C300975559 /* TempTargetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetsView.swift; sourceTree = "<group>"; };
-		38E8757C2757C45D00975559 /* BolusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusView.swift; sourceTree = "<group>"; };
-		38E8757F27595DC500975559 /* BolusConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusConfirmationView.swift; sourceTree = "<group>"; };
 		38E989DC25F5021400C0CED0 /* PumpStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpStatus.swift; sourceTree = "<group>"; };
 		38E98A1B25F52C9300C0CED0 /* Signpost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signpost.swift; sourceTree = "<group>"; };
 		38E98A1C25F52C9300C0CED0 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
@@ -1188,9 +1111,9 @@
 		DD9ECB6E2CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteControlConfigProvider.swift; sourceTree = "<group>"; };
 		DD9ECB6F2CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteControlConfigDataFlow.swift; sourceTree = "<group>"; };
 		DD9ECB732CA9A0C300AA7C45 /* RemoteControlConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteControlConfig.swift; sourceTree = "<group>"; };
+		DDA6E24F2D22187500C2988C /* ChartLegendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartLegendView.swift; sourceTree = "<group>"; };
 		DDA6E31F2D258E0500C2988C /* OverrideHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideHelpView.swift; sourceTree = "<group>"; };
 		DDA6E3212D25901100C2988C /* TempTargetHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetHelpView.swift; sourceTree = "<group>"; };
-		DDA6E24F2D22187500C2988C /* ChartLegendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartLegendView.swift; sourceTree = "<group>"; };
 		DDB37CC22D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDB37CC32D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageStorage.swift; sourceTree = "<group>"; };
@@ -1293,16 +1216,6 @@
 				CE95BF612BA7715900DC3DE3 /* MockKitUI.framework in Frameworks */,
 				E0CC2C5C275B9F0F00A7BC71 /* HealthKit.framework in Frameworks */,
 				CE95BF5D2BA770C300DC3DE3 /* LoopKitUI.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		38E8752127554D5700975559 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CE6B025728F350FF000C5502 /* HealthKit.framework in Frameworks */,
-				38E8755827567AE400975559 /* SwiftDate in Frameworks */,
-				199561C1275E61A50077B976 /* HealthKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1952,8 +1865,6 @@
 				388E595A25AD948C0019842D /* FreeAPS */,
 				38FCF3EE25E9028E0078B0D1 /* FreeAPSTests */,
 				3818AA44274C229000843DB3 /* Packages */,
-				38E8751D27554D5500975559 /* FreeAPSWatch */,
-				38E8752827554D5700975559 /* FreeAPSWatch WatchKit Extension */,
 				6B1A8D1C2B14D91600E76752 /* LiveActivity */,
 				388E595925AD948C0019842D /* Products */,
 				3818AA48274C267000843DB3 /* Frameworks */,
@@ -1966,8 +1877,6 @@
 			children = (
 				388E595825AD948C0019842D /* FreeAPS.app */,
 				38FCF3ED25E9028E0078B0D1 /* FreeAPSTests.xctest */,
-				38E8751C27554D5500975559 /* FreeAPSWatch.app */,
-				38E8752427554D5700975559 /* FreeAPSWatch WatchKit Extension.appex */,
 				6B1A8D172B14D91600E76752 /* LiveActivityExtension.appex */,
 			);
 			name = Products;
@@ -2180,60 +2089,9 @@
 			path = UserNotifications;
 			sourceTree = "<group>";
 		};
-		38E8751D27554D5500975559 /* FreeAPSWatch */ = {
-			isa = PBXGroup;
-			children = (
-				1980131D29CC9839002FF024 /* Info.plist */,
-				38E8755627564B6100975559 /* FreeAPSWatch.entitlements */,
-				38E8751E27554D5700975559 /* Assets.xcassets */,
-			);
-			path = FreeAPSWatch;
-			sourceTree = "<group>";
-		};
-		38E8752827554D5700975559 /* FreeAPSWatch WatchKit Extension */ = {
-			isa = PBXGroup;
-			children = (
-				38E8755527564B5000975559 /* FreeAPSWatch WatchKit Extension.entitlements */,
-				38E8755027555D0500975559 /* DataFlow.swift */,
-				38E8754B2755548F00975559 /* WatchStateModel.swift */,
-				38E875482755505800975559 /* Views */,
-				38E8752927554D5700975559 /* FreeAPSApp.swift */,
-				38E8752D27554D5700975559 /* NotificationController.swift */,
-				38E8752F27554D5700975559 /* NotificationView.swift */,
-				38E8753127554D5700975559 /* ComplicationController.swift */,
-				38E8753327554D5800975559 /* Assets.xcassets */,
-				38E8753827554D5900975559 /* Info.plist */,
-				38E8753927554D5900975559 /* PushNotificationPayload.apns */,
-				38E8753527554D5800975559 /* Preview Content */,
-			);
-			path = "FreeAPSWatch WatchKit Extension";
-			sourceTree = "<group>";
-		};
-		38E8753527554D5800975559 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				38E8753627554D5800975559 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		38E875482755505800975559 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				38E8752B27554D5700975559 /* MainView.swift */,
-				38E87549275550BB00975559 /* CarbsView.swift */,
-				38E8755A27568A6700975559 /* ConfirmationView.swift */,
-				38E8757A2757B1C300975559 /* TempTargetsView.swift */,
-				38E8757C2757C45D00975559 /* BolusView.swift */,
-				38E8757F27595DC500975559 /* BolusConfirmationView.swift */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
 		38E8754D275556E100975559 /* WatchManager */ = {
 			isa = PBXGroup;
 			children = (
-				38E8754E275556FA00975559 /* WatchManager.swift */,
 				CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */,
 			);
 			path = WatchManager;
@@ -3117,7 +2975,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				38E8753B27554D5900975559 /* PBXTargetDependency */,
 				6B1A8D272B14D91700E76752 /* PBXTargetDependency */,
 			);
 			name = FreeAPS;
@@ -3132,43 +2989,6 @@
 			productName = FreeAPS;
 			productReference = 388E595825AD948C0019842D /* FreeAPS.app */;
 			productType = "com.apple.product-type.application";
-		};
-		38E8751B27554D5500975559 /* FreeAPSWatch */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 38E8754427554D5900975559 /* Build configuration list for PBXNativeTarget "FreeAPSWatch" */;
-			buildPhases = (
-				38E8751A27554D5500975559 /* Resources */,
-				38E8754027554D5900975559 /* Embed App Extensions */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				38E8752727554D5700975559 /* PBXTargetDependency */,
-			);
-			name = FreeAPSWatch;
-			productName = FreeAPSWatch;
-			productReference = 38E8751C27554D5500975559 /* FreeAPSWatch.app */;
-			productType = "com.apple.product-type.application.watchapp2";
-		};
-		38E8752327554D5700975559 /* FreeAPSWatch WatchKit Extension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 38E8754327554D5900975559 /* Build configuration list for PBXNativeTarget "FreeAPSWatch WatchKit Extension" */;
-			buildPhases = (
-				38E8752027554D5700975559 /* Sources */,
-				38E8752127554D5700975559 /* Frameworks */,
-				38E8752227554D5700975559 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "FreeAPSWatch WatchKit Extension";
-			packageProductDependencies = (
-				38E8755727567AE400975559 /* SwiftDate */,
-			);
-			productName = "FreeAPSWatch WatchKit Extension";
-			productReference = 38E8752427554D5700975559 /* FreeAPSWatch WatchKit Extension.appex */;
-			productType = "com.apple.product-type.watchkit2-extension";
 		};
 		38FCF3EC25E9028E0078B0D1 /* FreeAPSTests */ = {
 			isa = PBXNativeTarget;
@@ -3218,13 +3038,6 @@
 				TargetAttributes = {
 					388E595725AD948C0019842D = {
 						CreatedOnToolsVersion = 12.3;
-					};
-					38E8751B27554D5500975559 = {
-						CreatedOnToolsVersion = 13.1;
-						LastSwiftMigration = 1530;
-					};
-					38E8752327554D5700975559 = {
-						CreatedOnToolsVersion = 13.1;
 					};
 					38FCF3EC25E9028E0078B0D1 = {
 						CreatedOnToolsVersion = 12.4;
@@ -3277,8 +3090,6 @@
 			targets = (
 				388E595725AD948C0019842D /* FreeAPS */,
 				38FCF3EC25E9028E0078B0D1 /* FreeAPSTests */,
-				38E8751B27554D5500975559 /* FreeAPSWatch */,
-				38E8752327554D5700975559 /* FreeAPSWatch WatchKit Extension */,
 				6B1A8D162B14D91500E76752 /* LiveActivityExtension */,
 			);
 		};
@@ -3298,25 +3109,6 @@
 				388E596F25AD96040019842D /* javascript in Resources */,
 				B9CAAEFC2AE70836000F68BC /* branch.txt in Resources */,
 				1927C8E62744606D00347C69 /* InfoPlist.strings in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		38E8751A27554D5500975559 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				19DA48E929CD339C00EEA1E7 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		38E8752227554D5700975559 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				38E8753727554D5900975559 /* Preview Assets.xcassets in Resources */,
-				19795118275953E50044850D /* Localizable.strings in Resources */,
-				19DA48EA29CD339C00EEA1E7 /* Assets.xcassets in Resources */,
-				38E8753427554D5800975559 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3778,7 +3570,6 @@
 				E13B7DAB2A435F57066AF02E /* TargetsEditorStateModel.swift in Sources */,
 				9702FF92A09C53942F20D7EA /* TargetsEditorRootView.swift in Sources */,
 				1967DFBE29D052C200759F30 /* Icons.swift in Sources */,
-				38E8754F275556FA00975559 /* WatchManager.swift in Sources */,
 				DDD163182C4C694000CD525A /* AdjustmentsRootView.swift in Sources */,
 				389ECE052601144100D86C4F /* ConcurrentMap.swift in Sources */,
 				110AEDEC2C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift in Sources */,
@@ -3786,7 +3577,6 @@
 				19E1F7EA29D082ED005C8D20 /* IconConfigProvider.swift in Sources */,
 				DD09D4822C5986F6003FEA5D /* CalendarEventSettingsRootView.swift in Sources */,
 				CE48C86428CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift in Sources */,
-				38E8755427561E9800975559 /* DataFlow.swift in Sources */,
 				DD5DC9F92CF3DAA900AB8703 /* RadioButton.swift in Sources */,
 				38E44522274E3DDC00EC9A94 /* NetworkReachabilityManager.swift in Sources */,
 				CE7CA34F2A064973004BE681 /* BaseIntentsRequest.swift in Sources */,
@@ -3912,29 +3702,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		38E8752027554D5700975559 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				38E8757927579D9200975559 /* Publisher.swift in Sources */,
-				38E8755B27568A6800975559 /* ConfirmationView.swift in Sources */,
-				38E8757D2757C45D00975559 /* BolusView.swift in Sources */,
-				38E8752E27554D5700975559 /* NotificationController.swift in Sources */,
-				38E8754C2755548F00975559 /* WatchStateModel.swift in Sources */,
-				38E8754A275550BB00975559 /* CarbsView.swift in Sources */,
-				38E8752C27554D5700975559 /* MainView.swift in Sources */,
-				38E8755127555D0500975559 /* DataFlow.swift in Sources */,
-				38E8753227554D5700975559 /* ComplicationController.swift in Sources */,
-				38E8752A27554D5700975559 /* FreeAPSApp.swift in Sources */,
-				38E8757B2757B1C300975559 /* TempTargetsView.swift in Sources */,
-				38E8753027554D5700975559 /* NotificationView.swift in Sources */,
-				38E8757E2758C86A00975559 /* ConvenienceExtensions.swift in Sources */,
-				38E8754727554DF100975559 /* Color+Extensions.swift in Sources */,
-				38E8755927567CA600975559 /* Decimal+Extensions.swift in Sources */,
-				38E8758027595DC600975559 /* BolusConfirmationView.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		38FCF3E925E9028E0078B0D1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -3960,16 +3727,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		38E8752727554D5700975559 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 38E8752327554D5700975559 /* FreeAPSWatch WatchKit Extension */;
-			targetProxy = 38E8752627554D5700975559 /* PBXContainerItemProxy */;
-		};
-		38E8753B27554D5900975559 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 38E8751B27554D5500975559 /* FreeAPSWatch */;
-			targetProxy = 38E8753A27554D5900975559 /* PBXContainerItemProxy */;
-		};
 		38FCF3F325E9028E0078B0D1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 388E595725AD948C0019842D /* FreeAPS */;
@@ -4254,161 +4011,6 @@
 			};
 			name = Release;
 		};
-		38E8753E27554D5900975559 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				APP_DISPLAY_NAME = "$(APP_DISPLAY_NAME)";
-				ASSETCATALOG_COMPILER_APPICON_NAME = "$(APP_ICON)";
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				ASSETCATALOG_COMPILER_INCLUDE_STICKER_CONTENT = YES;
-				ASSETCATALOG_COMPILER_STANDALONE_ICON_BEHAVIOR = all;
-				ASSETCATALOG_COMPILER_TARGET_STICKERS_ICON_ROLE = "host-app";
-				BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER)";
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = FreeAPSWatch/FreeAPSWatch.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = $APP_BUILD_NUMBER;
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
-				GENERATE_INFOPLIST_FILE = YES;
-				IBSC_MODULE = FreeAPSWatch_WatchKit_Extension;
-				INFOPLIST_FILE = FreeAPSWatch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(BUNDLE_IDENTIFIER)";
-				MARKETING_VERSION = "$(APP_VERSION)";
-				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER).watchkitapp";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Model/Classes+Properties/FreeAPSWatch-Bridging-Header.h";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
-			};
-			name = Debug;
-		};
-		38E8753F27554D5900975559 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				APP_DISPLAY_NAME = "$(APP_DISPLAY_NAME)";
-				ASSETCATALOG_COMPILER_APPICON_NAME = "$(APP_ICON)";
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				ASSETCATALOG_COMPILER_INCLUDE_STICKER_CONTENT = YES;
-				ASSETCATALOG_COMPILER_STANDALONE_ICON_BEHAVIOR = all;
-				ASSETCATALOG_COMPILER_TARGET_STICKERS_ICON_ROLE = "host-app";
-				BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER)";
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = FreeAPSWatch/FreeAPSWatch.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = $APP_BUILD_NUMBER;
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
-				GENERATE_INFOPLIST_FILE = YES;
-				IBSC_MODULE = FreeAPSWatch_WatchKit_Extension;
-				INFOPLIST_FILE = FreeAPSWatch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(BUNDLE_IDENTIFIER)";
-				MARKETING_VERSION = "$(APP_VERSION)";
-				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER).watchkitapp";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Model/Classes+Properties/FreeAPSWatch-Bridging-Header.h";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
-			};
-			name = Release;
-		};
-		38E8754127554D5900975559 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APP_DISPLAY_NAME = "$(APP_DISPLAY_NAME)";
-				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
-				BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER)";
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CODE_SIGN_ENTITLEMENTS = "FreeAPSWatch WatchKit Extension/FreeAPSWatch WatchKit Extension.entitlements";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = $APP_BUILD_NUMBER;
-				DEVELOPMENT_ASSET_PATHS = "\"FreeAPSWatch WatchKit Extension/Preview Content\"";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "FreeAPSWatch WatchKit Extension/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME) WatchKit Extension";
-				INFOPLIST_KEY_CLKComplicationPrincipalClass = FreeAPSWatch_WatchKit_Extension.ComplicationController;
-				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Bla bla Record Health";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Bla bla Share Health";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Bla bla Update Health";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = "$(APP_VERSION)";
-				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER).watchkitapp.watchkitextension";
-				PRODUCT_NAME = "${TARGET_NAME}";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG RUN_STATISTICS";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
-			};
-			name = Debug;
-		};
-		38E8754227554D5900975559 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APP_DISPLAY_NAME = "$(APP_DISPLAY_NAME)";
-				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
-				BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER)";
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CODE_SIGN_ENTITLEMENTS = "FreeAPSWatch WatchKit Extension/FreeAPSWatch WatchKit Extension.entitlements";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = $APP_BUILD_NUMBER;
-				DEVELOPMENT_ASSET_PATHS = "\"FreeAPSWatch WatchKit Extension/Preview Content\"";
-				DEVELOPMENT_TEAM = "$(DEVELOPER_TEAM)";
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "FreeAPSWatch WatchKit Extension/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME) WatchKit Extension";
-				INFOPLIST_KEY_CLKComplicationPrincipalClass = FreeAPSWatch_WatchKit_Extension.ComplicationController;
-				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Bla bla Record Health";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Bla bla Share Health";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Bla bla Update Health";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = "$(APP_VERSION)";
-				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER).watchkitapp.watchkitextension";
-				PRODUCT_NAME = "${TARGET_NAME}";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = RUN_STATISTICS;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
-			};
-			name = Release;
-		};
 		38FCF3F525E9028E0078B0D1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -4539,24 +4141,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		38E8754327554D5900975559 /* Build configuration list for PBXNativeTarget "FreeAPSWatch WatchKit Extension" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				38E8754127554D5900975559 /* Debug */,
-				38E8754227554D5900975559 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
-		38E8754427554D5900975559 /* Build configuration list for PBXNativeTarget "FreeAPSWatch" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				38E8753E27554D5900975559 /* Debug */,
-				38E8753F27554D5900975559 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
 		38FCF3F425E9028E0078B0D1 /* Build configuration list for PBXNativeTarget "FreeAPSTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -4648,11 +4232,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 38DF1787276FC8C300B3528F /* XCRemoteSwiftPackageReference "SwiftMessages" */;
 			productName = SwiftMessages;
-		};
-		38E8755727567AE400975559 /* SwiftDate */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 38B17B6425DD90E0005CAE3D /* XCRemoteSwiftPackageReference "SwiftDate" */;
-			productName = SwiftDate;
 		};
 		B958F1B62BA0711600484851 /* MKRingProgressView */ = {
 			isa = XCSwiftPackageProductDependency;

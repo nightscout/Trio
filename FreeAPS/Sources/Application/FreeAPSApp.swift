@@ -48,7 +48,6 @@ import Swinject
         _ = resolver.resolve(FetchTreatmentsManager.self)!
         _ = resolver.resolve(CalendarManager.self)!
         _ = resolver.resolve(UserNotificationsManager.self)!
-        _ = resolver.resolve(WatchManager.self)!
         _ = resolver.resolve(HealthKitManager.self)!
         _ = resolver.resolve(BluetoothStateManager.self)!
         _ = resolver.resolve(PluginManager.self)!
