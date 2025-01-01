@@ -960,8 +960,9 @@ extension Home {
                 )
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
                 .onChange(of: selectedTab) {
-                    print("current path is empty: \(settingsPath.isEmpty)")
-                    settingsPath = NavigationPath()
+                    if !settingsPath.isEmpty {
+                        settingsPath = NavigationPath()
+                    }
                 }
         }
 
@@ -980,7 +981,7 @@ extension Home {
             let patterns = [
                 "minGuardBG\\s*-?\\d+\\.?\\d*<-?\\d+\\.?\\d*", // minGuardBG x<y
                 "Eventual BG\\s*-?\\d+\\.?\\d*\\s*>=\\s*-?\\d+\\.?\\d*", // Eventual BG x >= target
-                "Eventual BG\\s*-?\\d+\\.?\\d*\\s*<\\s*-?\\d+\\.?\\d*",  // Eventual BG x < target
+                "Eventual BG\\s*-?\\d+\\.?\\d*\\s*<\\s*-?\\d+\\.?\\d*", // Eventual BG x < target
                 "(\\S+)\\s+(-?\\d+\\.?\\d*)\\s*>\\s*(\\d+)%\\s+of\\s+BG\\s+(-?\\d+\\.?\\d*)" // maxDelta x > y% of BG z
             ]
             let pattern = patterns.joined(separator: "|")
@@ -1005,18 +1006,19 @@ extension Home {
                 let matchedString = String(reasonConclusion[range])
 
                 if isMmolL {
-                    if matchedString.contains("<") && matchedString.contains("Eventual BG") && !matchedString.contains("=") {
+                    if matchedString.contains("<"), matchedString.contains("Eventual BG"), !matchedString.contains("=") {
                         // Handle "Eventual BG x < target" pattern
                         let parts = matchedString.components(separatedBy: "<")
                         if parts.count == 2 {
-                            let bgPart = parts[0].replacingOccurrences(of: "Eventual BG", with: "").trimmingCharacters(in: .whitespaces)
+                            let bgPart = parts[0].replacingOccurrences(of: "Eventual BG", with: "")
+                                .trimmingCharacters(in: .whitespaces)
                             let targetValue = parts[1].trimmingCharacters(in: .whitespaces)
                             let formattedBGPart = convertToMmolL(bgPart)
                             let formattedTargetValue = convertToMmolL(targetValue)
                             let formattedString = "Eventual BG \(formattedBGPart)<\(formattedTargetValue)"
                             updatedConclusion.replaceSubrange(range, with: formattedString)
                         }
-                    } else if matchedString.contains("<") && matchedString.contains("minGuardBG") {
+                    } else if matchedString.contains("<"), matchedString.contains("minGuardBG") {
                         // Handle "minGuardBG x<y" pattern
                         let parts = matchedString.components(separatedBy: "<")
                         if parts.count == 2 {
@@ -1031,7 +1033,8 @@ extension Home {
                         // Handle "Eventual BG x >= target" pattern
                         let parts = matchedString.components(separatedBy: " >= ")
                         if parts.count == 2 {
-                            let firstValue = parts[0].replacingOccurrences(of: "Eventual BG", with: "").trimmingCharacters(in: .whitespaces)
+                            let firstValue = parts[0].replacingOccurrences(of: "Eventual BG", with: "")
+                                .trimmingCharacters(in: .whitespaces)
                             let secondValue = parts[1].trimmingCharacters(in: .whitespaces)
                             let formattedFirstValue = convertToMmolL(firstValue)
                             let formattedSecondValue = convertToMmolL(secondValue)
