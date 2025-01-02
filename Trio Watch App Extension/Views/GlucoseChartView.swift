@@ -42,35 +42,50 @@ struct GlucoseChartView: View {
     }
 
     var body: some View {
-        Chart {
-            ForEach(filteredValues, id: \.date) { reading in
-                PointMark(
-                    x: .value("Time", reading.date),
-                    y: .value("Glucose", reading.glucose)
-                )
-                .foregroundStyle(glucoseColor(reading.glucose))
-                .symbolSize(15)
+        VStack(spacing: 8) {
+            HStack {
+                Text("Glucose History")
+                    .font(.system(.headline, design: .rounded))
+                Spacer()
+                Text("\(timeWindow.rawValue)h")
+                    .font(.system(.caption2, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal)
+
+            Chart {
+                ForEach(filteredValues, id: \.date) { reading in
+                    PointMark(
+                        x: .value("Time", reading.date),
+                        y: .value("Glucose", reading.glucose)
+                    )
+                    .foregroundStyle(glucoseColor(reading.glucose))
+                    .symbolSize(30)
+                }
+            }
+            .chartXAxis {
+                AxisMarks(values: .automatic(desiredCount: 4)) { _ in
+                    AxisValueLabel(format: .dateTime.hour())
+                        .font(.system(.caption2, design: .rounded))
+                }
+            }
+            .chartYAxis {
+                AxisMarks(position: .leading) { value in
+                    AxisValueLabel {
+                        if let glucose = value.as(Double.self) {
+                            Text("\(Int(glucose))")
+                                .font(.system(.caption2, design: .rounded))
+                        }
+                    }
+                }
             }
         }
-        .chartXAxis {
-            AxisMarks(values: .automatic(desiredCount: 4)) { _ in
-                AxisValueLabel(format: .dateTime.hour())
-            }
-        }
-        .chartYAxis {
-            AxisMarks(position: .leading)
-        }
-        .padding()
+        .padding(.top)
+        .scenePadding()
         .onTapGesture {
             withAnimation {
                 timeWindow = timeWindow.next
             }
-        }
-        .overlay(alignment: .topTrailing) {
-            Text("\(timeWindow.rawValue)h")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .padding(.trailing)
         }
     }
 }
