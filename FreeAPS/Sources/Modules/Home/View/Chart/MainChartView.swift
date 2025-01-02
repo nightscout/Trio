@@ -139,9 +139,7 @@ extension MainChartView {
 
                 GlucoseTargetsView(
                     startMarker: startMarker,
-                    endMarker: endMarker,
                     units: state.units,
-
                     bgTargets: state.bgTargets
                 )
 
