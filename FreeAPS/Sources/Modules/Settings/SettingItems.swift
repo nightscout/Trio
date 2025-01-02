@@ -73,7 +73,7 @@ enum SettingItems {
         SettingItem(title: "ISF", view: .isfEditor, path: ["Therapy Settings"]),
         SettingItem(title: "Carb Ratios", view: .crEditor, path: ["Therapy Settings"]),
         SettingItem(title: "CR", view: .crEditor, path: ["Therapy Settings"]),
-        SettingItem(title: "Target Glucose", view: .targetsEditor, path: ["Therapy Settings"])
+        SettingItem(title: "Glucose Targets", view: .targetsEditor, path: ["Therapy Settings"])
     ]
 
     static let algorithmItems = [
@@ -97,7 +97,7 @@ enum SettingItems {
             path: ["Algorithm", "Super Micro Bolus (SMB)"]
         ),
         SettingItem(
-            title: "Dynamic Sensitivity",
+            title: "Dynamic Settings",
             view: .dynamicISF,
             searchContents: [
                 "Activate Dynamic Sensitivity (ISF)",
@@ -136,7 +136,7 @@ enum SettingItems {
                 "Unsuspend If No Temp",
                 "Suspend Zeros IOB",
                 "Min 5m Carbimpact",
-                "Autotune ISF Adjustment Fractio",
+                // "Autotune ISF Adjustment Fraction",
                 "Remaining Carbs Fraction",
                 "Remaining Carbs Cap",
                 "Noisy CGM Target Multiplier"
@@ -191,26 +191,28 @@ enum SettingItems {
             view: .userInterfaceSettings,
             searchContents: [
                 "Show X-Axis Grid Lines",
-                "Show Y-Axis Grid Line",
+                "Show Y-Axis Grid Lines",
                 "Show Low and High Thresholds",
                 "Low Threshold",
                 "High Threshold",
                 "X-Axis Interval Step",
                 "Total Insulin Display Type",
-                "Total Daily Dose",
-                "Total Insulin in Scope",
+                "Total Daily Dose (TDD)",
+                "Total Insulin in Scope (TINS)",
                 "Override HbA1c Unit",
                 "Standing / Laying TIR Chart",
                 "Show Carbs Required Badge",
                 "Carbs Required Threshold",
                 "Forecast Display Type",
+                "Cone",
+                "Lines",
                 "Trio Color Scheme",
                 "Glucose Color Scheme"
             ],
             path: ["Features", "User Interface"]
         ),
-        SettingItem(title: "App Icons", view: .iconConfig),
-        SettingItem(title: "Autotune", view: .autotuneConfig)
+        SettingItem(title: "App Icons", view: .iconConfig)
+        // SettingItem(title: "Autotune", view: .autotuneConfig)
     ]
 
     static let notificationItems = [

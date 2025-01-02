@@ -32,7 +32,6 @@ extension NightscoutConfig {
         @Published var dia: Decimal = 6
         @Published var maxBasal: Decimal = 2
         @Published var maxBolus: Decimal = 10
-        @Published var allowAnnouncements: Bool = false
         @Published var isConnectedToNS: Bool = false
 
         @Published var isImportResultReviewPresented: Bool = false
@@ -57,7 +56,6 @@ extension NightscoutConfig {
             maxBolus = settingsManager.pumpSettings.maxBolus
             changeUploadGlucose = (cgmManager.cgmGlucoseSourceType != CGMType.plugin)
 
-            subscribeSetting(\.allowAnnouncements, on: $allowAnnouncements) { allowAnnouncements = $0 }
             subscribeSetting(\.isUploadEnabled, on: $isUploadEnabled) { isUploadEnabled = $0 }
             subscribeSetting(\.isDownloadEnabled, on: $isDownloadEnabled) { isDownloadEnabled = $0 }
             subscribeSetting(\.useLocalGlucoseSource, on: $useLocalSource) { useLocalSource = $0 }

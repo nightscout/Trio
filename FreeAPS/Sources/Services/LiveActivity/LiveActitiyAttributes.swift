@@ -13,6 +13,7 @@ struct LiveActivityAttributes: ActivityAttributes {
     }
 
     struct ContentState: Codable, Hashable {
+        let unit: String
         let bg: String
         let direction: String?
         let change: String
@@ -33,7 +34,6 @@ struct LiveActivityAttributes: ActivityAttributes {
         let rotationDegrees: Double
         let cob: Decimal
         let iob: Decimal
-        let unit: String
         let isOverrideActive: Bool
         let overrideName: String
         let overrideDate: Date

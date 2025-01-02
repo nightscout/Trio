@@ -24,7 +24,7 @@ struct OverrideView: ChartContent {
                 context: viewContext
             ) ?? 0
             let end: Date = duration != 0 ? start.addingTimeInterval(duration) : start
-                .addingTimeInterval(6 * 60 * 60) // handle infinite overrides
+                .addingTimeInterval(60 * 60 * 24 * 30) // handle infinite overrides -> 60s x 60m x 24h x 30d = 30 days duration
 
             let target = getOverrideTarget(override: override)
 

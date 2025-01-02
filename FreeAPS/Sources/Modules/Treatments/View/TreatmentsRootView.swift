@@ -293,7 +293,8 @@ extension Treatments {
                         }.listRowBackground(Color.chart)
 
                         treatmentButton
-                    }.listSectionSpacing(20)
+                    }
+                    .listSectionSpacing(sectionSpacing)
                 }
                 .blur(radius: state.waitForSuggestion ? 5 : 0)
 
@@ -364,28 +365,38 @@ extension Treatments {
         }
 
         var treatmentButton: some View {
-            Button {
+            var treatmentButtonBackground = Color(.systemBlue)
+            if limitExceeded {
+                treatmentButtonBackground = Color(.systemRed)
+            } else if disableTaskButton {
+                treatmentButtonBackground = Color(.systemGray)
+            }
+
+            return Button {
                 state.invokeTreatmentsTask()
             } label: {
-                taskButtonLabel
-                    .font(.headline)
-                    .foregroundStyle(Color.white)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .frame(height: 35)
+                HStack {
+                    if state.isBolusInProgress && state
+                        .amount > 0 && !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
+                    {
+                        ProgressView()
+                    }
+                    taskButtonLabel
+                }
+                .font(.headline)
+                .foregroundStyle(Color.white)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(height: 35)
             }
             .disabled(disableTaskButton)
-            .listRowBackground(
-                limitExceeded ? Color(.systemRed) :
-                    disableTaskButton ? Color(.systemGray) :
-                    Color(.systemBlue)
-            )
+            .listRowBackground(treatmentButtonBackground)
             .shadow(radius: 3)
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
 
         private var taskButtonLabel: some View {
             if pumpBolusLimitExceeded {
-                return Text("Max Bolus of \(state.maxBolus.description) U Exceeded")
+                return Text("Max Bolus of \(state.maxBolus.description) U E== 0xceeded")
             } else if externalBolusLimitExceeded {
                 return Text("Max External Bolus of \(state.maxExternal.description) U Exceeded")
             } else if carbLimitExceeded {
@@ -400,6 +411,10 @@ extension Treatments {
             let hasCarbs = state.carbs > 0
             let hasFatOrProtein = state.fat > 0 || state.protein > 0
             let bolusString = state.externalInsulin ? "External Insulin" : "Enact Bolus"
+
+            if state.isBolusInProgress && hasInsulin && !state.externalInsulin && (!hasCarbs || !hasFatOrProtein) {
+                return Text("Bolus In Progress...")
+            }
 
             switch (hasInsulin, hasCarbs, hasFatOrProtein) {
             case (true, true, true):
@@ -446,7 +461,11 @@ extension Treatments {
         }
 
         private var disableTaskButton: Bool {
-            state.addButtonPressed || limitExceeded
+            (
+                state.isBolusInProgress && state
+                    .amount > 0 && !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
+            ) || state
+                .addButtonPressed || limitExceeded
         }
     }
 

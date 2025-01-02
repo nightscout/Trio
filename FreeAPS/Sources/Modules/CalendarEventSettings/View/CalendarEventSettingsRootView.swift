@@ -7,7 +7,7 @@ extension CalendarEventSettings {
         @StateObject var state = StateModel()
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -25,15 +25,28 @@ extension CalendarEventSettings {
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
-                            selectedVerboseHint = $0
+                            selectedVerboseHint = $0.map { AnyView($0) }
                             hintLabel = "Create Events in Calendar"
                         }
                     ),
                     units: state.units,
                     type: .boolean,
                     label: "Create Events in Calendar",
-                    miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                    verboseHint: "Create Calendar Events… bla bla bla",
+                    miniHint: "Use calendar events to display current data.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "When enabled, Trio will create a customizable calendar event to keep you notified of your current glucose reading with every successful loop cycle."
+                        )
+                        Text(
+                            "This is useful if you use CarPlay or a variety of other external services that limit the view of most apps, but allow the calendar app."
+                        )
+                        Text(
+                            "Once enabled, the available customizations will appear. You can customize with the calendar of your choosing, use of emoji labels, and the inclusion of IOB & COB data."
+                        )
+                        Text("Note: Once a new calendar event is created, the previous event will be deleted.")
+                    },
                     headerText: "Diabetes Data as Calendar Event"
                 )
 
@@ -55,15 +68,32 @@ extension CalendarEventSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Display Emojis as Labels"
                             }
                         ),
                         units: state.units,
                         type: .boolean,
                         label: "Display Emojis as Labels",
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "Display Emojis as Labels… bla bla bla"
+                        miniHint: "Use emojis for calendar events. See hint for more details.",
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(
+                                    "When enabled, the calendar event created will indicate whether glucose readings are in-range or out-of-range using the following color emojis:"
+                                )
+                                Text("🟢: In-Range")
+                                Text("🟠: Above-Range")
+                                Text("🔴: Below-Range")
+                            }
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(
+                                    "If \"Display IOB and COB\" is also enabled, \"IOB\" and \"COB\" will be replaced with the following emojis:"
+                                )
+                                Text("💉: IOB")
+                                Text("🥨: COB")
+                            }
+                        }
                     )
 
                     SettingInputSection(
@@ -73,15 +103,20 @@ extension CalendarEventSettings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Display IOB and COB"
                             }
                         ),
                         units: state.units,
                         type: .boolean,
                         label: "Display IOB and COB",
-                        miniHint: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
-                        verboseHint: "Display IOB and COB… bla bla bla"
+                        miniHint: "Include IOB & COB in the calendar event data.",
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+                            Text(
+                                "When enabled, Trio will include the current IOB and COB values, along with the current glucose reading, in each calendar event created."
+                            )
+                        }
                     )
                 } else if state.useCalendar {
                     if #available(iOS 17.0, *) {
@@ -98,12 +133,13 @@ extension CalendarEventSettings {
                     }
                 }
             }
+            .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

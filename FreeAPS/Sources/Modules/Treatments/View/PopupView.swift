@@ -303,7 +303,7 @@ struct PopupView: View {
                     state.units.rawValue
             )
 
-            Text("15min Delta / ISF").font(.caption).foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+            Text("15 min Delta / ISF").font(.caption).foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
                 .gridColumnAlignment(.leading)
                 .gridCellColumns(2).padding(.top, 5)
         }

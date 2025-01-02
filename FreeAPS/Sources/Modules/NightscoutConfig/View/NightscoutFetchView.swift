@@ -6,7 +6,7 @@ struct NightscoutFetchView: View {
 
     @State private var shouldDisplayHint: Bool = false
     @State var hintDetent = PresentationDetent.large
-    @State var selectedVerboseHint: String?
+    @State var selectedVerboseHint: AnyView?
     @State var hintLabel: String?
     @State private var decimalPlaceholder: Decimal = 0.0
     @State private var booleanPlaceholder: Bool = false
@@ -15,7 +15,7 @@ struct NightscoutFetchView: View {
     @Environment(AppState.self) var appState
 
     var body: some View {
-        Form {
+        List {
             SettingInputSection(
                 decimalValue: $decimalPlaceholder,
                 booleanValue: $state.isDownloadEnabled,
@@ -23,52 +23,34 @@ struct NightscoutFetchView: View {
                 selectedVerboseHint: Binding(
                     get: { selectedVerboseHint },
                     set: {
-                        selectedVerboseHint = $0
+                        selectedVerboseHint = $0.map { AnyView($0) }
                         hintLabel = "Allow Fetching from Nightscout"
                     }
                 ),
                 units: state.units,
                 type: .boolean,
                 label: "Allow Fetching from Nightscout",
-                miniHint: "Enable fetching of selected data sets from Nightscout. See hint for more details.",
-                verboseHint: "The Fetch Treatments toggle enables fetching of carbs and temp targets entered in Careportal or by another uploading device than Trio from Nightscout.",
-                headerText: "Remote & Fetch Capabilities"
+                miniHint: "Enable fetching of selected data sets from Nightscout.",
+                verboseHint: VStack(alignment: .leading, spacing: 10) {
+                    Text("Default: OFF").bold()
+                    Text(
+                        "The Fetch Treatments toggle enables fetching of carbs and temp targets entered in Careportal or by another uploading device than Trio from Nightscout."
+                    )
+                },
+                headerText: "Fetch NS Care Portal Data"
             )
-
-            if state.isDownloadEnabled {
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.allowAnnouncements,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0
-                            hintLabel = "Allow Remote Control of Trio"
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: "Allow Remote Control of Trio",
-                    miniHint: "Enables selected remote control capabilities via Nightscout. See hint for more details.",
-                    verboseHint: "When enabled you allow these remote functions through announcements from Nightscout: \n • Suspend/Resume Pump \n • Opening/Closing Loop \n  • Set Temp Basal \n • Enact Bolus"
-                )
-            } else {
-                Section {
-                    Text("'Allow Fetching from Nightscout' must be enabled to allow for Trio Remote Control.")
-                }.listRowBackground(Color.tabBar)
-            }
         }
+        .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
-                hintText: selectedVerboseHint ?? "",
+                hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                 sheetTitle: "Help"
             )
         }
-        .navigationTitle("Fetch & Remote")
+        .navigationTitle("Fetch")
         .navigationBarTitleDisplayMode(.automatic)
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))

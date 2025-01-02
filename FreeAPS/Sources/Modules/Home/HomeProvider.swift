@@ -7,7 +7,6 @@ extension Home {
         @Injected() var apsManager: APSManager!
         @Injected() var glucoseStorage: GlucoseStorage!
         @Injected() var tempTargetsStorage: TempTargetsStorage!
-        @Injected() var announcementStorage: AnnouncementsStorage!
 
         func pumpTimeZone() -> TimeZone? {
             apsManager.pumpManager?.status.timeZone
@@ -27,16 +26,10 @@ extension Home {
             tempTargetsStorage.current()
         }
 
-        func announcement(_ hours: Int) -> [Announcement] {
-            announcementStorage.validate().filter {
-                $0.createdAt.addingTimeInterval(hours.hours.timeInterval) > Date()
-            }
-        }
-
         func pumpSettings() -> PumpSettings {
             storage.retrieve(OpenAPS.Settings.settings, as: PumpSettings.self)
                 ?? PumpSettings(from: OpenAPS.defaults(for: OpenAPS.Settings.settings))
-                ?? PumpSettings(insulinActionCurve: 6, maxBolus: 10, maxBasal: 2)
+                ?? PumpSettings(insulinActionCurve: 10, maxBolus: 10, maxBasal: 2)
         }
 
         func pumpReservoir() -> Decimal? {

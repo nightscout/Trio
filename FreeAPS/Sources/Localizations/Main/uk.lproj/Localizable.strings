@@ -360,7 +360,7 @@ Enact a temp Basal or a temp target */
 "Remote Control" = "Віддалене керування";
 
 /* Imported Profiles Alert */
-"\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Target Glucose\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "\nТепер уважно перевірте всі ваші нові налаштування:\n\n* Базальні параметри\n * Вуглеводні співвідношення\n * Цільові показники глюкози\n * Чутливість до інсуліну\n\n у меню «Налаштування Trio» > «Конфігурація».\n\nПоганий або недійсний профіль налаштування можуть мати згубні наслідки.";
+"\nNow please verify all of your new settings thoroughly: \n\n • DIA (Pump settings)\n • Basal Profile\n • Insulin Sensitivities\n • Carb Ratios\n • Glucose Targets\n\n in Trio Settings -> Configuration.\n\nBad or invalid profile settings could have disastrous effects." = "\nТепер уважно перевірте всі ваші нові налаштування:\n\n* Базальні параметри\n * Вуглеводні співвідношення\n * Цільові показники глюкози\n * Чутливість до інсуліну\n\n у меню «Налаштування Trio» > «Конфігурація».\n\nПоганий або недійсний профіль налаштування можуть мати згубні наслідки.";
 
 /* Profile Import Alert */
 "This will replace some or all of your current pump settings. Are you sure you want to import profile settings from Nightscout?" = "Це замінить деякі або всі поточні налаштування Помпи. Ви впевнені, що бажаєте імпортувати налаштування профілю з Nightscout?";
@@ -1234,12 +1234,6 @@ Enact a temp Basal or a temp target */
 
 /* Debug option view Enacted */
 "Enacted" = "Введено в дію";
-
-/* Debug option view Announcements (from NS) */
-"Announcements" = "Оголошення";
-
-/* Debug option view Enacted announcements announcements (from NS) */
-"Enacted announcements" = "Введені в дію оголошення";
 
 /* Debug option view Autotune */
 "Autotune" = "Автотюн";

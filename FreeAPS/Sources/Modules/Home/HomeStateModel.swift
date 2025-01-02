@@ -20,7 +20,6 @@ extension Home {
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         var manualGlucose: [BloodGlucose] = []
-        var announcement: [Announcement] = []
         var uploadStats = false
         var recentGlucose: BloodGlucose?
         var maxBasal: Decimal = 2
@@ -59,7 +58,7 @@ extension Home {
         var highGlucose: Decimal = 180
         var currentGlucoseTarget: Decimal = 100
         var glucoseColorScheme: GlucoseColorScheme = .staticColor
-        var overrideUnit: Bool = false
+        var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
         var displayXgridLines: Bool = false
         var displayYgridLines: Bool = false
         var thresholdLines: Bool = false
@@ -68,7 +67,6 @@ extension Home {
         var totalBolus: Decimal = 0
         var isStatusPopupPresented: Bool = false
         var isLegendPresented: Bool = false
-        var legendSheetDetent = PresentationDetent.large
         var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
         var roundedTotalBolus: String = ""
         var selectedTab: Int = 0
@@ -357,7 +355,7 @@ extension Home {
             maxValue = settingsManager.preferences.autosensMax
             lowGlucose = settingsManager.settings.low
             highGlucose = settingsManager.settings.high
-            overrideUnit = settingsManager.settings.overrideHbA1cUnit
+            hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
@@ -574,7 +572,7 @@ extension Home.StateModel:
         Task {
             await getCurrentGlucoseTarget()
         }
-        overrideUnit = settingsManager.settings.overrideHbA1cUnit
+        hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
         glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines

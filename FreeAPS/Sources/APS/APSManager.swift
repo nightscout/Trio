@@ -28,7 +28,6 @@ protocol APSManager {
     func roundBolus(amount: Decimal) -> Decimal
     var lastError: CurrentValueSubject<Error?, Never> { get }
     func cancelBolus() async
-    func enactAnnouncement(_ announcement: Announcement)
 }
 
 enum APSError: LocalizedError {
@@ -64,7 +63,6 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var alertHistoryStorage: AlertHistoryStorage!
     @Injected() private var tempTargetsStorage: TempTargetsStorage!
     @Injected() private var carbsStorage: CarbsStorage!
-    @Injected() private var announcementsStorage: AnnouncementsStorage!
     @Injected() private var determinationStorage: DeterminationStorage!
     @Injected() private var deviceDataManager: DeviceDataManager!
     @Injected() private var nightscout: NightscoutManager!
@@ -581,101 +579,6 @@ final class BaseAPSManager: APSManager, Injectable {
         await openAPS.autotune()
     }
 
-    func enactAnnouncement(_ announcement: Announcement) {
-        guard let action = announcement.action else {
-            warning(.apsManager, "Invalid Announcement action")
-            return
-        }
-
-        guard let pump = pumpManager else {
-            warning(.apsManager, "Pump is not set")
-            return
-        }
-
-        debug(.apsManager, "Start enact announcement: \(action)")
-
-        switch action {
-        case let .bolus(amount):
-            if let error = verifyStatus() {
-                processError(error)
-                return
-            }
-            let roundedAmount = pump.roundToSupportedBolusVolume(units: Double(amount))
-            pump.enactBolus(units: roundedAmount, activationType: .manualRecommendationAccepted) { error in
-                if let error = error {
-                    // warning(.apsManager, "Announcement Bolus failed with error: \(error.localizedDescription)")
-                    switch error {
-                    case .uncertainDelivery:
-                        // Do not generate notification on uncertain delivery error
-                        break
-                    default:
-                        // Do not generate notifications for automatic boluses that fail.
-                        warning(.apsManager, "Announcement Bolus failed with error: \(error.localizedDescription)")
-                    }
-
-                } else {
-                    debug(.apsManager, "Announcement Bolus succeeded")
-                    self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                    self.bolusProgress.send(0)
-                }
-            }
-        case let .pump(pumpAction):
-            switch pumpAction {
-            case .suspend:
-                if let error = verifyStatus() {
-                    processError(error)
-                    return
-                }
-                pump.suspendDelivery { error in
-                    if let error = error {
-                        debug(.apsManager, "Pump not suspended by Announcement: \(error.localizedDescription)")
-                    } else {
-                        debug(.apsManager, "Pump suspended by Announcement")
-                        self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                    }
-                }
-            case .resume:
-                guard pump.status.pumpStatus.suspended else {
-                    return
-                }
-                pump.resumeDelivery { error in
-                    if let error = error {
-                        warning(.apsManager, "Pump not resumed by Announcement: \(error.localizedDescription)")
-                    } else {
-                        debug(.apsManager, "Pump resumed by Announcement")
-                        self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                    }
-                }
-            }
-        case let .looping(closedLoop):
-            settings.closedLoop = closedLoop
-            debug(.apsManager, "Closed loop \(closedLoop) by Announcement")
-            announcementsStorage.storeAnnouncements([announcement], enacted: true)
-        case let .tempbasal(rate, duration):
-            if let error = verifyStatus() {
-                processError(error)
-                return
-            }
-            // unable to do temp basal during manual temp basal 😁
-            if isManualTempBasal {
-                processError(APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp"))
-                return
-            }
-            guard !settings.closedLoop else {
-                return
-            }
-            let roundedRate = pump.roundToSupportedBasalRate(unitsPerHour: Double(rate))
-            pump.enactTempBasal(unitsPerHour: roundedRate, for: TimeInterval(duration) * 60) { error in
-                if let error = error {
-                    warning(.apsManager, "Announcement TempBasal failed with error: \(error.localizedDescription)")
-                } else {
-                    debug(.apsManager, "Announcement TempBasal succeeded")
-                    self.announcementsStorage.storeAnnouncements([announcement], enacted: true)
-                }
-            }
-        }
-    }
-
     private func fetchCurrentTempBasal(date: Date) async -> TempBasal {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
@@ -1067,10 +970,8 @@ final class BaseAPSManager: APSManager, Injectable {
                 scheduled_basal: 0,
                 total_average: 0
             )
-
-            let gs = await glucoseStats
-            let overrideHbA1cUnit = gs.overrideHbA1cUnit
-            let hbA1cUnit = !overrideHbA1cUnit ? (units == .mmolL ? "mmol/mol" : "%") : (units == .mmolL ? "%" : "mmol/mol")
+            let processedGlucoseStats = await glucoseStats
+            let hbA1cDisplayUnit = processedGlucoseStats.hbA1cDisplayUnit
 
             let dailystat = await Statistics(
                 created_at: Date(),
@@ -1088,14 +989,15 @@ final class BaseAPSManager: APSManager, Injectable {
                 insulinType: insulin_type.rawValue,
                 peakActivityTime: iPa,
                 Carbs_24h: await carbTotal,
-                GlucoseStorage_Days: Decimal(roundDouble(gs.numberofDays, 1)),
+                GlucoseStorage_Days: Decimal(roundDouble(processedGlucoseStats.numberofDays, 1)),
                 Statistics: Stats(
-                    Distribution: gs.TimeInRange,
-                    Glucose: gs.avg,
-                    HbA1c: gs.hbs, Units: Units(Glucose: units.rawValue, HbA1c: hbA1cUnit),
+                    Distribution: processedGlucoseStats.TimeInRange,
+                    Glucose: processedGlucoseStats.avg,
+                    HbA1c: processedGlucoseStats.hbs,
+                    Units: Units(Glucose: units.rawValue, HbA1c: hbA1cDisplayUnit.rawValue),
                     LoopCycles: loopStats,
                     Insulin: insulin,
-                    Variance: gs.variance
+                    Variance: processedGlucoseStats.variance
                 )
             )
             storage.save(dailystat, as: file)
@@ -1258,7 +1160,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 cv: Double,
                 readings: Double
             ),
-            overrideHbA1cUnit: Bool,
+            hbA1cDisplayUnit: HbA1cDisplayUnit,
             numberofDays: Double,
             TimeInRange: TIRs,
             avg: Averages,
@@ -1294,7 +1196,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 cv: Double,
                 readings: Double
             ),
-            overrideHbA1cUnit: Bool,
+            hbA1cDisplayUnit: HbA1cDisplayUnit,
             numberofDays: Double,
             TimeInRange: TIRs,
             avg: Averages,
@@ -1325,18 +1227,18 @@ final class BaseAPSManager: APSManager, Injectable {
                 total: self.roundDecimal(Decimal(totalDaysGlucose.median), 1)
             )
 
-            let overrideHbA1cUnit = self.settingsManager.settings.overrideHbA1cUnit
+            let hbA1cDisplayUnit = self.settingsManager.settings.hbA1cDisplayUnit
 
             let hbs = Durations(
-                day: ((units == .mmolL && !overrideHbA1cUnit) || (units == .mgdL && overrideHbA1cUnit)) ?
+                day: ((units == .mmolL && hbA1cDisplayUnit == .mmolMol) || (units == .mgdL && hbA1cDisplayUnit == .percent)) ?
                     self.roundDecimal(Decimal(oneDayGlucose.ifcc), 1) : self.roundDecimal(Decimal(oneDayGlucose.ngsp), 1),
-                week: ((units == .mmolL && !overrideHbA1cUnit) || (units == .mgdL && overrideHbA1cUnit)) ?
+                week: ((units == .mmolL && hbA1cDisplayUnit == .mmolMol) || (units == .mgdL && hbA1cDisplayUnit == .percent)) ?
                     self.roundDecimal(Decimal(sevenDaysGlucose.ifcc), 1) : self
                     .roundDecimal(Decimal(sevenDaysGlucose.ngsp), 1),
-                month: ((units == .mmolL && !overrideHbA1cUnit) || (units == .mgdL && overrideHbA1cUnit)) ?
+                month: ((units == .mmolL && hbA1cDisplayUnit == .mmolMol) || (units == .mgdL && hbA1cDisplayUnit == .percent)) ?
                     self.roundDecimal(Decimal(thirtyDaysGlucose.ifcc), 1) : self
                     .roundDecimal(Decimal(thirtyDaysGlucose.ngsp), 1),
-                total: ((units == .mmolL && !overrideHbA1cUnit) || (units == .mgdL && overrideHbA1cUnit)) ?
+                total: ((units == .mmolL && hbA1cDisplayUnit == .mmolMol) || (units == .mgdL && hbA1cDisplayUnit == .percent)) ?
                     self.roundDecimal(Decimal(totalDaysGlucose.ifcc), 1) : self.roundDecimal(Decimal(totalDaysGlucose.ngsp), 1)
             )
 
@@ -1410,7 +1312,7 @@ final class BaseAPSManager: APSManager, Injectable {
             )
             let variance = Variance(SD: standardDeviations, CV: cvs)
 
-            result = (oneDayGlucose, overrideHbA1cUnit, numberOfDays, TimeInRange, avg, hbs, variance)
+            result = (oneDayGlucose, hbA1cDisplayUnit, numberOfDays, TimeInRange, avg, hbs, variance)
         }
 
         return result!

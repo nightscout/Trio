@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct SettingInputSection: View {
+struct SettingInputSection<VerboseHint: View>: View {
     enum SettingInputSectionType: Equatable {
         case decimal(String)
         case boolean
@@ -23,14 +23,14 @@ struct SettingInputSection: View {
     @Binding var decimalValue: Decimal
     @Binding var booleanValue: Bool
     @Binding var shouldDisplayHint: Bool
-    @Binding var selectedVerboseHint: String?
+    @Binding var selectedVerboseHint: (any View)?
 
     var units: GlucoseUnits
     var type: SettingInputSectionType
     var label: String
     var conditionalLabel: String?
     var miniHint: String
-    var verboseHint: String
+    var verboseHint: VerboseHint
     var headerText: String?
     var footerText: String?
 
@@ -218,7 +218,7 @@ struct SettingInputSection: View {
             return Text("\(decimalValue * 100) %")
         case .insulinUnit:
             return Text("\(decimalValue) U")
-        case .gramms:
+        case .gram:
             return Text("\(decimalValue) g")
         case .minute:
             return Text("\(decimalValue) min")
@@ -235,8 +235,8 @@ struct SettingInputSection: View {
         }.padding(.top)
     }
 
-    private func hintSection(miniHint: String, shouldDisplayHint: Binding<Bool>, verboseHint: String) -> some View {
-        HStack(alignment: .top) {
+    private func hintSection(miniHint: String, shouldDisplayHint: Binding<Bool>, verboseHint: VerboseHint) -> some View {
+        HStack(alignment: .center) {
             Text(miniHint)
                 .font(.footnote)
                 .foregroundColor(.secondary)

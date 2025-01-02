@@ -3,7 +3,7 @@ import ContactsUI
 import SwiftUI
 import Swinject
 
-extension ContactTrick {
+extension ContactImage {
     struct RootView: BaseView {
         let resolver: Resolver
         @State var state = StateModel()
@@ -14,7 +14,7 @@ extension ContactTrick {
 
         var body: some View {
             Form {
-                contactTrickList
+                contactItemsList
             }
             .onAppear(perform: configureView)
             .navigationTitle("Contacts Configuration")
@@ -34,13 +34,13 @@ extension ContactTrick {
                 }
             }
             .sheet(isPresented: $isAddSheetPresented) {
-                AddContactTrickSheet(state: state)
+                AddContactImageSheet(state: state)
             }
         }
 
-        private var contactTrickList: some View {
+        private var contactItemsList: some View {
             List {
-                if state.contactTrickEntries.isEmpty {
+                if state.contactImageEntries.isEmpty {
                     Section(
                         header: Text(""),
                         content: {
@@ -48,12 +48,12 @@ extension ContactTrick {
                         }
                     ).listRowBackground(Color.chart)
                 } else {
-                    ForEach(state.contactTrickEntries, id: \.id) { entry in
-                        NavigationLink(destination: ContactTrickDetailView(entry: entry, state: state)) {
+                    ForEach(state.contactImageEntries, id: \.id) { entry in
+                        NavigationLink(destination: ContactImageDetailView(entry: entry, state: state)) {
                             HStack {
                                 ZStack {
                                     Circle()
-                                        .fill(entry.hasHighContrast ? .black : .white)
+                                        .fill(.black)
                                         .foregroundColor(.white)
                                         .frame(width: 40, height: 40)
 
@@ -64,7 +64,7 @@ extension ContactTrick {
 
                                     Circle()
                                         .stroke(lineWidth: 2)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(colorScheme == .dark ? .white : .black)
                                         .frame(width: 40, height: 40)
                                 }
 
@@ -74,13 +74,22 @@ extension ContactTrick {
                     }
                     .onDelete(perform: onDelete)
                 }
+
+                Section {} header: {
+                    Text(
+                        "Add one or more contacts to your iOS Contacts to display real-time Trio metrics on your watch face. Be sure to grant Trio full access to your Contacts when prompted."
+                    )
+                    .textCase(nil)
+                    .foregroundStyle(.secondary)
+                }
+
             }.listRowBackground(Color.chart)
         }
 
         private func onDelete(offsets: IndexSet) {
             Task {
                 for offset in offsets {
-                    let entry = state.contactTrickEntries[offset]
+                    let entry = state.contactImageEntries[offset]
                     await state.deleteContact(entry: entry)
                 }
             }

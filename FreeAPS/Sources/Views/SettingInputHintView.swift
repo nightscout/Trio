@@ -1,29 +1,11 @@
 import SwiftUI
 
-struct SettingInputHintView: View {
+struct SettingInputHintView<HintView: View>: View {
     @Binding var hintDetent: PresentationDetent
     @Binding var shouldDisplayHint: Bool
     var hintLabel: String
-    var hintText: String
+    var hintText: HintView
     var sheetTitle: String
-
-    @Environment(\.colorScheme) private var colorScheme
-    private var color: LinearGradient {
-        colorScheme == .dark ? LinearGradient(
-            gradient: Gradient(colors: [
-                Color.bgDarkBlue,
-                Color.bgDarkerDarkBlue
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        )
-            :
-            LinearGradient(
-                gradient: Gradient(colors: [Color.gray.opacity(0.1)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-    }
 
     var body: some View {
         NavigationStack {
@@ -33,7 +15,9 @@ struct SettingInputHintView: View {
                     definition: hintText,
                     fontSize: .body
                 )
+                .listRowBackground(Color.gray.opacity(0.1))
             }
+            .scrollContentBackground(.hidden)
             .navigationBarTitle(sheetTitle, displayMode: .inline)
 
             Spacer()

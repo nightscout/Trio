@@ -14,7 +14,7 @@ extension Settings {
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -28,7 +28,7 @@ extension Settings {
         }
 
         var body: some View {
-            Form {
+            List {
                 if searchText.isEmpty {
                     let buildDetails = BuildDetails.default
 
@@ -76,15 +76,22 @@ extension Settings {
                         selectedVerboseHint: Binding(
                             get: { selectedVerboseHint },
                             set: {
-                                selectedVerboseHint = $0
+                                selectedVerboseHint = $0.map { AnyView($0) }
                                 hintLabel = "Closed Loop"
                             }
                         ),
                         units: state.units,
                         type: .boolean,
                         label: "Closed Loop",
-                        miniHint: "Enables automated insulin delivery. Requires active CGM sensor session and connected pump.",
-                        verboseHint: "Running Trio in closed loop mode requires an active CGM sensor session and a connected pump. This enables automated insulin delivery.\n\nBefore enabling, dial in your settings (basal / insulin sensitivity / carb ratio), and familiarize yourself with the app.",
+                        miniHint: "Enable automated insulin delivery.",
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
+                            Text(
+                                "Running Trio in closed loop mode requires an active CGM sensor session and a connected pump. This enables automated insulin delivery."
+                            )
+                            Text(
+                                "Before enabling, dial in your settings (basal / insulin sensitivity / carb ratio), and familiarize yourself with the app."
+                            )
+                        },
                         headerText: "Automated Insulin Delivery"
                     )
 
@@ -259,10 +266,6 @@ extension Settings {
 //                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.profile), from: self)
 //                            //                            Text("Carbs")
 //                            //                                .navigationLink(to: .configEditor(file: OpenAPS.Monitor.carbHistory), from: self)
-//                            //                            Text("Announcements")
-//                            //                                .navigationLink(to: .configEditor(file: OpenAPS.FreeAPS.announcements), from: self)
-//                            //                            Text("Enacted announcements")
-//                            //                                .navigationLink(to: .configEditor(file: OpenAPS.FreeAPS.announcementsEnacted), from: self)
 //                            Text("Autotune")
 //                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.autotune), from: self)
 //                        }
@@ -281,42 +284,42 @@ extension Settings {
 //                        }
 //                    }
 //                }.listRowBackground(Color.chart)
-
-            }.scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
-                .sheet(isPresented: $shouldDisplayHint) {
-                    SettingInputHintView(
-                        hintDetent: $hintDetent,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? "",
-                        sheetTitle: "Help"
+            }
+            .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
+            .sheet(isPresented: $shouldDisplayHint) {
+                SettingInputHintView(
+                    hintDetent: $hintDetent,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    hintLabel: hintLabel ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                    sheetTitle: "Help"
+                )
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ShareSheet(activityItems: state.logItems())
+            }
+            .onAppear(perform: configureView)
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.automatic)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(
+                        action: {
+                            if let url = URL(string: "https://triodocs.org/") {
+                                UIApplication.shared.open(url)
+                            }
+                        },
+                        label: {
+                            HStack {
+                                Text("Trio Docs")
+                                Image(systemName: "questionmark.circle")
+                            }
+                        }
                     )
                 }
-                .sheet(isPresented: $showShareSheet) {
-                    ShareSheet(activityItems: state.logItems())
-                }
-                .onAppear(perform: configureView)
-                .navigationTitle("Settings")
-                .navigationBarTitleDisplayMode(.automatic)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(
-                            action: {
-                                if let url = URL(string: "https://triodocs.org/") {
-                                    UIApplication.shared.open(url)
-                                }
-                            },
-                            label: {
-                                HStack {
-                                    Text("Trio Docs")
-                                    Image(systemName: "questionmark.circle")
-                                }
-                            }
-                        )
-                    }
-                }
-                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-                .screenNavigation(self)
+            }
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
+            .screenNavigation(self)
         }
     }
 }

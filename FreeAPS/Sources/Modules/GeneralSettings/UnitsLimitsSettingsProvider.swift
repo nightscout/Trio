@@ -16,7 +16,7 @@ extension UnitsLimitsSettings {
         func settings() -> PumpSettings {
             storage.retrieve(OpenAPS.Settings.settings, as: PumpSettings.self)
                 ?? PumpSettings(from: OpenAPS.defaults(for: OpenAPS.Settings.settings))
-                ?? PumpSettings(insulinActionCurve: 6.0, maxBolus: 10, maxBasal: 2)
+                ?? PumpSettings(insulinActionCurve: 10.0, maxBolus: 10, maxBasal: 2)
         }
 
         func save(settings: PumpSettings) -> AnyPublisher<Void, Error> {

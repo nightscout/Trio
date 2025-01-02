@@ -732,7 +732,10 @@ extension Home {
 
                 }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                     .overlay(alignment: .bottom) {
-                        bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 48)
+                        // Use a geo-based offset here to position progress bar independent of device size
+                        let offset = geo.size.height * 0.0725
+                        bolusProgressBar(progress).padding(.horizontal, 18)
+                            .offset(y: offset)
                     }.clipShape(RoundedRectangle(cornerRadius: 15))
             }
         }
@@ -876,6 +879,7 @@ extension Home {
                 Button("Medtronic") { state.addPump(.minimed) }
                 Button("Omnipod Eros") { state.addPump(.omnipod) }
                 Button("Omnipod Dash") { state.addPump(.omnipodBLE) }
+                Button("Dana(RS/-i)") { state.addPump(.dana) }
                 Button("Pump Simulator") { state.addPump(.simulator) }
             } message: { Text("Select Pump Model") }
             .sheet(isPresented: $state.setupPump) {
@@ -897,83 +901,8 @@ extension Home {
                 }
             }
             .sheet(isPresented: $state.isLegendPresented) {
-                legendSheetView()
+                ChartLegendView(state: state)
             }
-        }
-
-        @ViewBuilder func legendSheetView() -> some View {
-            NavigationStack {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text(
-                        "The oref algorithm determines insulin dosing based on a number of scenarios that it estimates with different types of forecasts."
-                    )
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                    if state.forecastDisplayType == .lines {
-                        legendLinesView()
-                    } else {
-                        legendConeOfUncertaintyView()
-                    }
-
-                    Button {
-                        state.isLegendPresented.toggle()
-                    } label: {
-                        Text("Got it!")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    }
-                    .buttonStyle(.bordered)
-                    .padding(.top)
-                }
-                .padding()
-                .presentationDetents(
-                    [.fraction(0.9), .large],
-                    selection: $state.legendSheetDetent
-                )
-            }
-        }
-
-        @ViewBuilder func legendLinesView() -> some View {
-            List {
-                DefinitionRow(
-                    term: "IOB (Insulin on Board)",
-                    definition: "Forecasts BG based on the amount of insulin still active in the body.",
-                    color: .insulin
-                )
-                DefinitionRow(
-                    term: "ZT (Zero-Temp)",
-                    definition: "Forecasts the worst-case blood glucose (BG) scenario if no carbs are absorbed and insulin delivery is stopped until BG starts rising.",
-                    color: .zt
-                )
-                DefinitionRow(
-                    term: "COB (Carbs on Board)",
-                    definition: "Forecasts BG changes by considering the amount of carbohydrates still being absorbed in the body.",
-                    color: .loopYellow
-                )
-                DefinitionRow(
-                    term: "UAM (Unannounced Meal)",
-                    definition: "Forecasts BG levels and insulin dosing needs for unexpected meals or other causes of BG rises without prior notice.",
-                    color: .uam
-                )
-            }
-            .padding(.trailing, 10)
-            .navigationBarTitle("Legend", displayMode: .inline)
-        }
-
-        @ViewBuilder func legendConeOfUncertaintyView() -> some View {
-            List {
-                DefinitionRow(
-                    term: "Cone of Uncertainty",
-                    definition: """
-                    For simplicity reasons, oref's various forecast curves are displayed as a "Cone of Uncertainty" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algorithm's result.
-
-                    To modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type.
-                    """,
-                    color: Color.blue.opacity(0.5)
-                )
-            }
-            .padding(.trailing, 10)
-            .navigationBarTitle("Legend", displayMode: .inline)
         }
 
         @ViewBuilder func tabBar() -> some View {
@@ -1026,13 +955,14 @@ extension Home {
                             .font(.system(size: 40))
                             .foregroundStyle(Color.tabBar)
                             .padding(.bottom, 1)
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, 22.5)
                     }
                 )
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
                 .onChange(of: selectedTab) {
-                    print("current path is empty: \(settingsPath.isEmpty)")
-                    settingsPath = NavigationPath()
+                    if !settingsPath.isEmpty {
+                        settingsPath = NavigationPath()
+                    }
                 }
         }
 
@@ -1046,38 +976,92 @@ extension Home {
             }
         }
 
+        // TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
         private func parseReasonConclusion(_ reasonConclusion: String, isMmolL: Bool) -> String {
-            var updatedConclusion = reasonConclusion
+            let patterns = [
+                "minGuardBG\\s*-?\\d+\\.?\\d*<-?\\d+\\.?\\d*", // minGuardBG x<y
+                "Eventual BG\\s*-?\\d+\\.?\\d*\\s*>=\\s*-?\\d+\\.?\\d*", // Eventual BG x >= target
+                "Eventual BG\\s*-?\\d+\\.?\\d*\\s*<\\s*-?\\d+\\.?\\d*", // Eventual BG x < target
+                "(\\S+)\\s+(-?\\d+\\.?\\d*)\\s*>\\s*(\\d+)%\\s+of\\s+BG\\s+(-?\\d+\\.?\\d*)" // maxDelta x > y% of BG z
+            ]
+            let pattern = patterns.joined(separator: "|")
+            let regex = try! NSRegularExpression(pattern: pattern)
 
-            // Handle "minGuardBG x<y" pattern
-            if let range = updatedConclusion.range(of: "minGuardBG\\s*-?\\d+<\\d+", options: .regularExpression) {
-                let matchedString = updatedConclusion[range]
-                let parts = matchedString.components(separatedBy: "<")
-
-                if let firstValue = Double(parts[0].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()),
-                   let secondValue = Double(parts[1])
-                {
-                    let formattedFirstValue = isMmolL ? Double(firstValue.asMmolL) : firstValue
-                    let formattedSecondValue = isMmolL ? Double(secondValue.asMmolL) : secondValue
-
-                    let formattedString = "minGuardBG \(formattedFirstValue)<\(formattedSecondValue)"
-                    updatedConclusion = updatedConclusion.replacingOccurrences(of: matchedString, with: formattedString)
+            func convertToMmolL(_ value: String) -> String {
+                if let glucoseValue = Double(value.replacingOccurrences(of: "[^\\d.-]", with: "", options: .regularExpression)) {
+                    let mmolValue = Decimal(glucoseValue).asMmolL
+                    return mmolValue.description
                 }
+                return value
             }
 
-            // Handle "Eventual BG x >= target" pattern
-            if let range = updatedConclusion.range(of: "Eventual BG\\s*\\d+\\s*>?=\\s*\\d+", options: .regularExpression) {
-                let matchedString = updatedConclusion[range]
-                let parts = matchedString.components(separatedBy: " >= ")
+            let matches = regex.matches(
+                in: reasonConclusion,
+                range: NSRange(reasonConclusion.startIndex..., in: reasonConclusion)
+            )
+            var updatedConclusion = reasonConclusion
 
-                if let firstValue = Double(parts[0].components(separatedBy: CharacterSet.decimalDigits.inverted).joined()),
-                   let secondValue = Double(parts[1])
-                {
-                    let formattedFirstValue = isMmolL ? Double(firstValue.asMmolL) : firstValue
-                    let formattedSecondValue = isMmolL ? Double(secondValue.asMmolL) : secondValue
+            for match in matches.reversed() {
+                guard let range = Range(match.range, in: reasonConclusion) else { continue }
+                let matchedString = String(reasonConclusion[range])
 
-                    let formattedString = "Eventual BG \(formattedFirstValue) >= \(formattedSecondValue)"
-                    updatedConclusion = updatedConclusion.replacingOccurrences(of: matchedString, with: formattedString)
+                if isMmolL {
+                    if matchedString.contains("<"), matchedString.contains("Eventual BG"), !matchedString.contains("=") {
+                        // Handle "Eventual BG x < target" pattern
+                        let parts = matchedString.components(separatedBy: "<")
+                        if parts.count == 2 {
+                            let bgPart = parts[0].replacingOccurrences(of: "Eventual BG", with: "")
+                                .trimmingCharacters(in: .whitespaces)
+                            let targetValue = parts[1].trimmingCharacters(in: .whitespaces)
+                            let formattedBGPart = convertToMmolL(bgPart)
+                            let formattedTargetValue = convertToMmolL(targetValue)
+                            let formattedString = "Eventual BG \(formattedBGPart)<\(formattedTargetValue)"
+                            updatedConclusion.replaceSubrange(range, with: formattedString)
+                        }
+                    } else if matchedString.contains("<"), matchedString.contains("minGuardBG") {
+                        // Handle "minGuardBG x<y" pattern
+                        let parts = matchedString.components(separatedBy: "<")
+                        if parts.count == 2 {
+                            let firstValue = parts[0].trimmingCharacters(in: .whitespaces)
+                            let secondValue = parts[1].trimmingCharacters(in: .whitespaces)
+                            let formattedFirstValue = convertToMmolL(firstValue)
+                            let formattedSecondValue = convertToMmolL(secondValue)
+                            let formattedString = "minGuardBG \(formattedFirstValue)<\(formattedSecondValue)"
+                            updatedConclusion.replaceSubrange(range, with: formattedString)
+                        }
+                    } else if matchedString.contains(">=") {
+                        // Handle "Eventual BG x >= target" pattern
+                        let parts = matchedString.components(separatedBy: " >= ")
+                        if parts.count == 2 {
+                            let firstValue = parts[0].replacingOccurrences(of: "Eventual BG", with: "")
+                                .trimmingCharacters(in: .whitespaces)
+                            let secondValue = parts[1].trimmingCharacters(in: .whitespaces)
+                            let formattedFirstValue = convertToMmolL(firstValue)
+                            let formattedSecondValue = convertToMmolL(secondValue)
+                            let formattedString = "Eventual BG \(formattedFirstValue) >= \(formattedSecondValue)"
+                            updatedConclusion.replaceSubrange(range, with: formattedString)
+                        }
+                    } else if let localMatch = regex.firstMatch(
+                        in: matchedString,
+                        range: NSRange(matchedString.startIndex..., in: matchedString)
+                    ) {
+                        // Handle "maxDelta 37 > 20% of BG 95" style
+                        if match.numberOfRanges == 5 {
+                            let metric = String(matchedString[Range(localMatch.range(at: 1), in: matchedString)!])
+                            let firstValue = String(matchedString[Range(localMatch.range(at: 2), in: matchedString)!])
+                            let percentage = String(matchedString[Range(localMatch.range(at: 3), in: matchedString)!])
+                            let bgValue = String(matchedString[Range(localMatch.range(at: 4), in: matchedString)!])
+
+                            let formattedFirstValue = convertToMmolL(firstValue)
+                            let formattedBGValue = convertToMmolL(bgValue)
+
+                            let formattedString = "\(metric) \(formattedFirstValue) > \(percentage)% of BG \(formattedBGValue)"
+                            updatedConclusion.replaceSubrange(range, with: formattedString)
+                        }
+                    }
+                } else {
+                    // When isMmolL is false, ensure the original value is retained without duplication
+                    updatedConclusion.replaceSubrange(range, with: matchedString)
                 }
             }
 

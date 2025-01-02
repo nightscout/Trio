@@ -109,13 +109,12 @@ extension LiveActivityAttributes.ContentState {
                 rotationDegrees: rotationDegrees,
                 cob: Decimal(determination?.cob ?? 0),
                 iob: determination?.iob ?? 0 as Decimal,
-                unit: settings.units.rawValue,
                 isOverrideActive: override?.isActive ?? false,
                 overrideName: override?.overrideName ?? "Override",
                 overrideDate: override?.date ?? Date(),
                 overrideDuration: override?.duration ?? 0,
                 overrideTarget: override?.target ?? 0,
-                widgetItems: widgetItems ?? LiveActivityAttributes.LiveActivityItem.defaultItems
+                widgetItems: widgetItems ?? [] // set empty array here to silence compiler; this can never be nil
             )
 
         case .simple:
@@ -123,6 +122,7 @@ extension LiveActivityAttributes.ContentState {
         }
 
         self.init(
+            unit: settings.units.rawValue,
             bg: formattedBG,
             direction: trendString,
             change: change,

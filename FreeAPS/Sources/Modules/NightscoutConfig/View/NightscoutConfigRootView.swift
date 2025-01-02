@@ -12,7 +12,7 @@ extension NightscoutConfig {
         @State var importedHasRun = false
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
-        @State var selectedVerboseHint: String?
+        @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
@@ -22,7 +22,7 @@ extension NightscoutConfig {
 
         var body: some View {
             ZStack {
-                Form {
+                List {
                     Section(
                         header: Text("Nightscout Integration"),
                         content: {
@@ -41,7 +41,7 @@ extension NightscoutConfig {
                                 }
                             })
                             NavigationLink("Upload", destination: NightscoutUploadView(state: state))
-                            NavigationLink("Fetch & Remote Control", destination: NightscoutFetchView(state: state))
+                            NavigationLink("Fetch", destination: NightscoutFetchView(state: state))
                         }
                     ).listRowBackground(Color.chart)
 
@@ -50,15 +50,18 @@ extension NightscoutConfig {
                             Button {
                                 importAlert = Alert(
                                     title: Text("Import Therapy Settings?"),
-                                    message: Text(
-                                        "Are you sure you want to import profile settings from Nightscout?\n\nThis will overwrite the following Trio therapy settings: Basal Rates, Insulin Sensitivities, Carb Ratios, Target Glucose, and Duration of Insulin Action."
-                                    ),
+                                    message: Text("Are you sure you want to import profile settings from Nightscout?\n\n")
+                                        + Text("This will overwrite the following Trio therapy settings:\n")
+                                        + Text("• Basal Rates\n")
+                                        + Text("• Insulin Sensitivities\n")
+                                        + Text("• Carb Ratios\n")
+                                        + Text("• Glucose Targets\n")
+                                        + Text("• Duration of Insulin Action"),
                                     primaryButton: .default(
                                         Text("Yes, Import!"),
                                         action: {
                                             Task {
                                                 await state.importSettings()
-                                                // Check the import status and errors after the import process finishes
                                                 if state.importStatus == .failed, state.importErrors.isNotEmpty,
                                                    let errorMessage = state.importErrors.first
                                                 {
@@ -84,9 +87,9 @@ extension NightscoutConfig {
                                 .buttonStyle(.bordered)
                                 .disabled(state.url.isEmpty || state.connecting)
 
-                            HStack(alignment: .top) {
+                            HStack(alignment: .center) {
                                 Text(
-                                    "You can import therapy settings from Nightscout. See hint for more information which settings will be overwritten."
+                                    "Import therapy settings from Nightscout.\nSee hint for the list of settings available for import."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -96,7 +99,20 @@ extension NightscoutConfig {
                                     action: {
                                         hintLabel = "Import Settings from Nightscout"
                                         selectedVerboseHint =
-                                            "This will overwrite the following Trio therapy settings: \n • Basal Rates \n • Insulin Sensitivities \n • Carb Ratios \n • Target Glucose \n • Duration of Insulin Action"
+                                            AnyView(
+                                                VStack(alignment: .leading, spacing: 10) {
+                                                    Text(
+                                                        "This will overwrite the following Trio therapy settings:"
+                                                    )
+                                                    VStack(alignment: .leading) {
+                                                        Text("• Basal Rates")
+                                                        Text("• Insulin Sensitivities")
+                                                        Text("• Carb Ratios")
+                                                        Text("• Glucose Targets")
+                                                        Text("• Duration of Insulin Action")
+                                                    }
+                                                }
+                                            )
                                         shouldDisplayHint.toggle()
                                     },
                                     label: {
@@ -124,9 +140,9 @@ extension NightscoutConfig {
                                     .buttonStyle(.bordered)
                                     .disabled(state.url.isEmpty || state.connecting || state.backfilling)
 
-                                HStack(alignment: .top) {
+                                HStack(alignment: .center) {
                                     Text(
-                                        "You can backfill missing glucose data from Nightscout."
+                                        "Backfill missing glucose data from Nightscout."
                                     )
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -136,7 +152,11 @@ extension NightscoutConfig {
                                         action: {
                                             hintLabel = "Backfill Glucose from Nightscout"
                                             selectedVerboseHint =
-                                                "Explanation… limitation… etc."
+                                                AnyView(
+                                                    Text(
+                                                        "This will backfill 24 hours of glucose data from your connected Nightscout URL to Trio"
+                                                    )
+                                                )
                                             shouldDisplayHint.toggle()
                                         },
                                         label: {
@@ -149,7 +169,9 @@ extension NightscoutConfig {
                             }.padding(.vertical)
                         }
                     ).listRowBackground(Color.chart)
-                }.blur(radius: state.importStatus == .running ? 5 : 0)
+                }
+                .listSectionSpacing(sectionSpacing)
+                .blur(radius: state.importStatus == .running ? 5 : 0)
 
                 if state.importStatus == .running {
                     CustomProgressView(text: "Importing Profile...")
@@ -163,7 +185,7 @@ extension NightscoutConfig {
                     hintDetent: $hintDetent,
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
-                    hintText: selectedVerboseHint ?? "",
+                    hintText: selectedVerboseHint ?? AnyView(EmptyView()),
                     sheetTitle: "Help"
                 )
             }

@@ -42,7 +42,7 @@ enum Screen: Identifiable, Hashable {
     case liveActivitySettings
     case liveActivityBottomRowSettings
     case calendarEventSettings
-    case contactTrick
+    case contactImage
     case serviceSettings
     case remoteControlConfig
     case autosensSettings
@@ -139,8 +139,8 @@ extension Screen {
             LiveActivityWidgetConfiguration(resolver: resolver, state: LiveActivitySettings.StateModel())
         case .calendarEventSettings:
             CalendarEventSettings.RootView(resolver: resolver)
-        case .contactTrick:
-            ContactTrick.RootView(resolver: resolver)
+        case .contactImage:
+            ContactImage.RootView(resolver: resolver)
         case .serviceSettings:
             ServicesView(resolver: resolver, state: Settings.StateModel())
         case .autosensSettings:
