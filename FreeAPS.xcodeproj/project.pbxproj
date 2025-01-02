@@ -262,7 +262,6 @@
 		58645BA52CA2D347008AFCE7 /* ForecastSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58645BA42CA2D347008AFCE7 /* ForecastSetup.swift */; };
 		58645BA72CA2D390008AFCE7 /* ChartAxisSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58645BA62CA2D390008AFCE7 /* ChartAxisSetup.swift */; };
 		5864E8592C42CFAE00294306 /* DeterminationStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5864E8582C42CFAE00294306 /* DeterminationStorage.swift */; };
-		587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */; };
 		5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5887527B2BD986E1008B081D /* OpenAPSBattery.swift */; };
 		58A3D53A2C96D4DE003F90FC /* AddTempTargetForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */; };
 		58A3D5442C96DE11003F90FC /* TempTargetStored+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D5432C96DE11003F90FC /* TempTargetStored+Helper.swift */; };
@@ -966,7 +965,6 @@
 		58645BA42CA2D347008AFCE7 /* ForecastSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastSetup.swift; sourceTree = "<group>"; };
 		58645BA62CA2D390008AFCE7 /* ChartAxisSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartAxisSetup.swift; sourceTree = "<group>"; };
 		5864E8582C42CFAE00294306 /* DeterminationStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterminationStorage.swift; sourceTree = "<group>"; };
-		587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRowView.swift; sourceTree = "<group>"; };
 		5887527B2BD986E1008B081D /* OpenAPSBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSBattery.swift; sourceTree = "<group>"; };
 		58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTempTargetForm.swift; sourceTree = "<group>"; };
 		58A3D5432C96DE11003F90FC /* TempTargetStored+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetStored+Helper.swift"; sourceTree = "<group>"; };
@@ -2081,7 +2079,6 @@
 				FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */,
 				FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */,
 				CEA4F62229BE10F70011ADF7 /* SavitzkyGolayFilter.swift */,
-				587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */,
 				BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */,
 				BD1661302B82ADAB00256551 /* CustomProgressView.swift */,
 				581516A32BCED84A00BF67D7 /* DebuggingIdentifiers.swift */,
@@ -3667,7 +3664,6 @@
 				110AEDE42C5193D200615CC9 /* BolusIntentRequest.swift in Sources */,
 				3811DE4325C9D4A100A708ED /* SettingsProvider.swift in Sources */,
 				45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */,
-				587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */,
 				CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */,
 				38C4D33A25E9A1ED00D30B77 /* NSObject+AssociatedValues.swift in Sources */,
 				110AEDEB2C51A0AE00615CC9 /* ShortcutsConfigView.swift in Sources */,
