@@ -153,7 +153,7 @@ extension MainChartView {
         return tempBasals.compactMap { temp -> (start: Date, end: Date, rate: Double)? in
             let duration = temp.tempBasal?.duration ?? 0
             let timestamp = temp.timestamp ?? Date()
-            let end = min(timestamp + duration.minutes, now)
+            let end = timestamp + duration.minutes
             let isInsulinSuspended = state.suspensions.contains { $0.timestamp ?? now >= timestamp && $0.timestamp ?? now <= end }
 
             let rate = Double(truncating: temp.tempBasal?.rate ?? Decimal.zero as NSDecimalNumber) * (isInsulinSuspended ? 0 : 1)
@@ -168,14 +168,13 @@ extension MainChartView {
 
     func findRegularBasalPoints(
         timeBegin: TimeInterval,
-        timeEnd: TimeInterval,
-        autotuned: Bool
+        timeEnd: TimeInterval
     ) async -> [BasalProfile] {
         guard timeBegin < timeEnd else { return [] }
 
         let beginDate = Date(timeIntervalSince1970: timeBegin)
         let startOfDay = Calendar.current.startOfDay(for: beginDate)
-        let profile = autotuned ? state.autotunedBasalProfile : state.basalProfile
+        let profile = state.basalProfile
         var basalPoints: [BasalProfile] = []
 
         // Iterate over the next three days, multiplying the time intervals
@@ -203,34 +202,56 @@ extension MainChartView {
         Task {
             let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
 
-            // Get Regular and Autotuned Basal parallel
             async let getRegularBasalPoints = findRegularBasalPoints(
                 timeBegin: dayAgoTime,
-                timeEnd: endMarker.timeIntervalSince1970,
-                autotuned: false
+                timeEnd: endMarker.timeIntervalSince1970
             )
 
-            async let getAutotunedBasalPoints = findRegularBasalPoints(
-                timeBegin: dayAgoTime,
-                timeEnd: endMarker.timeIntervalSince1970,
-                autotuned: true
-            )
-
-            let (regularPoints, autotunedBasalPoints) = await (getRegularBasalPoints, getAutotunedBasalPoints)
-
-            var totalBasal = regularPoints + autotunedBasalPoints
-            totalBasal.sort {
-                $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970
-            }
+            var regularPoints = await getRegularBasalPoints
+            regularPoints.sort { $0.startDate < $1.startDate }
 
             var basals: [BasalProfile] = []
-            totalBasal.indices.forEach { index in
-                basals.append(BasalProfile(
-                    amount: totalBasal[index].amount,
-                    isOverwritten: totalBasal[index].isOverwritten,
-                    startDate: totalBasal[index].startDate,
-                    endDate: totalBasal.count > index + 1 ? totalBasal[index + 1].startDate : endMarker
-                ))
+
+            // No basal data? Then there's nothing to draw
+            if regularPoints.isEmpty {
+                // basals stays empty; do nothing
+            }
+            // Exactly one data point?
+            else if regularPoints.count == 1 {
+                let single = regularPoints[0]
+                // Make one BasalProfile that stretches entire marker area
+                basals.append(
+                    BasalProfile(
+                        amount: single.amount,
+                        isOverwritten: single.isOverwritten,
+                        startDate: startMarker,
+                        endDate: endMarker
+                    )
+                )
+            }
+            // Multiple data points: chain them so each point ends where the next begins
+            else {
+                for i in 0 ..< (regularPoints.count - 1) {
+                    basals.append(
+                        BasalProfile(
+                            amount: regularPoints[i].amount,
+                            isOverwritten: regularPoints[i].isOverwritten,
+                            startDate: regularPoints[i].startDate,
+                            endDate: regularPoints[i + 1].startDate
+                        )
+                    )
+                }
+                // The last item goes from its start to endMarker
+                if let lastItem = regularPoints.last {
+                    basals.append(
+                        BasalProfile(
+                            amount: lastItem.amount,
+                            isOverwritten: lastItem.isOverwritten,
+                            startDate: lastItem.startDate,
+                            endDate: endMarker
+                        )
+                    )
+                }
             }
 
             await MainActor.run {

@@ -1238,12 +1238,6 @@ Enact a temp Basal or a temp target */
 /* Debug option view Enacted */
 "Enacted" = "Принято";
 
-/* Debug option view Announcements (from NS) */
-"Announcements" = "Оповещения";
-
-/* Debug option view Enacted announcements announcements (from NS) */
-"Enacted announcements" = "Принятые оповещения";
-
 /* Debug option view Autotune */
 "Autotune" = "Автотюн";
 

@@ -7,7 +7,6 @@ extension Home {
         @Injected() var apsManager: APSManager!
         @Injected() var glucoseStorage: GlucoseStorage!
         @Injected() var tempTargetsStorage: TempTargetsStorage!
-        @Injected() var announcementStorage: AnnouncementsStorage!
 
         func pumpTimeZone() -> TimeZone? {
             apsManager.pumpManager?.status.timeZone
@@ -25,12 +24,6 @@ extension Home {
 
         func tempTarget() -> TempTarget? {
             tempTargetsStorage.current()
-        }
-
-        func announcement(_ hours: Int) -> [Announcement] {
-            announcementStorage.validate().filter {
-                $0.createdAt.addingTimeInterval(hours.hours.timeInterval) > Date()
-            }
         }
 
         func pumpSettings() -> PumpSettings {

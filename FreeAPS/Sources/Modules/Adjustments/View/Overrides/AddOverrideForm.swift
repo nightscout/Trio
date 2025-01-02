@@ -55,23 +55,7 @@ struct AddOverrideForm: View {
             }
             .onAppear { targetStep = state.units == .mgdL ? 5 : 9 }
             .sheet(isPresented: $state.isHelpSheetPresented) {
-                NavigationStack {
-                    List {
-                        Text("Lorem Ipsum Dolor Sit Amet")
-                    }
-                    .padding(.trailing, 10)
-                    .navigationBarTitle("Help", displayMode: .inline)
-
-                    Button { state.isHelpSheetPresented.toggle() }
-                    label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
-                        .buttonStyle(.bordered)
-                        .padding(.top)
-                }
-                .padding()
-                .presentationDetents(
-                    [.fraction(0.9), .large],
-                    selection: $state.helpSheetDetent
-                )
+                OverrideHelpView(state: state, helpSheetDetent: $state.helpSheetDetent)
             }
         }
     }
@@ -94,9 +78,9 @@ struct AddOverrideForm: View {
                     Spacer()
                     Text("\(state.overridePercentage.formatted(.number)) %")
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
-                }
-                .onTapGesture {
-                    displayPickerPercentage = toggleScrollWheel(displayPickerPercentage)
+                        .onTapGesture {
+                            displayPickerPercentage = toggleScrollWheel(displayPickerPercentage)
+                        }
                 }
 
                 if displayPickerPercentage {
@@ -232,6 +216,9 @@ struct AddOverrideForm: View {
                                 state.convertTo12HourFormat(Int(truncating: state.start as NSNumber))
                         )
                         .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
+                        .onTapGesture {
+                            displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
+                        }
                         Spacer()
                         Divider().frame(width: 1, height: 20)
                         Spacer()
@@ -242,10 +229,10 @@ struct AddOverrideForm: View {
                                 state.convertTo12HourFormat(Int(truncating: state.end as NSNumber))
                         )
                         .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
+                        .onTapGesture {
+                            displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
+                        }
                         Spacer()
-                    }
-                    .onTapGesture {
-                        displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
                     }
 
                     if displayPickerDisableSmbSchedule {
@@ -301,6 +288,9 @@ struct AddOverrideForm: View {
                             Spacer()
                             Text("\(state.smbMinutes.formatted(.number)) min")
                                 .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
+                                .onTapGesture {
+                                    displayPickerSmbMinutes = toggleScrollWheel(displayPickerSmbMinutes)
+                                }
                             Spacer()
                             Divider().frame(width: 1, height: 20)
                             Spacer()
@@ -308,9 +298,9 @@ struct AddOverrideForm: View {
                             Spacer()
                             Text("\(state.uamMinutes.formatted(.number)) min")
                                 .foregroundColor(!displayPickerSmbMinutes ? .primary : .accentColor)
-                        }
-                        .onTapGesture {
-                            displayPickerSmbMinutes = toggleScrollWheel(displayPickerSmbMinutes)
+                                .onTapGesture {
+                                    displayPickerSmbMinutes = toggleScrollWheel(displayPickerSmbMinutes)
+                                }
                         }
 
                         if displayPickerSmbMinutes {
@@ -355,9 +345,9 @@ struct AddOverrideForm: View {
                         Spacer()
                         Text(state.formatHrMin(Int(state.overrideDuration)))
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
-                    }
-                    .onTapGesture {
-                        displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                            .onTapGesture {
+                                displayPickerDuration = toggleScrollWheel(displayPickerDuration)
+                            }
                     }
 
                     if displayPickerDuration {

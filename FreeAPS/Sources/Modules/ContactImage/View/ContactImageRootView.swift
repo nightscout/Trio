@@ -74,6 +74,15 @@ extension ContactImage {
                     }
                     .onDelete(perform: onDelete)
                 }
+
+                Section {} header: {
+                    Text(
+                        "Add one or more contacts to your iOS Contacts to display real-time Trio metrics on your watch face. Be sure to grant Trio full access to your Contacts when prompted."
+                    )
+                    .textCase(nil)
+                    .foregroundStyle(.secondary)
+                }
+
             }.listRowBackground(Color.chart)
         }
 

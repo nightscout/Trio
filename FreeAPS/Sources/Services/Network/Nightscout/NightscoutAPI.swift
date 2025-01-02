@@ -286,41 +286,6 @@ extension NightscoutAPI {
         }
     }
 
-    func fetchAnnouncement(sinceDate: Date? = nil) -> AnyPublisher<[Announcement], Swift.Error> {
-        var components = URLComponents()
-        components.scheme = url.scheme
-        components.host = url.host
-        components.port = url.port
-        components.path = Config.treatmentsPath
-        components.queryItems = [
-            URLQueryItem(name: "find[eventType]", value: "Announcement"),
-            URLQueryItem(
-                name: "find[enteredBy]",
-                value: Announcement.remote.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
-            )
-        ]
-        if let date = sinceDate {
-            let dateItem = URLQueryItem(
-                name: "find[created_at][$gte]",
-                value: Formatter.iso8601withFractionalSeconds.string(from: date)
-            )
-            components.queryItems?.append(dateItem)
-        }
-
-        var request = URLRequest(url: components.url!)
-        request.allowsConstrainedNetworkAccess = false
-        request.timeoutInterval = Config.timeout
-
-        if let secret = secret {
-            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
-        }
-
-        return service.run(request)
-            .retry(Config.retryCount)
-            .decode(type: [Announcement].self, decoder: JSONCoding.decoder)
-            .eraseToAnyPublisher()
-    }
-
     func uploadTreatments(_ treatments: [NightscoutTreatment]) async throws {
         var components = URLComponents()
         components.scheme = url.scheme

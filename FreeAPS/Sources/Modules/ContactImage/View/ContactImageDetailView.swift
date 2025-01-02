@@ -133,23 +133,7 @@ struct ContactImageDetailView: View {
             }
         }
         .sheet(isPresented: $state.isHelpSheetPresented) {
-            NavigationStack {
-                List {
-                    Text("Lorem Ipsum Dolor Sit Amet")
-                }
-                .padding(.trailing, 10)
-                .navigationBarTitle("Help", displayMode: .inline)
-
-                Button { state.isHelpSheetPresented.toggle() }
-                label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
-                    .buttonStyle(.bordered)
-                    .padding(.top)
-            }
-            .padding()
-            .presentationDetents(
-                [.fraction(0.9), .large],
-                selection: $state.helpSheetDetent
-            )
+            ContactImageHelpView(state: state, helpSheetDetent: $state.helpSheetDetent)
         }
     }
 

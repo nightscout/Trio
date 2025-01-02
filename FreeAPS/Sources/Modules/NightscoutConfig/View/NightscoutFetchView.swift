@@ -37,41 +37,8 @@ struct NightscoutFetchView: View {
                         "The Fetch Treatments toggle enables fetching of carbs and temp targets entered in Careportal or by another uploading device than Trio from Nightscout."
                     )
                 },
-                headerText: "Remote & Fetch Capabilities"
+                headerText: "Fetch NS Care Portal Data"
             )
-
-            if state.isDownloadEnabled {
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.allowAnnouncements,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Allow Remote Control of Trio"
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: "Allow Remote Control of Trio",
-                    miniHint: "Enables selected remote control capabilities via Nightscout.",
-                    verboseHint: VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
-                        Text("When enabled you allow the following remote functions through announcements from Nightscout:")
-                        VStack(alignment: .leading) {
-                            Text("• Suspend/Resume Pump")
-                            Text("• Opening/Closing Loop")
-                            Text("• Set Temp Basal")
-                            Text("• Enact Bolus")
-                        }
-                    }
-                )
-            } else {
-                Section {
-                    Text("'Allow Fetching from Nightscout' must be enabled to allow for Trio Remote Control.")
-                }.listRowBackground(Color.tabBar)
-            }
         }
         .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {
@@ -83,7 +50,7 @@ struct NightscoutFetchView: View {
                 sheetTitle: "Help"
             )
         }
-        .navigationTitle("Fetch & Remote")
+        .navigationTitle("Fetch")
         .navigationBarTitleDisplayMode(.automatic)
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))
