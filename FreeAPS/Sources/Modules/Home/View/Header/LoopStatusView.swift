@@ -7,10 +7,11 @@ struct LoopStatusView: View {
     var state: Home.StateModel
 
     @State var sheetDetent = PresentationDetent.fraction(0.8)
-    @State private var statusTitle: String = ""
     // Help Sheet
     @State var isHelpSheetPresented: Bool = false
     @State var helpSheetDetent = PresentationDetent.fraction(0.9)
+
+    @State private var statusTitle: String = ""
 
     var body: some View {
         NavigationStack {
@@ -52,6 +53,9 @@ struct LoopStatusView: View {
                             "Trio is currently using these metrics and values as determined by the oref algorithm:"
                         )
                         .font(.subheadline)
+                        .lineLimit(nil)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
 
                         let tags = !state.isSmoothingEnabled ? determination.reasonParts : determination
                             .reasonParts + ["Smoothing: On"]
@@ -68,7 +72,11 @@ struct LoopStatusView: View {
                                     determination.reasonConclusion,
                                     isMmolL: state.units == .mmolL
                                 )
-                        ).font(.subheadline)
+                        )
+                        .font(.subheadline)
+                        .lineLimit(nil)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
                     }
                 } else {
                     Text("No recent oref algorithm determination.")
@@ -108,22 +116,7 @@ struct LoopStatusView: View {
                 setStatusTitle()
             }
             .sheet(isPresented: $isHelpSheetPresented) {
-                NavigationStack {
-                    List {
-                        DefinitionRow(term: "Placeholder for Algo Term", definition: Text("Lorem Ipsum Dolor Sit Amet"))
-                    }
-                    .navigationBarTitle("Help", displayMode: .inline)
-
-                    Button { isHelpSheetPresented.toggle() }
-                    label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center) }
-                        .buttonStyle(.bordered)
-                        .padding(.top)
-                }
-                .padding()
-                .presentationDetents(
-                    [.fraction(0.9), .large],
-                    selection: $helpSheetDetent
-                ).scrollContentBackground(.hidden)
+                LoopStatusHelpView(state: state, helpSheetDetent: $helpSheetDetent, isHelpSheetPresented: $isHelpSheetPresented)
             }
         }
         .scrollContentBackground(.hidden)
