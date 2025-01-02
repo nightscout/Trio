@@ -150,8 +150,11 @@ struct LoopStatusView: View {
     }
 
     private var statusBadgeTextColor: Color {
-        statusBadgeColor == .secondary || statusBadgeColor == .loopYellow ? .black :
-            .white
+        if statusBadgeColor == .secondary {
+            .black
+        } else {
+            colorScheme == .dark ? Color(red: 25.0 / 255.0, green: 39.0 / 255.0, blue: 53.0 / 255.0, opacity: 1.0) : .white
+        }
     }
 
     private func setStatusTitle() {
