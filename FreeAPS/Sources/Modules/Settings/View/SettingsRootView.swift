@@ -205,8 +205,10 @@ extension Settings {
                                 }
                             } else {
                                 Text("No settings matching your search query")
-                                Text(" »\(searchText)« ").bold()
-                                Text("found.")
+                                    +
+                                    Text(" »\(searchText)« ").bold()
+                                    +
+                                    Text("found.")
                             }
                         }
                     ).listRowBackground(Color.chart)
