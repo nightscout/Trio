@@ -76,7 +76,7 @@ struct TagCloudView: View {
             case textTag where textTag.contains("SMB Ratio"):
                 return .orange
             case textTag where textTag.contains("Smoothing: On"):
-                return .white
+                return .gray
             default:
                 return .insulin
             }
@@ -91,7 +91,7 @@ struct TagCloudView: View {
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .background(colorOfTag.opacity(colorScheme == .dark ? 0.15 : 0.25))
-                .foregroundColor(colorOfTag == Color.white ? Color.black : colorOfTag)
+                .foregroundColor(colorOfTag)
                 .clipShape(Capsule())
                 .overlay(
                     Capsule()
