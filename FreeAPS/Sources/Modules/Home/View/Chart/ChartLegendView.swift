@@ -160,8 +160,7 @@ struct ChartLegendView: View {
                 Button {
                     state.isLegendPresented.toggle()
                 } label: {
-                    Text("Got it!")
-                        .frame(maxWidth: .infinity, alignment: .center)
+                    Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 40, alignment: .center)
                 }
                 .buttonStyle(.bordered)
                 .padding(.top)
