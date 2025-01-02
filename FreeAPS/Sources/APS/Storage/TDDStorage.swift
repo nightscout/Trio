@@ -173,7 +173,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
 
         // Add temp basal events to the timeline
         for event in tempBasalEvents {
-            guard let duration = event.duration, let rate = event.amount, rate > 0 else { continue }
+            guard let duration = event.duration, let rate = event.amount else { continue }
             let end = event.timestamp.addingTimeInterval(TimeInterval(duration * 60))
             timeline.append((start: event.timestamp, end: end, type: .tempBasal, rate: rate))
         }
@@ -261,6 +261,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
 
         return gaps.reduce(into: Decimal(0)) { totalInsulin, gap in
             var currentTime = gap.start
+            let now = Date()
 
             while currentTime < gap.end {
                 // Find applicable basal rate for current time
@@ -276,7 +277,12 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                     calendar: Calendar.current
                 ) ?? gap.end
 
-                let endTime = min(nextSwitchTime, gap.end)
+                // Ensure endTime does not exceed current time or gap end
+                let endTime = min(min(nextSwitchTime, gap.end), now)
+
+                // Only proceed if we have a valid time interval
+                guard endTime > currentTime else { break }
+
                 let durationHours = (Decimal(endTime.timeIntervalSince(currentTime)) / 3600).truncated(toPlaces: 5)
                 let insulin = Decimal(roundToSupportedBasalRate(Double(rate * durationHours)))
 
