@@ -16,6 +16,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var apsManager: APSManager!
     @Injected() private var settingsManager: SettingsManager!
+    @Injected() private var determinationStorage: DeterminationStorage!
 
     private var units: GlucoseUnits = .mgdL
 
@@ -24,7 +25,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     typealias PumpEvent = PumpEventStored.EventType
 
-    let glucoseFetchContext = CoreDataStack.shared.newTaskContext()
+    let backgroundContext = CoreDataStack.shared.newTaskContext()
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
     init(resolver: Resolver) {
@@ -47,10 +48,29 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 guard let self = self else { return }
                 Task {
                     let state = await self.setupWatchState()
-                    self.sendGlucoseData(state)
+                    self.sendDataToWatch(state)
                 }
             }
             .store(in: &subscriptions)
+    }
+
+    private func registerHandlers() {
+        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task {
+                let state = await self.setupWatchState()
+                self.sendDataToWatch(state)
+            }
+        }.store(in: &subscriptions)
+
+        // Due to the Batch insert this only is used for observing Deletion of Glucose entries
+        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task {
+                let state = await self.setupWatchState()
+                self.sendDataToWatch(state)
+            }
+        }.store(in: &subscriptions)
     }
 
     /// Sets up the WatchConnectivity session if the device supports it
@@ -78,16 +98,32 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     /// Prepares the current state data to be sent to the Watch
-    /// - Returns: WatchState containing current glucose readings and trends
+    /// - Returns: WatchState containing current glucose readings and trends and determination infos for displaying cob and iob in the view
     private func setupWatchState() async -> WatchState {
-        let ids = await fetchGlucose()
+        // Get NSManagedObjectIDs
+        let glucoseIds = await fetchGlucose()
+        // TODO: - if we want that the watch immediately displays updated cob and iob values when entered via treatment view from phone, we would need to use a predicate here that also filters for NON-ENACTED Determinations
+        let determinationIds = await determinationStorage.fetchLastDeterminationObjectID(
+            predicate: NSPredicate.predicateFor30MinAgoForDetermination
+        )
 
         // Get NSManagedObjects
         let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared
-            .getNSManagedObject(with: ids, context: glucoseFetchContext)
+            .getNSManagedObject(with: glucoseIds, context: backgroundContext)
+        let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
+            .getNSManagedObject(with: determinationIds, context: backgroundContext)
 
-        return await glucoseFetchContext.perform {
+        return await backgroundContext.perform {
             var watchState = WatchState()
+
+            // Set IOB and COB from latest determination
+            if let latestDetermination = determinationObjects.first {
+                let iob = latestDetermination.iob ?? 0
+                watchState.iob = Formatter.decimalFormatterWithTwoFractionDigits.string(from: iob)
+
+                let cob = NSNumber(value: latestDetermination.cob)
+                watchState.cob = Formatter.integerFormatter.string(from: cob)
+            }
 
             guard let latestGlucose = glucoseObjects.first else {
                 return watchState
@@ -130,14 +166,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     private func fetchGlucose() async -> [NSManagedObjectID] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: glucoseFetchContext,
+            onContext: backgroundContext,
             predicate: NSPredicate.glucose,
             key: "date",
             ascending: false,
             fetchLimit: 288
         )
 
-        return await glucoseFetchContext.perform {
+        return await backgroundContext.perform {
             guard let fetchedResults = results as? [GlucoseStored] else { return [] }
 
             return fetchedResults.map(\.objectID)
@@ -146,9 +182,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     // MARK: - Send Data to Watch
 
-    /// Sends the current glucose state to the connected Watch
+    /// Sends the state of type WatchState to the connected Watch
     /// - Parameter state: Current WatchState containing glucose data to be sent
-    func sendGlucoseData(_ state: WatchState) {
+    func sendDataToWatch(_ state: WatchState) {
         guard let session = session, session.isReachable else {
             print("⌚️ Watch not reachable")
             return
@@ -163,13 +199,18 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     "glucose": value.glucose,
                     "date": value.date.timeIntervalSince1970
                 ]
-            }
+            },
+            "iob": state.iob ?? "0",
+            "cob": state.cob ?? "0"
         ]
 
-        print("📱 Sending to watch: currentGlucose: \(state.currentGlucose ?? "nil"), trend: \(state.trend ?? "nil")")
+        print("📱 Sending to watch - Message content:")
+        message.forEach { key, value in
+            print("📱 \(key): \(value) (type: \(type(of: value)))")
+        }
 
         session.sendMessage(message, replyHandler: nil) { error in
-            print("❌ Error sending glucose data: \(error.localizedDescription)")
+            print("❌ Error sending data: \(error.localizedDescription)")
         }
     }
 
@@ -187,7 +228,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         // Try to send initial data after activation
         Task {
             let state = await self.setupWatchState()
-            self.sendGlucoseData(state)
+            self.sendDataToWatch(state)
         }
     }
 
@@ -228,7 +269,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             // Try to send data when connection is established
             Task {
                 let state = await self.setupWatchState()
-                self.sendGlucoseData(state)
+                self.sendDataToWatch(state)
             }
         } else {
             // Try to reconnect after a short delay

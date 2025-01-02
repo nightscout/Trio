@@ -1,14 +1,11 @@
-import Foundation
-
-// TODO: expand this for cob,iob etc
 struct WatchState: Hashable, Equatable, Sendable {
     var currentGlucose: String?
     var trend: String?
     var delta: String?
     var glucoseValues: [(date: Date, glucose: Double)] = []
     var units: GlucoseUnits = .mmolL
-    var iob: String?
-    var cob: String?
+    var iob: Decimal = 0 // Insulin on Board
+    var cob: Int = 0 // Carbs on Board
 
     static func == (lhs: WatchState, rhs: WatchState) -> Bool {
         lhs.currentGlucose == rhs.currentGlucose &&

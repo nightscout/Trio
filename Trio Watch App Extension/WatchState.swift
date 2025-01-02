@@ -13,8 +13,10 @@ import WatchConnectivity
 
     var currentGlucose: String = "--"
     var trend: String? = ""
-    var delta: String? = ""
+    var delta: String? = "--"
     var glucoseValues: [(date: Date, glucose: Double)] = []
+    var cob: String? = "--"
+    var iob: String? = "--"
 
     override init() {
         super.init()
@@ -104,6 +106,14 @@ import WatchConnectivity
 
             if let delta = message["delta"] as? String {
                 self.delta = delta
+            }
+
+            if let iob = message["iob"] as? String {
+                self.iob = iob
+            }
+
+            if let cob = message["cob"] as? String {
+                self.cob = cob
             }
 
             if let glucoseData = message["glucoseValues"] as? [[String: Any]] {

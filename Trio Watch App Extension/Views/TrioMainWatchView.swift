@@ -29,6 +29,21 @@ struct TrioMainWatchView: View {
                     }
                 }
 
+                VStack {
+                    HStack {
+                        Image(systemName: "drop.fill")
+                        Text("\(state.iob ?? "--") U")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack {
+                        Image(systemName: "fork.knife")
+                        Text("\(state.cob ?? "--") g")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
                 HStack(spacing: 20) {
                     Button {
                         showingCarbsSheet = true
