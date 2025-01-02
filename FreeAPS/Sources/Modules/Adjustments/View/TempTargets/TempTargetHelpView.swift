@@ -25,7 +25,7 @@ struct TempTargetHelpView: View {
             .navigationBarTitle("Help", displayMode: .inline)
 
             Button { state.isHelpSheetPresented.toggle() }
-            label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 40, alignment: .center) }
+            label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center) }
                 .buttonStyle(.bordered)
                 .padding(.top)
         }

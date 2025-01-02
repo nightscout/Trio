@@ -19,6 +19,7 @@ struct LoopStatusView: View {
 
                 Text(statusTitle)
                     .font(.headline)
+                    .bold()
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .foregroundColor(statusBadgeTextColor)
@@ -78,7 +79,7 @@ struct LoopStatusView: View {
                 Button {
                     state.isLoopStatusPresented.toggle()
                 } label: {
-                    Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 40, alignment: .center)
+                    Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center)
                 }
                 .buttonStyle(.bordered)
                 .padding(.top)
@@ -114,7 +115,7 @@ struct LoopStatusView: View {
                     .navigationBarTitle("Help", displayMode: .inline)
 
                     Button { isHelpSheetPresented.toggle() }
-                    label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 40, alignment: .center) }
+                    label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center) }
                         .buttonStyle(.bordered)
                         .padding(.top)
                 }
