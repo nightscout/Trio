@@ -305,6 +305,13 @@
 		BD7DA9A72AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */; };
 		BD7DA9A92AE06E9200601B20 /* BolusCalculatorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */; };
 		BD7DA9AC2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9AB2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift */; };
+		BDA25EE42D260CD500035F34 /* AppleWatchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25EE32D260CCF00035F34 /* AppleWatchManager.swift */; };
+		BDA25EE62D260D5E00035F34 /* WatchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25EE52D260D5800035F34 /* WatchState.swift */; };
+		BDA25EFD2D261C0000035F34 /* WatchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25EFC2D261BF200035F34 /* WatchState.swift */; };
+		BDA25F1C2D26BD0700035F34 /* TrendShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25F1B2D26BD0300035F34 /* TrendShape.swift */; };
+		BDA25F1E2D26D5DD00035F34 /* GlucoseChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25F1D2D26D5D800035F34 /* GlucoseChartView.swift */; };
+		BDA25F202D26D5FE00035F34 /* CarbsInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */; };
+		BDA25F222D26D62800035F34 /* BolusInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25F212D26D62200035F34 /* BolusInputView.swift */; };
 		BDA6CC882CAF219B00F942F9 /* TempTargetSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */; };
 		BDB3C1192C03DD1000CEEAA1 /* UserDefaultsExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB3C1182C03DD1000CEEAA1 /* UserDefaultsExtension.swift */; };
 		BDB899882C564509006F3298 /* ForecastChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB899872C564509006F3298 /* ForecastChart.swift */; };
@@ -330,7 +337,7 @@
 		BDFD165A2AE40438007F0DDA /* TreatmentsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFD16592AE40438007F0DDA /* TreatmentsRootView.swift */; };
 		BDFF799F2D25AA890016C40C /* TrioWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = BDFF797C2D25AA870016C40C /* TrioWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BDFF7A872D25F97D0016C40C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BDFF7A832D25F97D0016C40C /* Assets.xcassets */; };
-		BDFF7A882D25F97D0016C40C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A842D25F97D0016C40C /* ContentView.swift */; };
+		BDFF7A882D25F97D0016C40C /* TrioMainWatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A842D25F97D0016C40C /* TrioMainWatchView.swift */; };
 		BDFF7A892D25F97D0016C40C /* TrioWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A852D25F97D0016C40C /* TrioWatchApp.swift */; };
 		BDFF7A8B2D25F97D0016C40C /* TrioWatch_Watch_AppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A8A2D25F97D0016C40C /* TrioWatch_Watch_AppTests.swift */; };
 		BDFF7A8E2D25F97D0016C40C /* TrioWatch_Watch_AppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A8C2D25F97D0016C40C /* TrioWatch_Watch_AppUITests.swift */; };
@@ -997,6 +1004,13 @@
 		BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigProvider.swift; sourceTree = "<group>"; };
 		BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorStateModel.swift; sourceTree = "<group>"; };
 		BD7DA9AB2AE06EB900601B20 /* BolusCalculatorConfigRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigRootView.swift; sourceTree = "<group>"; };
+		BDA25EE32D260CCF00035F34 /* AppleWatchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleWatchManager.swift; sourceTree = "<group>"; };
+		BDA25EE52D260D5800035F34 /* WatchState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchState.swift; sourceTree = "<group>"; };
+		BDA25EFC2D261BF200035F34 /* WatchState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchState.swift; sourceTree = "<group>"; };
+		BDA25F1B2D26BD0300035F34 /* TrendShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendShape.swift; sourceTree = "<group>"; };
+		BDA25F1D2D26D5D800035F34 /* GlucoseChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseChartView.swift; sourceTree = "<group>"; };
+		BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbsInputView.swift; sourceTree = "<group>"; };
+		BDA25F212D26D62200035F34 /* BolusInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusInputView.swift; sourceTree = "<group>"; };
 		BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetSetup.swift; sourceTree = "<group>"; };
 		BDB3C1182C03DD1000CEEAA1 /* UserDefaultsExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsExtension.swift; sourceTree = "<group>"; };
 		BDB899872C564509006F3298 /* ForecastChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastChart.swift; sourceTree = "<group>"; };
@@ -1024,7 +1038,7 @@
 		BDFF798B2D25AA890016C40C /* TrioWatch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TrioWatch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDFF79952D25AA890016C40C /* TrioWatch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TrioWatch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDFF7A832D25F97D0016C40C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		BDFF7A842D25F97D0016C40C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		BDFF7A842D25F97D0016C40C /* TrioMainWatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioMainWatchView.swift; sourceTree = "<group>"; };
 		BDFF7A852D25F97D0016C40C /* TrioWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchApp.swift; sourceTree = "<group>"; };
 		BDFF7A8A2D25F97D0016C40C /* TrioWatch_Watch_AppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatch_Watch_AppTests.swift; sourceTree = "<group>"; };
 		BDFF7A8C2D25F97D0016C40C /* TrioWatch_Watch_AppUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatch_Watch_AppUITests.swift; sourceTree = "<group>"; };
@@ -1984,6 +1998,7 @@
 		388E5A5925B6F0250019842D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				BDA25EFC2D261BF200035F34 /* WatchState.swift */,
 				DD07CA132CE80B73002D45A9 /* TimeInRangeChartStyle.swift */,
 				DD940BA92CA7585D000830A5 /* GlucoseColorScheme.swift */,
 				DD6D67E32C9C253500660C9B /* ColorSchemeOption.swift */,
@@ -2171,6 +2186,7 @@
 		38E8754D275556E100975559 /* WatchManager */ = {
 			isa = PBXGroup;
 			children = (
+				BDA25EE32D260CCF00035F34 /* AppleWatchManager.swift */,
 				CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */,
 			);
 			path = WatchManager;
@@ -2461,6 +2477,18 @@
 			path = View;
 			sourceTree = "<group>";
 		};
+		BDA25F1A2D26BCE800035F34 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				BDA25F212D26D62200035F34 /* BolusInputView.swift */,
+				BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */,
+				BDA25F1D2D26D5D800035F34 /* GlucoseChartView.swift */,
+				BDA25F1B2D26BD0300035F34 /* TrendShape.swift */,
+				BDFF7A842D25F97D0016C40C /* TrioMainWatchView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
 		BDDAF9F12D0055CC00B34E7A /* ChartElements */ = {
 			isa = PBXGroup;
 			children = (
@@ -2492,9 +2520,10 @@
 		BDFF7A9C2D25FA730016C40C /* Trio Watch App Extension */ = {
 			isa = PBXGroup;
 			children = (
+				BDA25F1A2D26BCE800035F34 /* Views */,
+				BDA25EE52D260D5800035F34 /* WatchState.swift */,
 				BDFF7A9E2D25FA970016C40C /* Preview Content */,
 				BDFF7A832D25F97D0016C40C /* Assets.xcassets */,
-				BDFF7A842D25F97D0016C40C /* ContentView.swift */,
 				BDFF7A852D25F97D0016C40C /* TrioWatchApp.swift */,
 			);
 			path = "Trio Watch App Extension";
@@ -3726,6 +3755,7 @@
 				DD9ECB712CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift in Sources */,
 				63E890B4D951EAA91C071D5C /* BasalProfileEditorStateModel.swift in Sources */,
 				38FEF3FA2737E42000574A46 /* BaseStateModel.swift in Sources */,
+				BDA25EFD2D261C0000035F34 /* WatchState.swift in Sources */,
 				CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */,
 				385CEA8225F23DFD002D6D5B /* NightscoutStatus.swift in Sources */,
 				DD17453C2C55BFAD00211FAC /* AlgorithmAdvancedSettingsProvider.swift in Sources */,
@@ -3909,6 +3939,7 @@
 				BD4ED4FD2CF9D5E8000EDC9C /* AppState.swift in Sources */,
 				DDF847DD2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift in Sources */,
 				8194B80890CDD6A3C13B0FEE /* SnoozeStateModel.swift in Sources */,
+				BDA25EE42D260CD500035F34 /* AppleWatchManager.swift in Sources */,
 				0437CE46C12535A56504EC19 /* SnoozeRootView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3939,8 +3970,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BDFF7A882D25F97D0016C40C /* ContentView.swift in Sources */,
+				BDA25F222D26D62800035F34 /* BolusInputView.swift in Sources */,
+				BDFF7A882D25F97D0016C40C /* TrioMainWatchView.swift in Sources */,
+				BDA25F202D26D5FE00035F34 /* CarbsInputView.swift in Sources */,
+				BDA25F1C2D26BD0700035F34 /* TrendShape.swift in Sources */,
 				BDFF7A892D25F97D0016C40C /* TrioWatchApp.swift in Sources */,
+				BDA25F1E2D26D5DD00035F34 /* GlucoseChartView.swift in Sources */,
+				BDA25EE62D260D5E00035F34 /* WatchState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

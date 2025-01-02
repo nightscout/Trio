@@ -380,15 +380,6 @@
             ReferencedContainer = "container:Trio.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "388E595725AD948C0019842D"
-            BuildableName = "Trio.app"
-            BlueprintName = "Trio"
-            ReferencedContainer = "container:Trio.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <CommandLineArguments>
          <CommandLineArgument
             argument = "-com.apple.CoreData.ConcurrencyDebug 1"
@@ -427,15 +418,6 @@
             ReferencedContainer = "container:Trio.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "388E595725AD948C0019842D"
-            BuildableName = "Trio.app"
-            BlueprintName = "Trio"
-            ReferencedContainer = "container:Trio.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
