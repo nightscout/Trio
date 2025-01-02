@@ -83,7 +83,9 @@ struct PumpView: View {
                             .foregroundColor(timerColor)
 
                         Text(remainingTimeString(time: date.timeIntervalSince(timerDate)))
-                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                            .font(!(date.timeIntervalSince(timerDate) > 0) ? .subheadline : .callout)
+                            .fontWeight(.bold)
+                            .fontDesign(.rounded)
                     }
                 }
             }
