@@ -64,7 +64,7 @@ extension Home {
         var timeZone: TimeZone?
         var hours: Int16 = 6
         var totalBolus: Decimal = 0
-        var isStatusPopupPresented: Bool = false
+        var isLoopStatusPresented: Bool = false
         var isLegendPresented: Bool = false
         var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
         var roundedTotalBolus: String = ""
