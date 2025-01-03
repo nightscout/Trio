@@ -68,17 +68,6 @@ extension CarbRatioEditor {
 
         var body: some View {
             Form {
-                if let autotune = state.autotune, !state.settingsManager.settings.onlyAutotuneBasals {
-                    Section(header: Text("Autotune")) {
-                        HStack {
-                            Text("Calculated Ratio")
-                            Spacer()
-                            Text(rateFormatter.string(from: autotune.carbRatio as NSNumber) ?? "0")
-                            Text("g/U").foregroundColor(.secondary)
-                        }
-                    }.listRowBackground(Color.chart)
-                }
-
                 if !state.canAdd {
                     Section {
                         VStack(alignment: .leading) {

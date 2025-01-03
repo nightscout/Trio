@@ -35,5 +35,5 @@ protocol PumpConfigProvider: Provider {
     func setPumpManager(_: PumpManagerUI)
     var pumpDisplayState: AnyPublisher<PumpDisplayState?, Never> { get }
     func pumpSettings() -> PumpSettings
-    func basalProfile() -> [BasalProfileEntry]
+    func getBasalProfile() async -> [BasalProfileEntry]
 }

@@ -266,8 +266,6 @@ extension Settings {
 //                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.profile), from: self)
 //                            //                            Text("Carbs")
 //                            //                                .navigationLink(to: .configEditor(file: OpenAPS.Monitor.carbHistory), from: self)
-//                            Text("Autotune")
-//                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.autotune), from: self)
 //                        }
 //
 //                        Group {

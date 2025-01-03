@@ -17,7 +17,6 @@ enum Screen: Identifiable, Hashable {
     case targetsEditor
     case bolus
     case manualTempBasal
-    case autotuneConfig
     case dataTable
     case cgm
     case cgmDirect
@@ -87,8 +86,6 @@ extension Screen {
             Treatments.RootView(resolver: resolver)
         case .manualTempBasal:
             ManualTempBasal.RootView(resolver: resolver)
-        case .autotuneConfig:
-            AutotuneConfig.RootView(resolver: resolver)
         case .dataTable:
             DataTable.RootView(resolver: resolver)
         case .cgm:

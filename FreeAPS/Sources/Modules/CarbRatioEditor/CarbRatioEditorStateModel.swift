@@ -5,7 +5,6 @@ extension CarbRatioEditor {
         @Injected() private var nightscout: NightscoutManager!
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
-        @Published var autotune: Autotune?
         @Published var shouldDisplaySaving: Bool = false
 
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
@@ -39,8 +38,6 @@ extension CarbRatioEditor {
             }
 
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
-
-            autotune = provider.autotune
         }
 
         func add() {

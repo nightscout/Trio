@@ -228,33 +228,6 @@ extension AlgorithmAdvancedSettings {
                     }
                 )
 
-                // Commenting out Autotune from Settings Menu until full removal is complete
-                // SettingInputSection(
-                // decimalValue: $state.autotuneISFAdjustmentFraction,
-                // booleanValue: $booleanPlaceholder,
-                // shouldDisplayHint: $shouldDisplayHint,
-                // selectedVerboseHint: Binding(
-                // get: { selectedVerboseHint },
-                // set: {
-                // selectedVerboseHint = $0.map { AnyView($0) }
-                // hintLabel = NSLocalizedString(
-                // "Autotune ISF Adjustment Percent",
-                // comment: "Autotune ISF Adjustment Percent"
-                // )
-                // }
-                // ),
-                // units: state.units,
-                // type: .decimal("autotuneISFAdjustmentFraction"),
-                // label: NSLocalizedString("Autotune ISF Adjustment Percent", comment: "Autotune ISF Adjustment Percent"),
-                // miniHint: "Using Autotune is not advised",
-                // verboseHint: Text(
-                // NSLocalizedString(
-                // "The default of 50% for this value keeps autotune ISF closer to pump ISF via a weighted average of fullNewISF and pumpISF. 100% allows full adjustment, 0% is no adjustment from pump ISF.",
-                // comment: "Autotune ISF Adjustment Percent"
-                // )
-                // )
-                // )
-
                 SettingInputSection(
                     decimalValue: $state.min5mCarbimpact,
                     booleanValue: $booleanPlaceholder,
