@@ -3,8 +3,7 @@ import SwiftUI
 
 struct TrioMainWatchView: View {
     @State private var state = WatchState()
-    @State private var showingCarbsSheet = false
-    @State private var showingBolusSheet = false
+    @State private var isTreatmentMenuSheetPresented: Bool = false
     @State private var currentPage: Double = 0
     @State private var rotationDegrees: Double = 0.0
 
@@ -78,7 +77,7 @@ struct TrioMainWatchView: View {
                     }
 
                     Button {
-                        // Perform an action here.
+                        isTreatmentMenuSheetPresented.toggle()
                     } label: {
                         Image(systemName: "plus")
                             .foregroundStyle(Color.black)
@@ -112,11 +111,9 @@ struct TrioMainWatchView: View {
         .tabViewStyle(.verticalPage)
         .navigationBarHidden(true)
         .digitalCrownRotation($currentPage, from: 0, through: 1, by: 1)
-        .sheet(isPresented: $showingCarbsSheet) {
-            CarbsInputView(state: state)
-        }
-        .sheet(isPresented: $showingBolusSheet) {
-            BolusInputView(state: state)
+        .blur(radius: isTreatmentMenuSheetPresented ? 10 : 0)
+        .sheet(isPresented: $isTreatmentMenuSheetPresented) {
+            TreatmentMenuView().presentationBackground(.clear)
         }
     }
 

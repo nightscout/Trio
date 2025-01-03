@@ -456,6 +456,7 @@
 		DD6B7CB92C7BAC6900B75029 /* NightscoutImportResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB82C7BAC6900B75029 /* NightscoutImportResultView.swift */; };
 		DD6B7CBB2C7FBBFA00B75029 /* ReviewInsulinActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CBA2C7FBBFA00B75029 /* ReviewInsulinActionView.swift */; };
 		DD6D67E42C9C253500660C9B /* ColorSchemeOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6D67E32C9C253500660C9B /* ColorSchemeOption.swift */; };
+		DD6F63CC2D27F615007D94CF /* TreatmentMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */; };
 		DD88C8E22C50420800F2D558 /* DefinitionRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD88C8E12C50420800F2D558 /* DefinitionRow.swift */; };
 		DD940BAA2CA7585D000830A5 /* GlucoseColorScheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD940BA92CA7585D000830A5 /* GlucoseColorScheme.swift */; };
 		DD940BAC2CA75889000830A5 /* DynamicGlucoseColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD940BAB2CA75889000830A5 /* DynamicGlucoseColor.swift */; };
@@ -1161,6 +1162,7 @@
 		DD6B7CB82C7BAC6900B75029 /* NightscoutImportResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutImportResultView.swift; sourceTree = "<group>"; };
 		DD6B7CBA2C7FBBFA00B75029 /* ReviewInsulinActionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewInsulinActionView.swift; sourceTree = "<group>"; };
 		DD6D67E32C9C253500660C9B /* ColorSchemeOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeOption.swift; sourceTree = "<group>"; };
+		DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreatmentMenuView.swift; sourceTree = "<group>"; };
 		DD88C8E12C50420800F2D558 /* DefinitionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefinitionRow.swift; sourceTree = "<group>"; };
 		DD940BA92CA7585D000830A5 /* GlucoseColorScheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseColorScheme.swift; sourceTree = "<group>"; };
 		DD940BAB2CA75889000830A5 /* DynamicGlucoseColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicGlucoseColor.swift; sourceTree = "<group>"; };
@@ -2456,6 +2458,7 @@
 		BDA25F1A2D26BCE800035F34 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */,
 				BDA25F212D26D62200035F34 /* BolusInputView.swift */,
 				BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */,
 				BDA25F1D2D26D5D800035F34 /* GlucoseChartView.swift */,
@@ -3952,6 +3955,7 @@
 				BDA25F1C2D26BD0700035F34 /* TrendShape.swift in Sources */,
 				BDFF7A892D25F97D0016C40C /* TrioWatchApp.swift in Sources */,
 				BDA25F1E2D26D5DD00035F34 /* GlucoseChartView.swift in Sources */,
+				DD6F63CC2D27F615007D94CF /* TreatmentMenuView.swift in Sources */,
 				BDA25EE62D260D5E00035F34 /* WatchState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
