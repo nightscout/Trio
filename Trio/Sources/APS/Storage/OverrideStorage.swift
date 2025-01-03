@@ -13,6 +13,7 @@ protocol OverrideStorage {
     func getOverridesNotYetUploadedToNightscout() async -> [NightscoutExercise]
     func getOverrideRunsNotYetUploadedToNightscout() async -> [NightscoutExercise]
     func getPresetOverridesForNightscout() async -> [NightscoutPresetOverride]
+    func fetchLatestActiveOverride() async -> NSManagedObjectID?
 }
 
 final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
@@ -286,6 +287,25 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
                     target: target
                 )
             }
+        }
+    }
+
+    func fetchLatestActiveOverride() async -> NSManagedObjectID? {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: OverrideStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate.lastActiveOverride,
+            key: "date",
+            ascending: false,
+            fetchLimit: 1
+        )
+
+        return await backgroundContext.perform {
+            guard let fetchedResults = results as? [OverrideStored],
+                  let latestOverride = fetchedResults.first
+            else { return nil }
+
+            return latestOverride.objectID
         }
     }
 }

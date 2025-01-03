@@ -17,6 +17,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @Injected() private var apsManager: APSManager!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var determinationStorage: DeterminationStorage!
+    @Injected() private var overrideStorage: OverrideStorage!
 
     private var units: GlucoseUnits = .mgdL
 
@@ -34,7 +35,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         setupWatchSession()
         units = settingsManager.settings.units
 
-        // Observer for OrefDetermination
+        // Observer for OrefDetermination and adjustments
         coreDataPublisher =
             changedObjectsOnManagedObjectContextDidSavePublisher()
                 .receive(on: DispatchQueue.global(qos: .background))
@@ -52,6 +53,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 }
             }
             .store(in: &subscriptions)
+
+        registerHandlers()
     }
 
     private func registerHandlers() {
@@ -65,6 +68,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
         // Due to the Batch insert this only is used for observing Deletion of Glucose entries
         coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task {
+                let state = await self.setupWatchState()
+                self.sendDataToWatch(state)
+            }
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 let state = await self.setupWatchState()
@@ -106,12 +117,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         let determinationIds = await determinationStorage.fetchLastDeterminationObjectID(
             predicate: NSPredicate.predicateFor30MinAgoForDetermination
         )
+        let overridePresetIds = await overrideStorage.fetchForOverridePresets()
 
         // Get NSManagedObjects
         let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared
             .getNSManagedObject(with: glucoseIds, context: backgroundContext)
         let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
             .getNSManagedObject(with: determinationIds, context: backgroundContext)
+        let overridePresetObjects: [OverrideStored] = await CoreDataStack.shared
+            .getNSManagedObject(with: overridePresetIds, context: backgroundContext)
 
         return await backgroundContext.perform {
             var watchState = WatchState()
@@ -131,6 +145,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
                 let cob = NSNumber(value: latestDetermination.cob)
                 watchState.cob = Formatter.integerFormatter.string(from: cob)
+            }
+
+            // Set override presets with their enabled status
+            watchState.overridePresets = overridePresetObjects.map { override in
+                OverridePresetWatch(
+                    name: override.name ?? "",
+                    isEnabled: override.enabled
+                )
             }
 
             guard let latestGlucose = glucoseObjects.first else {
@@ -209,7 +231,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 ]
             },
             "iob": state.iob ?? "0",
-            "cob": state.cob ?? "0"
+            "cob": state.cob ?? "0",
+            "lastLoopTime": state.lastLoopTime ?? "--",
+            "overridePresets": state.overridePresets.map { preset in
+                [
+                    "name": preset.name,
+                    "isEnabled": preset.isEnabled
+                ]
+            }
         ]
 
         print("📱 Sending to watch - Message content:")
@@ -259,6 +288,16 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 let date = Date(timeIntervalSince1970: timestamp)
                 print("📱 Received carbs request from watch: \(carbsAmount)g at \(date)")
                 self?.handleCarbsRequest(carbsAmount, date)
+            }
+
+            if message["cancelOverride"] as? Bool == true {
+                print("📱 Received cancel override request from watch")
+                self?.handleCancelOverride()
+            }
+
+            if let presetName = message["activateOverride"] as? String {
+                print("📱 Received activate override request from watch for preset: \(presetName)")
+                self?.handleActivateOverride(presetName)
             }
         }
     }
@@ -351,6 +390,85 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     print("📱 Saved carbs from watch: \(amount)g at \(date)")
                 } catch {
                     print("❌ Error saving carbs: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    private func handleCancelOverride() {
+        Task {
+            let context = CoreDataStack.shared.newTaskContext()
+
+            if let overrideId = await overrideStorage.fetchLatestActiveOverride() {
+                let override = await context.perform {
+                    context.object(with: overrideId) as? OverrideStored
+                }
+
+                await context.perform {
+                    if let activeOverride = override {
+                        activeOverride.enabled = false
+
+                        do {
+                            guard context.hasChanges else { return }
+                            try context.save()
+                            print("📱 Successfully cancelled override")
+
+                            // Send notification to update Adjustments UI
+                            Foundation.NotificationCenter.default.post(
+                                name: .didUpdateOverrideConfiguration,
+                                object: nil
+                            )
+                        } catch {
+                            print("❌ Error cancelling override: \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func handleActivateOverride(_ presetName: String) {
+        Task {
+            let context = CoreDataStack.shared.newTaskContext()
+
+            // Fetch all presets to find the one to activate
+            let presetIds = await overrideStorage.fetchForOverridePresets()
+            let presets: [OverrideStored] = await CoreDataStack.shared
+                .getNSManagedObject(with: presetIds, context: context)
+
+            // Check for active override
+            if let activeOverrideId = await overrideStorage.fetchLatestActiveOverride() {
+                let activeOverride = await context.perform {
+                    context.object(with: activeOverrideId) as? OverrideStored
+                }
+
+                // Deactivate if exists
+                if let override = activeOverride {
+                    await context.perform {
+                        override.enabled = false
+                    }
+                }
+            }
+
+            // Activate the selected preset
+            await context.perform {
+                if let presetToActivate = presets.first(where: { $0.name == presetName }) {
+                    presetToActivate.enabled = true
+                    presetToActivate.date = Date()
+
+                    do {
+                        guard context.hasChanges else { return }
+                        try context.save()
+                        print("📱 Successfully activated override: \(presetName)")
+
+                        // Send notification to update Adjustments UI
+                        Foundation.NotificationCenter.default.post(
+                            name: .didUpdateOverrideConfiguration,
+                            object: nil
+                        )
+                    } catch {
+                        print("❌ Error activating override: \(error.localizedDescription)")
+                    }
                 }
             }
         }

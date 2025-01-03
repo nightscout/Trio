@@ -4,6 +4,7 @@ import SwiftUI
 struct TrioMainWatchView: View {
     @State private var state = WatchState()
     @State private var isTreatmentMenuSheetPresented: Bool = false
+    @State private var showingOverrideSheet = false
     @State private var currentPage: Double = 0
     @State private var rotationDegrees: Double = 0.0
 
@@ -71,9 +72,10 @@ struct TrioMainWatchView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .bottomBar) {
                     Button {
-                        // Perform an action here.
+                        showingOverrideSheet = true
                     } label: {
-                        Image(systemName: "clock.arrow.2.circlepath").foregroundStyle(Color.primary, Color.purple)
+                        Image(systemName: "clock.arrow.2.circlepath")
+                            .foregroundStyle(Color.primary, Color.purple)
                     }
 
                     Button {
@@ -114,6 +116,12 @@ struct TrioMainWatchView: View {
         .blur(radius: isTreatmentMenuSheetPresented ? 10 : 0)
         .sheet(isPresented: $isTreatmentMenuSheetPresented) {
             TreatmentMenuView().presentationBackground(.clear)
+        }
+        .sheet(isPresented: $showingOverrideSheet) {
+            OverridePresetsView(
+                overridePresets: state.overridePresets,
+                state: state
+            )
         }
     }
 

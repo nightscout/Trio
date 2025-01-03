@@ -1,6 +1,5 @@
 import Foundation
 
-// TODO: expand this for cob,iob etc
 struct WatchState: Hashable, Equatable, Sendable {
     var currentGlucose: String?
     var trend: String?
@@ -10,6 +9,7 @@ struct WatchState: Hashable, Equatable, Sendable {
     var iob: String?
     var cob: String?
     var lastLoopTime: String?
+    var overridePresets: [OverridePresetWatch] = []
 
     static func == (lhs: WatchState, rhs: WatchState) -> Bool {
         lhs.currentGlucose == rhs.currentGlucose &&
@@ -22,7 +22,8 @@ struct WatchState: Hashable, Equatable, Sendable {
             lhs.units == rhs.units &&
             lhs.iob == rhs.iob &&
             lhs.cob == rhs.cob &&
-            lhs.lastLoopTime == rhs.lastLoopTime
+            lhs.lastLoopTime == rhs.lastLoopTime &&
+            lhs.overridePresets == rhs.overridePresets
     }
 
     func hash(into hasher: inout Hasher) {
@@ -37,5 +38,6 @@ struct WatchState: Hashable, Equatable, Sendable {
         hasher.combine(iob)
         hasher.combine(cob)
         hasher.combine(lastLoopTime)
+        hasher.combine(overridePresets)
     }
 }
