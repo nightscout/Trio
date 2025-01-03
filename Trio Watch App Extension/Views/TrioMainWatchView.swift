@@ -116,11 +116,16 @@ struct TrioMainWatchView: View {
         var foregroundColor: Color = .white
         var fontSize: Font = .title2
 
+        private var is40mm: Bool {
+            let size = WKInterfaceDevice.current().screenBounds.size
+            return size.height < 225 && size.width < 185
+        }
+
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
                 .font(fontSize)
-                .fontWeight(.semibold)
-                .padding()
+                .fontWeight(is40mm ? .medium : .semibold)
+                .padding(is40mm ? 6 : 10)
                 .background(
                     backgroundGradient.opacity(configuration.isPressed ? 0.8 : 1.0)
                 )
