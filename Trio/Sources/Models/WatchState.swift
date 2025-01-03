@@ -9,6 +9,7 @@ struct WatchState: Hashable, Equatable, Sendable {
     var units: GlucoseUnits = .mmolL
     var iob: String?
     var cob: String?
+    var lastLoopTime: String?
 
     static func == (lhs: WatchState, rhs: WatchState) -> Bool {
         lhs.currentGlucose == rhs.currentGlucose &&
@@ -20,7 +21,8 @@ struct WatchState: Hashable, Equatable, Sendable {
             } &&
             lhs.units == rhs.units &&
             lhs.iob == rhs.iob &&
-            lhs.cob == rhs.cob
+            lhs.cob == rhs.cob &&
+            lhs.lastLoopTime == rhs.lastLoopTime
     }
 
     func hash(into hasher: inout Hasher) {
@@ -34,5 +36,6 @@ struct WatchState: Hashable, Equatable, Sendable {
         hasher.combine(units)
         hasher.combine(iob)
         hasher.combine(cob)
+        hasher.combine(lastLoopTime)
     }
 }

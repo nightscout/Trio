@@ -17,6 +17,7 @@ import WatchConnectivity
     var glucoseValues: [(date: Date, glucose: Double)] = []
     var cob: String? = "--"
     var iob: String? = "--"
+    var lastLoopTime: String? = "--"
 
     override init() {
         super.init()
@@ -114,6 +115,10 @@ import WatchConnectivity
 
             if let cob = message["cob"] as? String {
                 self.cob = cob
+            }
+
+            if let lastLoopTime = message["lastLoopTime"] as? String {
+                self.lastLoopTime = lastLoopTime
             }
 
             if let glucoseData = message["glucoseValues"] as? [[String: Any]] {

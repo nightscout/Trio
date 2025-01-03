@@ -45,15 +45,15 @@ struct TrendShape: View {
         ZStack {
             // Outer circle with gradient
             Circle()
-                .stroke(angularGradient, lineWidth: 6)
-                .frame(width: 90, height: 90)
+                .stroke(angularGradient, lineWidth: 5)
+                .frame(width: 82, height: 82)
                 .background(Circle().fill(Color.black))
 
             // Triangle with the color of the last gradient color
             Triangle()
                 .fill(triangleColor)
                 .frame(width: 20, height: 20)
-                .offset(x: 55)
+                .offset(x: 52)
         }
         .rotationEffect(.degrees(rotationDegrees))
         .shadow(color: Color.black.opacity(0.33), radius: 3)

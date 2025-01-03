@@ -116,6 +116,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         return await backgroundContext.perform {
             var watchState = WatchState()
 
+            // Set lastLoopDate
+            let lastLoopMinutes = Int((Date().timeIntervalSince(self.apsManager.lastLoopDate) - 30) / 60) + 1
+            if lastLoopMinutes > 1440 {
+                watchState.lastLoopTime = "--"
+            } else {
+                watchState.lastLoopTime = "\(lastLoopMinutes)" + NSLocalizedString("min", comment: "Minutes ago since last loop")
+            }
+
             // Set IOB and COB from latest determination
             if let latestDetermination = determinationObjects.first {
                 let iob = latestDetermination.iob ?? 0
