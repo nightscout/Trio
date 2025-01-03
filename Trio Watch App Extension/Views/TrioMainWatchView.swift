@@ -7,6 +7,7 @@ struct TrioMainWatchView: View {
     // misc
     @State private var currentPage: Int = 0
     @State private var rotationDegrees: Double = 0.0
+    @State private var showingTempTargetSheet = false
 
     // view visbility
     @State private var showingTreatmentMenuSheet: Bool = false
@@ -81,7 +82,7 @@ struct TrioMainWatchView: View {
                     .buttonStyle(WatchOSButtonStyle())
 
                     Button {
-                        // Perform an action here
+                        showingTempTargetSheet = true
                     } label: {
                         Image(systemName: "target")
                             .foregroundStyle(.green.opacity(0.75))
@@ -97,6 +98,12 @@ struct TrioMainWatchView: View {
                     state: state
                 )
             }
+        }
+        .sheet(isPresented: $showingTempTargetSheet) {
+            TempTargetPresetsView(
+                tempTargetPresets: state.tempTargetPresets,
+                state: state
+            )
         }
     }
 
