@@ -18,6 +18,7 @@ import WatchConnectivity
     var cob: String? = "--"
     var iob: String? = "--"
     var lastLoopTime: String? = "--"
+    var overridePresets: [OverridePresetWatch] = []
 
     override init() {
         super.init()
@@ -69,6 +70,30 @@ import WatchConnectivity
 
         session.sendMessage(message, replyHandler: nil) { error in
             print("Error sending carbs request: \(error.localizedDescription)")
+        }
+    }
+
+    func sendCancelOverrideRequest() {
+        guard let session = session, session.isReachable else { return }
+
+        let message: [String: Any] = [
+            "cancelOverride": true
+        ]
+
+        session.sendMessage(message, replyHandler: nil) { error in
+            print("⌚️ Error sending cancel override request: \(error.localizedDescription)")
+        }
+    }
+
+    func sendActivateOverrideRequest(presetName: String) {
+        guard let session = session, session.isReachable else { return }
+
+        let message: [String: Any] = [
+            "activateOverride": presetName
+        ]
+
+        session.sendMessage(message, replyHandler: nil) { error in
+            print("⌚️ Error sending activate override request: \(error.localizedDescription)")
         }
     }
 
@@ -130,6 +155,15 @@ import WatchConnectivity
                     return (Date(timeIntervalSince1970: timestamp), glucose)
                 }
                 .sorted { $0.date < $1.date }
+            }
+
+            if let overrideData = message["overridePresets"] as? [[String: Any]] {
+                self.overridePresets = overrideData.compactMap { data in
+                    guard let name = data["name"] as? String,
+                          let isEnabled = data["isEnabled"] as? Bool
+                    else { return nil }
+                    return OverridePresetWatch(name: name, isEnabled: isEnabled)
+                }
             }
         }
     }

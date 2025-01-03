@@ -293,6 +293,9 @@
 		BD3CC0722B0B89D50013189E /* MainChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3CC0712B0B89D50013189E /* MainChartView.swift */; };
 		BD4064D12C4ED26900582F43 /* CoreDataObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */; };
 		BD4ED4FD2CF9D5E8000EDC9C /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4ED4FC2CF9D5E8000EDC9C /* AppState.swift */; };
+		BD54A9592D27FB7800F9C1EE /* OverridePresetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD54A9582D27FB6A00F9C1EE /* OverridePresetsView.swift */; };
+		BD54A95B2D28087C00F9C1EE /* OverridePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD54A95A2D28087700F9C1EE /* OverridePreset.swift */; };
+		BD54A95C2D2808A300F9C1EE /* OverridePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD54A95A2D28087700F9C1EE /* OverridePreset.swift */; };
 		BD6EB2D62C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6EB2D52C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift */; };
 		BD793CB02CE7C61500D669AC /* OverrideRunStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */; };
 		BD793CB22CE8033500D669AC /* TempTargetRunStored.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD793CB12CE8032E00D669AC /* TempTargetRunStored.swift */; };
@@ -990,6 +993,8 @@
 		BD3CC0712B0B89D50013189E /* MainChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChartView.swift; sourceTree = "<group>"; };
 		BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataObserver.swift; sourceTree = "<group>"; };
 		BD4ED4FC2CF9D5E8000EDC9C /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		BD54A9582D27FB6A00F9C1EE /* OverridePresetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverridePresetsView.swift; sourceTree = "<group>"; };
+		BD54A95A2D28087700F9C1EE /* OverridePreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverridePreset.swift; sourceTree = "<group>"; };
 		BD6EB2D52C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityWidgetConfiguration.swift; sourceTree = "<group>"; };
 		BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+helper.swift"; sourceTree = "<group>"; };
 		BD793CB12CE8032E00D669AC /* TempTargetRunStored.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetRunStored.swift; sourceTree = "<group>"; };
@@ -1995,6 +2000,7 @@
 		388E5A5925B6F0250019842D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				BD54A95A2D28087700F9C1EE /* OverridePreset.swift */,
 				BDA25EFC2D261BF200035F34 /* WatchState.swift */,
 				DD07CA132CE80B73002D45A9 /* TimeInRangeChartStyle.swift */,
 				DD940BA92CA7585D000830A5 /* GlucoseColorScheme.swift */,
@@ -2456,6 +2462,7 @@
 		BDA25F1A2D26BCE800035F34 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				BD54A9582D27FB6A00F9C1EE /* OverridePresetsView.swift */,
 				BDA25F212D26D62200035F34 /* BolusInputView.swift */,
 				BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */,
 				BDA25F1D2D26D5D800035F34 /* GlucoseChartView.swift */,
@@ -3752,6 +3759,7 @@
 				DD17454B2C55C62800211FAC /* AutosensSettingsRootView.swift in Sources */,
 				DDF847DF2C5C28780049BB3B /* LiveActivitySettingsProvider.swift in Sources */,
 				DDB37CC52D05048F00D99BF4 /* ContactImageStorage.swift in Sources */,
+				BD54A95B2D28087C00F9C1EE /* OverridePreset.swift in Sources */,
 				DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */,
 				BDF34EBE2C0A31D100D51995 /* CustomNotification.swift in Sources */,
 				BDC2EA472C3045AD00E5BBD0 /* Override.swift in Sources */,
@@ -3951,6 +3959,8 @@
 				BDA25F202D26D5FE00035F34 /* CarbsInputView.swift in Sources */,
 				BDA25F1C2D26BD0700035F34 /* TrendShape.swift in Sources */,
 				BDFF7A892D25F97D0016C40C /* TrioWatchApp.swift in Sources */,
+				BD54A95C2D2808A300F9C1EE /* OverridePreset.swift in Sources */,
+				BD54A9592D27FB7800F9C1EE /* OverridePresetsView.swift in Sources */,
 				BDA25F1E2D26D5DD00035F34 /* GlucoseChartView.swift in Sources */,
 				BDA25EE62D260D5E00035F34 /* WatchState.swift in Sources */,
 			);

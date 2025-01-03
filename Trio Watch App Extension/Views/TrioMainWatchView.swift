@@ -5,6 +5,7 @@ struct TrioMainWatchView: View {
     @State private var state = WatchState()
     @State private var showingCarbsSheet = false
     @State private var showingBolusSheet = false
+    @State private var showingOverrideSheet = false
     @State private var currentPage: Double = 0
     @State private var rotationDegrees: Double = 0.0
 
@@ -72,9 +73,10 @@ struct TrioMainWatchView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .bottomBar) {
                     Button {
-                        // Perform an action here.
+                        showingOverrideSheet = true
                     } label: {
-                        Image(systemName: "clock.arrow.2.circlepath").foregroundStyle(Color.primary, Color.purple)
+                        Image(systemName: "clock.arrow.2.circlepath")
+                            .foregroundStyle(Color.primary, Color.purple)
                     }
 
                     Button {
@@ -112,6 +114,12 @@ struct TrioMainWatchView: View {
         .tabViewStyle(.verticalPage)
         .navigationBarHidden(true)
         .digitalCrownRotation($currentPage, from: 0, through: 1, by: 1)
+        .sheet(isPresented: $showingOverrideSheet) {
+            OverridePresetsView(
+                overridePresets: state.overridePresets,
+                state: state
+            )
+        }
         .sheet(isPresented: $showingCarbsSheet) {
             CarbsInputView(state: state)
         }
