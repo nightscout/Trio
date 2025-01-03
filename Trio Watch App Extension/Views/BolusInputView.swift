@@ -12,60 +12,58 @@ struct BolusInputView: View {
     let state: WatchState
 
     var body: some View {
-        NavigationStack {
-            if showingConfirmation {
-                BolusConfirmationView(
-                    bolusAmount: bolusAmount,
-                    progress: $confirmationProgress,
-                    state: state,
-                    dismiss: dismiss
-                )
-                .navigationTitle("Confirm")
-                .navigationBarBackButtonHidden(true)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button {
-                            if state.carbsAmount > 0 {
-                                state.carbsAmount = 0
-                            }
-                            dismiss()
-                        } label: {
-                            Image(systemName: "xmark")
+        if showingConfirmation {
+            BolusConfirmationView(
+                bolusAmount: bolusAmount,
+                progress: $confirmationProgress,
+                state: state,
+                dismiss: dismiss
+            )
+            .navigationTitle("Confirm")
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        if state.carbsAmount > 0 {
+                            state.carbsAmount = 0 // reset carbs in state
                         }
-                        .buttonStyle(.bordered)
-                        .clipShape(Circle())
-                    }
-
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Image(systemName: "digitalcrown.arrow.counterclockwise.fill")
-                            .foregroundStyle(Color.white)
-                    }
-                }
-            } else {
-                VStack {
-                    if state.carbsAmount > 0 {
-                        HStack {
-                            Text("Carbs: \(state.carbsAmount) g").font(.subheadline).padding(.bottom)
-                            Spacer()
-                        }
-                    }
-
-                    // TODO: handle bolus recommendation
-                    Picker("Bolus", selection: $bolusAmount) {
-                        ForEach(0 ... 100, id: \.self) { number in
-                            Text(String(format: "%.1f U", Double(number) / 10))
-                                .tag(Double(number) / 10)
-                        }
-                    }
-
-                    Button("Add Bolus") {
-                        showingConfirmation = true
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
                     }
                     .buttonStyle(.bordered)
-                    .tint(.blue)
+                    .clipShape(Circle())
                 }
-                .navigationTitle("Add Insulin")
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Image(systemName: "digitalcrown.arrow.counterclockwise.fill")
+                        .foregroundStyle(Color.white)
+                }
             }
+        } else {
+            VStack {
+                if state.carbsAmount > 0 {
+                    HStack {
+                        Text("Carbs: \(state.carbsAmount) g").font(.subheadline).padding(.bottom)
+                        Spacer()
+                    }
+                }
+
+                // TODO: handle bolus recommendation
+                Picker("Bolus", selection: $bolusAmount) {
+                    ForEach(0 ... 100, id: \.self) { number in
+                        Text(String(format: "%.1f U", Double(number) / 10))
+                            .tag(Double(number) / 10)
+                    }
+                }
+
+                Button("Add Bolus") {
+                    showingConfirmation = true
+                }
+                .buttonStyle(.bordered)
+                .tint(.blue)
+            }
+            .navigationTitle("Add Insulin")
         }
     }
 }
