@@ -19,6 +19,7 @@ import WatchConnectivity
     var iob: String? = "--"
     var lastLoopTime: String? = "--"
     var overridePresets: [OverridePresetWatch] = []
+    var tempTargetPresets: [TempTargetPresetWatch] = []
 
     override init() {
         super.init()
@@ -97,6 +98,30 @@ import WatchConnectivity
         }
     }
 
+    func sendCancelTempTargetRequest() {
+        guard let session = session, session.isReachable else { return }
+
+        let message: [String: Any] = [
+            "cancelTempTarget": true
+        ]
+
+        session.sendMessage(message, replyHandler: nil) { error in
+            print("⌚️ Error sending cancel temp target request: \(error.localizedDescription)")
+        }
+    }
+
+    func sendActivateTempTargetRequest(presetName: String) {
+        guard let session = session, session.isReachable else { return }
+
+        let message: [String: Any] = [
+            "activateTempTarget": presetName
+        ]
+
+        session.sendMessage(message, replyHandler: nil) { error in
+            print("⌚️ Error sending activate temp target request: \(error.localizedDescription)")
+        }
+    }
+
     // MARK: - WCSessionDelegate
 
     /// Called when the session has completed activation
@@ -163,6 +188,15 @@ import WatchConnectivity
                           let isEnabled = data["isEnabled"] as? Bool
                     else { return nil }
                     return OverridePresetWatch(name: name, isEnabled: isEnabled)
+                }
+            }
+
+            if let tempTargetData = message["tempTargetPresets"] as? [[String: Any]] {
+                self.tempTargetPresets = tempTargetData.compactMap { data in
+                    guard let name = data["name"] as? String,
+                          let isEnabled = data["isEnabled"] as? Bool
+                    else { return nil }
+                    return TempTargetPresetWatch(name: name, isEnabled: isEnabled)
                 }
             }
         }

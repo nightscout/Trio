@@ -18,6 +18,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var determinationStorage: DeterminationStorage!
     @Injected() private var overrideStorage: OverrideStorage!
+    @Injected() private var tempTargetStorage: TempTargetsStorage!
 
     private var units: GlucoseUnits = .mgdL
 
@@ -82,6 +83,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 self.sendDataToWatch(state)
             }
         }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("TempTargetStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task {
+                let state = await self.setupWatchState()
+                self.sendDataToWatch(state)
+            }
+        }.store(in: &subscriptions)
     }
 
     /// Sets up the WatchConnectivity session if the device supports it
@@ -118,6 +127,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             predicate: NSPredicate.predicateFor30MinAgoForDetermination
         )
         let overridePresetIds = await overrideStorage.fetchForOverridePresets()
+        let tempTargetPresetIds = await tempTargetStorage.fetchForTempTargetPresets()
 
         // Get NSManagedObjects
         let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared
@@ -126,6 +136,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             .getNSManagedObject(with: determinationIds, context: backgroundContext)
         let overridePresetObjects: [OverrideStored] = await CoreDataStack.shared
             .getNSManagedObject(with: overridePresetIds, context: backgroundContext)
+        let tempTargetPresetObjects: [TempTargetStored] = await CoreDataStack.shared
+            .getNSManagedObject(with: tempTargetPresetIds, context: backgroundContext)
 
         return await backgroundContext.perform {
             var watchState = WatchState()
@@ -178,6 +190,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 let formattedDelta = Formatter.glucoseFormatter(for: self.units)
                     .string(from: NSNumber(value: abs(deltaValue))) ?? "0"
                 watchState.delta = deltaValue < 0 ? "-\(formattedDelta)" : "+\(formattedDelta)"
+            }
+
+            // Set temp target presets with their enabled status
+            watchState.tempTargetPresets = tempTargetPresetObjects.map { tempTarget in
+                TempTargetPresetWatch(
+                    name: tempTarget.name ?? "",
+                    isEnabled: tempTarget.enabled
+                )
             }
 
             // Set units
@@ -234,6 +254,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             "cob": state.cob ?? "0",
             "lastLoopTime": state.lastLoopTime ?? "--",
             "overridePresets": state.overridePresets.map { preset in
+                [
+                    "name": preset.name,
+                    "isEnabled": preset.isEnabled
+                ]
+            },
+            "tempTargetPresets": state.tempTargetPresets.map { preset in
                 [
                     "name": preset.name,
                     "isEnabled": preset.isEnabled
@@ -298,6 +324,16 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             if let presetName = message["activateOverride"] as? String {
                 print("📱 Received activate override request from watch for preset: \(presetName)")
                 self?.handleActivateOverride(presetName)
+            }
+
+            if let presetName = message["activateTempTarget"] as? String {
+                print("📱 Received activate temp target request from watch for preset: \(presetName)")
+                self?.handleActivateTempTarget(presetName)
+            }
+
+            if message["cancelTempTarget"] as? Bool == true {
+                print("📱 Received cancel temp target request from watch")
+                self?.handleCancelTempTarget()
             }
         }
     }
@@ -468,6 +504,103 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         )
                     } catch {
                         print("❌ Error activating override: \(error.localizedDescription)")
+                    }
+                }
+            }
+        }
+    }
+
+    private func handleCancelTempTarget() {
+        Task {
+            let context = CoreDataStack.shared.newTaskContext()
+
+            if let tempTargetId = await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1).first {
+                let tempTarget = await context.perform {
+                    context.object(with: tempTargetId) as? TempTargetStored
+                }
+
+                await context.perform {
+                    if let activeTempTarget = tempTarget {
+                        activeTempTarget.enabled = false
+
+                        do {
+                            guard context.hasChanges else { return }
+                            try context.save()
+                            print("📱 Successfully cancelled temp target")
+
+                            // To cancel the temp target also for oref
+                            self.tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())])
+
+                            // Send notification to update Adjustments UI
+                            Foundation.NotificationCenter.default.post(
+                                name: .didUpdateTempTargetConfiguration,
+                                object: nil
+                            )
+                        } catch {
+                            print("❌ Error cancelling temp target: \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func handleActivateTempTarget(_ presetName: String) {
+        Task {
+            let context = CoreDataStack.shared.newTaskContext()
+
+            // Fetch all presets to find the one to activate
+            let presetIds = await tempTargetStorage.fetchForTempTargetPresets()
+            let presets: [TempTargetStored] = await CoreDataStack.shared
+                .getNSManagedObject(with: presetIds, context: context)
+
+            // Check for active temp target
+            if let activeTempTargetId = await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1).first {
+                let activeTempTarget = await context.perform {
+                    context.object(with: activeTempTargetId) as? TempTargetStored
+                }
+
+                // Deactivate if exists
+                if let tempTarget = activeTempTarget {
+                    await context.perform {
+                        tempTarget.enabled = false
+                    }
+                }
+            }
+
+            // Activate the selected preset
+            await context.perform {
+                if let presetToActivate = presets.first(where: { $0.name == presetName }) {
+                    presetToActivate.enabled = true
+                    presetToActivate.date = Date()
+
+                    do {
+                        guard context.hasChanges else { return }
+                        try context.save()
+                        print("📱 Successfully activated temp target: \(presetName)")
+
+                        // To activate the temp target also in oref
+                        let tempTarget = TempTarget(
+                            name: presetToActivate.name,
+                            createdAt: Date(),
+                            targetTop: presetToActivate.target?.decimalValue,
+                            targetBottom: presetToActivate.target?.decimalValue,
+                            duration: presetToActivate.duration?.decimalValue ?? 0,
+                            enteredBy: TempTarget.local,
+                            reason: TempTarget.custom,
+                            isPreset: true,
+                            enabled: true,
+                            halfBasalTarget: presetToActivate.halfBasalTarget?.decimalValue
+                        )
+                        self.tempTargetStorage.saveTempTargetsToStorage([tempTarget])
+
+                        // Send notification to update Adjustments UI
+                        Foundation.NotificationCenter.default.post(
+                            name: .didUpdateTempTargetConfiguration,
+                            object: nil
+                        )
+                    } catch {
+                        print("❌ Error activating temp target: \(error.localizedDescription)")
                     }
                 }
             }

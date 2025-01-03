@@ -7,6 +7,7 @@ struct TrioMainWatchView: View {
     @State private var showingOverrideSheet = false
     @State private var currentPage: Double = 0
     @State private var rotationDegrees: Double = 0.0
+    @State private var showingTempTargetSheet = false
 
     var body: some View {
         TabView(selection: $currentPage) {
@@ -99,9 +100,10 @@ struct TrioMainWatchView: View {
                     ], startPoint: .topLeading, endPoint: .bottomTrailing)))
 
                     Button {
-                        // Perform an action here.
+                        showingTempTargetSheet = true
                     } label: {
-                        Image(systemName: "target").foregroundStyle(.green.opacity(0.75))
+                        Image(systemName: "target")
+                            .foregroundStyle(.green.opacity(0.75))
                     }
                 }
             }
@@ -120,6 +122,12 @@ struct TrioMainWatchView: View {
         .sheet(isPresented: $showingOverrideSheet) {
             OverridePresetsView(
                 overridePresets: state.overridePresets,
+                state: state
+            )
+        }
+        .sheet(isPresented: $showingTempTargetSheet) {
+            TempTargetPresetsView(
+                tempTargetPresets: state.tempTargetPresets,
                 state: state
             )
         }

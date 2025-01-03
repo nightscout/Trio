@@ -10,6 +10,7 @@ struct WatchState: Hashable, Equatable, Sendable {
     var cob: String?
     var lastLoopTime: String?
     var overridePresets: [OverridePresetWatch] = []
+    var tempTargetPresets: [TempTargetPresetWatch] = []
 
     static func == (lhs: WatchState, rhs: WatchState) -> Bool {
         lhs.currentGlucose == rhs.currentGlucose &&
@@ -23,7 +24,8 @@ struct WatchState: Hashable, Equatable, Sendable {
             lhs.iob == rhs.iob &&
             lhs.cob == rhs.cob &&
             lhs.lastLoopTime == rhs.lastLoopTime &&
-            lhs.overridePresets == rhs.overridePresets
+            lhs.overridePresets == rhs.overridePresets &&
+            lhs.tempTargetPresets == rhs.tempTargetPresets
     }
 
     func hash(into hasher: inout Hasher) {
@@ -39,5 +41,6 @@ struct WatchState: Hashable, Equatable, Sendable {
         hasher.combine(cob)
         hasher.combine(lastLoopTime)
         hasher.combine(overridePresets)
+        hasher.combine(tempTargetPresets)
     }
 }
