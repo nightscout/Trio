@@ -232,6 +232,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             },
             "iob": state.iob ?? "0",
             "cob": state.cob ?? "0",
+            "lastLoopTime": state.lastLoopTime ?? "--",
             "overridePresets": state.overridePresets.map { preset in
                 [
                     "name": preset.name,
