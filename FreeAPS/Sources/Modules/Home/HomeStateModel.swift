@@ -24,6 +24,8 @@ extension Home {
         var recentGlucose: BloodGlucose?
         var maxBasal: Decimal = 2
         var basalProfile: [BasalProfileEntry] = []
+        var bgTargets = BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
+            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
         var tempTargets: [TempTarget] = []
         var timerDate = Date()
         var closedLoop = false
@@ -160,10 +162,13 @@ extension Home {
                         self.setupBatteryArray()
                     }
                     group.addTask {
-                        self.setupPumpSettings()
+                        await self.setupPumpSettings()
                     }
                     group.addTask {
                         await self.setupBasalProfile()
+                    }
+                    group.addTask {
+                        await self.setupGlucoseTargets()
                     }
                     group.addTask {
                         self.setupReservoir()
@@ -268,6 +273,7 @@ extension Home {
             broadcaster.register(PreferencesObserver.self, observer: self)
             broadcaster.register(PumpSettingsObserver.self, observer: self)
             broadcaster.register(BasalProfileObserver.self, observer: self)
+            broadcaster.register(BGTargetsObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
             broadcaster.register(PumpDeactivatedObserver.self, observer: self)
 
@@ -457,10 +463,10 @@ extension Home {
             return roundedAmount.formatted()
         }
 
-        private func setupPumpSettings() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.maxBasal = self.provider.pumpSettings().maxBasal
+        private func setupPumpSettings() async {
+            let maxBasal = await provider.pumpSettings().maxBasal
+            await MainActor.run {
+                self.maxBasal = maxBasal
             }
         }
 
@@ -471,10 +477,19 @@ extension Home {
             }
         }
 
+        private func setupGlucoseTargets() async {
+            let bgTargets = await provider.getBGTargets()
+            await MainActor.run {
+                self.bgTargets = bgTargets
+            }
+        }
+
         private func setupReservoir() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.reservoir = self.provider.pumpReservoir()
+            Task {
+                let reservoir = await provider.pumpReservoir()
+                await MainActor.run {
+                    self.reservoir = reservoir
+                }
             }
         }
 
@@ -492,7 +507,6 @@ extension Home {
             dateFormatter.dateFormat = "HH:mm"
             dateFormatter.timeZone = TimeZone.current
 
-            let bgTargets = await provider.getBGTarget()
             let entries: [(start: String, value: Decimal)] = bgTargets.targets.map { ($0.start, $0.low) }
 
             for (index, entry) in entries.enumerated() {
@@ -546,6 +560,7 @@ extension Home.StateModel:
     PreferencesObserver,
     PumpSettingsObserver,
     BasalProfileObserver,
+    BGTargetsObserver,
     PumpReservoirObserver,
     PumpTimeZoneObserver,
     PumpDeactivatedObserver
@@ -597,13 +612,21 @@ extension Home.StateModel:
     }
 
     func pumpSettingsDidChange(_: PumpSettings) {
-        setupPumpSettings()
-        setupBatteryArray()
+        Task {
+            await setupPumpSettings()
+            setupBatteryArray()
+        }
     }
 
     func basalProfileDidChange(_: [BasalProfileEntry]) {
         Task {
             await setupBasalProfile()
+        }
+    }
+
+    func bgTargetsDidChange(_: BGTargets) {
+        Task {
+            await setupGlucoseTargets()
         }
     }
 

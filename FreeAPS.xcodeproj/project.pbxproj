@@ -260,7 +260,6 @@
 		58645BA52CA2D347008AFCE7 /* ForecastSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58645BA42CA2D347008AFCE7 /* ForecastSetup.swift */; };
 		58645BA72CA2D390008AFCE7 /* ChartAxisSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58645BA62CA2D390008AFCE7 /* ChartAxisSetup.swift */; };
 		5864E8592C42CFAE00294306 /* DeterminationStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5864E8582C42CFAE00294306 /* DeterminationStorage.swift */; };
-		587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */; };
 		5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5887527B2BD986E1008B081D /* OpenAPSBattery.swift */; };
 		58A3D53A2C96D4DE003F90FC /* AddTempTargetForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */; };
 		58A3D5442C96DE11003F90FC /* TempTargetStored+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A3D5432C96DE11003F90FC /* TempTargetStored+Helper.swift */; };
@@ -452,6 +451,7 @@
 		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
 		DD1E53592D273F26008F32A4 /* LoopStatusHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1E53582D273F20008F32A4 /* LoopStatusHelpView.swift */; };
 		DD21FCB52C6952AD00AF2C25 /* DecimalPickerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */; };
+		DD2CC85C2D25DA1000445446 /* GlucoseTargetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2CC85B2D25D9CE00445446 /* GlucoseTargetsView.swift */; };
 		DD32CF982CC82463003686D6 /* TrioRemoteControl+Bolus.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */; };
 		DD32CF9A2CC8247B003686D6 /* TrioRemoteControl+Meal.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */; };
 		DD32CF9C2CC82499003686D6 /* TrioRemoteControl+TempTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */; };
@@ -961,7 +961,6 @@
 		58645BA42CA2D347008AFCE7 /* ForecastSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastSetup.swift; sourceTree = "<group>"; };
 		58645BA62CA2D390008AFCE7 /* ChartAxisSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartAxisSetup.swift; sourceTree = "<group>"; };
 		5864E8582C42CFAE00294306 /* DeterminationStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterminationStorage.swift; sourceTree = "<group>"; };
-		587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRowView.swift; sourceTree = "<group>"; };
 		5887527B2BD986E1008B081D /* OpenAPSBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSBattery.swift; sourceTree = "<group>"; };
 		58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTempTargetForm.swift; sourceTree = "<group>"; };
 		58A3D5432C96DE11003F90FC /* TempTargetStored+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetStored+Helper.swift"; sourceTree = "<group>"; };
@@ -1155,6 +1154,7 @@
 		DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildDetails.swift; sourceTree = "<group>"; };
 		DD1E53582D273F20008F32A4 /* LoopStatusHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStatusHelpView.swift; sourceTree = "<group>"; };
 		DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalPickerSettings.swift; sourceTree = "<group>"; };
+		DD2CC85B2D25D9CE00445446 /* GlucoseTargetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseTargetsView.swift; sourceTree = "<group>"; };
 		DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Bolus.swift"; sourceTree = "<group>"; };
 		DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Meal.swift"; sourceTree = "<group>"; };
 		DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+TempTarget.swift"; sourceTree = "<group>"; };
@@ -2073,7 +2073,6 @@
 				FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */,
 				FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */,
 				CEA4F62229BE10F70011ADF7 /* SavitzkyGolayFilter.swift */,
-				587DA1F52B77F3DD00B28F8A /* SettingsRowView.swift */,
 				BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */,
 				BD1661302B82ADAB00256551 /* CustomProgressView.swift */,
 				581516A32BCED84A00BF67D7 /* DebuggingIdentifiers.swift */,
@@ -2504,6 +2503,7 @@
 		BDDAF9F12D0055CC00B34E7A /* ChartElements */ = {
 			isa = PBXGroup;
 			children = (
+				DD2CC85B2D25D9CE00445446 /* GlucoseTargetsView.swift */,
 				BDDAF9EE2D00553E00B34E7A /* SelectionPopoverView.swift */,
 				582DF9742C8CDB92001F516D /* GlucoseChartView.swift */,
 				582DF9762C8CDBE7001F516D /* InsulinView.swift */,
@@ -3633,13 +3633,13 @@
 				BDFD165A2AE40438007F0DDA /* TreatmentsRootView.swift in Sources */,
 				38E98A2525F52C9300C0CED0 /* IssueReporter.swift in Sources */,
 				DD1745522C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift in Sources */,
+				DD2CC85C2D25DA1000445446 /* GlucoseTargetsView.swift in Sources */,
 				190EBCC429FF136900BA767D /* UserInterfaceSettingsDataFlow.swift in Sources */,
 				5A2325582BFCC168003518CA /* NightscoutConnectView.swift in Sources */,
 				3811DEB025C9D88300A708ED /* BaseKeychain.swift in Sources */,
 				110AEDE42C5193D200615CC9 /* BolusIntentRequest.swift in Sources */,
 				3811DE4325C9D4A100A708ED /* SettingsProvider.swift in Sources */,
 				45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */,
-				587DA1F62B77F3DD00B28F8A /* SettingsRowView.swift in Sources */,
 				CE7CA34E2A064973004BE681 /* AppShortcuts.swift in Sources */,
 				38C4D33A25E9A1ED00D30B77 /* NSObject+AssociatedValues.swift in Sources */,
 				110AEDEB2C51A0AE00615CC9 /* ShortcutsConfigView.swift in Sources */,

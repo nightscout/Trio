@@ -45,7 +45,7 @@ struct CalibrationsChart: View {
                             )
                         Text(dateFormatter.string(from: value.date))
                             .foregroundColor(.white)
-                            .font(.system(size: 10))
+                            .font(.caption2)
                             .position(
                                 x: value.x / maxValue * geo.size.width,
                                 y: geo.size.width - (value.y / maxValue * geo.size.width) + 10

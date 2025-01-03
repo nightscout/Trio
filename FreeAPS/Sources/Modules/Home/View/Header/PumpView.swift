@@ -44,23 +44,23 @@ struct PumpView: View {
                 if let reservoir = reservoir {
                     HStack {
                         Image(systemName: "cross.vial.fill")
-                            .font(.system(size: 16))
+                            .font(.callout)
                             .foregroundColor(reservoirColor)
                         if reservoir == 0xDEAD_BEEF {
                             Text("50+ " + NSLocalizedString("U", comment: "Insulin unit"))
-                                .font(.system(size: 15, design: .rounded))
+                                .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                         } else {
                             Text(
                                 Formatter.integerFormatter
                                     .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
                             )
-                            .font(.system(size: 16, design: .rounded))
+                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                         }
                     }
 
                     if let timeZone = timeZone, timeZone.secondsFromGMT() != TimeZone.current.secondsFromGMT() {
                         Image(systemName: "clock.badge.exclamationmark.fill")
-                            .font(.system(size: 16))
+                            .font(.callout)
                             .symbolRenderingMode(.palette)
                             .foregroundStyle(.red, Color(.warning))
                     }
@@ -69,20 +69,23 @@ struct PumpView: View {
                 if (battery.first?.display) != nil, let shouldBatteryDisplay = battery.first?.display, shouldBatteryDisplay {
                     HStack {
                         Image(systemName: "battery.100")
-                            .font(.system(size: 16))
+                            .font(.callout)
                             .foregroundColor(batteryColor)
-                        Text("\(Int(battery.first?.percent ?? 100)) %").font(.system(size: 16, design: .rounded))
+                        Text("\(Int(battery.first?.percent ?? 100)) %")
+                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                 }
 
                 if let date = expiresAtDate {
                     HStack {
                         Image(systemName: "stopwatch.fill")
-                            .font(.system(size: 16))
+                            .font(.callout)
                             .foregroundColor(timerColor)
 
                         Text(remainingTimeString(time: date.timeIntervalSince(timerDate)))
-                            .font(.system(size: 16, design: .rounded))
+                            .font(!(date.timeIntervalSince(timerDate) > 0) ? .subheadline : .callout)
+                            .fontWeight(.bold)
+                            .fontDesign(.rounded)
                     }
                 }
             }
