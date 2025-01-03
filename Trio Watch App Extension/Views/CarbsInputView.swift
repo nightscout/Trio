@@ -7,6 +7,7 @@ struct CarbsInputView: View {
     @Environment(\.dismiss) var dismiss
     @State private var carbsAmount = 0
     @State private var navigateToBolus = false // Track navigation to BolusInputView
+    @FocusState private var isCrownFocused: Bool // Manage crown focus
 
     let state: WatchState
     let continueToBolus: Bool
@@ -18,8 +19,13 @@ struct CarbsInputView: View {
         VStack {
             Picker("Carbs", selection: $carbsAmount) {
                 ForEach(0 ... 100, id: \.self) { amount in
-                    Text("\(amount)g").tag(amount)
+                    Text("\(amount) g").tag(amount)
                 }
+            }
+            .focusable(true) // Enable focus for Digital Crown
+            .focused($isCrownFocused) // Bind focus state
+            .onAppear {
+                isCrownFocused = true // Automatically focus when view appears
             }
 
             Button(buttonLabel) {

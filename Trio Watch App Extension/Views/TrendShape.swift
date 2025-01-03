@@ -1,16 +1,19 @@
 import SwiftUI
 
 struct Triangle: Shape {
+    /// Flag to be able to adjust size based on Apple Watch size
+    let isSmallDevice: Bool
+
     /// Creates a triangle shape pointing to the right
     func path(in rect: CGRect) -> Path {
         var path = Path()
 
         // Draw the triangle pointing to the right
-        path.move(to: CGPoint(x: rect.maxX - 10, y: rect.midY))
+        path.move(to: CGPoint(x: rect.maxX - (isSmallDevice ? 7.5 : 9), y: rect.midY))
         path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
         path.addQuadCurve(
             to: CGPoint(x: rect.minX, y: rect.maxY),
-            control: CGPoint(x: rect.midX - 15, y: rect.midY)
+            control: CGPoint(x: rect.midX - (isSmallDevice ? 5 : 7), y: rect.midY)
         )
         path.closeSubpath()
 
@@ -47,7 +50,7 @@ struct TrendShape: View {
         let strokeWidth: CGFloat = isSmallDevice ? 4 : 5
         let circleSize: CGFloat = isSmallDevice ? 74 : 92
         let triangleSize: CGFloat = isSmallDevice ? 16 : 20
-        let offset: CGFloat = isSmallDevice ? 47 : 56
+        let offset: CGFloat = isSmallDevice ? 47.5 : 59
 
         ZStack {
             // Outer circle with gradient
@@ -57,7 +60,7 @@ struct TrendShape: View {
                 .background(Circle().fill(Color.black))
 
             // Triangle with the color of the last gradient color
-            Triangle()
+            Triangle(isSmallDevice: isSmallDevice)
                 .fill(triangleColor)
                 .frame(width: triangleSize, height: triangleSize)
                 .offset(x: offset)

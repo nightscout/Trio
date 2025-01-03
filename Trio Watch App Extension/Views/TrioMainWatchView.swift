@@ -77,7 +77,7 @@ struct TrioMainWatchView: View {
                         showingTreatmentMenuSheet.toggle()
                     } label: {
                         Image(systemName: "plus")
-                            .foregroundStyle(.black)
+                            .foregroundStyle(Color.bgDarkerDarkBlue)
                     }
                     .controlSize(.large)
                     .buttonStyle(WatchOSButtonStyle())
