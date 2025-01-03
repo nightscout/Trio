@@ -18,7 +18,6 @@ extension AlgorithmAdvancedSettings {
         @Published var unsuspendIfNoTemp: Bool = false
         @Published var suspendZerosIOB: Bool = false
         @Published var min5mCarbimpact: Decimal = 8
-        @Published var autotuneISFAdjustmentFraction: Decimal = 1.0
         @Published var remainingCarbsFraction: Decimal = 1.0
         @Published var remainingCarbsCap: Decimal = 90
         @Published var noisyCGMTargetMultiplier: Decimal = 1.3
@@ -42,8 +41,6 @@ extension AlgorithmAdvancedSettings {
             subscribePreferencesSetting(\.suspendZerosIOB, on: $suspendZerosIOB) { suspendZerosIOB = $0 }
             subscribePreferencesSetting(\.suspendZerosIOB, on: $suspendZerosIOB) { suspendZerosIOB = $0 }
             subscribePreferencesSetting(\.min5mCarbimpact, on: $min5mCarbimpact) { min5mCarbimpact = $0 }
-            subscribePreferencesSetting(\.autotuneISFAdjustmentFraction, on: $autotuneISFAdjustmentFraction) {
-                autotuneISFAdjustmentFraction = $0 }
             subscribePreferencesSetting(\.remainingCarbsFraction, on: $remainingCarbsFraction) { remainingCarbsFraction = $0 }
             subscribePreferencesSetting(\.remainingCarbsCap, on: $remainingCarbsCap) { remainingCarbsCap = $0 }
             subscribePreferencesSetting(\.noisyCGMTargetMultiplier, on: $noisyCGMTargetMultiplier) {

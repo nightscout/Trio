@@ -61,21 +61,6 @@ extension ISFEditor {
 
         var body: some View {
             Form {
-                if let autotune = state.autotune, !state.settingsManager.settings.onlyAutotuneBasals {
-                    Section(header: Text("Autotune")) {
-                        HStack {
-                            Text("Calculated Sensitivity")
-                            Spacer()
-                            if state.units == .mgdL {
-                                Text(autotune.sensitivity.description)
-                            } else {
-                                Text(autotune.sensitivity.formattedAsMmolL)
-                            }
-                            Text(state.units.rawValue + "/U").foregroundColor(.secondary)
-                        }
-                    }.listRowBackground(Color.chart)
-                }
-
                 if !state.canAdd {
                     Section {
                         VStack(alignment: .leading) {

@@ -135,8 +135,6 @@ struct SettingInputSection<VerboseHint: View>: View {
             return pickerSettingsProvider.settings.maxCOB
         case "min5mCarbimpact":
             return pickerSettingsProvider.settings.min5mCarbimpact
-        case "autotuneISFAdjustmentFraction":
-            return pickerSettingsProvider.settings.autotuneISFAdjustmentFraction
         case "remainingCarbsFraction":
             return pickerSettingsProvider.settings.remainingCarbsFraction
         case "remainingCarbsCap":

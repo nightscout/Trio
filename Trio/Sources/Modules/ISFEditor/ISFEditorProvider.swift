@@ -34,9 +34,5 @@ extension ISFEditor {
         func saveProfile(_ profile: InsulinSensitivities) {
             storage.save(profile, as: OpenAPS.Settings.insulinSensitivities)
         }
-
-        var autotune: Autotune? {
-            storage.retrieve(OpenAPS.Settings.autotune, as: Autotune.self)
-        }
     }
 }

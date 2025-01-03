@@ -18,7 +18,6 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
 struct TrioSettings: JSON, Equatable {
     var units: GlucoseUnits = .mgdL
     var closedLoop: Bool = false
-    var useAutotune: Bool = false
     var isUploadEnabled: Bool = false
     var isDownloadEnabled: Bool = false
     var useLocalGlucoseSource: Bool = false
@@ -67,7 +66,6 @@ struct TrioSettings: JSON, Equatable {
     var maxProtein: Decimal = 250
     var displayFatAndProteinOnWatch: Bool = false
     var confirmBolusFaster: Bool = false
-    var onlyAutotuneBasals: Bool = false
     var overrideFactor: Decimal = 0.8
     var fattyMeals: Bool = false
     var fattyMealFactor: Decimal = 0.7
@@ -91,10 +89,6 @@ extension TrioSettings: Decodable {
 
         if let closedLoop = try? container.decode(Bool.self, forKey: .closedLoop) {
             settings.closedLoop = closedLoop
-        }
-
-        if let useAutotune = try? container.decode(Bool.self, forKey: .useAutotune) {
-            settings.useAutotune = useAutotune
         }
 
         if let isUploadEnabled = try? container.decode(Bool.self, forKey: .isUploadEnabled) {
@@ -312,10 +306,6 @@ extension TrioSettings: Decodable {
 
         if let confirmBolusFaster = try? container.decode(Bool.self, forKey: .confirmBolusFaster) {
             settings.confirmBolusFaster = confirmBolusFaster
-        }
-
-        if let onlyAutotuneBasals = try? container.decode(Bool.self, forKey: .onlyAutotuneBasals) {
-            settings.onlyAutotuneBasals = onlyAutotuneBasals
         }
 
         if let displayPresets = try? container.decode(Bool.self, forKey: .displayPresets) {

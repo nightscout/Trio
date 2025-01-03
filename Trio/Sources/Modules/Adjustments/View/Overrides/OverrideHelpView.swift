@@ -14,8 +14,8 @@ struct OverrideHelpView: View {
                         )
                         .fixedSize(horizontal: false, vertical: true)
                         Text("• Basal Rate")
-                        Text("•  Insulin Sensitivity")
-                        Text("•  Carb Ratio")
+                        Text("• Insulin Sensitivity")
+                        Text("• Carb Ratio")
                         Text("• Glucose Target")
                     }
                     Text(
@@ -38,7 +38,7 @@ struct OverrideHelpView: View {
             .navigationBarTitle("Help", displayMode: .inline)
 
             Button { state.isHelpSheetPresented.toggle() }
-            label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
+            label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center) }
                 .buttonStyle(.bordered)
                 .padding(.top)
         }

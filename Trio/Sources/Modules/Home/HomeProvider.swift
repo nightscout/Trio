@@ -26,28 +26,23 @@ extension Home {
             tempTargetsStorage.current()
         }
 
-        func pumpSettings() -> PumpSettings {
-            storage.retrieve(OpenAPS.Settings.settings, as: PumpSettings.self)
+        func pumpSettings() async -> PumpSettings {
+            await storage.retrieveAsync(OpenAPS.Settings.settings, as: PumpSettings.self)
                 ?? PumpSettings(from: OpenAPS.defaults(for: OpenAPS.Settings.settings))
                 ?? PumpSettings(insulinActionCurve: 10, maxBolus: 10, maxBasal: 2)
         }
 
-        func pumpReservoir() -> Decimal? {
-            storage.retrieve(OpenAPS.Monitor.reservoir, as: Decimal.self)
+        func pumpReservoir() async -> Decimal? {
+            await storage.retrieveAsync(OpenAPS.Monitor.reservoir, as: Decimal.self)
         }
 
-        func autotunedBasalProfile() -> [BasalProfileEntry] {
-            storage.retrieve(OpenAPS.Settings.profile, as: Autotune.self)?.basalProfile
-                ?? storage.retrieve(OpenAPS.Settings.pumpProfile, as: Autotune.self)?.basalProfile
-                ?? [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1)]
+        func getBasalProfile() async -> [BasalProfileEntry] {
+            await storage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
+                ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
+                ?? []
         }
 
-        func basalProfile() -> [BasalProfileEntry] {
-            storage.retrieve(OpenAPS.Settings.pumpProfile, as: Autotune.self)?.basalProfile
-                ?? [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1)]
-        }
-
-        func getBGTarget() async -> BGTargets {
+        func getBGTargets() async -> BGTargets {
             await storage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
                 ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
                 ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])

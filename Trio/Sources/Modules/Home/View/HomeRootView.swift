@@ -33,7 +33,6 @@ extension Home {
         @State var isMenuPresented = false
         @State var showTreatments = false
         @State var selectedTab: Int = 0
-        @State private var statusTitle: String = ""
         @State var showPumpSelection: Bool = false
         @State var notificationsDisabled = false
         @State var timeButtons: [TimePicker] = [
@@ -326,8 +325,7 @@ extension Home {
                     manualTempBasal: state.manualTempBasal,
                     determination: state.determinationsFromPersistence
                 ).onTapGesture {
-                    state.isStatusPopupPresented = true
-                    setStatusTitle()
+                    state.isLoopStatusPresented = true
                 }.onLongPressGesture {
                     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                     impactHeavy.impactOccurred()
@@ -339,7 +337,7 @@ extension Home {
                     let bg = eventualBG as Decimal
                     HStack {
                         Image(systemName: "arrow.right.circle")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.callout).fontWeight(.bold)
                         Text(
                             Formatter.decimalFormatterWithTwoFractionDigits.string(
                                 from: (
@@ -347,15 +345,14 @@ extension Home {
                                         .asMmolL : bg
                                 ) as NSNumber
                             )!
-                        )
-                        .font(.system(size: 16))
+                        ).font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                 } else {
                     HStack {
                         Image(systemName: "arrow.right.circle")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.callout).fontWeight(.bold)
                         Text("--")
-                            .font(.system(size: 16))
+                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                 }
             }
@@ -365,7 +362,7 @@ extension Home {
             HStack {
                 HStack {
                     Image(systemName: "syringe.fill")
-                        .font(.system(size: 16))
+                        .font(.callout)
                         .foregroundColor(Color.insulin)
                     Text(
                         (
@@ -374,14 +371,14 @@ extension Home {
                         ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
 
                 Spacer()
 
                 HStack {
                     Image(systemName: "fork.knife")
-                        .font(.system(size: 16))
+                        .font(.callout)
                         .foregroundColor(.loopYellow)
                     Text(
                         (
@@ -391,7 +388,7 @@ extension Home {
                         ) +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
 
                 Spacer()
@@ -399,19 +396,20 @@ extension Home {
                 HStack {
                     if state.pumpSuspended {
                         Text("Pump suspended")
-                            .font(.system(size: 12, weight: .bold, design: .rounded)).foregroundColor(.loopGray)
+                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                            .foregroundColor(.loopGray)
                     } else if let tempBasalString = tempBasalString {
                         Image(systemName: "drop.circle")
-                            .font(.system(size: 16))
+                            .font(.callout)
                             .foregroundColor(.insulinTintColor)
                         Text(tempBasalString)
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     } else {
                         Image(systemName: "drop.circle")
-                            .font(.system(size: 16))
+                            .font(.callout)
                             .foregroundColor(.insulinTintColor)
                         Text("No Data")
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                 }
                 if state.totalInsulinDisplayType == .totalDailyDose {
@@ -425,7 +423,7 @@ extension Home {
                             ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 } else {
                     Spacer()
                     HStack {
@@ -433,7 +431,7 @@ extension Home {
                             "TINS: \(state.roundedTotalBolus)" +
                                 NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
                         )
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                         .onChange(of: state.hours) {
                             state.roundedTotalBolus = state.calculateTINS()
                         }
@@ -450,7 +448,7 @@ extension Home {
         @ViewBuilder func adjustmentsOverrideView(_ overrideString: String) -> some View {
             Group {
                 Image(systemName: "clock.arrow.2.circlepath")
-                    .font(.system(size: 20))
+                    .font(.title2)
                     .foregroundStyle(Color.primary, Color.purple)
                 VStack(alignment: .leading) {
                     Text(latestOverride.first?.name ?? "Custom Override")
@@ -469,7 +467,7 @@ extension Home {
         @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: String) -> some View {
             Group {
                 Image(systemName: "target")
-                    .font(.system(size: 20))
+                    .font(.title2)
                     .foregroundStyle(Color.loopGreen)
                 VStack(alignment: .leading) {
                     Text(latestTempTarget.first?.name ?? "Temp Target")
@@ -485,7 +483,7 @@ extension Home {
 
         @ViewBuilder func adjustmentsCancelView(_ cancelAction: @escaping () -> Void) -> some View {
             Image(systemName: "xmark.app")
-                .font(.system(size: 24))
+                .font(.title)
                 .onTapGesture {
                     cancelAction()
                 }
@@ -493,7 +491,7 @@ extension Home {
 
         @ViewBuilder func adjustmentsCancelTempTargetView() -> some View {
             Image(systemName: "xmark.app")
-                .font(.system(size: 24))
+                .font(.title)
                 .confirmationDialog(
                     "Stop the Temp Target \"\(latestTempTarget.first?.name ?? "")\"?",
                     isPresented: $isConfirmStopTempTargetShown,
@@ -517,7 +515,7 @@ extension Home {
 
         @ViewBuilder func adjustmentsCancelOverrideView() -> some View {
             Image(systemName: "xmark.app")
-                .font(.system(size: 24))
+                .font(.title)
                 .confirmationDialog(
                     "Stop the Override \"\(latestOverride.first?.name ?? "")\"?",
                     isPresented: $isConfirmStopOverridePresented,
@@ -554,7 +552,7 @@ extension Home {
 
                 /// to ensure the same position....
                 Image(systemName: "xmark.app")
-                    .font(.system(size: 25))
+                    .font(.title)
                     // clear color for the icon
                     .foregroundStyle(Color.clear)
             }.onTapGesture {
@@ -563,6 +561,8 @@ extension Home {
         }
 
         @ViewBuilder func adjustmentView(geo: GeometryProxy) -> some View {
+//            let background = colorScheme == .dark ? Material.ultraThinMaterial.opacity(0.5) : Color.black.opacity(0.2)
+
             ZStack {
                 /// rectangle as background
                 RoundedRectangle(cornerRadius: 15)
@@ -574,7 +574,7 @@ extension Home {
                                     Color.insulin.opacity(0.1)
                             ) : Color.clear // Use clear and add the Material in the background
                     )
-                    .background(.ultraThinMaterial.opacity(colorScheme == .dark ? 0.35 : 0))
+                    .background(colorScheme == .dark ? Color.chart.opacity(0.25) : Color.black.opacity(0.075))
                     .clipShape(RoundedRectangle(cornerRadius: 15))
                     .frame(height: geo.size.height * 0.08)
                     .shadow(
@@ -854,26 +854,9 @@ extension Home {
             .navigationTitle("Home")
             .navigationBarHidden(true)
             .ignoresSafeArea(.keyboard)
-            .popup(isPresented: state.isStatusPopupPresented, alignment: .top, direction: .top) {
-                popup
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(colorScheme == .dark ? Color(
-                                "Chart"
-                            ) : Color(UIColor.darkGray))
-                    )
-                    .onTapGesture {
-                        state.isStatusPopupPresented = false
-                    }
-                    .gesture(
-                        DragGesture(minimumDistance: 10, coordinateSpace: .local)
-                            .onEnded { value in
-                                if value.translation.height < 0 {
-                                    state.isStatusPopupPresented = false
-                                }
-                            }
-                    )
+            .blur(radius: state.isLoopStatusPresented ? 3 : 0)
+            .sheet(isPresented: $state.isLoopStatusPresented) {
+                LoopStatusView(state: state)
             }
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
                 Button("Medtronic") { state.addPump(.minimed) }
@@ -960,8 +943,9 @@ extension Home {
                 )
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
                 .onChange(of: selectedTab) {
-                    print("current path is empty: \(settingsPath.isEmpty)")
-                    settingsPath = NavigationPath()
+                    if !settingsPath.isEmpty {
+                        settingsPath = NavigationPath()
+                    }
                 }
         }
 
@@ -972,152 +956,6 @@ extension Home {
                 if state.waitForSuggestion {
                     CustomProgressView(text: "Updating IOB...")
                 }
-            }
-        }
-
-        // TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
-        private func parseReasonConclusion(_ reasonConclusion: String, isMmolL: Bool) -> String {
-            let patterns = [
-                "minGuardBG\\s*-?\\d+\\.?\\d*<-?\\d+\\.?\\d*", // minGuardBG x<y
-                "Eventual BG\\s*-?\\d+\\.?\\d*\\s*>=\\s*-?\\d+\\.?\\d*", // Eventual BG x >= target
-                "Eventual BG\\s*-?\\d+\\.?\\d*\\s*<\\s*-?\\d+\\.?\\d*", // Eventual BG x < target
-                "(\\S+)\\s+(-?\\d+\\.?\\d*)\\s*>\\s*(\\d+)%\\s+of\\s+BG\\s+(-?\\d+\\.?\\d*)" // maxDelta x > y% of BG z
-            ]
-            let pattern = patterns.joined(separator: "|")
-            let regex = try! NSRegularExpression(pattern: pattern)
-
-            func convertToMmolL(_ value: String) -> String {
-                if let glucoseValue = Double(value.replacingOccurrences(of: "[^\\d.-]", with: "", options: .regularExpression)) {
-                    let mmolValue = Decimal(glucoseValue).asMmolL
-                    return mmolValue.description
-                }
-                return value
-            }
-
-            let matches = regex.matches(
-                in: reasonConclusion,
-                range: NSRange(reasonConclusion.startIndex..., in: reasonConclusion)
-            )
-            var updatedConclusion = reasonConclusion
-
-            for match in matches.reversed() {
-                guard let range = Range(match.range, in: reasonConclusion) else { continue }
-                let matchedString = String(reasonConclusion[range])
-
-                if isMmolL {
-                    if matchedString.contains("<"), matchedString.contains("Eventual BG"), !matchedString.contains("=") {
-                        // Handle "Eventual BG x < target" pattern
-                        let parts = matchedString.components(separatedBy: "<")
-                        if parts.count == 2 {
-                            let bgPart = parts[0].replacingOccurrences(of: "Eventual BG", with: "")
-                                .trimmingCharacters(in: .whitespaces)
-                            let targetValue = parts[1].trimmingCharacters(in: .whitespaces)
-                            let formattedBGPart = convertToMmolL(bgPart)
-                            let formattedTargetValue = convertToMmolL(targetValue)
-                            let formattedString = "Eventual BG \(formattedBGPart)<\(formattedTargetValue)"
-                            updatedConclusion.replaceSubrange(range, with: formattedString)
-                        }
-                    } else if matchedString.contains("<"), matchedString.contains("minGuardBG") {
-                        // Handle "minGuardBG x<y" pattern
-                        let parts = matchedString.components(separatedBy: "<")
-                        if parts.count == 2 {
-                            let firstValue = parts[0].trimmingCharacters(in: .whitespaces)
-                            let secondValue = parts[1].trimmingCharacters(in: .whitespaces)
-                            let formattedFirstValue = convertToMmolL(firstValue)
-                            let formattedSecondValue = convertToMmolL(secondValue)
-                            let formattedString = "minGuardBG \(formattedFirstValue)<\(formattedSecondValue)"
-                            updatedConclusion.replaceSubrange(range, with: formattedString)
-                        }
-                    } else if matchedString.contains(">=") {
-                        // Handle "Eventual BG x >= target" pattern
-                        let parts = matchedString.components(separatedBy: " >= ")
-                        if parts.count == 2 {
-                            let firstValue = parts[0].replacingOccurrences(of: "Eventual BG", with: "")
-                                .trimmingCharacters(in: .whitespaces)
-                            let secondValue = parts[1].trimmingCharacters(in: .whitespaces)
-                            let formattedFirstValue = convertToMmolL(firstValue)
-                            let formattedSecondValue = convertToMmolL(secondValue)
-                            let formattedString = "Eventual BG \(formattedFirstValue) >= \(formattedSecondValue)"
-                            updatedConclusion.replaceSubrange(range, with: formattedString)
-                        }
-                    } else if let localMatch = regex.firstMatch(
-                        in: matchedString,
-                        range: NSRange(matchedString.startIndex..., in: matchedString)
-                    ) {
-                        // Handle "maxDelta 37 > 20% of BG 95" style
-                        if match.numberOfRanges == 5 {
-                            let metric = String(matchedString[Range(localMatch.range(at: 1), in: matchedString)!])
-                            let firstValue = String(matchedString[Range(localMatch.range(at: 2), in: matchedString)!])
-                            let percentage = String(matchedString[Range(localMatch.range(at: 3), in: matchedString)!])
-                            let bgValue = String(matchedString[Range(localMatch.range(at: 4), in: matchedString)!])
-
-                            let formattedFirstValue = convertToMmolL(firstValue)
-                            let formattedBGValue = convertToMmolL(bgValue)
-
-                            let formattedString = "\(metric) \(formattedFirstValue) > \(percentage)% of BG \(formattedBGValue)"
-                            updatedConclusion.replaceSubrange(range, with: formattedString)
-                        }
-                    }
-                } else {
-                    // When isMmolL is false, ensure the original value is retained without duplication
-                    updatedConclusion.replaceSubrange(range, with: matchedString)
-                }
-            }
-
-            return updatedConclusion.capitalizingFirstLetter()
-        }
-
-        private var popup: some View {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(statusTitle).font(.headline).foregroundColor(.white)
-                    .padding(.bottom, 4)
-                if let determination = state.determinationsFromPersistence.first {
-                    if determination.glucose == 400 {
-                        Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
-                        Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
-                    } else {
-                        let tags = !state.isSmoothingEnabled ? determination.reasonParts : determination
-                            .reasonParts + ["Smoothing: On"]
-                        TagCloudView(
-                            tags: tags,
-                            shouldParseToMmolL: state.units == .mmolL
-                        )
-                        .animation(.none, value: false)
-
-                        Text(
-                            self
-                                .parseReasonConclusion(
-                                    determination.reasonConclusion,
-                                    isMmolL: state.units == .mmolL
-                                )
-                        ).font(.caption).foregroundColor(.white)
-                    }
-                } else {
-                    Text("No determination found").font(.body).foregroundColor(.white)
-                }
-
-                if let errorMessage = state.errorMessage, let date = state.errorDate {
-                    Text(NSLocalizedString("Error at", comment: "") + " " + Formatter.dateFormatter.string(from: date))
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .padding(.bottom, 4)
-                        .padding(.top, 8)
-                    Text(errorMessage).font(.caption).foregroundColor(.loopRed)
-                }
-            }
-        }
-
-        private func setStatusTitle() {
-            if let determination = state.determinationsFromPersistence.first {
-                let dateFormatter = DateFormatter()
-                dateFormatter.timeStyle = .short
-                statusTitle = NSLocalizedString("Oref Determination enacted at", comment: "Headline in enacted pop up") +
-                    " " +
-                    dateFormatter
-                    .string(from: determination.deliverAt ?? Date())
-            } else {
-                statusTitle = "No Oref determination"
-                return
             }
         }
     }

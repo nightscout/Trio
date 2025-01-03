@@ -141,7 +141,7 @@ extension DataTable {
                     HStack {
                         Text("Add Glucose")
                         Image(systemName: "plus")
-                            .font(.system(size: 20))
+                            .font(.title2)
                     }
                 }
             )

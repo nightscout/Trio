@@ -290,7 +290,7 @@ struct MealPresetView: View {
             if carbs == 0, fat == 0, protein == 0 { state.summation = [] }
         }
         label: { Image(systemName: "minus.circle.fill")
-            .font(.system(size: 20))
+            .font(.title3)
         }
         .disabled(
             state
@@ -315,7 +315,7 @@ struct MealPresetView: View {
             state.addPresetToNewMeal()
         }
         label: { Image(systemName: "plus.circle.fill")
-            .font(.system(size: 20))
+            .font(.title3)
         }
         .disabled(state.selection == nil)
         .buttonStyle(.borderless)
