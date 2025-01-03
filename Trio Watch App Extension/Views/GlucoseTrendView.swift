@@ -14,6 +14,8 @@ struct GlucoseTrendView: View {
             ZStack {
                 TrendShape(rotationDegrees: rotationDegrees, isSmallDevice: is40mm)
                     .animation(.spring(response: 0.5, dampingFraction: 0.6), value: rotationDegrees)
+                    // TODO: set loop colors conditionally, not hard coded
+                    .shadow(color: .green, radius: is40mm ? 8 : 12)
 
                 VStack(alignment: .center) {
                     Text(state.currentGlucose)
@@ -31,12 +33,7 @@ struct GlucoseTrendView: View {
 
             Spacer()
 
-            // TODO: set loop colors conditionally, not hard coded
-            HStack {
-                Image(systemName: "circle")
-                    .foregroundStyle(.green)
-                Text(state.lastLoopTime ?? "--")
-            }.font(is40mm ? .footnote : .caption)
+            Text(state.lastLoopTime ?? "--").font(is40mm ? .footnote : .caption)
 
             Spacer()
 

@@ -11,12 +11,13 @@ struct TrioMainWatchView: View {
 
     // view visbility
     @State private var showingTreatmentMenuSheet: Bool = false
-    @State private var showingCarbsInputView: Bool = false
-    @State private var showingInsulinInputView: Bool = false
     @State private var showingOverrideSheet: Bool = false
+    @State private var navigateToCarbsInput = false
+    @State private var navigateToBolusInput = false
+    @State private var continueToBolus = false
 
     // treatments
-    @State private var selectedTreatment: TreatmentOptions?
+    @State private var selectedTreatment: TreatmentOption?
 
     private var trioBackgroundColor = LinearGradient(
         gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
@@ -90,7 +91,10 @@ struct TrioMainWatchView: View {
                 }
             }
             .sheet(isPresented: $showingTreatmentMenuSheet) {
-                TreatmentMenuView()
+                TreatmentMenuView(selectedTreatment: $selectedTreatment)
+                    .onDisappear {
+                        handleTreatmentSelection()
+                    }
             }
             .sheet(isPresented: $showingOverrideSheet) {
                 OverridePresetsView(
@@ -98,12 +102,18 @@ struct TrioMainWatchView: View {
                     state: state
                 )
             }
-        }
-        .sheet(isPresented: $showingTempTargetSheet) {
-            TempTargetPresetsView(
-                tempTargetPresets: state.tempTargetPresets,
-                state: state
-            )
+            .sheet(isPresented: $showingTempTargetSheet) {
+                TempTargetPresetsView(
+                    tempTargetPresets: state.tempTargetPresets,
+                    state: state
+                )
+            }
+            .navigationDestination(isPresented: $navigateToCarbsInput) {
+                CarbsInputView(state: state, continueToBolus: continueToBolus)
+            }
+            .navigationDestination(isPresented: $navigateToBolusInput) {
+                BolusInputView(state: state)
+            }
         }
     }
 
@@ -151,6 +161,19 @@ struct TrioMainWatchView: View {
             rotationDegrees = 90
         default:
             rotationDegrees = 0
+        }
+    }
+
+    private func handleTreatmentSelection() {
+        guard let treatment = selectedTreatment else { return }
+        switch treatment {
+        case .mealBolusCombo:
+            navigateToCarbsInput = true
+            continueToBolus = true
+        case .meal:
+            navigateToCarbsInput = true
+        case .bolus:
+            navigateToBolusInput = true
         }
     }
 }

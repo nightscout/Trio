@@ -2,15 +2,16 @@ import SwiftUI
 
 struct TreatmentMenuView: View {
     @Environment(\.presentationMode) var presentationMode
-    let treatments = TreatmentOptions.allCases
-    @State private var selectedOption: TreatmentOptions? = nil
+    @Binding var selectedTreatment: TreatmentOption?
+
+    let treatments = TreatmentOption.allCases
 
     var body: some View {
         NavigationView {
             List {
                 ForEach(treatments) { treatment in
                     Button(action: {
-                        selectedOption = treatment
+                        selectedTreatment = treatment
                         presentationMode.wrappedValue.dismiss() // Close after selecting
                     }) {
                         HStack(alignment: .center) {
@@ -37,10 +38,8 @@ struct TreatmentMenuView: View {
                     }
                     .buttonStyle(PressableIconButtonStyle())
                 }.listRowBackground(Color.clear)
-            }
-            .navigationTitle("Pick Treatment")
+            }.navigationTitle("Pick Treatment")
         }
-        .background(.clear)
     }
 
     var mealIcon: some View {
@@ -64,7 +63,7 @@ struct TreatmentMenuView: View {
     }
 }
 
-enum TreatmentOptions: String, CaseIterable, Identifiable {
+enum TreatmentOption: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     case mealBolusCombo

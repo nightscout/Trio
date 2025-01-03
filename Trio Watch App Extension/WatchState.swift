@@ -21,6 +21,12 @@ import WatchConnectivity
     var overridePresets: [OverridePresetWatch] = []
     var tempTargetPresets: [TempTargetPresetWatch] = []
 
+    /// treatments inputs
+    /// used to store carbs for combined meal-bolus-treatments
+    var carbsAmount: Int = 0
+    var fatAmount: Int = 0
+    var proteinAmount: Int = 0
+
     override init() {
         super.init()
         setupSession()
@@ -44,12 +50,11 @@ import WatchConnectivity
     /// - Parameters:
     ///   - amount: The insulin amount to be delivered
     ///   - isExternal: Indicates if the bolus is from an external source
-    func sendBolusRequest(_ amount: Decimal, isExternal: Bool) {
+    func sendBolusRequest(_ amount: Decimal) {
         guard let session = session, session.isReachable else { return }
 
         let message: [String: Any] = [
-            "bolus": amount,
-            "isExternal": isExternal
+            "bolus": amount
         ]
 
         session.sendMessage(message, replyHandler: nil) { error in
