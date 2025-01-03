@@ -412,6 +412,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                             guard context.hasChanges else { return }
                             try context.save()
                             print("📱 Successfully cancelled override")
+
+                            // Send notification to update Adjustments UI
+                            Foundation.NotificationCenter.default.post(
+                                name: .didUpdateOverrideConfiguration,
+                                object: nil
+                            )
                         } catch {
                             print("❌ Error cancelling override: \(error.localizedDescription)")
                         }
@@ -454,6 +460,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         guard context.hasChanges else { return }
                         try context.save()
                         print("📱 Successfully activated override: \(presetName)")
+
+                        // Send notification to update Adjustments UI
+                        Foundation.NotificationCenter.default.post(
+                            name: .didUpdateOverrideConfiguration,
+                            object: nil
+                        )
                     } catch {
                         print("❌ Error activating override: \(error.localizedDescription)")
                     }
