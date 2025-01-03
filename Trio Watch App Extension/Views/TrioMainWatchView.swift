@@ -3,73 +3,66 @@ import SwiftUI
 
 struct TrioMainWatchView: View {
     @State private var state = WatchState()
-    @State private var isTreatmentMenuSheetPresented: Bool = false
-    @State private var showingOverrideSheet = false
-    @State private var currentPage: Double = 0
+
+    // misc
+    @State private var currentPage: Int = 0
     @State private var rotationDegrees: Double = 0.0
 
+    // view visbility
+    @State private var showingTreatmentMenuSheet: Bool = false
+    @State private var showingCarbsInputView: Bool = false
+    @State private var showingInsulinInputView: Bool = false
+    @State private var showingOverrideSheet: Bool = false
+
+    // treatments
+    @State private var selectedTreatment: TreatmentOptions?
+
+    private var trioBackgroundColor = LinearGradient(
+        gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
     var body: some View {
-        TabView(selection: $currentPage) {
-            // Page 1: Current glucose and action buttons
-            ScrollView {
-                VStack(spacing: 10) {
-                    // IOB, COB, lastLoopTime Display
-                    VStack(alignment: .leading) {
-                        HStack {
-                            HStack {
-                                Image(systemName: "syringe.fill")
-                                    .foregroundStyle(.blue)
-                                Text(state.iob ?? "--")
-                            }
+        NavigationStack {
+            TabView(selection: $currentPage) {
+                // Page 1: Current glucose trend in "BG bobble"
+                GlucoseTrendView(state: state, rotationDegrees: rotationDegrees)
+                    .tag(0)
 
-                            Spacer()
-
-                            HStack {
-                                Image(systemName: "fork.knife")
-                                    .foregroundStyle(.orange)
-                                Text(state.cob ?? "--")
-                            }
-
-                            Spacer()
-
-                            // TODO: set loop colors conditionally, not hard coded
-                            HStack {
-                                Image(systemName: "circle")
-                                    .foregroundStyle(.green)
-                                Text(state.lastLoopTime ?? "--")
-                                    .padding(.trailing)
-                            }
-                        }
-                    }
-
-                    // Main Glucose Display
-                    ZStack {
-                        TrendShape(rotationDegrees: rotationDegrees)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.6), value: rotationDegrees)
-
-                        VStack(alignment: .center) {
-                            Text(state.currentGlucose)
-                                .fontWeight(.semibold)
-                                .font(.system(.title, design: .rounded))
-
-                            if let delta = state.delta {
-                                Text(delta)
-                                    .fontWeight(.semibold)
-                                    .font(.system(.caption, design: .rounded))
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }.padding(.top)
-                }
-                .scenePadding()
+                // Page 2: Glucose chart
+                GlucoseChartView(glucoseValues: state.glucoseValues)
+                    .tag(1)
             }
-            .tag(0.0)
+            .background(trioBackgroundColor)
+            .tabViewStyle(.verticalPage)
+            .digitalCrownRotation($currentPage.doubleBinding(), from: 0, through: 1, by: 1)
             .onChange(of: state.trend) { _, newTrend in
                 withAnimation {
                     updateRotation(for: newTrend)
                 }
             }
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    HStack {
+                        Image(systemName: "syringe.fill")
+                            .foregroundStyle(.blue)
+
+                        Text(state.iob ?? "--")
+                            .foregroundStyle(.white)
+                    }.font(.caption)
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack {
+                        Text(state.cob ?? "--")
+                            .foregroundStyle(.white)
+
+                        Image(systemName: "fork.knife")
+                            .foregroundStyle(.orange)
+                    }.font(.caption)
+                }
+
                 ToolbarItemGroup(placement: .bottomBar) {
                     Button {
                         showingOverrideSheet = true
@@ -79,54 +72,40 @@ struct TrioMainWatchView: View {
                     }
 
                     Button {
-                        isTreatmentMenuSheetPresented.toggle()
+                        showingTreatmentMenuSheet.toggle()
                     } label: {
                         Image(systemName: "plus")
-                            .foregroundStyle(Color.black)
+                            .foregroundStyle(.black)
                     }
                     .controlSize(.large)
-                    .buttonStyle(WatchOSButtonStyle(backgroundGradient: LinearGradient(colors: [
-                        Color(red: 0.7215686275, green: 0.3411764706, blue: 1), // #B857FF
-                        Color(red: 0.6235294118, green: 0.4235294118, blue: 0.9803921569), // #9F6CFA
-                        Color(red: 0.4862745098, green: 0.5450980392, blue: 0.9529411765), // #7C8BF3
-                        Color(red: 0.3411764706, green: 0.6666666667, blue: 0.9254901961), // #57AAEC
-                        Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902), // #43BBE9
-                        Color(
-                            red: 0.7215686275,
-                            green: 0.3411764706,
-                            blue: 1
-                        ) // #B857FF (repeated for seamless transition)
-                    ], startPoint: .topLeading, endPoint: .bottomTrailing)))
+                    .buttonStyle(WatchOSButtonStyle())
 
                     Button {
-                        // Perform an action here.
+                        // Perform an action here
                     } label: {
-                        Image(systemName: "target").foregroundStyle(.green.opacity(0.75))
+                        Image(systemName: "target")
+                            .foregroundStyle(.green.opacity(0.75))
                     }
                 }
             }
-
-            // Page 2: Glucose chart
-            GlucoseChartView(glucoseValues: state.glucoseValues)
-                .tag(1.0)
-        }
-        .tabViewStyle(.verticalPage)
-        .navigationBarHidden(true)
-        .digitalCrownRotation($currentPage, from: 0, through: 1, by: 1)
-        .blur(radius: isTreatmentMenuSheetPresented ? 10 : 0)
-        .sheet(isPresented: $isTreatmentMenuSheetPresented) {
-            TreatmentMenuView().presentationBackground(.clear)
-        }
-        .sheet(isPresented: $showingOverrideSheet) {
-            OverridePresetsView(
-                overridePresets: state.overridePresets,
-                state: state
-            )
+            .sheet(isPresented: $showingTreatmentMenuSheet) {
+                TreatmentMenuView()
+            }
+            .sheet(isPresented: $showingOverrideSheet) {
+                OverridePresetsView(
+                    overridePresets: state.overridePresets,
+                    state: state
+                )
+            }
         }
     }
 
     struct WatchOSButtonStyle: ButtonStyle {
-        var backgroundGradient: LinearGradient
+        var backgroundGradient = LinearGradient(colors: [
+            Color(red: 0.721, green: 0.341, blue: 1),
+            Color(red: 0.486, green: 0.545, blue: 0.953),
+            Color(red: 0.262, green: 0.733, blue: 0.914)
+        ], startPoint: .topLeading, endPoint: .bottomTrailing)
         var foregroundColor: Color = .white
         var fontSize: Font = .title2
 
@@ -134,15 +113,13 @@ struct TrioMainWatchView: View {
             configuration.label
                 .font(fontSize)
                 .fontWeight(.semibold)
-                .foregroundColor(foregroundColor)
                 .padding()
                 .background(
-                    backgroundGradient // Custom background color
-                        .opacity(configuration.isPressed ? 0.8 : 1.0) // Simulates the press effect
+                    backgroundGradient.opacity(configuration.isPressed ? 0.8 : 1.0)
                 )
                 .clipShape(Circle())
-                .scaleEffect(configuration.isPressed ? 0.95 : 1.0) // Adds subtle scaling for press
-                .animation(.easeInOut(duration: 0.1), value: configuration.isPressed) // Smooth animation
+                .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+                .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
         }
     }
 
@@ -164,6 +141,20 @@ struct TrioMainWatchView: View {
             rotationDegrees = 0
         }
     }
+}
+
+extension Binding where Value == Int {
+    func doubleBinding() -> Binding<Double> {
+        Binding<Double>(
+            get: { Double(self.wrappedValue) },
+            set: { self.wrappedValue = Int($0) }
+        )
+    }
+}
+
+extension Color {
+    static let bgDarkBlue = Color("Background_DarkBlue")
+    static let bgDarkerDarkBlue = Color("Background_DarkerDarkBlue")
 }
 
 #Preview {

@@ -22,6 +22,8 @@ struct Triangle: Shape {
 struct TrendShape: View {
     /// Rotation angle in degrees for the trend direction
     let rotationDegrees: Double
+    /// Flag to be able to adjust size based on Apple Watch size
+    let isSmallDevice: Bool
 
     // Angular gradient for the outer circle, transitioning through various blues and purples
     private let angularGradient = AngularGradient(
@@ -42,18 +44,23 @@ struct TrendShape: View {
     private let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902) // #43BBE9
 
     var body: some View {
+        let strokeWidth: CGFloat = isSmallDevice ? 4 : 5
+        let circleSize: CGFloat = isSmallDevice ? 74 : 92
+        let triangleSize: CGFloat = isSmallDevice ? 16 : 20
+        let offset: CGFloat = isSmallDevice ? 47 : 56
+
         ZStack {
             // Outer circle with gradient
             Circle()
-                .stroke(angularGradient, lineWidth: 5)
-                .frame(width: 82, height: 82)
+                .stroke(angularGradient, lineWidth: strokeWidth)
+                .frame(width: circleSize, height: circleSize)
                 .background(Circle().fill(Color.black))
 
             // Triangle with the color of the last gradient color
             Triangle()
                 .fill(triangleColor)
-                .frame(width: 20, height: 20)
-                .offset(x: 52)
+                .frame(width: triangleSize, height: triangleSize)
+                .offset(x: offset)
         }
         .rotationEffect(.degrees(rotationDegrees))
         .shadow(color: Color.black.opacity(0.33), radius: 3)

@@ -6,80 +6,61 @@ struct TreatmentMenuView: View {
     @State private var selectedOption: TreatmentOptions? = nil
 
     var body: some View {
-        ScrollView {
-            HStack {
-                Spacer()
-                Text("Choose Treatment:")
-                    .font(.subheadline)
-                    .foregroundStyle(.primary)
-                Spacer()
-            }
-
-            // Options list
-            VStack(spacing: 10) {
+        NavigationView {
+            List {
                 ForEach(treatments) { treatment in
                     Button(action: {
                         selectedOption = treatment
                         presentationMode.wrappedValue.dismiss() // Close after selecting
                     }) {
-                        HStack(alignment: .center, spacing: 8) {
+                        HStack(alignment: .center) {
                             switch treatment {
                             case .mealBolusCombo:
-                                // First Icon
-                                HStack(spacing: 0) {
-                                    Image(systemName: "fork.knife")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 22, height: 22) // Icon size
-                                        .padding(10) // Padding inside the circle
-                                        .background(Color.orange) // Circle background color
-                                        .clipShape(Circle())
+                                mealIcon
 
-                                    // Plus Icon
-                                    Image(systemName: "plus")
-                                        .font(.caption)
-                                        .bold()
-                                        .frame(width: 24, height: 24) // Ensures consistent sizing
+                                // Plus Icon
+                                Image(systemName: "plus")
+                                    .font(.caption)
+                                    .bold()
+                                    .frame(width: 24, height: 24)
 
-                                    // Second Icon
-                                    Image(systemName: "syringe.fill")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 22, height: 22) // Icon size
-                                        .padding(10)
-                                        .background(Color.blue)
-                                        .clipShape(Circle())
-                                }
+                                bolusIcon
                             case .meal:
-                                Image(systemName: "fork.knife")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 22, height: 22) // Icon size
-                                    .padding(10)
-                                    .background(Color.orange)
-                                    .clipShape(Circle())
+                                mealIcon
 
                             case .bolus:
-                                Image(systemName: "syringe.fill")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 22, height: 22) // Icon size
-                                    .padding(10)
-                                    .background(Color.blue)
-                                    .clipShape(Circle())
+                                bolusIcon
                             }
                         }
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(PressableIconButtonStyle())
-                }
+                }.listRowBackground(Color.clear)
             }
-            .padding(.horizontal)
-            .background(Color.clear)
+            .navigationTitle("Pick Treatment")
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.clear)
+        .background(.clear)
+    }
+
+    var mealIcon: some View {
+        Image(systemName: "fork.knife")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 22, height: 22) // Icon size
+            .padding(10)
+            .background(Color.orange)
+            .clipShape(Circle())
+    }
+
+    var bolusIcon: some View {
+        Image(systemName: "syringe.fill")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 22, height: 22) // Icon size
+            .padding(10)
+            .background(Color.blue)
+            .clipShape(Circle())
     }
 }
 
@@ -102,7 +83,8 @@ enum TreatmentOptions: String, CaseIterable, Identifiable {
 struct PressableIconButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .opacity(configuration.isPressed ? 0.6 : 1.0) // Change opacity when pressed
+            .background(Color.clear)
+            .opacity(configuration.isPressed ? 0.5 : 1.0) // Change opacity when pressed
             .animation(.easeInOut(duration: 0.2), value: configuration.isPressed) // Smooth transition
     }
 }

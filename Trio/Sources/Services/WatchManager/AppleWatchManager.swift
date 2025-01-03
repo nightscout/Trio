@@ -135,7 +135,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             if lastLoopMinutes > 1440 {
                 watchState.lastLoopTime = "--"
             } else {
-                watchState.lastLoopTime = "\(lastLoopMinutes)" + NSLocalizedString("min", comment: "Minutes ago since last loop")
+                watchState.lastLoopTime = "\(lastLoopMinutes)m"
             }
 
             // Set IOB and COB from latest determination

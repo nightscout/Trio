@@ -440,6 +440,7 @@
 		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
 		DD1E53592D273F26008F32A4 /* LoopStatusHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1E53582D273F20008F32A4 /* LoopStatusHelpView.swift */; };
 		DD21FCB52C6952AD00AF2C25 /* DecimalPickerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */; };
+		DD246F062D2836AA0027DDE0 /* GlucoseTrendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD246F052D2836AA0027DDE0 /* GlucoseTrendView.swift */; };
 		DD2CC85C2D25DA1000445446 /* GlucoseTargetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2CC85B2D25D9CE00445446 /* GlucoseTargetsView.swift */; };
 		DD32CF982CC82463003686D6 /* TrioRemoteControl+Bolus.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */; };
 		DD32CF9A2CC8247B003686D6 /* TrioRemoteControl+Meal.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */; };
@@ -1148,6 +1149,7 @@
 		DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildDetails.swift; sourceTree = "<group>"; };
 		DD1E53582D273F20008F32A4 /* LoopStatusHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStatusHelpView.swift; sourceTree = "<group>"; };
 		DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalPickerSettings.swift; sourceTree = "<group>"; };
+		DD246F052D2836AA0027DDE0 /* GlucoseTrendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseTrendView.swift; sourceTree = "<group>"; };
 		DD2CC85B2D25D9CE00445446 /* GlucoseTargetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseTargetsView.swift; sourceTree = "<group>"; };
 		DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Bolus.swift"; sourceTree = "<group>"; };
 		DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Meal.swift"; sourceTree = "<group>"; };
@@ -2464,6 +2466,7 @@
 		BDA25F1A2D26BCE800035F34 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				DD246F052D2836AA0027DDE0 /* GlucoseTrendView.swift */,
 				DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */,
 				BD54A9582D27FB6A00F9C1EE /* OverridePresetsView.swift */,
 				BDA25F212D26D62200035F34 /* BolusInputView.swift */,
@@ -3966,6 +3969,7 @@
 				BD54A9592D27FB7800F9C1EE /* OverridePresetsView.swift in Sources */,
 				BDA25F1E2D26D5DD00035F34 /* GlucoseChartView.swift in Sources */,
 				DD6F63CC2D27F615007D94CF /* TreatmentMenuView.swift in Sources */,
+				DD246F062D2836AA0027DDE0 /* GlucoseTrendView.swift in Sources */,
 				BDA25EE62D260D5E00035F34 /* WatchState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

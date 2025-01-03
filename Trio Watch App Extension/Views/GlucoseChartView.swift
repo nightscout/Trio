@@ -80,8 +80,6 @@ struct GlucoseChartView: View {
                 }
             }
         }
-        .padding(.top)
-        .scenePadding()
         .onTapGesture {
             withAnimation {
                 timeWindow = timeWindow.next
