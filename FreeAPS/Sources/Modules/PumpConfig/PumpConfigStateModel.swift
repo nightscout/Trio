@@ -23,19 +23,23 @@ extension PumpConfig {
                 .assign(to: \.alertNotAck, on: self)
                 .store(in: &lifetime)
 
-            let basalSchedule = BasalRateSchedule(
-                dailyItems: provider.basalProfile().map {
-                    RepeatingScheduleValue(startTime: $0.minutes.minutes.timeInterval, value: Double($0.rate))
+            Task {
+                let basalSchedule = BasalRateSchedule(
+                    dailyItems: await provider.getBasalProfile().map {
+                        RepeatingScheduleValue(startTime: $0.minutes.minutes.timeInterval, value: Double($0.rate))
+                    }
+                )
+
+                let pumpSettings = provider.pumpSettings()
+
+                await MainActor.run {
+                    initialSettings = PumpInitialSettings(
+                        maxBolusUnits: Double(pumpSettings.maxBolus),
+                        maxBasalRateUnitsPerHour: Double(pumpSettings.maxBasal),
+                        basalSchedule: basalSchedule!
+                    )
                 }
-            )
-
-            let pumpSettings = provider.pumpSettings()
-
-            initialSettings = PumpInitialSettings(
-                maxBolusUnits: Double(pumpSettings.maxBolus),
-                maxBasalRateUnitsPerHour: Double(pumpSettings.maxBasal),
-                basalSchedule: basalSchedule!
-            )
+            }
         }
 
         func addPump(_ type: PumpType) {

@@ -10,7 +10,6 @@ extension ISFEditor {
         var items: [Item] = []
         var initialItems: [Item] = []
         var shouldDisplaySaving: Bool = false
-        var autotune: Autotune?
 
         let context = CoreDataStack.shared.newTaskContext()
 
@@ -49,8 +48,6 @@ extension ISFEditor {
             }
 
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
-
-            autotune = provider.autotune
         }
 
         func add() {

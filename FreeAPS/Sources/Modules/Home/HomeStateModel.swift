@@ -23,7 +23,6 @@ extension Home {
         var uploadStats = false
         var recentGlucose: BloodGlucose?
         var maxBasal: Decimal = 2
-        var autotunedBasalProfile: [BasalProfileEntry] = []
         var basalProfile: [BasalProfileEntry] = []
         var bgTargets = BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
             ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
@@ -67,7 +66,7 @@ extension Home {
         var timeZone: TimeZone?
         var hours: Int16 = 6
         var totalBolus: Decimal = 0
-        var isStatusPopupPresented: Bool = false
+        var isLoopStatusPresented: Bool = false
         var isLegendPresented: Bool = false
         var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
         var roundedTotalBolus: String = ""
@@ -472,10 +471,8 @@ extension Home {
         }
 
         private func setupBasalProfile() async {
-            let autotunedBasalProfile = await provider.autotunedBasalProfile()
-            let basalProfile = await provider.basalProfile()
+            let basalProfile = await provider.getBasalProfile()
             await MainActor.run {
-                self.autotunedBasalProfile = autotunedBasalProfile
                 self.basalProfile = basalProfile
             }
         }

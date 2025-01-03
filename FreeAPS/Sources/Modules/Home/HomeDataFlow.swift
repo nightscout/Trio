@@ -8,8 +8,7 @@ enum Home {
 protocol HomeProvider: Provider {
     func heartbeatNow()
     func pumpSettings() async -> PumpSettings
-    func autotunedBasalProfile() async -> [BasalProfileEntry]
-    func basalProfile() async -> [BasalProfileEntry]
+    func getBasalProfile() async -> [BasalProfileEntry]
     func tempTargets(hours: Int) -> [TempTarget]
     func pumpReservoir() async -> Decimal?
     func tempTarget() -> TempTarget?

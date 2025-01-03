@@ -36,15 +36,10 @@ extension Home {
             await storage.retrieveAsync(OpenAPS.Monitor.reservoir, as: Decimal.self)
         }
 
-        func autotunedBasalProfile() async -> [BasalProfileEntry] {
-            await storage.retrieveAsync(OpenAPS.Settings.profile, as: Autotune.self)?.basalProfile
-                ?? storage.retrieve(OpenAPS.Settings.pumpProfile, as: Autotune.self)?.basalProfile
-                ?? [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1)]
-        }
-
-        func basalProfile() async -> [BasalProfileEntry] {
-            await storage.retrieveAsync(OpenAPS.Settings.pumpProfile, as: Autotune.self)?.basalProfile
-                ?? [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1)]
+        func getBasalProfile() async -> [BasalProfileEntry] {
+            await storage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
+                ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
+                ?? []
         }
 
         func getBGTargets() async -> BGTargets {
