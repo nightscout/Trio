@@ -163,13 +163,13 @@ extension Home {
                         self.setupBatteryArray()
                     }
                     group.addTask {
-                        self.setupPumpSettings()
+                        await self.setupPumpSettings()
                     }
                     group.addTask {
-                        self.setupBasalProfile()
+                        await self.setupBasalProfile()
                     }
                     group.addTask {
-                        self.setupGlucoseTargets()
+                        await self.setupGlucoseTargets()
                     }
                     group.addTask {
                         self.setupReservoir()
@@ -464,32 +464,35 @@ extension Home {
             return roundedAmount.formatted()
         }
 
-        private func setupPumpSettings() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.maxBasal = self.provider.pumpSettings().maxBasal
+        private func setupPumpSettings() async {
+            let maxBasal = await provider.pumpSettings().maxBasal
+            await MainActor.run {
+                self.maxBasal = maxBasal
             }
         }
 
-        private func setupBasalProfile() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.autotunedBasalProfile = self.provider.autotunedBasalProfile()
-                self.basalProfile = self.provider.basalProfile()
+        private func setupBasalProfile() async {
+            let autotunedBasalProfile = await provider.autotunedBasalProfile()
+            let basalProfile = await provider.basalProfile()
+            await MainActor.run {
+                self.autotunedBasalProfile = autotunedBasalProfile
+                self.basalProfile = basalProfile
             }
         }
 
-        private func setupGlucoseTargets() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.bgTargets = self.provider.getBGTargets()
+        private func setupGlucoseTargets() async {
+            let bgTargets = await provider.getBGTargets()
+            await MainActor.run {
+                self.bgTargets = bgTargets
             }
         }
 
         private func setupReservoir() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.reservoir = self.provider.pumpReservoir()
+            Task {
+                let reservoir = await provider.pumpReservoir()
+                await MainActor.run {
+                    self.reservoir = reservoir
+                }
             }
         }
 
@@ -612,16 +615,22 @@ extension Home.StateModel:
     }
 
     func pumpSettingsDidChange(_: PumpSettings) {
-        setupPumpSettings()
-        setupBatteryArray()
+        Task {
+            await setupPumpSettings()
+            setupBatteryArray()
+        }
     }
 
     func basalProfileDidChange(_: [BasalProfileEntry]) {
-        setupBasalProfile()
+        Task {
+            await setupBasalProfile()
+        }
     }
 
     func bgTargetsDidChange(_: BGTargets) {
-        setupGlucoseTargets()
+        Task {
+            await setupGlucoseTargets()
+        }
     }
 
     func pumpReservoirDidChange(_: Decimal) {
