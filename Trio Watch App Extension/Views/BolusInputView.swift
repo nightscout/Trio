@@ -9,7 +9,10 @@ struct BolusInputView: View {
     @State private var bolusAmount = 0.0
     @State private var showingConfirmation = false
     @State private var confirmationProgress = 0.0
+
     let state: WatchState
+
+    @FocusState private var isCrownFocused: Bool
 
     var body: some View {
         if showingConfirmation {
@@ -27,7 +30,7 @@ struct BolusInputView: View {
                         if state.carbsAmount > 0 {
                             state.carbsAmount = 0 // reset carbs in state
                         }
-                        dismiss()
+                        showingConfirmation.toggle()
                     } label: {
                         Image(systemName: "xmark")
                     }
@@ -37,6 +40,7 @@ struct BolusInputView: View {
 
                 ToolbarItem(placement: .topBarTrailing) {
                     Image(systemName: "digitalcrown.arrow.counterclockwise.fill")
+                        .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(Color.white)
                 }
             }
@@ -44,26 +48,85 @@ struct BolusInputView: View {
             VStack {
                 if state.carbsAmount > 0 {
                     HStack {
-                        Text("Carbs: \(state.carbsAmount) g").font(.subheadline).padding(.bottom)
+                        Text("Carbs:").bold().font(.subheadline).padding(.leading)
+                        Text(String(format: "%.0f g", state.carbsAmount)).font(.subheadline).foregroundStyle(Color.orange)
                         Spacer()
                     }
                 }
 
-                // TODO: handle bolus recommendation
-                Picker("Bolus", selection: $bolusAmount) {
-                    ForEach(0 ... 100, id: \.self) { number in
-                        Text(String(format: "%.1f U", Double(number) / 10))
-                            .tag(Double(number) / 10)
-                    }
-                }
+                Spacer()
 
-                Button("Add Bolus") {
+                HStack {
+                    // "-" Button
+                    Button(action: {
+                        if bolusAmount > 0 { bolusAmount -= 1 }
+                    }) {
+                        Image(systemName: "minus.circle.fill")
+                            .font(.title3)
+                            .foregroundColor(.blue)
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(bolusAmount < 1)
+
+                    Spacer()
+
+                    // Display the current carb amount
+                    Text(String(format: "%.2f U", bolusAmount))
+                        .fontWeight(.bold)
+                        .font(.system(.title2, design: .rounded))
+                        .foregroundColor(.primary)
+                        .focusable(true)
+                        .focused($isCrownFocused)
+                        .digitalCrownRotation(
+                            $bolusAmount,
+                            from: 0,
+                            through: 150.0, // TODO: use maxBolus here
+                            by: 1, // TODO: use pump increment here
+                            sensitivity: .medium,
+                            isContinuous: false,
+                            isHapticFeedbackEnabled: true
+                        )
+
+                    Spacer()
+
+                    // TODO: introduce maxBolus here, disable button if bolusAmount > maxBolus
+                    // "+" Button
+                    Button(action: {
+                        bolusAmount += 1
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title3)
+                            .foregroundColor(.blue)
+                    }
+                    .buttonStyle(.borderless)
+                }.padding(.horizontal)
+
+                Text("Insulin")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom)
+
+                Spacer()
+
+                Button("Log Bolus") {
                     showingConfirmation = true
                 }
                 .buttonStyle(.bordered)
                 .tint(.blue)
+                .disabled(!(bolusAmount > 0.0))
             }
-            .navigationTitle("Add Insulin")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Image(systemName: "syringe.fill")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 14, height: 14)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundStyle(.white)
+                        .clipShape(Circle())
+                }
+            }
         }
     }
 }
@@ -79,22 +142,26 @@ struct BolusConfirmationView: View {
     var body: some View {
         VStack(spacing: 10) {
             if state.carbsAmount > 0 {
-                Text(String(format: "%.1f g", state.carbsAmount))
-                    .bold()
-                    .foregroundStyle(.orange)
+                HStack {
+                    Text("Carbs:")
+                    Spacer()
+                    Text(String(format: "%.1f g", state.carbsAmount))
+                        .bold()
+                        .foregroundStyle(.orange)
+                }.padding(.horizontal)
             }
 
-            Text(String(format: "%.1f U", bolusAmount))
-                .bold()
-                .foregroundStyle(.blue)
+            HStack {
+                Text("Bolus")
+                Spacer()
+                Text(String(format: "%.1f U", bolusAmount))
+                    .bold()
+                    .foregroundStyle(.blue)
+            }.padding(.horizontal)
 
             ProgressView(value: progress, total: 1.0)
-                .tint(progress >= 1.0 ? .green : .blue)
+                .tint(progress >= 1.0 ? .green : .gray)
                 .padding(.horizontal)
-
-            Text("\(Int(progress * 100))%")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
         }
         .focusable(true)
         .focused($isCrownFocused)

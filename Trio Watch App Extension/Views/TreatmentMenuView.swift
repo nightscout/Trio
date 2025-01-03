@@ -1,10 +1,19 @@
 import SwiftUI
 
 struct TreatmentMenuView: View {
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     @Binding var selectedTreatment: TreatmentOption?
 
     let treatments = TreatmentOption.allCases
+
+    private var is40mm: Bool {
+        let size = WKInterfaceDevice.current().screenBounds.size
+        return size.height < 225 && size.width < 185
+    }
+
+    private var iconSize: CGFloat {
+        is40mm ? 18 : 22
+    }
 
     var body: some View {
         NavigationView {
@@ -12,24 +21,18 @@ struct TreatmentMenuView: View {
                 ForEach(treatments) { treatment in
                     Button(action: {
                         selectedTreatment = treatment
-                        presentationMode.wrappedValue.dismiss() // Close after selecting
+                        dismiss() // Close after selecting
                     }) {
-                        HStack(alignment: .center) {
+                        HStack(spacing: 10) {
                             switch treatment {
-                            case .mealBolusCombo:
-                                mealIcon
-
-                                // Plus Icon
-                                Image(systemName: "plus")
-                                    .font(.caption)
-                                    .bold()
-                                    .frame(width: 24, height: 24)
-
-                                bolusIcon
                             case .meal:
                                 mealIcon
-
+                                Text(treatment.displayName)
                             case .bolus:
+                                bolusIcon
+                                Text(treatment.displayName)
+                            case .mealBolusCombo:
+                                mealIcon
                                 bolusIcon
                             }
                         }
@@ -37,7 +40,7 @@ struct TreatmentMenuView: View {
                         .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(PressableIconButtonStyle())
-                }.listRowBackground(Color.clear)
+                }
             }.navigationTitle("Pick Treatment")
         }
     }
@@ -46,8 +49,8 @@ struct TreatmentMenuView: View {
         Image(systemName: "fork.knife")
             .resizable()
             .aspectRatio(contentMode: .fit)
-            .frame(width: 22, height: 22) // Icon size
-            .padding(10)
+            .frame(width: iconSize, height: iconSize)
+            .padding(is40mm ? 6 : 10)
             .background(Color.orange)
             .clipShape(Circle())
     }
@@ -56,8 +59,8 @@ struct TreatmentMenuView: View {
         Image(systemName: "syringe.fill")
             .resizable()
             .aspectRatio(contentMode: .fit)
-            .frame(width: 22, height: 22) // Icon size
-            .padding(10)
+            .frame(width: iconSize, height: iconSize)
+            .padding(is40mm ? 6 : 10)
             .background(Color.blue)
             .clipShape(Circle())
     }
@@ -83,7 +86,7 @@ struct PressableIconButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .background(Color.clear)
-            .opacity(configuration.isPressed ? 0.5 : 1.0) // Change opacity when pressed
-            .animation(.easeInOut(duration: 0.2), value: configuration.isPressed) // Smooth transition
+            .opacity(configuration.isPressed ? 0.3 : 1.0) // Change opacity when pressed
+            .animation(.easeInOut(duration: 0.25), value: configuration.isPressed) // Smooth transition
     }
 }

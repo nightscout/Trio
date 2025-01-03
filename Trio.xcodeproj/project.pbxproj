@@ -2472,13 +2472,13 @@
 		BDA25F1A2D26BCE800035F34 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				DD246F052D2836AA0027DDE0 /* GlucoseTrendView.swift */,
-				BD54A9702D281A7A00F9C1EE /* TempTargetPresetsView.swift */,
-				DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */,
-				BD54A9582D27FB6A00F9C1EE /* OverridePresetsView.swift */,
 				BDA25F212D26D62200035F34 /* BolusInputView.swift */,
 				BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */,
 				BDA25F1D2D26D5D800035F34 /* GlucoseChartView.swift */,
+				DD246F052D2836AA0027DDE0 /* GlucoseTrendView.swift */,
+				BD54A9582D27FB6A00F9C1EE /* OverridePresetsView.swift */,
+				BD54A9702D281A7A00F9C1EE /* TempTargetPresetsView.swift */,
+				DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */,
 				BDA25F1B2D26BD0300035F34 /* TrendShape.swift */,
 				BDFF7A842D25F97D0016C40C /* TrioMainWatchView.swift */,
 			);
