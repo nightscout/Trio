@@ -297,15 +297,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
         DispatchQueue.main.async { [weak self] in
-            if let bolusAmount = message["bolus"] as? Double,
-               let isExternal = message["isExternal"] as? Bool
+            if let bolusAmount = message["bolus"] as? Double
             {
-                print("📱 Received \(isExternal ? "external insulin" : "bolus") request from watch: \(bolusAmount)U")
-                if isExternal {
-                    self?.handleExternalInsulin(Decimal(bolusAmount))
-                } else {
-                    self?.handleBolusRequest(Decimal(bolusAmount))
-                }
+                self?.handleBolusRequest(Decimal(bolusAmount))
             }
 
             if let carbsAmount = message["carbs"] as? Int,
@@ -358,40 +352,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             // Try to reconnect after a short delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
                 self?.retryConnection()
-            }
-        }
-    }
-
-    /// Handles external insulin entries received from the Watch
-    /// - Parameter amount: The insulin amount in units to be recorded
-    private func handleExternalInsulin(_ amount: Decimal) {
-        Task {
-            let context = CoreDataStack.shared.newTaskContext()
-
-            await context.perform {
-                // Create Bolus
-                let bolus = BolusStored(context: context)
-                bolus.amount = amount as NSDecimalNumber
-                bolus.isSMB = false
-                bolus.isExternal = true
-
-                // Create PumpEvent
-                let pumpEvent = PumpEventStored(context: context)
-                pumpEvent.id = UUID().uuidString
-                pumpEvent.timestamp = Date()
-                pumpEvent.type = PumpEvent.bolus.rawValue
-                pumpEvent.bolus = bolus
-                pumpEvent.isUploadedToNS = false
-                pumpEvent.isUploadedToHealth = false
-                pumpEvent.isUploadedToTidepool = false
-
-                do {
-                    guard context.hasChanges else { return }
-                    try context.save()
-                    print("📱 Saved external insulin and pump event from watch: \(amount)U")
-                } catch {
-                    print("❌ Error saving external insulin and pump event: \(error.localizedDescription)")
-                }
             }
         }
     }

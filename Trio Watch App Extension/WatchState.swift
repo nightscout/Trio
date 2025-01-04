@@ -49,7 +49,6 @@ import WatchConnectivity
     /// Sends a bolus insulin request to the paired iPhone
     /// - Parameters:
     ///   - amount: The insulin amount to be delivered
-    ///   - isExternal: Indicates if the bolus is from an external source
     func sendBolusRequest(_ amount: Decimal) {
         guard let session = session, session.isReachable else { return }
 
