@@ -41,13 +41,28 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     ) async -> TDDResult {
         debug(.apsManager, "Starting TDD calculation with \(pumpHistory.count) pump events")
 
+        // Log the first and last pump history events if available
+        let earliestEvent: String
+        let latestEvent: String
+
+        // We fetch descending, so invert logic
+        if let firstEvent = pumpHistory.last, let lastEvent = pumpHistory.first {
+            earliestEvent = "Type: \(firstEvent.type), Timestamp: \(firstEvent.timestamp.ISO8601Format())"
+            latestEvent = "Type: \(lastEvent.type), Timestamp: \(lastEvent.timestamp.ISO8601Format())"
+        } else {
+            earliestEvent = "No events available"
+            latestEvent = "No events available"
+            debug(.apsManager, "No pump history events available for logging.")
+        }
+
         // Group events by type once to avoid multiple filters
         let groupedEvents = Dictionary(grouping: pumpHistory, by: { $0.type })
         let bolusEvents = groupedEvents[.bolus] ?? []
         let tempBasalEvents = groupedEvents[.tempBasal] ?? []
-        // Extract pumpSuspend and pumpResume events, then create pairs of suspend + resume events
         let pumpSuspendEvents = groupedEvents[.pumpSuspend] ?? []
         let pumpResumeEvents = groupedEvents[.pumpResume] ?? []
+
+        // Create pairs of suspend + resume events
         let suspendResumePairs = zip(pumpSuspendEvents, pumpResumeEvents).filter { suspend, resume in
             resume.timestamp > suspend.timestamp
         }
@@ -55,19 +70,16 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         // Calculate all components concurrently
         async let pumpDataHours = calculatePumpDataHours(pumpHistory)
         async let bolusInsulin = calculateBolusInsulin(bolusEvents)
-
         let gaps = findBasalGaps(in: tempBasalEvents)
         async let scheduledBasalInsulin = !gaps.isEmpty ? calculateScheduledBasalInsulin(
             gaps: gaps,
             profile: basalProfile,
             roundToSupportedBasalRate: pumpManager.roundToSupportedBasalRate
         ) : 0
-
         async let tempBasalInsulin = calculateTempBasalInsulin(
             tempBasalEvents, suspendResumePairs: suspendResumePairs,
             roundToSupportedBasalRate: pumpManager.roundToSupportedBasalRate
         )
-
         async let weightedAverage = calculateWeightedAverage()
 
         // Await all concurrent calculations
@@ -79,18 +91,40 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             weightedAverage
         )
 
+        // Total insulin calculation
         let total = bolus + temp + scheduled
+
+        // Safeguard against division by zero
+        let percentage: (Decimal, Decimal) -> String = { part, total in
+            total > 0 ? String(format: "%.2f", NSDecimalNumber(decimal: (part / total * 100).rounded(toPlaces: 2)).doubleValue) :
+                "0.00"
+        }
+
+        // Store log strings in variables to avoid Xcode auto formatter from breaking up the lines in log statement
+        let totalString = String(format: "%.2f", NSDecimalNumber(decimal: total.rounded(toPlaces: 2)).doubleValue)
+        let bolusString = String(format: "%.2f", NSDecimalNumber(decimal: bolus.rounded(toPlaces: 2)).doubleValue)
+        let tempBasalString = String(format: "%.2f", NSDecimalNumber(decimal: temp.rounded(toPlaces: 2)).doubleValue)
+        let scheduledBasalString = String(format: "%.2f", NSDecimalNumber(decimal: scheduled.rounded(toPlaces: 2)).doubleValue)
+        let weightedAvgString = String(format: "%.2f", NSDecimalNumber(decimal: weighted?.rounded(toPlaces: 2) ?? 0))
+        let hoursString = String(format: "%.5f", NSDecimalNumber(decimal: Decimal(hours).truncated(toPlaces: 5)).doubleValue)
 
         debug(.apsManager, """
         TDD Summary:
-        - Total: \(total) U
-        - Bolus: \(bolus) U (\((bolus / total * 100).rounded(toPlaces: 1)) %)
-        - Temp Basal: \(temp) U (\((temp / total * 100).rounded(toPlaces: 1)) %)
-        - Scheduled Basal: \(scheduled) U (\((scheduled / total * 100).rounded(toPlaces: 1)) %)
-        - WeightedAverage: \(weighted ?? 0) U
-        - Hours of Data: \(Decimal(hours).truncated(toPlaces: 5))
+        +-------------------+-----------+-----------+
+        | Type\t\t\t\t| Amount U\t| Percent %\t|
+        +-------------------+-----------+-----------+
+        | Total\t\t\t\t| \(totalString)\t\t| \t\t\t|
+        | Bolus\t\t\t\t| \(bolusString)\t\t| \(percentage(bolus, total))\t\t|
+        | Temp Basal\t\t| \(tempBasalString)\t\t| \(percentage(temp, total))\t\t|
+        | Scheduled Basal\t| \(scheduledBasalString)\t\t| \(percentage(scheduled, total))\t\t|
+        | Weighted Average\t| \(weightedAvgString)\t\t| \t\t\t|
+        +-------------------+-----------+-----------+
+        - Hours of Data: \(hoursString)
+        - Earliest Event: \(earliestEvent)
+        - Latest Event: \(latestEvent)
         """)
 
+        // Return calculated TDDResult
         return TDDResult(
             total: total,
             bolus: bolus,
@@ -151,12 +185,13 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     private func calculateBolusInsulin(_ bolusEvents: [PumpHistoryEvent]) -> Decimal {
         bolusEvents
             .reduce(Decimal(0)) { totalBolusInsulin, event in
-                let newTotalBolusInsulin = totalBolusInsulin + (event.amount as Decimal? ?? 0)
-                debug(
-                    .apsManager,
-                    "Bolus \(event.amount ?? 0) U dosed at \(event.timestamp.ISO8601Format()) added. New total bolus = \(newTotalBolusInsulin) U"
-                )
-                return newTotalBolusInsulin
+//                let newTotalBolusInsulin =
+                totalBolusInsulin + (event.amount as Decimal? ?? 0)
+//                debug(
+//                    .apsManager,
+//                    "Bolus \(event.amount ?? 0) U dosed at \(event.timestamp.ISO8601Format()) added. New total bolus = \(newTotalBolusInsulin) U"
+//                )
+//                return newTotalBolusInsulin
             }
     }
 
@@ -228,10 +263,10 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                     if insulin > 0 {
                         totalInsulin += insulin
 
-                        debug(
-                            .apsManager,
-                            "Temp basal: \(rate) U/hr for \(durationHours) hr (Start: \(actualStart.ISO8601Format()), End: \(actualEnd.ISO8601Format())) = \(insulin) U"
-                        )
+//                        debug(
+//                            .apsManager,
+//                            "Temp basal: \(rate) U/hr for \(durationHours) hr (Start: \(actualStart.ISO8601Format()), End: \(actualEnd.ISO8601Format())) = \(insulin) U"
+//                        )
                     }
                 }
             } else if event.type == .pumpSuspend {
@@ -294,10 +329,10 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                 if insulin > 0 {
                     totalInsulin += insulin
 
-                    debug(
-                        .apsManager,
-                        "Scheduled Insulin added: \(insulin) U. Duration: \(durationHours) hrs (Start: \(currentTime.ISO8601Format()), End: \(endTime.ISO8601Format()))"
-                    )
+//                    debug(
+//                        .apsManager,
+//                        "Scheduled Insulin added: \(insulin) U. Duration: \(durationHours) hrs (Start: \(currentTime.ISO8601Format()), End: \(endTime.ISO8601Format()))"
+//                    )
                 }
 
                 currentTime = endTime
