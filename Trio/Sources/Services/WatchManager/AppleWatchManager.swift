@@ -346,6 +346,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 debug(.watchManager, "📱 Received cancel temp target request from watch")
                 self?.handleCancelTempTarget()
             }
+
+            // Handle bolus cancellation
+            if message["cancelBolus"] as? Bool == true {
+                Task {
+                    await self?.apsManager.cancelBolus()
+                    debug(.watchManager, "📱 Bolus cancelled from watch")
+                }
+            }
         }
     }
 

@@ -31,6 +31,7 @@ import WatchConnectivity
     var confirmationProgress = 0.0
 
     var bolusProgress: Double = 0.0
+    var isBolusCanceled = false
 
     override init() {
         super.init()
@@ -150,6 +151,7 @@ import WatchConnectivity
     }
 
     func sendCancelBolusRequest() {
+        isBolusCanceled = true
         guard let session = session, session.isReachable else { return }
 
         let message: [String: Any] = [
@@ -240,7 +242,9 @@ import WatchConnectivity
             }
 
             if let bolusProgress = message["bolusProgress"] as? Double {
-                self.bolusProgress = bolusProgress
+                if !self.isBolusCanceled {
+                    self.bolusProgress = bolusProgress
+                }
             }
         }
     }

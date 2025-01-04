@@ -17,7 +17,7 @@ struct BolusProgressOverlay: View {
     )
 
     var body: some View {
-        if state.bolusProgress > 0 && state.bolusProgress < 1.0 {
+        if state.bolusProgress > 0 && state.bolusProgress < 1.0 && !state.isBolusCanceled {
             VStack {
                 Spacer()
                 VStack(spacing: 4) {
@@ -27,6 +27,7 @@ struct BolusProgressOverlay: View {
 
                         Button(action: {
                             state.sendCancelBolusRequest()
+                            state.activeBolusAmount = 0
                             navigationState.resetToRoot()
                         }) {
                             Image(systemName: "xmark.circle.fill")
@@ -48,6 +49,8 @@ struct BolusProgressOverlay: View {
                 .background(Color.black.opacity(0.7))
                 .cornerRadius(10)
                 .padding()
+            }.onDisappear {
+                state.activeBolusAmount = 0
             }
         }
     }
