@@ -417,6 +417,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 let carbs = CarbEntryStored(context: context)
                 carbs.carbs = Double(truncating: amount as NSNumber)
                 carbs.date = date
+                carbs.id = UUID()
 
                 // TODO: add FPU
 
