@@ -2,7 +2,6 @@ import SwiftUI
 
 struct BolusProgressOverlay: View {
     let state: WatchState
-    @ObservedObject var navigationState: NavigationState
 
     private let progressGradient = LinearGradient(
         colors: [
@@ -17,42 +16,42 @@ struct BolusProgressOverlay: View {
     )
 
     var body: some View {
-        if state.bolusProgress > 0 && state.bolusProgress < 1.0 && !state.isBolusCanceled {
+        VStack(spacing: 10) {
             VStack {
+                Text("Bolusing")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.top)
+
+                ProgressView(value: state.bolusProgress, total: 1.0)
+                    .tint(progressGradient)
+
+                Text(String(
+                    format: "%.1f U of %.1f U",
+                    state.bolusProgress * state.activeBolusAmount,
+                    state.activeBolusAmount
+                ))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+
                 Spacer()
-                VStack(spacing: 4) {
-                    HStack {
-                        ProgressView(value: state.bolusProgress, total: 1.0)
-                            .tint(progressGradient)
 
-                        Button(action: {
-                            state.sendCancelBolusRequest()
-                            navigationState.resetToRoot()
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.red)
-                                .font(.system(size: 20))
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    Text(String(
-                        format: "%.1f U of %.1f U",
-                        state.bolusProgress * state.activeBolusAmount,
-                        state.activeBolusAmount
-                    ))
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                Button(action: {
+                    state.sendCancelBolusRequest()
+                }) {
+                    Text("Cancel Bolus")
                 }
-                .padding()
-                .background(Color.black.opacity(0.7))
-                .cornerRadius(10)
+                .buttonStyle(.bordered)
                 .padding()
             }
-            .onChange(of: state.bolusProgress) { _, newProgress in
-                if newProgress >= 1.0 {
-                    state.activeBolusAmount = 0 // Reset only when bolus is complete
-                }
+            .padding()
+            .background(Color.black.opacity(0.8))
+            .cornerRadius(10)
+        }
+        .scenePadding()
+        .onChange(of: state.bolusProgress) { _, newProgress in
+            if newProgress >= 1.0 {
+                state.activeBolusAmount = 0 // Reset only when bolus is complete
             }
         }
     }

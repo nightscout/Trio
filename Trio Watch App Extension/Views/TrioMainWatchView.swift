@@ -1,22 +1,9 @@
 import Charts
 import SwiftUI
 
-class NavigationState: ObservableObject {
-    @Published var path = NavigationPath() // Tracks the navigation stack
-
-    func resetToRoot() {
-        path.removeLast(path.count) // Clears the navigation stack to return to root
-    }
-}
-
-enum NavigationDestinations: String {
-    case carbInput
-    case bolusInput
-    case bolusConfirm
-}
-
 struct TrioMainWatchView: View {
-    @StateObject private var navigationState = NavigationState() // Shared navigation state
+    // Shared navigation state
+    @StateObject private var navigationState = NavigationState()
     @State private var state = WatchState()
 
     // misc
@@ -146,36 +133,13 @@ struct TrioMainWatchView: View {
                     )
                 }
             }
-            .overlay(
-                BolusProgressOverlay(state: state, navigationState: navigationState)
-            )
         }
-    }
-
-    struct WatchOSButtonStyle: ButtonStyle {
-        var backgroundGradient = LinearGradient(colors: [
-            Color(red: 0.721, green: 0.341, blue: 1),
-            Color(red: 0.486, green: 0.545, blue: 0.953),
-            Color(red: 0.262, green: 0.733, blue: 0.914)
-        ], startPoint: .topLeading, endPoint: .bottomTrailing)
-        var foregroundColor: Color = .white
-        var fontSize: Font = .title2
-
-        private var is40mm: Bool {
-            let size = WKInterfaceDevice.current().screenBounds.size
-            return size.height < 225 && size.width < 185
-        }
-
-        func makeBody(configuration: Configuration) -> some View {
-            configuration.label
-                .font(fontSize)
-                .fontWeight(is40mm ? .medium : .semibold)
-                .padding(is40mm ? 6 : 8)
-                .background(
-                    backgroundGradient.opacity(configuration.isPressed ? 0.8 : 1.0)
-                )
-                .clipShape(Circle())
-                .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+        .blur(radius: state.bolusProgress > 0 && state.bolusProgress < 1.0 && !state.isBolusCanceled ? 3 : 0)
+        .overlay {
+            if state.bolusProgress > 0 && state.bolusProgress < 1.0 && !state.isBolusCanceled {
+                BolusProgressOverlay(state: state)
+                    .transition(.opacity)
+            }
         }
     }
 
@@ -212,20 +176,6 @@ struct TrioMainWatchView: View {
             navigationState.path.append(NavigationDestinations.carbInput)
         }
     }
-}
-
-extension Binding where Value == Int {
-    func doubleBinding() -> Binding<Double> {
-        Binding<Double>(
-            get: { Double(self.wrappedValue) },
-            set: { self.wrappedValue = Int($0) }
-        )
-    }
-}
-
-extension Color {
-    static let bgDarkBlue = Color("Background_DarkBlue")
-    static let bgDarkerDarkBlue = Color("Background_DarkerDarkBlue")
 }
 
 #Preview {
