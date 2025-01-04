@@ -101,9 +101,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             session.activate()
             self.session = session
 
-            print("📱 Phone session setup - isPaired: \(session.isPaired)")
+            debug(.watchManager, "📱 Phone session setup - isPaired: \(session.isPaired)")
         } else {
-            print("📱 WCSession is not supported on this device")
+            debug(.watchManager, "📱 WCSession is not supported on this device")
         }
     }
 
@@ -112,7 +112,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         guard let session = session else { return }
 
         if !session.isReachable {
-            print("📱 Attempting to reactivate session...")
+            debug(.watchManager, "📱 Attempting to reactivate session...")
             session.activate()
         }
     }
@@ -203,7 +203,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             // Set units
             watchState.units = self.units
 
-            print(
+            debug(
+                .watchManager,
+
                 "📱 Setup WatchState - currentGlucose: \(watchState.currentGlucose ?? "nil"), trend: \(watchState.trend ?? "nil"), delta: \(watchState.delta ?? "nil"), values: \(watchState.glucoseValues.count)"
             )
 
@@ -236,7 +238,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     /// - Parameter state: Current WatchState containing glucose data to be sent
     func sendDataToWatch(_ state: WatchState) {
         guard let session = session, session.isReachable else {
-            print("⌚️ Watch not reachable")
+            debug(.watchManager, "⌚️ Watch not reachable")
             return
         }
 
@@ -267,13 +269,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             }
         ]
 
-        print("📱 Sending to watch - Message content:")
+        debug(.watchManager, "📱 Sending to watch - Message content:")
         message.forEach { key, value in
-            print("📱 \(key): \(value) (type: \(type(of: value)))")
+            debug(.watchManager, "📱 \(key): \(value) (type: \(type(of: value)))")
         }
 
         session.sendMessage(message, replyHandler: nil) { error in
-            print("❌ Error sending data: \(error.localizedDescription)")
+            debug(.watchManager, "❌ Error sending data: \(error.localizedDescription)")
         }
     }
 
@@ -281,12 +283,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         if let error = error {
-            print("📱 Phone session activation failed: \(error.localizedDescription)")
+            debug(.watchManager, "📱 Phone session activation failed: \(error.localizedDescription)")
             return
         }
 
-        print("📱 Phone session activated with state: \(activationState.rawValue)")
-        print("📱 Phone isReachable after activation: \(session.isReachable)")
+        debug(.watchManager, "📱 Phone session activated with state: \(activationState.rawValue)")
+        debug(.watchManager, "📱 Phone isReachable after activation: \(session.isReachable)")
 
         // Try to send initial data after activation
         Task {
@@ -298,41 +300,49 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
         DispatchQueue.main.async { [weak self] in
             if let bolusAmount = message["bolus"] as? Double,
-               let isExternal = message["isExternal"] as? Bool
+               message["carbs"] == nil,
+               message["date"] == nil
             {
-                print("📱 Received \(isExternal ? "external insulin" : "bolus") request from watch: \(bolusAmount)U")
-                if isExternal {
-                    self?.handleExternalInsulin(Decimal(bolusAmount))
-                } else {
-                    self?.handleBolusRequest(Decimal(bolusAmount))
-                }
-            }
-
-            if let carbsAmount = message["carbs"] as? Int,
-               let timestamp = message["date"] as? TimeInterval
+                debug(.watchManager, "📱 Received bolus request from watch: \(bolusAmount)U")
+                self?.handleBolusRequest(Decimal(bolusAmount))
+            } else if let carbsAmount = message["carbs"] as? Int,
+                      let timestamp = message["date"] as? TimeInterval,
+                      message["bolus"] == nil
             {
                 let date = Date(timeIntervalSince1970: timestamp)
-                print("📱 Received carbs request from watch: \(carbsAmount)g at \(date)")
+                debug(.watchManager, "📱 Received carbs request from watch: \(carbsAmount)g at \(date)")
                 self?.handleCarbsRequest(carbsAmount, date)
+            } else if let bolusAmount = message["bolus"] as? Double,
+                      let carbsAmount = message["carbs"] as? Int,
+                      let timestamp = message["date"] as? TimeInterval
+            {
+                let date = Date(timeIntervalSince1970: timestamp)
+                debug(
+                    .watchManager,
+                    "📱 Received meal bolus combo request from watch: \(bolusAmount)U, \(carbsAmount)g at \(date)"
+                )
+                self?.handleCombinedRequest(bolusAmount: Decimal(bolusAmount), carbsAmount: Decimal(carbsAmount), date: date)
+            } else {
+                debug(.watchManager, "📱 Invalid or incomplete data received from watch. Received:  \(message)")
             }
 
             if message["cancelOverride"] as? Bool == true {
-                print("📱 Received cancel override request from watch")
+                debug(.watchManager, "📱 Received cancel override request from watch")
                 self?.handleCancelOverride()
             }
 
             if let presetName = message["activateOverride"] as? String {
-                print("📱 Received activate override request from watch for preset: \(presetName)")
+                debug(.watchManager, "📱 Received activate override request from watch for preset: \(presetName)")
                 self?.handleActivateOverride(presetName)
             }
 
             if let presetName = message["activateTempTarget"] as? String {
-                print("📱 Received activate temp target request from watch for preset: \(presetName)")
+                debug(.watchManager, "📱 Received activate temp target request from watch for preset: \(presetName)")
                 self?.handleActivateTempTarget(presetName)
             }
 
             if message["cancelTempTarget"] as? Bool == true {
-                print("📱 Received cancel temp target request from watch")
+                debug(.watchManager, "📱 Received cancel temp target request from watch")
                 self?.handleCancelTempTarget()
             }
         }
@@ -346,7 +356,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     #endif
 
     func sessionReachabilityDidChange(_ session: WCSession) {
-        print("📱 Phone reachability changed: \(session.isReachable)")
+        debug(.watchManager, "📱 Phone reachability changed: \(session.isReachable)")
 
         if session.isReachable {
             // Try to send data when connection is established
@@ -362,46 +372,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
     }
 
-    /// Handles external insulin entries received from the Watch
-    /// - Parameter amount: The insulin amount in units to be recorded
-    private func handleExternalInsulin(_ amount: Decimal) {
-        Task {
-            let context = CoreDataStack.shared.newTaskContext()
-
-            await context.perform {
-                // Create Bolus
-                let bolus = BolusStored(context: context)
-                bolus.amount = amount as NSDecimalNumber
-                bolus.isSMB = false
-                bolus.isExternal = true
-
-                // Create PumpEvent
-                let pumpEvent = PumpEventStored(context: context)
-                pumpEvent.id = UUID().uuidString
-                pumpEvent.timestamp = Date()
-                pumpEvent.type = PumpEvent.bolus.rawValue
-                pumpEvent.bolus = bolus
-                pumpEvent.isUploadedToNS = false
-                pumpEvent.isUploadedToHealth = false
-                pumpEvent.isUploadedToTidepool = false
-
-                do {
-                    guard context.hasChanges else { return }
-                    try context.save()
-                    print("📱 Saved external insulin and pump event from watch: \(amount)U")
-                } catch {
-                    print("❌ Error saving external insulin and pump event: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
-
     /// Processes bolus requests received from the Watch
     /// - Parameter amount: The requested bolus amount in units
     private func handleBolusRequest(_ amount: Decimal) {
         Task {
             await apsManager.enactBolus(amount: Double(amount), isSMB: false)
-            print("📱 Enacted bolus via APS Manager: \(amount)U")
+            debug(.watchManager, "📱 Enacted bolus via APS Manager: \(amount)U")
         }
     }
 
@@ -423,10 +399,43 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 do {
                     guard context.hasChanges else { return }
                     try context.save()
-                    print("📱 Saved carbs from watch: \(amount)g at \(date)")
+                    debug(.watchManager, "📱 Saved carbs from watch: \(amount)g at \(date)")
                 } catch {
-                    print("❌ Error saving carbs: \(error.localizedDescription)")
+                    debug(.watchManager, "❌ Error saving carbs: \(error.localizedDescription)")
                 }
+            }
+        }
+    }
+
+    /// Handles combined bolus and carbs entry requests received from the Watch.
+    /// - Parameters:
+    ///   - bolusAmount: The bolus amount in units
+    ///   - carbsAmount: The carbs amount in grams
+    ///   - date: Timestamp for the carbs entry
+    private func handleCombinedRequest(bolusAmount: Decimal, carbsAmount: Decimal, date: Date) {
+        Task {
+            let context = CoreDataStack.shared.newTaskContext()
+
+            do {
+                // Save carbs entry in Core Data
+                try await context.perform {
+                    let carbEntry = CarbEntryStored(context: context)
+                    carbEntry.carbs = NSDecimalNumber(decimal: carbsAmount).doubleValue
+                    carbEntry.date = date
+
+                    // TODO: Add Fat-Protein Units (FPU) logic if required
+
+                    guard context.hasChanges else { return }
+                    try context.save()
+                    debug(.watchManager, "📱 Saved carbs from watch: \(carbsAmount)g at \(date)")
+                }
+
+                // Enact bolus via APS Manager
+                let bolusDouble = NSDecimalNumber(decimal: bolusAmount).doubleValue
+                await apsManager.enactBolus(amount: bolusDouble, isSMB: false)
+                debug(.watchManager, "📱 Enacted bolus from watch via APS Manager: \(bolusDouble)U")
+            } catch {
+                debug(.watchManager, "❌ Error processing combined request: \(error.localizedDescription)")
             }
         }
     }
@@ -447,7 +456,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         do {
                             guard context.hasChanges else { return }
                             try context.save()
-                            print("📱 Successfully cancelled override")
+                            debug(.watchManager, "📱 Successfully cancelled override")
 
                             // Send notification to update Adjustments UI
                             Foundation.NotificationCenter.default.post(
@@ -455,7 +464,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                                 object: nil
                             )
                         } catch {
-                            print("❌ Error cancelling override: \(error.localizedDescription)")
+                            debug(.watchManager, "❌ Error cancelling override: \(error.localizedDescription)")
                         }
                     }
                 }
@@ -495,7 +504,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     do {
                         guard context.hasChanges else { return }
                         try context.save()
-                        print("📱 Successfully activated override: \(presetName)")
+                        debug(.watchManager, "📱 Successfully activated override: \(presetName)")
 
                         // Send notification to update Adjustments UI
                         Foundation.NotificationCenter.default.post(
@@ -503,7 +512,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                             object: nil
                         )
                     } catch {
-                        print("❌ Error activating override: \(error.localizedDescription)")
+                        debug(.watchManager, "❌ Error activating override: \(error.localizedDescription)")
                     }
                 }
             }
@@ -526,7 +535,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         do {
                             guard context.hasChanges else { return }
                             try context.save()
-                            print("📱 Successfully cancelled temp target")
+                            debug(.watchManager, "📱 Successfully cancelled temp target")
 
                             // To cancel the temp target also for oref
                             self.tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())])
@@ -537,7 +546,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                                 object: nil
                             )
                         } catch {
-                            print("❌ Error cancelling temp target: \(error.localizedDescription)")
+                            debug(.watchManager, "❌ Error cancelling temp target: \(error.localizedDescription)")
                         }
                     }
                 }
@@ -577,7 +586,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     do {
                         guard context.hasChanges else { return }
                         try context.save()
-                        print("📱 Successfully activated temp target: \(presetName)")
+                        debug(.watchManager, "📱 Successfully activated temp target: \(presetName)")
+
+                        let settingsHalfBasalTarget = self.settingsManager.preferences
+                            .halfBasalExerciseTarget
+
+                        let halfBasalTarget = presetToActivate.halfBasalTarget?.decimalValue
 
                         // To activate the temp target also in oref
                         let tempTarget = TempTarget(
@@ -590,8 +604,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                             reason: TempTarget.custom,
                             isPreset: true,
                             enabled: true,
-                            halfBasalTarget: presetToActivate.halfBasalTarget?.decimalValue
+                            halfBasalTarget: halfBasalTarget ?? settingsHalfBasalTarget
                         )
+
                         self.tempTargetStorage.saveTempTargetsToStorage([tempTarget])
 
                         // Send notification to update Adjustments UI
@@ -600,7 +615,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                             object: nil
                         )
                     } catch {
-                        print("❌ Error activating temp target: \(error.localizedDescription)")
+                        debug(.watchManager, "❌ Error activating temp target: \(error.localizedDescription)")
                     }
                 }
             }

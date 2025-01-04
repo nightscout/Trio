@@ -12,6 +12,7 @@ struct TrioMainWatchView: View {
     // view visbility
     @State private var showingTreatmentMenuSheet: Bool = false
     @State private var showingOverrideSheet: Bool = false
+    /// navigation flags
     @State private var navigateToCarbsInput = false
     @State private var navigateToBolusInput = false
     @State private var continueToBolus = false
@@ -92,6 +93,11 @@ struct TrioMainWatchView: View {
             }
             .sheet(isPresented: $showingTreatmentMenuSheet) {
                 TreatmentMenuView(selectedTreatment: $selectedTreatment)
+                    .onAppear {
+                        navigateToCarbsInput = false
+                        navigateToBolusInput = false
+                        continueToBolus = false
+                    }
                     .onDisappear {
                         handleTreatmentSelection()
                     }

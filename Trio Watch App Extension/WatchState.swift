@@ -79,6 +79,24 @@ import WatchConnectivity
         }
     }
 
+    /// Sends a meal and bolus insulin combo request to the paired iPhone
+    /// - Parameters:
+    ///   - amount: The insulin amount to be delivered
+    ///   - isExternal: Indicates if the bolus is from an external source
+    func sendMealBolusComboRequest(carbsAmount _: Decimal, bolusAmount: Decimal, _ date: Date = Date()) {
+        guard let session = session, session.isReachable else { return }
+
+        let message: [String: Any] = [
+            "bolus": bolusAmount,
+            "carbs": bolusAmount,
+            "date": date.timeIntervalSince1970
+        ]
+
+        session.sendMessage(message, replyHandler: nil) { error in
+            print("Error sending meal bolus combo request: \(error.localizedDescription)")
+        }
+    }
+
     func sendCancelOverrideRequest() {
         guard let session = session, session.isReachable else { return }
 

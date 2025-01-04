@@ -20,7 +20,7 @@ struct BolusConfirmationView: View {
                     HStack {
                         Text("Carbs:")
                         Spacer()
-                        Text(String(format: "%.1f g", state.carbsAmount))
+                        Text("\(state.carbsAmount) g")
                             .bold()
                             .foregroundStyle(.orange)
                     }.padding(.horizontal)

@@ -18,7 +18,7 @@ struct BolusInputView: View {
             if state.carbsAmount > 0 {
                 HStack {
                     Text("Carbs:").bold().font(.subheadline).padding(.leading)
-                    Text(String(format: "%.0f g", state.carbsAmount)).font(.subheadline).foregroundStyle(Color.orange)
+                    Text("\(state.carbsAmount) g").font(.subheadline).foregroundStyle(Color.orange)
                     Spacer()
                 }
             }

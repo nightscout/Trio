@@ -66,19 +66,19 @@ struct GlucoseChartView: View {
             .chartXAxis {
                 AxisMarks(values: .automatic(desiredCount: 4)) { _ in
                     AxisValueLabel(format: .dateTime.hour())
-                        .font(.system(.caption2, design: .rounded))
+                        .font(.footnote)
                 }
             }
             .chartYAxis {
                 AxisMarks(position: .leading) { value in
                     AxisValueLabel {
                         if let glucose = value.as(Double.self) {
-                            Text("\(Int(glucose))")
-                                .font(.system(.caption2, design: .rounded))
+                            Text("\(Int(glucose))").font(.footnote)
                         }
                     }
                 }
             }
+            .padding()
         }
         .onTapGesture {
             withAnimation {
