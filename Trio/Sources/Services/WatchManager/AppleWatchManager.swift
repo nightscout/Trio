@@ -13,6 +13,7 @@ protocol WatchManager {}
 final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchManager {
     private var session: WCSession?
 
+    @Injected() var broadcaster: Broadcaster!
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var apsManager: APSManager!
     @Injected() private var settingsManager: SettingsManager!
@@ -35,6 +36,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         injectServices(resolver)
         setupWatchSession()
         units = settingsManager.settings.units
+        broadcaster.register(SettingsObserver.self, observer: self)
+        broadcaster.register(PumpSettingsObserver.self, observer: self)
+        broadcaster.register(PreferencesObserver.self, observer: self)
 
         // Observer for OrefDetermination and adjustments
         coreDataPublisher =
@@ -204,6 +208,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             // Set units
             watchState.units = self.units
 
+            // Add settings values
+            watchState.maxBolus = self.settingsManager.pumpSettings.maxBolus
+            watchState.maxCarbs = self.settingsManager.settings.maxCarbs
+            watchState.maxFat = self.settingsManager.settings.maxFat
+            watchState.maxProtein = self.settingsManager.settings.maxProtein
+            watchState.maxIOB = self.settingsManager.preferences.maxIOB
+            watchState.maxCOB = self.settingsManager.preferences.maxCOB
+
             debug(
                 .watchManager,
 
@@ -244,18 +256,18 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
 
         let message: [String: Any] = [
-            "currentGlucose": state.currentGlucose ?? "0",
-            "trend": state.trend ?? "?",
-            "delta": state.delta ?? "0",
+            "currentGlucose": state.currentGlucose ?? "",
+            "trend": state.trend ?? "",
+            "delta": state.delta ?? "",
+            "iob": state.iob ?? "",
+            "cob": state.cob ?? "",
+            "lastLoopTime": state.lastLoopTime ?? "",
             "glucoseValues": state.glucoseValues.map { value in
                 [
                     "glucose": value.glucose,
                     "date": value.date.timeIntervalSince1970
                 ]
             },
-            "iob": state.iob ?? "0",
-            "cob": state.cob ?? "0",
-            "lastLoopTime": state.lastLoopTime ?? "--",
             "overridePresets": state.overridePresets.map { preset in
                 [
                     "name": preset.name,
@@ -267,7 +279,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     "name": preset.name,
                     "isEnabled": preset.isEnabled
                 ]
-            }
+            },
+            "maxBolus": state.maxBolus,
+            "maxCarbs": state.maxCarbs,
+            "maxFat": state.maxFat,
+            "maxProtein": state.maxProtein,
+            "maxIOB": state.maxIOB,
+            "maxCOB": state.maxCOB
         ]
 
         debug(.watchManager, "📱 Sending to watch - Message content:")
@@ -648,6 +666,33 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
         session.sendMessage(message, replyHandler: nil) { error in
             debug(.watchManager, "❌ Error sending bolus progress: \(error.localizedDescription)")
+        }
+    }
+}
+
+// TODO: - is there a better approach than setting up the watch state every time a setting has changed?
+extension BaseWatchManager: SettingsObserver, PumpSettingsObserver, PreferencesObserver {
+    // to update maxCOB, maxIOB
+    func preferencesDidChange(_: Preferences) {
+        Task {
+            let state = await self.setupWatchState()
+            self.sendDataToWatch(state)
+        }
+    }
+
+    // to update maxBolus
+    func pumpSettingsDidChange(_: PumpSettings) {
+        Task {
+            let state = await self.setupWatchState()
+            self.sendDataToWatch(state)
+        }
+    }
+
+    // to update the rest
+    func settingsDidChange(_: TrioSettings) {
+        Task {
+            let state = await self.setupWatchState()
+            self.sendDataToWatch(state)
         }
     }
 }
