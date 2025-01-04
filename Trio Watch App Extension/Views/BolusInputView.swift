@@ -5,7 +5,7 @@ import WatchKit
 // MARK: - Bolus Input View
 
 struct BolusInputView: View {
-    @ObservedObject var navigationState: NavigationState
+    @Binding var navigationPath: [NavigationDestinations]
     @State private var bolusAmount = 0.0
 
     let state: WatchState
@@ -33,75 +33,95 @@ struct BolusInputView: View {
 
     var body: some View {
         VStack {
-            if state.carbsAmount > 0 {
-                HStack {
-                    Text("Carbs:").bold().font(.subheadline).padding(.leading)
-                    Text("\(state.carbsAmount) g").font(.subheadline).foregroundStyle(Color.orange)
+            if effectiveBolusLimit == 0 {
+                VStack(spacing: 10) {
+                    Spacer()
+
+                    Text("Bolus limit cannot be fetched from phone!").font(.headline)
+                    Text("Check device settings, connect to phone, and try again.").font(.caption)
+
                     Spacer()
                 }
-            }
-
-            Spacer()
-
-            HStack {
-                // "-" Button
-                Button(action: {
-                    if bolusAmount > 0 { bolusAmount -= 1 }
-                }) {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.title3)
-                        .foregroundColor(.blue)
+                .foregroundColor(.red)
+                .scenePadding()
+            } else {
+                if state.carbsAmount > 0 {
+                    HStack {
+                        Text("Carbs:").bold().font(.subheadline).padding(.leading)
+                        Text("\(state.carbsAmount) g").font(.subheadline).foregroundStyle(Color.orange)
+                        Spacer()
+                    }
                 }
-                .buttonStyle(.borderless)
-                .disabled(bolusAmount < 1)
 
                 Spacer()
 
-                // Display the current carb amount
-                Text(String(format: "%.2f U", bolusAmount))
-                    .fontWeight(.bold)
-                    .font(.system(.title2, design: .rounded))
-                    .foregroundColor(.primary)
-                    .focusable(true)
-                    .focused($isCrownFocused)
-                    .digitalCrownRotation(
-                        $bolusAmount,
-                        from: 0,
-                        through: effectiveBolusLimit,
-                        by: 1, // TODO: use pump increment here
-                        sensitivity: .medium,
-                        isContinuous: false,
-                        isHapticFeedbackEnabled: true
-                    )
+                HStack {
+                    // "-" Button
+                    Button(action: {
+                        if bolusAmount > 0 { bolusAmount -= 1 }
+                    }) {
+                        Image(systemName: "minus.circle.fill")
+                            .font(.title3)
+                            .foregroundColor(.blue)
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(bolusAmount < 1)
+
+                    Spacer()
+
+                    // Display the current carb amount
+                    Text(String(format: "%.2f U", bolusAmount))
+                        .fontWeight(.bold)
+                        .font(.system(.title2, design: .rounded))
+                        .foregroundColor(bolusAmount > 0.0 && bolusAmount >= effectiveBolusLimit ? .red : .primary)
+                        .focusable(true)
+                        .focused($isCrownFocused)
+                        .digitalCrownRotation(
+                            $bolusAmount,
+                            from: 0,
+                            through: effectiveBolusLimit,
+                            by: 1, // TODO: use pump increment here
+                            sensitivity: .medium,
+                            isContinuous: false,
+                            isHapticFeedbackEnabled: true
+                        )
+
+                    Spacer()
+
+                    // "+" Button
+                    Button(action: {
+                        bolusAmount += 0.5
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title3)
+                            .foregroundColor(.blue)
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(bolusAmount >= effectiveBolusLimit)
+                }.padding(.horizontal)
+
+                Text("Insulin")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom)
 
                 Spacer()
 
-                // "+" Button
-                Button(action: {
-                    bolusAmount += 0.5
-                }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title3)
-                        .foregroundColor(.blue)
+                if bolusAmount > 0.0 && bolusAmount >= effectiveBolusLimit {
+                    Text("Bolus Limit Reached!")
+                        .font(.footnote)
+                        .foregroundColor(.red)
                 }
-                .buttonStyle(.borderless)
-                .disabled(bolusAmount >= effectiveBolusLimit)
-            }.padding(.horizontal)
 
-            Text("Insulin")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .padding(.bottom)
-
-            Spacer()
-
-            Button("Log Bolus") {
-                state.bolusAmount = min(bolusAmount, effectiveBolusLimit)
-                navigationState.path.append(NavigationDestinations.bolusConfirm)
+                Button("Log Bolus") {
+                    state.bolusAmount = min(bolusAmount, effectiveBolusLimit)
+//                    navigationState.path.append(NavigationDestinations.bolusConfirm)
+                    navigationPath.append(NavigationDestinations.bolusConfirm)
+                }
+                .buttonStyle(.bordered)
+                .tint(.blue)
+                .disabled(!(bolusAmount > 0.0) || bolusAmount >= effectiveBolusLimit)
             }
-            .buttonStyle(.bordered)
-            .tint(.blue)
-            .disabled(!(bolusAmount > 0.0) || bolusAmount >= effectiveBolusLimit)
         }
         .background(trioBackgroundColor)
         .toolbar {
@@ -124,8 +144,4 @@ struct BolusInputView: View {
             }
         }
     }
-}
-
-#Preview {
-    BolusInputView(navigationState: NavigationState(), state: WatchState())
 }

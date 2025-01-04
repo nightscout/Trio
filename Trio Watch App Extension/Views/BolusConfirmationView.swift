@@ -3,7 +3,7 @@ import SwiftUI
 import WatchKit
 
 struct BolusConfirmationView: View {
-    @ObservedObject var navigationState: NavigationState
+    @Binding var navigationPath: [NavigationDestinations]
     let state: WatchState
     @Binding var bolusAmount: Double
     @Binding var confirmationProgress: Double
@@ -52,7 +52,7 @@ struct BolusConfirmationView: View {
                 }
                 bolusAmount = 0 // reset bolus in state
                 confirmationProgress = 0 // reset auth progress
-                navigationState.resetToRoot()
+                navigationPath.removeLast(navigationPath.count)
             }
             .buttonStyle(.bordered)
         }
@@ -83,7 +83,7 @@ struct BolusConfirmationView: View {
                     state.sendBolusRequest(Decimal(bolusAmount))
                     bolusAmount = 0 // reset bolus in state
                     confirmationProgress = 0 // reset auth progress
-                    navigationState.resetToRoot()
+                    navigationPath.removeLast(navigationPath.count)
 
                     // TODO: add a fancy success animation
                 }

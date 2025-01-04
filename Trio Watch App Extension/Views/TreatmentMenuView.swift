@@ -22,7 +22,7 @@ struct TreatmentMenuView: View {
     }
 
     var body: some View {
-        NavigationView {
+        VStack {
             List {
                 ForEach(treatments) { treatment in
                     Button(action: {

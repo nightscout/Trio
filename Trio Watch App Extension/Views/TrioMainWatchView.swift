@@ -2,8 +2,6 @@ import Charts
 import SwiftUI
 
 struct TrioMainWatchView: View {
-    // Shared navigation state
-    @StateObject private var navigationState = NavigationState()
     @State private var state = WatchState()
 
     // misc
@@ -16,6 +14,7 @@ struct TrioMainWatchView: View {
     @State private var showingOverrideSheet: Bool = false
     // navigation flag for meal bolus combo
     @State private var continueToBolus = false
+    @State private var navigationPath: [NavigationDestinations] = []
 
     // treatments
     @State private var selectedTreatment: TreatmentOption?
@@ -27,7 +26,7 @@ struct TrioMainWatchView: View {
     )
 
     var body: some View {
-        NavigationStack(path: $navigationState.path) {
+        NavigationStack(path: $navigationPath) {
             TabView(selection: $currentPage) {
                 // Page 1: Current glucose trend in "BG bobble"
                 GlucoseTrendView(state: state, rotationDegrees: rotationDegrees)
@@ -94,7 +93,7 @@ struct TrioMainWatchView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingTreatmentMenuSheet) {
+            .fullScreenCover(isPresented: $showingTreatmentMenuSheet) {
                 TreatmentMenuView(selectedTreatment: $selectedTreatment) {
                     handleTreatmentSelection()
                 }
@@ -118,15 +117,18 @@ struct TrioMainWatchView: View {
                 switch destination {
                 case .carbInput:
                     CarbsInputView(
-                        navigationState: navigationState,
+                        navigationPath: $navigationPath,
                         state: state,
                         continueToBolus: selectedTreatment == .mealBolusCombo
                     )
                 case .bolusInput:
-                    BolusInputView(navigationState: navigationState, state: state)
+                    BolusInputView(
+                        navigationPath: $navigationPath,
+                        state: state
+                    )
                 case .bolusConfirm:
                     BolusConfirmationView(
-                        navigationState: navigationState,
+                        navigationPath: $navigationPath,
                         state: state,
                         bolusAmount: $state.bolusAmount,
                         confirmationProgress: $state.confirmationProgress
@@ -169,11 +171,11 @@ struct TrioMainWatchView: View {
 
         switch treatment {
         case .meal:
-            navigationState.path.append(NavigationDestinations.carbInput)
+            navigationPath.append(NavigationDestinations.carbInput)
         case .bolus:
-            navigationState.path.append(NavigationDestinations.bolusInput)
+            navigationPath.append(NavigationDestinations.bolusInput)
         case .mealBolusCombo:
-            navigationState.path.append(NavigationDestinations.carbInput)
+            navigationPath.append(NavigationDestinations.carbInput)
         }
     }
 }

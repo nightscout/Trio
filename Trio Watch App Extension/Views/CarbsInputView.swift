@@ -4,7 +4,7 @@ import SwiftUI
 // MARK: - Carbs Input View
 
 struct CarbsInputView: View {
-    @ObservedObject var navigationState: NavigationState
+    @Binding var navigationPath: [NavigationDestinations]
     @State private var carbsAmount: Double = 0.0 // Needs to be Double due to .digitalCrownRotation() stride
     @FocusState private var isCrownFocused: Bool // Manage crown focus
 
@@ -55,7 +55,7 @@ struct CarbsInputView: View {
                 Text(String(format: "%.0f g", carbsAmount))
                     .fontWeight(.bold)
                     .font(.system(.title2, design: .rounded))
-                    .foregroundColor(.primary)
+                    .foregroundColor(carbsAmount > 0.0 && carbsAmount >= effectiveCarbsLimit ? .red : .primary)
                     .focusable(true)
                     .focused($isCrownFocused)
                     .digitalCrownRotation(
@@ -89,14 +89,20 @@ struct CarbsInputView: View {
 
             Spacer()
 
+            if carbsAmount > 0.0 && carbsAmount >= effectiveCarbsLimit {
+                Text("Carbs Limit Reached!")
+                    .font(.footnote)
+                    .foregroundColor(.red)
+            }
+
             Button(buttonLabel) {
                 if continueToBolus {
                     state.carbsAmount = Int(min(carbsAmount, effectiveCarbsLimit))
-                    navigationState.path.append(NavigationDestinations.bolusInput)
+                    navigationPath.append(NavigationDestinations.bolusInput)
                 } else {
                     // TODO: add a fancy success animation
                     state.sendCarbsRequest(Int(min(carbsAmount, effectiveCarbsLimit)))
-                    navigationState.resetToRoot()
+                    navigationPath.removeLast(navigationPath.count)
                 }
             }
             .buttonStyle(.bordered)
