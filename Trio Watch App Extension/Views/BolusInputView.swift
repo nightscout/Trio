@@ -7,11 +7,16 @@ import WatchKit
 struct BolusInputView: View {
     @ObservedObject var navigationState: NavigationState
     @State private var bolusAmount = 0.0
-    @State private var navigateToConfirmation = false
 
     let state: WatchState
 
     @FocusState private var isCrownFocused: Bool
+
+    var trioBackgroundColor = LinearGradient(
+        gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
+        startPoint: .top,
+        endPoint: .bottom
+    )
 
     var body: some View {
         VStack {
@@ -85,6 +90,7 @@ struct BolusInputView: View {
             .tint(.blue)
             .disabled(!(bolusAmount > 0.0))
         }
+        .background(trioBackgroundColor)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Image(systemName: "syringe.fill")

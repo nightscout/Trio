@@ -10,6 +10,12 @@ struct BolusConfirmationView: View {
 
     @FocusState private var isCrownFocused: Bool
 
+    var trioBackgroundColor = LinearGradient(
+        gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
     var body: some View {
         VStack(spacing: 10) {
             Spacer()
@@ -86,6 +92,7 @@ struct BolusConfirmationView: View {
             }
         }
         .navigationTitle("Confirm")
+        .background(trioBackgroundColor)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Image(systemName: "digitalcrown.arrow.counterclockwise.fill")
