@@ -12,6 +12,19 @@ struct BolusInputView: View {
 
     @FocusState private var isCrownFocused: Bool
 
+    private var effectiveBolusLimit: Double {
+        // Extract current IOB from string and convert to Double
+        let currentIOB = Double(state.iob?.replacingOccurrences(of: " U", with: "") ?? "0") ?? 0
+
+        // Calculate available IOB
+        let availableIOB = max(0, Double(truncating: state.maxIOB as NSNumber) - currentIOB)
+
+        return min(
+            Double(truncating: state.maxBolus as NSNumber),
+            availableIOB
+        )
+    }
+
     var trioBackgroundColor = LinearGradient(
         gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
         startPoint: .top,
@@ -54,7 +67,7 @@ struct BolusInputView: View {
                     .digitalCrownRotation(
                         $bolusAmount,
                         from: 0,
-                        through: 150.0, // TODO: use maxBolus here
+                        through: effectiveBolusLimit,
                         by: 1, // TODO: use pump increment here
                         sensitivity: .medium,
                         isContinuous: false,
@@ -63,7 +76,6 @@ struct BolusInputView: View {
 
                 Spacer()
 
-                // TODO: introduce maxBolus here, disable button if bolusAmount > maxBolus
                 // "+" Button
                 Button(action: {
                     bolusAmount += 0.5
@@ -73,6 +85,7 @@ struct BolusInputView: View {
                         .foregroundColor(.blue)
                 }
                 .buttonStyle(.borderless)
+                .disabled(bolusAmount >= effectiveBolusLimit)
             }.padding(.horizontal)
 
             Text("Insulin")
@@ -83,12 +96,12 @@ struct BolusInputView: View {
             Spacer()
 
             Button("Log Bolus") {
-                state.bolusAmount = bolusAmount
+                state.bolusAmount = min(bolusAmount, effectiveBolusLimit)
                 navigationState.path.append(NavigationDestinations.bolusConfirm)
             }
             .buttonStyle(.bordered)
             .tint(.blue)
-            .disabled(!(bolusAmount > 0.0))
+            .disabled(!(bolusAmount > 0.0) || bolusAmount >= effectiveBolusLimit)
         }
         .background(trioBackgroundColor)
         .toolbar {

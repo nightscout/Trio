@@ -32,6 +32,15 @@ import WatchConnectivity
 
     var bolusProgress: Double = 0.0
     var isBolusCanceled = false
+
+    // Safety limits
+    var maxBolus: Decimal = 10
+    var maxCarbs: Decimal = 250
+    var maxFat: Decimal = 250
+    var maxProtein: Decimal = 250
+    var maxIOB: Decimal = 0
+    var maxCOB: Decimal = 120
+
     override init() {
         super.init()
         setupSession()
@@ -245,6 +254,45 @@ import WatchConnectivity
             if let bolusProgress = message["bolusProgress"] as? Double {
                 if !self.isBolusCanceled {
                     self.bolusProgress = bolusProgress
+                }
+            }
+
+            // Debug print für die Safety Limits
+            if let maxBolusValue = message["maxBolus"] {
+                print("⌚️ Received maxBolus: \(maxBolusValue) of type \(type(of: maxBolusValue))")
+                if let decimalValue = (maxBolusValue as? NSNumber)?.decimalValue {
+                    self.maxBolus = decimalValue
+                    print("⌚️ Converted maxBolus to: \(decimalValue)")
+                }
+            }
+
+            if let maxCarbsValue = message["maxCarbs"] {
+                if let decimalValue = (maxCarbsValue as? NSNumber)?.decimalValue {
+                    self.maxCarbs = decimalValue
+                }
+            }
+
+            if let maxFatValue = message["maxFat"] {
+                if let decimalValue = (maxFatValue as? NSNumber)?.decimalValue {
+                    self.maxFat = decimalValue
+                }
+            }
+
+            if let maxProteinValue = message["maxProtein"] {
+                if let decimalValue = (maxProteinValue as? NSNumber)?.decimalValue {
+                    self.maxProtein = decimalValue
+                }
+            }
+
+            if let maxIOBValue = message["maxIOB"] {
+                if let decimalValue = (maxIOBValue as? NSNumber)?.decimalValue {
+                    self.maxIOB = decimalValue
+                }
+            }
+
+            if let maxCOBValue = message["maxCOB"] {
+                if let decimalValue = (maxCOBValue as? NSNumber)?.decimalValue {
+                    self.maxCOB = decimalValue
                 }
             }
         }

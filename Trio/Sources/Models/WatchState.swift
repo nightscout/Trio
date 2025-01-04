@@ -12,6 +12,14 @@ struct WatchState: Hashable, Equatable, Sendable {
     var overridePresets: [OverridePresetWatch] = []
     var tempTargetPresets: [TempTargetPresetWatch] = []
 
+    // Safety limits
+    var maxBolus: Decimal = 10.0
+    var maxCarbs: Decimal = 250
+    var maxFat: Decimal = 250
+    var maxProtein: Decimal = 250
+    var maxIOB: Decimal = 0
+    var maxCOB: Decimal = 120
+
     static func == (lhs: WatchState, rhs: WatchState) -> Bool {
         lhs.currentGlucose == rhs.currentGlucose &&
             lhs.trend == rhs.trend &&
@@ -25,7 +33,13 @@ struct WatchState: Hashable, Equatable, Sendable {
             lhs.cob == rhs.cob &&
             lhs.lastLoopTime == rhs.lastLoopTime &&
             lhs.overridePresets == rhs.overridePresets &&
-            lhs.tempTargetPresets == rhs.tempTargetPresets
+            lhs.tempTargetPresets == rhs.tempTargetPresets &&
+            lhs.maxBolus == rhs.maxBolus &&
+            lhs.maxCarbs == rhs.maxCarbs &&
+            lhs.maxFat == rhs.maxFat &&
+            lhs.maxProtein == rhs.maxProtein &&
+            lhs.maxIOB == rhs.maxIOB &&
+            lhs.maxCOB == rhs.maxCOB
     }
 
     func hash(into hasher: inout Hasher) {
@@ -42,5 +56,11 @@ struct WatchState: Hashable, Equatable, Sendable {
         hasher.combine(lastLoopTime)
         hasher.combine(overridePresets)
         hasher.combine(tempTargetPresets)
+        hasher.combine(maxBolus)
+        hasher.combine(maxCarbs)
+        hasher.combine(maxFat)
+        hasher.combine(maxProtein)
+        hasher.combine(maxIOB)
+        hasher.combine(maxCOB)
     }
 }

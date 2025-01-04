@@ -11,6 +11,19 @@ struct CarbsInputView: View {
     let state: WatchState
     let continueToBolus: Bool
 
+    private var effectiveCarbsLimit: Double {
+        // Extract current COB from string and convert to Double
+        let currentCOB = Double(state.cob?.replacingOccurrences(of: " g", with: "") ?? "0") ?? 0
+
+        // Calculate available COB
+        let availableCOB = max(0, Double(truncating: state.maxCOB as NSNumber) - currentCOB)
+
+        return min(
+            Double(truncating: state.maxCarbs as NSNumber),
+            availableCOB
+        )
+    }
+
     var trioBackgroundColor = LinearGradient(
         gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
         startPoint: .top,
@@ -48,7 +61,7 @@ struct CarbsInputView: View {
                     .digitalCrownRotation(
                         $carbsAmount,
                         from: 0,
-                        through: 150.0, // TODO: introduce maxCarbs here
+                        through: effectiveCarbsLimit,
                         by: 1,
                         sensitivity: .medium,
                         isContinuous: false,
@@ -57,7 +70,6 @@ struct CarbsInputView: View {
 
                 Spacer()
 
-                // TODO: introduce maxCarbs here, disable button if carbsAmount > maxCarbs
                 // "+" Button
                 Button(action: {
                     carbsAmount += 1
@@ -67,6 +79,7 @@ struct CarbsInputView: View {
                         .foregroundColor(.orange)
                 }
                 .buttonStyle(.borderless)
+                .disabled(carbsAmount >= effectiveCarbsLimit)
             }.padding(.horizontal)
 
             Text("Carbohydrates")
@@ -78,18 +91,17 @@ struct CarbsInputView: View {
 
             Button(buttonLabel) {
                 if continueToBolus {
-                    state.carbsAmount = Int(carbsAmount)
+                    state.carbsAmount = Int(min(carbsAmount, effectiveCarbsLimit))
                     navigationState.path.append(NavigationDestinations.bolusInput)
                 } else {
-                    state.sendCarbsRequest(Int(carbsAmount))
-
                     // TODO: add a fancy success animation
+                    state.sendCarbsRequest(Int(min(carbsAmount, effectiveCarbsLimit)))
                     navigationState.resetToRoot()
                 }
             }
             .buttonStyle(.bordered)
             .tint(.orange)
-            .disabled(!(carbsAmount > 0.0))
+            .disabled(!(carbsAmount > 0.0) || carbsAmount >= effectiveCarbsLimit)
         }
         .background(trioBackgroundColor)
         .toolbar {
