@@ -91,7 +91,7 @@ struct TrioMainWatchView: View {
                     }
 
                     Button {
-                        showingTreatmentMenuSheet.toggle()
+                        showingTreatmentMenuSheet = true
                     } label: {
                         Image(systemName: "plus")
                             .foregroundStyle(Color.bgDarkerDarkBlue)
@@ -170,12 +170,11 @@ struct TrioMainWatchView: View {
             configuration.label
                 .font(fontSize)
                 .fontWeight(is40mm ? .medium : .semibold)
-                .padding(is40mm ? 6 : 10)
+                .padding(is40mm ? 6 : 8)
                 .background(
                     backgroundGradient.opacity(configuration.isPressed ? 0.8 : 1.0)
                 )
                 .clipShape(Circle())
-                .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
                 .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
         }
     }

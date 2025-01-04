@@ -6,7 +6,6 @@ import SwiftUI
 struct CarbsInputView: View {
     @ObservedObject var navigationState: NavigationState
     @State private var carbsAmount: Double = 0.0 // Needs to be Double due to .digitalCrownRotation() stride
-    @State private var navigateToBolus = false // Track navigation to BolusInputView
     @FocusState private var isCrownFocused: Bool // Manage crown focus
 
     let state: WatchState
@@ -24,6 +23,12 @@ struct CarbsInputView: View {
             availableCOB
         )
     }
+
+    var trioBackgroundColor = LinearGradient(
+        gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
+        startPoint: .top,
+        endPoint: .bottom
+    )
 
     var body: some View {
         let buttonLabel = continueToBolus ? "Proceed" : "Log Carbs"
@@ -98,6 +103,7 @@ struct CarbsInputView: View {
             .tint(.orange)
             .disabled(!(carbsAmount > 0.0) || carbsAmount >= effectiveCarbsLimit)
         }
+        .background(trioBackgroundColor)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Image(systemName: "fork.knife")
