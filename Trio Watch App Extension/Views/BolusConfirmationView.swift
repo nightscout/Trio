@@ -3,11 +3,10 @@ import SwiftUI
 import WatchKit
 
 struct BolusConfirmationView: View {
-    @Environment(\.dismiss) var dismiss
-
-    let bolusAmount: Double
-    @Binding var progress: Double
+    @ObservedObject var navigationState: NavigationState
     let state: WatchState
+    @Binding var bolusAmount: Double
+    @Binding var confirmationProgress: Double
 
     @FocusState private var isCrownFocused: Bool
 
@@ -20,7 +19,7 @@ struct BolusConfirmationView: View {
                     HStack {
                         Text("Carbs:")
                         Spacer()
-                        Text(String(format: "%.1f g", state.carbsAmount))
+                        Text("\(state.carbsAmount) g")
                             .bold()
                             .foregroundStyle(.orange)
                     }.padding(.horizontal)
@@ -35,8 +34,8 @@ struct BolusConfirmationView: View {
                 }.padding(.horizontal)
             }
 
-            ProgressView(value: progress, total: 1.0)
-                .tint(progress >= 1.0 ? .green : .gray)
+            ProgressView(value: confirmationProgress, total: 1.0)
+                .tint(confirmationProgress >= 1.0 ? .green : .gray)
                 .padding(.horizontal)
 
             Spacer()
@@ -45,16 +44,16 @@ struct BolusConfirmationView: View {
                 if state.carbsAmount > 0 {
                     state.carbsAmount = 0 // reset carbs in state
                 }
-                dismiss()
+                bolusAmount = 0 // reset bolus in state
+                confirmationProgress = 0 // reset auth progress
+                navigationState.resetToRoot()
             }
             .buttonStyle(.bordered)
-            .tint(.blue)
-            .disabled(!(bolusAmount > 0.0))
         }
         .focusable(true)
         .focused($isCrownFocused)
         .digitalCrownRotation(
-            $progress,
+            $confirmationProgress,
             from: 0.0,
             through: 1.0,
             by: 0.05,
@@ -65,7 +64,7 @@ struct BolusConfirmationView: View {
         .onAppear {
             isCrownFocused = true
         }
-        .onChange(of: progress) { _, newValue in
+        .onChange(of: confirmationProgress) { _, newValue in
             if newValue >= 1.0 {
                 WKInterfaceDevice.current().play(.success)
 
@@ -75,7 +74,11 @@ struct BolusConfirmationView: View {
                         state.carbsAmount = 0 // reset carbs in state
                     }
                     state.sendBolusRequest(Decimal(bolusAmount))
-                    dismiss()
+                    bolusAmount = 0 // reset bolus in state
+                    confirmationProgress = 0 // reset auth progress
+                    navigationState.resetToRoot()
+
+                    // TODO: add a fancy success animation
                 }
             } else if newValue > 0 {
                 WKInterfaceDevice.current().play(.click)

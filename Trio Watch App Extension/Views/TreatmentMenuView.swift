@@ -3,8 +3,14 @@ import SwiftUI
 struct TreatmentMenuView: View {
     @Environment(\.dismiss) var dismiss
     @Binding var selectedTreatment: TreatmentOption?
+    var onSelect: () -> Void // Callback to handle selection and dismiss the sheet
 
-    let treatments = TreatmentOption.allCases
+    // Define in array to achieve custom order of treatment options
+    let treatments: [TreatmentOption] = [
+        .meal, // First
+        .bolus, // Second
+        .mealBolusCombo // Third
+    ]
 
     private var is40mm: Bool {
         let size = WKInterfaceDevice.current().screenBounds.size
@@ -21,7 +27,7 @@ struct TreatmentMenuView: View {
                 ForEach(treatments) { treatment in
                     Button(action: {
                         selectedTreatment = treatment
-                        dismiss() // Close after selecting
+                        onSelect()
                     }) {
                         HStack(spacing: 10) {
                             switch treatment {

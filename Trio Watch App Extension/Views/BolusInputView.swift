@@ -5,9 +5,9 @@ import WatchKit
 // MARK: - Bolus Input View
 
 struct BolusInputView: View {
+    @ObservedObject var navigationState: NavigationState
     @State private var bolusAmount = 0.0
     @State private var navigateToConfirmation = false
-    @State private var confirmationProgress = 0.0
 
     let state: WatchState
 
@@ -18,7 +18,7 @@ struct BolusInputView: View {
             if state.carbsAmount > 0 {
                 HStack {
                     Text("Carbs:").bold().font(.subheadline).padding(.leading)
-                    Text(String(format: "%.0f g", state.carbsAmount)).font(.subheadline).foregroundStyle(Color.orange)
+                    Text("\(state.carbsAmount) g").font(.subheadline).foregroundStyle(Color.orange)
                     Spacer()
                 }
             }
@@ -61,7 +61,7 @@ struct BolusInputView: View {
                 // TODO: introduce maxBolus here, disable button if bolusAmount > maxBolus
                 // "+" Button
                 Button(action: {
-                    bolusAmount += 1
+                    bolusAmount += 0.5
                 }) {
                     Image(systemName: "plus.circle.fill")
                         .font(.title3)
@@ -78,7 +78,8 @@ struct BolusInputView: View {
             Spacer()
 
             Button("Log Bolus") {
-                navigateToConfirmation = true
+                state.bolusAmount = bolusAmount
+                navigationState.path.append(NavigationDestinations.bolusConfirm)
             }
             .buttonStyle(.bordered)
             .tint(.blue)
@@ -96,16 +97,9 @@ struct BolusInputView: View {
                     .clipShape(Circle())
             }
         }
-        .navigationDestination(isPresented: $navigateToConfirmation) {
-            BolusConfirmationView(
-                bolusAmount: bolusAmount,
-                progress: $confirmationProgress,
-                state: state
-            )
-        }
     }
 }
 
 #Preview {
-    BolusInputView(state: WatchState())
+    BolusInputView(navigationState: NavigationState(), state: WatchState())
 }

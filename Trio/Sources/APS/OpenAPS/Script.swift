@@ -6,7 +6,17 @@ struct Script {
 
     init(name: String) {
         self.name = name
-        body = try! String(contentsOf: Bundle.main.url(forResource: "javascript/\(name)", withExtension: "")!)
+        if let url = Bundle.main.url(forResource: "javascript/\(name)", withExtension: "") {
+            do {
+                body = try String(contentsOf: url)
+            } catch {
+                print("Error loading script: \(error.localizedDescription)")
+                body = "Error loading script"
+            }
+        } else {
+            print("Resource not found: javascript/\(name)")
+            body = "Resource not found"
+        }
     }
 
     init(name: String, body: String) {

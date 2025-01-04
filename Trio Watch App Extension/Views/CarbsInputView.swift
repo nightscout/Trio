@@ -4,7 +4,7 @@ import SwiftUI
 // MARK: - Carbs Input View
 
 struct CarbsInputView: View {
-    @Environment(\.dismiss) var dismiss
+    @ObservedObject var navigationState: NavigationState
     @State private var carbsAmount: Double = 0.0 // Needs to be Double due to .digitalCrownRotation() stride
     @State private var navigateToBolus = false // Track navigation to BolusInputView
     @FocusState private var isCrownFocused: Bool // Manage crown focus
@@ -74,10 +74,12 @@ struct CarbsInputView: View {
             Button(buttonLabel) {
                 if continueToBolus {
                     state.carbsAmount = Int(carbsAmount)
-                    navigateToBolus = true
+                    navigationState.path.append(NavigationDestinations.bolusInput)
                 } else {
                     state.sendCarbsRequest(Int(carbsAmount))
-                    dismiss()
+
+                    // TODO: add a fancy success animation
+                    navigationState.resetToRoot()
                 }
             }
             .buttonStyle(.bordered)
@@ -95,9 +97,6 @@ struct CarbsInputView: View {
                     .foregroundStyle(.white)
                     .clipShape(Circle())
             }
-        }
-        .navigationDestination(isPresented: $navigateToBolus) {
-            BolusInputView(state: state) // Navigate to BolusInputView
         }
     }
 }

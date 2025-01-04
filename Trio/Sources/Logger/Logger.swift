@@ -114,6 +114,7 @@ final class Logger {
     static let nightscout = Logger(category: .nightscout, reporter: baseReporter)
     static let remoteControl = Logger(category: .remoteControl, reporter: baseReporter)
     static let bolusState = Logger(category: .bolusState, reporter: baseReporter)
+    static let watchManager = Logger(category: .watchManager, reporter: baseReporter)
 
     enum Category: String {
         case `default`
@@ -125,6 +126,7 @@ final class Logger {
         case nightscout
         case remoteControl
         case bolusState
+        case watchManager
 
         var name: String {
             rawValue.capitalizingFirstLetter()
@@ -141,6 +143,7 @@ final class Logger {
             case .nightscout: return .nightscout
             case .remoteControl: return .remoteControl
             case .bolusState: return .bolusState
+            case .watchManager: return .watchManager
             }
         }
 
@@ -155,7 +158,8 @@ final class Logger {
                  .nightscout,
                  .openAPS,
                  .remoteControl,
-                 .service:
+                 .service,
+                 .watchManager:
                 return OSLog(subsystem: subsystem, category: name)
             }
         }
