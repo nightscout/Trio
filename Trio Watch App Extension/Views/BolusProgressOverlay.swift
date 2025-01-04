@@ -27,7 +27,6 @@ struct BolusProgressOverlay: View {
 
                         Button(action: {
                             state.sendCancelBolusRequest()
-                            state.activeBolusAmount = 0
                             navigationState.resetToRoot()
                         }) {
                             Image(systemName: "xmark.circle.fill")
@@ -49,8 +48,11 @@ struct BolusProgressOverlay: View {
                 .background(Color.black.opacity(0.7))
                 .cornerRadius(10)
                 .padding()
-            }.onDisappear {
-                state.activeBolusAmount = 0
+            }
+            .onChange(of: state.bolusProgress) { _, newProgress in
+                if newProgress >= 1.0 {
+                    state.activeBolusAmount = 0 // Reset only when bolus is complete
+                }
             }
         }
     }

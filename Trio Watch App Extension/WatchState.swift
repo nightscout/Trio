@@ -32,7 +32,6 @@ import WatchConnectivity
 
     var bolusProgress: Double = 0.0
     var isBolusCanceled = false
-
     override init() {
         super.init()
         setupSession()
@@ -56,8 +55,9 @@ import WatchConnectivity
     /// - Parameters:
     ///   - amount: The insulin amount to be delivered
     func sendBolusRequest(_ amount: Decimal) {
-        isBolusCanceled = false // Reset canceled state when starting new bolus
         guard let session = session, session.isReachable else { return }
+        isBolusCanceled = false // Reset canceled state when starting new bolus
+        activeBolusAmount = Double(truncating: amount as NSNumber) // Set active bolus amount
 
         let message: [String: Any] = [
             "bolus": amount
