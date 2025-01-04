@@ -56,6 +56,7 @@ import WatchConnectivity
     /// - Parameters:
     ///   - amount: The insulin amount to be delivered
     func sendBolusRequest(_ amount: Decimal) {
+        isBolusCanceled = false // Reset canceled state when starting new bolus
         guard let session = session, session.isReachable else { return }
 
         let message: [String: Any] = [
