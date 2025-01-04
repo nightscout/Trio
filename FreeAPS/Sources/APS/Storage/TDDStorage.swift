@@ -151,7 +151,12 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     private func calculateBolusInsulin(_ bolusEvents: [PumpHistoryEvent]) -> Decimal {
         bolusEvents
             .reduce(Decimal(0)) { totalBolusInsulin, event in
-                totalBolusInsulin + (event.amount ?? 0)
+                let newTotalBolusInsulin = totalBolusInsulin + (event.amount as Decimal? ?? 0)
+                debug(
+                    .apsManager,
+                    "Bolus insulin \(event.amount ?? 0) U added. New total bolus = \(newTotalBolusInsulin) U"
+                )
+                return newTotalBolusInsulin
             }
     }
 
