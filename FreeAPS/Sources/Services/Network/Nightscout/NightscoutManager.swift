@@ -1239,13 +1239,18 @@ extension BaseNightscoutManager {
                 }
 
             } else {
-                // Handle everything else, e.g., "minPredBG 39", "COB 29", etc.
+                // Handle everything else, e.g., "minPredBG 39", "Dev: 5", etc.
                 let parts = glucoseValueString.components(separatedBy: .whitespaces)
                 if parts.count >= 2 {
-                    let metric = parts[0]
+                    var metric = parts[0]
                     let value = parts[1]
+
+                    // Add ":" to the metric only if it doesn't already end with ":"
+                    if !metric.hasSuffix(":") {
+                        metric += ":"
+                    }
                     let formattedValue = convertToMmolL(value)
-                    let formattedString = "\(metric): \(formattedValue)"
+                    let formattedString = "\(metric) \(formattedValue)"
                     updatedReason.replaceSubrange(range, with: formattedString)
                 }
             }
