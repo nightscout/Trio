@@ -130,7 +130,7 @@ final class BaseAPSManager: APSManager, Injectable {
             let wasParsed = storage.parseOnFileSettingsToMgdL()
             if wasParsed {
                 Task {
-                    await openAPS.createInitialProfiles()
+                    await openAPS.createProfiles()
                 }
             }
         }
@@ -385,14 +385,13 @@ final class BaseAPSManager: APSManager, Injectable {
         do {
             let now = Date()
 
-            // Start fetching asynchronously
-            let (currentTemp, _) = try await (
-                fetchCurrentTempBasal(date: now),
-                autosense()
-            )
+            // Parallelize the fetches using async let
+            async let currentTemp = fetchCurrentTempBasal(date: now)
+            async let autosenseResult = autosense()
 
-            // Determine basal using the fetched temp and current time
-            let determination = try await openAPS.determineBasal(currentTemp: currentTemp, clock: now)
+            _ = try await autosenseResult
+            await openAPS.createProfiles()
+            let determination = try await openAPS.determineBasal(currentTemp: await currentTemp, clock: now)
 
             if let determination = determination {
                 DispatchQueue.main.async {

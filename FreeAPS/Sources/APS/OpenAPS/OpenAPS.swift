@@ -462,7 +462,7 @@ final class OpenAPS {
         }
     }
 
-    func createInitialProfiles() async {
+    func createProfiles() async {
         debug(.openAPS, "Start creating pump profile and user profile")
 
         // Load required settings and profiles asynchronously
