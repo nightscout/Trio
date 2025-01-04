@@ -154,7 +154,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                 let newTotalBolusInsulin = totalBolusInsulin + (event.amount as Decimal? ?? 0)
                 debug(
                     .apsManager,
-                    "Bolus insulin \(event.amount ?? 0) U added. New total bolus = \(newTotalBolusInsulin) U"
+                    "Bolus \(event.amount ?? 0) U dosed at \(event.timestamp.ISO8601Format()) added. New total bolus = \(newTotalBolusInsulin) U"
                 )
                 return newTotalBolusInsulin
             }
