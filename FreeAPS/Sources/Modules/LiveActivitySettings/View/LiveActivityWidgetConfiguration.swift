@@ -163,7 +163,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
                         .foregroundColor(Color(UIColor.systemGray2))
                         .background(Color.white)
                         .clipShape(Circle())
-                        .font(.system(size: 20))
+                        .font(.title3)
                 }
                 .offset(x: 10, y: -10)
                 .confirmationDialog("Remove Widget", isPresented: $isRemovalConfirmationPresented, titleVisibility: .hidden) {

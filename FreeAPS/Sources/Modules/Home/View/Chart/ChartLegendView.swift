@@ -66,15 +66,29 @@ struct ChartLegendView: View {
                         DefinitionRow(
                             term: "CGM Glucose Value",
                             definition: VStack(alignment: .leading, spacing: 10) {
-                                Text(
-                                    "Displays real-time glucose readings from your CGM. Depending on your user interface settings, this may be displayed in a static (red, green, orange) or dynamic (full color spectrum) coloring scheme."
-                                )
+                                if state.settingsManager.settings.smoothGlucose {
+                                    Text(
+                                        "Displays real-time glucose readings from your CGM that were smoothed using the Savatzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM."
+                                    )
+                                    Text(
+                                        "Depending on your user interface settings, this may be displayed in a static (red, green, orange) or dynamic (full color spectrum) coloring scheme."
+                                    )
+                                } else {
+                                    Text(
+                                        "Displays real-time glucose readings from your CGM. Depending on your user interface settings, this may be displayed in a static (red, green, orange) or dynamic (full color spectrum) coloring scheme."
+                                    )
+                                }
                                 Text(
                                     "To modify how glucose readings are displayed, go to Settings > Features > User Interface > Glucose Color Scheme."
                                 )
+                                if state.settingsManager.settings.smoothGlucose {
+                                    Text(
+                                        "To disable smoothing, go to Settings > Devices > Continuous Glucose Monitor > Smooth Glucose Value and toggle off the setting."
+                                    )
+                                }
                             },
                             color: Color.green,
-                            iconString: !state.settingsManager.settings.smoothGlucose ? "circle.fill" : "record.circle.fill"
+                            iconString: state.settingsManager.settings.smoothGlucose ? "record.circle.fill" : "circle.fill"
                         )
 
                         DefinitionRow(
@@ -160,8 +174,7 @@ struct ChartLegendView: View {
                 Button {
                     state.isLegendPresented.toggle()
                 } label: {
-                    Text("Got it!")
-                        .frame(maxWidth: .infinity, alignment: .center)
+                    Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center)
                 }
                 .buttonStyle(.bordered)
                 .padding(.top)

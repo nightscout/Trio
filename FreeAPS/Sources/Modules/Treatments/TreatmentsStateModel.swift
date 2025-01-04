@@ -303,7 +303,7 @@ extension Treatments {
                 let carbRatios = await provider.getCarbRatios()
                 entries = carbRatios.schedule.map { ($0.start, $0.ratio) }
             case .bgTarget:
-                let bgTargets = await provider.getBGTarget()
+                let bgTargets = await provider.getBGTargets()
                 entries = bgTargets.targets.map { ($0.start, $0.low) }
             case .isf:
                 let isfValues = await provider.getISFValues()

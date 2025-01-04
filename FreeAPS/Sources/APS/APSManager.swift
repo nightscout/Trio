@@ -8,7 +8,6 @@ import Swinject
 
 protocol APSManager {
     func heartbeat(date: Date)
-    func autotune() async -> Autotune?
     func enactBolus(amount: Double, isSMB: Bool) async
     var pumpManager: PumpManagerUI? { get set }
     var bluetoothManager: BluetoothStateManager? { get }
@@ -21,7 +20,6 @@ protocol APSManager {
     var pumpExpiresAtDate: CurrentValueSubject<Date?, Never> { get }
     var isManualTempBasal: Bool { get }
     func enactTempBasal(rate: Double, duration: TimeInterval) async
-    func makeProfiles() async throws -> Bool
     func determineBasal() async -> Bool
     func determineBasalSync() async
     func simulateDetermineBasal(carbs: Decimal, iob: Decimal) async -> Determination?
@@ -69,7 +67,6 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var tddStorage: TDDStorage!
     @Injected() private var broadcaster: Broadcaster!
-    @Persisted(key: "lastAutotuneDate") private var lastAutotuneDate = Date()
     @Persisted(key: "lastLoopStartDate") private var lastLoopStartDate: Date = .distantPast
     @Persisted(key: "lastLoopDate") var lastLoopDate: Date = .distantPast {
         didSet {
@@ -134,7 +131,7 @@ final class BaseAPSManager: APSManager, Injectable {
             let wasParsed = storage.parseOnFileSettingsToMgdL()
             if wasParsed {
                 Task {
-                    try await makeProfiles()
+                    await openAPS.createProfiles()
                 }
             }
         }
@@ -412,16 +409,13 @@ final class BaseAPSManager: APSManager, Injectable {
         do {
             let now = Date()
 
-            // Start fetching asynchronously
-            let (currentTemp, _, _, _) = try await (
-                fetchCurrentTempBasal(date: now),
-                makeProfiles(),
-                autosense(),
-                dailyAutotune()
-            )
+            // Parallelize the fetches using async let
+            async let currentTemp = fetchCurrentTempBasal(date: now)
+            async let autosenseResult = autosense()
 
-            // Determine basal using the fetched temp and current time
-            let determination = try await openAPS.determineBasal(currentTemp: currentTemp, clock: now)
+            _ = try await autosenseResult
+            await openAPS.createProfiles()
+            let determination = try await openAPS.determineBasal(currentTemp: await currentTemp, clock: now)
 
             if let determination = determination {
                 DispatchQueue.main.async {
@@ -453,18 +447,6 @@ final class BaseAPSManager: APSManager, Injectable {
             )
             return nil
         }
-    }
-
-    func makeProfiles() async throws -> Bool {
-        let tunedProfile = await openAPS.makeProfiles(useAutotune: settings.useAutotune)
-        if let basalProfile = tunedProfile?.basalProfile {
-            processQueue.async {
-                self.broadcaster.notify(BasalProfileObserver.self, on: self.processQueue) {
-                    $0.basalProfileDidChange(basalProfile)
-                }
-            }
-        }
-        return tunedProfile != nil
     }
 
     func roundBolus(amount: Decimal) -> Decimal {
@@ -557,26 +539,6 @@ final class BaseAPSManager: APSManager, Injectable {
             debug(.apsManager, "Temp Basal failed with error: \(error.localizedDescription)")
             processError(APSError.pumpError(error))
         }
-    }
-
-    func dailyAutotune() async throws -> Bool {
-        guard settings.useAutotune else {
-            return false
-        }
-
-        let now = Date()
-
-        guard lastAutotuneDate.isBeforeDate(now, granularity: .day) else {
-            return false
-        }
-        lastAutotuneDate = now
-
-        let result = await autotune()
-        return result != nil
-    }
-
-    func autotune() async -> Autotune? {
-        await openAPS.autotune()
     }
 
     private func fetchCurrentTempBasal(date: Date) async -> TempBasal {

@@ -20,7 +20,6 @@ struct Preferences: JSON, Equatable {
     var skipNeutralTemps: Bool = false
     var unsuspendIfNoTemp: Bool = false
     var min5mCarbimpact: Decimal = 8
-    var autotuneISFAdjustmentFraction: Decimal = 1.0
     var remainingCarbsFraction: Decimal = 1.0
     var remainingCarbsCap: Decimal = 90
     var enableUAM: Bool = false
@@ -77,7 +76,6 @@ extension Preferences {
         case skipNeutralTemps = "skip_neutral_temps"
         case unsuspendIfNoTemp = "unsuspend_if_no_temp"
         case min5mCarbimpact = "min_5m_carbimpact"
-        case autotuneISFAdjustmentFraction = "autotune_isf_adjustmentFraction"
         case remainingCarbsFraction
         case remainingCarbsCap
         case enableUAM
@@ -200,10 +198,6 @@ extension Preferences: Decodable {
 
         if let min5mCarbimpact = try? container.decode(Decimal.self, forKey: .min5mCarbimpact) {
             preferences.min5mCarbimpact = min5mCarbimpact
-        }
-
-        if let autotuneISFAdjustmentFraction = try? container.decode(Decimal.self, forKey: .autotuneISFAdjustmentFraction) {
-            preferences.autotuneISFAdjustmentFraction = autotuneISFAdjustmentFraction
         }
 
         if let remainingCarbsFraction = try? container.decode(Decimal.self, forKey: .remainingCarbsFraction) {

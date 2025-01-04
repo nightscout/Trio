@@ -42,7 +42,7 @@ struct GlucoseChartView: ChartContent {
                 .symbol {
                     if item.isManual {
                         Image(systemName: "drop.fill")
-                            .font(.system(size: 10))
+                            .font(.caption2)
                             .symbolRenderingMode(.monochrome)
                             .bold()
                             .foregroundStyle(.red)
@@ -61,7 +61,7 @@ struct GlucoseChartView: ChartContent {
                 .symbol {
                     if item.isManual {
                         Image(systemName: "drop.fill")
-                            .font(.system(size: 10))
+                            .font(.caption2)
                             .symbolRenderingMode(.monochrome)
                             .bold()
                             .foregroundStyle(.red)
