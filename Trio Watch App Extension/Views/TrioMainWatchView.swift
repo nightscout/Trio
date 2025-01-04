@@ -146,6 +146,9 @@ struct TrioMainWatchView: View {
                     )
                 }
             }
+            .overlay(
+                BolusProgressOverlay(state: state, navigationState: navigationState)
+            )
         }
     }
 

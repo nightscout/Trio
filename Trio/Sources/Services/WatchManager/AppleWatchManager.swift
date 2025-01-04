@@ -56,6 +56,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             .store(in: &subscriptions)
 
         registerHandlers()
+        subscribeToBolusProgress()
     }
 
     private func registerHandlers() {
@@ -620,6 +621,25 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     }
                 }
             }
+        }
+    }
+
+    private func subscribeToBolusProgress() {
+        apsManager.bolusProgress
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] progress in
+                self?.sendBolusProgressToWatch(progress: progress)
+            }
+            .store(in: &subscriptions)
+    }
+
+    private func sendBolusProgressToWatch(progress: Decimal?) {
+        guard let session = session, session.isReachable, let progress = progress else { return }
+
+        let message: [String: Any] = ["bolusProgress": Double(truncating: progress as NSNumber)]
+
+        session.sendMessage(message, replyHandler: nil) { error in
+            debug(.watchManager, "❌ Error sending bolus progress: \(error.localizedDescription)")
         }
     }
 }

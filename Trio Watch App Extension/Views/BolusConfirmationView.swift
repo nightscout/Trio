@@ -73,6 +73,7 @@ struct BolusConfirmationView: View {
                         state.sendCarbsRequest(state.carbsAmount, Date())
                         state.carbsAmount = 0 // reset carbs in state
                     }
+                    state.activeBolusAmount = bolusAmount
                     state.sendBolusRequest(Decimal(bolusAmount))
                     bolusAmount = 0 // reset bolus in state
                     confirmationProgress = 0 // reset auth progress

@@ -27,7 +27,10 @@ import WatchConnectivity
     var fatAmount: Int = 0
     var proteinAmount: Int = 0
     var bolusAmount = 0.0
+    var activeBolusAmount = 0.0
     var confirmationProgress = 0.0
+
+    var bolusProgress: Double = 0.0
 
     override init() {
         super.init()
@@ -146,6 +149,18 @@ import WatchConnectivity
         }
     }
 
+    func sendCancelBolusRequest() {
+        guard let session = session, session.isReachable else { return }
+
+        let message: [String: Any] = [
+            "cancelBolus": true
+        ]
+
+        session.sendMessage(message, replyHandler: nil) { error in
+            print("Error sending cancel bolus request: \(error.localizedDescription)")
+        }
+    }
+
     // MARK: - WCSessionDelegate
 
     /// Called when the session has completed activation
@@ -222,6 +237,10 @@ import WatchConnectivity
                     else { return nil }
                     return TempTargetPresetWatch(name: name, isEnabled: isEnabled)
                 }
+            }
+
+            if let bolusProgress = message["bolusProgress"] as? Double {
+                self.bolusProgress = bolusProgress
             }
         }
     }
