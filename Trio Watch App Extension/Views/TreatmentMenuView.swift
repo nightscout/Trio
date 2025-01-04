@@ -3,6 +3,7 @@ import SwiftUI
 struct TreatmentMenuView: View {
     @Environment(\.dismiss) var dismiss
     @Binding var selectedTreatment: TreatmentOption?
+    var onSelect: () -> Void // Callback to handle selection and dismiss the sheet
 
     let treatments = TreatmentOption.allCases
 
@@ -21,7 +22,7 @@ struct TreatmentMenuView: View {
                 ForEach(treatments) { treatment in
                     Button(action: {
                         selectedTreatment = treatment
-                        dismiss() // Close after selecting
+                        onSelect()
                     }) {
                         HStack(spacing: 10) {
                             switch treatment {

@@ -26,6 +26,8 @@ import WatchConnectivity
     var carbsAmount: Int = 0
     var fatAmount: Int = 0
     var proteinAmount: Int = 0
+    var bolusAmount = 0.0
+    var confirmationProgress = 0.0
 
     override init() {
         super.init()

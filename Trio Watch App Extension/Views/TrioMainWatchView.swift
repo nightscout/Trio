@@ -1,7 +1,22 @@
 import Charts
 import SwiftUI
 
+class NavigationState: ObservableObject {
+    @Published var path = NavigationPath() // Tracks the navigation stack
+
+    func resetToRoot() {
+        path.removeLast(path.count) // Clears the navigation stack to return to root
+    }
+}
+
+enum NavigationDestinations: String {
+    case carbInput
+    case bolusInput
+    case bolusConfirm
+}
+
 struct TrioMainWatchView: View {
+    @StateObject private var navigationState = NavigationState() // Shared navigation state
     @State private var state = WatchState()
 
     // misc
@@ -12,9 +27,7 @@ struct TrioMainWatchView: View {
     // view visbility
     @State private var showingTreatmentMenuSheet: Bool = false
     @State private var showingOverrideSheet: Bool = false
-    /// navigation flags
-    @State private var navigateToCarbsInput = false
-    @State private var navigateToBolusInput = false
+    // navigation flag for meal bolus combo
     @State private var continueToBolus = false
 
     // treatments
@@ -27,7 +40,7 @@ struct TrioMainWatchView: View {
     )
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationState.path) {
             TabView(selection: $currentPage) {
                 // Page 1: Current glucose trend in "BG bobble"
                 GlucoseTrendView(state: state, rotationDegrees: rotationDegrees)
@@ -44,6 +57,9 @@ struct TrioMainWatchView: View {
                 withAnimation {
                     updateRotation(for: newTrend)
                 }
+            }
+            .onAppear {
+                state.confirmationProgress = 0 // reset auth progress
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -92,15 +108,12 @@ struct TrioMainWatchView: View {
                 }
             }
             .sheet(isPresented: $showingTreatmentMenuSheet) {
-                TreatmentMenuView(selectedTreatment: $selectedTreatment)
-                    .onAppear {
-                        navigateToCarbsInput = false
-                        navigateToBolusInput = false
-                        continueToBolus = false
-                    }
-                    .onDisappear {
-                        handleTreatmentSelection()
-                    }
+                TreatmentMenuView(selectedTreatment: $selectedTreatment) {
+                    handleTreatmentSelection()
+                }
+                .onAppear {
+                    continueToBolus = false
+                }
             }
             .sheet(isPresented: $showingOverrideSheet) {
                 OverridePresetsView(
@@ -114,11 +127,24 @@ struct TrioMainWatchView: View {
                     state: state
                 )
             }
-            .navigationDestination(isPresented: $navigateToCarbsInput) {
-                CarbsInputView(state: state, continueToBolus: continueToBolus)
-            }
-            .navigationDestination(isPresented: $navigateToBolusInput) {
-                BolusInputView(state: state)
+            .navigationDestination(for: NavigationDestinations.self) { destination in
+                switch destination {
+                case .carbInput:
+                    CarbsInputView(
+                        navigationState: navigationState,
+                        state: state,
+                        continueToBolus: selectedTreatment == .mealBolusCombo
+                    )
+                case .bolusInput:
+                    BolusInputView(navigationState: navigationState, state: state)
+                case .bolusConfirm:
+                    BolusConfirmationView(
+                        navigationState: navigationState,
+                        state: state,
+                        bolusAmount: $state.bolusAmount,
+                        confirmationProgress: $state.confirmationProgress
+                    )
+                }
             }
         }
     }
@@ -171,15 +197,17 @@ struct TrioMainWatchView: View {
     }
 
     private func handleTreatmentSelection() {
+        showingTreatmentMenuSheet = false // Dismiss the sheet
+
         guard let treatment = selectedTreatment else { return }
+
         switch treatment {
-        case .mealBolusCombo:
-            navigateToCarbsInput = true
-            continueToBolus = true
         case .meal:
-            navigateToCarbsInput = true
+            navigationState.path.append(NavigationDestinations.carbInput)
         case .bolus:
-            navigateToBolusInput = true
+            navigationState.path.append(NavigationDestinations.bolusInput)
+        case .mealBolusCombo:
+            navigationState.path.append(NavigationDestinations.carbInput)
         }
     }
 }
