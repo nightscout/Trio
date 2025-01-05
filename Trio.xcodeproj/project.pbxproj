@@ -1974,7 +1974,7 @@
 				CE1F6DE62BAF1A180064EB8D /* BuildDetails.plist */,
 				38F3783A2613555C009DB701 /* Config.xcconfig */,
 				388E595A25AD948C0019842D /* Trio */,
-				38FCF3EE25E9028E0078B0D1 /* TrioAPSTests */,
+				38FCF3EE25E9028E0078B0D1 /* TrioTests */,
 				3818AA44274C229000843DB3 /* Packages */,
 				6B1A8D1C2B14D91600E76752 /* LiveActivity */,
 				BDFF7A9C2D25FA730016C40C /* Trio Watch App Extension */,
@@ -2245,7 +2245,7 @@
 			path = Config;
 			sourceTree = "<group>";
 		};
-		38FCF3EE25E9028E0078B0D1 /* TrioAPSTests */ = {
+		38FCF3EE25E9028E0078B0D1 /* TrioTests */ = {
 			isa = PBXGroup;
 			children = (
 				38FCF3F125E9028E0078B0D1 /* Info.plist */,
@@ -2253,7 +2253,7 @@
 				CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */,
 				CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */,
 			);
-			path = TrioAPSTests;
+			path = TrioTests;
 			sourceTree = "<group>";
 		};
 		4E8C7B59F8065047ECE20965 /* View */ = {
