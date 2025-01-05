@@ -24,9 +24,11 @@ struct TrioMainWatchView: View {
         let sortedPresets = presets.sorted { predicate($0) && !predicate($1) }
         return !sortedPresets.isEmpty && sortedPresets.first(where: predicate) != nil
     }
+
     private var isTempTargetActive: Bool {
         isAdjustmentActive(for: state.tempTargetPresets) { $0.isEnabled }
     }
+
     private var isOverrideActive: Bool {
         isAdjustmentActive(for: state.overridePresets) { $0.isEnabled }
     }

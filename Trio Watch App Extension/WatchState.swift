@@ -186,6 +186,7 @@ import WatchConnectivity
 
     func sendCancelBolusRequest() {
         isBolusCanceled = true
+
         guard let session = session, session.isReachable else { return }
 
         let message: [String: Any] = [
@@ -195,6 +196,10 @@ import WatchConnectivity
         session.sendMessage(message, replyHandler: nil) { error in
             print("Error sending cancel bolus request: \(error.localizedDescription)")
         }
+
+        // Reset when cancelled
+        bolusProgress = 0
+        activeBolusAmount = 0
     }
 
     // MARK: – Handle Acknowledgement Messages FROM Phone

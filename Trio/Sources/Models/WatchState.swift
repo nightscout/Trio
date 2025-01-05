@@ -5,7 +5,7 @@ struct WatchState: Hashable, Equatable, Sendable {
     var trend: String?
     var delta: String?
     var glucoseValues: [(date: Date, glucose: Double)] = []
-    var units: GlucoseUnits = .mmolL
+    var units: GlucoseUnits = .mgdL
     var iob: String?
     var cob: String?
     var lastLoopTime: String?
