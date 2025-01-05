@@ -54,5 +54,8 @@ struct BolusProgressOverlay: View {
                 state.activeBolusAmount = 0 // Reset only when bolus is complete
             }
         }
+        .onDisappear {
+            state.activeBolusAmount = 0 // Double-check to reset when view disappears
+        }
     }
 }

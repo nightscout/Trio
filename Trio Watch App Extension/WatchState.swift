@@ -41,6 +41,15 @@ import WatchConnectivity
     var maxIOB: Decimal = 0
     var maxCOB: Decimal = 120
 
+    // acknowlegement handling
+    var showCommsAnimation: Bool = false
+    var showAcknowledgmentBanner: Bool = false
+    var acknowledgementStatus: AcknowledgementStatus = .pending
+    var acknowledgmentMessage: String = ""
+    // Meal bolus-specific properties
+    var mealBolusStep: MealBolusStep = .savingCarbs
+    var isMealBolusCombo: Bool = false
+
     override init() {
         super.init()
         setupSession()
@@ -75,6 +84,9 @@ import WatchConnectivity
         session.sendMessage(message, replyHandler: nil) { error in
             print("Error sending bolus request: \(error.localizedDescription)")
         }
+
+        // Display pending communication animation
+        showCommsAnimation = true
     }
 
     /// Sends a carbohydrate entry request to the paired iPhone
@@ -92,6 +104,9 @@ import WatchConnectivity
         session.sendMessage(message, replyHandler: nil) { error in
             print("Error sending carbs request: \(error.localizedDescription)")
         }
+
+        // Display pending communication animation
+        showCommsAnimation = true
     }
 
     /// Sends a meal and bolus insulin combo request to the paired iPhone
@@ -110,6 +125,10 @@ import WatchConnectivity
         session.sendMessage(message, replyHandler: nil) { error in
             print("Error sending meal bolus combo request: \(error.localizedDescription)")
         }
+
+        // Display pending communication animation
+        showCommsAnimation = true
+        isMealBolusCombo = true
     }
 
     func sendCancelOverrideRequest() {
@@ -173,6 +192,29 @@ import WatchConnectivity
         }
     }
 
+    // MARK: – Handle Acknowledgement Messages FROM Phone
+
+    private func handleAcknowledgment(success: Bool, message: String, isFinal: Bool = true) {
+        if success {
+            print("⌚️ Acknowledgment received: \(message)")
+            showCommsAnimation = false // Hide progress animation
+            acknowledgementStatus = .success
+            acknowledgmentMessage = "\(message)"
+        } else {
+            print("⌚️ Acknowledgment failed: \(message)")
+            showCommsAnimation = false // Hide progress animation
+            acknowledgementStatus = .failure
+            acknowledgmentMessage = "\(message)"
+        }
+
+        if isFinal {
+            showAcknowledgmentBanner = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.showAcknowledgmentBanner = false
+            }
+        }
+    }
+
     // MARK: - WCSessionDelegate
 
     /// Called when the session has completed activation
@@ -197,6 +239,29 @@ import WatchConnectivity
 
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+
+            if let acknowledged = message["acknowledged"] as? Bool,
+               let ackMessage = message["message"] as? String
+            {
+                switch ackMessage {
+                case "Saving carbs...":
+                    self.isMealBolusCombo = true
+                    self.mealBolusStep = .savingCarbs
+                    self.showCommsAnimation = true
+                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
+                case "Enacting bolus...":
+                    self.isMealBolusCombo = true
+                    self.mealBolusStep = .enactingBolus
+                    self.showCommsAnimation = true
+                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
+                case "Carbs and bolus logged successfully":
+                    self.isMealBolusCombo = false
+                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
+                default:
+                    self.isMealBolusCombo = false
+                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
+                }
+            }
 
             if let currentGlucose = message["currentGlucose"] as? String {
                 self.currentGlucose = currentGlucose

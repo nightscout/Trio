@@ -245,7 +245,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
     }
 
-    // MARK: - Send Data to Watch
+    // MARK: - Send to Watch
 
     /// Sends the state of type WatchState to the connected Watch
     /// - Parameter state: Current WatchState containing glucose data to be sent
@@ -295,6 +295,22 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
         session.sendMessage(message, replyHandler: nil) { error in
             debug(.watchManager, "❌ Error sending data: \(error.localizedDescription)")
+        }
+    }
+
+    func sendAcknowledgment(toWatch success: Bool, message: String = "") {
+        guard let session = session, session.isReachable else {
+            debug(.watchManager, "⌚️ Watch not reachable for acknowledgment")
+            return
+        }
+
+        let ackMessage: [String: Any] = [
+            "acknowledged": success,
+            "message": message
+        ]
+
+        session.sendMessage(ackMessage, replyHandler: nil) { error in
+            debug(.watchManager, "❌ Error sending acknowledgment: \(error.localizedDescription)")
         }
     }
 
@@ -405,6 +421,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         Task {
             await apsManager.enactBolus(amount: Double(amount), isSMB: false)
             debug(.watchManager, "📱 Enacted bolus via APS Manager: \(amount)U")
+            // Acknowledge success
+            self.sendAcknowledgment(toWatch: true, message: "Enacted bolus successfully")
         }
     }
 
@@ -428,8 +446,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     guard context.hasChanges else { return }
                     try context.save()
                     debug(.watchManager, "📱 Saved carbs from watch: \(amount)g at \(date)")
+
+                    // Acknowledge success
+                    self.sendAcknowledgment(toWatch: true, message: "Carbs logged successfully")
                 } catch {
                     debug(.watchManager, "❌ Error saving carbs: \(error.localizedDescription)")
+
+                    // Acknowledge failure
+                    self.sendAcknowledgment(toWatch: false, message: "Error logging carbs")
                 }
             }
         }
@@ -445,6 +469,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             let context = CoreDataStack.shared.newTaskContext()
 
             do {
+                // Notify Watch: "Saving carbs..."
+                self.sendAcknowledgment(toWatch: true, message: "Saving Carbs...")
+
                 // Save carbs entry in Core Data
                 try await context.perform {
                     let carbEntry = CarbEntryStored(context: context)
@@ -455,15 +482,22 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
                     guard context.hasChanges else { return }
                     try context.save()
-                    debug(.watchManager, "📱 Saved carbs from watch: \(carbsAmount)g at \(date)")
+                    debug(.watchManager, "📱 Saved carbs from watch: \(carbsAmount) g at \(date)")
                 }
+
+                // Notify Watch: "Enacting bolus..."
+                sendAcknowledgment(toWatch: true, message: "Enacting bolus...")
 
                 // Enact bolus via APS Manager
                 let bolusDouble = NSDecimalNumber(decimal: bolusAmount).doubleValue
                 await apsManager.enactBolus(amount: bolusDouble, isSMB: false)
-                debug(.watchManager, "📱 Enacted bolus from watch via APS Manager: \(bolusDouble)U")
+                debug(.watchManager, "📱 Enacted bolus from watch via APS Manager: \(bolusDouble) U")
+                // Notify Watch: "Carbs and bolus logged successfully"
+                sendAcknowledgment(toWatch: true, message: "Carbs and Bolus logged successfully")
+
             } catch {
                 debug(.watchManager, "❌ Error processing combined request: \(error.localizedDescription)")
+                sendAcknowledgment(toWatch: false, message: "Failed to log carbs and bolus")
             }
         }
     }

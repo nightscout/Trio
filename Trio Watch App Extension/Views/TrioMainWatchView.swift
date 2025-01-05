@@ -115,6 +115,11 @@ struct TrioMainWatchView: View {
             }
             .navigationDestination(for: NavigationDestinations.self) { destination in
                 switch destination {
+                case .acknowledgmentPending:
+                    AcknowledgementPendingView(
+                        navigationPath: $navigationPath,
+                        state: state
+                    )
                 case .carbInput:
                     CarbsInputView(
                         navigationPath: $navigationPath,

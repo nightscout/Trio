@@ -100,9 +100,8 @@ struct CarbsInputView: View {
                     state.carbsAmount = Int(min(carbsAmount, effectiveCarbsLimit))
                     navigationPath.append(NavigationDestinations.bolusInput)
                 } else {
-                    // TODO: add a fancy success animation
                     state.sendCarbsRequest(Int(min(carbsAmount, effectiveCarbsLimit)))
-                    navigationPath.removeLast(navigationPath.count)
+                    navigationPath.append(NavigationDestinations.acknowledgmentPending)
                 }
             }
             .buttonStyle(.bordered)

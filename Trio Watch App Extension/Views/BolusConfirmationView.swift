@@ -52,7 +52,7 @@ struct BolusConfirmationView: View {
                 }
                 bolusAmount = 0 // reset bolus in state
                 confirmationProgress = 0 // reset auth progress
-                navigationPath.removeLast(navigationPath.count)
+                navigationPath.removeAll()
             }
             .buttonStyle(.bordered)
         }
@@ -83,9 +83,7 @@ struct BolusConfirmationView: View {
                     state.sendBolusRequest(Decimal(bolusAmount))
                     bolusAmount = 0 // reset bolus in state
                     confirmationProgress = 0 // reset auth progress
-                    navigationPath.removeLast(navigationPath.count)
-
-                    // TODO: add a fancy success animation
+                    navigationPath.append(NavigationDestinations.acknowledgmentPending)
                 }
             } else if newValue > 0 {
                 WKInterfaceDevice.current().play(.click)
@@ -102,7 +100,7 @@ struct BolusConfirmationView: View {
         }
         .blur(radius: state.bolusProgress > 0 && state.bolusProgress < 1.0 && !state.isBolusCanceled ? 3 : 0)
         .overlay {
-            if state.bolusProgress > 0 && state.bolusProgress < 1.0 && !state.isBolusCanceled {
+            if state.bolusProgress > 0 && state.bolusProgress < 1.0 && !state.isBolusCanceled && !state.showAcknowledgmentBanner {
                 BolusProgressOverlay(state: state)
                     .transition(.opacity)
             }
