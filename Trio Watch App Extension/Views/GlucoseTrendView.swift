@@ -9,16 +9,40 @@ struct GlucoseTrendView: View {
         return size.height < 225 && size.width < 185
     }
 
+    /// Determines the status color based on the time elapsed since the last loop
+    /// - Parameter timeString: The time string representing minutes since last loop (format: "X min")
+    /// - Returns: A color indicating the status:
+    ///   - Green: <= 5 minutes
+    ///   - Yellow: 5-10 minutes
+    ///   - Red: > 10 minutes or invalid time
+    private func statusColor(for timeString: String?) -> Color {
+        guard let timeString = timeString,
+              timeString != "--",
+              let minutes = timeString.split(separator: " ").first.flatMap({ Int($0) })
+        else {
+            return .secondary
+        }
+
+        switch minutes {
+        case ...5:
+            return .green
+        case 5 ... 10:
+            return .yellow
+        case 11...:
+            return .red
+        default:
+            return .yellow
+        }
+    }
+
     var body: some View {
         VStack {
             ZStack {
                 Circle()
-                    // TODO: set loop colors conditionally, not hard coded
-                    .stroke(Color.green, lineWidth: is40mm ? 1 : 1.5)
+                    .stroke(statusColor(for: state.lastLoopTime), lineWidth: is40mm ? 1 : 1.5)
                     .frame(width: is40mm ? 86 : 105, height: is40mm ? 86 : 105)
                     .background(Circle().fill(Color.bgDarkBlue))
-                    // TODO: set loop colors conditionally, not hard coded
-                    .shadow(color: .green, radius: is40mm ? 8 : 12)
+                    .shadow(color: statusColor(for: state.lastLoopTime), radius: is40mm ? 8 : 12)
 
                 TrendShape(rotationDegrees: rotationDegrees, isSmallDevice: is40mm)
                     .animation(.spring(response: 0.5, dampingFraction: 0.6), value: rotationDegrees)
