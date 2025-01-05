@@ -8,7 +8,7 @@ import Swinject
 
 protocol APSManager {
     func heartbeat(date: Date)
-    func enactBolus(amount: Double, isSMB: Bool) async
+    func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async
     var pumpManager: PumpManagerUI? { get set }
     var bluetoothManager: BluetoothStateManager? { get }
     var pumpDisplayState: CurrentValueSubject<PumpDisplayState?, Never> { get }
@@ -25,7 +25,7 @@ protocol APSManager {
     func simulateDetermineBasal(carbs: Decimal, iob: Decimal) async -> Determination?
     func roundBolus(amount: Decimal) -> Decimal
     var lastError: CurrentValueSubject<Error?, Never> { get }
-    func cancelBolus() async
+    func cancelBolus(_ callback: ((Bool, String) -> Void)?) async
 }
 
 enum APSError: LocalizedError {
@@ -434,7 +434,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private var bolusReporter: DoseProgressReporter?
 
-    func enactBolus(amount: Double, isSMB: Bool) async {
+    func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async {
         if amount <= 0 {
             return
         }
@@ -446,6 +446,7 @@ final class BaseAPSManager: APSManager, Injectable {
                     $0.bolusDidFail()
                 }
             }
+            callback?(false, "Error! Failed to enact bolus.")
             return
         }
 
@@ -462,6 +463,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 await determineBasalSync()
             }
             bolusProgress.send(0)
+            callback?(true, "Bolus enacted successfully.")
         } catch {
             warning(.apsManager, "Bolus failed with error: \(error.localizedDescription)")
             processError(APSError.pumpError(error))
@@ -472,18 +474,21 @@ final class BaseAPSManager: APSManager, Injectable {
                     }
                 }
             }
+            callback?(false, "Error! Failed to enact bolus.")
         }
     }
 
-    func cancelBolus() async {
+    func cancelBolus(_ callback: ((Bool, String) -> Void)?) async {
         guard let pump = pumpManager, pump.status.pumpStatus.bolusing else { return }
         debug(.apsManager, "Cancel bolus")
         do {
             _ = try await pump.cancelBolus()
             debug(.apsManager, "Bolus cancelled")
+            callback?(true, "Bolus cancelled successfully.")
         } catch {
             debug(.apsManager, "Bolus cancellation failed with error: \(error.localizedDescription)")
             processError(APSError.pumpError(error))
+            callback?(false, "Error! Bolus cancellation failed.")
         }
         bolusReporter?.removeObserver(self)
         bolusReporter = nil

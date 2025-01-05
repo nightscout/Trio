@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct TempTargetPresetsView: View {
-    @Environment(\.dismiss) var dismiss
-    let tempTargetPresets: [TempTargetPresetWatch]
     let state: WatchState
+    let tempTargetPresets: [TempTargetPresetWatch]
+    var onPresetAction: () -> Void // Callback to handle selection of preset, or cancellation, and dismiss the sheet
 
     private let activePresetGradient = LinearGradient(
         colors: [
@@ -28,7 +28,7 @@ struct TempTargetPresetsView: View {
                 if let active = activePreset {
                     Button("Stop \(active.name)") {
                         state.sendCancelTempTargetRequest()
-                        dismiss()
+                        onPresetAction()
                     }
                     .foregroundColor(.white)
                     .listRowBackground(
@@ -47,7 +47,7 @@ struct TempTargetPresetsView: View {
                             if !preset.isEnabled {
                                 state.sendActivateTempTargetRequest(presetName: preset.name)
                             }
-                            dismiss()
+                            onPresetAction()
                         }) {
                             HStack {
                                 Text(preset.name)

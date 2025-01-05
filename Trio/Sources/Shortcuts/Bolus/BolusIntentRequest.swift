@@ -23,7 +23,7 @@ import Foundation
             } else {
                 bolusQuantity = apsManager.roundBolus(amount: Decimal(bolusAmount))
             }
-            await apsManager.enactBolus(amount: Double(bolusQuantity), isSMB: false)
+            await apsManager.enactBolus(amount: Double(bolusQuantity), isSMB: false, callback: nil)
             return LocalizedStringResource(
                 "A bolus command of \(bolusQuantity.formatted()) U of insulin was sent.",
                 table: "ShortcutsDetail"

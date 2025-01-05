@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct OverridePresetsView: View {
-    @Environment(\.dismiss) var dismiss
-    let overridePresets: [OverridePresetWatch]
     let state: WatchState
+    let overridePresets: [OverridePresetWatch]
+    var onPresetAction: () -> Void // Callback to handle selection of preset, or cancellation, and dismiss the sheet
 
     private let activePresetGradient = LinearGradient(
         colors: [
@@ -28,7 +28,7 @@ struct OverridePresetsView: View {
                 if let active = activeOverride {
                     Button("Stop \(active.name)") {
                         state.sendCancelOverrideRequest()
-                        dismiss()
+                        onPresetAction()
                     }
                     .foregroundColor(.white)
                     .listRowBackground(
@@ -47,7 +47,7 @@ struct OverridePresetsView: View {
                             if !preset.isEnabled {
                                 state.sendActivateOverrideRequest(presetName: preset.name)
                             }
-                            dismiss()
+                            onPresetAction()
                         }) {
                             HStack {
                                 Text(preset.name)

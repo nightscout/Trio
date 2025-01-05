@@ -119,22 +119,29 @@ struct TrioMainWatchView: View {
             }
             .sheet(isPresented: $showingOverrideSheet) {
                 OverridePresetsView(
-                    overridePresets: state.overridePresets,
-                    state: state
-                )
+                    state: state,
+                    overridePresets: state.overridePresets
+                ) {
+                    showingOverrideSheet = false
+                    navigationPath.append(NavigationDestinations.acknowledgmentPending)
+                }
             }
             .sheet(isPresented: $showingTempTargetSheet) {
                 TempTargetPresetsView(
-                    tempTargetPresets: state.tempTargetPresets,
-                    state: state
-                )
+                    state: state,
+                    tempTargetPresets: state.tempTargetPresets
+                ) {
+                    showingTempTargetSheet = false
+                    navigationPath.append(NavigationDestinations.acknowledgmentPending)
+                }
             }
             .navigationDestination(for: NavigationDestinations.self) { destination in
                 switch destination {
                 case .acknowledgmentPending:
                     AcknowledgementPendingView(
                         navigationPath: $navigationPath,
-                        state: state
+                        state: state,
+                        shouldNavigateToRoot: $state.shouldNavigateToRoot
                     )
                 case .carbsInput:
                     CarbsInputView(
@@ -166,8 +173,10 @@ struct TrioMainWatchView: View {
         .blur(radius: state.showBolusProgressOverlay ? 3 : 0)
         .overlay {
             if state.showBolusProgressOverlay {
-                BolusProgressOverlay(state: state)
-                    .transition(.opacity)
+                BolusProgressOverlay(state: state) {
+                    state.shouldNavigateToRoot = false
+                    navigationPath.append(NavigationDestinations.acknowledgmentPending)
+                }.transition(.opacity)
             }
         }
     }

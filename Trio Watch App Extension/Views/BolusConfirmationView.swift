@@ -101,8 +101,10 @@ struct BolusConfirmationView: View {
         .blur(radius: state.showBolusProgressOverlay ? 3 : 0)
         .overlay {
             if state.showBolusProgressOverlay {
-                BolusProgressOverlay(state: state)
-                    .transition(.opacity)
+                BolusProgressOverlay(state: state) {
+                    state.shouldNavigateToRoot = false
+                    navigationPath.append(NavigationDestinations.acknowledgmentPending)
+                }.transition(.opacity)
             }
         }
     }

@@ -407,7 +407,7 @@ extension Home {
 
         func cancelBolus() {
             Task {
-                await apsManager.cancelBolus()
+                await apsManager.cancelBolus(nil)
 
                 // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
                 await apsManager.determineBasalSync()

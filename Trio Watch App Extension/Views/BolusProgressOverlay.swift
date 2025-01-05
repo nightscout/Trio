@@ -2,6 +2,7 @@ import SwiftUI
 
 struct BolusProgressOverlay: View {
     let state: WatchState
+    let onCancelBolus: () -> Void
 
     private let progressGradient = LinearGradient(
         colors: [
@@ -38,6 +39,7 @@ struct BolusProgressOverlay: View {
 
                 Button(action: {
                     state.sendCancelBolusRequest()
+                    onCancelBolus()
                 }) {
                     Text("Cancel Bolus")
                 }

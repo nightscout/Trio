@@ -3,6 +3,7 @@ import SwiftUI
 struct AcknowledgementPendingView: View {
     @Binding var navigationPath: NavigationPath
     let state: WatchState
+    @Binding var shouldNavigateToRoot: Bool
 
     var trioBackgroundColor = LinearGradient(
         gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
@@ -46,6 +47,9 @@ struct AcknowledgementPendingView: View {
                 // Navigate back to the root when acknowledgment banner disappears
                 navigationPath.removeLast(navigationPath.count)
             }
+        }
+        .onDisappear {
+            state.shouldNavigateToRoot = true
         }
     }
 }

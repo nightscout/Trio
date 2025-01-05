@@ -46,6 +46,8 @@ import WatchConnectivity
     var showAcknowledgmentBanner: Bool = false
     var acknowledgementStatus: AcknowledgementStatus = .pending
     var acknowledgmentMessage: String = ""
+    var shouldNavigateToRoot: Bool = true
+
     // Meal bolus-specific properties
     var mealBolusStep: MealBolusStep = .savingCarbs
     var isMealBolusCombo: Bool = false
@@ -146,6 +148,9 @@ import WatchConnectivity
         session.sendMessage(message, replyHandler: nil) { error in
             print("⌚️ Error sending cancel override request: \(error.localizedDescription)")
         }
+
+        // Display pending communication animation
+        showCommsAnimation = true
     }
 
     func sendActivateOverrideRequest(presetName: String) {
@@ -158,6 +163,9 @@ import WatchConnectivity
         session.sendMessage(message, replyHandler: nil) { error in
             print("⌚️ Error sending activate override request: \(error.localizedDescription)")
         }
+
+        // Display pending communication animation
+        showCommsAnimation = true
     }
 
     func sendCancelTempTargetRequest() {
@@ -170,6 +178,9 @@ import WatchConnectivity
         session.sendMessage(message, replyHandler: nil) { error in
             print("⌚️ Error sending cancel temp target request: \(error.localizedDescription)")
         }
+
+        // Display pending communication animation
+        showCommsAnimation = true
     }
 
     func sendActivateTempTargetRequest(presetName: String) {
@@ -182,6 +193,9 @@ import WatchConnectivity
         session.sendMessage(message, replyHandler: nil) { error in
             print("⌚️ Error sending activate temp target request: \(error.localizedDescription)")
         }
+
+        // Display pending communication animation
+        showCommsAnimation = true
     }
 
     func sendCancelBolusRequest() {
@@ -200,6 +214,9 @@ import WatchConnectivity
         // Reset when cancelled
         bolusProgress = 0
         activeBolusAmount = 0
+
+        // Display pending communication animation
+        showCommsAnimation = true
     }
 
     // MARK: – Handle Acknowledgement Messages FROM Phone

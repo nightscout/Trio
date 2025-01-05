@@ -47,7 +47,7 @@ extension TrioRemoteControl {
             return
         }
 
-        await apsManager.enactBolus(amount: Double(truncating: bolusAmount as NSNumber), isSMB: false)
+        await apsManager.enactBolus(amount: Double(truncating: bolusAmount as NSNumber), isSMB: false, callback: nil)
 
         debug(
             .remoteControl,

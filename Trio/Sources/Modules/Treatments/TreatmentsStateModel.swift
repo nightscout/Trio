@@ -498,7 +498,7 @@ extension Treatments {
             do {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
-                    await apsManager.enactBolus(amount: maxAmount, isSMB: false)
+                    await apsManager.enactBolus(amount: maxAmount, isSMB: false, callback: nil)
                 } else {
                     print("authentication failed")
                 }

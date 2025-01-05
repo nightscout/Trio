@@ -384,7 +384,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             // Handle bolus cancellation
             if message["cancelBolus"] as? Bool == true {
                 Task {
-                    await self?.apsManager.cancelBolus()
+                    await self?.apsManager.cancelBolus { [self] success, message in
+                        // Acknowledge success or error of bolus
+                        self?.sendAcknowledgment(toWatch: success, message: message)
+                    }
                     debug(.watchManager, "📱 Bolus cancelled from watch")
 
                     // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
@@ -422,10 +425,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     /// - Parameter amount: The requested bolus amount in units
     private func handleBolusRequest(_ amount: Decimal) {
         Task {
-            await apsManager.enactBolus(amount: Double(amount), isSMB: false)
+            await apsManager.enactBolus(amount: Double(amount), isSMB: false) { success, message in
+                // Acknowledge success or error of bolus
+                self.sendAcknowledgment(toWatch: success, message: message)
+            }
             debug(.watchManager, "📱 Enacted bolus via APS Manager: \(amount)U")
-            // Acknowledge success
-            self.sendAcknowledgment(toWatch: true, message: "Enacted bolus successfully")
         }
     }
 
@@ -452,7 +456,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     debug(.watchManager, "📱 Saved carbs from watch: \(amount)g at \(date)")
 
                     // Acknowledge success
-                    self.sendAcknowledgment(toWatch: true, message: "Carbs logged successfully")
+                    self.sendAcknowledgment(toWatch: true, message: "Carbs logged successfully.")
                 } catch {
                     debug(.watchManager, "❌ Error saving carbs: \(error.localizedDescription)")
 
@@ -494,10 +498,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
                 // Enact bolus via APS Manager
                 let bolusDouble = NSDecimalNumber(decimal: bolusAmount).doubleValue
-                await apsManager.enactBolus(amount: bolusDouble, isSMB: false)
+                await apsManager.enactBolus(amount: bolusDouble, isSMB: false) { success, message in
+                    // Acknowledge success or error of bolus
+                    self.sendAcknowledgment(toWatch: success, message: message)
+                }
                 debug(.watchManager, "📱 Enacted bolus from watch via APS Manager: \(bolusDouble) U")
                 // Notify Watch: "Carbs and bolus logged successfully"
-                sendAcknowledgment(toWatch: true, message: "Carbs and Bolus logged successfully")
+                sendAcknowledgment(toWatch: true, message: "Carbs and Bolus logged successfully.")
 
             } catch {
                 debug(.watchManager, "❌ Error processing combined request: \(error.localizedDescription)")
@@ -522,15 +529,20 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         do {
                             guard context.hasChanges else { return }
                             try context.save()
-                            debug(.watchManager, "📱 Successfully cancelled override")
+                            debug(.watchManager, "📱 Successfully stopped override")
 
                             // Send notification to update Adjustments UI
                             Foundation.NotificationCenter.default.post(
                                 name: .didUpdateOverrideConfiguration,
                                 object: nil
                             )
+
+                            // Acknowledge cancellation success
+                            self.sendAcknowledgment(toWatch: true, message: "Stopped Override successfully.")
                         } catch {
                             debug(.watchManager, "❌ Error cancelling override: \(error.localizedDescription)")
+                            // Acknowledge cancellation error
+                            self.sendAcknowledgment(toWatch: false, message: "Error stopping Override.")
                         }
                     }
                 }
@@ -577,43 +589,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                             name: .didUpdateOverrideConfiguration,
                             object: nil
                         )
+
+                        // Acknowledge activation success
+                        self.sendAcknowledgment(toWatch: true, message: "Started Override \"\(presetName)\" successfully.")
                     } catch {
                         debug(.watchManager, "❌ Error activating override: \(error.localizedDescription)")
-                    }
-                }
-            }
-        }
-    }
-
-    private func handleCancelTempTarget() {
-        Task {
-            let context = CoreDataStack.shared.newTaskContext()
-
-            if let tempTargetId = await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1).first {
-                let tempTarget = await context.perform {
-                    context.object(with: tempTargetId) as? TempTargetStored
-                }
-
-                await context.perform {
-                    if let activeTempTarget = tempTarget {
-                        activeTempTarget.enabled = false
-
-                        do {
-                            guard context.hasChanges else { return }
-                            try context.save()
-                            debug(.watchManager, "📱 Successfully cancelled temp target")
-
-                            // To cancel the temp target also for oref
-                            self.tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())])
-
-                            // Send notification to update Adjustments UI
-                            Foundation.NotificationCenter.default.post(
-                                name: .didUpdateTempTargetConfiguration,
-                                object: nil
-                            )
-                        } catch {
-                            debug(.watchManager, "❌ Error cancelling temp target: \(error.localizedDescription)")
-                        }
+                        // Acknowledge activation error
+                        self.sendAcknowledgment(toWatch: false, message: "Error activating Override \"\(presetName)\".")
                     }
                 }
             }
@@ -680,8 +662,53 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                             name: .didUpdateTempTargetConfiguration,
                             object: nil
                         )
+
+                        // Acknowledge activation success
+                        self.sendAcknowledgment(toWatch: true, message: "Started Temp Target \"\(presetName)\" successfully.")
                     } catch {
                         debug(.watchManager, "❌ Error activating temp target: \(error.localizedDescription)")
+                        // Acknowledge activation error
+                        self.sendAcknowledgment(toWatch: false, message: "Error activating Temp Target \"\(presetName)\".")
+                    }
+                }
+            }
+        }
+    }
+
+    private func handleCancelTempTarget() {
+        Task {
+            let context = CoreDataStack.shared.newTaskContext()
+
+            if let tempTargetId = await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1).first {
+                let tempTarget = await context.perform {
+                    context.object(with: tempTargetId) as? TempTargetStored
+                }
+
+                await context.perform {
+                    if let activeTempTarget = tempTarget {
+                        activeTempTarget.enabled = false
+
+                        do {
+                            guard context.hasChanges else { return }
+                            try context.save()
+                            debug(.watchManager, "📱 Successfully cancelled temp target")
+
+                            // To cancel the temp target also for oref
+                            self.tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date())])
+
+                            // Send notification to update Adjustments UI
+                            Foundation.NotificationCenter.default.post(
+                                name: .didUpdateTempTargetConfiguration,
+                                object: nil
+                            )
+
+                            // Acknowledge cancellation success
+                            self.sendAcknowledgment(toWatch: true, message: "Stopped Temp Target successfully.")
+                        } catch {
+                            debug(.watchManager, "❌ Error stopping temp target: \(error.localizedDescription)")
+                            // Acknowledge cancellation error
+                            self.sendAcknowledgment(toWatch: false, message: "Error stopping Temp Target.")
+                        }
                     }
                 }
             }
