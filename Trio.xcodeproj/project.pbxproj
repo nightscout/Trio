@@ -1132,6 +1132,7 @@
 		DD09D4812C5986F6003FEA5D /* CalendarEventSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventSettingsRootView.swift; sourceTree = "<group>"; };
 		DD09D5C62D29EB26000D82C9 /* Helper+Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Helper+Enums.swift"; sourceTree = "<group>"; };
 		DD09D5C82D29F3D0000D82C9 /* AcknowledgementPendingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AcknowledgementPendingView.swift; sourceTree = "<group>"; };
+		DD09D6162D2A2E4A000D82C9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DD1745122C54169400211FAC /* DevicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicesView.swift; sourceTree = "<group>"; };
 		DD1745142C54388A00211FAC /* TherapySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingsView.swift; sourceTree = "<group>"; };
 		DD1745162C54389F00211FAC /* FeatureSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureSettingsView.swift; sourceTree = "<group>"; };
@@ -2555,6 +2556,7 @@
 		BDFF7AA12D25FAC70016C40C /* Trio Watch App */ = {
 			isa = PBXGroup;
 			children = (
+				DD09D6162D2A2E4A000D82C9 /* Assets.xcassets */,
 				BDFF7A902D25F97D0016C40C /* Info.plist */,
 				BDFF7A912D25F97D0016C40C /* Trio_Watch_App.swift */,
 				BDFF7A922D25F97D0016C40C /* Trio_Watch_AppExtension.swift */,
