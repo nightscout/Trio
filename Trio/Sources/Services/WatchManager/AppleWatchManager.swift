@@ -439,6 +439,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 carbs.carbs = Double(truncating: amount as NSNumber)
                 carbs.date = date
                 carbs.id = UUID()
+                carbs.isFPU = false
 
                 // TODO: add FPU
 
