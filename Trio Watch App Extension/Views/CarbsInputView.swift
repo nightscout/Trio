@@ -55,7 +55,7 @@ struct CarbsInputView: View {
                 Text(String(format: "%.0f g", carbsAmount))
                     .fontWeight(.bold)
                     .font(.system(.title2, design: .rounded))
-                    .foregroundColor(carbsAmount > 0.0 && carbsAmount >= effectiveCarbsLimit ? .red : .primary)
+                    .foregroundColor(carbsAmount > 0.0 && carbsAmount >= effectiveCarbsLimit ? .loopRed : .primary)
                     .focusable(true)
                     .focused($isCrownFocused)
                     .digitalCrownRotation(
@@ -92,7 +92,7 @@ struct CarbsInputView: View {
             if carbsAmount > 0.0 && carbsAmount >= effectiveCarbsLimit {
                 Text("Carbs Limit Reached!")
                     .font(.footnote)
-                    .foregroundColor(.red)
+                    .foregroundColor(.loopRed)
             }
 
             Button(buttonLabel) {

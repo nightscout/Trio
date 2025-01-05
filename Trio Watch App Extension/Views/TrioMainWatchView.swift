@@ -66,7 +66,7 @@ struct TrioMainWatchView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     HStack {
                         Image(systemName: "syringe.fill")
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(Color.insulin)
 
                         Text(state.iob ?? "--")
                             .foregroundStyle(.white)
@@ -79,7 +79,7 @@ struct TrioMainWatchView: View {
                             .foregroundStyle(.white)
 
                         Image(systemName: "fork.knife")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Color.orange)
                     }.font(.caption)
                 }
 
@@ -104,8 +104,8 @@ struct TrioMainWatchView: View {
                         showingTempTargetSheet = true
                     } label: {
                         Image(systemName: "target")
-                            .foregroundStyle(isTempTargetActive ? Color.primary : Color.green.opacity(0.75))
-                    }.tint(isTempTargetActive ? Color.green.opacity(0.75) : nil)
+                            .foregroundStyle(isTempTargetActive ? Color.primary : Color.loopGreen.opacity(0.75))
+                    }.tint(isTempTargetActive ? Color.loopGreen.opacity(0.75) : nil)
                 }
             }
             .fullScreenCover(isPresented: $showingTreatmentMenuSheet) {

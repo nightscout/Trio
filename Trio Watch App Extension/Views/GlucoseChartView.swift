@@ -35,9 +35,9 @@ struct GlucoseChartView: View {
         if value > 180 {
             return .orange
         } else if value < 70 {
-            return .red
+            return .loopRed
         } else {
-            return .green
+            return .loopGreen
         }
     }
 

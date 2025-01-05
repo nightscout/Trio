@@ -67,7 +67,7 @@ struct TreatmentMenuView: View {
             .aspectRatio(contentMode: .fit)
             .frame(width: iconSize, height: iconSize)
             .padding(is40mm ? 6 : 10)
-            .background(Color.blue)
+            .background(Color.insulin)
             .clipShape(Circle())
     }
 }

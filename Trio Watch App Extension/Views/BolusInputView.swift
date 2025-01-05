@@ -42,7 +42,7 @@ struct BolusInputView: View {
 
                     Spacer()
                 }
-                .foregroundColor(.red)
+                .foregroundColor(.loopRed)
                 .scenePadding()
             } else {
                 if state.carbsAmount > 0 {
@@ -62,7 +62,7 @@ struct BolusInputView: View {
                     }) {
                         Image(systemName: "minus.circle.fill")
                             .font(.title3)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color.insulin)
                     }
                     .buttonStyle(.borderless)
                     .disabled(bolusAmount < 1)
@@ -73,7 +73,7 @@ struct BolusInputView: View {
                     Text(String(format: "%.2f U", bolusAmount))
                         .fontWeight(.bold)
                         .font(.system(.title2, design: .rounded))
-                        .foregroundColor(bolusAmount > 0.0 && bolusAmount >= effectiveBolusLimit ? .red : .primary)
+                        .foregroundColor(bolusAmount > 0.0 && bolusAmount >= effectiveBolusLimit ? .loopRed : .primary)
                         .focusable(true)
                         .focused($isCrownFocused)
                         .digitalCrownRotation(
@@ -94,7 +94,7 @@ struct BolusInputView: View {
                     }) {
                         Image(systemName: "plus.circle.fill")
                             .font(.title3)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color.insulin)
                     }
                     .buttonStyle(.borderless)
                     .disabled(bolusAmount >= effectiveBolusLimit)
@@ -110,16 +110,15 @@ struct BolusInputView: View {
                 if bolusAmount > 0.0 && bolusAmount >= effectiveBolusLimit {
                     Text("Bolus Limit Reached!")
                         .font(.footnote)
-                        .foregroundColor(.red)
+                        .foregroundColor(.loopRed)
                 }
 
                 Button("Log Bolus") {
                     state.bolusAmount = min(bolusAmount, effectiveBolusLimit)
-//                    navigationState.path.append(NavigationDestinations.bolusConfirm)
                     navigationPath.append(NavigationDestinations.bolusConfirm)
                 }
                 .buttonStyle(.bordered)
-                .tint(.blue)
+                .tint(Color.insulin)
                 .disabled(!(bolusAmount > 0.0) || bolusAmount >= effectiveBolusLimit)
             }
         }
@@ -131,7 +130,7 @@ struct BolusInputView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 14, height: 14)
                     .padding()
-                    .background(Color.blue)
+                    .background(Color.insulin)
                     .foregroundStyle(.white)
                     .clipShape(Circle())
             }

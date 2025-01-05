@@ -25,13 +25,13 @@ struct GlucoseTrendView: View {
 
         switch minutes {
         case ...5:
-            return .green
+            return .loopGreen
         case 5 ... 10:
-            return .yellow
+            return .loopYellow
         case 11...:
-            return .red
+            return .loopRed
         default:
-            return .yellow
+            return .loopYellow
         }
     }
 

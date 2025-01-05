@@ -36,12 +36,12 @@ struct BolusConfirmationView: View {
                     Spacer()
                     Text(String(format: "%.1f U", bolusAmount))
                         .bold()
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(Color.insulin)
                 }.padding(.horizontal)
             }
 
             ProgressView(value: confirmationProgress, total: 1.0)
-                .tint(confirmationProgress >= 1.0 ? .green : .gray)
+                .tint(confirmationProgress >= 1.0 ? .loopGreen : .gray)
                 .padding(.horizontal)
 
             Spacer()

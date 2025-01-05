@@ -32,7 +32,7 @@ struct OverridePresetsView: View {
                     }
                     .foregroundColor(.white)
                     .listRowBackground(
-                        Color.red
+                        Color.loopRed
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     )
                 }

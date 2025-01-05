@@ -16,9 +16,9 @@ struct AcknowledgementPendingView: View {
         case .pending:
             return Image(systemName: "progress.indicator").foregroundStyle(Color.secondary)
         case .success:
-            return Image(systemName: "checkmark.circle").foregroundStyle(Color.green)
+            return Image(systemName: "checkmark.circle").foregroundStyle(Color.loopGreen)
         case .failure:
-            return Image(systemName: "progress.indicator").foregroundStyle(Color.red)
+            return Image(systemName: "progress.indicator").foregroundStyle(Color.loopRed)
         }
     }
 
