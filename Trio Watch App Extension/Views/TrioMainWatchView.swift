@@ -19,6 +19,18 @@ struct TrioMainWatchView: View {
     // treatments
     @State private var selectedTreatment: TreatmentOption?
 
+    // Active adjustment indicator
+    private func isAdjustmentActive<T>(for presets: [T], predicate: (T) -> Bool) -> Bool {
+        let sortedPresets = presets.sorted { predicate($0) && !predicate($1) }
+        return !sortedPresets.isEmpty && sortedPresets.first(where: predicate) != nil
+    }
+    private var isTempTargetActive: Bool {
+        isAdjustmentActive(for: state.tempTargetPresets) { $0.isEnabled }
+    }
+    private var isOverrideActive: Bool {
+        isAdjustmentActive(for: state.overridePresets) { $0.isEnabled }
+    }
+
     private var trioBackgroundColor = LinearGradient(
         gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
         startPoint: .top,
@@ -73,8 +85,8 @@ struct TrioMainWatchView: View {
                         showingOverrideSheet = true
                     } label: {
                         Image(systemName: "clock.arrow.2.circlepath")
-                            .foregroundStyle(Color.primary, Color.purple)
-                    }
+                            .foregroundStyle(Color.primary, isOverrideActive ? Color.primary : Color.purple)
+                    }.tint(isOverrideActive ? Color.purple : nil)
 
                     Button {
                         showingTreatmentMenuSheet = true
@@ -89,8 +101,8 @@ struct TrioMainWatchView: View {
                         showingTempTargetSheet = true
                     } label: {
                         Image(systemName: "target")
-                            .foregroundStyle(.green.opacity(0.75))
-                    }
+                            .foregroundStyle(isTempTargetActive ? Color.primary : Color.green.opacity(0.75))
+                    }.tint(isTempTargetActive ? Color.green.opacity(0.75) : nil)
                 }
             }
             .fullScreenCover(isPresented: $showingTreatmentMenuSheet) {
