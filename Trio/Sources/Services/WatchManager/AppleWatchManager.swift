@@ -386,6 +386,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 Task {
                     await self?.apsManager.cancelBolus()
                     debug(.watchManager, "📱 Bolus cancelled from watch")
+
+                    // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
+                    await self?.apsManager.determineBasalSync()
                 }
             }
         }
@@ -689,7 +692,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         apsManager.bolusProgress
             .receive(on: DispatchQueue.main)
             .sink { [weak self] progress in
-                self?.sendBolusProgressToWatch(progress: progress)
+                if progress == nil {
+                    debug(.watchManager, "📱 Bolus cancelled from phone")
+                    self?.sendBolusCanceledMessageToWatch()
+                } else {
+                    self?.sendBolusProgressToWatch(progress: progress)
+                }
             }
             .store(in: &subscriptions)
     }
@@ -701,6 +709,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
         session.sendMessage(message, replyHandler: nil) { error in
             debug(.watchManager, "❌ Error sending bolus progress: \(error.localizedDescription)")
+        }
+    }
+
+    private func sendBolusCanceledMessageToWatch() {
+        if let session = session, session.isReachable {
+            let message: [String: Any] = ["bolusCanceled": true]
+            session.sendMessage(message, replyHandler: nil) { error in
+                debug(.watchManager, "❌ Error sending bolus cancellation to watch: \(error.localizedDescription)")
+            }
         }
     }
 }

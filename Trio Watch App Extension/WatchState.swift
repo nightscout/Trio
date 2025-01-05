@@ -332,6 +332,12 @@ import WatchConnectivity
                 }
             }
 
+            if let bolusWasCanceled = message["bolusCanceled"] as? Bool, bolusWasCanceled {
+                self.bolusProgress = 0
+                self.activeBolusAmount = 0
+                return
+            }
+
             // Debug print für die Safety Limits
             if let maxBolusValue = message["maxBolus"] {
                 print("⌚️ Received maxBolus: \(maxBolusValue) of type \(type(of: maxBolusValue))")
