@@ -1,6 +1,6 @@
 import XCTest
 
-final class TrioWatch_Watch_AppUITestsLaunchTests: XCTestCase {
+final class TrioWatchAppUITestsLaunchTests: XCTestCase {
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
     }

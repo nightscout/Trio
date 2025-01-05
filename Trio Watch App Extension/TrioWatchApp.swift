@@ -1,6 +1,6 @@
 import SwiftUI
 
-@main struct TrioWatch_Watch_AppApp: App {
+@main struct TrioWatchApp: App {
     var body: some Scene {
         WindowGroup {
             TrioMainWatchView()
