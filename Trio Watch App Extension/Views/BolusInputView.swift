@@ -5,7 +5,7 @@ import WatchKit
 // MARK: - Bolus Input View
 
 struct BolusInputView: View {
-    @Binding var navigationPath: [NavigationDestinations]
+    @Binding var navigationPath: NavigationPath
     @State private var bolusAmount = 0.0
 
     let state: WatchState

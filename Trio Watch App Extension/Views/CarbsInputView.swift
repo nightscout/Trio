@@ -4,7 +4,7 @@ import SwiftUI
 // MARK: - Carbs Input View
 
 struct CarbsInputView: View {
-    @Binding var navigationPath: [NavigationDestinations]
+    @Binding var navigationPath: NavigationPath
     @State private var carbsAmount: Double = 0.0 // Needs to be Double due to .digitalCrownRotation() stride
     @FocusState private var isCrownFocused: Bool // Manage crown focus
 

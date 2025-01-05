@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AcknowledgementPendingView: View {
-    @Binding var navigationPath: [NavigationDestinations]
+    @Binding var navigationPath: NavigationPath
     let state: WatchState
 
     var trioBackgroundColor = LinearGradient(
@@ -44,7 +44,7 @@ struct AcknowledgementPendingView: View {
         .onChange(of: state.showAcknowledgmentBanner) { _, newValue in
             if !newValue {
                 // Navigate back to the root when acknowledgment banner disappears
-                navigationPath.removeAll()
+                navigationPath.removeLast(navigationPath.count)
             }
         }
     }

@@ -3,7 +3,7 @@ import SwiftUI
 import WatchKit
 
 struct BolusConfirmationView: View {
-    @Binding var navigationPath: [NavigationDestinations]
+    @Binding var navigationPath: NavigationPath
     let state: WatchState
     @Binding var bolusAmount: Double
     @Binding var confirmationProgress: Double
@@ -52,7 +52,7 @@ struct BolusConfirmationView: View {
                 }
                 bolusAmount = 0 // reset bolus in state
                 confirmationProgress = 0 // reset auth progress
-                navigationPath.removeAll()
+                navigationPath.removeLast(navigationPath.count)
             }
             .buttonStyle(.bordered)
         }

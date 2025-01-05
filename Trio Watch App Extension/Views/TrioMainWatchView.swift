@@ -14,7 +14,8 @@ struct TrioMainWatchView: View {
     @State private var showingOverrideSheet: Bool = false
     // navigation flag for meal bolus combo
     @State private var continueToBolus = false
-    @State private var navigationPath: [NavigationDestinations] = []
+//    @State private var navigationPath: [NavigationDestinations] = []
+    @State private var navigationPath = NavigationPath()
 
     // treatments
     @State private var selectedTreatment: TreatmentOption?
@@ -112,6 +113,7 @@ struct TrioMainWatchView: View {
                     handleTreatmentSelection()
                 }
                 .onAppear {
+                    // reset the conditional navigation flag when opening
                     continueToBolus = false
                 }
             }
@@ -134,11 +136,11 @@ struct TrioMainWatchView: View {
                         navigationPath: $navigationPath,
                         state: state
                     )
-                case .carbInput:
+                case .carbsInput:
                     CarbsInputView(
                         navigationPath: $navigationPath,
                         state: state,
-                        continueToBolus: selectedTreatment == .mealBolusCombo
+                        continueToBolus: continueToBolus
                     )
                 case .bolusInput:
                     BolusInputView(
@@ -152,6 +154,12 @@ struct TrioMainWatchView: View {
                         bolusAmount: $state.bolusAmount,
                         confirmationProgress: $state.confirmationProgress
                     )
+                }
+            }
+            .onChange(of: navigationPath) { _, newPath in
+                if newPath.isEmpty {
+                    // Reset conditional view navigation when returning to root view
+                    continueToBolus = false
                 }
             }
         }
@@ -190,11 +198,12 @@ struct TrioMainWatchView: View {
 
         switch treatment {
         case .meal:
-            navigationPath.append(NavigationDestinations.carbInput)
+            navigationPath.append(NavigationDestinations.carbsInput)
         case .bolus:
             navigationPath.append(NavigationDestinations.bolusInput)
         case .mealBolusCombo:
-            navigationPath.append(NavigationDestinations.carbInput)
+            continueToBolus = true // Explicitely set subsequent view navigation
+            navigationPath.append(NavigationDestinations.carbsInput)
         }
     }
 }
