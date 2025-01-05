@@ -688,20 +688,29 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
     }
 
+    /// Subscribes to bolus progress updates and sends progress or cancellation messages to the Watch
     private func subscribeToBolusProgress() {
+        var wasBolusActive = false
+
         apsManager.bolusProgress
             .receive(on: DispatchQueue.main)
             .sink { [weak self] progress in
-                if progress == nil {
+                if let progress = progress {
+                    wasBolusActive = true
+                    self?.sendBolusProgressToWatch(progress: progress)
+                } else if wasBolusActive {
+                    // Only if a bolus was previously active and now nil is received,
+                    // the bolus was cancelled
+                    wasBolusActive = false
                     debug(.watchManager, "📱 Bolus cancelled from phone")
                     self?.sendBolusCanceledMessageToWatch()
-                } else {
-                    self?.sendBolusProgressToWatch(progress: progress)
                 }
             }
             .store(in: &subscriptions)
     }
 
+    /// Sends bolus progress updates to the Watch
+    /// - Parameter progress: The current bolus progress as a Decimal
     private func sendBolusProgressToWatch(progress: Decimal?) {
         guard let session = session, session.isReachable, let progress = progress else { return }
 
