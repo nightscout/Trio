@@ -136,9 +136,9 @@ struct BolusInputView: View {
                     .clipShape(Circle())
             }
         }
-        .blur(radius: state.bolusProgress > 0 && state.bolusProgress < 1.0 && !state.isBolusCanceled ? 3 : 0)
+        .blur(radius: state.showBolusProgressOverlay ? 3 : 0)
         .overlay {
-            if state.bolusProgress > 0 && state.bolusProgress < 1.0 && !state.isBolusCanceled {
+            if state.showBolusProgressOverlay {
                 BolusProgressOverlay(state: state)
                     .transition(.opacity)
             }

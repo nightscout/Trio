@@ -50,6 +50,11 @@ import WatchConnectivity
     var mealBolusStep: MealBolusStep = .savingCarbs
     var isMealBolusCombo: Bool = false
 
+    var showBolusProgressOverlay: Bool {
+        (!showAcknowledgmentBanner || !showCommsAnimation || !showCommsAnimation) && bolusProgress > 0 && bolusProgress < 1.0 &&
+            !isBolusCanceled
+    }
+
     override init() {
         super.init()
         setupSession()
