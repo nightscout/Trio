@@ -38,9 +38,9 @@ struct GlucoseTrendView: View {
                 }
             }
 
-            Spacer()
+//            Spacer()
 
-            Text(state.lastLoopTime ?? "--").font(is40mm ? .footnote : .caption)
+            Text(state.lastLoopTime ?? "--").font(.system(size: is40mm ? 9 : 10))
 
             Spacer()
 
