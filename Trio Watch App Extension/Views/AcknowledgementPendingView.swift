@@ -22,21 +22,21 @@ struct AcknowledgementPendingView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
+        Group {
             VStack {
                 if state.isMealBolusCombo {
                     ProgressView()
-                    Text(state.mealBolusStep.rawValue)
+                    Text(state.mealBolusStep.rawValue).multilineTextAlignment(.center)
                 } else if state.showCommsAnimation {
                     ProgressView()
                     Text("Processing…")
                 } else if state.showAcknowledgmentBanner {
                     statusIcon.padding()
-                    Text(state.acknowledgmentMessage)
+                    Text(state.acknowledgmentMessage).multilineTextAlignment(.center)
                 }
             }
             .padding()
-            .frame(width: geometry.size.width, height: geometry.size.height)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden)
