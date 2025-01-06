@@ -41,45 +41,57 @@ struct GlucoseChartView: View {
         }
     }
 
+    var glucosePointSize: CGFloat {
+        switch timeWindow {
+        case .threeHours: return 18
+        case .sixHours: return 14
+        case .twelveHours: return 10
+        case .twentyFourHours: return 6
+        }
+    }
+
     var body: some View {
         VStack(spacing: 8) {
-            HStack {
-                Text("Glucose History")
-                    .font(.system(.headline, design: .rounded))
-                Spacer()
-                Text("\(timeWindow.rawValue)h")
-                    .font(.system(.caption2, design: .rounded))
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal)
+            if filteredValues.isEmpty {
+                Text("No glucose readings.").font(.headline)
+                Text("Check phone and CGM connectivity.").font(.caption)
+            } else {
+                Chart {
+                    ForEach(filteredValues, id: \.date) { reading in
+                        PointMark(
+                            x: .value("Time", reading.date),
+                            y: .value("Glucose", reading.glucose)
+                        )
+                        .foregroundStyle(glucoseColor(reading.glucose))
+                        .symbolSize(glucosePointSize)
+                    }
+                }
+                .chartXAxis(.hidden)
+                .chartYAxisLabel("\(timeWindow.rawValue)h", alignment: .topLeading)
+                .chartYAxis {
+                    AxisMarks(position: .trailing) { value in
+                        AxisGridLine(stroke: .init(lineWidth: 0.65, dash: [2, 3]))
+                            .foregroundStyle(Color.white.opacity(0.25))
 
-            Chart {
-                ForEach(filteredValues, id: \.date) { reading in
-                    PointMark(
-                        x: .value("Time", reading.date),
-                        y: .value("Glucose", reading.glucose)
-                    )
-                    .foregroundStyle(glucoseColor(reading.glucose))
-                    .symbolSize(30)
-                }
-            }
-            .chartXAxis {
-                AxisMarks(values: .automatic(desiredCount: 4)) { _ in
-                    AxisValueLabel(format: .dateTime.hour())
-                        .font(.footnote)
-                }
-            }
-            .chartYAxis {
-                AxisMarks(position: .leading) { value in
-                    AxisValueLabel {
-                        if let glucose = value.as(Double.self) {
-                            Text("\(Int(glucose))").font(.footnote)
+                        AxisValueLabel {
+                            if let glucose = value.as(Double.self) {
+                                Text("\(Int(glucose))").font(.system(size: 8))
+                            }
                         }
                     }
                 }
+                .chartPlotStyle { plotContent in
+                    plotContent
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.clear)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .padding(.bottom)
             }
-            .padding()
         }
+        .scenePadding()
         .onTapGesture {
             withAnimation {
                 timeWindow = timeWindow.next
