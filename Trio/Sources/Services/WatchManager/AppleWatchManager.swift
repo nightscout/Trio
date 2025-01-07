@@ -218,7 +218,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     glucoseColorScheme: self.glucoseColorScheme
                 )
 
-                return (date: glucose.date ?? Date(), glucose: glucoseValue, color: glucoseColor)
+                let colorString = glucoseColor.toHexString()
+
+                return (date: glucose.date ?? Date(), glucose: glucoseValue, color: colorString)
             }
             .sorted { $0.date < $1.date }
 

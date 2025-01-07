@@ -319,10 +319,14 @@ import WatchConnectivity
                 self.glucoseValues = glucoseData.compactMap { data in
                     guard let glucose = data["glucose"] as? Double,
                           let timestamp = data["date"] as? TimeInterval,
-                          let color = data["color"] as? Color
+                          let colorString = data["color"] as? String
                     else { return nil }
 
-                    return (Date(timeIntervalSince1970: timestamp), glucose, color)
+                    return (
+                        Date(timeIntervalSince1970: timestamp),
+                        glucose,
+                        colorString.toColor() // Convert colorString to Color
+                    )
                 }
                 .sorted { $0.date < $1.date }
             }
