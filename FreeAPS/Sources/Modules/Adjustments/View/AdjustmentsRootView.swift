@@ -6,25 +6,26 @@ extension Adjustments {
     struct RootView: BaseView {
         let resolver: Resolver
         @State var state = StateModel()
-        @State private var isEditing = false
-        @State private var showOverrideCreationSheet = false
-        @State private var showTempTargetCreationSheet = false
-        @State private var showingDetail = false
-        @State private var showCheckmark: Bool = false
-        @State private var selectedPresetID: String?
-        @State private var selectedTempTargetPresetID: String?
-        @State private var selectedOverride: OverrideStored?
-        @State private var selectedTempTarget: TempTargetStored?
-        @State private var isConfirmDeletePresented = false
-        @State private var isPromptPresented = false
-        @State private var isRemoveAlertPresented = false
-        @State private var removeAlert: Alert?
-        @State private var isEditingTT = false
+        @State var isEditing = false
+        @State var showOverrideCreationSheet = false
+        @State var showTempTargetCreationSheet = false
+        @State var showingDetail = false
+        @State var showOverrideCheckmark: Bool = false
+        @State var showTempTargetCheckmark: Bool = false
+        @State var selectedOverridePresetID: String?
+        @State var selectedTempTargetPresetID: String?
+        @State var selectedOverride: OverrideStored?
+        @State var selectedTempTarget: TempTargetStored?
+        @State var isConfirmDeletePresented = false
+        @State var isPromptPresented = false
+        @State var isRemoveAlertPresented = false
+        @State var removeAlert: Alert?
+        @State var isEditingTT = false
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        private func formattedGlucose(glucose: Decimal) -> String {
+        func formattedGlucose(glucose: Decimal) -> String {
             let formattedValue: String
             if state.units == .mgdL {
                 formattedValue = Formatter.glucoseFormatter(for: state.units)
@@ -126,32 +127,7 @@ extension Adjustments {
             }).background(appState.trioBackgroundColor(for: colorScheme))
         }
 
-        @ViewBuilder func overrides() -> some View {
-            if state.isEnabled, state.activeOverrideName.isNotEmpty {
-                currentActiveAdjustment
-            }
-            if state.overridePresets.isNotEmpty {
-                overridePresets
-            } else {
-                defaultText
-            }
-        }
-
-        @ViewBuilder func tempTargets() -> some View {
-            if state.isTempTargetEnabled, state.activeTempTargetName.isNotEmpty {
-                currentActiveAdjustment
-            }
-            if state.scheduledTempTargets.isNotEmpty {
-                scheduledTempTargets
-            }
-            if state.tempTargetPresets.isNotEmpty {
-                tempTargetPresets
-            } else {
-                defaultText
-            }
-        }
-
-        private var defaultText: some View {
+        var defaultText: some View {
             switch state.selectedTab {
             case .overrides:
                 Section {} header: {
@@ -170,216 +146,7 @@ extension Adjustments {
             }
         }
 
-        private var overridePresets: some View {
-            Section {
-                ForEach(state.overridePresets) { preset in
-                    overridesView(for: preset, showCheckMark: showCheckmark) {
-                        enactOverridePreset(preset)
-                    }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            swipeActionsForOverrides(for: preset)
-                        }
-                }
-                .onMove(perform: state.reorderOverride)
-                .confirmationDialog(
-                    "Delete the Override Preset \"\(selectedOverride?.name ?? "")\"?",
-                    isPresented: $isConfirmDeletePresented,
-                    titleVisibility: .visible
-                ) {
-                    if let itemToDelete = selectedOverride {
-                        Button(
-                            state.currentActiveOverride == selectedOverride ? "Stop and Delete" : "Delete",
-                            role: .destructive
-                        ) {
-                            if state.currentActiveOverride == selectedOverride {
-                                Task {
-                                    // Save cancelled Override in OverrideRunStored Entity
-                                    // Cancel ALL active Override
-                                    await state.disableAllActiveOverrides(createOverrideRunEntry: true)
-                                }
-                            }
-                            // Perform the delete action
-                            Task {
-                                await state.invokeOverridePresetDeletion(itemToDelete.objectID)
-                            }
-                            // Reset the selected item after deletion
-                            selectedOverride = nil
-                        }
-                    }
-                    Button("Cancel", role: .cancel) {
-                        // Dismiss the dialog without action
-                        selectedOverride = nil
-                    }
-                } message: {
-                    if state.currentActiveOverride == selectedOverride {
-                        Text(
-                            state
-                                .currentActiveOverride == selectedOverride ?
-                                "This override preset is currently running. Deleting will stop it." : ""
-                        )
-                    }
-                }
-                .listRowBackground(Color.chart)
-            } header: {
-                Text("Override Presets")
-            } footer: {
-                HStack {
-                    Image(systemName: "hand.draw.fill").foregroundStyle(.primary)
-                    Text("Swipe left to edit or delete an override preset. Hold, drag and drop to reorder a preset.")
-                }
-            }
-        }
-
-        private func enactOverridePreset(_ preset: OverrideStored) {
-            Task {
-                let objectID = preset.objectID
-                await state.enactOverridePreset(withID: objectID)
-                state.hideModal()
-                showCheckmark.toggle()
-                selectedPresetID = preset.id
-
-                // Deactivate checkmark after 3 seconds
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                    showCheckmark = false
-                }
-            }
-        }
-        
-        private func swipeActionsForOverrides(for preset: OverrideStored) -> some View {
-            Group {
-                Button(role: .none) {
-                    selectedOverride = preset
-                    isConfirmDeletePresented = true
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                        .tint(.red)
-                }
-                Button(action: {
-                    // Set the selected Override to the chosen Preset and pass it to the Edit Sheet
-                    selectedOverride = preset
-                    state.showOverrideEditSheet = true
-                }, label: {
-                    Label("Edit", systemImage: "pencil")
-                        .tint(.blue)
-                })
-            }
-        }
-
-        private var scheduledTempTargets: some View {
-            Section {
-                ForEach(state.scheduledTempTargets) { tempTarget in
-                    tempTargetView(for: tempTarget)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            swipeActionsForTempTargets(for: tempTarget)
-                        }
-                }
-                .listRowBackground(Color.chart)
-            } header: {
-                Text("Scheduled Temp Targets")
-            }
-        }
-
-        private var tempTargetPresets: some View {
-            Section {
-                ForEach(state.tempTargetPresets) { preset in
-                    tempTargetView(for: preset, showCheckmark: showCheckmark) {
-                        enactTempTargetPreset(preset)
-                    }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        swipeActionsForTempTargets(for: preset)
-                    }
-                }
-                .onMove(perform: state.reorderTempTargets)
-                .confirmationDialog(
-                    deleteConfirmationTitle,
-                    isPresented: $isConfirmDeletePresented,
-                    titleVisibility: .visible
-                ) {
-                    deleteConfirmationButtons()
-                } message: {
-                    deleteConfirmationMessage
-                }
-                .listRowBackground(Color.chart)
-            } header: {
-                Text("Temporary Target Presets")
-            } footer: {
-                HStack {
-                    Image(systemName: "hand.draw.fill").foregroundStyle(.primary)
-                    Text("Swipe left to edit or delete a temporary target preset. Hold, drag and drop to reorder a preset.")
-                }
-            }
-        }
-
-        private func enactTempTargetPreset(_ preset: TempTargetStored) {
-            Task {
-                let objectID = preset.objectID
-                await state.enactTempTargetPreset(withID: objectID)
-                selectedTempTargetPresetID = preset.id?.uuidString
-                showCheckmark.toggle()
-
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                    showCheckmark = false
-                }
-            }
-        }
-
-        private func swipeActionsForTempTargets(for tempTarget: TempTargetStored) -> some View {
-            Group {
-                Button {
-                    Task {
-                        selectedTempTarget = tempTarget
-                        isConfirmDeletePresented = true
-                    }
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                        .tint(.red)
-                }
-                Button(action: {
-                    selectedTempTarget = tempTarget
-                    state.showTempTargetEditSheet = true
-                }, label: {
-                    Label("Edit", systemImage: "pencil")
-                        .tint(.blue)
-                })
-            }
-        }
-
-        private var deleteConfirmationTitle: String {
-            "Delete the Temp Target Preset \"\(selectedTempTarget?.name ?? "")\"?"
-        }
-
-        private func deleteConfirmationButtons() -> some View {
-            Group {
-                if let itemToDelete = selectedTempTarget {
-                    Button(
-                        state.currentActiveTempTarget == selectedTempTarget ? "Stop and Delete" : "Delete",
-                        role: .destructive
-                    ) {
-                        if state.currentActiveTempTarget == selectedTempTarget {
-                            Task {
-                                await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
-                            }
-                        }
-                        Task {
-                            await state.invokeTempTargetPresetDeletion(itemToDelete.objectID)
-                        }
-                        selectedTempTarget = nil
-                    }
-                }
-                Button("Cancel", role: .cancel) {
-                    selectedTempTarget = nil
-                }
-            }
-        }
-
-        private var deleteConfirmationMessage: Text? {
-            if state.currentActiveTempTarget == selectedTempTarget {
-                return Text("This Temp Target preset is currently running. Deleting will stop it.")
-            }
-            return nil
-        }
-
-        private var currentActiveAdjustment: some View {
+        var currentActiveAdjustment: some View {
             switch state.selectedTab {
             case .overrides:
                 Section {
@@ -487,7 +254,7 @@ extension Adjustments {
             }
         }
 
-        private var cancelAdjustmentButton: some View {
+        var cancelAdjustmentButton: some View {
             switch state.selectedTab {
             case .overrides:
                 Button(action: {
@@ -525,75 +292,7 @@ extension Adjustments {
             }
         }
 
-        private func tempTargetView(
-            for tempTarget: TempTargetStored,
-            showCheckmark: Bool = false,
-            onTap: (() -> Void)? = nil
-        ) -> some View {
-            let target = tempTarget.target ?? 100
-            let tempTargetValue = Decimal(target as! Double.RawValue)
-            let isSelected = tempTarget.id?.uuidString == selectedTempTargetPresetID
-            let tempTargetHalfBasal = Decimal(
-                tempTarget.halfBasalTarget as? Double
-                    .RawValue ?? Double(state.settingHalfBasalTarget)
-            )
-            let percentage = Int(
-                state.computeAdjustedPercentage(usingHBT: tempTargetHalfBasal, usingTarget: tempTargetValue)
-            )
-            let remainingTime = tempTarget.date?.timeIntervalSinceNow ?? 0
-
-            return ZStack(alignment: .trailing) {
-                HStack {
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Text(tempTarget.name ?? "")
-                            Spacer()
-                            if remainingTime > 0 {
-                                Text("Starts in \(formattedTimeRemaining(remainingTime))")
-                                    .foregroundColor(colorScheme == .dark ? .orange : .accentColor)
-                            }
-                        }
-                        HStack(spacing: 2) {
-                            Text(formattedGlucose(glucose: target as Decimal))
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                            Text("for")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                            Text("\(Formatter.integerFormatter.string(from: (tempTarget.duration ?? 0) as NSNumber)!)")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                            Text("min")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                            if state.isAdjustSensEnabled(usingTarget: tempTargetValue) {
-                                Text(", \(percentage)%")
-                                    .foregroundColor(.secondary)
-                                    .font(.caption)
-                            }
-                            Spacer()
-                        }
-                        .padding(.top, 2)
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        onTap?()
-                    }
-                }
-                if showCheckmark && isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .imageScale(.large)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color.green)
-                } else if onTap != nil {
-                    Image(systemName: "line.3.horizontal")
-                        .imageScale(.medium)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-
-        private func formattedTimeRemaining(_ timeInterval: TimeInterval) -> String {
+        func formattedTimeRemaining(_ timeInterval: TimeInterval) -> String {
             let totalSeconds = Int(timeInterval)
             let hours = totalSeconds / 3600
             let minutes = (totalSeconds % 3600) / 60
@@ -605,122 +304,6 @@ extension Adjustments {
                 return "\(minutes)m \(seconds)s"
             } else {
                 return "<1m"
-            }
-        }
-
-        private var overrideLabelDivider: some View {
-            Divider()
-                .frame(width: 1, height: 20)
-        }
-
-        @ViewBuilder private func overridesView(
-            for preset: OverrideStored,
-            showCheckMark: Bool = false,
-            onTap: (() -> Void)? = nil
-        ) -> some View {
-            let isSelected = preset.id == selectedPresetID
-            let name = preset.name ?? ""
-            let indefinite = preset.indefinite
-            let duration = preset.duration?.decimalValue ?? Decimal(0)
-            let percentage = preset.percentage
-            let smbMinutes = preset.smbMinutes?.decimalValue ?? Decimal(0)
-            let uamMinutes = preset.uamMinutes?.decimalValue ?? Decimal(0)
-
-            let target: String = {
-                guard let targetValue = preset.target, targetValue != 0 else { return "" }
-                return state.units == .mgdL ? targetValue.description : targetValue.decimalValue.formattedAsMmolL
-            }()
-
-            let targetString = target.isEmpty ? "" : "\(target) \(state.units.rawValue)"
-
-            let durationString = indefinite ? "" : "\(state.formatHrMin(Int(duration)))"
-
-            let scheduledSMBString: String = {
-                guard preset.smbIsScheduledOff, preset.start != preset.end else { return "" }
-                return " \(formatTimeRange(start: preset.start?.stringValue, end: preset.end?.stringValue))"
-            }()
-
-            let smbString: String = {
-                guard preset.smbIsOff || preset.smbIsScheduledOff else { return "" }
-                return "SMBs Off\(scheduledSMBString)"
-            }()
-
-            let maxSmbMinsString: String = {
-                guard smbMinutes != 0, preset.advancedSettings, !preset.smbIsOff,
-                      smbMinutes != state.defaultSmbMinutes else { return "" }
-                return "\(smbMinutes.formatted()) min SMB"
-            }()
-
-            let maxUamMinsString: String = {
-                guard uamMinutes != 0, preset.advancedSettings, !preset.smbIsOff,
-                      uamMinutes != state.defaultUamMinutes else { return "" }
-                return "\(uamMinutes.formatted()) min UAM"
-            }()
-
-            let isfAndCrString: String = {
-                switch (preset.isfAndCr, preset.isf, preset.cr) {
-                case (_, true, true),
-                     (true, _, _):
-                    return " ISF/CR"
-                case (false, true, false):
-                    return " ISF"
-                case (false, false, true):
-                    return " CR"
-                default:
-                    return ""
-                }
-            }()
-
-            let percentageString = percentage != 100 ? "\(Int(percentage))%\(isfAndCrString)" : ""
-
-            // Combine all labels into a single array, filtering out empty strings
-            let labels: [String] = [
-                durationString,
-                percentageString,
-                targetString,
-                smbString,
-                maxSmbMinsString,
-                maxUamMinsString
-            ].filter { !$0.isEmpty }
-
-            if !name.isEmpty {
-                ZStack(alignment: .trailing) {
-                    HStack {
-                        VStack {
-                            HStack {
-                                Text(name)
-                                Spacer()
-                            }
-                            HStack(spacing: 5) {
-                                ForEach(labels, id: \.self) { label in
-                                    Text(label)
-                                    if label != labels.last { // Add divider between labels
-                                        overrideLabelDivider
-                                    }
-                                }
-                                Spacer()
-                            }
-                            .padding(.top, 2)
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            onTap?()
-                        }
-                    }
-                    // show checkmark to indicate if the preset was actually pressed
-                    if showCheckmark && isSelected {
-                        Image(systemName: "checkmark.circle.fill")
-                            .imageScale(.large)
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color.green)
-                    } else {
-                        Image(systemName: "line.3.horizontal")
-                            .imageScale(.medium)
-                            .foregroundStyle(.secondary)
-                    }
-                }
             }
         }
     }
