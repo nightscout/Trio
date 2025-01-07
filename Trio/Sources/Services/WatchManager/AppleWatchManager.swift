@@ -14,14 +14,19 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     private var session: WCSession?
 
     @Injected() var broadcaster: Broadcaster!
-    @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var apsManager: APSManager!
     @Injected() private var settingsManager: SettingsManager!
+    @Injected() private var fileStorage: FileStorage!
+    @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var determinationStorage: DeterminationStorage!
     @Injected() private var overrideStorage: OverrideStorage!
     @Injected() private var tempTargetStorage: TempTargetsStorage!
 
     private var units: GlucoseUnits = .mgdL
+    private var glucoseColorScheme: GlucoseColorScheme = .staticColor
+    private var lowGlucose: Decimal = 70.0
+    private var highGlucose: Decimal = 180.0
+    private var currentGlucoseTarget: Decimal = 100.0
 
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
     private var subscriptions = Set<AnyCancellable>()
@@ -35,7 +40,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         super.init()
         injectServices(resolver)
         setupWatchSession()
+
         units = settingsManager.settings.units
+        glucoseColorScheme = settingsManager.settings.glucoseColorScheme
+        lowGlucose = settingsManager.settings.low
+        highGlucose = settingsManager.settings.high
+        Task {
+            currentGlucoseTarget = await getCurrentGlucoseTarget() ?? Decimal(100)
+        }
         broadcaster.register(SettingsObserver.self, observer: self)
         broadcaster.register(PumpSettingsObserver.self, observer: self)
         broadcaster.register(PreferencesObserver.self, observer: self)
@@ -178,13 +190,46 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
             // Map glucose values
             watchState.glucoseValues = glucoseObjects.compactMap { glucose in
-                guard let date = glucose.date else { return nil }
-                return (date: date, glucose: Double(glucose.glucose))
+
+                var glucoseValue: Double
+                if self.units == .mgdL {
+                    glucoseValue = Double(glucose.glucose)
+                } else {
+                    let mgdlValue = Decimal(glucose.glucose)
+                    glucoseValue = Double(truncating: mgdlValue.asMmolL as NSNumber)
+                }
+
+                // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+                let hardCodedLow = Decimal(55)
+                let hardCodedHigh = Decimal(220)
+                let isDynamicColorScheme = self.glucoseColorScheme == .dynamicColor
+
+                let highGlucoseValue = isDynamicColorScheme ? hardCodedHigh : self.highGlucose
+                let lowGlucoseValue = isDynamicColorScheme ? hardCodedLow : self.lowGlucose
+                let highGlucoseColorValue = self.units == .mgdL ? highGlucoseValue : highGlucoseValue.asMmolL
+                let lowGlucoseColorValue = self.units == .mgdL ? lowGlucoseValue : lowGlucoseValue.asMmolL
+                let targetGlucose = self.units == .mgdL ? self.currentGlucoseTarget : self.currentGlucoseTarget.asMmolL
+
+                let glucoseColor = Trio.getDynamicGlucoseColor(
+                    glucoseValue: Decimal(glucose.glucose),
+                    highGlucoseColorValue: highGlucoseColorValue,
+                    lowGlucoseColorValue: lowGlucoseColorValue,
+                    targetGlucose: targetGlucose,
+                    glucoseColorScheme: self.glucoseColorScheme
+                )
+
+                return (date: glucose.date ?? Date(), glucose: glucoseValue, color: glucoseColor)
             }
             .sorted { $0.date < $1.date }
 
             // Set current glucose with proper formatting
-            watchState.currentGlucose = "\(latestGlucose.glucose)"
+            if self.units == .mgdL {
+                watchState.currentGlucose = "\(latestGlucose.glucose)"
+            } else {
+                let mgdlValue = Decimal(latestGlucose.glucose)
+                let latestGlucoseValue = Double(truncating: mgdlValue.asMmolL as NSNumber)
+                watchState.currentGlucose = "\(latestGlucoseValue)"
+            }
 
             // Convert direction to trend string
             watchState.trend = latestGlucose.direction
@@ -265,7 +310,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             "glucoseValues": state.glucoseValues.map { value in
                 [
                     "glucose": value.glucose,
-                    "date": value.date.timeIntervalSince1970
+                    "date": value.date.timeIntervalSince1970,
+                    "color": value.color
                 ]
             },
             "overridePresets": state.overridePresets.map { preset in
@@ -778,9 +824,66 @@ extension BaseWatchManager: SettingsObserver, PumpSettingsObserver, PreferencesO
 
     // to update the rest
     func settingsDidChange(_: TrioSettings) {
+        units = settingsManager.settings.units
+        glucoseColorScheme = settingsManager.settings.glucoseColorScheme
+        lowGlucose = settingsManager.settings.low
+        highGlucose = settingsManager.settings.high
+
         Task {
             let state = await self.setupWatchState()
             self.sendDataToWatch(state)
         }
+    }
+}
+
+extension BaseWatchManager {
+    /// Retrieves the current glucose target based on the time of day.
+    private func getCurrentGlucoseTarget() async -> Decimal? {
+        let now = Date()
+        let calendar = Calendar.current
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm"
+        dateFormatter.timeZone = TimeZone.current
+
+        let bgTargets = await fileStorage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
+            ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
+            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+        let entries: [(start: String, value: Decimal)] = bgTargets.targets.map { ($0.start, $0.low) }
+
+        for (index, entry) in entries.enumerated() {
+            guard let entryTime = dateFormatter.date(from: entry.start) else {
+                print("Invalid entry start time: \(entry.start)")
+                continue
+            }
+
+            let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
+            let entryStartTime = calendar.date(
+                bySettingHour: entryComponents.hour!,
+                minute: entryComponents.minute!,
+                second: entryComponents.second!,
+                of: now
+            )!
+
+            let entryEndTime: Date
+            if index < entries.count - 1,
+               let nextEntryTime = dateFormatter.date(from: entries[index + 1].start)
+            {
+                let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
+                entryEndTime = calendar.date(
+                    bySettingHour: nextEntryComponents.hour!,
+                    minute: nextEntryComponents.minute!,
+                    second: nextEntryComponents.second!,
+                    of: now
+                )!
+            } else {
+                entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+            }
+
+            if now >= entryStartTime, now < entryEndTime {
+                return entry.value
+            }
+        }
+
+        return nil
     }
 }
