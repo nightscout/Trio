@@ -22,6 +22,14 @@ extension Adjustments {
         @State var removeAlert: Alert?
         @State var isEditingTT = false
 
+        private var shouldDisplayStickyOverrideStopButton: Bool {
+            state.isOverrideEnabled && state.activeOverrideName.isNotEmpty
+        }
+
+        private var shouldDisplayStickyTempTargetStopButton: Bool {
+            state.isTempTargetEnabled && state.activeTempTargetName.isNotEmpty
+        }
+
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
@@ -56,7 +64,18 @@ extension Adjustments {
                     .background(appState.trioBackgroundColor(for: colorScheme))
                 }
                 .listSectionSpacing(10)
-                .safeAreaInset(edge: .bottom, spacing: 30) { stickyStopButton }
+                .safeAreaInset(
+                    edge: .bottom,
+                    spacing: shouldDisplayStickyOverrideStopButton || shouldDisplayStickyTempTargetStopButton ? 30 : 0
+                ) {
+                    if shouldDisplayStickyOverrideStopButton, state.selectedTab == .overrides {
+                        stickyStopOverrideButton
+                    } else if shouldDisplayStickyTempTargetStopButton, state.selectedTab == .tempTargets {
+                        stickyStopTempTargetButton
+                    } else {
+                        EmptyView()
+                    }
+                }
                 .scrollContentBackground(.hidden)
                 .background(appState.trioBackgroundColor(for: colorScheme))
                 .onAppear(perform: configureView)
@@ -201,59 +220,6 @@ extension Adjustments {
             }
         }
 
-        var stickyStopButton: some View {
-            ZStack {
-                Rectangle()
-                    .frame(width: UIScreen.main.bounds.width, height: 65)
-                    .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
-                    .background(.thinMaterial)
-                    .opacity(0.8)
-                    .clipShape(Rectangle())
-
-                Group {
-                    switch state.selectedTab {
-                    case .overrides:
-                        Button(action: {
-                            Task {
-                                // Save cancelled Override in OverrideRunStored Entity
-                                // Cancel ALL active Override
-                                await state.disableAllActiveOverrides(createOverrideRunEntry: true)
-                            }
-                        }, label: {
-                            Text("Stop Override")
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .padding(10)
-                        })
-                            .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
-                            .disabled(!state.isEnabled)
-                            .background(!state.isEnabled ? Color(.systemGray4) : Color(.systemRed))
-                            .tint(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    case .tempTargets:
-                        Button(action: {
-                            Task {
-                                // Save cancelled Temp Targets in TempTargetRunStored Entity
-                                // Cancel ALL active Temp Targets
-                                await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
-                                // Update View
-                                state.updateLatestTempTargetConfiguration()
-                            }
-                        }, label: {
-                            Text("Stop Temp Target")
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .padding(10)
-                        })
-                            .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
-                            .disabled(!state.isTempTargetEnabled)
-                            .background(!state.isTempTargetEnabled ? Color(.systemGray4) : Color(.systemRed))
-                            .tint(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                }
-                .padding(5)
-            }
-        }
-
         var cancelAdjustmentButton: some View {
             switch state.selectedTab {
             case .overrides:
@@ -268,8 +234,8 @@ extension Adjustments {
 
                 })
                     .frame(maxWidth: .infinity, alignment: .center)
-                    .disabled(!state.isEnabled)
-                    .listRowBackground(!state.isEnabled ? Color(.systemGray4) : Color(.systemRed))
+                    .disabled(!state.isOverrideEnabled)
+                    .listRowBackground(!state.isOverrideEnabled ? Color(.systemGray4) : Color(.systemRed))
                     .tint(.white)
             case .tempTargets:
                 Button(action: {

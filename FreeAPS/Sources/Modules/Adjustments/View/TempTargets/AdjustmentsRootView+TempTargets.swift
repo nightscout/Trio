@@ -130,6 +130,37 @@ extension Adjustments.RootView {
         return nil
     }
 
+    var stickyStopTempTargetButton: some View {
+        ZStack {
+            Rectangle()
+                .frame(width: UIScreen.main.bounds.width, height: 65)
+                .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
+                .background(.thinMaterial)
+                .opacity(0.8)
+                .clipShape(Rectangle())
+
+            Button(action: {
+                Task {
+                    // Save cancelled Temp Targets in TempTargetRunStored Entity
+                    // Cancel ALL active Temp Targets
+                    await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
+                    // Update View
+                    state.updateLatestTempTargetConfiguration()
+                }
+            }, label: {
+                Text("Stop Temp Target")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(10)
+            })
+                .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                .disabled(!state.isTempTargetEnabled)
+                .background(!state.isTempTargetEnabled ? Color(.systemGray4) : Color(.systemRed))
+                .tint(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(5)
+        }
+    }
+
     private func tempTargetView(
         for tempTarget: TempTargetStored,
         showCheckmark: Bool = false,

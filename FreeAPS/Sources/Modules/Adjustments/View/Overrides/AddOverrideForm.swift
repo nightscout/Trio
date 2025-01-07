@@ -398,7 +398,7 @@ struct AddOverrideForm: View {
                     Button(action: {
                         Task {
                             if state.indefinite { state.overrideDuration = 0 }
-                            state.isEnabled.toggle()
+                            state.isOverrideEnabled.toggle()
                             await state.saveCustomOverride()
                             await state.resetStateVariables()
                             dismiss()

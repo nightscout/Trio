@@ -3,7 +3,7 @@ import SwiftUI
 
 extension Adjustments.RootView {
     @ViewBuilder func overrides() -> some View {
-        if state.isEnabled, state.activeOverrideName.isNotEmpty {
+        if state.isOverrideEnabled, state.activeOverrideName.isNotEmpty {
             currentActiveAdjustment
         }
         if state.overridePresets.isNotEmpty {
@@ -111,6 +111,36 @@ extension Adjustments.RootView {
     var overrideLabelDivider: some View {
         Divider()
             .frame(width: 1, height: 20)
+    }
+
+    var stickyStopOverrideButton: some View {
+        ZStack {
+            Rectangle()
+                .frame(width: UIScreen.main.bounds.width, height: 65)
+                .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
+                .background(.thinMaterial)
+                .opacity(0.8)
+                .clipShape(Rectangle())
+
+            Button(action: {
+                Task {
+                    // Save cancelled Override in OverrideRunStored Entity
+                    // Cancel ALL active Override
+                    await state.disableAllActiveOverrides(createOverrideRunEntry: true)
+                }
+            }, label: {
+                Text("Stop Override")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(10)
+            })
+                .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                .disabled(!state.isOverrideEnabled)
+                .background(!state.isOverrideEnabled ? Color(.systemGray4) : Color(.systemRed))
+                .tint(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                .padding(5)
+        }
     }
 
     @ViewBuilder func overridesView(
