@@ -173,23 +173,11 @@ extension Adjustments {
         private var overridePresets: some View {
             Section {
                 ForEach(state.overridePresets) { preset in
-                    overridesView(for: preset)
+                    overridesView(for: preset, showCheckMark: showCheckmark) {
+                        enactOverridePreset(preset)
+                    }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .none) {
-                                selectedOverride = preset
-                                isConfirmDeletePresented = true
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                                    .tint(.red)
-                            }
-                            Button(action: {
-                                // Set the selected Override to the chosen Preset and pass it to the Edit Sheet
-                                selectedOverride = preset
-                                state.showOverrideEditSheet = true
-                            }, label: {
-                                Label("Edit", systemImage: "pencil")
-                                    .tint(.blue)
-                            })
+                            swipeActionsForOverrides(for: preset)
                         }
                 }
                 .onMove(perform: state.reorderOverride)
@@ -242,12 +230,47 @@ extension Adjustments {
             }
         }
 
+        private func enactOverridePreset(_ preset: OverrideStored) {
+            Task {
+                let objectID = preset.objectID
+                await state.enactOverridePreset(withID: objectID)
+                state.hideModal()
+                showCheckmark.toggle()
+                selectedPresetID = preset.id
+
+                // Deactivate checkmark after 3 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    showCheckmark = false
+                }
+            }
+        }
+        
+        private func swipeActionsForOverrides(for preset: OverrideStored) -> some View {
+            Group {
+                Button(role: .none) {
+                    selectedOverride = preset
+                    isConfirmDeletePresented = true
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                        .tint(.red)
+                }
+                Button(action: {
+                    // Set the selected Override to the chosen Preset and pass it to the Edit Sheet
+                    selectedOverride = preset
+                    state.showOverrideEditSheet = true
+                }, label: {
+                    Label("Edit", systemImage: "pencil")
+                        .tint(.blue)
+                })
+            }
+        }
+
         private var scheduledTempTargets: some View {
             Section {
                 ForEach(state.scheduledTempTargets) { tempTarget in
                     tempTargetView(for: tempTarget)
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            swipeActions(for: tempTarget)
+                            swipeActionsForTempTargets(for: tempTarget)
                         }
                 }
                 .listRowBackground(Color.chart)
@@ -263,7 +286,7 @@ extension Adjustments {
                         enactTempTargetPreset(preset)
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        swipeActions(for: preset)
+                        swipeActionsForTempTargets(for: preset)
                     }
                 }
                 .onMove(perform: state.reorderTempTargets)
@@ -300,7 +323,7 @@ extension Adjustments {
             }
         }
 
-        private func swipeActions(for tempTarget: TempTargetStored) -> some View {
+        private func swipeActionsForTempTargets(for tempTarget: TempTargetStored) -> some View {
             Group {
                 Button {
                     Task {
@@ -509,7 +532,7 @@ extension Adjustments {
         ) -> some View {
             let target = tempTarget.target ?? 100
             let tempTargetValue = Decimal(target as! Double.RawValue)
-            let isSelected = tempTarget.id?.uuidString == selectedPresetID
+            let isSelected = tempTarget.id?.uuidString == selectedTempTargetPresetID
             let tempTargetHalfBasal = Decimal(
                 tempTarget.halfBasalTarget as? Double
                     .RawValue ?? Double(state.settingHalfBasalTarget)
@@ -590,7 +613,11 @@ extension Adjustments {
                 .frame(width: 1, height: 20)
         }
 
-        @ViewBuilder private func overridesView(for preset: OverrideStored) -> some View {
+        @ViewBuilder private func overridesView(
+            for preset: OverrideStored,
+            showCheckMark: Bool = false,
+            onTap: (() -> Void)? = nil
+        ) -> some View {
             let isSelected = preset.id == selectedPresetID
             let name = preset.name ?? ""
             let indefinite = preset.indefinite
@@ -679,18 +706,7 @@ extension Adjustments {
                         }
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            Task {
-                                let objectID = preset.objectID
-                                await state.enactOverridePreset(withID: objectID)
-                                state.hideModal()
-                                showCheckmark.toggle()
-                                selectedPresetID = preset.id
-
-                                // Deactivate checkmark after 3 seconds
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                    showCheckmark = false
-                                }
-                            }
+                            onTap?()
                         }
                     }
                     // show checkmark to indicate if the preset was actually pressed
