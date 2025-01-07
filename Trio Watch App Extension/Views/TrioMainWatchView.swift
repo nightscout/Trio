@@ -60,7 +60,11 @@ struct TrioMainWatchView: View {
                 }
             }
             .onAppear {
-                state.confirmationProgress = 0 // reset auth progress
+                // reset input amounts
+                state.bolusAmount = 0
+                state.carbsAmount = 0
+                // reset auth progress
+                state.confirmationProgress = 0
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

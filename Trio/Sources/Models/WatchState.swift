@@ -3,6 +3,7 @@ import SwiftUI
 
 struct WatchState: Hashable, Equatable, Sendable {
     var currentGlucose: String?
+    var currentGlucoseColorString: String?
     var trend: String?
     var delta: String?
     var glucoseValues: [(date: Date, glucose: Double, color: String)] = []
@@ -20,6 +21,9 @@ struct WatchState: Hashable, Equatable, Sendable {
     var maxProtein: Decimal = 250
     var maxIOB: Decimal = 0
     var maxCOB: Decimal = 120
+
+    // Pump specific dosing increment
+    var bolusIncrement: Decimal = 0.05
 
     static func == (lhs: WatchState, rhs: WatchState) -> Bool {
         lhs.currentGlucose == rhs.currentGlucose &&
@@ -40,7 +44,8 @@ struct WatchState: Hashable, Equatable, Sendable {
             lhs.maxFat == rhs.maxFat &&
             lhs.maxProtein == rhs.maxProtein &&
             lhs.maxIOB == rhs.maxIOB &&
-            lhs.maxCOB == rhs.maxCOB
+            lhs.maxCOB == rhs.maxCOB &&
+            lhs.bolusIncrement == rhs.bolusIncrement
     }
 
     func hash(into hasher: inout Hasher) {
@@ -64,5 +69,6 @@ struct WatchState: Hashable, Equatable, Sendable {
         hasher.combine(maxProtein)
         hasher.combine(maxIOB)
         hasher.combine(maxCOB)
+        hasher.combine(bolusIncrement)
     }
 }

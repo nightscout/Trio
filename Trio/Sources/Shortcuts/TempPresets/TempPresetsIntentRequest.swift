@@ -77,7 +77,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                 return try self.coredataContext.fetch(fetchRequest).first?.objectID
             } catch {
                 debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch Override: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch Temp Target: \(error.localizedDescription)"
                 )
                 return nil
             }
@@ -87,7 +87,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
     @MainActor func enactTempTarget(_ preset: TempPreset) async -> Bool {
         // Start background task
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Override Upload") {
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "TempTarget Upload") {
             guard backgroundTaskID != .invalid else { return }
             Task {
                 // End background task when the time is about to expire

@@ -55,14 +55,9 @@ struct TrioAccessoryCornerView: View {
     var entry: TrioWatchComplicationProvider.Entry
 
     var body: some View {
-        ZStack {
-            Circle()
-                .fill(Color.white.opacity(0.2))
-            Image("ComplicationIcon")
-                .resizable()
-                .scaledToFit()
-                .padding(5)
-        }
+        Text("Trio")
+            .font(.caption)
+            .foregroundColor(.white)
     }
 }
 
@@ -71,19 +66,9 @@ struct TrioAccessoryCircularView: View {
     var entry: TrioWatchComplicationProvider.Entry
 
     var body: some View {
-        if let uiImage = UIImage(named: "ComplicationIcon") {
-            Image(uiImage: uiImage)
-                .resizable()
-                .scaledToFit()
-                .padding(5)
-        } else {
-            ZStack {
-                Circle().fill(Color.red.opacity(0.2))
-                Text("No Image!")
-                    .font(.caption)
-                    .foregroundColor(.white)
-            }
-        }
+        Text("Trio")
+            .font(.caption)
+            .foregroundColor(.white)
     }
 }
 
@@ -92,15 +77,9 @@ struct TrioAccessoryRectangularView: View {
     var entry: TrioWatchComplicationProvider.Entry
 
     var body: some View {
-        HStack {
-            Image("ComplicationIcon")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 30, height: 30)
-            Text("Trio")
-                .font(.headline)
-                .foregroundColor(.primary)
-        }
+        Text("Trio")
+            .font(.headline)
+            .foregroundColor(.primary)
     }
 }
 
@@ -109,15 +88,9 @@ struct TrioAccessoryInlineView: View {
     var entry: TrioWatchComplicationProvider.Entry
 
     var body: some View {
-        HStack {
-            Image("ComplicationIcon")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 12, height: 12)
-            Text("Trio")
-                .font(.caption)
-                .foregroundColor(.primary)
-        }
+        Text("Trio")
+            .font(.caption)
+            .foregroundColor(.primary)
     }
 }
 

@@ -52,6 +52,7 @@ struct GlucoseTrendView: View {
                     Text(state.currentGlucose)
                         .fontWeight(.semibold)
                         .font(.system(is40mm ? .title2 : .title, design: .rounded))
+                        .foregroundStyle(state.currentGlucoseColorString.toColor())
 
                     if let delta = state.delta {
                         Text(delta)
@@ -61,8 +62,6 @@ struct GlucoseTrendView: View {
                     }
                 }
             }
-
-//            Spacer()
 
             Text(state.lastLoopTime ?? "--").font(.system(size: is40mm ? 9 : 10))
 

@@ -17,6 +17,7 @@ extension Treatments {
         @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
+        @ObservationIgnored @Injected() var bolusCalculationManager: BolusCalculationManager!
 
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
@@ -376,59 +377,44 @@ extension Treatments {
         // MARK: CALCULATIONS FOR THE BOLUS CALCULATOR
 
         /// Calculate insulin recommendation
-        func calculateInsulin() -> Decimal {
-            debug(.bolusState, "calculateInsulin fired")
-            let isfForCalculation = isf
+        @MainActor func calculateInsulin() async -> Decimal {
+//            let input = CalculationInput(
+//                carbs: carbs,
+//                currentBG: currentBG,
+//                deltaBG: deltaBG,
+//                target: target,
+//                isf: isf,
+//                carbRatio: carbRatio,
+//                iob: iob,
+//                cob: cob,
+//                useFattyMealCorrectionFactor: useFattyMealCorrectionFactor,
+//                fattyMealFactor: fattyMealFactor,
+//                useSuperBolus: useSuperBolus,
+//                sweetMealFactor: sweetMealFactor,
+//                basal: basal,
+//                fraction: fraction,
+//                maxBolus: maxBolus
+//            )
+//
+//            let result = await bolusCalculationManager.calculateInsulin(input: input)
 
-            // insulin needed for the current blood glucose
-            targetDifference = currentBG - target
-            targetDifferenceInsulin = targetDifference / isfForCalculation
+            let result = await bolusCalculationManager.handleBolusCalculation(
+                carbs: carbs,
+                useFattyMealCorrection: useFattyMealCorrectionFactor,
+                useSuperBolus: useSuperBolus
+            )
 
-            // more or less insulin because of bg trend in the last 15 minutes
-            fifteenMinInsulin = deltaBG / isfForCalculation
+            // Update state properties with calculation results on main thread
+            targetDifference = result.targetDifference
+            targetDifferenceInsulin = result.targetDifferenceInsulin
+            wholeCob = result.wholeCob
+            wholeCobInsulin = result.wholeCobInsulin
+            iobInsulinReduction = result.iobInsulinReduction
+            superBolusInsulin = result.superBolusInsulin
+            wholeCalc = result.wholeCalc
+            fifteenMinInsulin = result.fifteenMinutesInsulin
 
-            // determine whole COB for which we want to dose insulin for and then determine insulin for wholeCOB
-            wholeCob = Decimal(cob) + carbs
-            wholeCobInsulin = wholeCob / carbRatio
-
-            // determine how much the calculator reduces/ increases the bolus because of IOB
-            iobInsulinReduction = (-1) * iob
-
-            // adding everything together
-            // add a calc for the case that no fifteenMinInsulin is available
-            if deltaBG != 0 {
-                wholeCalc = (targetDifferenceInsulin + iobInsulinReduction + wholeCobInsulin + fifteenMinInsulin)
-            } else {
-                // add (rare) case that no glucose value is available -> maybe display warning?
-                // if no bg is available, ?? sets its value to 0
-                if currentBG == 0 {
-                    wholeCalc = (iobInsulinReduction + wholeCobInsulin)
-                } else {
-                    wholeCalc = (targetDifferenceInsulin + iobInsulinReduction + wholeCobInsulin)
-                }
-            }
-
-            // apply custom factor at the end of the calculations
-            let result = wholeCalc * fraction
-
-            // apply custom factor if fatty meal toggle in bolus calc config settings is on and the box for fatty meals is checked (in RootView)
-            if useFattyMealCorrectionFactor {
-                insulinCalculated = result * fattyMealFactor
-            } else if useSuperBolus {
-                superBolusInsulin = sweetMealFactor * currentBasal
-                insulinCalculated = result + superBolusInsulin
-            } else {
-                insulinCalculated = result
-            }
-            // display no negative insulinCalculated
-            insulinCalculated = max(insulinCalculated, 0)
-            insulinCalculated = min(insulinCalculated, maxBolus)
-
-            guard let apsManager = apsManager else {
-                return insulinCalculated
-            }
-
-            return apsManager.roundBolus(amount: insulinCalculated)
+            return apsManager.roundBolus(amount: result.insulinCalculated)
         }
 
         // MARK: - Button tasks
@@ -733,7 +719,7 @@ extension Treatments.StateModel {
         let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
             .getNSManagedObject(with: determinationObjectIDs, context: viewContext)
 
-        await updateDeterminationsArray(with: determinationObjects)
+        updateDeterminationsArray(with: determinationObjects)
     }
 
     private func mapForecastsForChart() async -> Determination? {
@@ -788,21 +774,23 @@ extension Treatments.StateModel {
         }
     }
 
-    @MainActor private func updateDeterminationsArray(with objects: [OrefDetermination]) {
-        guard let mostRecentDetermination = objects.first else { return }
-        determination = objects
+    private func updateDeterminationsArray(with objects: [OrefDetermination]) {
+        Task { @MainActor in
+            guard let mostRecentDetermination = objects.first else { return }
+            determination = objects
 
-        // setup vars for bolus calculation
-        insulinRequired = (mostRecentDetermination.insulinReq ?? 0) as Decimal
-        evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
-        insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
-        target = (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal
-        isf = (mostRecentDetermination.insulinSensitivity ?? currentISF as NSDecimalNumber) as Decimal
-        cob = mostRecentDetermination.cob as Int16
-        iob = (mostRecentDetermination.iob ?? 0) as Decimal
-        basal = (mostRecentDetermination.tempBasal ?? 0) as Decimal
-        carbRatio = (mostRecentDetermination.carbRatio ?? currentCarbRatio as NSDecimalNumber) as Decimal
-        insulinCalculated = calculateInsulin()
+            // setup vars for bolus calculation
+            insulinRequired = (mostRecentDetermination.insulinReq ?? 0) as Decimal
+            evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
+            insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
+            target = (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal
+            isf = (mostRecentDetermination.insulinSensitivity ?? currentISF as NSDecimalNumber) as Decimal
+            cob = mostRecentDetermination.cob as Int16
+            iob = (mostRecentDetermination.iob ?? 0) as Decimal
+            basal = (mostRecentDetermination.tempBasal ?? 0) as Decimal
+            carbRatio = (mostRecentDetermination.carbRatio ?? currentCarbRatio as NSDecimalNumber) as Decimal
+            insulinCalculated = await calculateInsulin()
+        }
     }
 }
 

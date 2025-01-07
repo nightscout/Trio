@@ -13,6 +13,7 @@ import WatchConnectivity
     var isReachable = false
 
     var currentGlucose: String = "--"
+    var currentGlucoseColorString: String = "#ffffff"
     var trend: String? = ""
     var delta: String? = "--"
     var glucoseValues: [(date: Date, glucose: Double, color: Color)] = []
@@ -42,12 +43,18 @@ import WatchConnectivity
     var maxIOB: Decimal = 0
     var maxCOB: Decimal = 120
 
+    // Pump specific dosing increment
+    var bolusIncrement: Decimal = 0.05
+
     // acknowlegement handling
     var showCommsAnimation: Bool = false
     var showAcknowledgmentBanner: Bool = false
     var acknowledgementStatus: AcknowledgementStatus = .pending
     var acknowledgmentMessage: String = ""
     var shouldNavigateToRoot: Bool = true
+
+    // bolus calculation progress
+    var showBolusCalculationProgress: Bool = false
 
     // Meal bolus-specific properties
     var mealBolusStep: MealBolusStep = .savingCarbs
@@ -57,6 +64,8 @@ import WatchConnectivity
         (!showAcknowledgmentBanner || !showCommsAnimation || !showCommsAnimation) && bolusProgress > 0 && bolusProgress < 1.0 &&
             !isBolusCanceled
     }
+
+    var recommendedBolus: Decimal = 0
 
     override init() {
         super.init()
@@ -220,6 +229,23 @@ import WatchConnectivity
         showCommsAnimation = true
     }
 
+    func requestBolusRecommendation() {
+        guard let session = session, session.isReachable else { return }
+
+        let message: [String: Any] = [
+            "requestBolusRecommendation": true,
+            "carbs": carbsAmount
+        ]
+
+        session.sendMessage(message, replyHandler: nil) { error in
+            print("Error requesting bolus recommendation: \(error.localizedDescription)")
+        }
+
+        if bolusAmount == 0 {
+            showBolusCalculationProgress = true
+        }
+    }
+
     // MARK: – Handle Acknowledgement Messages FROM Phone
 
     private func handleAcknowledgment(success: Bool, message: String, isFinal: Bool = true) {
@@ -293,6 +319,10 @@ import WatchConnectivity
 
             if let currentGlucose = message["currentGlucose"] as? String {
                 self.currentGlucose = currentGlucose
+            }
+
+            if let currentGlucoseColorString = message["currentGlucoseColorString"] as? String {
+                self.currentGlucoseColorString = currentGlucoseColorString
             }
 
             if let trend = message["trend"] as? String {
@@ -398,6 +428,17 @@ import WatchConnectivity
                 if let decimalValue = (maxCOBValue as? NSNumber)?.decimalValue {
                     self.maxCOB = decimalValue
                 }
+            }
+
+            if let bolusIncrement = message["bolusIncrement"] {
+                if let decimalValue = (bolusIncrement as? NSNumber)?.decimalValue {
+                    self.bolusIncrement = decimalValue
+                }
+            }
+
+            if let recommendedBolus = message["recommendedBolus"] as? NSNumber {
+                self.recommendedBolus = recommendedBolus.decimalValue
+                showBolusCalculationProgress = false
             }
         }
     }

@@ -33,93 +33,103 @@ struct BolusInputView: View {
 
     var body: some View {
         VStack {
-            if effectiveBolusLimit == 0 {
-                VStack(spacing: 10) {
-                    Spacer()
-
-                    Text("Bolus limit cannot be fetched from phone!").font(.headline)
-                    Text("Check device settings, connect to phone, and try again.").font(.caption)
-
-                    Spacer()
-                }
-                .foregroundColor(.loopRed)
-                .scenePadding()
+            if state.showBolusCalculationProgress {
+                ProgressView("Calculating Bolus...")
+                Spacer()
             } else {
-                if state.carbsAmount > 0 {
-                    HStack {
-                        Text("Carbs:").bold().font(.subheadline).padding(.leading)
-                        Text("\(state.carbsAmount) g").font(.subheadline).foregroundStyle(Color.orange)
+                if effectiveBolusLimit == 0 {
+                    VStack(spacing: 10) {
+                        Spacer()
+
+                        Text("Bolus limit cannot be fetched from phone!").font(.headline)
+                        Text("Check device settings, connect to phone, and try again.").font(.caption)
+
                         Spacer()
                     }
-                }
-
-                Spacer()
-
-                HStack {
-                    // "-" Button
-                    Button(action: {
-                        if bolusAmount > 0 { bolusAmount -= 1 }
-                    }) {
-                        Image(systemName: "minus.circle.fill")
-                            .font(.title3)
-                            .foregroundColor(Color.insulin)
+                    .foregroundColor(.loopRed)
+                    .scenePadding()
+                } else {
+                    if state.carbsAmount > 0 {
+                        HStack {
+                            Text("Carbs:").bold().font(.subheadline).padding(.leading)
+                            Text("\(state.carbsAmount) g").font(.subheadline).foregroundStyle(Color.orange)
+                            Spacer()
+                        }
                     }
-                    .buttonStyle(.borderless)
-                    .disabled(bolusAmount < 1)
 
                     Spacer()
 
-                    // Display the current carb amount
-                    Text(String(format: "%.2f U", bolusAmount))
-                        .fontWeight(.bold)
-                        .font(.system(.title2, design: .rounded))
-                        .foregroundColor(bolusAmount > 0.0 && bolusAmount >= effectiveBolusLimit ? .loopRed : .primary)
-                        .focusable(true)
-                        .focused($isCrownFocused)
-                        .digitalCrownRotation(
-                            $bolusAmount,
-                            from: 0,
-                            through: effectiveBolusLimit,
-                            by: 1, // TODO: use pump increment here
-                            sensitivity: .medium,
-                            isContinuous: false,
-                            isHapticFeedbackEnabled: true
-                        )
+                    HStack {
+                        // "-" Button
+                        Button(action: {
+                            if bolusAmount > 0 { bolusAmount -= Double(truncating: state.bolusIncrement as NSNumber) }
+                        }) {
+                            Image(systemName: "minus.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(Color.insulin)
+                        }
+                        .buttonStyle(.borderless)
+                        .disabled(bolusAmount < 1)
+
+                        Spacer()
+
+                        // Display the current carb amount
+                        // TODO: format this properly using state.bolusIncrement
+                        Text(String(format: "%.2f U", bolusAmount * Double(truncating: state.bolusIncrement as NSNumber)))
+                            .fontWeight(.bold)
+                            .font(.system(.title2, design: .rounded))
+                            .foregroundColor(bolusAmount > 0.0 && bolusAmount >= effectiveBolusLimit ? .loopRed : .primary)
+                            .focusable(true)
+                            .focused($isCrownFocused)
+                            .digitalCrownRotation(
+                                $bolusAmount,
+                                from: 0,
+                                through: effectiveBolusLimit,
+                                by: Double(truncating: state.bolusIncrement as NSNumber),
+                                sensitivity: .medium,
+                                isContinuous: false,
+                                isHapticFeedbackEnabled: true
+                            )
+
+                        Spacer()
+
+                        // "+" Button
+                        Button(action: {
+                            bolusAmount += Double(truncating: state.bolusIncrement as NSNumber)
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(Color.insulin)
+                        }
+                        .buttonStyle(.borderless)
+                        .disabled(bolusAmount >= effectiveBolusLimit)
+                    }.padding(.horizontal)
+
+                    Text("Insulin")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .padding(.bottom)
 
                     Spacer()
 
-                    // "+" Button
-                    Button(action: {
-                        bolusAmount += 0.5
-                    }) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title3)
-                            .foregroundColor(Color.insulin)
+                    if bolusAmount > 0.0 && bolusAmount >= effectiveBolusLimit {
+                        Text("Bolus Limit Reached!")
+                            .font(.footnote)
+                            .foregroundColor(.loopRed)
                     }
-                    .buttonStyle(.borderless)
-                    .disabled(bolusAmount >= effectiveBolusLimit)
-                }.padding(.horizontal)
 
-                Text("Insulin")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom)
+                    Button("Log Bolus") {
+                        state.bolusAmount = min(bolusAmount, effectiveBolusLimit)
+                        navigationPath.append(NavigationDestinations.bolusConfirm)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(Color.insulin)
+                    .disabled(!(bolusAmount > 0.0) || bolusAmount >= effectiveBolusLimit)
 
-                Spacer()
-
-                if bolusAmount > 0.0 && bolusAmount >= effectiveBolusLimit {
-                    Text("Bolus Limit Reached!")
+                    Text(String(format: "Recommended: %.1f U", NSDecimalNumber(decimal: state.recommendedBolus).doubleValue))
                         .font(.footnote)
-                        .foregroundColor(.loopRed)
+                        .foregroundStyle(.secondary)
                 }
-
-                Button("Log Bolus") {
-                    state.bolusAmount = min(bolusAmount, effectiveBolusLimit)
-                    navigationPath.append(NavigationDestinations.bolusConfirm)
-                }
-                .buttonStyle(.bordered)
-                .tint(Color.insulin)
-                .disabled(!(bolusAmount > 0.0) || bolusAmount >= effectiveBolusLimit)
             }
         }
         .background(trioBackgroundColor)
@@ -142,6 +152,21 @@ struct BolusInputView: View {
                     state.shouldNavigateToRoot = false
                     navigationPath.append(NavigationDestinations.acknowledgmentPending)
                 }.transition(.opacity)
+            }
+        }
+        .onAppear {
+            // Set initial bolus amount to recommended value
+            // Only do this if user has not updated amount previously, e.g., when navigating to next and then back to this view
+            if bolusAmount == 0 {
+                state.requestBolusRecommendation()
+                bolusAmount = Double(truncating: NSDecimalNumber(decimal: state.recommendedBolus))
+            }
+        }
+        // Add onChange to update bolus amount when recommendation changes
+        .onChange(of: state.recommendedBolus) { _, newValue in
+            if bolusAmount == 0 { // Only update if user hasn't modified the value
+                state.showBolusCalculationProgress = true
+                bolusAmount = Double(truncating: NSDecimalNumber(decimal: newValue))
             }
         }
     }

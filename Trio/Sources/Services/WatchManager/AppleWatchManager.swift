@@ -2,6 +2,7 @@ import Combine
 import CoreData
 import Foundation
 import Swinject
+import UIKit
 import WatchConnectivity
 
 /// Protocol defining the base functionality for Watch communication
@@ -21,6 +22,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @Injected() private var determinationStorage: DeterminationStorage!
     @Injected() private var overrideStorage: OverrideStorage!
     @Injected() private var tempTargetStorage: TempTargetsStorage!
+    @Injected() private var bolusCalculationManager: BolusCalculationManager!
 
     private var units: GlucoseUnits = .mgdL
     private var glucoseColorScheme: GlucoseColorScheme = .staticColor
@@ -66,7 +68,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 guard let self = self else { return }
                 Task {
                     let state = await self.setupWatchState()
-                    self.sendDataToWatch(state)
+                    await self.sendDataToWatch(state)
                 }
             }
             .store(in: &subscriptions)
@@ -80,7 +82,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             guard let self = self else { return }
             Task {
                 let state = await self.setupWatchState()
-                self.sendDataToWatch(state)
+                await self.sendDataToWatch(state)
             }
         }.store(in: &subscriptions)
 
@@ -89,7 +91,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             guard let self = self else { return }
             Task {
                 let state = await self.setupWatchState()
-                self.sendDataToWatch(state)
+                await self.sendDataToWatch(state)
             }
         }.store(in: &subscriptions)
 
@@ -97,7 +99,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             guard let self = self else { return }
             Task {
                 let state = await self.setupWatchState()
-                self.sendDataToWatch(state)
+                await self.sendDataToWatch(state)
             }
         }.store(in: &subscriptions)
 
@@ -105,7 +107,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             guard let self = self else { return }
             Task {
                 let state = await self.setupWatchState()
-                self.sendDataToWatch(state)
+                await self.sendDataToWatch(state)
             }
         }.store(in: &subscriptions)
     }
@@ -188,27 +190,46 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 return watchState
             }
 
+            // Assign currentGlucose and its color
+            /// Set current glucose with proper formatting
+            if self.units == .mgdL {
+                watchState.currentGlucose = "\(latestGlucose.glucose)"
+            } else {
+                let mgdlValue = Decimal(latestGlucose.glucose)
+                let latestGlucoseValue = Double(truncating: mgdlValue.asMmolL as NSNumber)
+                watchState.currentGlucose = "\(latestGlucoseValue)"
+            }
+
+            /// Calculate latest color
+            let hardCodedLow = Decimal(55)
+            let hardCodedHigh = Decimal(220)
+            let isDynamicColorScheme = self.glucoseColorScheme == .dynamicColor
+
+            let highGlucoseValue = isDynamicColorScheme ? hardCodedHigh : self.highGlucose
+            let lowGlucoseValue = isDynamicColorScheme ? hardCodedLow : self.lowGlucose
+            let highGlucoseColorValue = self.units == .mgdL ? highGlucoseValue : highGlucoseValue.asMmolL
+            let lowGlucoseColorValue = self.units == .mgdL ? lowGlucoseValue : lowGlucoseValue.asMmolL
+            let targetGlucose = self.units == .mgdL ? self.currentGlucoseTarget : self.currentGlucoseTarget.asMmolL
+
+            let currentGlucoseColor = Trio.getDynamicGlucoseColor(
+                glucoseValue: Decimal(latestGlucose.glucose),
+                highGlucoseColorValue: highGlucoseColorValue,
+                lowGlucoseColorValue: lowGlucoseColorValue,
+                targetGlucose: targetGlucose,
+                glucoseColorScheme: self.glucoseColorScheme
+            )
+
+            if Decimal(latestGlucose.glucose) <= self.lowGlucose || Decimal(latestGlucose.glucose) >= self.highGlucose {
+                watchState.currentGlucoseColorString = currentGlucoseColor.toHexString()
+            } else {
+                watchState.currentGlucoseColorString = "#ffffff" // white when in range; colored when out of range
+            }
+
             // Map glucose values
             watchState.glucoseValues = glucoseObjects.compactMap { glucose in
-
-                var glucoseValue: Double
-                if self.units == .mgdL {
-                    glucoseValue = Double(glucose.glucose)
-                } else {
-                    let mgdlValue = Decimal(glucose.glucose)
-                    glucoseValue = Double(truncating: mgdlValue.asMmolL as NSNumber)
-                }
-
-                // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
-                let hardCodedLow = Decimal(55)
-                let hardCodedHigh = Decimal(220)
-                let isDynamicColorScheme = self.glucoseColorScheme == .dynamicColor
-
-                let highGlucoseValue = isDynamicColorScheme ? hardCodedHigh : self.highGlucose
-                let lowGlucoseValue = isDynamicColorScheme ? hardCodedLow : self.lowGlucose
-                let highGlucoseColorValue = self.units == .mgdL ? highGlucoseValue : highGlucoseValue.asMmolL
-                let lowGlucoseColorValue = self.units == .mgdL ? lowGlucoseValue : lowGlucoseValue.asMmolL
-                let targetGlucose = self.units == .mgdL ? self.currentGlucoseTarget : self.currentGlucoseTarget.asMmolL
+                let glucoseValue = self.units == .mgdL
+                    ? Double(glucose.glucose)
+                    : Double(truncating: Decimal(glucose.glucose).asMmolL as NSNumber)
 
                 let glucoseColor = Trio.getDynamicGlucoseColor(
                     glucoseValue: Decimal(glucose.glucose),
@@ -218,20 +239,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     glucoseColorScheme: self.glucoseColorScheme
                 )
 
-                let colorString = glucoseColor.toHexString()
-
-                return (date: glucose.date ?? Date(), glucose: glucoseValue, color: colorString)
+                return (date: glucose.date ?? Date(), glucose: glucoseValue, color: glucoseColor.toHexString())
             }
             .sorted { $0.date < $1.date }
-
-            // Set current glucose with proper formatting
-            if self.units == .mgdL {
-                watchState.currentGlucose = "\(latestGlucose.glucose)"
-            } else {
-                let mgdlValue = Decimal(latestGlucose.glucose)
-                let latestGlucoseValue = Double(truncating: mgdlValue.asMmolL as NSNumber)
-                watchState.currentGlucose = "\(latestGlucoseValue)"
-            }
 
             // Convert direction to trend string
             watchState.trend = latestGlucose.direction
@@ -255,13 +265,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             // Set units
             watchState.units = self.units
 
-            // Add settings values
+            // Add limits and pump specific dosing increment settings values
             watchState.maxBolus = self.settingsManager.pumpSettings.maxBolus
             watchState.maxCarbs = self.settingsManager.settings.maxCarbs
             watchState.maxFat = self.settingsManager.settings.maxFat
             watchState.maxProtein = self.settingsManager.settings.maxProtein
             watchState.maxIOB = self.settingsManager.preferences.maxIOB
             watchState.maxCOB = self.settingsManager.preferences.maxCOB
+            watchState.bolusIncrement = self.settingsManager.preferences.bolusIncrement
 
             debug(
                 .watchManager,
@@ -296,14 +307,47 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     /// Sends the state of type WatchState to the connected Watch
     /// - Parameter state: Current WatchState containing glucose data to be sent
-    func sendDataToWatch(_ state: WatchState) {
-        guard let session = session, session.isReachable else {
-            debug(.watchManager, "⌚️ Watch not reachable")
+    @MainActor func sendDataToWatch(_ state: WatchState) async {
+        guard let session = session else { return }
+
+        guard session.isPaired else {
+            debug(.watchManager, "⌚️❌ No Watch is paired")
             return
         }
 
+        guard session.isWatchAppInstalled else {
+            debug(.watchManager, "⌚️❌ Trio Watch app is")
+            return
+        }
+
+        guard session.activationState == .activated else {
+            let activationStateString = "\(session.activationState)"
+            debug(.watchManager, "⌚️ Watch session activationState = \(activationStateString). Reactivating...")
+            session.activate()
+            return
+        }
+
+        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Watch Data Upload") {
+            guard backgroundTaskID != .invalid else { return }
+            Task {
+                UIApplication.shared.endBackgroundTask(backgroundTaskID)
+            }
+            backgroundTaskID = .invalid
+        }
+
+        defer {
+            if backgroundTaskID != .invalid {
+                Task {
+                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                }
+                backgroundTaskID = .invalid
+            }
+        }
+
         let message: [String: Any] = [
-            "currentGlucose": state.currentGlucose ?? "",
+            "currentGlucose": state.currentGlucose ?? "--",
+            "currentGlucoseColorString": state.currentGlucoseColorString ?? "#ffffff",
             "trend": state.trend ?? "",
             "delta": state.delta ?? "",
             "iob": state.iob ?? "",
@@ -333,16 +377,18 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             "maxFat": state.maxFat,
             "maxProtein": state.maxProtein,
             "maxIOB": state.maxIOB,
-            "maxCOB": state.maxCOB
+            "maxCOB": state.maxCOB,
+            "bolusIncrement": state.bolusIncrement
         ]
 
-        debug(.watchManager, "📱 Sending to watch - Message content:")
-        message.forEach { key, value in
-            debug(.watchManager, "📱 \(key): \(value) (type: \(type(of: value)))")
-        }
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            debug(.watchManager, "❌ Error sending data: \(error.localizedDescription)")
+        // if session is reachable, it means watch App is in the foreground -> send watchState as message
+        // if session is not reachable, it means it's in background -> send watchState as userInfo
+        if session.isReachable {
+            session.sendMessage(message, replyHandler: nil, errorHandler: { (error) -> Void in
+                debug(.watchManager, "❌ Error sending watch state: \(error.localizedDescription)")
+            })
+        } else {
+            session.transferUserInfo(message)
         }
     }
 
@@ -376,7 +422,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         // Try to send initial data after activation
         Task {
             let state = await self.setupWatchState()
-            self.sendDataToWatch(state)
+            await self.sendDataToWatch(state)
         }
     }
 
@@ -442,6 +488,32 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     await self?.apsManager.determineBasalSync()
                 }
             }
+
+            if message["requestBolusRecommendation"] as? Bool == true {
+                let carbs = message["carbs"] as? Int ?? 0
+
+                Task { [weak self] in
+                    guard let self = self else { return }
+
+                    // Get recommendation from BolusCalculationManager
+                    let result = await bolusCalculationManager.handleBolusCalculation(
+                        carbs: Decimal(carbs),
+                        useFattyMealCorrection: false,
+                        useSuperBolus: false
+                    )
+
+                    // Send recommendation back to watch
+                    let recommendationMessage: [String: Any] = [
+                        "recommendedBolus": NSDecimalNumber(decimal: result.insulinCalculated)
+                    ]
+
+                    if let session = self.session, session.isReachable {
+                        print("📱 Sending recommendedBolus: \(result.insulinCalculated)")
+                        session.sendMessage(recommendationMessage, replyHandler: nil)
+                    }
+                }
+                return
+            }
         }
     }
 
@@ -459,7 +531,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             // Try to send data when connection is established
             Task {
                 let state = await self.setupWatchState()
-                self.sendDataToWatch(state)
+                await self.sendDataToWatch(state)
             }
         } else {
             // Try to reconnect after a short delay
@@ -812,7 +884,7 @@ extension BaseWatchManager: SettingsObserver, PumpSettingsObserver, PreferencesO
     func preferencesDidChange(_: Preferences) {
         Task {
             let state = await self.setupWatchState()
-            self.sendDataToWatch(state)
+            await self.sendDataToWatch(state)
         }
     }
 
@@ -820,7 +892,7 @@ extension BaseWatchManager: SettingsObserver, PumpSettingsObserver, PreferencesO
     func pumpSettingsDidChange(_: PumpSettings) {
         Task {
             let state = await self.setupWatchState()
-            self.sendDataToWatch(state)
+            await self.sendDataToWatch(state)
         }
     }
 
@@ -833,7 +905,7 @@ extension BaseWatchManager: SettingsObserver, PumpSettingsObserver, PreferencesO
 
         Task {
             let state = await self.setupWatchState()
-            self.sendDataToWatch(state)
+            await self.sendDataToWatch(state)
         }
     }
 }

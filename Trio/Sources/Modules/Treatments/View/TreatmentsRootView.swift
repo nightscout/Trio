@@ -21,7 +21,7 @@ extension Treatments {
 
         @State private var showPresetSheet = false
         @State private var autofocus: Bool = true
-        @State private var calculatorDetent = PresentationDetent.medium
+        @State private var calculatorDetent = PresentationDetent.large
         @State private var pushed: Bool = false
         @State private var debounce: DispatchWorkItem?
 
@@ -66,8 +66,8 @@ extension Treatments {
         func handleDebouncedInput() {
             debounce?.cancel()
             debounce = DispatchWorkItem { [self] in
-                state.insulinCalculated = state.calculateInsulin()
                 Task {
+                    state.insulinCalculated = await state.calculateInsulin()
                     await state.updateForecasts()
                 }
             }
@@ -218,9 +218,11 @@ extension Treatments {
                                         .toggleStyle(CheckboxToggleStyle())
                                         .font(.footnote)
                                         .onChange(of: state.useFattyMealCorrectionFactor) {
-                                            state.insulinCalculated = state.calculateInsulin()
-                                            if state.useFattyMealCorrectionFactor {
-                                                state.useSuperBolus = false
+                                            Task {
+                                                state.insulinCalculated = await state.calculateInsulin()
+                                                if state.useFattyMealCorrectionFactor {
+                                                    state.useSuperBolus = false
+                                                }
                                             }
                                         }
                                     }
@@ -231,9 +233,11 @@ extension Treatments {
                                         .toggleStyle(CheckboxToggleStyle())
                                         .font(.footnote)
                                         .onChange(of: state.useSuperBolus) {
-                                            state.insulinCalculated = state.calculateInsulin()
-                                            if state.useSuperBolus {
-                                                state.useFattyMealCorrectionFactor = false
+                                            Task {
+                                                state.insulinCalculated = await state.calculateInsulin()
+                                                if state.useSuperBolus {
+                                                    state.useFattyMealCorrectionFactor = false
+                                                }
                                             }
                                         }
                                     }
@@ -330,7 +334,9 @@ extension Treatments {
             .onAppear {
                 configureView {
                     state.isActive = true
-                    state.insulinCalculated = state.calculateInsulin()
+                    Task { @MainActor in
+                        state.insulinCalculated = await state.calculateInsulin()
+                    }
                 }
             }
             .onDisappear {
@@ -339,10 +345,8 @@ extension Treatments {
             }
             .sheet(isPresented: $state.showInfo) {
                 PopupView(state: state)
-                    .presentationDetents(
-                        [.fraction(0.9), .large],
-                        selection: $calculatorDetent
-                    )
+                    .presentationDetents([.fraction(0.9), .medium, .large])
+                    .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $showPresetSheet, onDismiss: {
                 showPresetSheet = false
