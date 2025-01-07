@@ -261,6 +261,7 @@ extension Adjustments {
                 ForEach(state.tempTargetPresets) { preset in
                     tempTargetView(for: preset, showCheckmark: showCheckmark) {
                         enactTempTargetPreset(preset)
+                        selectedPresetID = preset.id?.uuidString
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         swipeActions(for: preset)

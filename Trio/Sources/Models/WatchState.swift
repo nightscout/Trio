@@ -1,10 +1,11 @@
 import Foundation
+import SwiftUI
 
 struct WatchState: Hashable, Equatable, Sendable {
     var currentGlucose: String?
     var trend: String?
     var delta: String?
-    var glucoseValues: [(date: Date, glucose: Double)] = []
+    var glucoseValues: [(date: Date, glucose: Double, color: Color)] = []
     var units: GlucoseUnits = .mgdL
     var iob: String?
     var cob: String?
@@ -26,7 +27,7 @@ struct WatchState: Hashable, Equatable, Sendable {
             lhs.delta == rhs.delta &&
             lhs.glucoseValues.count == rhs.glucoseValues.count &&
             zip(lhs.glucoseValues, rhs.glucoseValues).allSatisfy {
-                $0.0.date == $0.1.date && $0.0.glucose == $0.1.glucose
+                $0.0.date == $0.1.date && $0.0.glucose == $0.1.glucose && $0.0.color == $0.1.color
             } &&
             lhs.units == rhs.units &&
             lhs.iob == rhs.iob &&
@@ -49,6 +50,7 @@ struct WatchState: Hashable, Equatable, Sendable {
         for value in glucoseValues {
             hasher.combine(value.date)
             hasher.combine(value.glucose)
+            hasher.combine(value.color)
         }
         hasher.combine(units)
         hasher.combine(iob)

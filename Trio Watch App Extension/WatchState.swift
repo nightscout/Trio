@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import WatchConnectivity
 
 /// WatchState manages the communication between the Watch app and the iPhone app using WatchConnectivity.
@@ -14,7 +15,7 @@ import WatchConnectivity
     var currentGlucose: String = "--"
     var trend: String? = ""
     var delta: String? = "--"
-    var glucoseValues: [(date: Date, glucose: Double)] = []
+    var glucoseValues: [(date: Date, glucose: Double, color: Color)] = []
     var cob: String? = "--"
     var iob: String? = "--"
     var lastLoopTime: String? = "--"
@@ -317,10 +318,11 @@ import WatchConnectivity
             if let glucoseData = message["glucoseValues"] as? [[String: Any]] {
                 self.glucoseValues = glucoseData.compactMap { data in
                     guard let glucose = data["glucose"] as? Double,
-                          let timestamp = data["date"] as? TimeInterval
+                          let timestamp = data["date"] as? TimeInterval,
+                          let color = data["color"] as? Color
                     else { return nil }
 
-                    return (Date(timeIntervalSince1970: timestamp), glucose)
+                    return (Date(timeIntervalSince1970: timestamp), glucose, color)
                 }
                 .sorted { $0.date < $1.date }
             }
