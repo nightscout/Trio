@@ -1,6 +1,14 @@
+//
+//  Trio_Watch_AppUITestsLaunchTests.swift
+//  Trio Watch AppUITests
+//
+//  Created by Marvin Polscheit on 08.01.25.
+//
+
 import XCTest
 
-final class TrioWatchAppUITestsLaunchTests: XCTestCase {
+final class Trio_Watch_AppUITestsLaunchTests: XCTestCase {
+
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
     }
@@ -9,7 +17,8 @@ final class TrioWatchAppUITestsLaunchTests: XCTestCase {
         continueAfterFailure = false
     }
 
-    @MainActor func testLaunch() throws {
+    @MainActor
+    func testLaunch() throws {
         let app = XCUIApplication()
         app.launch()
 
