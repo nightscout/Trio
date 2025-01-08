@@ -1288,7 +1288,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		BD432C942D2E80F600D1EB79 /* Trio Watch AppUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch AppUITests"; sourceTree = "<group>"; };
 		BDFF7A9E2D25FA970016C40C /* Preview Content */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Preview Content"; sourceTree = "<group>"; };
 		DDCEBF412CC1B42500DF4C36 /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -1983,7 +1982,6 @@
 				CE1F6DE62BAF1A180064EB8D /* BuildDetails.plist */,
 				38F3783A2613555C009DB701 /* Config.xcconfig */,
 				BD1CF8B72C1A4A8400CB930A /* ConfigOverride.xcconfig */,
-				BD432C942D2E80F600D1EB79 /* Trio Watch AppUITests */,
 				3818AA48274C267000843DB3 /* Frameworks */,
 				6B1A8D1C2B14D91600E76752 /* LiveActivity */,
 				587A54C82BCDCE0F009D38E2 /* Model */,
