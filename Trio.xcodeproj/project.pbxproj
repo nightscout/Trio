@@ -345,9 +345,7 @@
 		BDFF7A872D25F97D0016C40C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BDFF7A832D25F97D0016C40C /* Assets.xcassets */; };
 		BDFF7A882D25F97D0016C40C /* TrioMainWatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A842D25F97D0016C40C /* TrioMainWatchView.swift */; };
 		BDFF7A892D25F97D0016C40C /* TrioWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A852D25F97D0016C40C /* TrioWatchApp.swift */; };
-		BDFF7A8B2D25F97D0016C40C /* TrioWatchAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A8A2D25F97D0016C40C /* TrioWatchAppTests.swift */; };
-		BDFF7A8E2D25F97D0016C40C /* TrioWatchAppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A8C2D25F97D0016C40C /* TrioWatchAppUITests.swift */; };
-		BDFF7A8F2D25F97D0016C40C /* TrioWatchAppUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A8D2D25F97D0016C40C /* TrioWatchAppUITestsLaunchTests.swift */; };
+		BDFF7A8B2D25F97D0016C40C /* Unit Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A8A2D25F97D0016C40C /* Unit Tests.swift */; };
 		BF1667ADE69E4B5B111CECAE /* ManualTempBasalProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680C4420C9A345D46D90D06C /* ManualTempBasalProvider.swift */; };
 		C2A0A42F2CE03131003B98E8 /* ConstantValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */; };
 		C967DACD3B1E638F8B43BE06 /* ManualTempBasalStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCFE0781F9074C2917890E8 /* ManualTempBasalStateModel.swift */; };
@@ -593,13 +591,6 @@
 			remoteInfo = "Trio Watch WidgetExtension";
 		};
 		BDFF798C2D25AA890016C40C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 388E595025AD948C0019842D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = BDFF797B2D25AA870016C40C;
-			remoteInfo = "TrioWatch Watch App";
-		};
-		BDFF79962D25AA890016C40C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 388E595025AD948C0019842D /* Project object */;
 			proxyType = 1;
@@ -1063,14 +1054,11 @@
 		BDF530D72B40F8AC002CAF43 /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
 		BDFD16592AE40438007F0DDA /* TreatmentsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreatmentsRootView.swift; sourceTree = "<group>"; };
 		BDFF797C2D25AA870016C40C /* Trio Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Trio Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		BDFF798B2D25AA890016C40C /* TrioWatch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TrioWatch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		BDFF79952D25AA890016C40C /* TrioWatch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TrioWatch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BDFF798B2D25AA890016C40C /* Trio Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Trio Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDFF7A832D25F97D0016C40C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BDFF7A842D25F97D0016C40C /* TrioMainWatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioMainWatchView.swift; sourceTree = "<group>"; };
 		BDFF7A852D25F97D0016C40C /* TrioWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchApp.swift; sourceTree = "<group>"; };
-		BDFF7A8A2D25F97D0016C40C /* TrioWatchAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchAppTests.swift; sourceTree = "<group>"; };
-		BDFF7A8C2D25F97D0016C40C /* TrioWatchAppUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchAppUITests.swift; sourceTree = "<group>"; };
-		BDFF7A8D2D25F97D0016C40C /* TrioWatchAppUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchAppUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		BDFF7A8A2D25F97D0016C40C /* Unit Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Unit Tests.swift"; sourceTree = "<group>"; };
 		BDFF7A902D25F97D0016C40C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BDFF7A912D25F97D0016C40C /* TrioWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchApp.swift; sourceTree = "<group>"; };
 		BDFF7A922D25F97D0016C40C /* TrioWatchAppExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchAppExtension.swift; sourceTree = "<group>"; };
@@ -1360,13 +1348,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		BDFF79882D25AA890016C40C /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		BDFF79922D25AA890016C40C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2023,8 +2004,7 @@
 				38FCF3ED25E9028E0078B0D1 /* TrioTests.xctest */,
 				6B1A8D172B14D91600E76752 /* LiveActivityExtension.appex */,
 				BDFF797C2D25AA870016C40C /* Trio Watch App.app */,
-				BDFF798B2D25AA890016C40C /* TrioWatch Watch AppTests.xctest */,
-				BDFF79952D25AA890016C40C /* TrioWatch Watch AppUITests.xctest */,
+				BDFF798B2D25AA890016C40C /* Trio Watch AppTests.xctest */,
 				BD8207C32D2B42E50023339D /* Trio Watch Complication Extension.appex */,
 			);
 			name = Products;
@@ -2585,9 +2565,7 @@
 		BDFF7AA02D25FAA80016C40C /* Trio Watch App Tests */ = {
 			isa = PBXGroup;
 			children = (
-				BDFF7A8A2D25F97D0016C40C /* TrioWatchAppTests.swift */,
-				BDFF7A8C2D25F97D0016C40C /* TrioWatchAppUITests.swift */,
-				BDFF7A8D2D25F97D0016C40C /* TrioWatchAppUITestsLaunchTests.swift */,
+				BDFF7A8A2D25F97D0016C40C /* Unit Tests.swift */,
 			);
 			path = "Trio Watch App Tests";
 			sourceTree = "<group>";
@@ -3286,9 +3264,9 @@
 			productReference = BDFF797C2D25AA870016C40C /* Trio Watch App.app */;
 			productType = "com.apple.product-type.application";
 		};
-		BDFF798A2D25AA890016C40C /* TrioWatch Watch AppTests */ = {
+		BDFF798A2D25AA890016C40C /* Trio Watch AppTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BDFF79A32D25AA890016C40C /* Build configuration list for PBXNativeTarget "TrioWatch Watch AppTests" */;
+			buildConfigurationList = BDFF79A32D25AA890016C40C /* Build configuration list for PBXNativeTarget "Trio Watch AppTests" */;
 			buildPhases = (
 				BDFF79872D25AA890016C40C /* Sources */,
 				BDFF79882D25AA890016C40C /* Frameworks */,
@@ -3299,32 +3277,12 @@
 			dependencies = (
 				BDFF798D2D25AA890016C40C /* PBXTargetDependency */,
 			);
-			name = "TrioWatch Watch AppTests";
+			name = "Trio Watch AppTests";
 			packageProductDependencies = (
 			);
 			productName = "TrioWatch Watch AppTests";
-			productReference = BDFF798B2D25AA890016C40C /* TrioWatch Watch AppTests.xctest */;
+			productReference = BDFF798B2D25AA890016C40C /* Trio Watch AppTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		BDFF79942D25AA890016C40C /* TrioWatch Watch AppUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = BDFF79A62D25AA890016C40C /* Build configuration list for PBXNativeTarget "TrioWatch Watch AppUITests" */;
-			buildPhases = (
-				BDFF79912D25AA890016C40C /* Sources */,
-				BDFF79922D25AA890016C40C /* Frameworks */,
-				BDFF79932D25AA890016C40C /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				BDFF79972D25AA890016C40C /* PBXTargetDependency */,
-			);
-			name = "TrioWatch Watch AppUITests";
-			packageProductDependencies = (
-			);
-			productName = "TrioWatch Watch AppUITests";
-			productReference = BDFF79952D25AA890016C40C /* TrioWatch Watch AppUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
@@ -3349,10 +3307,6 @@
 						CreatedOnToolsVersion = 16.2;
 					};
 					BDFF798A2D25AA890016C40C = {
-						CreatedOnToolsVersion = 16.2;
-						TestTargetID = BDFF797B2D25AA870016C40C;
-					};
-					BDFF79942D25AA890016C40C = {
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = BDFF797B2D25AA870016C40C;
 					};
@@ -3405,8 +3359,7 @@
 				38FCF3EC25E9028E0078B0D1 /* TrioTests */,
 				6B1A8D162B14D91500E76752 /* LiveActivityExtension */,
 				BDFF797B2D25AA870016C40C /* Trio Watch App */,
-				BDFF798A2D25AA890016C40C /* TrioWatch Watch AppTests */,
-				BDFF79942D25AA890016C40C /* TrioWatch Watch AppUITests */,
+				BDFF798A2D25AA890016C40C /* Trio Watch AppTests */,
 				BD8207C22D2B42E50023339D /* Trio Watch Complication Extension */,
 			);
 		};
@@ -3461,13 +3414,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		BDFF79892D25AA890016C40C /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		BDFF79932D25AA890016C40C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -4112,16 +4058,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BDFF7A8B2D25F97D0016C40C /* TrioWatchAppTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		BDFF79912D25AA890016C40C /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				BDFF7A8E2D25F97D0016C40C /* TrioWatchAppUITests.swift in Sources */,
-				BDFF7A8F2D25F97D0016C40C /* TrioWatchAppUITestsLaunchTests.swift in Sources */,
+				BDFF7A8B2D25F97D0016C40C /* Unit Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4147,11 +4084,6 @@
 			isa = PBXTargetDependency;
 			target = BDFF797B2D25AA870016C40C /* Trio Watch App */;
 			targetProxy = BDFF798C2D25AA890016C40C /* PBXContainerItemProxy */;
-		};
-		BDFF79972D25AA890016C40C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = BDFF797B2D25AA870016C40C /* Trio Watch App */;
-			targetProxy = BDFF79962D25AA890016C40C /* PBXContainerItemProxy */;
 		};
 		BDFF799E2D25AA890016C40C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -4708,7 +4640,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TrioWatch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TrioWatch Watch App";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Trio Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Trio Watch App";
 				WATCHOS_DEPLOYMENT_TARGET = 10;
 			};
 			name = Debug;
@@ -4733,56 +4665,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TrioWatch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TrioWatch Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 10;
-			};
-			name = Release;
-		};
-		BDFF79A72D25AA890016C40C /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 9X82U8BHFK;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.nightscout.--DEVELOPMENT-TEAM-.trio.TrioWatch-Watch-AppUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_TARGET_NAME = "TrioWatch Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 10;
-			};
-			name = Debug;
-		};
-		BDFF79A82D25AA890016C40C /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 9X82U8BHFK;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.nightscout.--DEVELOPMENT-TEAM-.trio.TrioWatch-Watch-AppUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_TARGET_NAME = "TrioWatch Watch App";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Trio Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Trio Watch App";
 				WATCHOS_DEPLOYMENT_TARGET = 10;
 			};
 			name = Release;
@@ -4844,20 +4727,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		BDFF79A32D25AA890016C40C /* Build configuration list for PBXNativeTarget "TrioWatch Watch AppTests" */ = {
+		BDFF79A32D25AA890016C40C /* Build configuration list for PBXNativeTarget "Trio Watch AppTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BDFF79A42D25AA890016C40C /* Debug */,
 				BDFF79A52D25AA890016C40C /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
-		BDFF79A62D25AA890016C40C /* Build configuration list for PBXNativeTarget "TrioWatch Watch AppUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				BDFF79A72D25AA890016C40C /* Debug */,
-				BDFF79A82D25AA890016C40C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

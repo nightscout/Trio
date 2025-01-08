@@ -248,7 +248,7 @@ import WatchConnectivity
 
     // MARK: – Handle Acknowledgement Messages FROM Phone
 
-    private func handleAcknowledgment(success: Bool, message: String, isFinal: Bool = true) {
+    func handleAcknowledgment(success: Bool, message: String, isFinal: Bool = true) {
         if success {
             print("⌚️ Acknowledgment received: \(message)")
             showCommsAnimation = false // Hide progress animation
