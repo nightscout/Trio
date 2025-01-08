@@ -25,7 +25,7 @@ extension Adjustments.StateModel {
                 try viewContext.existingObject(with: id) as? TempTargetStored
             }
             isTempTargetEnabled = result.first?.enabled ?? false
-            if !isEnabled {
+            if !isOverrideEnabled {
                 await resetTempTargetState()
             }
         } catch {

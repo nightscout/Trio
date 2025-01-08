@@ -484,6 +484,8 @@
 		DDA6E3202D258E0500C2988C /* OverrideHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA6E31F2D258E0500C2988C /* OverrideHelpView.swift */; };
 		DDA6E3222D25901100C2988C /* TempTargetHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA6E3212D25901100C2988C /* TempTargetHelpView.swift */; };
 		DDA6E3572D25988500C2988C /* ContactImageHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA6E3562D25988500C2988C /* ContactImageHelpView.swift */; };
+		DDAA29832D2D1D93006546A1 /* AdjustmentsRootView+Overrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAA29822D2D1D7B006546A1 /* AdjustmentsRootView+Overrides.swift */; };
+		DDAA29852D2D1D9E006546A1 /* AdjustmentsRootView+TempTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAA29842D2D1D98006546A1 /* AdjustmentsRootView+TempTargets.swift */; };
 		DDB37CC52D05048F00D99BF4 /* ContactImageStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */; };
 		DDB37CC72D05127500D99BF4 /* FontExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC62D05127500D99BF4 /* FontExtensions.swift */; };
 		DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */; };
@@ -1187,6 +1189,8 @@
 		DDA6E31F2D258E0500C2988C /* OverrideHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideHelpView.swift; sourceTree = "<group>"; };
 		DDA6E3212D25901100C2988C /* TempTargetHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetHelpView.swift; sourceTree = "<group>"; };
 		DDA6E3562D25988500C2988C /* ContactImageHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageHelpView.swift; sourceTree = "<group>"; };
+		DDAA29822D2D1D7B006546A1 /* AdjustmentsRootView+Overrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentsRootView+Overrides.swift"; sourceTree = "<group>"; };
+		DDAA29842D2D1D98006546A1 /* AdjustmentsRootView+TempTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentsRootView+TempTargets.swift"; sourceTree = "<group>"; };
 		DDB37CC22D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDB37CC32D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageStorage.swift; sourceTree = "<group>"; };
@@ -2464,6 +2468,7 @@
 		BD793CAD2CE7660C00D669AC /* Overrides */ = {
 			isa = PBXGroup;
 			children = (
+				DDAA29822D2D1D7B006546A1 /* AdjustmentsRootView+Overrides.swift */,
 				DDA6E31F2D258E0500C2988C /* OverrideHelpView.swift */,
 				DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */,
 				DDD163192C4C695E00CD525A /* EditOverrideForm.swift */,
@@ -2477,6 +2482,7 @@
 				DDA6E3212D25901100C2988C /* TempTargetHelpView.swift */,
 				58A3D5392C96D4DE003F90FC /* AddTempTargetForm.swift */,
 				5825A1BD2C97335C0046467E /* EditTempTargetForm.swift */,
+				DDAA29842D2D1D98006546A1 /* AdjustmentsRootView+TempTargets.swift */,
 			);
 			path = TempTargets;
 			sourceTree = "<group>";
@@ -3525,6 +3531,7 @@
 				3811DEE825CA063400A708ED /* Injected.swift in Sources */,
 				DD1745152C54388A00211FAC /* TherapySettingsView.swift in Sources */,
 				585E2CAE2BE7BF46006ECF1A /* PumpEvent+helper.swift in Sources */,
+				DDAA29832D2D1D93006546A1 /* AdjustmentsRootView+Overrides.swift in Sources */,
 				DDD1631F2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld in Sources */,
 				DD1745482C55C61D00211FAC /* AutosensSettingsStateModel.swift in Sources */,
 				DD1745462C55C61500211FAC /* AutosensSettingsProvider.swift in Sources */,
@@ -3773,6 +3780,7 @@
 				CE7CA34F2A064973004BE681 /* BaseIntentsRequest.swift in Sources */,
 				E592A3772CEEC038009A472C /* ContactImageStateModel.swift in Sources */,
 				E592A3782CEEC038009A472C /* ContactImageDataFlow.swift in Sources */,
+				DDAA29852D2D1D9E006546A1 /* AdjustmentsRootView+TempTargets.swift in Sources */,
 				E592A3792CEEC038009A472C /* ContactImageRootView.swift in Sources */,
 				BDC531182D1062F200088832 /* ContactImageState.swift in Sources */,
 				E592A37A2CEEC038009A472C /* ContactImageProvider.swift in Sources */,
