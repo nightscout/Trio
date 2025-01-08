@@ -269,6 +269,155 @@ import WatchConnectivity
         }
     }
 
+    private func processRawDataForWatchState(_ message: [String: Any]) {
+        if let acknowledged = message["acknowledged"] as? Bool,
+           let ackMessage = message["message"] as? String
+        {
+            switch ackMessage {
+            case "Saving carbs...":
+                isMealBolusCombo = true
+                mealBolusStep = .savingCarbs
+                showCommsAnimation = true
+                handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
+            case "Enacting bolus...":
+                isMealBolusCombo = true
+                mealBolusStep = .enactingBolus
+                showCommsAnimation = true
+                handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
+            case "Carbs and bolus logged successfully":
+                isMealBolusCombo = false
+                handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
+            default:
+                isMealBolusCombo = false
+                handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
+            }
+        }
+
+        if let currentGlucose = message["currentGlucose"] as? String {
+            self.currentGlucose = currentGlucose
+        }
+
+        if let currentGlucoseColorString = message["currentGlucoseColorString"] as? String {
+            self.currentGlucoseColorString = currentGlucoseColorString
+        }
+
+        if let trend = message["trend"] as? String {
+            self.trend = trend
+        }
+
+        if let delta = message["delta"] as? String {
+            self.delta = delta
+        }
+
+        if let iob = message["iob"] as? String {
+            self.iob = iob
+        }
+
+        if let cob = message["cob"] as? String {
+            self.cob = cob
+        }
+
+        if let lastLoopTime = message["lastLoopTime"] as? String {
+            self.lastLoopTime = lastLoopTime
+        }
+
+        if let glucoseData = message["glucoseValues"] as? [[String: Any]] {
+            glucoseValues = glucoseData.compactMap { data in
+                guard let glucose = data["glucose"] as? Double,
+                      let timestamp = data["date"] as? TimeInterval,
+                      let colorString = data["color"] as? String
+                else { return nil }
+
+                return (
+                    Date(timeIntervalSince1970: timestamp),
+                    glucose,
+                    colorString.toColor() // Convert colorString to Color
+                )
+            }
+            .sorted { $0.date < $1.date }
+        }
+
+        if let overrideData = message["overridePresets"] as? [[String: Any]] {
+            overridePresets = overrideData.compactMap { data in
+                guard let name = data["name"] as? String,
+                      let isEnabled = data["isEnabled"] as? Bool
+                else { return nil }
+                return OverridePresetWatch(name: name, isEnabled: isEnabled)
+            }
+        }
+
+        if let tempTargetData = message["tempTargetPresets"] as? [[String: Any]] {
+            tempTargetPresets = tempTargetData.compactMap { data in
+                guard let name = data["name"] as? String,
+                      let isEnabled = data["isEnabled"] as? Bool
+                else { return nil }
+                return TempTargetPresetWatch(name: name, isEnabled: isEnabled)
+            }
+        }
+
+        if let bolusProgress = message["bolusProgress"] as? Double {
+            if !isBolusCanceled {
+                self.bolusProgress = bolusProgress
+            }
+        }
+
+        if let bolusWasCanceled = message["bolusCanceled"] as? Bool, bolusWasCanceled {
+            bolusProgress = 0
+            activeBolusAmount = 0
+            return
+        }
+
+        // Debug print für die Safety Limits
+        if let maxBolusValue = message["maxBolus"] {
+            print("⌚️ Received maxBolus: \(maxBolusValue) of type \(type(of: maxBolusValue))")
+            if let decimalValue = (maxBolusValue as? NSNumber)?.decimalValue {
+                maxBolus = decimalValue
+                print("⌚️ Converted maxBolus to: \(decimalValue)")
+            }
+        }
+
+        if let maxCarbsValue = message["maxCarbs"] {
+            if let decimalValue = (maxCarbsValue as? NSNumber)?.decimalValue {
+                maxCarbs = decimalValue
+            }
+        }
+
+        if let maxFatValue = message["maxFat"] {
+            if let decimalValue = (maxFatValue as? NSNumber)?.decimalValue {
+                maxFat = decimalValue
+            }
+        }
+
+        if let maxProteinValue = message["maxProtein"] {
+            if let decimalValue = (maxProteinValue as? NSNumber)?.decimalValue {
+                maxProtein = decimalValue
+            }
+        }
+
+        if let maxIOBValue = message["maxIOB"] {
+            if let decimalValue = (maxIOBValue as? NSNumber)?.decimalValue {
+                maxIOB = decimalValue
+            }
+        }
+
+        if let maxCOBValue = message["maxCOB"] {
+            if let decimalValue = (maxCOBValue as? NSNumber)?.decimalValue {
+                maxCOB = decimalValue
+            }
+        }
+
+        if let bolusIncrement = message["bolusIncrement"] {
+            if let decimalValue = (bolusIncrement as? NSNumber)?.decimalValue {
+                self.bolusIncrement = decimalValue
+            }
+        }
+
+        if let recommendedBolus = message["recommendedBolus"] as? NSNumber {
+            self.recommendedBolus = recommendedBolus.decimalValue
+            showBolusCalculationProgress = false
+        }
+    }
+
     // MARK: - WCSessionDelegate
 
     /// Called when the session has completed activation
@@ -289,157 +438,22 @@ import WatchConnectivity
     /// Handles incoming messages from the paired iPhone
     /// Updates local glucose data, trend, and delta information
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
-        print("⌚️ Watch received message: \(message)")
+        print("⌚️ Watch received data from message: \(message)")
 
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
+        let dataFromMessage = message["watchState"] as! [String: Any]
 
-            if let acknowledged = message["acknowledged"] as? Bool,
-               let ackMessage = message["message"] as? String
-            {
-                switch ackMessage {
-                case "Saving carbs...":
-                    self.isMealBolusCombo = true
-                    self.mealBolusStep = .savingCarbs
-                    self.showCommsAnimation = true
-                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
-                case "Enacting bolus...":
-                    self.isMealBolusCombo = true
-                    self.mealBolusStep = .enactingBolus
-                    self.showCommsAnimation = true
-                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
-                case "Carbs and bolus logged successfully":
-                    self.isMealBolusCombo = false
-                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
-                default:
-                    self.isMealBolusCombo = false
-                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
-                }
-            }
+        DispatchQueue.main.async {
+            self.processRawDataForWatchState(dataFromMessage)
+        }
+    }
 
-            if let currentGlucose = message["currentGlucose"] as? String {
-                self.currentGlucose = currentGlucose
-            }
+    func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
+        print("⌚️ Watch received data from userInfo: \(userInfo)")
 
-            if let currentGlucoseColorString = message["currentGlucoseColorString"] as? String {
-                self.currentGlucoseColorString = currentGlucoseColorString
-            }
+        let dataFromUserInfo = userInfo["watchState"] as! [String: Any]
 
-            if let trend = message["trend"] as? String {
-                self.trend = trend
-            }
-
-            if let delta = message["delta"] as? String {
-                self.delta = delta
-            }
-
-            if let iob = message["iob"] as? String {
-                self.iob = iob
-            }
-
-            if let cob = message["cob"] as? String {
-                self.cob = cob
-            }
-
-            if let lastLoopTime = message["lastLoopTime"] as? String {
-                self.lastLoopTime = lastLoopTime
-            }
-
-            if let glucoseData = message["glucoseValues"] as? [[String: Any]] {
-                self.glucoseValues = glucoseData.compactMap { data in
-                    guard let glucose = data["glucose"] as? Double,
-                          let timestamp = data["date"] as? TimeInterval,
-                          let colorString = data["color"] as? String
-                    else { return nil }
-
-                    return (
-                        Date(timeIntervalSince1970: timestamp),
-                        glucose,
-                        colorString.toColor() // Convert colorString to Color
-                    )
-                }
-                .sorted { $0.date < $1.date }
-            }
-
-            if let overrideData = message["overridePresets"] as? [[String: Any]] {
-                self.overridePresets = overrideData.compactMap { data in
-                    guard let name = data["name"] as? String,
-                          let isEnabled = data["isEnabled"] as? Bool
-                    else { return nil }
-                    return OverridePresetWatch(name: name, isEnabled: isEnabled)
-                }
-            }
-
-            if let tempTargetData = message["tempTargetPresets"] as? [[String: Any]] {
-                self.tempTargetPresets = tempTargetData.compactMap { data in
-                    guard let name = data["name"] as? String,
-                          let isEnabled = data["isEnabled"] as? Bool
-                    else { return nil }
-                    return TempTargetPresetWatch(name: name, isEnabled: isEnabled)
-                }
-            }
-
-            if let bolusProgress = message["bolusProgress"] as? Double {
-                if !self.isBolusCanceled {
-                    self.bolusProgress = bolusProgress
-                }
-            }
-
-            if let bolusWasCanceled = message["bolusCanceled"] as? Bool, bolusWasCanceled {
-                self.bolusProgress = 0
-                self.activeBolusAmount = 0
-                return
-            }
-
-            // Debug print für die Safety Limits
-            if let maxBolusValue = message["maxBolus"] {
-                print("⌚️ Received maxBolus: \(maxBolusValue) of type \(type(of: maxBolusValue))")
-                if let decimalValue = (maxBolusValue as? NSNumber)?.decimalValue {
-                    self.maxBolus = decimalValue
-                    print("⌚️ Converted maxBolus to: \(decimalValue)")
-                }
-            }
-
-            if let maxCarbsValue = message["maxCarbs"] {
-                if let decimalValue = (maxCarbsValue as? NSNumber)?.decimalValue {
-                    self.maxCarbs = decimalValue
-                }
-            }
-
-            if let maxFatValue = message["maxFat"] {
-                if let decimalValue = (maxFatValue as? NSNumber)?.decimalValue {
-                    self.maxFat = decimalValue
-                }
-            }
-
-            if let maxProteinValue = message["maxProtein"] {
-                if let decimalValue = (maxProteinValue as? NSNumber)?.decimalValue {
-                    self.maxProtein = decimalValue
-                }
-            }
-
-            if let maxIOBValue = message["maxIOB"] {
-                if let decimalValue = (maxIOBValue as? NSNumber)?.decimalValue {
-                    self.maxIOB = decimalValue
-                }
-            }
-
-            if let maxCOBValue = message["maxCOB"] {
-                if let decimalValue = (maxCOBValue as? NSNumber)?.decimalValue {
-                    self.maxCOB = decimalValue
-                }
-            }
-
-            if let bolusIncrement = message["bolusIncrement"] {
-                if let decimalValue = (bolusIncrement as? NSNumber)?.decimalValue {
-                    self.bolusIncrement = decimalValue
-                }
-            }
-
-            if let recommendedBolus = message["recommendedBolus"] as? NSNumber {
-                self.recommendedBolus = recommendedBolus.decimalValue
-                showBolusCalculationProgress = false
-            }
+        DispatchQueue.main.async {
+            self.processRawDataForWatchState(dataFromUserInfo)
         }
     }
 

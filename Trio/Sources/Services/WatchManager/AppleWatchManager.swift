@@ -384,11 +384,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         // if session is reachable, it means watch App is in the foreground -> send watchState as message
         // if session is not reachable, it means it's in background -> send watchState as userInfo
         if session.isReachable {
-            session.sendMessage(message, replyHandler: nil, errorHandler: { (error) -> Void in
-                debug(.watchManager, "❌ Error sending watch state: \(error.localizedDescription)")
+            session.sendMessage(["watchState": message], replyHandler: nil, errorHandler: { (error) -> Void in
+                debug(.watchManager, "❌ Error sending watch state as message: \(error.localizedDescription)")
             })
         } else {
-            session.transferUserInfo(message)
+            session.transferUserInfo(["watchState": message])
         }
     }
 
