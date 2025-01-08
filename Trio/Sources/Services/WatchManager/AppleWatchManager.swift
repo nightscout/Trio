@@ -327,23 +327,23 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             return
         }
 
-        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Watch Data Upload") {
-            guard backgroundTaskID != .invalid else { return }
-            Task {
-                UIApplication.shared.endBackgroundTask(backgroundTaskID)
-            }
-            backgroundTaskID = .invalid
-        }
-
-        defer {
-            if backgroundTaskID != .invalid {
-                Task {
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                }
-                backgroundTaskID = .invalid
-            }
-        }
+//        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+//        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Watch Data Upload") {
+//            guard backgroundTaskID != .invalid else { return }
+//            Task {
+//                UIApplication.shared.endBackgroundTask(backgroundTaskID)
+//            }
+//            backgroundTaskID = .invalid
+//        }
+//
+//        defer {
+//            if backgroundTaskID != .invalid {
+//                Task {
+//                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
+//                }
+//                backgroundTaskID = .invalid
+//            }
+//        }
 
         let message: [String: Any] = [
             "currentGlucose": state.currentGlucose ?? "--",
