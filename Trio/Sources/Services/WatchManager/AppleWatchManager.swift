@@ -428,6 +428,20 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
         DispatchQueue.main.async { [weak self] in
+
+            // watch requested for FRESH watchState data!
+            if let requestWatchUpdate = message["requestWatchUpdate"] as? String,
+               requestWatchUpdate == "watchState"
+            {
+                debug(.watchManager, "📱 Watch requested watch state data update.")
+                if let self = self {
+                    Task {
+                        let state = await self.setupWatchState()
+                        await self.sendDataToWatch(state)
+                    }
+                }
+            }
+
             if let bolusAmount = message["bolus"] as? Double,
                message["carbs"] == nil,
                message["date"] == nil

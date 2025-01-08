@@ -269,6 +269,21 @@ import WatchConnectivity
         }
     }
 
+    func requestWatchStateUpdate() {
+        guard let session = session, session.activationState == .activated else {
+            session?.activate()
+            return
+        }
+
+        if session.isReachable {
+            print("⌚️ Request an update for watch state from Trio iPhone app...")
+
+            session.sendMessage(["requestForWatchUpdate": "watchState"], replyHandler: nil) { error in
+                print("⌚️ Update request for fresh watch state data: \(error.localizedDescription)")
+            }
+        }
+    }
+
     private func processRawDataForWatchState(_ message: [String: Any]) {
         if let acknowledged = message["acknowledged"] as? Bool,
            let ackMessage = message["message"] as? String
@@ -428,9 +443,16 @@ import WatchConnectivity
                 print("⌚️ Watch session activation failed: \(error.localizedDescription)")
                 return
             }
+            
+            // the order here is probably not perfect and needsto be re-arranged
+            if activationState == .activated {
+                self.requestWatchStateUpdate()
+            }
 
             print("⌚️ Watch session activated with state: \(activationState.rawValue)")
+            
             self.isReachable = session.isReachable
+            
             print("⌚️ Watch isReachable after activation: \(session.isReachable)")
         }
     }

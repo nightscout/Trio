@@ -60,6 +60,9 @@ struct TrioMainWatchView: View {
                 }
             }
             .onAppear {
+                // request fresh data from watch
+                state.requestWatchStateUpdate()
+
                 // reset input amounts
                 state.bolusAmount = 0
                 state.carbsAmount = 0
