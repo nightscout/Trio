@@ -443,16 +443,16 @@ import WatchConnectivity
                 print("⌚️ Watch session activation failed: \(error.localizedDescription)")
                 return
             }
-            
+
             // the order here is probably not perfect and needsto be re-arranged
             if activationState == .activated {
                 self.requestWatchStateUpdate()
             }
 
             print("⌚️ Watch session activated with state: \(activationState.rawValue)")
-            
+
             self.isReachable = session.isReachable
-            
+
             print("⌚️ Watch isReachable after activation: \(session.isReachable)")
         }
     }
@@ -483,8 +483,18 @@ import WatchConnectivity
     /// Updates the local reachability status
     func sessionReachabilityDidChange(_ session: WCSession) {
         DispatchQueue.main.async {
-            self.isReachable = session.isReachable
             print("⌚️ Watch reachability changed: \(session.isReachable)")
+
+            if session.isReachable {
+                // request fresh data from watch
+                self.requestWatchStateUpdate()
+
+                // reset input amounts
+                self.bolusAmount = 0
+                self.carbsAmount = 0
+                // reset auth progress
+                self.confirmationProgress = 0
+            }
         }
     }
 }
