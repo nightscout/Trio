@@ -849,7 +849,7 @@ extension Home {
                         buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
                         label: "Stats",
                         iconString: "chart.line.text.clipboard",
-                        action: { print("open stats") }
+                        action: { state.showModal(for: .statistics) }
                     )
 
                     Spacer()
