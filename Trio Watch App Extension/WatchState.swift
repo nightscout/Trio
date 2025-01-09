@@ -233,8 +233,8 @@ import WatchConnectivity
         guard let session = session, session.isReachable else { return }
 
         let message: [String: Any] = [
-            "requestBolusRecommendation": true,
-            "carbs": carbsAmount
+            WatchMessageKeys.requestBolusRecommendation: true,
+            WatchMessageKeys.carbs: carbsAmount
         ]
 
         session.sendMessage(message, replyHandler: nil) { error in
@@ -251,15 +251,15 @@ import WatchConnectivity
     func handleAcknowledgment(success: Bool, message: String, isFinal: Bool = true) {
         if success {
             print("⌚️ Acknowledgment received: \(message)")
-            showCommsAnimation = false // Hide progress animation
             acknowledgementStatus = .success
             acknowledgmentMessage = "\(message)"
         } else {
             print("⌚️ Acknowledgment failed: \(message)")
-            showCommsAnimation = false // Hide progress animation
             acknowledgementStatus = .failure
             acknowledgmentMessage = "\(message)"
         }
+
+        showCommsAnimation = false // Hide progress animation
 
         if isFinal {
             showAcknowledgmentBanner = true
@@ -271,6 +271,7 @@ import WatchConnectivity
 
     func requestWatchStateUpdate() {
         guard let session = session, session.activationState == .activated else {
+            print("⌚️ Session not activated, activating...")
             session?.activate()
             return
         }
@@ -278,65 +279,46 @@ import WatchConnectivity
         if session.isReachable {
             print("⌚️ Request an update for watch state from Trio iPhone app...")
 
-            session.sendMessage(["requestForWatchUpdate": "watchState"], replyHandler: nil) { error in
+            let message = [WatchMessageKeys.requestWatchUpdate: WatchMessageKeys.watchState]
+
+            session.sendMessage(message, replyHandler: nil) { error in
                 print("⌚️ Update request for fresh watch state data: \(error.localizedDescription)")
             }
+        } else {
+            print("⌚️ Phone not reachable for watch state update")
         }
     }
 
     private func processRawDataForWatchState(_ message: [String: Any]) {
-        if let acknowledged = message["acknowledged"] as? Bool,
-           let ackMessage = message["message"] as? String
-        {
-            switch ackMessage {
-            case "Saving carbs...":
-                isMealBolusCombo = true
-                mealBolusStep = .savingCarbs
-                showCommsAnimation = true
-                handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
-            case "Enacting bolus...":
-                isMealBolusCombo = true
-                mealBolusStep = .enactingBolus
-                showCommsAnimation = true
-                handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
-            case "Carbs and bolus logged successfully":
-                isMealBolusCombo = false
-                handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
-            default:
-                isMealBolusCombo = false
-                handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
-            }
-        }
-
-        if let currentGlucose = message["currentGlucose"] as? String {
+        if let currentGlucose = message[WatchMessageKeys.currentGlucose] as? String {
             self.currentGlucose = currentGlucose
         }
 
-        if let currentGlucoseColorString = message["currentGlucoseColorString"] as? String {
+        if let currentGlucoseColorString = message[WatchMessageKeys.currentGlucoseColorString] as? String {
             self.currentGlucoseColorString = currentGlucoseColorString
         }
 
-        if let trend = message["trend"] as? String {
+        if let trend = message[WatchMessageKeys.trend] as? String {
             self.trend = trend
         }
 
-        if let delta = message["delta"] as? String {
+        if let delta = message[WatchMessageKeys.delta] as? String {
             self.delta = delta
         }
 
-        if let iob = message["iob"] as? String {
+        if let iob = message[WatchMessageKeys.iob] as? String {
             self.iob = iob
         }
 
-        if let cob = message["cob"] as? String {
+        if let cob = message[WatchMessageKeys.cob] as? String {
             self.cob = cob
         }
 
-        if let lastLoopTime = message["lastLoopTime"] as? String {
+        if let lastLoopTime = message[WatchMessageKeys.lastLoopTime] as? String {
             self.lastLoopTime = lastLoopTime
         }
 
-        if let glucoseData = message["glucoseValues"] as? [[String: Any]] {
+        if let glucoseData = message[WatchMessageKeys.glucoseValues] as? [[String: Any]] {
             glucoseValues = glucoseData.compactMap { data in
                 guard let glucose = data["glucose"] as? Double,
                       let timestamp = data["date"] as? TimeInterval,
@@ -352,7 +334,7 @@ import WatchConnectivity
             .sorted { $0.date < $1.date }
         }
 
-        if let overrideData = message["overridePresets"] as? [[String: Any]] {
+        if let overrideData = message[WatchMessageKeys.overridePresets] as? [[String: Any]] {
             overridePresets = overrideData.compactMap { data in
                 guard let name = data["name"] as? String,
                       let isEnabled = data["isEnabled"] as? Bool
@@ -361,7 +343,7 @@ import WatchConnectivity
             }
         }
 
-        if let tempTargetData = message["tempTargetPresets"] as? [[String: Any]] {
+        if let tempTargetData = message[WatchMessageKeys.tempTargetPresets] as? [[String: Any]] {
             tempTargetPresets = tempTargetData.compactMap { data in
                 guard let name = data["name"] as? String,
                       let isEnabled = data["isEnabled"] as? Bool
@@ -370,20 +352,19 @@ import WatchConnectivity
             }
         }
 
-        if let bolusProgress = message["bolusProgress"] as? Double {
+        if let bolusProgress = message[WatchMessageKeys.bolusProgress] as? Double {
             if !isBolusCanceled {
                 self.bolusProgress = bolusProgress
             }
         }
 
-        if let bolusWasCanceled = message["bolusCanceled"] as? Bool, bolusWasCanceled {
+        if let bolusWasCanceled = message[WatchMessageKeys.bolusCanceled] as? Bool, bolusWasCanceled {
             bolusProgress = 0
             activeBolusAmount = 0
             return
         }
 
-        // Debug print für die Safety Limits
-        if let maxBolusValue = message["maxBolus"] {
+        if let maxBolusValue = message[WatchMessageKeys.maxBolus] {
             print("⌚️ Received maxBolus: \(maxBolusValue) of type \(type(of: maxBolusValue))")
             if let decimalValue = (maxBolusValue as? NSNumber)?.decimalValue {
                 maxBolus = decimalValue
@@ -391,45 +372,40 @@ import WatchConnectivity
             }
         }
 
-        if let maxCarbsValue = message["maxCarbs"] {
+        if let maxCarbsValue = message[WatchMessageKeys.maxCarbs] {
             if let decimalValue = (maxCarbsValue as? NSNumber)?.decimalValue {
                 maxCarbs = decimalValue
             }
         }
 
-        if let maxFatValue = message["maxFat"] {
+        if let maxFatValue = message[WatchMessageKeys.maxFat] {
             if let decimalValue = (maxFatValue as? NSNumber)?.decimalValue {
                 maxFat = decimalValue
             }
         }
 
-        if let maxProteinValue = message["maxProtein"] {
+        if let maxProteinValue = message[WatchMessageKeys.maxProtein] {
             if let decimalValue = (maxProteinValue as? NSNumber)?.decimalValue {
                 maxProtein = decimalValue
             }
         }
 
-        if let maxIOBValue = message["maxIOB"] {
+        if let maxIOBValue = message[WatchMessageKeys.maxIOB] {
             if let decimalValue = (maxIOBValue as? NSNumber)?.decimalValue {
                 maxIOB = decimalValue
             }
         }
 
-        if let maxCOBValue = message["maxCOB"] {
+        if let maxCOBValue = message[WatchMessageKeys.maxCOB] {
             if let decimalValue = (maxCOBValue as? NSNumber)?.decimalValue {
                 maxCOB = decimalValue
             }
         }
 
-        if let bolusIncrement = message["bolusIncrement"] {
+        if let bolusIncrement = message[WatchMessageKeys.bolusIncrement] {
             if let decimalValue = (bolusIncrement as? NSNumber)?.decimalValue {
                 self.bolusIncrement = decimalValue
             }
-        }
-
-        if let recommendedBolus = message["recommendedBolus"] as? NSNumber {
-            self.recommendedBolus = recommendedBolus.decimalValue
-            showBolusCalculationProgress = false
         }
     }
 
@@ -462,20 +438,79 @@ import WatchConnectivity
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
         print("⌚️ Watch received data from message: \(message)")
 
-        let dataFromMessage = message["watchState"] as! [String: Any]
+        // The WatchState message does not contain the ackmessages
+        // We need to handle them separately and outside of an if condition that only treats watchState data like the if condition below
+        if let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
+           let ackMessage = message[WatchMessageKeys.message] as? String
+        {
+            DispatchQueue.main.async {
+                switch ackMessage {
+                case "Saving carbs...":
+                    self.isMealBolusCombo = true
+                    self.mealBolusStep = .savingCarbs
+                    self.showCommsAnimation = true
+                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
+                case "Enacting bolus...":
+                    self.isMealBolusCombo = true
+                    self.mealBolusStep = .enactingBolus
+                    self.showCommsAnimation = true
+                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
+                case "Carbs and bolus logged successfully":
+                    self.isMealBolusCombo = false
+                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
+                default:
+                    self.isMealBolusCombo = false
+                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
+                }
+            }
+            return
+        }
 
-        DispatchQueue.main.async {
-            self.processRawDataForWatchState(dataFromMessage)
+        // Recommended bolus is also not part of the WatchState message, hence the extra condition here
+        if let recommendedBolus = message[WatchMessageKeys.recommendedBolus] as? NSNumber {
+            print("⌚️ Received recommended bolus: \(recommendedBolus)")
+            self.recommendedBolus = recommendedBolus.decimalValue
+            showBolusCalculationProgress = false
+            return
+        }
+
+        // Handle bolus progress updates
+        if let progress = message[WatchMessageKeys.bolusProgress] as? Double {
+            DispatchQueue.main.async {
+                if !self.isBolusCanceled {
+                    self.bolusProgress = progress
+                }
+            }
+            return
+        }
+
+        // Handle bolus cancellation
+        if message[WatchMessageKeys.bolusCanceled] as? Bool == true {
+            DispatchQueue.main.async {
+                self.bolusProgress = 0
+                self.activeBolusAmount = 0
+            }
+            return
+        }
+
+        if let dataFromMessage = message[WatchMessageKeys.watchState] as? [String: Any] {
+            DispatchQueue.main.async {
+                self.processRawDataForWatchState(dataFromMessage)
+            }
+        } else {
+            print("⌚️ Received message without valid state or ack data: \(message)")
         }
     }
 
     func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
         print("⌚️ Watch received data from userInfo: \(userInfo)")
 
-        let dataFromUserInfo = userInfo["watchState"] as! [String: Any]
-
-        DispatchQueue.main.async {
-            self.processRawDataForWatchState(dataFromUserInfo)
+        if let dataFromUserInfo = userInfo["watchState"] as? [String: Any] {
+            DispatchQueue.main.async {
+                self.processRawDataForWatchState(dataFromUserInfo)
+            }
+        } else {
+            print("⌚️ Warning: Received userInfo without valid watchState data")
         }
     }
 

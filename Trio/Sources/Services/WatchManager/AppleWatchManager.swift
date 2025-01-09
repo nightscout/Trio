@@ -327,68 +327,50 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             return
         }
 
-//        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-//        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Watch Data Upload") {
-//            guard backgroundTaskID != .invalid else { return }
-//            Task {
-//                UIApplication.shared.endBackgroundTask(backgroundTaskID)
-//            }
-//            backgroundTaskID = .invalid
-//        }
-//
-//        defer {
-//            if backgroundTaskID != .invalid {
-//                Task {
-//                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-//                }
-//                backgroundTaskID = .invalid
-//            }
-//        }
-
         let message: [String: Any] = [
-            "currentGlucose": state.currentGlucose ?? "--",
-            "currentGlucoseColorString": state.currentGlucoseColorString ?? "#ffffff",
-            "trend": state.trend ?? "",
-            "delta": state.delta ?? "",
-            "iob": state.iob ?? "",
-            "cob": state.cob ?? "",
-            "lastLoopTime": state.lastLoopTime ?? "",
-            "glucoseValues": state.glucoseValues.map { value in
+            WatchMessageKeys.currentGlucose: state.currentGlucose ?? "--",
+            WatchMessageKeys.currentGlucoseColorString: state.currentGlucoseColorString ?? "#ffffff",
+            WatchMessageKeys.trend: state.trend ?? "",
+            WatchMessageKeys.delta: state.delta ?? "",
+            WatchMessageKeys.iob: state.iob ?? "",
+            WatchMessageKeys.cob: state.cob ?? "",
+            WatchMessageKeys.lastLoopTime: state.lastLoopTime ?? "",
+            WatchMessageKeys.glucoseValues: state.glucoseValues.map { value in
                 [
                     "glucose": value.glucose,
                     "date": value.date.timeIntervalSince1970,
                     "color": value.color
                 ]
             },
-            "overridePresets": state.overridePresets.map { preset in
+            WatchMessageKeys.overridePresets: state.overridePresets.map { preset in
                 [
                     "name": preset.name,
                     "isEnabled": preset.isEnabled
                 ]
             },
-            "tempTargetPresets": state.tempTargetPresets.map { preset in
+            WatchMessageKeys.tempTargetPresets: state.tempTargetPresets.map { preset in
                 [
                     "name": preset.name,
                     "isEnabled": preset.isEnabled
                 ]
             },
-            "maxBolus": state.maxBolus,
-            "maxCarbs": state.maxCarbs,
-            "maxFat": state.maxFat,
-            "maxProtein": state.maxProtein,
-            "maxIOB": state.maxIOB,
-            "maxCOB": state.maxCOB,
-            "bolusIncrement": state.bolusIncrement
+            WatchMessageKeys.maxBolus: state.maxBolus,
+            WatchMessageKeys.maxCarbs: state.maxCarbs,
+            WatchMessageKeys.maxFat: state.maxFat,
+            WatchMessageKeys.maxProtein: state.maxProtein,
+            WatchMessageKeys.maxIOB: state.maxIOB,
+            WatchMessageKeys.maxCOB: state.maxCOB,
+            WatchMessageKeys.bolusIncrement: state.bolusIncrement
         ]
 
         // if session is reachable, it means watch App is in the foreground -> send watchState as message
         // if session is not reachable, it means it's in background -> send watchState as userInfo
         if session.isReachable {
-            session.sendMessage(["watchState": message], replyHandler: nil, errorHandler: { (error) -> Void in
-                debug(.watchManager, "❌ Error sending watch state as message: \(error.localizedDescription)")
-            })
+            session.sendMessage([WatchMessageKeys.watchState: message], replyHandler: nil) { error in
+                debug(.watchManager, "❌ Error sending watch state: \(error.localizedDescription)")
+            }
         } else {
-            session.transferUserInfo(["watchState": message])
+            session.transferUserInfo([WatchMessageKeys.watchState: message])
         }
     }
 
@@ -399,8 +381,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
 
         let ackMessage: [String: Any] = [
-            "acknowledged": success,
-            "message": message
+            WatchMessageKeys.acknowledged: success,
+            WatchMessageKeys.message: message
         ]
 
         session.sendMessage(ackMessage, replyHandler: nil) { error in
@@ -428,36 +410,36 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
         DispatchQueue.main.async { [weak self] in
-
-            // watch requested for FRESH watchState data!
-            if let requestWatchUpdate = message["requestWatchUpdate"] as? String,
-               requestWatchUpdate == "watchState"
+            // Prüfe zuerst auf Watch State Update Request
+            if let requestWatchUpdate = message[WatchMessageKeys.requestWatchUpdate] as? String,
+               requestWatchUpdate == WatchMessageKeys.watchState
             {
                 debug(.watchManager, "📱 Watch requested watch state data update.")
-                if let self = self {
-                    Task {
-                        let state = await self.setupWatchState()
-                        await self.sendDataToWatch(state)
-                    }
+                guard let self = self else { return }
+
+                Task {
+                    let state = await self.setupWatchState()
+                    await self.sendDataToWatch(state)
                 }
+                return
             }
 
-            if let bolusAmount = message["bolus"] as? Double,
-               message["carbs"] == nil,
-               message["date"] == nil
+            if let bolusAmount = message[WatchMessageKeys.bolus] as? Double,
+               message[WatchMessageKeys.carbs] == nil,
+               message[WatchMessageKeys.date] == nil
             {
                 debug(.watchManager, "📱 Received bolus request from watch: \(bolusAmount)U")
                 self?.handleBolusRequest(Decimal(bolusAmount))
-            } else if let carbsAmount = message["carbs"] as? Int,
-                      let timestamp = message["date"] as? TimeInterval,
-                      message["bolus"] == nil
+            } else if let carbsAmount = message[WatchMessageKeys.carbs] as? Int,
+                      let timestamp = message[WatchMessageKeys.date] as? TimeInterval,
+                      message[WatchMessageKeys.bolus] == nil
             {
                 let date = Date(timeIntervalSince1970: timestamp)
                 debug(.watchManager, "📱 Received carbs request from watch: \(carbsAmount)g at \(date)")
                 self?.handleCarbsRequest(carbsAmount, date)
-            } else if let bolusAmount = message["bolus"] as? Double,
-                      let carbsAmount = message["carbs"] as? Int,
-                      let timestamp = message["date"] as? TimeInterval
+            } else if let bolusAmount = message[WatchMessageKeys.bolus] as? Double,
+                      let carbsAmount = message[WatchMessageKeys.carbs] as? Int,
+                      let timestamp = message[WatchMessageKeys.date] as? TimeInterval
             {
                 let date = Date(timeIntervalSince1970: timestamp)
                 debug(
@@ -469,28 +451,28 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 debug(.watchManager, "📱 Invalid or incomplete data received from watch. Received:  \(message)")
             }
 
-            if message["cancelOverride"] as? Bool == true {
+            if message[WatchMessageKeys.cancelOverride] as? Bool == true {
                 debug(.watchManager, "📱 Received cancel override request from watch")
                 self?.handleCancelOverride()
             }
 
-            if let presetName = message["activateOverride"] as? String {
+            if let presetName = message[WatchMessageKeys.activateOverride] as? String {
                 debug(.watchManager, "📱 Received activate override request from watch for preset: \(presetName)")
                 self?.handleActivateOverride(presetName)
             }
 
-            if let presetName = message["activateTempTarget"] as? String {
+            if let presetName = message[WatchMessageKeys.activateTempTarget] as? String {
                 debug(.watchManager, "📱 Received activate temp target request from watch for preset: \(presetName)")
                 self?.handleActivateTempTarget(presetName)
             }
 
-            if message["cancelTempTarget"] as? Bool == true {
+            if message[WatchMessageKeys.cancelTempTarget] as? Bool == true {
                 debug(.watchManager, "📱 Received cancel temp target request from watch")
                 self?.handleCancelTempTarget()
             }
 
             // Handle bolus cancellation
-            if message["cancelBolus"] as? Bool == true {
+            if message[WatchMessageKeys.cancelBolus] as? Bool == true {
                 Task {
                     await self?.apsManager.cancelBolus { [self] success, message in
                         // Acknowledge success or error of bolus
@@ -503,8 +485,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 }
             }
 
-            if message["requestBolusRecommendation"] as? Bool == true {
-                let carbs = message["carbs"] as? Int ?? 0
+            if message[WatchMessageKeys.requestBolusRecommendation] as? Bool == true {
+                let carbs = message[WatchMessageKeys.carbs] as? Int ?? 0
 
                 Task { [weak self] in
                     guard let self = self else { return }
@@ -518,7 +500,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
                     // Send recommendation back to watch
                     let recommendationMessage: [String: Any] = [
-                        "recommendedBolus": NSDecimalNumber(decimal: result.insulinCalculated)
+                        WatchMessageKeys.recommendedBolus: NSDecimalNumber(decimal: result.insulinCalculated)
                     ]
 
                     if let session = self.session, session.isReachable {
@@ -875,7 +857,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     private func sendBolusProgressToWatch(progress: Decimal?) {
         guard let session = session, session.isReachable, let progress = progress else { return }
 
-        let message: [String: Any] = ["bolusProgress": Double(truncating: progress as NSNumber)]
+        let message: [String: Any] = [WatchMessageKeys.bolusProgress: Double(truncating: progress as NSNumber)]
 
         session.sendMessage(message, replyHandler: nil) { error in
             debug(.watchManager, "❌ Error sending bolus progress: \(error.localizedDescription)")

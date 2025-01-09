@@ -206,6 +206,8 @@ struct TrioMainWatchView: View {
         case .meal:
             navigationPath.append(NavigationDestinations.carbsInput)
         case .bolus:
+            // Reset carbs amount when directly going to bolus input
+            state.carbsAmount = 0
             navigationPath.append(NavigationDestinations.bolusInput)
         case .mealBolusCombo:
             continueToBolus = true // Explicitely set subsequent view navigation
