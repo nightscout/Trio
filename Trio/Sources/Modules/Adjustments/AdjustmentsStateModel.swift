@@ -16,7 +16,7 @@ extension Adjustments {
         // MARK: - Override and Temp Target Properties
 
         var overridePercentage: Double = 100
-        var isEnabled = false
+        var isOverrideEnabled = false
         var indefinite = true
         var overrideDuration: Decimal = 0
         var target: Decimal = 0

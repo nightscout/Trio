@@ -56,7 +56,7 @@ struct GlucoseChartView: View {
                     }
                 }
                 .chartXAxis(.hidden)
-                .chartYAxisLabel("\(timeWindow.rawValue)h", alignment: .topLeading)
+                .chartYAxisLabel("\(timeWindow.rawValue) h", alignment: .topLeading)
                 .chartYAxis {
                     AxisMarks(position: .trailing) { value in
                         AxisGridLine(stroke: .init(lineWidth: 0.65, dash: [2, 3]))
@@ -64,7 +64,7 @@ struct GlucoseChartView: View {
 
                         AxisValueLabel {
                             if let glucose = value.as(Double.self) {
-                                Text("\(Int(glucose))").font(.system(size: 8))
+                                Text("\(Int(glucose))")
                             }
                         }
                     }
