@@ -12,7 +12,7 @@ extension Adjustments.StateModel {
             overrideToEnact?.enabled = true
             overrideToEnact?.date = Date()
             overrideToEnact?.isUploadedToNS = false
-            isEnabled = true
+            isOverrideEnabled = true
 
             await disableAllActiveOverrides(except: id, createOverrideRunEntry: currentActiveOverride != nil)
             await resetStateVariables()
@@ -201,8 +201,8 @@ extension Adjustments.StateModel {
             let result = try IDs.compactMap { id in
                 try viewContext.existingObject(with: id) as? OverrideStored
             }
-            isEnabled = result.first?.enabled ?? false
-            if !isEnabled {
+            isOverrideEnabled = result.first?.enabled ?? false
+            if !isOverrideEnabled {
                 await resetStateVariables()
             }
         } catch {
