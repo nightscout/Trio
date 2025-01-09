@@ -4,6 +4,8 @@ import SwiftUI
 import UIKit
 
 struct LoopView: View {
+    @Environment(\.colorScheme) var colorScheme
+
     private enum Config {
         static let lag: TimeInterval = 30
     }
@@ -19,6 +21,16 @@ struct LoopView: View {
     private let rect = CGRect(x: 0, y: 0, width: 18, height: 18)
 
     var body: some View {
+        loopStatusWithMinutes
+            .padding(.vertical, 5)
+            .padding(.horizontal, 10)
+            .overlay(
+                Capsule()
+                    .stroke(color.opacity(0.4), lineWidth: 2)
+            )
+    }
+
+    private var loopStatusWithMinutes: some View {
         HStack(alignment: .center) {
             ZStack {
                 Image(systemName: "circle")
