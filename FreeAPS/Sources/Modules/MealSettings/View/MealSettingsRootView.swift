@@ -344,8 +344,8 @@ extension MealSettings {
                                     Text("(Fat × 45%) + (Protein × 20%)")
                                     Text("100% is full effect:").bold()
                                     Text("(Fat × 90%) + (Protein × 40%)")
-                                    Text("200% is double effect:").bold()
-                                    Text("(Fat × 180%) + (Protein x 80%)")
+                                    Text("110% makes fat-to-carbs ratio essentially equal:").bold()
+                                    Text("(Fat × 99%) + (Protein x 44%)")
                                 }
                                 Text(
                                     "Tip: You may find that your normal carb ratio needs to increase to a larger number when you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 50%."
