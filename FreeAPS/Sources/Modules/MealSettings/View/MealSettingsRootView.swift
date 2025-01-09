@@ -345,6 +345,8 @@ extension MealSettings {
                                     Text("110% makes fat-to-carbs ratio essentially equal:").bold()
                                     Text("(Fat × 99%) + (Protein x 44%)")
                                 }
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
                                 Text(
                                     "Tip: You may find that your normal carb ratio needs to increase to a larger number when you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 50%."
                                 )
