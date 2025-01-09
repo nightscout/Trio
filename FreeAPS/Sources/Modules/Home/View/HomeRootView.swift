@@ -854,8 +854,8 @@ extension Home {
 
                     Spacer()
 
-                    timeIntervalButtons.padding(.top, UIDevice.adjustPadding(min: 0, max: 12))
-                        .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 12))
+                    timeIntervalButtons.padding(.top, UIDevice.adjustPadding(min: 0, max: 10))
+                        .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 10))
 
                     Spacer()
 
