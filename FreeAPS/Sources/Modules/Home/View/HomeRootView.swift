@@ -5,11 +5,9 @@ import SwiftUI
 import Swinject
 
 struct TimePicker: Identifiable {
-//    let label: String
-//    let number: String
     var active: Bool
     let hours: Int16
-    var id: String { hours.description + Date().timeIntervalSince1970.description }
+    var id: String { hours.description }
 }
 
 extension Home {
