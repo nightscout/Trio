@@ -413,7 +413,7 @@ extension UserInterfaceSettings {
                                                 VStack(alignment: .leading, spacing: 5) {
                                                     Text("Total Insulin in Scope:").bold()
                                                     Text(
-                                                        "Displays the total insulin administered since midnight, both basal and bolus."
+                                                        "Displays the total insulin administered above your profile basal rate within the timeframe selected on the home screen."
                                                     )
                                                 }
                                             }
