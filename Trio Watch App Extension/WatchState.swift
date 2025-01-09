@@ -437,13 +437,22 @@ import WatchConnectivity
     /// Updates local glucose data, trend, and delta information
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
         print("⌚️ Watch received data from message: \(message)")
+        processWatchMessage(message)
+    }
 
-        // The WatchState message does not contain the ackmessages
-        // We need to handle them separately and outside of an if condition that only treats watchState data like the if condition below
-        if let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
-           let ackMessage = message[WatchMessageKeys.message] as? String
-        {
-            DispatchQueue.main.async {
+    func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
+        print("⌚️ Watch received data from userInfo: \(userInfo)")
+        processWatchMessage(userInfo)
+    }
+
+    private func processWatchMessage(_ message: [String: Any]) {
+        DispatchQueue.main.async {
+            // Handle acknowledgment messages first
+            if let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
+               let ackMessage = message[WatchMessageKeys.message] as? String
+            {
+                print("⌚️ Received acknowledgment: \(ackMessage), success: \(acknowledged)")
+
                 switch ackMessage {
                 case "Saving carbs...":
                     self.isMealBolusCombo = true
@@ -462,55 +471,36 @@ import WatchConnectivity
                     self.isMealBolusCombo = false
                     self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
                 }
+                return
             }
-            return
-        }
 
-        // Recommended bolus is also not part of the WatchState message, hence the extra condition here
-        if let recommendedBolus = message[WatchMessageKeys.recommendedBolus] as? NSNumber {
-            print("⌚️ Received recommended bolus: \(recommendedBolus)")
-            self.recommendedBolus = recommendedBolus.decimalValue
-            showBolusCalculationProgress = false
-            return
-        }
-
-        // Handle bolus progress updates
-        if let progress = message[WatchMessageKeys.bolusProgress] as? Double {
-            DispatchQueue.main.async {
+            // Handle bolus progress updates
+            if let progress = message[WatchMessageKeys.bolusProgress] as? Double {
                 if !self.isBolusCanceled {
                     self.bolusProgress = progress
                 }
+                return
             }
-            return
-        }
 
-        // Handle bolus cancellation
-        if message[WatchMessageKeys.bolusCanceled] as? Bool == true {
-            DispatchQueue.main.async {
+            // Handle bolus cancellation
+            if message[WatchMessageKeys.bolusCanceled] as? Bool == true {
                 self.bolusProgress = 0
                 self.activeBolusAmount = 0
+                return
             }
-            return
-        }
 
-        if let dataFromMessage = message[WatchMessageKeys.watchState] as? [String: Any] {
-            DispatchQueue.main.async {
+            // Handle recommended bolus
+            if let recommendedBolus = message[WatchMessageKeys.recommendedBolus] as? NSNumber {
+                print("⌚️ Received recommended bolus: \(recommendedBolus)")
+                self.recommendedBolus = recommendedBolus.decimalValue
+                self.showBolusCalculationProgress = false
+                return
+            }
+
+            // Handle watch state updates
+            if let dataFromMessage = message[WatchMessageKeys.watchState] as? [String: Any] {
                 self.processRawDataForWatchState(dataFromMessage)
             }
-        } else {
-            print("⌚️ Received message without valid state or ack data: \(message)")
-        }
-    }
-
-    func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
-        print("⌚️ Watch received data from userInfo: \(userInfo)")
-
-        if let dataFromUserInfo = userInfo["watchState"] as? [String: Any] {
-            DispatchQueue.main.async {
-                self.processRawDataForWatchState(dataFromUserInfo)
-            }
-        } else {
-            print("⌚️ Warning: Received userInfo without valid watchState data")
         }
     }
 
