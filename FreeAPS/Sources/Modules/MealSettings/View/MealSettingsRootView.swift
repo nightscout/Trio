@@ -288,7 +288,6 @@ extension MealSettings {
                             )
                             Text("Increasing this setting may result in more FPU entries with smaller carb values.")
                             Text("Decreasing this setting may result in fewer FPU entries with larger carb values.")
-                            Text("Note: Accepted range for this setting is 5 - 12 hours.")
                         }
                     )
 
@@ -316,7 +315,6 @@ extension MealSettings {
                             Text("The shorter the interval, the smoother the correlating dosing result.")
                             Text("Increasing this setting may result in fewer FPU entries with larger carb values.")
                             Text("Decreasing this setting may result in more FPU entries with smaller carb values.")
-                            Text("Accepted range for this setting is 5 - 60 minutes.")
                         }
                     )
 
