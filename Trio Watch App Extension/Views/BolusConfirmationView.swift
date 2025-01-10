@@ -93,9 +93,12 @@ struct BolusConfirmationView: View {
         .background(trioBackgroundColor)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Image(systemName: "digitalcrown.arrow.counterclockwise.fill")
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(Color.white)
+                Image(
+                    systemName: WKInterfaceDevice.current()
+                        .wristLocation == .left ? "digitalcrown.arrow.clockwise.fill" : "digitalcrown.arrow.counterclockwise.fill"
+                )
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(Color.white)
             }
         }
         .blur(radius: state.showBolusProgressOverlay ? 3 : 0)

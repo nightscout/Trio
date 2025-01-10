@@ -14,7 +14,6 @@ struct TrioMainWatchView: View {
     @State private var showingOverrideSheet: Bool = false
     // navigation flag for meal bolus combo
     @State private var continueToBolus = false
-//    @State private var navigationPath: [NavigationDestinations] = []
     @State private var navigationPath = NavigationPath()
 
     // treatments
