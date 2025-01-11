@@ -271,4 +271,69 @@ platform :ios do
       git_basic_authorization: Base64.strict_encode64("#{GITHUB_REPOSITORY_OWNER}:#{GH_PAT}")
     )
   end
+
+  desc "Check Certificates and Trigger Workflow for Expired or Missing Certificates"
+  lane :check_and_renew_certificates do
+    setup_ci if ENV['CI']
+    ENV["MATCH_READONLY"] = false.to_s
+
+    # Authenticate using App Store Connect API Key
+    api_key = app_store_connect_api_key(
+      key_id: ENV["FASTLANE_KEY_ID"],
+      issuer_id: ENV["FASTLANE_ISSUER_ID"],
+      key_content: ENV["FASTLANE_KEY"] # Ensure valid key content
+    )
+
+    # Initialize flag to track if renewall of certificates is needed
+    new_certificate_needed = false
+
+    # Fetch all certificates
+    certificates = Spaceship::ConnectAPI::Certificate.all
+
+    # Filter for Distribution Certificates
+    distribution_certs = certificates.select { |cert| cert.certificate_type == "DISTRIBUTION" }
+
+    # Handle case where no distribution certificates are found
+    if distribution_certs.empty?
+      puts "⚠️ No distribution certificates found! Triggering workflow to create new certificates."
+      new_certificate_needed = true
+    else
+      # Get expiration warning days from ENV or default to 7
+      expiration_warning_days = (ENV['EXPIRATION_WARNING_DAYS'] || 7).to_i
+
+      # Check for expiration
+      distribution_certs.each do |cert|
+        expiration_date = Time.parse(cert.expiration_date)
+
+        puts "Checking Distribution Certificate: #{cert.id}, Expiration: #{expiration_date}"
+
+        if expiration_date < Time.now
+          puts "❌ Certificate #{cert.id} is already expired!"
+          new_certificate_needed = true
+        elsif expiration_date < Time.now + expiration_warning_days * 24 * 60 * 60
+          puts "⚠️ Certificate #{cert.id} is expiring in #{expiration_warning_days} days"
+          new_certificate_needed = false
+        else
+          puts "✅ Certificate #{cert.id} is valid, and will not expire during the next #{expiration_warning_days} days"
+        end
+      end
+    end
+
+    # Write result to new_certificate_needed.txt
+    file_path = File.expand_path('new_certificate_needed.txt')
+    File.write(file_path, new_certificate_needed ? 'true' : 'false')
+
+    # Handle output for triggering workflow
+    if new_certificate_needed
+      puts "❌ Certificate is expired or no certificates found. Creating flag file to trigger renewal or creation of certificate."
+    else
+      puts "✅ Distribution certificate is present and valid. No action required."
+    end
+
+    # Log the absolute path and contents of the new_certificate_needed.txt file
+    puts ""
+    puts "Absolute path of new_certificate_needed.txt: #{file_path}"
+    new_certificate_needed_content = File.read(file_path)
+    puts "Certificate creation or renewal needed: #{new_certificate_needed_content}"
+  end
 end

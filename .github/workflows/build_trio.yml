@@ -23,6 +23,14 @@ jobs:
     uses: ./.github/workflows/validate_secrets.yml
     secrets: inherit
 
+  # Checks if Distribution certificate is present and valid, optionally nukes and
+  # creates new certs if the repository variable ENABLE_NUKE_CERTS == 'true'
+  check_certs:
+      name: Check certificates
+      needs: validate
+      uses: ./.github/workflows/check_certs.yml
+      secrets: inherit
+
   # Checks if GH_PAT holds workflow permissions
   # Checks for existence of alive branch; if non-existent creates it
   check_alive_and_permissions:
@@ -185,7 +193,7 @@ jobs:
   # Builds Trio
   build:
     name: Build
-    needs: [validate, check_alive_and_permissions, check_latest_from_upstream]
+    needs: [validate, check_alive_and_permissions, check_latest_from_upstream, check_certs]
     runs-on: macos-14
     permissions:
       contents: write

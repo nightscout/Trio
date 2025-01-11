@@ -1,0 +1,126 @@
+name: Check Certificates
+run-name: Check Certificates (${{ github.ref_name }})
+
+on: [workflow_call, workflow_dispatch]
+
+env:
+  EXPIRATION_WARNING_DAYS: 7
+
+jobs:
+  check_certs:
+    runs-on: ubuntu-latest
+    env:
+      FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
+      FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
+      FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+    outputs:
+      new_certificate_needed: ${{ steps.set_output.outputs.new_certificate_needed }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Check Certificates and create or renew if needed
+        env:
+          FASTLANE_USER: ${{ secrets.APPLE_ID }}
+          FASTLANE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+        run: bundle exec fastlane check_and_renew_certificates
+        id: check_certs
+
+      - name: Set output based on Fastlane result
+        id: set_output
+        run: |
+          CERT_STATUS_FILE="${{ github.workspace }}/fastlane/new_certificate_needed.txt"
+          ENABLE_NUKE_CERTS=${{ vars.ENABLE_NUKE_CERTS }}
+
+          if [ -f "$CERT_STATUS_FILE" ]; then
+            CERT_STATUS=$(cat "$CERT_STATUS_FILE" | tr -d '\n' | tr -d '\r') # Read file content and strip newlines
+            echo "new_certificate_needed: $CERT_STATUS"
+            echo "new_certificate_needed=$CERT_STATUS" >> $GITHUB_OUTPUT
+          else
+            echo "Certificate status file not found. Defaulting to false."
+            echo "new_certificate_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if certs are valid
+          if [ "$CERT_STATUS" != "true" ]; then
+            echo "::notice::✅ Distribution certificate is present and valid. No action required."
+          fi
+
+          # Check if ENABLE_NUKE_CERTS is not set to true when certs are valid
+          if [ "$CERT_STATUS" != "true" ] && [ "$ENABLE_NUKE_CERTS" != "true" ]; then
+            echo "::notice::🔔 Automated renewal of certificates is disabled because the repository variable ENABLE_NUKE_CERTS is not set to 'true'."
+          fi
+
+          # Check if ENABLE_NUKE_CERTS is not set to true when certs are not valid
+          if [ "$CERT_STATUS" = "true" ] && [ "$ENABLE_NUKE_CERTS" != "true" ]; then
+            echo "::error::❌ No valid distribution certificate found. Automated renewal of certificates was skipped because the repository variable ENABLE_NUKE_CERTS is not set to 'true'."
+            exit 1
+          fi
+
+          # Check if vars.FORCE_NUKE_CERTS is not set to true
+          if [ vars.FORCE_NUKE_CERTS = "true" ]; then
+            echo "::warning::‼️ Nuking of certificates was forced because the repository variable FORCE_NUKE_CERTS is set to 'true'."
+          fi
+
+  # Nuke Certs if needed, and if the repository variable ENABLE_NUKE_CERTS is set to 'true', or if FORCE_NUKE_CERTS is set to 'true', which will always force certs to be nuked
+  nuke_certs:
+    needs: check_certs
+    runs-on: macos-14
+    if: ${{ (needs.check_certs.outputs.new_certificate_needed == 'true' && vars.ENABLE_NUKE_CERTS == 'true') || vars.FORCE_NUKE_CERTS == 'true' }}
+    steps:
+      - name: Debug check_certs output
+        run: echo "new_certificate_needed=${{ needs.check_certs.outputs.new_certificate_needed }}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Run Fastlane nuke_certs
+        run: bundle exec fastlane nuke_certs
+        env:
+          TEAMID: ${{ secrets.TEAMID }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
+          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
+          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
+          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+          FASTLANE_SKIP_ALL_LANE_SUMMARIES: "true"
+
+      - name: Annotate Summary after Nuke
+        run: |
+          echo "::warning::⚠️⚠️⚠️   All Distribution certificates and TestFlight profiles have been revoked."
+
+
+  # Trigger create_certs.yml if nuke_certs ran
+  trigger_create_certs:
+    needs: [check_certs, nuke_certs]
+    uses: ./.github/workflows/create_certs.yml
+    secrets: inherit
+
+  # Annotate Summary after Certificate Creation
+  annotate_summary:
+    needs: trigger_create_certs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Annotate Summary
+        run: |
+          echo "::warning::⚠️⚠️⚠️   Certificates have been recreated successfully."
+          echo "::warning::⚠️⚠️⚠️   If you have other apps being distributed by GitHub Actions / Fastlane / TestFlight, please run the '3. Create Certificates' workflow for each of these apps to allow these apps to be built."
+          echo "::warning::✅✅✅   But don't worry about your existing TestFlight builds, they will keep working!"
