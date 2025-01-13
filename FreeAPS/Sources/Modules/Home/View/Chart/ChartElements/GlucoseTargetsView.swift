@@ -74,9 +74,9 @@ struct GlucoseTargetsView: ChartContent {
         // Base date is the start of the day for the startMarker
         let baseDate = Calendar.current.startOfDay(for: startMarker)
 
-        // Process each target twice: once for today and once for tomorrow
-        for index in 0 ..< (targets.count * 2) {
-            // Calculate the day offset (0 for today, 1 for tomorrow)
+        // Process each target three times: for today, tomorrow, and the day after
+        for index in 0 ..< (targets.count * 3) {
+            // Calculate the day offset (0 for today, 1 for tomorrow, 2 for day after)
             let dayOffset = index / targets.count
             let targetIndex = index % targets.count
 
