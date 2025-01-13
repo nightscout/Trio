@@ -26,7 +26,6 @@ extension Home {
         var basalProfile: [BasalProfileEntry] = []
         var bgTargets = BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
             ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
-        var tempTargets: [TempTarget] = []
         var timerDate = Date()
         var closedLoop = false
         var pumpSuspended = false
@@ -37,7 +36,6 @@ extension Home {
         var reservoir: Decimal?
         var pumpName = ""
         var pumpExpiresAtDate: Date?
-        var tempTarget: TempTarget?
         var highTTraisesSens: Bool = false
         var lowTTlowersSens: Bool = false
         var isExerciseModeActive: Bool = false
@@ -563,7 +561,6 @@ extension Home.StateModel:
     PumpTimeZoneObserver,
     PumpDeactivatedObserver
 {
-
     func determinationDidUpdate(_: Determination) {
         waitForSuggestion = false
     }

@@ -317,7 +317,6 @@ extension Home {
                     safeAreaSize: notificationsDisabled == true ? safeAreaSize : 0,
                     units: state.units,
                     hours: state.filteredHours,
-                    tempTargets: state.tempTargets,
                     highGlucose: state.highGlucose,
                     lowGlucose: state.lowGlucose,
                     currentGlucoseTarget: state.currentGlucoseTarget,
