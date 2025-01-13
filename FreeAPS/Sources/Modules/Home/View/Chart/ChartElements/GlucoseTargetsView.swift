@@ -47,18 +47,13 @@ struct GlucoseTargetsView: ChartContent {
      Processes raw glucose target data into a list of target profiles for visualization.
 
      - Parameter rawTargets: The raw glucose target data containing offset and glucose values.
-     - Returns: An array of `TargetProfile` objects, each representing a glucose target range for today and tomorrow.
+     - Returns: An array of `TargetProfile` objects, each representing a glucose target range starting from the day of the startMarker and ending two days later.
 
      The function:
-     - Converts glucose targets into profiles covering two consecutive days (today and tomorrow).
+     - Converts glucose targets into profiles covering three consecutive days (day of startMarker, day after startMarker and day after that).
      - Calculates start and end times for each target based on the offsets provided.
      - Handles conversions between mg/dL and mmol/L as per user settings.
      - Ensures targets span across midnight to avoid data cutoff.
-
-     Example:
-     For a target at offset 0 (midnight) with low glucose value 70 mg/dL, the function generates two profiles:
-     - One for today from midnight to the next target offset or end of the day.
-     - Another for tomorrow covering the same time range.
      */
     private func processFetchedTargets(_ rawTargets: BGTargets) -> [TargetProfile] {
         var targetProfiles: [TargetProfile] = []
@@ -74,7 +69,7 @@ struct GlucoseTargetsView: ChartContent {
         // Base date is the start of the day for the startMarker
         let baseDate = Calendar.current.startOfDay(for: startMarker)
 
-        // Process each target three times: for today, tomorrow, and the day after
+        // Process each target three times
         for index in 0 ..< (targets.count * 3) {
             // Calculate the day offset (0 for today, 1 for tomorrow, 2 for day after)
             let dayOffset = index / targets.count
