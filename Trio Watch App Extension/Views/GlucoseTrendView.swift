@@ -51,13 +51,13 @@ struct GlucoseTrendView: View {
                 VStack(alignment: .center) {
                     Text(state.currentGlucose)
                         .fontWeight(.semibold)
-                        .font(.system(is40mm ? .title2 : .title, design: .rounded))
+                        .font(.system(is40mm ? .title2 : .title))
                         .foregroundStyle(state.currentGlucoseColorString.toColor())
 
                     if let delta = state.delta {
                         Text(delta)
                             .fontWeight(.semibold)
-                            .font(.system(.caption, design: .rounded))
+                            .font(.system(.caption))
                             .foregroundStyle(.secondary)
                     }
                 }

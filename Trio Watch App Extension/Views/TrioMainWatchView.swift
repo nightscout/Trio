@@ -40,6 +40,21 @@ struct TrioMainWatchView: View {
     )
 
     var body: some View {
+        ZStack {
+            if !state.showSyncingAnimation {
+                mainTabView
+            } else {
+                trioBackgroundColor.ignoresSafeArea()
+
+                VStack {
+                    ProgressView("Syncing...")
+                    Spacer()
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private var mainTabView: some View {
         NavigationStack(path: $navigationPath) {
             TabView(selection: $currentPage) {
                 // Page 1: Current glucose trend in "BG bobble"

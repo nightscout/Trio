@@ -46,14 +46,14 @@ import WatchConnectivity
     // Pump specific dosing increment
     var bolusIncrement: Decimal = 0.05
 
-    // acknowlegement handling
+    // Acknowlegement handling
     var showCommsAnimation: Bool = false
     var showAcknowledgmentBanner: Bool = false
     var acknowledgementStatus: AcknowledgementStatus = .pending
     var acknowledgmentMessage: String = ""
     var shouldNavigateToRoot: Bool = true
 
-    // bolus calculation progress
+    // Bolus calculation progress
     var showBolusCalculationProgress: Bool = false
 
     // Meal bolus-specific properties
@@ -66,6 +66,17 @@ import WatchConnectivity
     }
 
     var recommendedBolus: Decimal = 0
+
+    // Debouncing and batch processing helpers
+
+    /// Temporary storage for new data arriving via WatchConnectivity.
+    private var pendingData: [String: Any] = [:]
+
+    /// Work item to schedule finalizing the pending data.
+    private var finalizeWorkItem: DispatchWorkItem?
+
+    /// A flag to tell the UI we’re still updating.
+    var showSyncingAnimation: Bool = false
 
     override init() {
         super.init()
@@ -361,7 +372,7 @@ import WatchConnectivity
         if let bolusWasCanceled = message[WatchMessageKeys.bolusCanceled] as? Bool, bolusWasCanceled {
             bolusProgress = 0
             activeBolusAmount = 0
-            return
+//            return
         }
 
         if let maxBolusValue = message[WatchMessageKeys.maxBolus] {
@@ -445,12 +456,58 @@ import WatchConnectivity
         processWatchMessage(userInfo)
     }
 
+    /// Accumulate new data, set isSyncing, and debounce final update
+    private func scheduleUIUpdate(with newData: [String: Any]) {
+        // 1) Mark as syncing
+        showSyncingAnimation = true
+
+        // 2) Merge data into our pendingData
+        pendingData.merge(newData) { _, newVal in newVal }
+
+        // 3) Cancel any previous finalization
+        finalizeWorkItem?.cancel()
+
+        // 4) Create and schedule a new finalization
+        let workItem = DispatchWorkItem { [self] in
+            self.finalizePendingData()
+        }
+        finalizeWorkItem = workItem
+
+        // e.g. 0.3 seconds after last message
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: workItem)
+    }
+
+    /// Applies all pending data to the watch state in one shot
+    private func finalizePendingData() {
+        guard !pendingData.isEmpty else {
+            // If we have no actual data, just end syncing
+            showSyncingAnimation = false
+            return
+        }
+
+        print("⌚️ Finalizing pending data: \(pendingData)")
+
+        // Actually set your main UI properties here
+        processRawDataForWatchState(pendingData)
+
+        // Clear
+        pendingData.removeAll()
+
+        // Done - but ensure this runs at least 2 sec, to avoid flickering
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.showSyncingAnimation = false
+        }
+    }
+
     private func processWatchMessage(_ message: [String: Any]) {
         DispatchQueue.main.async {
-            // Handle acknowledgment messages first
+            // 1) Acknowledgment logic
             if let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
                let ackMessage = message[WatchMessageKeys.message] as? String
             {
+                self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
+                self.showSyncingAnimation = false
+
                 print("⌚️ Received acknowledgment: \(ackMessage), success: \(acknowledged)")
 
                 switch ackMessage {
@@ -471,35 +528,57 @@ import WatchConnectivity
                     self.isMealBolusCombo = false
                     self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
                 }
-                return
             }
 
-            // Handle bolus progress updates
+            // 2) Bolus progress
             if let progress = message[WatchMessageKeys.bolusProgress] as? Double {
                 if !self.isBolusCanceled {
                     self.bolusProgress = progress
                 }
-                return
+                self.showSyncingAnimation = false
             }
 
-            // Handle bolus cancellation
+            // 3) Bolus cancellation
             if message[WatchMessageKeys.bolusCanceled] as? Bool == true {
                 self.bolusProgress = 0
                 self.activeBolusAmount = 0
-                return
+                self.showSyncingAnimation = false
             }
 
-            // Handle recommended bolus
+            // 4) Recommended bolus
             if let recommendedBolus = message[WatchMessageKeys.recommendedBolus] as? NSNumber {
-                print("⌚️ Received recommended bolus: \(recommendedBolus)")
                 self.recommendedBolus = recommendedBolus.decimalValue
                 self.showBolusCalculationProgress = false
-                return
+                self.showSyncingAnimation = false
             }
 
-            // Handle watch state updates
-            if let dataFromMessage = message[WatchMessageKeys.watchState] as? [String: Any] {
-                self.processRawDataForWatchState(dataFromMessage)
+            // 5) Raw watchState data
+            if let watchStateData = message[WatchMessageKeys.watchState] as? [String: Any] {
+                self.scheduleUIUpdate(with: watchStateData)
+            } else {
+                // Or if your phone sends these UI keys individually:
+                let possibleUIKeys = [
+                    WatchMessageKeys.currentGlucose,
+                    WatchMessageKeys.trend,
+                    WatchMessageKeys.iob,
+                    WatchMessageKeys.cob,
+                    WatchMessageKeys.lastLoopTime,
+                    WatchMessageKeys.glucoseValues,
+                    WatchMessageKeys.overridePresets,
+                    WatchMessageKeys.tempTargetPresets,
+                    WatchMessageKeys.maxBolus,
+                    WatchMessageKeys.maxCarbs,
+                    WatchMessageKeys.maxFat,
+                    WatchMessageKeys.maxProtein,
+                    WatchMessageKeys.maxIOB,
+                    WatchMessageKeys.maxCOB,
+                    WatchMessageKeys.bolusIncrement
+                ]
+
+                let hasUIData = message.keys.contains { possibleUIKeys.contains($0) }
+                if hasUIData {
+                    self.scheduleUIUpdate(with: message)
+                }
             }
         }
     }
