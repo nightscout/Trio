@@ -267,7 +267,6 @@ extension Home {
         }
 
         private func registerObservers() {
-            broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(SettingsObserver.self, observer: self)
             broadcaster.register(PreferencesObserver.self, observer: self)
@@ -554,7 +553,6 @@ extension Home {
 }
 
 extension Home.StateModel:
-    GlucoseObserver,
     DeterminationObserver,
     SettingsObserver,
     PreferencesObserver,
@@ -565,10 +563,6 @@ extension Home.StateModel:
     PumpTimeZoneObserver,
     PumpDeactivatedObserver
 {
-    // TODO: still needed?
-    func glucoseDidUpdate(_: [BloodGlucose]) {
-//        setupGlucose()
-    }
 
     func determinationDidUpdate(_: Determination) {
         waitForSuggestion = false
@@ -604,11 +598,6 @@ extension Home.StateModel:
         highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
         isExerciseModeActive = settingsManager.preferences.exerciseMode
         lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
-    }
-
-    // TODO: is this ever really triggered? react to MOC changes?
-    func pumpHistoryDidUpdate(_: [PumpHistoryEvent]) {
-        displayPumpStatusHighlightMessage()
     }
 
     func pumpSettingsDidChange(_: PumpSettings) {
