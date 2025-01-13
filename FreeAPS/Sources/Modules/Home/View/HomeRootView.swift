@@ -365,6 +365,8 @@ extension Home {
                             )!
                         ).font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
+                    // aligns the evBG icon exactly with the first pixel of loop status icon
+                    .padding(.leading, 12)
                 } else {
                     HStack {
                         Image(systemName: "arrow.right.circle")

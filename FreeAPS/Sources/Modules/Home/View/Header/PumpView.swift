@@ -70,10 +70,19 @@ struct PumpView: View {
                     )
 
                     if let timeZone = timeZone, timeZone.secondsFromGMT() != TimeZone.current.secondsFromGMT() {
-                        Image(systemName: "clock.badge.exclamationmark.fill")
-                            .font(.callout)
-                            .symbolRenderingMode(.palette)
-                            .foregroundStyle(.red, Color(.warning))
+                        HStack {
+                            Image(systemName: "clock.badge.exclamationmark.fill")
+                                .font(.callout)
+                                .symbolRenderingMode(.palette)
+                                .foregroundStyle(.red, Color(.warning))
+
+                            Text("Timezone")
+                                .font(.callout)
+                                .fontWeight(.bold)
+                                .fontDesign(.rounded)
+                                .foregroundStyle(.red)
+                        }
+                        .padding(.leading, 12)
                     }
                 }
 
@@ -98,6 +107,8 @@ struct PumpView: View {
                             .fontWeight(.bold)
                             .fontDesign(.rounded)
                     }
+                    // aligns the stopwatch icon exactly with the first pixel of the reservoir icon
+                    .padding(.leading, 12)
                 }
             }
         }

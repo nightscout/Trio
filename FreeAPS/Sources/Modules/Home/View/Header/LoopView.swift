@@ -33,8 +33,7 @@ struct LoopView: View {
     private var loopStatusWithMinutes: some View {
         HStack(alignment: .center) {
             ZStack {
-                Image(systemName: "circle")
-                    .mask(mask(in: rect).fill(style: FillStyle(eoFill: true)))
+                Image(systemName: (!closedLoop || manualTempBasal) ? "circle.and.line.horizontal" : "circle")
                 if isLooping {
                     ProgressView()
                 }
@@ -53,7 +52,6 @@ struct LoopView: View {
                 Text("--")
             }
         }
-        .strikethrough(!closedLoop || manualTempBasal, pattern: .solid, color: color)
         .font(.callout).fontWeight(.bold).fontDesign(.rounded)
         .foregroundColor(color)
     }
@@ -91,14 +89,6 @@ struct LoopView: View {
         } else {
             return .loopRed
         }
-    }
-
-    func mask(in rect: CGRect) -> Path {
-        var path = Rectangle().path(in: rect)
-        if !closedLoop || manualTempBasal {
-            path.addPath(Rectangle().path(in: CGRect(x: rect.minX, y: rect.midY - 4, width: rect.width, height: 8)))
-        }
-        return path
     }
 }
 
