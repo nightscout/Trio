@@ -278,6 +278,14 @@ extension Home {
             }
         }
 
+        var statsIconString: String {
+            if #available(iOS 18, *) {
+                return "chart.line.text.clipboard"
+            } else {
+                return "list.clipboard"
+            }
+        }
+
         @ViewBuilder private func tappableButton(
             buttonColor: Color,
             label: String,
@@ -294,7 +302,7 @@ extension Home {
                 .font(.footnote)
                 .padding(.vertical, 5)
                 .padding(.horizontal, 10)
-                .foregroundColor(buttonColor)
+                .foregroundStyle(buttonColor)
                 .overlay(
                     Capsule()
                         .stroke(buttonColor.opacity(0.4), lineWidth: 2)
@@ -848,7 +856,7 @@ extension Home {
                     tappableButton(
                         buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
                         label: "Stats",
-                        iconString: "chart.line.text.clipboard",
+                        iconString: statsIconString,
                         action: { state.showModal(for: .statistics) }
                     )
 
