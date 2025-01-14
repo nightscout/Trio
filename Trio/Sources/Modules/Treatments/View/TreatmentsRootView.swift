@@ -353,7 +353,7 @@ extension Treatments {
             }
             .sheet(isPresented: $state.showInfo) {
                 PopupView(state: state)
-                    .presentationDetents([.fraction(0.9), .medium, .large])
+                    .presentationDetents([.fraction(0.9), .large])
                     .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $showPresetSheet, onDismiss: {
