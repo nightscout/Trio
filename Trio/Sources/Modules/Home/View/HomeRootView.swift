@@ -5,11 +5,9 @@ import SwiftUI
 import Swinject
 
 struct TimePicker: Identifiable {
-    let label: String
-    let number: String
     var active: Bool
     let hours: Int16
-    var id: String { label }
+    var id: String { hours.description }
 }
 
 extension Home {
@@ -36,14 +34,11 @@ extension Home {
         @State var showPumpSelection: Bool = false
         @State var notificationsDisabled = false
         @State var timeButtons: [TimePicker] = [
-            TimePicker(label: "2 hours", number: "2", active: false, hours: 2),
-            TimePicker(label: "4 hours", number: "4", active: false, hours: 4),
-            TimePicker(label: "6 hours", number: "6", active: false, hours: 6),
-            TimePicker(label: "12 hours", number: "12", active: false, hours: 12),
-            TimePicker(label: "24 hours", number: "24", active: false, hours: 24)
+            TimePicker(active: false, hours: 4),
+            TimePicker(active: false, hours: 6),
+            TimePicker(active: false, hours: 12),
+            TimePicker(active: false, hours: 24)
         ]
-
-        let buttonFont = Font.custom("TimeButtonFont", size: 14)
 
         @FetchRequest(fetchRequest: OverrideStored.fetch(
             NSPredicate.lastActiveOverride,
@@ -116,7 +111,8 @@ extension Home {
                 timeZone: state.timeZone,
                 pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
                 battery: state.batteryFromPersistence
-            ).onTapGesture {
+            )
+            .onTapGesture {
                 if state.pumpDisplayState == nil {
                     // shows user confirmation dialog with pump model choices, then proceeds to setup
                     showPumpSelection.toggle()
@@ -245,45 +241,73 @@ extension Home {
             return components.isEmpty ? nil : components.joined(separator: ", ")
         }
 
-        var timeInterval: some View {
-            HStack(alignment: .center) {
+        var timeIntervalButtons: some View {
+            let buttonColor = (colorScheme == .dark ? Color.white : Color.black).opacity(0.8)
+
+            return HStack(alignment: .center) {
                 ForEach(timeButtons) { button in
-                    Text(button.active ? NSLocalizedString(button.label, comment: "") : button.number).onTapGesture {
+                    Button(action: {
                         state.hours = button.hours
-                    }
-                    .foregroundStyle(button.active ? (colorScheme == .dark ? Color.white : Color.black).opacity(0.9) : .secondary)
-                    .frame(maxHeight: 30).padding(.horizontal, 8)
-                    .background(
-                        button.active ?
-                            // RGB(30, 60, 95)
-                            (
-                                colorScheme == .dark ? Color(red: 0.1176470588, green: 0.2352941176, blue: 0.3725490196) :
-                                    Color.white
-                            ) :
-                            Color
-                            .clear
-                    )
-                    .cornerRadius(20)
-                }
-                Button(action: {
-                    state.isLegendPresented.toggle()
-                }) {
-                    Image(systemName: "info")
-                        .foregroundColor(colorScheme == .dark ? Color.white : Color.black).opacity(0.9)
-                        .frame(width: 20, height: 20)
-                        .background(
-                            colorScheme == .dark ? Color(red: 0.1176470588, green: 0.2352941176, blue: 0.3725490196) :
-                                Color.white
+                    }) {
+                        Group {
+                            if button.active {
+                                Text(
+                                    NSLocalizedString(button.hours.description, comment: "") + " " +
+                                        NSLocalizedString("h", comment: "h")
+                                )
+                            } else {
+                                Text(NSLocalizedString(button.hours.description, comment: ""))
+                            }
+                        }
+                        .font(.footnote)
+                        .fontWeight(button.active ? .semibold : .regular)
+                        .padding(.vertical, 5)
+                        .padding(.horizontal, 10)
+                        .foregroundColor(
+                            button
+                                .active ? (colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white) : buttonColor
                         )
-                        .clipShape(Circle())
+                        .background(button.active ? buttonColor.opacity(colorScheme == .dark ? 1 : 0.8) : Color.clear)
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(button.active ? buttonColor.opacity(0.4) : Color.clear, lineWidth: 2)
+                        )
+                    }
                 }
-                .padding([.top, .bottom])
             }
-            .shadow(
-                color: Color.black.opacity(colorScheme == .dark ? 0.75 : 0.33),
-                radius: colorScheme == .dark ? 5 : 3
-            )
-            .font(buttonFont)
+        }
+
+        var statsIconString: String {
+            if #available(iOS 18, *) {
+                return "chart.line.text.clipboard"
+            } else {
+                return "list.clipboard"
+            }
+        }
+
+        @ViewBuilder private func tappableButton(
+            buttonColor: Color,
+            label: String,
+            iconString: String,
+            action: @escaping () -> Void
+        ) -> some View {
+            Button(action: {
+                action()
+            }) {
+                HStack {
+                    Image(systemName: iconString)
+                    Text(label)
+                }
+                .font(.footnote)
+                .padding(.vertical, 5)
+                .padding(.horizontal, 10)
+                .foregroundStyle(buttonColor)
+                .overlay(
+                    Capsule()
+                        .stroke(buttonColor.opacity(0.4), lineWidth: 2)
+                )
+            }
         }
 
         @ViewBuilder func mainChart(geo: GeometryProxy) -> some View {
@@ -293,7 +317,6 @@ extension Home {
                     safeAreaSize: notificationsDisabled == true ? safeAreaSize : 0,
                     units: state.units,
                     hours: state.filteredHours,
-                    tempTargets: state.tempTargets,
                     highGlucose: state.highGlucose,
                     lowGlucose: state.lowGlucose,
                     currentGlucoseTarget: state.currentGlucoseTarget,
@@ -324,9 +347,11 @@ extension Home {
                     lastLoopDate: state.lastLoopDate,
                     manualTempBasal: state.manualTempBasal,
                     determination: state.determinationsFromPersistence
-                ).onTapGesture {
+                )
+                .onTapGesture {
                     state.isLoopStatusPresented = true
-                }.onLongPressGesture {
+                }
+                .onLongPressGesture {
                     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                     impactHeavy.impactOccurred()
                     state.runLoop()
@@ -347,6 +372,8 @@ extension Home {
                             )!
                         ).font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
+                    // aligns the evBG icon exactly with the first pixel of loop status icon
+                    .padding(.leading, 12)
                 } else {
                     HStack {
                         Image(systemName: "arrow.right.circle")
@@ -402,8 +429,17 @@ extension Home {
                         Image(systemName: "drop.circle")
                             .font(.callout)
                             .foregroundColor(.insulinTintColor)
-                        Text(tempBasalString)
-                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                        if tempBasalString.count > 5 {
+                            Text(tempBasalString)
+                                .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.85)
+                                .truncationMode(.tail)
+                                .allowsTightening(true)
+                        } else {
+                            // Short strings can just display normally
+                            Text(tempBasalString).font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                        }
                     } else {
                         Image(systemName: "drop.circle")
                             .font(.callout)
@@ -815,8 +851,28 @@ extension Home {
 
                 mainChart(geo: geo)
 
-                timeInterval.padding(.top, UIDevice.adjustPadding(min: 0, max: 12))
-                    .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 12))
+                HStack {
+                    tappableButton(
+                        buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
+                        label: "Stats",
+                        iconString: statsIconString,
+                        action: { state.showModal(for: .statistics) }
+                    )
+
+                    Spacer()
+
+                    timeIntervalButtons.padding(.top, UIDevice.adjustPadding(min: 0, max: 10))
+                        .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 10))
+
+                    Spacer()
+
+                    tappableButton(
+                        buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
+                        label: "Info",
+                        iconString: "info",
+                        action: { state.isLegendPresented.toggle() }
+                    )
+                }.padding([.horizontal, .top, .bottom])
 
                 if let progress = state.bolusProgress {
                     bolusView(geo: geo, progress)

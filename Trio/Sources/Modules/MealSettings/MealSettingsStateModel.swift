@@ -7,10 +7,10 @@ extension MealSettings {
         @Published var maxCarbs: Decimal = 250
         @Published var maxFat: Decimal = 250
         @Published var maxProtein: Decimal = 250
-        @Published var individualAdjustmentFactor: Decimal = 0
-        @Published var timeCap: Decimal = 0
-        @Published var minuteInterval: Decimal = 0
-        @Published var delay: Decimal = 0
+        @Published var individualAdjustmentFactor: Decimal = 0.5
+        @Published var timeCap: Decimal = 8
+        @Published var minuteInterval: Decimal = 30
+        @Published var delay: Decimal = 60
 
         override func subscribe() {
             units = settingsManager.settings.units
@@ -38,8 +38,7 @@ extension MealSettings {
             })
 
             subscribeSetting(\.individualAdjustmentFactor, on: $individualAdjustmentFactor, initial: {
-                let value = max(min($0, 1.2), 0.1)
-                individualAdjustmentFactor = value
+                individualAdjustmentFactor = $0
             }, map: {
                 $0
             })
