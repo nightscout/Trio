@@ -46,7 +46,7 @@ extension MainChartView {
         .chartLegend(.hidden)
         .frame(minHeight: geo.size.height * 0.12)
         .frame(width: fullWidth(viewWidth: screenSize.width))
-        .chartXScale(domain: startMarker ... endMarker)
+        .chartXScale(domain: state.startMarker ... state.endMarker)
         .chartXSelection(value: $selection)
         .chartXAxis { basalChartXAxis }
         .chartYAxis { cobIobChartYAxis }

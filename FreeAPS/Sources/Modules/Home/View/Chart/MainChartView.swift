@@ -22,10 +22,6 @@ struct MainChartView: View {
 
     @State var basalProfiles: [BasalProfile] = []
     @State var preparedTempBasals: [(start: Date, end: Date, rate: Double)] = []
-    @State var startMarker =
-        Date(timeIntervalSinceNow: TimeInterval(hours: -24))
-    @State var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
-
     @State var selection: Date? = nil
 
     @State var mainChartHasInitialized = false
@@ -87,7 +83,7 @@ struct MainChartView: View {
                         }
                         .onChange(of: state.glucoseFromPersistence.last?.glucose) {
                             scroller.scrollTo("MainChart", anchor: .trailing)
-                            updateStartEndMarkers()
+                            state.updateStartEndMarkers()
                         }
                         .onChange(of: state.enactedAndNonEnactedDeterminations.first?.deliverAt) {
                             scroller.scrollTo("MainChart", anchor: .trailing)
@@ -99,7 +95,7 @@ struct MainChartView: View {
                         .onAppear {
                             if !mainChartHasInitialized {
                                 scroller.scrollTo("MainChart", anchor: .trailing)
-                                updateStartEndMarkers()
+                                state.updateStartEndMarkers()
                                 calculateTempBasalsInBackground()
                                 mainChartHasInitialized = true
                             }
@@ -121,6 +117,10 @@ extension MainChartView {
                 drawEndRuleMark()
                 drawCurrentTimeMarker()
 
+                GlucoseTargetsView(
+                    targetProfiles: state.targetProfiles
+                )
+
                 OverrideView(
                     state: state,
                     overrides: state.overrides,
@@ -134,12 +134,6 @@ extension MainChartView {
                     tempTargetRunStored: state.tempTargetRunStored,
                     units: state.units,
                     viewContext: context
-                )
-
-                GlucoseTargetsView(
-                    startMarker: startMarker,
-                    units: state.units,
-                    bgTargets: state.bgTargets
                 )
 
                 GlucoseChartView(
@@ -197,7 +191,7 @@ extension MainChartView {
                 minHeight: geo.size.height * (0.28 - safeAreaSize)
             )
             .frame(width: fullWidth(viewWidth: screenSize.width))
-            .chartXScale(domain: startMarker ... endMarker)
+            .chartXScale(domain: state.startMarker ... state.endMarker)
             .chartXAxis { mainChartXAxis }
             .chartYAxis { mainChartYAxis }
             .chartYAxis(.hidden)
