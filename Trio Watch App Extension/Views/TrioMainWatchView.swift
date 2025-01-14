@@ -40,18 +40,7 @@ struct TrioMainWatchView: View {
     )
 
     var body: some View {
-        ZStack {
-            if !state.showSyncingAnimation {
-                mainTabView
-            } else {
-                trioBackgroundColor.ignoresSafeArea()
-
-                VStack {
-                    ProgressView("Syncing...")
-                    Spacer()
-                }
-            }
-        }
+        mainTabView
     }
 
     @ViewBuilder private var mainTabView: some View {
@@ -188,6 +177,16 @@ struct TrioMainWatchView: View {
                     state.shouldNavigateToRoot = false
                     navigationPath.append(NavigationDestinations.acknowledgmentPending)
                 }.transition(.opacity)
+            }
+        }
+        .overlay {
+            if !state.showCommsAnimation, state.showSyncingAnimation {
+                trioBackgroundColor.ignoresSafeArea()
+
+                VStack {
+                    ProgressView("Syncing...")
+                    Spacer()
+                }
             }
         }
     }

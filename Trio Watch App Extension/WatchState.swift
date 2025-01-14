@@ -270,12 +270,16 @@ import WatchConnectivity
             acknowledgmentMessage = "\(message)"
         }
 
-        showCommsAnimation = false // Hide progress animation
+        DispatchQueue.main.async {
+            self.showCommsAnimation = false // Hide progress animation
+            self.showSyncingAnimation = false // Just ensure this is 100% set to false
+        }
 
         if isFinal {
             showAcknowledgmentBanner = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 self.showAcknowledgmentBanner = false
+                self.showSyncingAnimation = false // Just ensure this is 100% set to false
             }
         }
     }
@@ -447,19 +451,95 @@ import WatchConnectivity
     /// Handles incoming messages from the paired iPhone
     /// Updates local glucose data, trend, and delta information
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
-        print("⌚️ Watch received data from message: \(message)")
-        processWatchMessage(message)
+        print("⌚️ Watch received data: \(message)")
+
+        // If the message has a nested "watchState" dictionary with date as TimeInterval
+        if let watchStateDict = message[WatchMessageKeys.watchState] as? [String: Any],
+           let timestamp = watchStateDict[WatchMessageKeys.date] as? TimeInterval
+        {
+            let date = Date(timeIntervalSince1970: timestamp)
+
+            // Check if it's not older than 15 min
+            if date >= Date().addingTimeInterval(-15 * 60) {
+                print("⌚️ Handling watchState from \(date)")
+                processWatchMessage(message)
+            } else {
+                print("⌚️ Received outdated watchState data (\(date))")
+                DispatchQueue.main.async {
+                    self.showSyncingAnimation = false
+                }
+            }
+        }
+
+        // Else if the message is an "ack" at the top level
+        // e.g. { "acknowledged": true, "message": "Started Temp Target...", "date": Date(...) }
+        else if
+            let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
+            let ackMessage = message[WatchMessageKeys.message] as? String
+        {
+            print("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged)")
+            DispatchQueue.main.async {
+                // For ack messages, we do NOT show “Syncing...”
+                self.showSyncingAnimation = false
+            }
+            processWatchMessage(message)
+
+        } else {
+            print("⌚️ Faulty data. Skipping...")
+            DispatchQueue.main.async {
+                self.showSyncingAnimation = false
+            }
+        }
     }
 
     func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
-        print("⌚️ Watch received data from userInfo: \(userInfo)")
-        processWatchMessage(userInfo)
+        print("⌚️ Watch received data: \(userInfo)")
+
+        // If the message has a nested "watchState" dictionary with date as TimeInterval
+        if let watchStateDict = userInfo[WatchMessageKeys.watchState] as? [String: Any],
+           let timestamp = watchStateDict[WatchMessageKeys.date] as? TimeInterval
+        {
+            let date = Date(timeIntervalSince1970: timestamp)
+
+            // Check if it's not older than 15 min
+            if date >= Date().addingTimeInterval(-15 * 60) {
+                print("⌚️ Handling watchState from \(date)")
+                processWatchMessage(userInfo)
+            } else {
+                print("⌚️ Received outdated watchState data (\(date))")
+                DispatchQueue.main.async {
+                    self.showSyncingAnimation = false
+                }
+            }
+        }
+
+        // Else if the message is an "ack" at the top level
+        // e.g. { "acknowledged": true, "message": "Started Temp Target...", "date": Date(...) }
+        else if
+            let acknowledged = userInfo[WatchMessageKeys.acknowledged] as? Bool,
+            let ackMessage = userInfo[WatchMessageKeys.message] as? String
+        {
+            print("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged)")
+            DispatchQueue.main.async {
+                // For ack messages, we do NOT show “Syncing...”
+                self.showSyncingAnimation = false
+            }
+            processWatchMessage(userInfo)
+
+        } else {
+            print("⌚️ Faulty data. Skipping...")
+            DispatchQueue.main.async {
+                self.showSyncingAnimation = false
+            }
+        }
     }
 
     /// Accumulate new data, set isSyncing, and debounce final update
     private func scheduleUIUpdate(with newData: [String: Any]) {
         // 1) Mark as syncing
-        showSyncingAnimation = true
+        DispatchQueue.main.async {
+            self.showSyncingAnimation = true
+        }
 
         // 2) Merge data into our pendingData
         pendingData.merge(newData) { _, newVal in newVal }
@@ -472,16 +552,16 @@ import WatchConnectivity
             self.finalizePendingData()
         }
         finalizeWorkItem = workItem
-
-        // e.g. 0.3 seconds after last message
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: workItem)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: workItem)
     }
 
     /// Applies all pending data to the watch state in one shot
     private func finalizePendingData() {
         guard !pendingData.isEmpty else {
             // If we have no actual data, just end syncing
-            showSyncingAnimation = false
+            DispatchQueue.main.async {
+                self.showSyncingAnimation = false
+            }
             return
         }
 
@@ -494,7 +574,7 @@ import WatchConnectivity
         pendingData.removeAll()
 
         // Done - but ensure this runs at least 2 sec, to avoid flickering
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        DispatchQueue.main.async {
             self.showSyncingAnimation = false
         }
     }
@@ -505,8 +585,9 @@ import WatchConnectivity
             if let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
                let ackMessage = message[WatchMessageKeys.message] as? String
             {
-                self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
-                self.showSyncingAnimation = false
+                DispatchQueue.main.async {
+                    self.showSyncingAnimation = false
+                }
 
                 print("⌚️ Received acknowledgment: \(ackMessage), success: \(acknowledged)")
 
@@ -535,50 +616,32 @@ import WatchConnectivity
                 if !self.isBolusCanceled {
                     self.bolusProgress = progress
                 }
-                self.showSyncingAnimation = false
+                DispatchQueue.main.async {
+                    self.showSyncingAnimation = false
+                }
             }
 
             // 3) Bolus cancellation
             if message[WatchMessageKeys.bolusCanceled] as? Bool == true {
                 self.bolusProgress = 0
                 self.activeBolusAmount = 0
-                self.showSyncingAnimation = false
+                DispatchQueue.main.async {
+                    self.showSyncingAnimation = false
+                }
             }
 
             // 4) Recommended bolus
             if let recommendedBolus = message[WatchMessageKeys.recommendedBolus] as? NSNumber {
                 self.recommendedBolus = recommendedBolus.decimalValue
                 self.showBolusCalculationProgress = false
-                self.showSyncingAnimation = false
+                DispatchQueue.main.async {
+                    self.showSyncingAnimation = false
+                }
             }
 
             // 5) Raw watchState data
             if let watchStateData = message[WatchMessageKeys.watchState] as? [String: Any] {
                 self.scheduleUIUpdate(with: watchStateData)
-            } else {
-                // Or if your phone sends these UI keys individually:
-                let possibleUIKeys = [
-                    WatchMessageKeys.currentGlucose,
-                    WatchMessageKeys.trend,
-                    WatchMessageKeys.iob,
-                    WatchMessageKeys.cob,
-                    WatchMessageKeys.lastLoopTime,
-                    WatchMessageKeys.glucoseValues,
-                    WatchMessageKeys.overridePresets,
-                    WatchMessageKeys.tempTargetPresets,
-                    WatchMessageKeys.maxBolus,
-                    WatchMessageKeys.maxCarbs,
-                    WatchMessageKeys.maxFat,
-                    WatchMessageKeys.maxProtein,
-                    WatchMessageKeys.maxIOB,
-                    WatchMessageKeys.maxCOB,
-                    WatchMessageKeys.bolusIncrement
-                ]
-
-                let hasUIData = message.keys.contains { possibleUIKeys.contains($0) }
-                if hasUIData {
-                    self.scheduleUIUpdate(with: message)
-                }
             }
         }
     }

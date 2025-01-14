@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 
 struct WatchState: Hashable, Equatable, Sendable {
+    var date: Date
     var currentGlucose: String?
     var currentGlucoseColorString: String?
     var trend: String?
@@ -26,7 +27,8 @@ struct WatchState: Hashable, Equatable, Sendable {
     var bolusIncrement: Decimal = 0.05
 
     static func == (lhs: WatchState, rhs: WatchState) -> Bool {
-        lhs.currentGlucose == rhs.currentGlucose &&
+        lhs.date == rhs.date &&
+            lhs.currentGlucose == rhs.currentGlucose &&
             lhs.trend == rhs.trend &&
             lhs.delta == rhs.delta &&
             lhs.glucoseValues.count == rhs.glucoseValues.count &&
@@ -49,6 +51,7 @@ struct WatchState: Hashable, Equatable, Sendable {
     }
 
     func hash(into hasher: inout Hasher) {
+        hasher.combine(date)
         hasher.combine(currentGlucose)
         hasher.combine(trend)
         hasher.combine(delta)

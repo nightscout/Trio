@@ -159,7 +159,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             .getNSManagedObject(with: tempTargetPresetIds, context: backgroundContext)
 
         return await backgroundContext.perform {
-            var watchState = WatchState()
+            var watchState = WatchState(date: Date())
 
             // Set lastLoopDate
             let lastLoopMinutes = Int((Date().timeIntervalSince(self.apsManager.lastLoopDate) - 30) / 60) + 1
@@ -328,6 +328,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
 
         let message: [String: Any] = [
+            WatchMessageKeys.date: Date().timeIntervalSince1970,
             WatchMessageKeys.currentGlucose: state.currentGlucose ?? "--",
             WatchMessageKeys.currentGlucoseColorString: state.currentGlucoseColorString ?? "#ffffff",
             WatchMessageKeys.trend: state.trend ?? "",

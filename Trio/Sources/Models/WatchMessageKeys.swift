@@ -1,5 +1,6 @@
 enum WatchMessageKeys {
     // Request/Response Keys
+    static let date = "date"
     static let requestWatchUpdate = "requestWatchUpdate"
     static let watchState = "watchState"
     static let acknowledged = "acknowledged"
@@ -8,7 +9,6 @@ enum WatchMessageKeys {
     // Treatment Keys
     static let bolus = "bolus"
     static let carbs = "carbs"
-    static let date = "date"
     static let cancelBolus = "cancelBolus"
     static let bolusCanceled = "bolusCanceled"
     static let bolusProgress = "bolusProgress"
