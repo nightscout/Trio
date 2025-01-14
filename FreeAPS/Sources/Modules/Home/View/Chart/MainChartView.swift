@@ -10,7 +10,6 @@ struct MainChartView: View {
     var safeAreaSize: CGFloat
     var units: GlucoseUnits
     var hours: Int
-    var tempTargets: [TempTarget]
     var highGlucose: Decimal
     var lowGlucose: Decimal
     var currentGlucoseTarget: Decimal

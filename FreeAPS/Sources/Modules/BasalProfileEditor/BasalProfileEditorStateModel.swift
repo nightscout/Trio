@@ -4,6 +4,7 @@ import SwiftUI
 extension BasalProfileEditor {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
+        @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
 
         var syncInProgress: Bool = false
         var initialItems: [Item] = []
@@ -105,6 +106,12 @@ extension BasalProfileEditor {
                     print("We were successful")
                 }
                 .store(in: &lifetime)
+
+            DispatchQueue.main.async {
+                self.broadcaster.notify(BasalProfileObserver.self, on: .main) {
+                    $0.basalProfileDidChange(profile)
+                }
+            }
         }
 
         @MainActor func validate() {

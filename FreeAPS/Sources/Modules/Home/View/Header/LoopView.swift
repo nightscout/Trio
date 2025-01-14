@@ -4,6 +4,8 @@ import SwiftUI
 import UIKit
 
 struct LoopView: View {
+    @Environment(\.colorScheme) var colorScheme
+
     private enum Config {
         static let lag: TimeInterval = 30
     }
@@ -19,10 +21,19 @@ struct LoopView: View {
     private let rect = CGRect(x: 0, y: 0, width: 18, height: 18)
 
     var body: some View {
+        loopStatusWithMinutes
+            .padding(.vertical, 5)
+            .padding(.horizontal, 10)
+            .overlay(
+                Capsule()
+                    .stroke(color.opacity(0.4), lineWidth: 2)
+            )
+    }
+
+    private var loopStatusWithMinutes: some View {
         HStack(alignment: .center) {
             ZStack {
-                Image(systemName: "circle")
-                    .mask(mask(in: rect).fill(style: FillStyle(eoFill: true)))
+                Image(systemName: (!closedLoop || manualTempBasal) ? "circle.and.line.horizontal" : "circle")
                 if isLooping {
                     ProgressView()
                 }
@@ -41,7 +52,6 @@ struct LoopView: View {
                 Text("--")
             }
         }
-        .strikethrough(!closedLoop || manualTempBasal, pattern: .solid, color: color)
         .font(.callout).fontWeight(.bold).fontDesign(.rounded)
         .foregroundColor(color)
     }
@@ -79,14 +89,6 @@ struct LoopView: View {
         } else {
             return .loopRed
         }
-    }
-
-    func mask(in rect: CGRect) -> Path {
-        var path = Rectangle().path(in: rect)
-        if !closedLoop || manualTempBasal {
-            path.addPath(Rectangle().path(in: CGRect(x: rect.minX, y: rect.midY - 4, width: rect.width, height: 8)))
-        }
-        return path
     }
 }
 

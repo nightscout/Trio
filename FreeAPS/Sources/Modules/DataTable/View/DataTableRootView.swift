@@ -110,18 +110,6 @@ extension DataTable {
                 .navigationTitle("History")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading, content: {
-                        Button(
-                            action: { state.showModal(for: .statistics) },
-                            label: {
-                                HStack {
-                                    Text("Statistics")
-                                }
-                            }
-                        )
-                    })
-                }
-                .toolbar {
                     ToolbarItem(placement: .topBarTrailing, content: {
                         addButton({
                             showManualGlucose = true
