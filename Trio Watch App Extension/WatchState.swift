@@ -8,7 +8,7 @@ import WatchConnectivity
     // MARK: - Properties
 
     /// The WatchConnectivity session instance used for communication
-    private var session: WCSession?
+    var session: WCSession?
     /// Indicates if the paired iPhone is currently reachable
     var isReachable = false
 
@@ -95,168 +95,6 @@ import WatchConnectivity
         }
     }
 
-    // MARK: - Send Data to Phone
-
-    /// Sends a bolus insulin request to the paired iPhone
-    /// - Parameters:
-    ///   - amount: The insulin amount to be delivered
-    func sendBolusRequest(_ amount: Decimal) {
-        guard let session = session, session.isReachable else { return }
-        isBolusCanceled = false // Reset canceled state when starting new bolus
-        activeBolusAmount = Double(truncating: amount as NSNumber) // Set active bolus amount
-
-        let message: [String: Any] = [
-            "bolus": amount
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("Error sending bolus request: \(error.localizedDescription)")
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
-    }
-
-    /// Sends a carbohydrate entry request to the paired iPhone
-    /// - Parameters:
-    ///   - amount: The amount of carbs in grams
-    ///   - date: The timestamp for the carb entry (defaults to current time)
-    func sendCarbsRequest(_ amount: Int, _ date: Date = Date()) {
-        guard let session = session, session.isReachable else { return }
-
-        let message: [String: Any] = [
-            "carbs": amount,
-            "date": date.timeIntervalSince1970
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("Error sending carbs request: \(error.localizedDescription)")
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
-    }
-
-    /// Sends a meal and bolus insulin combo request to the paired iPhone
-    /// - Parameters:
-    ///   - amount: The insulin amount to be delivered
-    ///   - isExternal: Indicates if the bolus is from an external source
-    func sendMealBolusComboRequest(carbsAmount _: Decimal, bolusAmount: Decimal, _ date: Date = Date()) {
-        guard let session = session, session.isReachable else { return }
-
-        let message: [String: Any] = [
-            "bolus": bolusAmount,
-            "carbs": bolusAmount,
-            "date": date.timeIntervalSince1970
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("Error sending meal bolus combo request: \(error.localizedDescription)")
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
-        isMealBolusCombo = true
-    }
-
-    func sendCancelOverrideRequest() {
-        guard let session = session, session.isReachable else { return }
-
-        let message: [String: Any] = [
-            "cancelOverride": true
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("⌚️ Error sending cancel override request: \(error.localizedDescription)")
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
-    }
-
-    func sendActivateOverrideRequest(presetName: String) {
-        guard let session = session, session.isReachable else { return }
-
-        let message: [String: Any] = [
-            "activateOverride": presetName
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("⌚️ Error sending activate override request: \(error.localizedDescription)")
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
-    }
-
-    func sendCancelTempTargetRequest() {
-        guard let session = session, session.isReachable else { return }
-
-        let message: [String: Any] = [
-            "cancelTempTarget": true
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("⌚️ Error sending cancel temp target request: \(error.localizedDescription)")
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
-    }
-
-    func sendActivateTempTargetRequest(presetName: String) {
-        guard let session = session, session.isReachable else { return }
-
-        let message: [String: Any] = [
-            "activateTempTarget": presetName
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("⌚️ Error sending activate temp target request: \(error.localizedDescription)")
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
-    }
-
-    func sendCancelBolusRequest() {
-        isBolusCanceled = true
-
-        guard let session = session, session.isReachable else { return }
-
-        let message: [String: Any] = [
-            "cancelBolus": true
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("Error sending cancel bolus request: \(error.localizedDescription)")
-        }
-
-        // Reset when cancelled
-        bolusProgress = 0
-        activeBolusAmount = 0
-
-        // Display pending communication animation
-        showCommsAnimation = true
-    }
-
-    func requestBolusRecommendation() {
-        guard let session = session, session.isReachable else { return }
-
-        let message: [String: Any] = [
-            WatchMessageKeys.requestBolusRecommendation: true,
-            WatchMessageKeys.carbs: carbsAmount
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("Error requesting bolus recommendation: \(error.localizedDescription)")
-        }
-
-        if bolusAmount == 0 {
-            showBolusCalculationProgress = true
-        }
-    }
-
     // MARK: – Handle Acknowledgement Messages FROM Phone
 
     func handleAcknowledgment(success: Bool, message: String, isFinal: Bool = true) {
@@ -284,26 +122,283 @@ import WatchConnectivity
         }
     }
 
-    func requestWatchStateUpdate() {
-        guard let session = session, session.activationState == .activated else {
-            print("⌚️ Session not activated, activating...")
-            session?.activate()
-            return
-        }
+    // MARK: - WCSessionDelegate
 
-        if session.isReachable {
-            print("⌚️ Request an update for watch state from Trio iPhone app...")
-
-            let message = [WatchMessageKeys.requestWatchUpdate: WatchMessageKeys.watchState]
-
-            session.sendMessage(message, replyHandler: nil) { error in
-                print("⌚️ Update request for fresh watch state data: \(error.localizedDescription)")
+    /// Called when the session has completed activation
+    /// Updates the reachability status and logs the activation state
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        DispatchQueue.main.async {
+            if let error = error {
+                print("⌚️ Watch session activation failed: \(error.localizedDescription)")
+                return
             }
-        } else {
-            print("⌚️ Phone not reachable for watch state update")
+
+            // the order here is probably not perfect and needsto be re-arranged
+            if activationState == .activated {
+                self.requestWatchStateUpdate()
+            }
+
+            print("⌚️ Watch session activated with state: \(activationState.rawValue)")
+
+            self.isReachable = session.isReachable
+
+            print("⌚️ Watch isReachable after activation: \(session.isReachable)")
         }
     }
 
+    /// Handles incoming messages from the paired iPhone when Phone is in the foreground
+    func session(_: WCSession, didReceiveMessage message: [String: Any]) {
+        print("⌚️ Watch received data: \(message)")
+
+        // If the message has a nested "watchState" dictionary with date as TimeInterval
+        if let watchStateDict = message[WatchMessageKeys.watchState] as? [String: Any],
+           let timestamp = watchStateDict[WatchMessageKeys.date] as? TimeInterval
+        {
+            let date = Date(timeIntervalSince1970: timestamp)
+
+            // Check if it's not older than 15 min
+            if date >= Date().addingTimeInterval(-15 * 60) {
+                print("⌚️ Handling watchState from \(date)")
+                processWatchMessage(message)
+            } else {
+                print("⌚️ Received outdated watchState data (\(date))")
+                DispatchQueue.main.async {
+                    self.showSyncingAnimation = false
+                }
+            }
+            return
+        }
+
+        // Else if the message is an "ack" at the top level
+        // e.g. { "acknowledged": true, "message": "Started Temp Target...", "date": Date(...) }
+        else if
+            let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
+            let ackMessage = message[WatchMessageKeys.message] as? String
+        {
+            print("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged)")
+            DispatchQueue.main.async {
+                // For ack messages, we do NOT show “Syncing...”
+                self.showSyncingAnimation = false
+            }
+            processWatchMessage(message)
+            return
+
+                    // Recommended bolus is also not part of the WatchState message, hence the extra condition here
+        } else if
+            let recommendedBolus = message[WatchMessageKeys.recommendedBolus] as? NSNumber
+        {
+            print("⌚️ Received recommended bolus: \(recommendedBolus)")
+            self.recommendedBolus = recommendedBolus.decimalValue
+            showBolusCalculationProgress = false
+            return
+
+                    // Handle bolus progress updates
+        } else if
+            let progress = message[WatchMessageKeys.bolusProgress] as? Double
+        {
+            DispatchQueue.main.async {
+                if !self.isBolusCanceled {
+                    self.bolusProgress = progress
+                }
+            }
+            return
+
+                    // Handle bolus cancellation
+        } else if
+            message[WatchMessageKeys.bolusCanceled] as? Bool == true
+        {
+            DispatchQueue.main.async {
+                self.bolusProgress = 0
+                self.activeBolusAmount = 0
+            }
+            return
+        } else {
+            print("⌚️ Faulty data. Skipping...")
+            DispatchQueue.main.async {
+                self.showSyncingAnimation = false
+            }
+        }
+    }
+
+    /// Handles incoming messages from the paired iPhone when Phone is in the background
+    func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
+        print("⌚️ Watch received data: \(userInfo)")
+
+        // If the message has a nested "watchState" dictionary with date as TimeInterval
+        if let watchStateDict = userInfo[WatchMessageKeys.watchState] as? [String: Any],
+           let timestamp = watchStateDict[WatchMessageKeys.date] as? TimeInterval
+        {
+            let date = Date(timeIntervalSince1970: timestamp)
+
+            // Check if it's not older than 15 min
+            if date >= Date().addingTimeInterval(-15 * 60) {
+                print("⌚️ Handling watchState from \(date)")
+                processWatchMessage(userInfo)
+            } else {
+                print("⌚️ Received outdated watchState data (\(date))")
+                DispatchQueue.main.async {
+                    self.showSyncingAnimation = false
+                }
+            }
+            return
+        }
+
+        // Else if the message is an "ack" at the top level
+        // e.g. { "acknowledged": true, "message": "Started Temp Target...", "date": Date(...) }
+        else if
+            let acknowledged = userInfo[WatchMessageKeys.acknowledged] as? Bool,
+            let ackMessage = userInfo[WatchMessageKeys.message] as? String
+        {
+            print("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged)")
+            DispatchQueue.main.async {
+                // For ack messages, we do NOT show “Syncing...”
+                self.showSyncingAnimation = false
+            }
+            processWatchMessage(userInfo)
+            return
+
+                    // Recommended bolus is also not part of the WatchState message, hence the extra condition here
+        } else if
+            let recommendedBolus = userInfo[WatchMessageKeys.recommendedBolus] as? NSNumber
+        {
+            print("⌚️ Received recommended bolus: \(recommendedBolus)")
+            self.recommendedBolus = recommendedBolus.decimalValue
+            showBolusCalculationProgress = false
+            return
+
+                    // Handle bolus progress updates
+        } else if
+            let progress = userInfo[WatchMessageKeys.bolusProgress] as? Double
+        {
+            DispatchQueue.main.async {
+                if !self.isBolusCanceled {
+                    self.bolusProgress = progress
+                }
+            }
+            return
+
+                    // Handle bolus cancellation
+        } else if
+            userInfo[WatchMessageKeys.bolusCanceled] as? Bool == true
+        {
+            DispatchQueue.main.async {
+                self.bolusProgress = 0
+                self.activeBolusAmount = 0
+            }
+            return
+        } else {
+            print("⌚️ Faulty data. Skipping...")
+            DispatchQueue.main.async {
+                self.showSyncingAnimation = false
+            }
+        }
+    }
+
+    /// Called when the reachability status of the paired iPhone changes
+    /// Updates the local reachability status
+    func sessionReachabilityDidChange(_ session: WCSession) {
+        DispatchQueue.main.async {
+            print("⌚️ Watch reachability changed: \(session.isReachable)")
+
+            if session.isReachable {
+                // request fresh data from watch
+                self.requestWatchStateUpdate()
+
+                // reset input amounts
+                self.bolusAmount = 0
+                self.carbsAmount = 0
+                // reset auth progress
+                self.confirmationProgress = 0
+            }
+        }
+    }
+
+    /// Handles incoming messages that either contain an acknowledgement or fresh watchState data  (<15 min)
+    private func processWatchMessage(_ message: [String: Any]) {
+        DispatchQueue.main.async {
+            // 1) Acknowledgment logic
+            if let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
+               let ackMessage = message[WatchMessageKeys.message] as? String
+            {
+                DispatchQueue.main.async {
+                    self.showSyncingAnimation = false
+                }
+
+                print("⌚️ Received acknowledgment: \(ackMessage), success: \(acknowledged)")
+
+                switch ackMessage {
+                case "Saving carbs...":
+                    self.isMealBolusCombo = true
+                    self.mealBolusStep = .savingCarbs
+                    self.showCommsAnimation = true
+                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
+                case "Enacting bolus...":
+                    self.isMealBolusCombo = true
+                    self.mealBolusStep = .enactingBolus
+                    self.showCommsAnimation = true
+                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
+                case "Carbs and bolus logged successfully":
+                    self.isMealBolusCombo = false
+                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
+                default:
+                    self.isMealBolusCombo = false
+                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
+                }
+            }
+
+            // 2) Raw watchState data
+            if let watchStateData = message[WatchMessageKeys.watchState] as? [String: Any] {
+                self.scheduleUIUpdate(with: watchStateData)
+            }
+        }
+    }
+
+    /// Accumulate new data, set isSyncing, and debounce final update
+    private func scheduleUIUpdate(with newData: [String: Any]) {
+        // 1) Mark as syncing
+        DispatchQueue.main.async {
+            self.showSyncingAnimation = true
+        }
+
+        // 2) Merge data into our pendingData
+        pendingData.merge(newData) { _, newVal in newVal }
+
+        // 3) Cancel any previous finalization
+        finalizeWorkItem?.cancel()
+
+        // 4) Create and schedule a new finalization
+        let workItem = DispatchWorkItem { [self] in
+            self.finalizePendingData()
+        }
+        finalizeWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: workItem)
+    }
+
+    /// Applies all pending data to the watch state in one shot
+    private func finalizePendingData() {
+        guard !pendingData.isEmpty else {
+            // If we have no actual data, just end syncing
+            DispatchQueue.main.async {
+                self.showSyncingAnimation = false
+            }
+            return
+        }
+
+        print("⌚️ Finalizing pending data: \(pendingData)")
+
+        // Actually set your main UI properties here
+        processRawDataForWatchState(pendingData)
+
+        // Clear
+        pendingData.removeAll()
+
+        // Done - but ensure this runs at least 2 sec, to avoid flickering
+        DispatchQueue.main.async {
+            self.showSyncingAnimation = false
+        }
+    }
+
+    /// Updates the UI properties
     private func processRawDataForWatchState(_ message: [String: Any]) {
         if let currentGlucose = message[WatchMessageKeys.currentGlucose] as? String {
             self.currentGlucose = currentGlucose
@@ -376,7 +471,6 @@ import WatchConnectivity
         if let bolusWasCanceled = message[WatchMessageKeys.bolusCanceled] as? Bool, bolusWasCanceled {
             bolusProgress = 0
             activeBolusAmount = 0
-//            return
         }
 
         if let maxBolusValue = message[WatchMessageKeys.maxBolus] {
@@ -420,247 +514,6 @@ import WatchConnectivity
         if let bolusIncrement = message[WatchMessageKeys.bolusIncrement] {
             if let decimalValue = (bolusIncrement as? NSNumber)?.decimalValue {
                 self.bolusIncrement = decimalValue
-            }
-        }
-    }
-
-    // MARK: - WCSessionDelegate
-
-    /// Called when the session has completed activation
-    /// Updates the reachability status and logs the activation state
-    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        DispatchQueue.main.async {
-            if let error = error {
-                print("⌚️ Watch session activation failed: \(error.localizedDescription)")
-                return
-            }
-
-            // the order here is probably not perfect and needsto be re-arranged
-            if activationState == .activated {
-                self.requestWatchStateUpdate()
-            }
-
-            print("⌚️ Watch session activated with state: \(activationState.rawValue)")
-
-            self.isReachable = session.isReachable
-
-            print("⌚️ Watch isReachable after activation: \(session.isReachable)")
-        }
-    }
-
-    /// Handles incoming messages from the paired iPhone
-    /// Updates local glucose data, trend, and delta information
-    func session(_: WCSession, didReceiveMessage message: [String: Any]) {
-        print("⌚️ Watch received data: \(message)")
-
-        // If the message has a nested "watchState" dictionary with date as TimeInterval
-        if let watchStateDict = message[WatchMessageKeys.watchState] as? [String: Any],
-           let timestamp = watchStateDict[WatchMessageKeys.date] as? TimeInterval
-        {
-            let date = Date(timeIntervalSince1970: timestamp)
-
-            // Check if it's not older than 15 min
-            if date >= Date().addingTimeInterval(-15 * 60) {
-                print("⌚️ Handling watchState from \(date)")
-                processWatchMessage(message)
-            } else {
-                print("⌚️ Received outdated watchState data (\(date))")
-                DispatchQueue.main.async {
-                    self.showSyncingAnimation = false
-                }
-            }
-        }
-
-        // Else if the message is an "ack" at the top level
-        // e.g. { "acknowledged": true, "message": "Started Temp Target...", "date": Date(...) }
-        else if
-            let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
-            let ackMessage = message[WatchMessageKeys.message] as? String
-        {
-            print("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged)")
-            DispatchQueue.main.async {
-                // For ack messages, we do NOT show “Syncing...”
-                self.showSyncingAnimation = false
-            }
-            processWatchMessage(message)
-
-        } else {
-            print("⌚️ Faulty data. Skipping...")
-            DispatchQueue.main.async {
-                self.showSyncingAnimation = false
-            }
-        }
-    }
-
-    func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
-        print("⌚️ Watch received data: \(userInfo)")
-
-        // If the message has a nested "watchState" dictionary with date as TimeInterval
-        if let watchStateDict = userInfo[WatchMessageKeys.watchState] as? [String: Any],
-           let timestamp = watchStateDict[WatchMessageKeys.date] as? TimeInterval
-        {
-            let date = Date(timeIntervalSince1970: timestamp)
-
-            // Check if it's not older than 15 min
-            if date >= Date().addingTimeInterval(-15 * 60) {
-                print("⌚️ Handling watchState from \(date)")
-                processWatchMessage(userInfo)
-            } else {
-                print("⌚️ Received outdated watchState data (\(date))")
-                DispatchQueue.main.async {
-                    self.showSyncingAnimation = false
-                }
-            }
-        }
-
-        // Else if the message is an "ack" at the top level
-        // e.g. { "acknowledged": true, "message": "Started Temp Target...", "date": Date(...) }
-        else if
-            let acknowledged = userInfo[WatchMessageKeys.acknowledged] as? Bool,
-            let ackMessage = userInfo[WatchMessageKeys.message] as? String
-        {
-            print("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged)")
-            DispatchQueue.main.async {
-                // For ack messages, we do NOT show “Syncing...”
-                self.showSyncingAnimation = false
-            }
-            processWatchMessage(userInfo)
-
-        } else {
-            print("⌚️ Faulty data. Skipping...")
-            DispatchQueue.main.async {
-                self.showSyncingAnimation = false
-            }
-        }
-    }
-
-    /// Accumulate new data, set isSyncing, and debounce final update
-    private func scheduleUIUpdate(with newData: [String: Any]) {
-        // 1) Mark as syncing
-        DispatchQueue.main.async {
-            self.showSyncingAnimation = true
-        }
-
-        // 2) Merge data into our pendingData
-        pendingData.merge(newData) { _, newVal in newVal }
-
-        // 3) Cancel any previous finalization
-        finalizeWorkItem?.cancel()
-
-        // 4) Create and schedule a new finalization
-        let workItem = DispatchWorkItem { [self] in
-            self.finalizePendingData()
-        }
-        finalizeWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: workItem)
-    }
-
-    /// Applies all pending data to the watch state in one shot
-    private func finalizePendingData() {
-        guard !pendingData.isEmpty else {
-            // If we have no actual data, just end syncing
-            DispatchQueue.main.async {
-                self.showSyncingAnimation = false
-            }
-            return
-        }
-
-        print("⌚️ Finalizing pending data: \(pendingData)")
-
-        // Actually set your main UI properties here
-        processRawDataForWatchState(pendingData)
-
-        // Clear
-        pendingData.removeAll()
-
-        // Done - but ensure this runs at least 2 sec, to avoid flickering
-        DispatchQueue.main.async {
-            self.showSyncingAnimation = false
-        }
-    }
-
-    private func processWatchMessage(_ message: [String: Any]) {
-        DispatchQueue.main.async {
-            // 1) Acknowledgment logic
-            if let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
-               let ackMessage = message[WatchMessageKeys.message] as? String
-            {
-                DispatchQueue.main.async {
-                    self.showSyncingAnimation = false
-                }
-
-                print("⌚️ Received acknowledgment: \(ackMessage), success: \(acknowledged)")
-
-                switch ackMessage {
-                case "Saving carbs...":
-                    self.isMealBolusCombo = true
-                    self.mealBolusStep = .savingCarbs
-                    self.showCommsAnimation = true
-                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
-                case "Enacting bolus...":
-                    self.isMealBolusCombo = true
-                    self.mealBolusStep = .enactingBolus
-                    self.showCommsAnimation = true
-                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
-                case "Carbs and bolus logged successfully":
-                    self.isMealBolusCombo = false
-                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
-                default:
-                    self.isMealBolusCombo = false
-                    self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
-                }
-            }
-
-            // 2) Bolus progress
-            if let progress = message[WatchMessageKeys.bolusProgress] as? Double {
-                if !self.isBolusCanceled {
-                    self.bolusProgress = progress
-                }
-                DispatchQueue.main.async {
-                    self.showSyncingAnimation = false
-                }
-            }
-
-            // 3) Bolus cancellation
-            if message[WatchMessageKeys.bolusCanceled] as? Bool == true {
-                self.bolusProgress = 0
-                self.activeBolusAmount = 0
-                DispatchQueue.main.async {
-                    self.showSyncingAnimation = false
-                }
-            }
-
-            // 4) Recommended bolus
-            if let recommendedBolus = message[WatchMessageKeys.recommendedBolus] as? NSNumber {
-                self.recommendedBolus = recommendedBolus.decimalValue
-                self.showBolusCalculationProgress = false
-                DispatchQueue.main.async {
-                    self.showSyncingAnimation = false
-                }
-            }
-
-            // 5) Raw watchState data
-            if let watchStateData = message[WatchMessageKeys.watchState] as? [String: Any] {
-                self.scheduleUIUpdate(with: watchStateData)
-            }
-        }
-    }
-
-    /// Called when the reachability status of the paired iPhone changes
-    /// Updates the local reachability status
-    func sessionReachabilityDidChange(_ session: WCSession) {
-        DispatchQueue.main.async {
-            print("⌚️ Watch reachability changed: \(session.isReachable)")
-
-            if session.isReachable {
-                // request fresh data from watch
-                self.requestWatchStateUpdate()
-
-                // reset input amounts
-                self.bolusAmount = 0
-                self.carbsAmount = 0
-                // reset auth progress
-                self.confirmationProgress = 0
             }
         }
     }

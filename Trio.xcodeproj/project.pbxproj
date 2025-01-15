@@ -321,6 +321,7 @@
 		BDA25F202D26D5FE00035F34 /* CarbsInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */; };
 		BDA25F222D26D62800035F34 /* BolusInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25F212D26D62200035F34 /* BolusInputView.swift */; };
 		BDA6CC882CAF219B00F942F9 /* TempTargetSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */; };
+		BDAE40002D372BAD009C12B1 /* WatchState+Requests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDAE3FFF2D372BA8009C12B1 /* WatchState+Requests.swift */; };
 		BDB3C1192C03DD1000CEEAA1 /* UserDefaultsExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB3C1182C03DD1000CEEAA1 /* UserDefaultsExtension.swift */; };
 		BDB899882C564509006F3298 /* ForecastChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB899872C564509006F3298 /* ForecastChart.swift */; };
 		BDB8998A2C565D0C006F3298 /* CarbsGlucose+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB899892C565D0B006F3298 /* CarbsGlucose+helper.swift */; };
@@ -1036,6 +1037,7 @@
 		BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbsInputView.swift; sourceTree = "<group>"; };
 		BDA25F212D26D62200035F34 /* BolusInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusInputView.swift; sourceTree = "<group>"; };
 		BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetSetup.swift; sourceTree = "<group>"; };
+		BDAE3FFF2D372BA8009C12B1 /* WatchState+Requests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WatchState+Requests.swift"; sourceTree = "<group>"; };
 		BDB3C1182C03DD1000CEEAA1 /* UserDefaultsExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsExtension.swift; sourceTree = "<group>"; };
 		BDB899872C564509006F3298 /* ForecastChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastChart.swift; sourceTree = "<group>"; };
 		BDB899892C565D0B006F3298 /* CarbsGlucose+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbsGlucose+helper.swift"; sourceTree = "<group>"; };
@@ -2562,9 +2564,10 @@
 		BDFF7A9C2D25FA730016C40C /* Trio Watch App Extension */ = {
 			isa = PBXGroup;
 			children = (
+				BDA25EE52D260D5800035F34 /* WatchState.swift */,
+				BDAE3FFF2D372BA8009C12B1 /* WatchState+Requests.swift */,
 				DD3A3CEC2D29CFBA00AE478E /* Helper */,
 				BDA25F1A2D26BCE800035F34 /* Views */,
-				BDA25EE52D260D5800035F34 /* WatchState.swift */,
 				BDFF7A9E2D25FA970016C40C /* Preview Content */,
 				BDFF7A832D25F97D0016C40C /* Assets.xcassets */,
 				BDFF7A852D25F97D0016C40C /* TrioWatchApp.swift */,
@@ -4062,6 +4065,7 @@
 				DD8262CB2D289297009F6F62 /* BolusConfirmationView.swift in Sources */,
 				BD54A9712D281A8100F9C1EE /* TempTargetPresetsView.swift in Sources */,
 				DD3A3CE92D29C97800AE478E /* Helper+ButtonStyles.swift in Sources */,
+				BDAE40002D372BAD009C12B1 /* WatchState+Requests.swift in Sources */,
 				BDA25EE62D260D5E00035F34 /* WatchState.swift in Sources */,
 				BD04ECCE2D29952A008C5FEB /* BolusProgressOverlay.swift in Sources */,
 				DD09D5C92D29F3D0000D82C9 /* AcknowledgementPendingView.swift in Sources */,
