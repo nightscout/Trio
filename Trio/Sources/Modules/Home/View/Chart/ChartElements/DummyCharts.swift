@@ -43,7 +43,7 @@ extension MainChartView {
         )
         .frame(width: screenSize.width - 10)
         .chartXAxis { mainChartXAxis }
-        .chartXScale(domain: startMarker ... endMarker)
+        .chartXScale(domain: state.startMarker ... state.endMarker)
         .chartXAxis(.hidden)
         .chartYAxis { mainChartYAxis }
         .chartYScale(
@@ -69,7 +69,7 @@ extension MainChartView {
             .id("DummyCobChart")
             .frame(minHeight: geo.size.height * 0.12)
             .frame(width: screenSize.width - 10)
-            .chartXScale(domain: startMarker ... endMarker)
+            .chartXScale(domain: state.startMarker ... state.endMarker)
             .chartXAxis { basalChartXAxis }
             .chartXAxis(.hidden)
             .chartYAxis { cobIobChartYAxis }

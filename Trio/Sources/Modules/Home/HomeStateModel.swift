@@ -19,6 +19,8 @@ extension Home {
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
+        var startMarker = Date(timeIntervalSinceNow: TimeInterval(hours: -24))
+        var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
         var manualGlucose: [BloodGlucose] = []
         var uploadStats = false
         var recentGlucose: BloodGlucose?
@@ -26,6 +28,7 @@ extension Home {
         var basalProfile: [BasalProfileEntry] = []
         var bgTargets = BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
             ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+        var targetProfiles: [TargetProfile] = []
         var timerDate = Date()
         var closedLoop = false
         var pumpSuspended = false
@@ -476,8 +479,10 @@ extension Home {
 
         private func setupGlucoseTargets() async {
             let bgTargets = await provider.getBGTargets()
+            let targetProfiles = processFetchedTargets(bgTargets, startMarker: startMarker)
             await MainActor.run {
                 self.bgTargets = bgTargets
+                self.targetProfiles = targetProfiles
             }
         }
 
