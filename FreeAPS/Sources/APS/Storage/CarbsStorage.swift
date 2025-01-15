@@ -46,8 +46,29 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             entriesToStore = await filterRemoteEntries(entries: entriesToStore)
         }
 
-        await saveCarbsToCoreData(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
+        // Check for FPU-only entries (fat/protein without carbs)
+        let fpuOnlyEntries = entriesToStore.filter { entry in
+            entry.carbs == 0 && (entry.fat ?? 0 > 0 || entry.protein ?? 0 > 0)
+        }
 
+        // Create additional Carb (non-FPU) entries with fat/protein amounts and carbs == 0
+        for entry in fpuOnlyEntries {
+            let additionalEntry = CarbsEntry(
+                id: entry.id,
+                createdAt: entry.createdAt,
+                actualDate: entry.actualDate,
+                carbs: Decimal(0),
+                fat: entry.fat,
+                protein: entry.protein,
+                note: entry.note,
+                enteredBy: entry.enteredBy,
+                isFPU: false, // it should be a Carb entry
+                fpuID: entry.fpuID
+            )
+            entriesToStore.append(additionalEntry)
+        }
+
+        await saveCarbsToCoreData(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
         await saveCarbEquivalents(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
     }
 
@@ -195,7 +216,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     private func saveCarbsToCoreData(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
-        guard let entry = entries.last, entry.carbs != 0 else { return }
+        guard let entry = entries.last else { return }
 
         await coredataContext.perform {
             let newItem = CarbEntryStored(context: self.coredataContext)

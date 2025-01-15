@@ -40,7 +40,7 @@ extension DataTable {
         @FetchRequest(
             entity: CarbEntryStored.entity(),
             sortDescriptors: [NSSortDescriptor(keyPath: \CarbEntryStored.date, ascending: false)],
-            predicate: NSPredicate.predicateForOneDayAgo,
+            predicate: NSPredicate.carbsHistory,
             animation: .bouncy
         ) var carbEntryStored: FetchedResults<CarbEntryStored>
 
@@ -119,6 +119,11 @@ extension DataTable {
                 }
                 .sheet(isPresented: $showManualGlucose) {
                     addGlucoseView()
+                }
+                .sheet(isPresented: $state.showCarbEntryEditor) {
+                    if let carbEntry = state.carbEntryToEdit {
+                        CarbEntryEditorView(state: state, carbEntry: carbEntry)
+                    }
                 }
         }
 
@@ -577,6 +582,16 @@ extension DataTable {
                 }
             }
             .swipeActions {
+                Button(
+                    "Edit",
+                    systemImage: "pencil",
+                    role: .none,
+                    action: {
+                        state.carbEntryToEdit = meal
+                        state.showCarbEntryEditor = true
+                    }
+                ).tint(.blue)
+
                 Button(
                     "Delete",
                     systemImage: "trash.fill",

@@ -28,6 +28,9 @@ extension DataTable {
 
         var units: GlucoseUnits = .mgdL
 
+        var carbEntryToEdit: CarbEntryStored?
+        var showCarbEntryEditor = false
+
         override func subscribe() {
             units = settingsManager.settings.units
             broadcaster.register(DeterminationObserver.self, observer: self)
@@ -119,6 +122,60 @@ extension DataTable {
 
             // Perform a determine basal sync to update cob
             await apsManager.determineBasalSync()
+        }
+
+        func updateCarbEntry(_ treatmentObjectID: NSManagedObjectID, newAmount: Decimal, newNote: String) {
+            Task {
+                // Update carb entry in Core Data
+                await updateCarbEntryInCoreData(treatmentObjectID, newAmount: newAmount, newNote: newNote)
+
+                // Perform a determine basal sync to keep data up to date
+                await apsManager.determineBasalSync()
+
+                // Delete carbs from Services
+                await deleteCarbsFromServices(treatmentObjectID)
+
+                // Upload updated carb entry to services in parallel
+                async let nightscoutUpload: () = self.provider.nightscoutManager.uploadCarbs()
+                async let healthKitUpload: () = self.provider.healthkitManager.uploadCarbs()
+                async let tidepoolUpload: () = self.provider.tidepoolManager.uploadCarbs()
+
+                // Wait for all uploads to complete
+                _ = await [nightscoutUpload, healthKitUpload, tidepoolUpload]
+            }
+        }
+
+        private func updateCarbEntryInCoreData(
+            _ treatmentObjectID: NSManagedObjectID,
+            newAmount: Decimal,
+            newNote: String
+        ) async {
+            let context = CoreDataStack.shared.newTaskContext()
+            context.name = "updateContext"
+            context.transactionAuthor = "updateCarbEntry"
+
+            await context.perform {
+                do {
+                    if let carbToUpdate = try context.existingObject(with: treatmentObjectID) as? CarbEntryStored {
+                        carbToUpdate.carbs = Double(newAmount)
+                        carbToUpdate.note = newNote
+                        carbToUpdate.isUploadedToNS = false
+                        carbToUpdate.isUploadedToHealth = false
+                        carbToUpdate.isUploadedToTidepool = false
+
+                        guard context.hasChanges else { return }
+                        try context.save()
+
+                        debugPrint(
+                            "\(DebuggingIdentifiers.succeeded) Updated Carb Entry in Core Data"
+                        )
+                    }
+                } catch {
+                    debugPrint(
+                        "\(DebuggingIdentifiers.failed) Error updating carb entry in Core Data with error: \(error.localizedDescription)"
+                    )
+                }
+            }
         }
 
         func deleteCarbsFromServices(_ treatmentObjectID: NSManagedObjectID) async {
@@ -244,6 +301,85 @@ extension DataTable {
                 } catch {
                     debug(.default, "Failed to delete the treatment object: \(error.localizedDescription)")
                 }
+            }
+        }
+
+        // Function to get the original zero-carb non-FPU entry
+        func getZeroCarbNonFPUEntry(_ treatmentObjectID: NSManagedObjectID) async -> NSManagedObjectID? {
+            let context = CoreDataStack.shared.newTaskContext()
+            context.name = "fpuContext"
+
+            return await context.perform {
+                do {
+                    // Get the fpuID from the selected entry
+                    guard let selectedEntry = try context.existingObject(with: treatmentObjectID) as? CarbEntryStored,
+                          let fpuID = selectedEntry.fpuID
+                    else { return nil }
+
+                    // Fetch the original zero-carb entry (non-FPU) with the same fpuID
+                    let last24Hours = Date().addingTimeInterval(-60 * 60 * 24)
+                    let request = CarbEntryStored.fetchRequest()
+                    request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+                        NSPredicate(format: "date >= %@", last24Hours as NSDate),
+                        NSPredicate(format: "fpuID == %@", fpuID as CVarArg),
+                        NSPredicate(format: "isFPU == NO"),
+                        NSPredicate(format: "carbs == 0")
+                    ])
+                    request.fetchLimit = 1
+
+                    let originalEntry = try context.fetch(request).first
+                    debugPrint("FPU fetch result: \(originalEntry != nil ? "Entry found" : "No entry found")")
+                    return originalEntry?.objectID
+
+                } catch let error as NSError {
+                    debugPrint("\(DebuggingIdentifiers.failed) Failed to fetch original FPU entry: \(error.userInfo)")
+                    return nil
+                }
+            }
+        }
+
+        func updateFPUEntry(_ treatmentObjectID: NSManagedObjectID, newFat: Decimal, newProtein: Decimal, newNote: String) {
+            Task {
+                // Get the original entry's actualDate before deletion
+                let context = CoreDataStack.shared.newTaskContext()
+
+                let originalDate = await context.perform {
+                    do {
+                        guard let entry = try context.existingObject(with: treatmentObjectID) as? CarbEntryStored
+                        else { return Date() }
+                        return entry.date ?? Date()
+                    } catch {
+                        return Date()
+                    }
+                }
+
+                // Delete old FPU from Core Data and Remote Services and await this
+                await deleteCarbs(treatmentObjectID)
+
+                // Create new FPU entry with updated values
+                let newEntry = CarbsEntry(
+                    id: UUID().uuidString,
+                    createdAt: Date(),
+                    actualDate: originalDate, // Use the original entry's date
+                    carbs: Decimal(0),
+                    fat: newFat,
+                    protein: newProtein,
+                    note: newNote,
+                    enteredBy: CarbsEntry.local,
+                    isFPU: true,
+                    fpuID: UUID().uuidString
+                )
+
+                // Store new entry which will create new FPU entries
+                await carbsStorage.storeCarbs([newEntry], areFetchedFromRemote: false)
+
+                // Upload updated entries to services in parallel
+                async let nightscoutUpload: () = provider.nightscoutManager.uploadCarbs()
+                async let healthKitUpload: () = provider.healthkitManager.uploadCarbs()
+                async let tidepoolUpload: () = provider.tidepoolManager.uploadCarbs()
+
+                // Wait for all uploads to complete
+                _ = await [nightscoutUpload, healthKitUpload, tidepoolUpload]
             }
         }
     }
