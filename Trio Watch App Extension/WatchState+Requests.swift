@@ -13,7 +13,7 @@ extension WatchState {
         activeBolusAmount = Double(truncating: amount as NSNumber) // Set active bolus amount
 
         let message: [String: Any] = [
-            "bolus": amount
+            WatchMessageKeys.bolus: amount
         ]
 
         session.sendMessage(message, replyHandler: nil) { error in
@@ -32,8 +32,8 @@ extension WatchState {
         guard let session = session, session.isReachable else { return }
 
         let message: [String: Any] = [
-            "carbs": amount,
-            "date": date.timeIntervalSince1970
+            WatchMessageKeys.carbs: amount,
+            WatchMessageKeys.date: date.timeIntervalSince1970
         ]
 
         session.sendMessage(message, replyHandler: nil) { error in
@@ -44,34 +44,12 @@ extension WatchState {
         showCommsAnimation = true
     }
 
-    /// Sends a meal and bolus insulin combo request to the paired iPhone
-    /// - Parameters:
-    ///   - amount: The insulin amount to be delivered
-    ///   - isExternal: Indicates if the bolus is from an external source
-    func sendMealBolusComboRequest(carbsAmount _: Decimal, bolusAmount: Decimal, _ date: Date = Date()) {
-        guard let session = session, session.isReachable else { return }
-
-        let message: [String: Any] = [
-            "bolus": bolusAmount,
-            "carbs": bolusAmount,
-            "date": date.timeIntervalSince1970
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("Error sending meal bolus combo request: \(error.localizedDescription)")
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
-        isMealBolusCombo = true
-    }
-
     /// Sends a request to cancel the current override preset to the paired iPhone
     func sendCancelOverrideRequest() {
         guard let session = session, session.isReachable else { return }
 
         let message: [String: Any] = [
-            "cancelOverride": true
+            WatchMessageKeys.cancelOverride: true
         ]
 
         session.sendMessage(message, replyHandler: nil) { error in
@@ -88,7 +66,7 @@ extension WatchState {
         guard let session = session, session.isReachable else { return }
 
         let message: [String: Any] = [
-            "activateOverride": presetName
+            WatchMessageKeys.activateOverride: presetName
         ]
 
         session.sendMessage(message, replyHandler: nil) { error in
@@ -104,7 +82,7 @@ extension WatchState {
         guard let session = session, session.isReachable else { return }
 
         let message: [String: Any] = [
-            "cancelTempTarget": true
+            WatchMessageKeys.cancelTempTarget: true
         ]
 
         session.sendMessage(message, replyHandler: nil) { error in
@@ -121,7 +99,7 @@ extension WatchState {
         guard let session = session, session.isReachable else { return }
 
         let message: [String: Any] = [
-            "activateTempTarget": presetName
+            WatchMessageKeys.activateTempTarget: presetName
         ]
 
         session.sendMessage(message, replyHandler: nil) { error in
@@ -139,7 +117,7 @@ extension WatchState {
         guard let session = session, session.isReachable else { return }
 
         let message: [String: Any] = [
-            "cancelBolus": true
+            WatchMessageKeys.cancelBolus: true
         ]
 
         session.sendMessage(message, replyHandler: nil) { error in
