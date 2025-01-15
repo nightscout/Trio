@@ -12,6 +12,9 @@ import WatchConnectivity
     /// Indicates if the paired iPhone is currently reachable
     var isReachable = false
 
+    var lastWatchStateUpdate: TimeInterval?
+
+    /// main view relevant metrics
     var currentGlucose: String = "--"
     var currentGlucoseColorString: String = "#ffffff"
     var trend: String? = ""
@@ -133,8 +136,11 @@ import WatchConnectivity
                 return
             }
 
-            // the order here is probably not perfect and needsto be re-arranged
-            if activationState == .activated {
+            // the order here is probably not perfect and needs to be re-arranged
+            if activationState == .activated,
+               self.lastWatchStateUpdate == nil || self.lastWatchStateUpdate! < Date().timeIntervalSince1970 - 15
+            {
+                self.showSyncingAnimation = true
                 self.requestWatchStateUpdate()
             }
 
@@ -188,8 +194,12 @@ import WatchConnectivity
             let recommendedBolus = message[WatchMessageKeys.recommendedBolus] as? NSNumber
         {
             print("⌚️ Received recommended bolus: \(recommendedBolus)")
-            self.recommendedBolus = recommendedBolus.decimalValue
-            showBolusCalculationProgress = false
+
+            DispatchQueue.main.async {
+                self.recommendedBolus = recommendedBolus.decimalValue
+                self.showBolusCalculationProgress = false
+            }
+
             return
 
                     // Handle bolus progress updates
@@ -301,8 +311,10 @@ import WatchConnectivity
             print("⌚️ Watch reachability changed: \(session.isReachable)")
 
             if session.isReachable {
-                // request fresh data from watch
-                self.requestWatchStateUpdate()
+                if let timestamp = self.lastWatchStateUpdate, timestamp < Date().timeIntervalSince1970 - 15 {
+                    // request fresh data from watch
+                    self.requestWatchStateUpdate()
+                }
 
                 // reset input amounts
                 self.bolusAmount = 0
@@ -371,7 +383,7 @@ import WatchConnectivity
             self.finalizePendingData()
         }
         finalizeWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: workItem)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: workItem)
     }
 
     /// Applies all pending data to the watch state in one shot
@@ -400,6 +412,10 @@ import WatchConnectivity
 
     /// Updates the UI properties
     private func processRawDataForWatchState(_ message: [String: Any]) {
+        if let timestamp = message[WatchMessageKeys.date] as? TimeInterval {
+            lastWatchStateUpdate = timestamp
+        }
+
         if let currentGlucose = message[WatchMessageKeys.currentGlucose] as? String {
             self.currentGlucose = currentGlucose
         }
