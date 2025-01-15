@@ -583,16 +583,6 @@ extension DataTable {
             }
             .swipeActions {
                 Button(
-                    "Edit",
-                    systemImage: "pencil",
-                    role: .none,
-                    action: {
-                        state.carbEntryToEdit = meal
-                        state.showCarbEntryEditor = true
-                    }
-                ).tint(.blue)
-
-                Button(
                     "Delete",
                     systemImage: "trash.fill",
                     role: .none,
@@ -613,6 +603,16 @@ extension DataTable {
                         isRemoveHistoryItemAlertPresented = true
                     }
                 ).tint(.red)
+
+                Button(
+                    "Edit",
+                    systemImage: "pencil",
+                    role: .none,
+                    action: {
+                        state.carbEntryToEdit = meal
+                        state.showCarbEntryEditor = true
+                    }
+                ).tint(.blue)
             }
             .alert(
                 Text(NSLocalizedString(alertTitle, comment: "")),

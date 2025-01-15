@@ -338,7 +338,13 @@ extension DataTable {
             }
         }
 
-        func updateFPUEntry(_ treatmentObjectID: NSManagedObjectID, newFat: Decimal, newProtein: Decimal, newNote: String) {
+        func updateEntry(
+            _ treatmentObjectID: NSManagedObjectID,
+            newCarbs: Decimal,
+            newFat: Decimal,
+            newProtein: Decimal,
+            newNote: String
+        ) {
             Task {
                 // Get the original entry's actualDate before deletion
                 let context = CoreDataStack.shared.newTaskContext()
@@ -361,7 +367,7 @@ extension DataTable {
                     id: UUID().uuidString,
                     createdAt: Date(),
                     actualDate: originalDate, // Use the original entry's date
-                    carbs: Decimal(0),
+                    carbs: newCarbs,
                     fat: newFat,
                     protein: newProtein,
                     note: newNote,
