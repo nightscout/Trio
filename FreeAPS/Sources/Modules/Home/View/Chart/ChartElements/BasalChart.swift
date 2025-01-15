@@ -34,7 +34,7 @@ extension MainChartView {
             }
             .frame(minHeight: geo.size.height * 0.05)
             .frame(width: fullWidth(viewWidth: screenSize.width))
-            .chartXScale(domain: startMarker ... endMarker)
+            .chartXScale(domain: state.startMarker ... state.endMarker)
             .chartXAxis { basalChartXAxis }
             .chartXAxis(.hidden)
             .chartYAxis(.hidden)
@@ -96,7 +96,7 @@ extension MainChartView {
                 series: .value("profile", "profile")
             ).lineStyle(.init(lineWidth: 2, dash: [2, 4])).foregroundStyle(Color.insulin)
             LineMark(
-                x: .value("End Date", profile.endDate ?? endMarker),
+                x: .value("End Date", profile.endDate ?? state.endMarker),
                 y: .value("Amount", profile.amount),
                 series: .value("profile", "profile")
             ).lineStyle(.init(lineWidth: 2.5, dash: [2, 4])).foregroundStyle(Color.insulin)
@@ -204,7 +204,7 @@ extension MainChartView {
 
             async let getRegularBasalPoints = findRegularBasalPoints(
                 timeBegin: dayAgoTime,
-                timeEnd: endMarker.timeIntervalSince1970
+                timeEnd: state.endMarker.timeIntervalSince1970
             )
 
             var regularPoints = await getRegularBasalPoints
@@ -224,8 +224,8 @@ extension MainChartView {
                     BasalProfile(
                         amount: single.amount,
                         isOverwritten: single.isOverwritten,
-                        startDate: startMarker,
-                        endDate: endMarker
+                        startDate: state.startMarker,
+                        endDate: state.endMarker
                     )
                 )
             }
@@ -248,7 +248,7 @@ extension MainChartView {
                             amount: lastItem.amount,
                             isOverwritten: lastItem.isOverwritten,
                             startDate: lastItem.startDate,
-                            endDate: endMarker
+                            endDate: state.endMarker
                         )
                     )
                 }
