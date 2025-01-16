@@ -38,18 +38,14 @@ struct BolusInputView: View {
                 Spacer()
             } else {
                 if effectiveBolusLimit == 0 {
-                    VStack(spacing: 10) {
-                        Spacer()
-
+                    VStack(spacing: 8) {
                         Text("Bolus limit cannot be fetched from phone!").font(.headline)
                         Text("Check device settings, connect to phone, and try again.").font(.caption)
-
-                        Spacer()
                     }
-                    .foregroundColor(.loopRed)
                     .scenePadding()
                 } else {
                     if state.carbsAmount > 0 {
+                        // Display the current carb amount
                         HStack {
                             Text("Carbs:").bold().font(.subheadline).padding(.leading)
                             Text("\(state.carbsAmount) g").font(.subheadline).foregroundStyle(Color.orange)
@@ -73,7 +69,6 @@ struct BolusInputView: View {
 
                         Spacer()
 
-                        // Display the current carb amount
                         let bolusIncrement = Double(truncating: state.bolusIncrement as NSNumber)
                         let adjustedBolusAmount = floor(bolusAmount / bolusIncrement) * bolusIncrement
 

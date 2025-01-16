@@ -17,6 +17,9 @@ struct BolusConfirmationView: View {
     )
 
     var body: some View {
+        let bolusIncrement = Double(truncating: state.bolusIncrement as NSNumber)
+        let adjustedBolusAmount = floor(bolusAmount / bolusIncrement) * bolusIncrement
+
         VStack(spacing: 10) {
             Spacer()
 
@@ -34,7 +37,7 @@ struct BolusConfirmationView: View {
                 HStack {
                     Text("Bolus")
                     Spacer()
-                    Text(String(format: "%.1f U", bolusAmount))
+                    Text(String(format: "%.2f U", adjustedBolusAmount))
                         .bold()
                         .foregroundStyle(Color.insulin)
                 }.padding(.horizontal)
