@@ -134,9 +134,9 @@ struct CarbEntryEditorView: View {
 
                     if state.settingsManager.settings.useFPUconversion {
                         HStack {
-                            Text("Fat")
+                            Text("Protein")
                             TextFieldWithToolBar(
-                                text: $editedFat,
+                                text: $editedProtein,
                                 placeholder: "0",
                                 keyboardType: .numberPad,
                                 numberFormatter: Formatter.decimalFormatterWithOneFractionDigit
@@ -145,9 +145,9 @@ struct CarbEntryEditorView: View {
                         }
 
                         HStack {
-                            Text("Protein")
+                            Text("Fat")
                             TextFieldWithToolBar(
-                                text: $editedProtein,
+                                text: $editedFat,
                                 placeholder: "0",
                                 keyboardType: .numberPad,
                                 numberFormatter: Formatter.decimalFormatterWithOneFractionDigit
