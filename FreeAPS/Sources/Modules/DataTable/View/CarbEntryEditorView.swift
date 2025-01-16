@@ -4,6 +4,7 @@
 //
 //  Created by Marvin Polscheit on 15.01.25.
 //
+import CoreData
 import SwiftUI
 
 struct CarbEntryEditorView: View {
@@ -14,6 +15,12 @@ struct CarbEntryEditorView: View {
     var state: DataTable.StateModel
     let carbEntry: CarbEntryStored
 
+    /*
+     This is the objectID of the entry that the user is editing. It is NOT always the `carbEntry: CarbEntryStored` that we pass to the `CarbEntryEditorView`.
+     We need this because FPUs and carbs are treated completely different and that complicates the update process.
+     */
+    @State private var entryToEdit: NSManagedObjectID?
+
     @State private var editedCarbs: Decimal
     @State private var editedFat: Decimal
     @State private var editedProtein: Decimal
@@ -23,11 +30,12 @@ struct CarbEntryEditorView: View {
     init(state: DataTable.StateModel, carbEntry: CarbEntryStored) {
         self.state = state
         self.carbEntry = carbEntry
-        _editedCarbs = State(initialValue: Decimal(carbEntry.carbs))
+        _editedCarbs = State(initialValue: 0)
         _editedFat = State(initialValue: 0) // gets updated in the task block
         _editedProtein = State(initialValue: 0) // gets updated in the task block
         _editedNote = State(initialValue: carbEntry.note ?? "")
         _isFPU = State(initialValue: carbEntry.isFPU)
+        _entryToEdit = State(initialValue: nil)
     }
 
     private var carbLimitExceeded: Bool {
@@ -84,10 +92,10 @@ struct CarbEntryEditorView: View {
 
             Button(
                 action: {
-                    let treatmentObjectID = carbEntry.objectID
+                    guard let entryToEdit = entryToEdit else { return }
 
                     state.updateEntry(
-                        treatmentObjectID,
+                        entryToEdit,
                         newCarbs: editedCarbs,
                         newFat: editedFat,
                         newProtein: editedProtein,
@@ -173,26 +181,34 @@ struct CarbEntryEditorView: View {
             }
         }
         .task {
-            // TODO: do we still need this, or is grabbing the entire "hold-it-all" entry enough?
+            /*
+             User taps on a FPU entry in the DataTable list. There are two cases:
+             - the User has entered this FPU entry WITH carbs
+             - the User has entered this FPU entry WITHOUT carbs
+             In the first case, we simply need to load the corresponding carb entry. For this case THIS is the entry we want to edit.
+             In the second case, we need to load the zero-carb entry that actualy holds the FPU values (and the carbs). For this case THIS is the entry we want to edit.
+             */
             if carbEntry.isFPU {
-                if let originalEntryID = await state.getZeroCarbNonFPUEntry(carbEntry.objectID) {
-                    let context = CoreDataStack.shared.persistentContainer.viewContext
-
-                    await context.perform {
-                        do {
-                            if let originalEntry = try context.existingObject(with: originalEntryID) as? CarbEntryStored {
-                                editedFat = Decimal(originalEntry.fat)
-                                editedProtein = Decimal(originalEntry.protein)
-                                editedNote = originalEntry.note ?? ""
-                            }
-                        } catch {
-                            debugPrint(
-                                "\(DebuggingIdentifiers.failed) Failed to fetch original entry: \(error.localizedDescription)"
-                            )
-                        }
-                    }
-                } else {
-                    debugPrint("\(DebuggingIdentifiers.failed) No original entry ID found")
+                if let result = await state.handleFPUEntry(carbEntry.objectID) {
+                    editedCarbs = result.entryValues?.carbs ?? 0
+                    editedFat = result.entryValues?.fat ?? 0
+                    editedProtein = result.entryValues?.protein ?? 0
+                    editedNote = result.entryValues?.note ?? ""
+                    entryToEdit = result.entryID
+                }
+                /*
+                 User taps on a carb entry in the DataTable list. There are again two cases which don't need explicit handling:
+                 - the User has only entered carbs
+                 - the User has entered carbs with FPU
+                 In both cases, we need to simply load the carb entry that holds all the necessary values for us. This is the entry we want to edit.
+                 */
+            } else {
+                if let values = await state.loadEntryValues(from: carbEntry.objectID) {
+                    editedCarbs = values.carbs
+                    editedFat = values.fat
+                    editedProtein = values.protein
+                    editedNote = values.note
+                    entryToEdit = carbEntry.objectID
                 }
             }
         }
