@@ -25,6 +25,7 @@ struct WatchState: Hashable, Equatable, Sendable {
 
     // Pump specific dosing increment
     var bolusIncrement: Decimal = 0.05
+    var confirmBolusFaster: Bool = false
 
     static func == (lhs: WatchState, rhs: WatchState) -> Bool {
         lhs.date == rhs.date &&
@@ -47,7 +48,8 @@ struct WatchState: Hashable, Equatable, Sendable {
             lhs.maxProtein == rhs.maxProtein &&
             lhs.maxIOB == rhs.maxIOB &&
             lhs.maxCOB == rhs.maxCOB &&
-            lhs.bolusIncrement == rhs.bolusIncrement
+            lhs.bolusIncrement == rhs.bolusIncrement &&
+            lhs.confirmBolusFaster == rhs.confirmBolusFaster
     }
 
     func hash(into hasher: inout Hasher) {
@@ -73,5 +75,6 @@ struct WatchState: Hashable, Equatable, Sendable {
         hasher.combine(maxIOB)
         hasher.combine(maxCOB)
         hasher.combine(bolusIncrement)
+        hasher.combine(confirmBolusFaster)
     }
 }

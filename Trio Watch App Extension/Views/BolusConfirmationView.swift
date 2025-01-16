@@ -62,7 +62,7 @@ struct BolusConfirmationView: View {
             $confirmationProgress,
             from: 0.0,
             through: 1.0,
-            by: 0.05,
+            by: state.confirmBolusFaster ? 0.5 : 0.05,
             sensitivity: .medium,
             isContinuous: false,
             isHapticFeedbackEnabled: true

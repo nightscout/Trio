@@ -23,7 +23,6 @@ struct TrioSettings: JSON, Equatable {
     var useLocalGlucoseSource: Bool = false
     var localGlucosePort: Int = 8080
     var debugOptions: Bool = false
-    var displayHR: Bool = false
     var cgm: CGMType = .none
     var cgmPluginIdentifier: String = ""
     var uploadGlucose: Bool = true
@@ -50,7 +49,6 @@ struct TrioSettings: JSON, Equatable {
     var delay: Int = 60
     var useAppleHealth: Bool = false
     var smoothGlucose: Bool = false
-    var displayOnWatch: AwConfig = .BGTarget
     var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
     var high: Decimal = 180
     var low: Decimal = 70
@@ -64,7 +62,6 @@ struct TrioSettings: JSON, Equatable {
     var maxCarbs: Decimal = 250
     var maxFat: Decimal = 250
     var maxProtein: Decimal = 250
-    var displayFatAndProteinOnWatch: Bool = false
     var confirmBolusFaster: Bool = false
     var overrideFactor: Decimal = 0.8
     var fattyMeals: Bool = false
@@ -109,16 +106,6 @@ extension TrioSettings: Decodable {
 
         if let debugOptions = try? container.decode(Bool.self, forKey: .debugOptions) {
             settings.debugOptions = debugOptions
-        }
-
-        if let displayHR = try? container.decode(Bool.self, forKey: .displayHR) {
-            settings.displayHR = displayHR
-            // compatibility if displayOnWatch is not available in json files
-            settings.displayOnWatch = (displayHR == true) ? AwConfig.HR : AwConfig.BGTarget
-        }
-
-        if let displayOnWatch = try? container.decode(AwConfig.self, forKey: .displayOnWatch) {
-            settings.displayOnWatch = displayOnWatch
         }
 
         if let cgm = try? container.decode(CGMType.self, forKey: .cgm) {
@@ -298,10 +285,6 @@ extension TrioSettings: Decodable {
 
         if let maxProtein = try? container.decode(Decimal.self, forKey: .maxProtein) {
             settings.maxProtein = maxProtein
-        }
-
-        if let displayFatAndProteinOnWatch = try? container.decode(Bool.self, forKey: .displayFatAndProteinOnWatch) {
-            settings.displayFatAndProteinOnWatch = displayFatAndProteinOnWatch
         }
 
         if let confirmBolusFaster = try? container.decode(Bool.self, forKey: .confirmBolusFaster) {

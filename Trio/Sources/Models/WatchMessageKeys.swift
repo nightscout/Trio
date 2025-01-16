@@ -45,4 +45,5 @@ enum WatchMessageKeys {
     static let maxIOB = "maxIOB"
     static let maxCOB = "maxCOB"
     static let bolusIncrement = "bolusIncrement"
+    static let confirmBolusFaster = "confirmBolusFaster"
 }

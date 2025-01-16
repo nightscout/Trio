@@ -273,6 +273,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             watchState.maxIOB = self.settingsManager.preferences.maxIOB
             watchState.maxCOB = self.settingsManager.preferences.maxCOB
             watchState.bolusIncrement = self.settingsManager.preferences.bolusIncrement
+            watchState.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
 
             debug(
                 .watchManager,
@@ -361,7 +362,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.maxProtein: state.maxProtein,
             WatchMessageKeys.maxIOB: state.maxIOB,
             WatchMessageKeys.maxCOB: state.maxCOB,
-            WatchMessageKeys.bolusIncrement: state.bolusIncrement
+            WatchMessageKeys.bolusIncrement: state.bolusIncrement,
+            WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster
         ]
 
         // if session is reachable, it means watch App is in the foreground -> send watchState as message

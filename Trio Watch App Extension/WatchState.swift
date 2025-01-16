@@ -48,6 +48,7 @@ import WatchConnectivity
 
     // Pump specific dosing increment
     var bolusIncrement: Decimal = 0.05
+    var confirmBolusFaster: Bool = false
 
     // Acknowlegement handling
     var showCommsAnimation: Bool = false
@@ -530,6 +531,12 @@ import WatchConnectivity
         if let bolusIncrement = message[WatchMessageKeys.bolusIncrement] {
             if let decimalValue = (bolusIncrement as? NSNumber)?.decimalValue {
                 self.bolusIncrement = decimalValue
+            }
+        }
+
+        if let confirmBolusFaster = message[WatchMessageKeys.confirmBolusFaster] {
+            if let booleanValue = confirmBolusFaster as? Bool {
+                self.confirmBolusFaster = booleanValue
             }
         }
     }
