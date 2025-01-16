@@ -205,11 +205,18 @@ import WatchConnectivity
 
                     // Handle bolus progress updates
         } else if
-            let progress = message[WatchMessageKeys.bolusProgress] as? Double
+            let progress = message[WatchMessageKeys.bolusProgress] as? Double,
+            let activeBolusAmount = message[WatchMessageKeys.activeBolusAmount] as? Double
         {
             DispatchQueue.main.async {
                 if !self.isBolusCanceled {
                     self.bolusProgress = progress
+
+                    // we only need to grab the active bolus amount from the phone if it is a phone-invoked bolus
+                    // when it comes from the watch, we already have it stored and available
+                    if self.activeBolusAmount == 0 {
+                        self.activeBolusAmount = activeBolusAmount
+                    }
                 }
             }
             return
@@ -279,11 +286,18 @@ import WatchConnectivity
 
                     // Handle bolus progress updates
         } else if
-            let progress = userInfo[WatchMessageKeys.bolusProgress] as? Double
+            let progress = userInfo[WatchMessageKeys.bolusProgress] as? Double,
+            let activeBolusAmount = userInfo[WatchMessageKeys.activeBolusAmount] as? Double
         {
             DispatchQueue.main.async {
                 if !self.isBolusCanceled {
                     self.bolusProgress = progress
+
+                    // we only need to grab the active bolus amount from the phone if it is a phone-invoked bolus
+                    // when it comes from the watch, we already have it stored and available
+                    if self.activeBolusAmount == 0 {
+                        self.activeBolusAmount = activeBolusAmount
+                    }
                 }
             }
             return

@@ -29,6 +29,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     private var lowGlucose: Decimal = 70.0
     private var highGlucose: Decimal = 180.0
     private var currentGlucoseTarget: Decimal = 100.0
+    private var activeBolusAmount: Double = 0.0
 
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
     private var subscriptions = Set<AnyCancellable>()
@@ -92,6 +93,18 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             Task {
                 let state = await self.setupWatchState()
                 await self.sendDataToWatch(state)
+            }
+        }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            Task {
+                if let lastBolusObjectId = await self.fetchLastBolus() {
+                    let lastBolusObject: [PumpEventStored] = await CoreDataStack.shared
+                        .getNSManagedObject(with: [lastBolusObjectId], context: self.backgroundContext)
+
+                    self.activeBolusAmount = lastBolusObject.first?.bolus?.amount?.doubleValue ?? 0.0
+                }
             }
         }.store(in: &subscriptions)
 
@@ -301,6 +314,25 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             guard let fetchedResults = results as? [GlucoseStored] else { return [] }
 
             return fetchedResults.map(\.objectID)
+        }
+    }
+
+    /// Fetches last pump event that is a non-external bolus from CoreData
+    /// - Returns: NSManagedObjectIDs for last bolus
+    func fetchLastBolus() async -> NSManagedObjectID? {
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate.lastPumpBolus,
+            key: "timestamp",
+            ascending: false,
+            fetchLimit: 1
+        )
+
+        return await backgroundContext.perform {
+            guard let fetchedResults = results as? [PumpEventStored] else { return [].first }
+
+            return fetchedResults.map(\.objectID).first
         }
     }
 
@@ -843,11 +875,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             .sink { [weak self] progress in
                 if let progress = progress {
                     wasBolusActive = true
-                    self?.sendBolusProgressToWatch(progress: progress)
+                    Task {
+                        await self?.sendBolusProgressToWatch(progress: progress)
+                    }
                 } else if wasBolusActive {
                     // Only if a bolus was previously active and now nil is received,
                     // the bolus was cancelled
                     wasBolusActive = false
+                    self?.activeBolusAmount = 0.0
+
                     debug(.watchManager, "📱 Bolus cancelled from phone")
                     self?.sendBolusCanceledMessageToWatch()
                 }
@@ -857,10 +893,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     /// Sends bolus progress updates to the Watch
     /// - Parameter progress: The current bolus progress as a Decimal
-    private func sendBolusProgressToWatch(progress: Decimal?) {
+    private func sendBolusProgressToWatch(progress: Decimal?) async {
         guard let session = session, session.isReachable, let progress = progress else { return }
 
-        let message: [String: Any] = [WatchMessageKeys.bolusProgress: Double(truncating: progress as NSNumber)]
+        let message: [String: Any] = [
+            WatchMessageKeys.bolusProgress: Double(truncating: progress as NSNumber),
+            WatchMessageKeys.activeBolusAmount: activeBolusAmount
+        ]
 
         session.sendMessage(message, replyHandler: nil) { error in
             debug(.watchManager, "❌ Error sending bolus progress: \(error.localizedDescription)")
@@ -869,7 +908,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     private func sendBolusCanceledMessageToWatch() {
         if let session = session, session.isReachable {
-            let message: [String: Any] = ["bolusCanceled": true]
+            let message: [String: Any] = [WatchMessageKeys.bolusCanceled: true]
             session.sendMessage(message, replyHandler: nil) { error in
                 debug(.watchManager, "❌ Error sending bolus cancellation to watch: \(error.localizedDescription)")
             }
