@@ -413,7 +413,7 @@ extension UserInterfaceSettings {
                                                 VStack(alignment: .leading, spacing: 5) {
                                                     Text("Total Insulin in Scope:").bold()
                                                     Text(
-                                                        "Displays the total insulin administered as a bolus, manual or SMB, above your profile basal rate within the timeframe selected on the home screen."
+                                                        "Displays the total amount of insulin given as a bolus (manual or SMB) and through temporary basal rates above zero during the selected timeframe of the main chart."
                                                     )
                                                 }
                                             }
