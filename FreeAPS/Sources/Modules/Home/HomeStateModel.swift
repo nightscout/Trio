@@ -19,6 +19,8 @@ extension Home {
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
+        var startMarker = Date(timeIntervalSinceNow: TimeInterval(hours: -24))
+        var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
         var manualGlucose: [BloodGlucose] = []
         var uploadStats = false
         var recentGlucose: BloodGlucose?
@@ -26,7 +28,7 @@ extension Home {
         var basalProfile: [BasalProfileEntry] = []
         var bgTargets = BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
             ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
-        var tempTargets: [TempTarget] = []
+        var targetProfiles: [TargetProfile] = []
         var timerDate = Date()
         var closedLoop = false
         var pumpSuspended = false
@@ -37,7 +39,6 @@ extension Home {
         var reservoir: Decimal?
         var pumpName = ""
         var pumpExpiresAtDate: Date?
-        var tempTarget: TempTarget?
         var highTTraisesSens: Bool = false
         var lowTTlowersSens: Bool = false
         var isExerciseModeActive: Bool = false
@@ -267,7 +268,6 @@ extension Home {
         }
 
         private func registerObservers() {
-            broadcaster.register(GlucoseObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(SettingsObserver.self, observer: self)
             broadcaster.register(PreferencesObserver.self, observer: self)
@@ -479,8 +479,10 @@ extension Home {
 
         private func setupGlucoseTargets() async {
             let bgTargets = await provider.getBGTargets()
+            let targetProfiles = processFetchedTargets(bgTargets, startMarker: startMarker)
             await MainActor.run {
                 self.bgTargets = bgTargets
+                self.targetProfiles = targetProfiles
             }
         }
 
@@ -554,7 +556,6 @@ extension Home {
 }
 
 extension Home.StateModel:
-    GlucoseObserver,
     DeterminationObserver,
     SettingsObserver,
     PreferencesObserver,
@@ -565,11 +566,6 @@ extension Home.StateModel:
     PumpTimeZoneObserver,
     PumpDeactivatedObserver
 {
-    // TODO: still needed?
-    func glucoseDidUpdate(_: [BloodGlucose]) {
-//        setupGlucose()
-    }
-
     func determinationDidUpdate(_: Determination) {
         waitForSuggestion = false
     }
@@ -604,11 +600,6 @@ extension Home.StateModel:
         highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
         isExerciseModeActive = settingsManager.preferences.exerciseMode
         lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
-    }
-
-    // TODO: is this ever really triggered? react to MOC changes?
-    func pumpHistoryDidUpdate(_: [PumpHistoryEvent]) {
-        displayPumpStatusHighlightMessage()
     }
 
     func pumpSettingsDidChange(_: PumpSettings) {

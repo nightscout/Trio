@@ -319,6 +319,8 @@
 		BD2FF1A02AE29D43005D1C5D /* CheckboxToggleStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */; };
 		BD3CC0722B0B89D50013189E /* MainChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3CC0712B0B89D50013189E /* MainChartView.swift */; };
 		BD4064D12C4ED26900582F43 /* CoreDataObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */; };
+		BD4E1A7A2D3681B700D21626 /* GlucoseTargetSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4E1A792D3681AD00D21626 /* GlucoseTargetSetup.swift */; };
+		BD4E1A7C2D3686D900D21626 /* StartEndMarkerSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4E1A7B2D3686D400D21626 /* StartEndMarkerSetup.swift */; };
 		BD4ED4FD2CF9D5E8000EDC9C /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4ED4FC2CF9D5E8000EDC9C /* AppState.swift */; };
 		BD6EB2D62C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6EB2D52C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift */; };
 		BD793CB02CE7C61500D669AC /* OverrideRunStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */; };
@@ -1022,6 +1024,8 @@
 		BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckboxToggleStyle.swift; sourceTree = "<group>"; };
 		BD3CC0712B0B89D50013189E /* MainChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChartView.swift; sourceTree = "<group>"; };
 		BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataObserver.swift; sourceTree = "<group>"; };
+		BD4E1A792D3681AD00D21626 /* GlucoseTargetSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseTargetSetup.swift; sourceTree = "<group>"; };
+		BD4E1A7B2D3686D400D21626 /* StartEndMarkerSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartEndMarkerSetup.swift; sourceTree = "<group>"; };
 		BD4ED4FC2CF9D5E8000EDC9C /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		BD6EB2D52C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityWidgetConfiguration.swift; sourceTree = "<group>"; };
 		BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+helper.swift"; sourceTree = "<group>"; };
@@ -2353,6 +2357,8 @@
 		58645B972CA2D16A008AFCE7 /* HomeStateModel+Setup */ = {
 			isa = PBXGroup;
 			children = (
+				BD4E1A7B2D3686D400D21626 /* StartEndMarkerSetup.swift */,
+				BD4E1A792D3681AD00D21626 /* GlucoseTargetSetup.swift */,
 				BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */,
 				58645B982CA2D1A4008AFCE7 /* GlucoseSetup.swift */,
 				58645B9A2CA2D24F008AFCE7 /* CarbSetup.swift */,
@@ -3618,6 +3624,7 @@
 				190EBCC829FF13AA00BA767D /* UserInterfaceSettingsStateModel.swift in Sources */,
 				DDF847EA2C5DABAC0049BB3B /* WatchConfigGarminView.swift in Sources */,
 				38BF021F25E7F0DE00579895 /* DeviceDataManager.swift in Sources */,
+				BD4E1A7A2D3681B700D21626 /* GlucoseTargetSetup.swift in Sources */,
 				BDB3C1192C03DD1000CEEAA1 /* UserDefaultsExtension.swift in Sources */,
 				38A504A425DD9C4000C5B9E8 /* UserDefaultsExtensions.swift in Sources */,
 				38FE826A25CC82DB001FF17A /* NetworkService.swift in Sources */,
@@ -3803,6 +3810,7 @@
 				19D4E4EB29FC6A9F00351451 /* Charts.swift in Sources */,
 				BDC531162D10629000088832 /* ContactPicture.swift in Sources */,
 				FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */,
+				BD4E1A7C2D3686D900D21626 /* StartEndMarkerSetup.swift in Sources */,
 				F90692D3274B9A130037068D /* AppleHealthKitRootView.swift in Sources */,
 				BDF34F852C10C62E00D51995 /* GlucoseData.swift in Sources */,
 				19E1F7EC29D082FE005C8D20 /* IconConfigStateModel.swift in Sources */,

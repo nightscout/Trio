@@ -16,16 +16,6 @@ extension Home {
             apsManager.heartbeat(date: Date())
         }
 
-        func tempTargets(hours: Int) -> [TempTarget] {
-            tempTargetsStorage.recent().filter {
-                $0.createdAt.addingTimeInterval(hours.hours.timeInterval) > Date()
-            }
-        }
-
-        func tempTarget() -> TempTarget? {
-            tempTargetsStorage.current()
-        }
-
         func pumpSettings() async -> PumpSettings {
             await storage.retrieveAsync(OpenAPS.Settings.settings, as: PumpSettings.self)
                 ?? PumpSettings(from: OpenAPS.defaults(for: OpenAPS.Settings.settings))
