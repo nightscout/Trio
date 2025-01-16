@@ -44,46 +44,71 @@ struct PumpView: View {
                 if let reservoir = reservoir {
                     HStack {
                         Image(systemName: "cross.vial.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(reservoirColor)
+                            .font(.callout)
+
                         if reservoir == 0xDEAD_BEEF {
                             Text("50+ " + NSLocalizedString("U", comment: "Insulin unit"))
-                                .font(.system(size: 15, design: .rounded))
+                                .font(.callout)
+                                .fontWeight(.bold)
+                                .fontDesign(.rounded)
                         } else {
                             Text(
                                 Formatter.integerFormatter
                                     .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
                             )
-                            .font(.system(size: 16, design: .rounded))
+                            .font(.callout)
+                            .fontWeight(.bold)
+                            .fontDesign(.rounded)
                         }
                     }
+                    .padding(.vertical, 5)
+                    .padding(.horizontal, 10)
+                    .foregroundStyle(reservoirColor)
+                    .overlay(
+                        Capsule()
+                            .stroke(reservoirColor.opacity(0.4), lineWidth: 2)
+                    )
 
                     if let timeZone = timeZone, timeZone.secondsFromGMT() != TimeZone.current.secondsFromGMT() {
-                        Image(systemName: "clock.badge.exclamationmark.fill")
-                            .font(.system(size: 16))
-                            .symbolRenderingMode(.palette)
-                            .foregroundStyle(.red, Color(.warning))
+                        HStack {
+                            Image(systemName: "clock.badge.exclamationmark.fill")
+                                .font(.callout)
+                                .symbolRenderingMode(.palette)
+                                .foregroundStyle(.red, Color(.warning))
+
+                            Text("Timezone")
+                                .font(.callout)
+                                .fontWeight(.bold)
+                                .fontDesign(.rounded)
+                                .foregroundStyle(.red)
+                        }
+                        .padding(.leading, 12)
                     }
                 }
 
                 if (battery.first?.display) != nil, let shouldBatteryDisplay = battery.first?.display, shouldBatteryDisplay {
                     HStack {
                         Image(systemName: "battery.100")
-                            .font(.system(size: 16))
-                            .foregroundColor(batteryColor)
-                        Text("\(Int(battery.first?.percent ?? 100)) %").font(.system(size: 16, design: .rounded))
+                            .font(.callout)
+                            .foregroundStyle(batteryColor)
+                        Text("\(Int(battery.first?.percent ?? 100)) %")
+                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                 }
 
                 if let date = expiresAtDate {
                     HStack {
                         Image(systemName: "stopwatch.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(timerColor)
+                            .font(.callout)
+                            .foregroundStyle(timerColor)
 
                         Text(remainingTimeString(time: date.timeIntervalSince(timerDate)))
-                            .font(.system(size: 16, design: .rounded))
+                            .font(!(date.timeIntervalSince(timerDate) > 0) ? .subheadline : .callout)
+                            .fontWeight(.bold)
+                            .fontDesign(.rounded)
                     }
+                    // aligns the stopwatch icon exactly with the first pixel of the reservoir icon
+                    .padding(.leading, 12)
                 }
             }
         }
@@ -120,11 +145,11 @@ struct PumpView: View {
 
         switch battery.percent {
         case ...10:
-            return .red
+            return Color.loopRed
         case ...20:
-            return .yellow
+            return Color.orange
         default:
-            return .green
+            return Color.loopGreen
         }
     }
 
@@ -135,11 +160,11 @@ struct PumpView: View {
 
         switch reservoir {
         case ...10:
-            return .red
+            return Color.loopRed
         case ...30:
-            return .yellow
+            return Color.orange
         default:
-            return .blue
+            return Color.insulin
         }
     }
 
@@ -152,11 +177,11 @@ struct PumpView: View {
 
         switch time {
         case ...8.hours.timeInterval:
-            return .red
+            return Color.loopRed
         case ...1.days.timeInterval:
-            return .yellow
+            return Color.orange
         default:
-            return .green
+            return Color.loopGreen
         }
     }
 }

@@ -5,11 +5,9 @@ import SwiftUI
 import Swinject
 
 struct TimePicker: Identifiable {
-    let label: String
-    let number: String
     var active: Bool
     let hours: Int16
-    var id: String { label }
+    var id: String { hours.description }
 }
 
 extension Home {
@@ -33,18 +31,14 @@ extension Home {
         @State var isMenuPresented = false
         @State var showTreatments = false
         @State var selectedTab: Int = 0
-        @State private var statusTitle: String = ""
         @State var showPumpSelection: Bool = false
         @State var notificationsDisabled = false
         @State var timeButtons: [TimePicker] = [
-            TimePicker(label: "2 hours", number: "2", active: false, hours: 2),
-            TimePicker(label: "4 hours", number: "4", active: false, hours: 4),
-            TimePicker(label: "6 hours", number: "6", active: false, hours: 6),
-            TimePicker(label: "12 hours", number: "12", active: false, hours: 12),
-            TimePicker(label: "24 hours", number: "24", active: false, hours: 24)
+            TimePicker(active: false, hours: 4),
+            TimePicker(active: false, hours: 6),
+            TimePicker(active: false, hours: 12),
+            TimePicker(active: false, hours: 24)
         ]
-
-        let buttonFont = Font.custom("TimeButtonFont", size: 14)
 
         @FetchRequest(fetchRequest: OverrideStored.fetch(
             NSPredicate.lastActiveOverride,
@@ -117,7 +111,8 @@ extension Home {
                 timeZone: state.timeZone,
                 pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
                 battery: state.batteryFromPersistence
-            ).onTapGesture {
+            )
+            .onTapGesture {
                 if state.pumpDisplayState == nil {
                     // shows user confirmation dialog with pump model choices, then proceeds to setup
                     showPumpSelection.toggle()
@@ -246,45 +241,73 @@ extension Home {
             return components.isEmpty ? nil : components.joined(separator: ", ")
         }
 
-        var timeInterval: some View {
-            HStack(alignment: .center) {
+        var timeIntervalButtons: some View {
+            let buttonColor = (colorScheme == .dark ? Color.white : Color.black).opacity(0.8)
+
+            return HStack(alignment: .center) {
                 ForEach(timeButtons) { button in
-                    Text(button.active ? NSLocalizedString(button.label, comment: "") : button.number).onTapGesture {
+                    Button(action: {
                         state.hours = button.hours
-                    }
-                    .foregroundStyle(button.active ? (colorScheme == .dark ? Color.white : Color.black).opacity(0.9) : .secondary)
-                    .frame(maxHeight: 30).padding(.horizontal, 8)
-                    .background(
-                        button.active ?
-                            // RGB(30, 60, 95)
-                            (
-                                colorScheme == .dark ? Color(red: 0.1176470588, green: 0.2352941176, blue: 0.3725490196) :
-                                    Color.white
-                            ) :
-                            Color
-                            .clear
-                    )
-                    .cornerRadius(20)
-                }
-                Button(action: {
-                    state.isLegendPresented.toggle()
-                }) {
-                    Image(systemName: "info")
-                        .foregroundColor(colorScheme == .dark ? Color.white : Color.black).opacity(0.9)
-                        .frame(width: 20, height: 20)
-                        .background(
-                            colorScheme == .dark ? Color(red: 0.1176470588, green: 0.2352941176, blue: 0.3725490196) :
-                                Color.white
+                    }) {
+                        Group {
+                            if button.active {
+                                Text(
+                                    NSLocalizedString(button.hours.description, comment: "") + " " +
+                                        NSLocalizedString("h", comment: "h")
+                                )
+                            } else {
+                                Text(NSLocalizedString(button.hours.description, comment: ""))
+                            }
+                        }
+                        .font(.footnote)
+                        .fontWeight(button.active ? .semibold : .regular)
+                        .padding(.vertical, 5)
+                        .padding(.horizontal, 10)
+                        .foregroundColor(
+                            button
+                                .active ? (colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white) : buttonColor
                         )
-                        .clipShape(Circle())
+                        .background(button.active ? buttonColor.opacity(colorScheme == .dark ? 1 : 0.8) : Color.clear)
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(button.active ? buttonColor.opacity(0.4) : Color.clear, lineWidth: 2)
+                        )
+                    }
                 }
-                .padding([.top, .bottom])
             }
-            .shadow(
-                color: Color.black.opacity(colorScheme == .dark ? 0.75 : 0.33),
-                radius: colorScheme == .dark ? 5 : 3
-            )
-            .font(buttonFont)
+        }
+
+        var statsIconString: String {
+            if #available(iOS 18, *) {
+                return "chart.line.text.clipboard"
+            } else {
+                return "list.clipboard"
+            }
+        }
+
+        @ViewBuilder private func tappableButton(
+            buttonColor: Color,
+            label: String,
+            iconString: String,
+            action: @escaping () -> Void
+        ) -> some View {
+            Button(action: {
+                action()
+            }) {
+                HStack {
+                    Image(systemName: iconString)
+                    Text(label)
+                }
+                .font(.footnote)
+                .padding(.vertical, 5)
+                .padding(.horizontal, 10)
+                .foregroundStyle(buttonColor)
+                .overlay(
+                    Capsule()
+                        .stroke(buttonColor.opacity(0.4), lineWidth: 2)
+                )
+            }
         }
 
         @ViewBuilder func mainChart(geo: GeometryProxy) -> some View {
@@ -294,7 +317,6 @@ extension Home {
                     safeAreaSize: notificationsDisabled == true ? safeAreaSize : 0,
                     units: state.units,
                     hours: state.filteredHours,
-                    tempTargets: state.tempTargets,
                     highGlucose: state.highGlucose,
                     lowGlucose: state.lowGlucose,
                     currentGlucoseTarget: state.currentGlucoseTarget,
@@ -325,10 +347,11 @@ extension Home {
                     lastLoopDate: state.lastLoopDate,
                     manualTempBasal: state.manualTempBasal,
                     determination: state.determinationsFromPersistence
-                ).onTapGesture {
-                    state.isStatusPopupPresented = true
-                    setStatusTitle()
-                }.onLongPressGesture {
+                )
+                .onTapGesture {
+                    state.isLoopStatusPresented = true
+                }
+                .onLongPressGesture {
                     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                     impactHeavy.impactOccurred()
                     state.runLoop()
@@ -339,7 +362,7 @@ extension Home {
                     let bg = eventualBG as Decimal
                     HStack {
                         Image(systemName: "arrow.right.circle")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.callout).fontWeight(.bold)
                         Text(
                             Formatter.decimalFormatterWithTwoFractionDigits.string(
                                 from: (
@@ -347,15 +370,16 @@ extension Home {
                                         .asMmolL : bg
                                 ) as NSNumber
                             )!
-                        )
-                        .font(.system(size: 16))
+                        ).font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
+                    // aligns the evBG icon exactly with the first pixel of loop status icon
+                    .padding(.leading, 12)
                 } else {
                     HStack {
                         Image(systemName: "arrow.right.circle")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.callout).fontWeight(.bold)
                         Text("--")
-                            .font(.system(size: 16))
+                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                 }
             }
@@ -365,7 +389,7 @@ extension Home {
             HStack {
                 HStack {
                     Image(systemName: "syringe.fill")
-                        .font(.system(size: 16))
+                        .font(.callout)
                         .foregroundColor(Color.insulin)
                     Text(
                         (
@@ -374,14 +398,14 @@ extension Home {
                         ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
 
                 Spacer()
 
                 HStack {
                     Image(systemName: "fork.knife")
-                        .font(.system(size: 16))
+                        .font(.callout)
                         .foregroundColor(.loopYellow)
                     Text(
                         (
@@ -391,7 +415,7 @@ extension Home {
                         ) +
                             NSLocalizedString(" g", comment: "gram of carbs")
                     )
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
 
                 Spacer()
@@ -399,19 +423,29 @@ extension Home {
                 HStack {
                     if state.pumpSuspended {
                         Text("Pump suspended")
-                            .font(.system(size: 12, weight: .bold, design: .rounded)).foregroundColor(.loopGray)
+                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                            .foregroundColor(.loopGray)
                     } else if let tempBasalString = tempBasalString {
                         Image(systemName: "drop.circle")
-                            .font(.system(size: 16))
+                            .font(.callout)
                             .foregroundColor(.insulinTintColor)
-                        Text(tempBasalString)
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                        if tempBasalString.count > 5 {
+                            Text(tempBasalString)
+                                .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.85)
+                                .truncationMode(.tail)
+                                .allowsTightening(true)
+                        } else {
+                            // Short strings can just display normally
+                            Text(tempBasalString).font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                        }
                     } else {
                         Image(systemName: "drop.circle")
-                            .font(.system(size: 16))
+                            .font(.callout)
                             .foregroundColor(.insulinTintColor)
                         Text("No Data")
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                 }
                 if state.totalInsulinDisplayType == .totalDailyDose {
@@ -425,7 +459,7 @@ extension Home {
                             ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
                     )
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 } else {
                     Spacer()
                     HStack {
@@ -433,7 +467,7 @@ extension Home {
                             "TINS: \(state.roundedTotalBolus)" +
                                 NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
                         )
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                         .onChange(of: state.hours) {
                             state.roundedTotalBolus = state.calculateTINS()
                         }
@@ -450,7 +484,7 @@ extension Home {
         @ViewBuilder func adjustmentsOverrideView(_ overrideString: String) -> some View {
             Group {
                 Image(systemName: "clock.arrow.2.circlepath")
-                    .font(.system(size: 20))
+                    .font(.title2)
                     .foregroundStyle(Color.primary, Color.purple)
                 VStack(alignment: .leading) {
                     Text(latestOverride.first?.name ?? "Custom Override")
@@ -469,7 +503,7 @@ extension Home {
         @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: String) -> some View {
             Group {
                 Image(systemName: "target")
-                    .font(.system(size: 20))
+                    .font(.title2)
                     .foregroundStyle(Color.loopGreen)
                 VStack(alignment: .leading) {
                     Text(latestTempTarget.first?.name ?? "Temp Target")
@@ -485,7 +519,7 @@ extension Home {
 
         @ViewBuilder func adjustmentsCancelView(_ cancelAction: @escaping () -> Void) -> some View {
             Image(systemName: "xmark.app")
-                .font(.system(size: 24))
+                .font(.title)
                 .onTapGesture {
                     cancelAction()
                 }
@@ -493,7 +527,7 @@ extension Home {
 
         @ViewBuilder func adjustmentsCancelTempTargetView() -> some View {
             Image(systemName: "xmark.app")
-                .font(.system(size: 24))
+                .font(.title)
                 .confirmationDialog(
                     "Stop the Temp Target \"\(latestTempTarget.first?.name ?? "")\"?",
                     isPresented: $isConfirmStopTempTargetShown,
@@ -517,7 +551,7 @@ extension Home {
 
         @ViewBuilder func adjustmentsCancelOverrideView() -> some View {
             Image(systemName: "xmark.app")
-                .font(.system(size: 24))
+                .font(.title)
                 .confirmationDialog(
                     "Stop the Override \"\(latestOverride.first?.name ?? "")\"?",
                     isPresented: $isConfirmStopOverridePresented,
@@ -554,7 +588,7 @@ extension Home {
 
                 /// to ensure the same position....
                 Image(systemName: "xmark.app")
-                    .font(.system(size: 25))
+                    .font(.title)
                     // clear color for the icon
                     .foregroundStyle(Color.clear)
             }.onTapGesture {
@@ -563,6 +597,8 @@ extension Home {
         }
 
         @ViewBuilder func adjustmentView(geo: GeometryProxy) -> some View {
+//            let background = colorScheme == .dark ? Material.ultraThinMaterial.opacity(0.5) : Color.black.opacity(0.2)
+
             ZStack {
                 /// rectangle as background
                 RoundedRectangle(cornerRadius: 15)
@@ -574,7 +610,7 @@ extension Home {
                                     Color.insulin.opacity(0.1)
                             ) : Color.clear // Use clear and add the Material in the background
                     )
-                    .background(.ultraThinMaterial.opacity(colorScheme == .dark ? 0.35 : 0))
+                    .background(colorScheme == .dark ? Color.chart.opacity(0.25) : Color.black.opacity(0.075))
                     .clipShape(RoundedRectangle(cornerRadius: 15))
                     .frame(height: geo.size.height * 0.08)
                     .shadow(
@@ -732,7 +768,10 @@ extension Home {
 
                 }.padding(.horizontal, 10).padding(.bottom, UIDevice.adjustPadding(min: nil, max: 10))
                     .overlay(alignment: .bottom) {
-                        bolusProgressBar(progress).padding(.horizontal, 18).offset(y: 48)
+                        // Use a geo-based offset here to position progress bar independent of device size
+                        let offset = geo.size.height * 0.0725
+                        bolusProgressBar(progress).padding(.horizontal, 18)
+                            .offset(y: offset)
                     }.clipShape(RoundedRectangle(cornerRadius: 15))
             }
         }
@@ -812,8 +851,28 @@ extension Home {
 
                 mainChart(geo: geo)
 
-                timeInterval.padding(.top, UIDevice.adjustPadding(min: 0, max: 12))
-                    .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 12))
+                HStack {
+                    tappableButton(
+                        buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
+                        label: "Stats",
+                        iconString: statsIconString,
+                        action: { state.showModal(for: .statistics) }
+                    )
+
+                    Spacer()
+
+                    timeIntervalButtons.padding(.top, UIDevice.adjustPadding(min: 0, max: 10))
+                        .padding(.bottom, UIDevice.adjustPadding(min: 0, max: 10))
+
+                    Spacer()
+
+                    tappableButton(
+                        buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
+                        label: "Info",
+                        iconString: "info",
+                        action: { state.isLegendPresented.toggle() }
+                    )
+                }.padding([.horizontal, .top, .bottom])
 
                 if let progress = state.bolusProgress {
                     bolusView(geo: geo, progress)
@@ -851,26 +910,9 @@ extension Home {
             .navigationTitle("Home")
             .navigationBarHidden(true)
             .ignoresSafeArea(.keyboard)
-            .popup(isPresented: state.isStatusPopupPresented, alignment: .top, direction: .top) {
-                popup
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(colorScheme == .dark ? Color(
-                                "Chart"
-                            ) : Color(UIColor.darkGray))
-                    )
-                    .onTapGesture {
-                        state.isStatusPopupPresented = false
-                    }
-                    .gesture(
-                        DragGesture(minimumDistance: 10, coordinateSpace: .local)
-                            .onEnded { value in
-                                if value.translation.height < 0 {
-                                    state.isStatusPopupPresented = false
-                                }
-                            }
-                    )
+            .blur(radius: state.isLoopStatusPresented ? 3 : 0)
+            .sheet(isPresented: $state.isLoopStatusPresented) {
+                LoopStatusView(state: state)
             }
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
                 Button("Medtronic") { state.addPump(.minimed) }
@@ -898,94 +940,8 @@ extension Home {
                 }
             }
             .sheet(isPresented: $state.isLegendPresented) {
-                legendSheetView()
+                ChartLegendView(state: state)
             }
-        }
-
-        @ViewBuilder func legendSheetView() -> some View {
-            NavigationStack {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text(
-                        "The oref algorithm determines insulin dosing based on a number of scenarios that it estimates with different types of forecasts."
-                    )
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                    if state.forecastDisplayType == .lines {
-                        legendLinesView()
-                    } else {
-                        legendConeOfUncertaintyView()
-                    }
-
-                    Button {
-                        state.isLegendPresented.toggle()
-                    } label: {
-                        Text("Got it!")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    }
-                    .buttonStyle(.bordered)
-                    .padding(.top)
-                }
-                .padding()
-                .presentationDetents(
-                    [.fraction(0.9), .large],
-                    selection: $state.legendSheetDetent
-                )
-            }
-        }
-
-        @ViewBuilder func legendLinesView() -> some View {
-            List {
-                DefinitionRow(
-                    term: "IOB (Insulin on Board)",
-                    definition: Text(
-                        "Forecasts future glucose readings based on the amount of insulin still active in the body."
-                    ),
-                    color: .insulin
-                )
-                DefinitionRow(
-                    term: "ZT (Zero-Temp)",
-                    definition: Text(
-                        "Forecasts the worst-case future glucose reading scenario if no carbs are absorbed and insulin delivery is stopped until glucose starts rising."
-                    ),
-                    color: .zt
-                )
-                DefinitionRow(
-                    term: "COB (Carbs on Board)",
-                    definition: Text(
-                        "Forecasts future glucose reading changes by considering the amount of carbohydrates still being absorbed in the body."
-                    ),
-                    color: .loopYellow
-                )
-                DefinitionRow(
-                    term: "UAM (Unannounced Meal)",
-                    definition: Text(
-                        "Forecasts future glucose levels and insulin dosing needs for unexpected meals or other causes of glucose reading increases without prior notice."
-                    ),
-                    color: .uam
-                )
-            }
-            .padding(.trailing, 10)
-            .navigationBarTitle("Legend", displayMode: .inline)
-        }
-
-        @ViewBuilder func legendConeOfUncertaintyView() -> some View {
-            List {
-                DefinitionRow(
-                    term: "Cone of Uncertainty",
-                    definition: VStack {
-                        Text(
-                            "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
-                        )
-                        Text(
-                            "Note: To modify the forecast display type, go to Trio Settings > Features > User Interface > Forecast Display Type."
-                        )
-                    },
-                    color: Color.blue.opacity(0.5)
-                )
-            }
-            .padding(.trailing, 10)
-            .navigationBarTitle("Legend", displayMode: .inline)
         }
 
         @ViewBuilder func tabBar() -> some View {
@@ -1038,13 +994,14 @@ extension Home {
                             .font(.system(size: 40))
                             .foregroundStyle(Color.tabBar)
                             .padding(.bottom, 1)
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, 22.5)
                     }
                 )
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
                 .onChange(of: selectedTab) {
-                    print("current path is empty: \(settingsPath.isEmpty)")
-                    settingsPath = NavigationPath()
+                    if !settingsPath.isEmpty {
+                        settingsPath = NavigationPath()
+                    }
                 }
         }
 
@@ -1055,149 +1012,6 @@ extension Home {
                 if state.waitForSuggestion {
                     CustomProgressView(text: "Updating IOB...")
                 }
-            }
-        }
-
-        //TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
-        private func parseReasonConclusion(_ reasonConclusion: String, isMmolL _: Bool) -> String {
-            let patterns = [
-                "minGuardBG\\s*-?\\d+\\.?\\d*<-?\\d+\\.?\\d*",
-                "Eventual BG\\s*-?\\d+\\.?\\d*\\s*>=\\s*-?\\d+\\.?\\d*",
-                "\\S+\\s+-?\\d+\\.?\\d*\\s*>\\s*\\d+%\\s+of\\s+BG\\s+-?\\d+\\.?\\d*"
-            ]
-            let pattern = patterns.joined(separator: "|")
-            let regex = try! NSRegularExpression(pattern: pattern)
-
-            func convertToMmolL(_ value: String) -> String {
-                if let glucoseValue = Double(value.replacingOccurrences(of: "[^\\d.-]", with: "", options: .regularExpression)) {
-                    let mmolValue = Decimal(glucoseValue).asMmolL
-                    return mmolValue.description
-                }
-                return value
-            }
-
-            let matches = regex.matches(
-                in: reasonConclusion,
-                range: NSRange(reasonConclusion.startIndex..., in: reasonConclusion)
-            )
-            var updatedConclusion = reasonConclusion
-
-            for match in matches.reversed() {
-                guard let range = Range(match.range, in: reasonConclusion) else { continue }
-                let matchedString = String(reasonConclusion[range])
-
-                if matchedString.contains("<") {
-                    // Handle "minGuardBG x<y" pattern
-                    let parts = matchedString.components(separatedBy: "<")
-                    if parts.count == 2,
-                       let firstValue = Double(
-                           parts[0]
-                               .components(separatedBy: CharacterSet(charactersIn: "0123456789.-").inverted).joined()
-                       ),
-                       let secondValue = Double(
-                           parts[1]
-                               .components(separatedBy: CharacterSet(charactersIn: "0123456789.-").inverted).joined()
-                       )
-                    {
-                        let formattedFirstValue = convertToMmolL(String(firstValue))
-                        let formattedSecondValue = convertToMmolL(String(secondValue))
-                        let formattedString = "minGuardBG \(formattedFirstValue)<\(formattedSecondValue)"
-                        updatedConclusion.replaceSubrange(range, with: formattedString)
-                    }
-                } else if matchedString.contains(">=") {
-                    // Handle "Eventual BG x >= target" pattern
-                    let parts = matchedString.components(separatedBy: " >= ")
-                    if parts.count == 2,
-                       let firstValue = Double(
-                           parts[0]
-                               .components(separatedBy: CharacterSet(charactersIn: "0123456789.-").inverted).joined()
-                       ),
-                       let secondValue = Double(
-                           parts[1]
-                               .components(separatedBy: CharacterSet(charactersIn: "0123456789.-").inverted).joined()
-                       )
-                    {
-                        let formattedFirstValue = convertToMmolL(String(firstValue))
-                        let formattedSecondValue = convertToMmolL(String(secondValue))
-                        let formattedString = "Eventual BG \(formattedFirstValue) >= \(formattedSecondValue)"
-                        updatedConclusion.replaceSubrange(range, with: formattedString)
-                    }
-                } else if matchedString.contains(">") {
-                    // Handle "maxDelta 37 > 20% of BG 95" style
-                    let pattern = "(\\S+)\\s+(-?\\d+\\.?\\d*)\\s*>\\s*(\\d+)%\\s+of\\s+BG\\s+(-?\\d+\\.?\\d*)"
-                    let localRegex = try! NSRegularExpression(pattern: pattern)
-                    if let localMatch = localRegex.firstMatch(
-                        in: matchedString,
-                        range: NSRange(matchedString.startIndex..., in: matchedString)
-                    ) {
-                        let metric = String(matchedString[Range(localMatch.range(at: 1), in: matchedString)!])
-                        let firstValue = String(matchedString[Range(localMatch.range(at: 2), in: matchedString)!])
-                        let percentage = String(matchedString[Range(localMatch.range(at: 3), in: matchedString)!])
-                        let bgValue = String(matchedString[Range(localMatch.range(at: 4), in: matchedString)!])
-
-                        let formattedFirstValue = convertToMmolL(firstValue)
-                        let formattedBGValue = convertToMmolL(bgValue)
-
-                        let formattedString = "\(metric) \(formattedFirstValue) > \(percentage)% of BG \(formattedBGValue)"
-                        updatedConclusion.replaceSubrange(range, with: formattedString)
-                    }
-                }
-            }
-
-            return updatedConclusion.capitalizingFirstLetter()
-        }
-
-        private var popup: some View {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(statusTitle).font(.headline).foregroundColor(.white)
-                    .padding(.bottom, 4)
-                if let determination = state.determinationsFromPersistence.first {
-                    if determination.glucose == 400 {
-                        Text("Invalid CGM reading (HIGH).").font(.callout).bold().foregroundColor(.loopRed).padding(.top, 8)
-                        Text("SMBs and High Temps Disabled.").font(.caption).foregroundColor(.white).padding(.bottom, 4)
-                    } else {
-                        let tags = !state.isSmoothingEnabled ? determination.reasonParts : determination
-                            .reasonParts + ["Smoothing: On"]
-                        TagCloudView(
-                            tags: tags,
-                            shouldParseToMmolL: state.units == .mmolL
-                        )
-                        .animation(.none, value: false)
-
-                        Text(
-                            self
-                                .parseReasonConclusion(
-                                    determination.reasonConclusion,
-                                    isMmolL: state.units == .mmolL
-                                )
-                        ).font(.caption).foregroundColor(.white)
-                    }
-                } else {
-                    Text("No determination found").font(.body).foregroundColor(.white)
-                }
-
-                if let errorMessage = state.errorMessage, let date = state.errorDate {
-                    Text(NSLocalizedString("Error at", comment: "") + " " + Formatter.dateFormatter.string(from: date))
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .padding(.bottom, 4)
-                        .padding(.top, 8)
-                    Text(errorMessage).font(.caption).foregroundColor(.loopRed)
-                }
-            }
-        }
-
-        private func setStatusTitle() {
-            if let determination = state.determinationsFromPersistence.first {
-                let dateFormatter = DateFormatter()
-                dateFormatter.timeStyle = .short
-                statusTitle = NSLocalizedString("Oref Determination enacted at", comment: "Headline in enacted pop up") +
-                    " " +
-                    dateFormatter
-                    .string(from: determination.deliverAt ?? Date())
-            } else {
-                statusTitle = "No Oref determination"
-                return
             }
         }
     }

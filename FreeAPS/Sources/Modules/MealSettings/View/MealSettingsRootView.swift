@@ -288,7 +288,6 @@ extension MealSettings {
                             )
                             Text("Increasing this setting may result in more FPU entries with smaller carb values.")
                             Text("Decreasing this setting may result in fewer FPU entries with larger carb values.")
-                            Text("Note: Accepted range for this setting is 5 - 12 hours.")
                         }
                     )
 
@@ -316,7 +315,6 @@ extension MealSettings {
                             Text("The shorter the interval, the smoother the correlating dosing result.")
                             Text("Increasing this setting may result in fewer FPU entries with larger carb values.")
                             Text("Decreasing this setting may result in more FPU entries with smaller carb values.")
-                            Text("Accepted range for this setting is 5 - 60 minutes.")
                         }
                     )
 
@@ -344,9 +342,11 @@ extension MealSettings {
                                     Text("(Fat × 45%) + (Protein × 20%)")
                                     Text("100% is full effect:").bold()
                                     Text("(Fat × 90%) + (Protein × 40%)")
-                                    Text("200% is double effect:").bold()
-                                    Text("(Fat × 180%) + (Protein x 80%)")
+                                    Text("110% makes fat-to-carbs ratio essentially equal:").bold()
+                                    Text("(Fat × 99%) + (Protein x 44%)")
                                 }
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
                                 Text(
                                     "Tip: You may find that your normal carb ratio needs to increase to a larger number when you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 50%."
                                 )

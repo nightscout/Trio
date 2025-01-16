@@ -101,7 +101,7 @@ struct PopupView: View {
                 Spacer()
 
                 Button { state.showInfo = false }
-                label: { Text("Got it!").frame(maxWidth: .infinity, alignment: .center) }
+                label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center) }
                     .buttonStyle(.bordered)
                     .padding(.top)
             }

@@ -40,7 +40,7 @@ struct DecimalPickerSettings {
         value: 0.5,
         step: 0.05,
         min: 0.1,
-        max: 2,
+        max: 1.2,
         type: PickerSetting.PickerSettingType.factor
     )
     var high = PickerSetting(value: 180, step: 1, min: 100, max: 500, type: PickerSetting.PickerSettingType.glucose)
@@ -78,13 +78,6 @@ struct DecimalPickerSettings {
     )
     var maxCOB = PickerSetting(value: 120, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gram)
     var min5mCarbimpact = PickerSetting(value: 8, step: 1, min: 1, max: 20, type: PickerSetting.PickerSettingType.glucose)
-    var autotuneISFAdjustmentFraction = PickerSetting(
-        value: 1.0,
-        step: 0.05,
-        min: 0,
-        max: 1,
-        type: PickerSetting.PickerSettingType.factor
-    )
     var remainingCarbsFraction = PickerSetting(
         value: 1.0,
         step: 0.05,
@@ -137,8 +130,8 @@ struct DecimalPickerSettings {
     )
     var threshold_setting = PickerSetting(value: 60, step: 1, min: 60, max: 120, type: PickerSetting.PickerSettingType.glucose)
     var updateInterval = PickerSetting(value: 20, step: 5, min: 1, max: 60, type: PickerSetting.PickerSettingType.minute)
-    var delay = PickerSetting(value: 60, step: 15, min: 30, max: 120, type: PickerSetting.PickerSettingType.minute)
-    var minuteInterval = PickerSetting(value: 20, step: 5, min: 5, max: 60, type: PickerSetting.PickerSettingType.minute)
+    var delay = PickerSetting(value: 60, step: 10, min: 60, max: 120, type: PickerSetting.PickerSettingType.minute)
+    var minuteInterval = PickerSetting(value: 30, step: 5, min: 10, max: 60, type: PickerSetting.PickerSettingType.minute)
     var timeCap = PickerSetting(value: 8, step: 1, min: 5, max: 12, type: PickerSetting.PickerSettingType.hour)
     var hours = PickerSetting(value: 6, step: 0.5, min: 2, max: 24, type: PickerSetting.PickerSettingType.hour)
     var dia = PickerSetting(value: 10, step: 0.5, min: 5, max: 10, type: PickerSetting.PickerSettingType.hour)

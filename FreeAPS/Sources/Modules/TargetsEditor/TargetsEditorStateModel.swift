@@ -3,6 +3,7 @@ import SwiftUI
 extension TargetsEditor {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var nightscout: NightscoutManager!
+        @Injected() private var broadcaster: Broadcaster!
 
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
@@ -74,6 +75,12 @@ extension TargetsEditor {
             let profile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
             provider.saveProfile(profile)
             initialItems = items.map { Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
+
+            DispatchQueue.main.async {
+                self.broadcaster.notify(BGTargetsObserver.self, on: .main) {
+                    $0.bgTargetsDidChange(profile)
+                }
+            }
 
             Task.detached(priority: .low) {
                 debug(.nightscout, "Attempting to upload targets to Nightscout")

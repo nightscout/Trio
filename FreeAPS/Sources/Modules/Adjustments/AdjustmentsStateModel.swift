@@ -16,7 +16,7 @@ extension Adjustments {
         // MARK: - Override and Temp Target Properties
 
         var overridePercentage: Double = 100
-        var isEnabled = false
+        var isOverrideEnabled = false
         var indefinite = true
         var overrideDuration: Decimal = 0
         var target: Decimal = 0
@@ -105,7 +105,7 @@ extension Adjustments {
             dateFormatter.dateFormat = "HH:mm:ss"
             dateFormatter.timeZone = TimeZone.current
 
-            let bgTargets = await provider.getBGTarget()
+            let bgTargets = await provider.getBGTargets()
             let entries: [(start: String, value: Decimal)] = bgTargets.targets.map { ($0.start, $0.low) }
 
             for (index, entry) in entries.enumerated() {

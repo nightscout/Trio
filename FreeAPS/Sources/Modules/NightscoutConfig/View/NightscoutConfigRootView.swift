@@ -41,7 +41,7 @@ extension NightscoutConfig {
                                 }
                             })
                             NavigationLink("Upload", destination: NightscoutUploadView(state: state))
-                            NavigationLink("Fetch & Remote Control", destination: NightscoutFetchView(state: state))
+                            NavigationLink("Fetch", destination: NightscoutFetchView(state: state))
                         }
                     ).listRowBackground(Color.chart)
 

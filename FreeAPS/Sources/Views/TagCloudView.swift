@@ -7,7 +7,10 @@ struct TagCloudView: View {
     var tags: [String]
     var shouldParseToMmolL: Bool
 
-    @State private var totalHeight = CGFloat.infinity // << variant for VStack
+    @Environment(\.colorScheme) var colorScheme
+
+    @State private var totalHeight = CGFloat.zero // << variant for ScrollView/List
+//    = CGFloat.infinity // << variant for VStack
 
     var body: some View {
         VStack {
@@ -15,27 +18,28 @@ struct TagCloudView: View {
                 self.generateContent(in: geometry)
             }
         }
-        .frame(maxHeight: totalHeight) // << variant for VStack
+        .frame(height: totalHeight) // << variant for ScrollView/List
+//        .frame(maxHeight: totalHeight) // << variant for VStack
     }
 
-    private func generateContent(in g: GeometryProxy) -> some View {
+    private func generateContent(in geometry: GeometryProxy) -> some View {
         var width = CGFloat.zero
         var height = CGFloat.zero
 
         return ZStack(alignment: .topLeading) {
             ForEach(self.tags, id: \.self) { tag in
-                self.item(for: tag, isMmolL: shouldParseToMmolL)
-                    .padding([.horizontal, .vertical], 2)
-                    .alignmentGuide(.leading, computeValue: { d in
-                        if abs(width - d.width) > g.size.width {
+                self.drawTag(for: tag, isMmolL: shouldParseToMmolL)
+                    .padding([.horizontal, .vertical], 3)
+                    .alignmentGuide(.leading, computeValue: { dimensions in
+                        if abs(width - dimensions.width) > geometry.size.width {
                             width = 0
-                            height -= d.height
+                            height -= dimensions.height
                         }
                         let result = width
                         if tag == self.tags.last! {
                             width = 0 // last item
                         } else {
-                            width -= d.width
+                            width -= dimensions.width
                         }
                         return result
                     })
@@ -50,7 +54,7 @@ struct TagCloudView: View {
         }.background(viewHeightReader($totalHeight))
     }
 
-    private func item(for textTag: String, isMmolL: Bool) -> some View {
+    private func drawTag(for textTag: String, isMmolL: Bool) -> some View {
         var colorOfTag: Color {
             switch textTag {
             case textTag where textTag.contains("SMB Delivery Ratio:"):
@@ -72,7 +76,7 @@ struct TagCloudView: View {
             case textTag where textTag.contains("SMB Ratio"):
                 return .orange
             case textTag where textTag.contains("Smoothing: On"):
-                return .white
+                return .gray
             default:
                 return .insulin
             }
@@ -82,12 +86,17 @@ struct TagCloudView: View {
 
         return ZStack {
             Text(formattedTextTag)
-                .padding(.vertical, 2)
-                .padding(.horizontal, 4)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
                 .font(.subheadline)
-                .background(colorOfTag.opacity(0.8))
-                .foregroundColor(textTag.contains("Smoothing: On") ? Color.black : Color.white)
-                .cornerRadius(2)
+                .fontWeight(.semibold)
+                .background(colorOfTag.opacity(colorScheme == .dark ? 0.15 : 0.25))
+                .foregroundColor(colorOfTag)
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .stroke(colorOfTag.opacity(0.4), lineWidth: 2)
+                )
         }
     }
 
@@ -104,7 +113,7 @@ struct TagCloudView: View {
      - Glucose tags handled: `ISF:`, `Target:`, `minPredBG`, `minGuardBG`, `IOBpredBG`, `COBpredBG`, `UAMpredBG`, `Dev:`, `maxDelta`, `BGI`.
      */
 
-     //TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
+    // TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
     private func formatGlucoseTags(_ tag: String, isMmolL: Bool) -> String {
         let patterns = [
             "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",

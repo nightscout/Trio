@@ -6,6 +6,10 @@ struct BGTargets: JSON {
     var targets: [BGTargetEntry]
 }
 
+protocol BGTargetsObserver {
+    func bgTargetsDidChange(_ bgTargets: BGTargets)
+}
+
 extension BGTargets {
     private enum CodingKeys: String, CodingKey {
         case units
