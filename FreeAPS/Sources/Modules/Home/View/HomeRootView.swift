@@ -108,7 +108,8 @@ extension Home {
                 name: state.pumpName,
                 expiresAtDate: state.pumpExpiresAtDate,
                 timerDate: state.timerDate,
-                timeZone: state.timeZone,
+                pumpStatusBadge: state.pumpStatusBadgeImage,
+                pumpStatusBadgeColor: state.pumpStatusBadgeColor,
                 pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
                 battery: state.batteryFromPersistence
             )
