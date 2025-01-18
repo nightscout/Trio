@@ -60,7 +60,8 @@ final class BaseRouter: Router {
         case .carb:
             guard settings.notificationsCarb else { return false }
         case .glucose:
-            guard settings.glucoseNotificationsAlways else { return false }
+            guard (message.type == .warning && settings.glucoseNotificationsOption == GlucoseNotificationsOption.onlyLowHigh) ||
+                settings.glucoseNotificationsOption == GlucoseNotificationsOption.alwaysEveryCGM else { return false }
         case .algorithm:
             guard settings.notificationsAlgorithm else { return false }
         case .misc:

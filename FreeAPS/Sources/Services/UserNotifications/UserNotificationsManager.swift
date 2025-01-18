@@ -270,7 +270,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
             addAppBadge(glucose: (glucoseObjects.first?.glucose).map { Int($0) })
 
-            guard glucoseStorage.alarm != nil || settingsManager.settings.glucoseNotificationsAlways else { return }
+            guard settingsManager.settings.glucoseNotificationsOption != GlucoseNotificationsOption.disabled else { return }
 
             var titles: [String] = []
             var notificationAlarm = false
