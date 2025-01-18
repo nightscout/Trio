@@ -626,7 +626,10 @@ extension DataTable {
                     }
                     let treatmentObjectID = carbEntryToDelete.objectID
 
-                    state.invokeCarbDeletionTask(treatmentObjectID)
+                    state.invokeCarbDeletionTask(
+                        treatmentObjectID,
+                        isFpuOrComplexMeal: carbEntryToDelete.isFPU || carbEntryToDelete.fat > 0 || carbEntryToDelete.protein > 0
+                    )
                 }
             } message: {
                 Text("\n" + NSLocalizedString(alertMessage, comment: ""))

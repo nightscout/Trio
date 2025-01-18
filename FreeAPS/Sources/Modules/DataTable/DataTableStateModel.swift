@@ -103,9 +103,9 @@ extension DataTable {
 
         // Carb and FPU deletion from history
         /// - **Parameter**: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
-        func invokeCarbDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
+        func invokeCarbDeletionTask(_ treatmentObjectID: NSManagedObjectID, isFpuOrComplexMeal: Bool = false) {
             Task {
-                await deleteCarbs(treatmentObjectID)
+                await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: isFpuOrComplexMeal)
 
                 await MainActor.run {
                     carbEntryDeleted = true
@@ -114,12 +114,16 @@ extension DataTable {
             }
         }
 
-        func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async {
-            // Delete from Apple Health/Tidepool
-            await deleteCarbsFromServices(treatmentObjectID)
+        func deleteCarbs(_ treatmentObjectID: NSManagedObjectID, isFpuOrComplexMeal: Bool = false) async {
+            // Delete from Nightscout/Apple Health/Tidepool
+            if isFpuOrComplexMeal {
+                await deleteCarbsAndFPUsFromServices(treatmentObjectID)
+            } else {
+                await deleteCarbsFromServices(treatmentObjectID)
+            }
 
             // Delete carbs from Core Data
-            await carbsStorage.deleteCarbs(treatmentObjectID)
+            await carbsStorage.deleteCarbsEntryStored(treatmentObjectID)
 
             // Perform a determine basal sync to update cob
             await apsManager.determineBasalSync()
@@ -178,6 +182,80 @@ extension DataTable {
                 } catch {
                     debugPrint(
                         "\(DebuggingIdentifiers.failed) Error deleting carb entry from remote service(s) (Nightscout, Apple Health, Tidepool) with error: \(error.localizedDescription)"
+                    )
+                }
+            }
+        }
+
+        func deleteCarbsAndFPUsFromServices(_ treatmentObjectID: NSManagedObjectID) async {
+            let taskContext = CoreDataStack.shared.newTaskContext()
+            taskContext.name = "deleteContext"
+            taskContext.transactionAuthor = "deleteCarbsFromServices"
+
+            var carbEntryFromCoreData: CarbEntryStored?
+
+            guard let correspondingCarbEntry: (
+                entryValues: (carbs: Decimal, fat: Decimal, protein: Decimal, note: String)?,
+                entryID: NSManagedObjectID?
+            ) = await handleFPUEntry(treatmentObjectID),
+                let nsManagedObjectID: NSManagedObjectID = correspondingCarbEntry.entryID else { return }
+
+            // Delete carbs or FPUs from Nightscout
+            await taskContext.perform {
+                do {
+                    carbEntryFromCoreData = try taskContext.existingObject(with: nsManagedObjectID) as? CarbEntryStored
+                    guard let carbEntry = carbEntryFromCoreData else {
+                        debugPrint("FPU entry or corresponding carb entry for deletion not found. \(DebuggingIdentifiers.failed)")
+                        return
+                    }
+
+                    if let fpuID = carbEntry.fpuID {
+                        // Delete Fat and Protein entries from Nightscout
+                        self.provider.deleteCarbsFromNightscout(withID: fpuID.uuidString)
+
+                        // Delete Fat and Protein entries from Apple Health
+                        let healthObjectsToDelete: [HKSampleType?] = [
+                            AppleHealthConfig.healthFatObject,
+                            AppleHealthConfig.healthProteinObject
+                        ]
+
+                        for sampleType in healthObjectsToDelete {
+                            if let validSampleType = sampleType {
+                                self.provider.deleteMealDataFromHealth(byID: fpuID.uuidString, sampleType: validSampleType)
+                            }
+                        }
+
+                        // if entry has carbs AND fat and/or protein, we also need to remove carbs here
+                        if carbEntry.carbs > 0, let id = carbEntry.id {
+                            self.provider.deleteCarbsFromNightscout(withID: id.uuidString)
+
+                            // Delete carbs from Apple Health
+                            if let sampleType = AppleHealthConfig.healthCarbObject {
+                                self.provider.deleteMealDataFromHealth(byID: id.uuidString, sampleType: sampleType)
+                            }
+                        }
+                    }
+                    // entry has no fpuID
+                    // => it's a carb-only entry. use its ID to for all deletion operations
+                    else if let id = carbEntry.id, let entryDate = carbEntry.date {
+                        self.provider.deleteCarbsFromNightscout(withID: id.uuidString)
+
+                        // Delete carbs from Apple Health
+                        if let sampleType = AppleHealthConfig.healthCarbObject {
+                            self.provider.deleteMealDataFromHealth(byID: id.uuidString, sampleType: sampleType)
+                        }
+
+                        self.provider.deleteCarbsFromTidepool(
+                            withSyncId: id,
+                            carbs: Decimal(carbEntry.carbs),
+                            at: entryDate,
+                            enteredBy: CarbsEntry.local
+                        )
+                    }
+
+                } catch {
+                    debugPrint(
+                        "\(DebuggingIdentifiers.failed) Error deleting carb entry (and associated fpu entries) from remote service(s) (Nightscout, Apple Health, Tidepool) with error: \(error.localizedDescription)"
                     )
                 }
             }
@@ -268,90 +346,41 @@ extension DataTable {
             newNote: String
         ) {
             Task {
-                let originalDate = await getOriginalEntryDate(treatmentObjectID)
-                await updateEntryInCoreData(treatmentObjectID, newCarbs: newCarbs, newNote: newNote)
-                await deleteOldAndCreateNewFPUEntry(
-                    treatmentObjectID: treatmentObjectID,
-                    originalDate: originalDate,
+                // Get original date from entry to re-create the entry later with the updated values and the same date
+                guard let originalEntry = await getOriginalEntryValues(treatmentObjectID) else { return }
+
+                // TODO: theoretically we now already have the original entry here => we maybe don't need to perform all the fetching in the deleteServices method 2 levels down 👀
+
+                // Deletion logic for carb and FPU entries
+                await deleteOldEntries(
+                    treatmentObjectID,
+                    originalEntry: originalEntry,
                     newCarbs: newCarbs,
                     newFat: newFat,
                     newProtein: newProtein,
                     newNote: newNote
                 )
+
+                await createNewEntries(
+                    originalDate: originalEntry.entryValues?.date ?? Date(),
+                    // TODO: should we add this to the guard or is nullish coalesce safe enough?
+                    newCarbs: newCarbs,
+                    newFat: newFat,
+                    newProtein: newProtein,
+                    newNote: newNote
+                )
+
                 await syncWithServices()
             }
         }
 
-        /// Retrieves the original date of an entry and sets the isFPU flag
-        /// - Parameter objectID: The ID of the entry
-        /// - Returns: The original date or current date if not found
-        private func getOriginalEntryDate(_ objectID: NSManagedObjectID) async -> Date {
-            let context = CoreDataStack.shared.newTaskContext()
-            context.name = "updateContext"
-            context.transactionAuthor = "updateEntry"
-
-            return await context.perform {
-                do {
-                    guard let entry = try context.existingObject(with: objectID) as? CarbEntryStored
-                    else { return Date() }
-
-                    /// Hacky workaround: Set isFPU flag to true before deletion
-                    /// This is necessary because the deleteCarbs function in the CarbsStorage will fail if the isFPU flag is false and the entry won't get deleted.
-                    entry.isFPU = true
-                    try context.save()
-
-                    return entry.date ?? Date()
-                } catch {
-                    return Date()
-                }
-            }
-        }
-
-        /// Updates a carb entry in Core Data
-        /// The FPU entries are deleted and recreated. We don't need to do this for the carb entries as we can simply update the carb entry in Core Data.
-        /// - Parameters:
-        ///   - objectID: The ID of the entry to update
-        ///   - newCarbs: The new carbs value
-        ///   - newNote: The new note text
-        private func updateEntryInCoreData(
-            _ objectID: NSManagedObjectID,
-            newCarbs: Decimal,
-            newNote: String
-        ) async {
-            let context = CoreDataStack.shared.newTaskContext()
-
-            await context.perform {
-                do {
-                    let entry = try context.existingObject(with: objectID) as? CarbEntryStored
-                    entry?.carbs = Double(newCarbs)
-                    entry?.note = newNote
-                    try context.save()
-                } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) Failed to update entry: \(error.localizedDescription)")
-                }
-            }
-        }
-
-        /// Deletes the old FPU entry and creates a new one with updated values
-        /// - Parameters:
-        ///   - treatmentObjectID: The ID of the entry to delete
-        ///   - originalDate: The original date to preserve
-        ///   - newCarbs: The new carbs value
-        ///   - newFat: The new fat value
-        ///   - newProtein: The new protein value
-        ///   - newNote: The new note text
-        private func deleteOldAndCreateNewFPUEntry(
-            treatmentObjectID: NSManagedObjectID,
+        private func createNewEntries(
             originalDate: Date,
             newCarbs: Decimal,
             newFat: Decimal,
             newProtein: Decimal,
             newNote: String
         ) async {
-            // Delete old FPU entry from Core Data and Remote Services and await this
-            await deleteCarbs(treatmentObjectID)
-
-            // Create new FPU entry
             let newEntry = CarbsEntry(
                 id: UUID().uuidString,
                 createdAt: Date(),
@@ -361,11 +390,82 @@ extension DataTable {
                 protein: newProtein,
                 note: newNote,
                 enteredBy: CarbsEntry.local,
-                isFPU: true,
-                fpuID: UUID().uuidString
+                isFPU: false,
+                fpuID: newFat > 0 || newProtein > 0 ? UUID().uuidString : nil
             )
 
+            // Handles internally whether to create fake carbs or not based on whether fat > 0 or protein > 0
             await carbsStorage.storeCarbs([newEntry], areFetchedFromRemote: false)
+        }
+
+        /// Deletes the old carb/ FPU entries and creates new ones with updated values
+        /// - Parameters:
+        ///   - treatmentObjectID: The ID of the entry to delete
+        ///   - originalDate: The original date to preserve
+        ///   - newCarbs: The new carbs value
+        ///   - newFat: The new fat value
+        ///   - newProtein: The new protein value
+        ///   - newNote: The new note text
+        private func deleteOldEntries(
+            _ treatmentObjectID: NSManagedObjectID,
+            originalEntry: (
+                entryValues: (date: Date, oldCarbs: Double, oldFat: Double, oldProtein: Double)?,
+                entryId: NSManagedObjectID
+            ),
+            newCarbs _: Decimal,
+            newFat _: Decimal,
+            newProtein _: Decimal,
+            newNote _: String
+        ) async {
+            // TODO: cleanup
+            // TODO: maybe pass originalEntry instead of treatmentObjectId down?
+
+            if ((originalEntry.entryValues?.oldCarbs ?? 0) == 0 && (originalEntry.entryValues?.oldFat ?? 0) > 0) ||
+                ((originalEntry.entryValues?.oldCarbs ?? 0) == 0 && (originalEntry.entryValues?.oldProtein ?? 0) > 0)
+            {
+                // Delete the zero-carb-entry and all its carb equivalents connected by the same fpuID from remote services and Core Data
+                // Use fpuID
+                await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: true)
+            } else if ((originalEntry.entryValues?.oldCarbs ?? 0) > 0 && (originalEntry.entryValues?.oldFat ?? 0) > 0) ||
+                ((originalEntry.entryValues?.oldCarbs ?? 0) > 0 && (originalEntry.entryValues?.oldProtein ?? 0) > 0)
+            {
+                // Delete carb entry and carb equivalents that are all connected by the same fpuID from remote services and Core Data
+                // Use fpuID
+                await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: true)
+
+            } else {
+                // Delete just the carb entry since there are no carb equivalents
+                // Use NSManagedObjectID
+                await deleteCarbs(treatmentObjectID)
+            }
+        }
+
+        /// Retrieves the original entry values
+        /// - Parameter objectID: The ID of the entry
+        /// - Returns: A tuple of the old entry values and its original date and the objectID or nil
+        private func getOriginalEntryValues(_ objectID: NSManagedObjectID) async
+            -> (entryValues: (date: Date, oldCarbs: Double, oldFat: Double, oldProtein: Double)?, entryId: NSManagedObjectID)?
+        {
+            let context = CoreDataStack.shared.newTaskContext()
+            context.name = "updateContext"
+            context.transactionAuthor = "updateEntry"
+            
+            // TODO: possibly extend this by id and fpuID to not having to fetch again later on
+
+            return await context.perform {
+                do {
+                    guard let entry = try context.existingObject(with: objectID) as? CarbEntryStored, let entryDate = entry.date
+                    else { return nil }
+
+                    return (
+                        entryValues: (date: entryDate, oldCarbs: entry.carbs, oldFat: entry.fat, oldProtein: entry.protein),
+                        entryId: entry.objectID
+                    )
+                } catch let error as NSError {
+                    debugPrint("\(DebuggingIdentifiers.failed) Failed to get original date with error: \(error.userInfo)")
+                    return nil
+                }
+            }
         }
 
         /// Synchronizes the FPU/ Carb entry with all remote services in parallel
