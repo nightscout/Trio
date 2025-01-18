@@ -30,7 +30,7 @@ struct CarbEntryEditorView: View {
     init(state: DataTable.StateModel, carbEntry: CarbEntryStored) {
         self.state = state
         self.carbEntry = carbEntry
-        _editedCarbs = State(initialValue: 0)
+        _editedCarbs = State(initialValue: 0) // gets updated in the task block
         _editedFat = State(initialValue: 0) // gets updated in the task block
         _editedProtein = State(initialValue: 0) // gets updated in the task block
         _editedNote = State(initialValue: carbEntry.note ?? "")

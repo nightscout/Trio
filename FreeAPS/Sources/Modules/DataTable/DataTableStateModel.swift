@@ -116,11 +116,7 @@ extension DataTable {
 
         func deleteCarbs(_ treatmentObjectID: NSManagedObjectID, isFpuOrComplexMeal: Bool = false) async {
             // Delete from Nightscout/Apple Health/Tidepool
-            if isFpuOrComplexMeal {
-                await deleteCarbsAndFPUsFromServices(treatmentObjectID)
-            } else {
-                await deleteCarbsFromServices(treatmentObjectID)
-            }
+            await deleteFromServices(treatmentObjectID, isFPUDeletion: isFpuOrComplexMeal)
 
             // Delete carbs from Core Data
             await carbsStorage.deleteCarbsEntryStored(treatmentObjectID)
@@ -129,86 +125,46 @@ extension DataTable {
             await apsManager.determineBasalSync()
         }
 
-        func deleteCarbsFromServices(_ treatmentObjectID: NSManagedObjectID) async {
+        /// Deletes carb and FPU entries from all connected services (Nightscout, HealthKit, Tidepool)
+        /// - Parameters:
+        ///   - treatmentObjectID: The Core Data object ID of the entry to delete
+        ///   - isFPUDeletion: Flag indicating if this is a FPU deletion that requires special handling
+        ///     - If true: Will first fetch the corresponding carb entry and then delete both FPU and carb entries
+        ///     - If false: Will delete the entry directly as a standard carb deletion
+        /// - Note: This function handles three scenarios:
+        ///   1. Standard carb deletion (isFPUDeletion = false)
+        ///   2. FPU-only deletion (isFPUDeletion = true)
+        ///   3. Combined carb+FPU deletion (isFPUDeletion = true)
+        func deleteFromServices(_ treatmentObjectID: NSManagedObjectID, isFPUDeletion: Bool = false) async {
             let taskContext = CoreDataStack.shared.newTaskContext()
             taskContext.name = "deleteContext"
             taskContext.transactionAuthor = "deleteCarbsFromServices"
 
             var carbEntry: CarbEntryStored?
+            var objectIDToDelete = treatmentObjectID
 
-            // Delete carbs or FPUs from Nightscout
+            // For FPU deletions, first get the corresponding carb entry
+            if isFPUDeletion {
+                guard let correspondingEntry: (
+                    entryValues: (carbs: Decimal, fat: Decimal, protein: Decimal, note: String)?,
+                    entryID: NSManagedObjectID?
+                ) = await handleFPUEntry(treatmentObjectID),
+                    let nsManagedObjectID = correspondingEntry.entryID
+                else { return }
+
+                objectIDToDelete = nsManagedObjectID
+            }
+
+            // Delete entries from all services
             await taskContext.perform {
                 do {
-                    carbEntry = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
+                    carbEntry = try taskContext.existingObject(with: objectIDToDelete) as? CarbEntryStored
                     guard let carbEntry = carbEntry else {
                         debugPrint("Carb entry for deletion not found. \(DebuggingIdentifiers.failed)")
                         return
                     }
 
-                    if carbEntry.isFPU, let fpuID = carbEntry.fpuID {
-                        // Delete Fat and Protein entries from Nightscout
-                        self.provider.deleteCarbsFromNightscout(withID: fpuID.uuidString)
-
-                        // Delete Fat and Protein entries from Apple Health
-                        let healthObjectsToDelete: [HKSampleType?] = [
-                            AppleHealthConfig.healthFatObject,
-                            AppleHealthConfig.healthProteinObject
-                        ]
-
-                        for sampleType in healthObjectsToDelete {
-                            if let validSampleType = sampleType {
-                                self.provider.deleteMealDataFromHealth(byID: fpuID.uuidString, sampleType: validSampleType)
-                            }
-                        }
-                    } else {
-                        // Delete carbs from Nightscout
-                        if let id = carbEntry.id, let entryDate = carbEntry.date {
-                            self.provider.deleteCarbsFromNightscout(withID: id.uuidString)
-
-                            // Delete carbs from Apple Health
-                            if let sampleType = AppleHealthConfig.healthCarbObject {
-                                self.provider.deleteMealDataFromHealth(byID: id.uuidString, sampleType: sampleType)
-                            }
-
-                            self.provider.deleteCarbsFromTidepool(
-                                withSyncId: id,
-                                carbs: Decimal(carbEntry.carbs),
-                                at: entryDate,
-                                enteredBy: CarbsEntry.local
-                            )
-                        }
-                    }
-
-                } catch {
-                    debugPrint(
-                        "\(DebuggingIdentifiers.failed) Error deleting carb entry from remote service(s) (Nightscout, Apple Health, Tidepool) with error: \(error.localizedDescription)"
-                    )
-                }
-            }
-        }
-
-        func deleteCarbsAndFPUsFromServices(_ treatmentObjectID: NSManagedObjectID) async {
-            let taskContext = CoreDataStack.shared.newTaskContext()
-            taskContext.name = "deleteContext"
-            taskContext.transactionAuthor = "deleteCarbsFromServices"
-
-            var carbEntryFromCoreData: CarbEntryStored?
-
-            guard let correspondingCarbEntry: (
-                entryValues: (carbs: Decimal, fat: Decimal, protein: Decimal, note: String)?,
-                entryID: NSManagedObjectID?
-            ) = await handleFPUEntry(treatmentObjectID),
-                let nsManagedObjectID: NSManagedObjectID = correspondingCarbEntry.entryID else { return }
-
-            // Delete carbs or FPUs from Nightscout
-            await taskContext.perform {
-                do {
-                    carbEntryFromCoreData = try taskContext.existingObject(with: nsManagedObjectID) as? CarbEntryStored
-                    guard let carbEntry = carbEntryFromCoreData else {
-                        debugPrint("FPU entry or corresponding carb entry for deletion not found. \(DebuggingIdentifiers.failed)")
-                        return
-                    }
-
+                    // Delete FPU related entries if they exist
                     if let fpuID = carbEntry.fpuID {
                         // Delete Fat and Protein entries from Nightscout
                         self.provider.deleteCarbsFromNightscout(withID: fpuID.uuidString)
@@ -224,20 +180,10 @@ extension DataTable {
                                 self.provider.deleteMealDataFromHealth(byID: fpuID.uuidString, sampleType: validSampleType)
                             }
                         }
-
-                        // if entry has carbs AND fat and/or protein, we also need to remove carbs here
-                        if carbEntry.carbs > 0, let id = carbEntry.id {
-                            self.provider.deleteCarbsFromNightscout(withID: id.uuidString)
-
-                            // Delete carbs from Apple Health
-                            if let sampleType = AppleHealthConfig.healthCarbObject {
-                                self.provider.deleteMealDataFromHealth(byID: id.uuidString, sampleType: sampleType)
-                            }
-                        }
                     }
-                    // entry has no fpuID
-                    // => it's a carb-only entry. use its ID to for all deletion operations
-                    else if let id = carbEntry.id, let entryDate = carbEntry.date {
+
+                    // Delete carb entries if they exist
+                    if let id = carbEntry.id, let entryDate = carbEntry.date {
                         self.provider.deleteCarbsFromNightscout(withID: id.uuidString)
 
                         // Delete carbs from Apple Health
@@ -252,11 +198,8 @@ extension DataTable {
                             enteredBy: CarbsEntry.local
                         )
                     }
-
                 } catch {
-                    debugPrint(
-                        "\(DebuggingIdentifiers.failed) Error deleting carb entry (and associated fpu entries) from remote service(s) (Nightscout, Apple Health, Tidepool) with error: \(error.localizedDescription)"
-                    )
+                    debugPrint("\(DebuggingIdentifiers.failed) Error deleting entries: \(error.localizedDescription)")
                 }
             }
         }
@@ -348,8 +291,6 @@ extension DataTable {
             Task {
                 // Get original date from entry to re-create the entry later with the updated values and the same date
                 guard let originalEntry = await getOriginalEntryValues(treatmentObjectID) else { return }
-
-                // TODO: theoretically we now already have the original entry here => we maybe don't need to perform all the fetching in the deleteServices method 2 levels down 👀
 
                 // Deletion logic for carb and FPU entries
                 await deleteOldEntries(
@@ -449,7 +390,7 @@ extension DataTable {
             let context = CoreDataStack.shared.newTaskContext()
             context.name = "updateContext"
             context.transactionAuthor = "updateEntry"
-            
+
             // TODO: possibly extend this by id and fpuID to not having to fetch again later on
 
             return await context.perform {
