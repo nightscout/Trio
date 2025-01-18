@@ -304,7 +304,6 @@ extension DataTable {
 
                 await createNewEntries(
                     originalDate: originalEntry.entryValues?.date ?? Date(),
-                    // TODO: should we add this to the guard or is nullish coalesce safe enough?
                     newCarbs: newCarbs,
                     newFat: newFat,
                     newProtein: newProtein,
@@ -350,7 +349,7 @@ extension DataTable {
         private func deleteOldEntries(
             _ treatmentObjectID: NSManagedObjectID,
             originalEntry: (
-                entryValues: (date: Date, oldCarbs: Double, oldFat: Double, oldProtein: Double)?,
+                entryValues: (date: Date, carbs: Double, fat: Double, protein: Double)?,
                 entryId: NSManagedObjectID
             ),
             newCarbs _: Decimal,
@@ -358,17 +357,14 @@ extension DataTable {
             newProtein _: Decimal,
             newNote _: String
         ) async {
-            // TODO: cleanup
-            // TODO: maybe pass originalEntry instead of treatmentObjectId down?
-
-            if ((originalEntry.entryValues?.oldCarbs ?? 0) == 0 && (originalEntry.entryValues?.oldFat ?? 0) > 0) ||
-                ((originalEntry.entryValues?.oldCarbs ?? 0) == 0 && (originalEntry.entryValues?.oldProtein ?? 0) > 0)
+            if ((originalEntry.entryValues?.carbs ?? 0) == 0 && (originalEntry.entryValues?.fat ?? 0) > 0) ||
+                ((originalEntry.entryValues?.carbs ?? 0) == 0 && (originalEntry.entryValues?.protein ?? 0) > 0)
             {
                 // Delete the zero-carb-entry and all its carb equivalents connected by the same fpuID from remote services and Core Data
                 // Use fpuID
                 await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: true)
-            } else if ((originalEntry.entryValues?.oldCarbs ?? 0) > 0 && (originalEntry.entryValues?.oldFat ?? 0) > 0) ||
-                ((originalEntry.entryValues?.oldCarbs ?? 0) > 0 && (originalEntry.entryValues?.oldProtein ?? 0) > 0)
+            } else if ((originalEntry.entryValues?.carbs ?? 0) > 0 && (originalEntry.entryValues?.fat ?? 0) > 0) ||
+                ((originalEntry.entryValues?.carbs ?? 0) > 0 && (originalEntry.entryValues?.protein ?? 0) > 0)
             {
                 // Delete carb entry and carb equivalents that are all connected by the same fpuID from remote services and Core Data
                 // Use fpuID
@@ -385,13 +381,11 @@ extension DataTable {
         /// - Parameter objectID: The ID of the entry
         /// - Returns: A tuple of the old entry values and its original date and the objectID or nil
         private func getOriginalEntryValues(_ objectID: NSManagedObjectID) async
-            -> (entryValues: (date: Date, oldCarbs: Double, oldFat: Double, oldProtein: Double)?, entryId: NSManagedObjectID)?
+            -> (entryValues: (date: Date, carbs: Double, fat: Double, protein: Double)?, entryId: NSManagedObjectID)?
         {
             let context = CoreDataStack.shared.newTaskContext()
             context.name = "updateContext"
             context.transactionAuthor = "updateEntry"
-
-            // TODO: possibly extend this by id and fpuID to not having to fetch again later on
 
             return await context.perform {
                 do {
@@ -399,7 +393,7 @@ extension DataTable {
                     else { return nil }
 
                     return (
-                        entryValues: (date: entryDate, oldCarbs: entry.carbs, oldFat: entry.fat, oldProtein: entry.protein),
+                        entryValues: (date: entryDate, carbs: entry.carbs, fat: entry.fat, protein: entry.protein),
                         entryId: entry.objectID
                     )
                 } catch let error as NSError {
