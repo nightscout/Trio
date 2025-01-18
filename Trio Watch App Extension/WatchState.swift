@@ -419,7 +419,7 @@ import WatchConnectivity
         // Clear
         pendingData.removeAll()
 
-        // Done - but ensure this runs at least 2 sec, to avoid flickering
+        // Done - hide sync animation
         DispatchQueue.main.async {
             self.showSyncingAnimation = false
         }
