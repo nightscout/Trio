@@ -20,6 +20,7 @@ extension NightscoutConfig {
         @Published var url = ""
         @Published var secret = ""
         @Published var message = ""
+        @Published var isValidURL: Bool = false
         @Published var connecting = false
         @Published var backfilling = false
         @Published var isUploadEnabled = false // Allow uploads
@@ -88,12 +89,17 @@ extension NightscoutConfig {
                 let fixedURL = url.dropLast()
                 url = String(fixedURL)
             }
-            guard let url = URL(string: url) else {
+            
+            guard let url = URL(string: url), self.url.hasPrefix("https://") else {
                 message = "Invalid URL"
+                isValidURL = false
                 return
             }
+            
             connecting = true
+            isValidURL = true
             message = ""
+            
             provider.checkConnection(url: url, secret: secret.isEmpty ? nil : secret)
                 .receive(on: DispatchQueue.main)
                 .sink { completion in

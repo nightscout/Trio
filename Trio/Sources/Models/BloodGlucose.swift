@@ -2,7 +2,7 @@ import Foundation
 import HealthKit
 import LoopKit
 
-struct BloodGlucose: JSON, Identifiable, Hashable {
+struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
     enum Direction: String, JSON {
         case tripleUp = "TripleUp"
         case doubleUp = "DoubleUp"
@@ -59,6 +59,76 @@ struct BloodGlucose: JSON, Identifiable, Hashable {
         }
     }
 
+    enum CodingKeys: String, CodingKey {
+        case _id
+        case sgv
+        case direction
+        case date
+        case dateString
+        case unfiltered
+        case filtered
+        case noise
+        case glucose
+        case type
+        case activationDate
+        case sessionStartDate
+        case transmitterID
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        _id = try container.decode(String.self, forKey: ._id)
+
+        do {
+            sgv = try container.decode(Int.self, forKey: .sgv)
+        } catch {
+            // The nightscout API returns a double instead of an int
+            sgv = Int(try container.decode(Double.self, forKey: .sgv))
+        }
+
+        direction = try container.decodeIfPresent(Direction.self, forKey: .direction)
+        date = try container.decode(Decimal.self, forKey: .date)
+        dateString = try container.decode(Date.self, forKey: .dateString)
+        unfiltered = try container.decodeIfPresent(Decimal.self, forKey: .unfiltered)
+        filtered = try container.decodeIfPresent(Decimal.self, forKey: .filtered)
+        noise = try container.decodeIfPresent(Int.self, forKey: .noise)
+        glucose = try container.decodeIfPresent(Int.self, forKey: .glucose)
+        type = try container.decodeIfPresent(String.self, forKey: .type)
+        activationDate = try container.decodeIfPresent(Date.self, forKey: .activationDate)
+        sessionStartDate = try container.decodeIfPresent(Date.self, forKey: .sessionStartDate)
+        transmitterID = try container.decodeIfPresent(String.self, forKey: .transmitterID)
+    }
+
+    init(
+        _id: String = UUID().uuidString,
+        sgv: Int? = nil,
+        direction: Direction? = nil,
+        date: Decimal,
+        dateString: Date,
+        unfiltered: Decimal? = nil,
+        filtered: Decimal? = nil,
+        noise: Int? = nil,
+        glucose: Int? = nil,
+        type: String? = nil,
+        activationDate: Date? = nil,
+        sessionStartDate: Date? = nil,
+        transmitterID: String? = nil
+    ) {
+        self._id = _id
+        self.sgv = sgv
+        self.direction = direction
+        self.date = date
+        self.dateString = dateString
+        self.unfiltered = unfiltered
+        self.filtered = filtered
+        self.noise = noise
+        self.glucose = glucose
+        self.type = type
+        self.activationDate = activationDate
+        self.sessionStartDate = sessionStartDate
+        self.transmitterID = transmitterID
+    }
+
     var _id: String?
     var id: String {
         _id ?? UUID().uuidString
@@ -76,7 +146,6 @@ struct BloodGlucose: JSON, Identifiable, Hashable {
     var activationDate: Date? = nil
     var sessionStartDate: Date? = nil
     var transmitterID: String? = nil
-
     var isStateValid: Bool { sgv ?? 0 >= 39 && noise ?? 1 != 4 }
 
     static func == (lhs: BloodGlucose, rhs: BloodGlucose) -> Bool {
