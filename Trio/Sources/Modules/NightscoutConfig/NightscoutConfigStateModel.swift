@@ -89,17 +89,17 @@ extension NightscoutConfig {
                 let fixedURL = url.dropLast()
                 url = String(fixedURL)
             }
-            
+
             guard let url = URL(string: url), self.url.hasPrefix("https://") else {
                 message = "Invalid URL"
                 isValidURL = false
                 return
             }
-            
+
             connecting = true
             isValidURL = true
             message = ""
-            
+
             provider.checkConnection(url: url, secret: secret.isEmpty ? nil : secret)
                 .receive(on: DispatchQueue.main)
                 .sink { completion in
