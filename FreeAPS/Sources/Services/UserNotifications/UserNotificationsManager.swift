@@ -128,7 +128,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private func addAppBadge(glucose: Int?) {
         guard let glucose = glucose, settingsManager.settings.glucoseBadge else {
             DispatchQueue.main.async {
-                self.center.setBadgeCount(-1) { error in
+                self.center.setBadgeCount(0) { error in
                     guard let error else {
                         return
                     }
