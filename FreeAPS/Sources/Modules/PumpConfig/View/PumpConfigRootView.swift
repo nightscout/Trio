@@ -57,25 +57,6 @@ extension PumpConfig {
                                         Spacer()
                                         Button(
                                             action: {
-                                                hintLabel = "Pump Pairing to Trio"
-                                                selectedVerboseHint =
-                                                    AnyView(
-                                                        VStack(alignment: .leading, spacing: 10) {
-                                                            Text(
-                                                                "Current Pump Models Supported:"
-                                                            )
-                                                            VStack(alignment: .leading) {
-                                                                Text("• Medtronic")
-                                                                Text("• Omnipod Eros")
-                                                                Text("• Omnipod Dash")
-                                                                Text("• Dana (RS/-i)")
-                                                                Text("• Pump Simulator")
-                                                            }
-                                                            Text(
-                                                                "Note: If using a pump simulator, you will not have continuous readings from the CGM in Trio. Using a pump simulator is only advisable for becoming familiar with the app user interface. It will not give you insight on how the algorithm will respond."
-                                                            )
-                                                        }
-                                                    )
                                                 shouldDisplayHint.toggle()
                                             },
                                             label: {
@@ -119,8 +100,24 @@ extension PumpConfig {
                     SettingInputHintView(
                         hintDetent: $hintDetent,
                         shouldDisplayHint: $shouldDisplayHint,
-                        hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                        hintLabel: "Pump Pairing to Trio",
+                        hintText: AnyView(
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(
+                                    "Current Pump Models Supported:"
+                                )
+                                VStack(alignment: .leading) {
+                                    Text("• Medtronic")
+                                    Text("• Omnipod Eros")
+                                    Text("• Omnipod Dash")
+                                    Text("• Dana (RS/-i)")
+                                    Text("• Pump Simulator")
+                                }
+                                Text(
+                                    "Note: If using a pump simulator, you will not have continuous readings from the CGM in Trio. Using a pump simulator is only advisable for becoming familiar with the app user interface. It will not give you insight on how the algorithm will respond."
+                                )
+                            }
+                        ),
                         sheetTitle: "Help"
                     )
                 }
