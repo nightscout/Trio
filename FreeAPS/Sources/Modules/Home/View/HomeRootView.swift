@@ -85,7 +85,7 @@ extension Home {
                 Image(uiImage: badgeImage.withRenderingMode(.alwaysTemplate))
                     .font(.system(size: 14))
                     .colorMultiply(badgeColor)
-                Text("Timezone offset detected")
+                Text(NSLocalizedString("Time Change Detected", comment: ""))
                     .bold()
                     .font(.system(size: 14))
                     .foregroundStyle(badgeColor)
