@@ -92,7 +92,7 @@ import Swinject
                 coreDataStack.save()
             }
         }
-        .backgroundTask(.appRefresh("com.openiaps.cleanup")) {
+        .backgroundTask(.appRefresh("com.trio.cleanup")) {
             await scheduleDatabaseCleaning()
             await cleanupOldData()
         }
@@ -120,7 +120,7 @@ import Swinject
     }
 
     func scheduleDatabaseCleaning() {
-        let request = BGAppRefreshTaskRequest(identifier: "com.openiaps.cleanup")
+        let request = BGAppRefreshTaskRequest(identifier: "com.trio.cleanup")
         request.earliestBeginDate = .now.addingTimeInterval(7 * 24 * 60 * 60) // 7 days
         do {
             try BGTaskScheduler.shared.submit(request)
