@@ -57,7 +57,9 @@ extension GlucoseNotificationSettings {
                     miniHint: "Alarm with every Trio notification.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
-                        Text("This will cause a sound to be triggered by every Trio notification.")
+                        Text(
+                            "This will cause a sound to be triggered by Trio notifications for Carbs Required, and Glucose Low/High Alarms."
+                        )
                     }
                 )
                 SettingInputSection(
@@ -181,7 +183,9 @@ extension GlucoseNotificationSettings {
                     miniHint: "Show your current glucose on Trio app icon.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
-                        Text("This will add your current glucose on the top right of your Trio icon as a red notification badge.")
+                        Text(
+                            "This will add your current glucose on the top right of your Trio icon as a red notification badge.  Changing setting takes effect on next Glucose reading."
+                        )
                     },
                     headerText: "Various Glucose Notifications"
                 )
@@ -225,7 +229,7 @@ extension GlucoseNotificationSettings {
                                                     )
                                                 }
                                                 VStack(alignment: .leading, spacing: 5) {
-                                                    Text("Only LOW/HIGH:").bold()
+                                                    Text("Low/High Alarms:").bold()
                                                     Text(
                                                         "A notification will be triggered only when glucose is below LOW and above HIGH settings as defined in Glucose Alarm Limits below."
                                                     )

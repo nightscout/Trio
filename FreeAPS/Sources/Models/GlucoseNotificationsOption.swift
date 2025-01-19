@@ -16,7 +16,7 @@ public enum GlucoseNotificationsOption: String, JSON, CaseIterable, Identifiable
         switch self {
         case .disabled: return "Disabled"
         case .alwaysEveryCGM: return "Always"
-        case .onlyLowHigh: return "Only LOW/HIGH"
+        case .onlyLowHigh: return "Low/High Alarms"
         }
     }
 }
