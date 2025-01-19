@@ -146,7 +146,7 @@ extension DataTable {
             // For FPU deletions, first get the corresponding carb entry
             if isFPUDeletion {
                 guard let correspondingEntry: (
-                    entryValues: (carbs: Decimal, fat: Decimal, protein: Decimal, note: String)?,
+                    entryValues: (carbs: Decimal, fat: Decimal, protein: Decimal, note: String, date: Date)?,
                     entryID: NSManagedObjectID?
                 ) = await handleFPUEntry(treatmentObjectID),
                     let nsManagedObjectID = correspondingEntry.entryID
@@ -281,12 +281,14 @@ extension DataTable {
         ///   - newFat: The new fat value
         ///   - newProtein: The new protein value
         ///   - newNote: The new note text
+        ///   - newDate: The new date for the entry
         func updateEntry(
             _ treatmentObjectID: NSManagedObjectID,
             newCarbs: Decimal,
             newFat: Decimal,
             newProtein: Decimal,
-            newNote: String
+            newNote: String,
+            newDate: Date
         ) {
             Task {
                 // Get original date from entry to re-create the entry later with the updated values and the same date
@@ -303,8 +305,7 @@ extension DataTable {
                 )
 
                 await createNewEntries(
-                    originalDate: originalEntry.entryValues?.date ?? Date(),
-                    // TODO: should we add this to the guard or is nullish coalesce safe enough?
+                    originalDate: newDate,
                     newCarbs: newCarbs,
                     newFat: newFat,
                     newProtein: newProtein,
@@ -424,18 +425,22 @@ extension DataTable {
         /// - Parameter objectID: The ID of the entry to load
         /// - Returns: A tuple containing the entry's values, or nil if not found
         func loadEntryValues(from objectID: NSManagedObjectID) async
-            -> (carbs: Decimal, fat: Decimal, protein: Decimal, note: String)?
+            -> (carbs: Decimal, fat: Decimal, protein: Decimal, note: String, date: Date)?
         {
             let context = CoreDataStack.shared.persistentContainer.viewContext
 
             return await context.perform {
                 do {
-                    guard let entry = try context.existingObject(with: objectID) as? CarbEntryStored else { return nil }
+                    guard let entry = try context.existingObject(with: objectID) as? CarbEntryStored,
+                          let entryDate = entry.date
+                    else { return nil }
+
                     return (
                         carbs: Decimal(entry.carbs),
                         fat: Decimal(entry.fat),
                         protein: Decimal(entry.protein),
-                        note: entry.note ?? ""
+                        note: entry.note ?? "",
+                        date: entryDate
                     )
                 } catch {
                     debugPrint("\(DebuggingIdentifiers.failed) Failed to load entry: \(error.localizedDescription)")
@@ -455,7 +460,10 @@ extension DataTable {
         /// - Parameter objectID: The ID of the FPU entry
         /// - Returns: A tuple containing the entry values and ID, or nil if not found
         func handleFPUEntry(_ objectID: NSManagedObjectID) async
-            -> (entryValues: (carbs: Decimal, fat: Decimal, protein: Decimal, note: String)?, entryID: NSManagedObjectID?)?
+            -> (
+                entryValues: (carbs: Decimal, fat: Decimal, protein: Decimal, note: String, date: Date)?,
+                entryID: NSManagedObjectID?
+            )?
         {
             // Case 1: FPU entry WITH carbs
             if let correspondingCarbEntryID = await getCorrespondingCarbEntry(objectID) {

@@ -26,6 +26,7 @@ struct CarbEntryEditorView: View {
     @State private var editedProtein: Decimal
     @State private var editedNote: String
     @State private var isFPU: Bool
+    @State private var editedDate: Date
 
     init(state: DataTable.StateModel, carbEntry: CarbEntryStored) {
         self.state = state
@@ -36,6 +37,7 @@ struct CarbEntryEditorView: View {
         _editedNote = State(initialValue: carbEntry.note ?? "")
         _isFPU = State(initialValue: carbEntry.isFPU)
         _entryToEdit = State(initialValue: nil)
+        _editedDate = State(initialValue: Date())
     }
 
     private var carbLimitExceeded: Bool {
@@ -99,7 +101,8 @@ struct CarbEntryEditorView: View {
                         newCarbs: editedCarbs,
                         newFat: editedFat,
                         newProtein: editedProtein,
-                        newNote: editedNote
+                        newNote: editedNote,
+                        newDate: editedDate
                     )
                     dismiss()
                 }, label: {
@@ -161,6 +164,14 @@ struct CarbEntryEditorView: View {
                         TextFieldWithToolBarString(text: $editedNote, placeholder: "Note...", maxLength: 25)
                     }
                 }.listRowBackground(Color.chart)
+
+                Section {
+                    DatePicker(
+                        "Time",
+                        selection: $editedDate,
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                }
             }
             .safeAreaInset(
                 edge: .bottom,
@@ -195,6 +206,7 @@ struct CarbEntryEditorView: View {
                     editedProtein = result.entryValues?.protein ?? 0
                     editedNote = result.entryValues?.note ?? ""
                     entryToEdit = result.entryID
+                    editedDate = result.entryValues?.date ?? Date()
                 }
                 /*
                  User taps on a carb entry in the DataTable list. There are again two cases which don't need explicit handling:
@@ -208,6 +220,7 @@ struct CarbEntryEditorView: View {
                     editedFat = values.fat
                     editedProtein = values.protein
                     editedNote = values.note
+                    editedDate = values.date
                     entryToEdit = carbEntry.objectID
                 }
             }
