@@ -1389,7 +1389,7 @@ extension BaseAPSManager: PumpManagerStatusObserver {
                 }
 
                 batteryToStore.date = Date()
-                batteryToStore.percent = Int16(percent)
+                batteryToStore.percent = Double(percent)
                 batteryToStore.voltage = nil
                 batteryToStore.status = percent > 10 ? "normal" : "low"
                 batteryToStore.display = status.pumpBatteryChargeRemaining != nil

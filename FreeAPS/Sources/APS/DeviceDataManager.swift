@@ -132,7 +132,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                             let saveBatteryToCoreData = OpenAPS_Battery(context: self.privateContext)
                             saveBatteryToCoreData.id = UUID()
                             saveBatteryToCoreData.date = Date()
-                            saveBatteryToCoreData.percent = Int16(batteryPercent)
+                            saveBatteryToCoreData.percent = Double(batteryPercent)
                             saveBatteryToCoreData.voltage = nil
                             saveBatteryToCoreData.status = batteryPercent >= 10 ? BatteryState.normal.rawValue : BatteryState
                                 .low.rawValue
