@@ -4,11 +4,6 @@ struct GlucoseTrendView: View {
     let state: WatchState
     let rotationDegrees: Double
 
-    private var is40mm: Bool {
-        let size = WKInterfaceDevice.current().screenBounds.size
-        return size.height < 225 && size.width < 185
-    }
-
     /// Determines the status color based on the time elapsed since the last loop
     /// - Parameter timeString: The time string representing minutes since last loop (format: "X min")
     /// - Returns: A color indicating the status:
@@ -35,23 +30,98 @@ struct GlucoseTrendView: View {
         }
     }
 
+    var circleSize: CGFloat {
+        switch state.deviceType {
+        case .watch40mm,
+             .watch41mm,
+             .watch42mm:
+            return 86
+        case .unknown,
+             .watch44mm,
+             .watch45mm:
+            return 105
+        case .watch49mm:
+            return 105
+        }
+    }
+
+    var lineWidth: CGFloat {
+        switch state.deviceType {
+        case .watch40mm,
+             .watch41mm,
+             .watch42mm:
+            return 1
+        case .unknown,
+             .watch44mm,
+             .watch45mm:
+            return 1.5
+        case .watch49mm:
+            return 1.5
+        }
+    }
+
+    var shadowRadius: CGFloat {
+        switch state.deviceType {
+        case .watch40mm,
+             .watch41mm,
+             .watch42mm:
+            return 8
+        case .unknown,
+             .watch44mm,
+             .watch45mm:
+            return 12
+        case .watch49mm:
+            return 12
+        }
+    }
+
+    var currentGlucoseFontSize: Font {
+        switch state.deviceType {
+        case .watch40mm,
+             .watch41mm,
+             .watch42mm:
+            return .title2
+        case .unknown,
+             .watch44mm,
+             .watch45mm:
+            return .title
+        case .watch49mm:
+            return .title
+        }
+    }
+
+    var minutesAgoFontSize: CGFloat {
+        switch state.deviceType {
+        case .watch40mm,
+             .watch41mm,
+             .watch42mm:
+            return 9
+        case .unknown,
+             .watch44mm,
+             .watch45mm:
+            return 10
+        case .watch49mm:
+            return 10
+        }
+    }
+
     var body: some View {
         VStack {
             ZStack {
                 Circle()
-                    .stroke(statusColor(for: state.lastLoopTime), lineWidth: is40mm ? 1 : 1.5)
-                    .frame(width: is40mm ? 86 : 105, height: is40mm ? 86 : 105)
+                    .stroke(statusColor(for: state.lastLoopTime), lineWidth: lineWidth)
+                    .frame(width: circleSize, height: circleSize)
                     .background(Circle().fill(Color.bgDarkBlue))
-                    .shadow(color: statusColor(for: state.lastLoopTime), radius: is40mm ? 8 : 12)
+                    .shadow(color: statusColor(for: state.lastLoopTime), radius: shadowRadius)
 
-                TrendShape(rotationDegrees: rotationDegrees, isSmallDevice: is40mm)
+                TrendShape(rotationDegrees: rotationDegrees, deviceType: state.deviceType)
                     .animation(.spring(response: 0.5, dampingFraction: 0.6), value: rotationDegrees)
                     .shadow(color: Color.black.opacity(0.5), radius: 5)
 
                 VStack(alignment: .center) {
                     Text(state.currentGlucose)
                         .fontWeight(.semibold)
-                        .font(.system(is40mm ? .title2 : .title))
+                        .font(currentGlucoseFontSize)
                         .foregroundStyle(state.currentGlucoseColorString.toColor())
 
                     if let delta = state.delta {
@@ -63,7 +133,7 @@ struct GlucoseTrendView: View {
                 }
             }
 
-            Text(state.lastLoopTime ?? "--").font(.system(size: is40mm ? 9 : 10))
+            Text(state.lastLoopTime ?? "--").font(.system(size: minutesAgoFontSize))
 
             Spacer()
 

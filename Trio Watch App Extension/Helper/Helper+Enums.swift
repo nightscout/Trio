@@ -1,4 +1,5 @@
 import SwiftUI
+import WatchKit
 
 enum NavigationDestinations: String {
     case acknowledgmentPending = "AcknowledgmentPendingView"
@@ -16,4 +17,35 @@ enum AcknowledgementStatus: String, CaseIterable {
     case success
     case failure
     case pending
+}
+
+enum WatchSize {
+    case watch40mm
+    case watch41mm
+    case watch42mm
+    case watch44mm
+    case watch45mm
+    case watch49mm
+    case unknown
+
+    static var current: WatchSize {
+        let bounds = WKInterfaceDevice.current().screenBounds
+
+        switch bounds {
+        case CGRect(x: 0, y: 0, width: 156, height: 195):
+            return .watch42mm
+        case CGRect(x: 0, y: 0, width: 162, height: 197):
+            return .watch40mm
+        case CGRect(x: 0, y: 0, width: 184, height: 224):
+            return .watch44mm
+        case CGRect(x: 0, y: 0, width: 176, height: 215):
+            return .watch41mm
+        case CGRect(x: 0, y: 0, width: 198, height: 242):
+            return .watch45mm
+        case CGRect(x: 0, y: 0, width: 205, height: 251):
+            return .watch49mm
+        default:
+            return .unknown
+        }
+    }
 }

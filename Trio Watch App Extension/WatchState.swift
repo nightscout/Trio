@@ -82,6 +82,8 @@ import WatchConnectivity
     /// A flag to tell the UI we’re still updating.
     var showSyncingAnimation: Bool = false
 
+    var deviceType = WatchSize.current
+
     override init() {
         super.init()
         setupSession()

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TreatmentMenuView: View {
     @Environment(\.dismiss) var dismiss
+    let deviceType: WatchSize
     @Binding var selectedTreatment: TreatmentOption?
     var onSelect: () -> Void // Callback to handle selection and dismiss the sheet
 
@@ -12,13 +13,34 @@ struct TreatmentMenuView: View {
         .mealBolusCombo // Third
     ]
 
-    private var is40mm: Bool {
-        let size = WKInterfaceDevice.current().screenBounds.size
-        return size.height < 225 && size.width < 185
+    private var iconSize: CGFloat {
+        switch deviceType {
+        case .watch40mm,
+             .watch41mm,
+             .watch42mm:
+            return 18
+        case .unknown,
+             .watch44mm,
+             .watch45mm:
+            return 22
+        case .watch49mm:
+            return 24
+        }
     }
 
-    private var iconSize: CGFloat {
-        is40mm ? 18 : 22
+    private var iconPadding: CGFloat {
+        switch deviceType {
+        case .watch40mm,
+             .watch41mm,
+             .watch42mm:
+            return 6
+        case .unknown,
+             .watch44mm,
+             .watch45mm:
+            return 10
+        case .watch49mm:
+            return 12
+        }
     }
 
     var body: some View {
@@ -56,7 +78,7 @@ struct TreatmentMenuView: View {
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: iconSize, height: iconSize)
-            .padding(is40mm ? 6 : 10)
+            .padding(iconPadding)
             .background(Color.orange)
             .clipShape(Circle())
     }
@@ -66,7 +88,7 @@ struct TreatmentMenuView: View {
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: iconSize, height: iconSize)
-            .padding(is40mm ? 6 : 10)
+            .padding(iconPadding)
             .background(Color.insulin)
             .clipShape(Circle())
     }

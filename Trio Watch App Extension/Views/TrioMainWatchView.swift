@@ -70,7 +70,7 @@ struct TrioMainWatchView: View {
 
                         Text(state.iob ?? "--")
                             .foregroundStyle(.white)
-                    }.font(.caption)
+                    }.font(.caption2)
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
@@ -80,7 +80,7 @@ struct TrioMainWatchView: View {
 
                         Image(systemName: "fork.knife")
                             .foregroundStyle(Color.orange)
-                    }.font(.caption)
+                    }.font(.caption2)
                 }
 
                 ToolbarItemGroup(placement: .bottomBar) {
@@ -98,7 +98,7 @@ struct TrioMainWatchView: View {
                             .foregroundStyle(Color.bgDarkerDarkBlue)
                     }
                     .controlSize(.large)
-                    .buttonStyle(WatchOSButtonStyle())
+                    .buttonStyle(WatchOSButtonStyle(deviceType: state.deviceType))
 
                     Button {
                         showingTempTargetSheet = true
@@ -109,7 +109,7 @@ struct TrioMainWatchView: View {
                 }
             }
             .fullScreenCover(isPresented: $showingTreatmentMenuSheet) {
-                TreatmentMenuView(selectedTreatment: $selectedTreatment) {
+                TreatmentMenuView(deviceType: state.deviceType, selectedTreatment: $selectedTreatment) {
                     handleTreatmentSelection()
                 }
                 .onAppear {
