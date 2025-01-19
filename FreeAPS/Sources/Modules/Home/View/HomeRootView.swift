@@ -80,6 +80,31 @@ extension Home {
             }
         }
 
+        @ViewBuilder func pumpTimezoneView(_ badgeImage: UIImage, _ badgeColor: Color) -> some View {
+            HStack {
+                Image(uiImage: badgeImage.withRenderingMode(.alwaysTemplate))
+                    .font(.system(size: 14))
+                    .colorMultiply(badgeColor)
+                Text("Timezone offset detected")
+                    .bold()
+                    .font(.system(size: 14))
+                    .foregroundStyle(badgeColor)
+            }
+            .onTapGesture {
+                if state.pumpDisplayState != nil {
+                    // sends user to pump settings
+                    state.setupPump.toggle()
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.vertical, 5)
+            .padding(.horizontal, 10)
+            .overlay(
+                Capsule()
+                    .stroke(badgeColor.opacity(0.4), lineWidth: 2)
+            )
+        }
+
         var glucoseView: some View {
             CurrentGlucoseView(
                 timerDate: state.timerDate,
@@ -108,8 +133,6 @@ extension Home {
                 name: state.pumpName,
                 expiresAtDate: state.pumpExpiresAtDate,
                 timerDate: state.timerDate,
-                pumpStatusBadge: state.pumpStatusBadgeImage,
-                pumpStatusBadgeColor: state.pumpStatusBadgeColor,
                 pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
                 battery: state.batteryFromPersistence
             )
@@ -825,6 +848,11 @@ extension Home {
 
         @ViewBuilder func mainViewElements(_ geo: GeometryProxy) -> some View {
             VStack(spacing: 0) {
+                if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
+                    pumpTimezoneView(badgeImage, badgeColor)
+                        .padding(.top, 10)
+                        .padding(.horizontal, 20)
+                }
                 ZStack {
                     /// glucose bobble
                     glucoseView
