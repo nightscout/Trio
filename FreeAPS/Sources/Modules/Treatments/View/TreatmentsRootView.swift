@@ -316,15 +316,17 @@ extension Treatments {
                         Text("Close")
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: {
-                        showPresetSheet = true
-                    }, label: {
-                        HStack {
-                            Text("Presets")
-                            Image(systemName: "plus")
-                        }
-                    })
+                if state.displayPresets {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: {
+                            showPresetSheet = true
+                        }, label: {
+                            HStack {
+                                Text("Presets")
+                                Image(systemName: "pslus")
+                            }
+                        })
+                    }
                 }
             })
             .onAppear {
