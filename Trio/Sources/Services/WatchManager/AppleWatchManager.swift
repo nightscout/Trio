@@ -99,12 +99,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
-                if let lastBolusObjectId = await self.fetchLastBolus() {
-                    let lastBolusObject: [PumpEventStored] = await CoreDataStack.shared
-                        .getNSManagedObject(with: [lastBolusObjectId], context: self.backgroundContext)
-
-                    self.activeBolusAmount = lastBolusObject.first?.bolus?.amount?.doubleValue ?? 0.0
-                }
+                await self.getActiveBolusAmount()
             }
         }.store(in: &subscriptions)
 
@@ -336,6 +331,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
     }
 
+    /// Gets the active bolus amount by fetching last (active) bolus.
+    @MainActor func getActiveBolusAmount() async {
+        if let lastBolusObjectId = await self.fetchLastBolus() {
+            let lastBolusObject: [PumpEventStored] = await CoreDataStack.shared
+                .getNSManagedObject(with: [lastBolusObjectId], context: self.backgroundContext)
+            
+            self.activeBolusAmount = lastBolusObject.first?.bolus?.amount?.doubleValue ?? 0.0
+        }
+    }
     // MARK: - Send to Watch
 
     /// Sends the state of type WatchState to the connected Watch

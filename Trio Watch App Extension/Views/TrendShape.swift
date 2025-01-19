@@ -157,25 +157,26 @@ struct TrendShape: View {
 }
 
 // MARK: - TREND SHAPE PREVIEWS
+
 struct TrendShape_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            TrendShape(rotationDegrees: 0,  deviceType: .watch40mm)
+            TrendShape(rotationDegrees: 0, deviceType: .watch40mm)
                 .previewDisplayName("TrendShape • 40mm")
 
-            TrendShape(rotationDegrees: 0,  deviceType: .watch41mm)
+            TrendShape(rotationDegrees: 0, deviceType: .watch41mm)
                 .previewDisplayName("TrendShape • 41mm")
 
-            TrendShape(rotationDegrees: 0,  deviceType: .watch42mm)
+            TrendShape(rotationDegrees: 0, deviceType: .watch42mm)
                 .previewDisplayName("TrendShape • 42mm")
 
-            TrendShape(rotationDegrees: 0,  deviceType: .watch44mm)
+            TrendShape(rotationDegrees: 0, deviceType: .watch44mm)
                 .previewDisplayName("TrendShape • 44mm")
 
-            TrendShape(rotationDegrees: 0,  deviceType: .watch45mm)
+            TrendShape(rotationDegrees: 0, deviceType: .watch45mm)
                 .previewDisplayName("TrendShape • 45mm")
 
-            TrendShape(rotationDegrees: 0,  deviceType: .watch49mm)
+            TrendShape(rotationDegrees: 0, deviceType: .watch49mm)
                 .previewDisplayName("TrendShape • 49mm")
         }
         .padding()
@@ -185,6 +186,7 @@ struct TrendShape_Previews: PreviewProvider {
 }
 
 // MARK: - TRIANGLE PREVIEWS
+
 struct Triangle_Previews: PreviewProvider {
     static var previews: some View {
         Group {
