@@ -97,25 +97,7 @@ extension PumpConfig {
                 .navigationTitle("Insulin Pump")
                 .navigationBarTitleDisplayMode(.automatic)
                 .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
-                .sheet(isPresented: $shouldDisplayHint) {
-                    SettingInputHintView(
-                        hintDetent: $hintDetent,
-                        shouldDisplayHint: $shouldDisplayHint,
-                        hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                        sheetTitle: "Help"
-                    )
-                }
-                .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
-                    Button("Medtronic") { state.addPump(.minimed) }
-                    Button("Omnipod Eros") { state.addPump(.omnipod) }
-                    Button("Omnipod Dash") { state.addPump(.omnipodBLE) }
-                    Button("Dana(RS/-i)") { state.addPump(.dana) }
-                    Button("Pump Simulator") { state.addPump(.simulator) }
-                } message: { Text("Select Pump Model") }
-            }
-            .sheet(isPresented: $state.setupPump) {
-                NavigationView {
+                .sheet(isPresented: $state.setupPump) {
                     if let pumpManager = state.provider.apsManager.pumpManager {
                         PumpSettingsView(
                             pumpManager: pumpManager,
@@ -133,6 +115,22 @@ extension PumpConfig {
                         )
                     }
                 }
+                .sheet(isPresented: $shouldDisplayHint) {
+                    SettingInputHintView(
+                        hintDetent: $hintDetent,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        hintLabel: hintLabel ?? "",
+                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                        sheetTitle: "Help"
+                    )
+                }
+                .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
+                    Button("Medtronic") { state.addPump(.minimed) }
+                    Button("Omnipod Eros") { state.addPump(.omnipod) }
+                    Button("Omnipod Dash") { state.addPump(.omnipodBLE) }
+                    Button("Dana(RS/-i)") { state.addPump(.dana) }
+                    Button("Pump Simulator") { state.addPump(.simulator) }
+                } message: { Text("Select Pump Model") }
             }
         }
     }
