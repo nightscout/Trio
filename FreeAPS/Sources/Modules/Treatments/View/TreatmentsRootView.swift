@@ -323,7 +323,7 @@ extension Treatments {
                         }, label: {
                             HStack {
                                 Text("Presets")
-                                Image(systemName: "pslus")
+                                Image(systemName: "plus")
                             }
                         })
                     }
