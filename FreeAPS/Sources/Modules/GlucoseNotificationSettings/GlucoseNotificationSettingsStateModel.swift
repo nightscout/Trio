@@ -3,7 +3,7 @@ import SwiftUI
 extension GlucoseNotificationSettings {
     final class StateModel: BaseStateModel<Provider> {
         @Published var glucoseBadge = false
-        @Published var glucoseNotificationsOption: GlucoseNotificationsOption = .onlyLowHigh
+        @Published var glucoseNotificationsOption: GlucoseNotificationsOption = .onlyAlarmLimits
         @Published var useAlarmSound = false
         @Published var addSourceInfoToGlucoseNotifications = false
         @Published var lowGlucose: Decimal = 0

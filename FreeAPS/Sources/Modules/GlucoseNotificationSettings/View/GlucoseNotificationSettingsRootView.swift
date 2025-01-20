@@ -229,7 +229,7 @@ extension GlucoseNotificationSettings {
                                                     )
                                                 }
                                                 VStack(alignment: .leading, spacing: 5) {
-                                                    Text("Low/High Alarms:").bold()
+                                                    Text("Only Alarm Limits:").bold()
                                                     Text(
                                                         "A notification will be triggered only when glucose is below LOW and above HIGH settings as defined in Glucose Alarm Limits below."
                                                     )

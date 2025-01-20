@@ -10,13 +10,13 @@ public enum GlucoseNotificationsOption: String, JSON, CaseIterable, Identifiable
     public var id: String { rawValue }
     case disabled
     case alwaysEveryCGM
-    case onlyLowHigh
+    case onlyAlarmLimits
 
     var displayName: String {
         switch self {
         case .disabled: return "Disabled"
         case .alwaysEveryCGM: return "Always"
-        case .onlyLowHigh: return "Low/High Alarms"
+        case .onlyAlarmLimits: return "Only Alarm Limits"
         }
     }
 }
