@@ -115,21 +115,23 @@ extension PumpConfig {
                 } message: { Text("Select Pump Model") }
             }
             .sheet(isPresented: $state.setupPump) {
-                if let pumpManager = state.provider.apsManager.pumpManager {
-                    PumpSettingsView(
-                        pumpManager: pumpManager,
-                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                        completionDelegate: state,
-                        setupDelegate: state
-                    )
-                } else {
-                    PumpSetupView(
-                        pumpType: state.setupPumpType,
-                        pumpInitialSettings: state.initialSettings,
-                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                        completionDelegate: state,
-                        setupDelegate: state
-                    )
+                NavigationView {
+                    if let pumpManager = state.provider.apsManager.pumpManager {
+                        PumpSettingsView(
+                            pumpManager: pumpManager,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            completionDelegate: state,
+                            setupDelegate: state
+                        )
+                    } else {
+                        PumpSetupView(
+                            pumpType: state.setupPumpType,
+                            pumpInitialSettings: state.initialSettings,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            completionDelegate: state,
+                            setupDelegate: state
+                        )
+                    }
                 }
             }
         }
