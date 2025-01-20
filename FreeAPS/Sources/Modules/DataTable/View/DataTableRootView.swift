@@ -597,7 +597,7 @@ extension DataTable {
                                 NSLocalizedString(" g", comment: "gram of carbs")
                         } else {
                             alertTitle = "Delete Carb Equivalents?"
-                            alertMessage = "All FPUs of the meal will be deleted."
+                            alertMessage = "All FPUs and the carbs of the meal will be deleted."
                         }
 
                         isRemoveHistoryItemAlertPresented = true
@@ -612,7 +612,9 @@ extension DataTable {
                         state.carbEntryToEdit = meal
                         state.showCarbEntryEditor = true
                     }
-                ).tint(.blue)
+                )
+                .tint(!state.settingsManager.settings.useFPUconversion && meal.isFPU ? Color(.systemGray4) : Color.blue)
+                .disabled(!state.settingsManager.settings.useFPUconversion && meal.isFPU)
             }
             .alert(
                 Text(NSLocalizedString(alertTitle, comment: "")),
