@@ -589,14 +589,17 @@ extension DataTable {
                     action: {
                         alertCarbEntryToDelete = meal
 
-                        if !meal.isFPU {
+                        // meal is carb-only
+                        if meal.fpuID == nil {
                             alertTitle = "Delete Carbs?"
                             alertMessage = Formatter.dateFormatter
                                 .string(from: meal.date ?? Date()) + ", " +
                                 (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
                                 NSLocalizedString(" g", comment: "gram of carbs")
-                        } else {
-                            alertTitle = "Delete Carb Equivalents?"
+                        }
+                        // meal is complex-meal or fpu-only
+                        else {
+                            alertTitle = meal.isFPU ? "Delete Carbs Equivalents?" : "Delete Carbs?"
                             alertMessage = "All FPUs and the carbs of the meal will be deleted."
                         }
 
