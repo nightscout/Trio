@@ -57,25 +57,6 @@ extension PumpConfig {
                                         Spacer()
                                         Button(
                                             action: {
-                                                hintLabel = "Pump Pairing to Trio"
-                                                selectedVerboseHint =
-                                                    AnyView(
-                                                        VStack(alignment: .leading, spacing: 10) {
-                                                            Text(
-                                                                "Current Pump Models Supported:"
-                                                            )
-                                                            VStack(alignment: .leading) {
-                                                                Text("• Medtronic")
-                                                                Text("• Omnipod Eros")
-                                                                Text("• Omnipod Dash")
-                                                                Text("• Dana (RS/-i)")
-                                                                Text("• Pump Simulator")
-                                                            }
-                                                            Text(
-                                                                "Note: If using a pump simulator, you will not have continuous readings from the CGM in Trio. Using a pump simulator is only advisable for becoming familiar with the app user interface. It will not give you insight on how the algorithm will respond."
-                                                            )
-                                                        }
-                                                    )
                                                 shouldDisplayHint.toggle()
                                             },
                                             label: {
@@ -97,12 +78,46 @@ extension PumpConfig {
                 .navigationTitle("Insulin Pump")
                 .navigationBarTitleDisplayMode(.automatic)
                 .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
+                .sheet(isPresented: $state.setupPump) {
+                    if let pumpManager = state.provider.apsManager.pumpManager {
+                        PumpSettingsView(
+                            pumpManager: pumpManager,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            completionDelegate: state,
+                            setupDelegate: state
+                        )
+                    } else {
+                        PumpSetupView(
+                            pumpType: state.setupPumpType,
+                            pumpInitialSettings: state.initialSettings,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            completionDelegate: state,
+                            setupDelegate: state
+                        )
+                    }
+                }
                 .sheet(isPresented: $shouldDisplayHint) {
                     SettingInputHintView(
                         hintDetent: $hintDetent,
                         shouldDisplayHint: $shouldDisplayHint,
-                        hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                        hintLabel: "Pump Pairing to Trio",
+                        hintText: AnyView(
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(
+                                    "Current Pump Models Supported:"
+                                )
+                                VStack(alignment: .leading) {
+                                    Text("• Medtronic")
+                                    Text("• Omnipod Eros")
+                                    Text("• Omnipod Dash")
+                                    Text("• Dana (RS/-i)")
+                                    Text("• Pump Simulator")
+                                }
+                                Text(
+                                    "Note: If using a pump simulator, you will not have continuous readings from the CGM in Trio. Using a pump simulator is only advisable for becoming familiar with the app user interface. It will not give you insight on how the algorithm will respond."
+                                )
+                            }
+                        ),
                         sheetTitle: "Help"
                     )
                 }
@@ -113,24 +128,6 @@ extension PumpConfig {
                     Button("Dana(RS/-i)") { state.addPump(.dana) }
                     Button("Pump Simulator") { state.addPump(.simulator) }
                 } message: { Text("Select Pump Model") }
-            }
-            .sheet(isPresented: $state.setupPump) {
-                if let pumpManager = state.provider.apsManager.pumpManager {
-                    PumpSettingsView(
-                        pumpManager: pumpManager,
-                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                        completionDelegate: state,
-                        setupDelegate: state
-                    )
-                } else {
-                    PumpSetupView(
-                        pumpType: state.setupPumpType,
-                        pumpInitialSettings: state.initialSettings,
-                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                        completionDelegate: state,
-                        setupDelegate: state
-                    )
-                }
             }
         }
     }
