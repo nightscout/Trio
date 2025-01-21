@@ -40,7 +40,7 @@ extension DataTable {
         @FetchRequest(
             entity: CarbEntryStored.entity(),
             sortDescriptors: [NSSortDescriptor(keyPath: \CarbEntryStored.date, ascending: false)],
-            predicate: NSPredicate.predicateForOneDayAgo,
+            predicate: NSPredicate.carbsHistory,
             animation: .bouncy
         ) var carbEntryStored: FetchedResults<CarbEntryStored>
 
@@ -119,6 +119,11 @@ extension DataTable {
                 }
                 .sheet(isPresented: $showManualGlucose) {
                     addGlucoseView()
+                }
+                .sheet(isPresented: $state.showCarbEntryEditor) {
+                    if let carbEntry = state.carbEntryToEdit {
+                        CarbEntryEditorView(state: state, carbEntry: carbEntry)
+                    }
                 }
         }
 
@@ -584,20 +589,35 @@ extension DataTable {
                     action: {
                         alertCarbEntryToDelete = meal
 
-                        if !meal.isFPU {
+                        // meal is carb-only
+                        if meal.fpuID == nil {
                             alertTitle = "Delete Carbs?"
                             alertMessage = Formatter.dateFormatter
                                 .string(from: meal.date ?? Date()) + ", " +
                                 (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
                                 NSLocalizedString(" g", comment: "gram of carbs")
-                        } else {
-                            alertTitle = "Delete Carb Equivalents?"
-                            alertMessage = "All FPUs of the meal will be deleted."
+                        }
+                        // meal is complex-meal or fpu-only
+                        else {
+                            alertTitle = meal.isFPU ? "Delete Carbs Equivalents?" : "Delete Carbs?"
+                            alertMessage = "All FPUs and the carbs of the meal will be deleted."
                         }
 
                         isRemoveHistoryItemAlertPresented = true
                     }
                 ).tint(.red)
+
+                Button(
+                    "Edit",
+                    systemImage: "pencil",
+                    role: .none,
+                    action: {
+                        state.carbEntryToEdit = meal
+                        state.showCarbEntryEditor = true
+                    }
+                )
+                .tint(!state.settingsManager.settings.useFPUconversion && meal.isFPU ? Color(.systemGray4) : Color.blue)
+                .disabled(!state.settingsManager.settings.useFPUconversion && meal.isFPU)
             }
             .alert(
                 Text(NSLocalizedString(alertTitle, comment: "")),
@@ -611,7 +631,10 @@ extension DataTable {
                     }
                     let treatmentObjectID = carbEntryToDelete.objectID
 
-                    state.invokeCarbDeletionTask(treatmentObjectID)
+                    state.invokeCarbDeletionTask(
+                        treatmentObjectID,
+                        isFpuOrComplexMeal: carbEntryToDelete.isFPU || carbEntryToDelete.fat > 0 || carbEntryToDelete.protein > 0
+                    )
                 }
             } message: {
                 Text("\n" + NSLocalizedString(alertMessage, comment: ""))
