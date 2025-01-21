@@ -398,7 +398,7 @@ extension Treatments {
 
         private var taskButtonLabel: some View {
             if pumpBolusLimitExceeded {
-                return Text("Max Bolus of \(state.maxBolus.description) U E== 0xceeded")
+                return Text("Max Bolus of \(state.maxBolus.description) U Exceeded")
             } else if externalBolusLimitExceeded {
                 return Text("Max External Bolus of \(state.maxExternal.description) U Exceeded")
             } else if carbLimitExceeded {
