@@ -580,6 +580,7 @@ extension Home.StateModel:
         highGlucose = settingsManager.settings.high
         Task {
             await getCurrentGlucoseTarget()
+            await setupGlucoseTargets()
         }
         hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
         glucoseColorScheme = settingsManager.settings.glucoseColorScheme

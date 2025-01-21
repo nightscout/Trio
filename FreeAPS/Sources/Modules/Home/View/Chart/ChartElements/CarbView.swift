@@ -50,7 +50,7 @@ struct CarbView: ChartContent {
         ForEach(fpuData, id: \.id) { fpu in
             let fpuAmount = fpu.carbs
             let size = (MainChartHelper.Config.fpuSize + CGFloat(fpuAmount) * MainChartHelper.Config.carbsScale) * 1.8
-            let yPosition = minValue
+            let yPosition = minValue // value is parsed to mmol/L when passed into struct based on user settings
 
             PointMark(
                 x: .value("Time", fpu.date ?? Date(), unit: .second),
