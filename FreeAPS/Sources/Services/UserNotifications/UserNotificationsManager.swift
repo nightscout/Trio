@@ -128,7 +128,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private func addAppBadge(glucose: Int?) {
         guard let glucose = glucose, settingsManager.settings.glucoseBadge else {
             DispatchQueue.main.async {
-                self.center.setBadgeCount(-1) { error in
+                self.center.setBadgeCount(0) { error in
                     guard let error else {
                         return
                     }
@@ -269,8 +269,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                   let lastDirection = glucoseObjects.first?.directionEnum?.symbol else { return }
 
             addAppBadge(glucose: (glucoseObjects.first?.glucose).map { Int($0) })
-
-            guard glucoseStorage.alarm != nil || settingsManager.settings.glucoseNotificationsAlways else { return }
 
             var titles: [String] = []
             var notificationAlarm = false
@@ -421,24 +419,22 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             trigger: trigger,
             action: action
         )
-        if alertPermissionsChecker.notificationsDisabled {
-            router.alertMessage.send(messageCont)
-            return
-        }
-        guard router.allowNotify(messageCont, settingsManager.settings) else { return }
-
         var alertIdentifier = identifier.rawValue
         alertIdentifier = identifier == .pumpNotification ? alertIdentifier + content
             .title : (identifier == .alertMessageNotification ? alertIdentifier + content.body : alertIdentifier)
-        let request = UNNotificationRequest(identifier: alertIdentifier, content: content, trigger: trigger)
-
         if deleteOld {
             DispatchQueue.main.async {
                 self.center.removeDeliveredNotifications(withIdentifiers: [alertIdentifier])
                 self.center.removePendingNotificationRequests(withIdentifiers: [alertIdentifier])
             }
         }
+        if alertPermissionsChecker.notificationsDisabled {
+            router.alertMessage.send(messageCont)
+            return
+        }
+        guard router.allowNotify(messageCont, settingsManager.settings) else { return }
 
+        let request = UNNotificationRequest(identifier: alertIdentifier, content: content, trigger: trigger)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             self.center.add(request) { error in
                 if let error = error {
