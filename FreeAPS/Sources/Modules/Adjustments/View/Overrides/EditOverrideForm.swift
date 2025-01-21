@@ -140,7 +140,7 @@ struct EditOverrideForm: View {
             // Percentage Picker
             Section(footer: state.percentageDescription(percentage)) {
                 HStack {
-                    Text("Change Basal Rate by")
+                    Text("Basal Rate Adjustment")
                     Spacer()
                     Text("\(percentage.formatted(.number)) %")
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)

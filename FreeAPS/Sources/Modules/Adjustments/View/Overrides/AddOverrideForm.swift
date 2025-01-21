@@ -74,7 +74,7 @@ struct AddOverrideForm: View {
             Section(footer: state.percentageDescription(state.overridePercentage)) {
                 // Percentage Picker
                 HStack {
-                    Text("Change Basal Rate by")
+                    Text("Basal Rate Adjustment")
                     Spacer()
                     Text("\(state.overridePercentage.formatted(.number)) %")
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)

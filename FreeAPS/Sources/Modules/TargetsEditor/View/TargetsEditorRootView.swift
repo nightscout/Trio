@@ -31,30 +31,30 @@ extension TargetsEditor {
 
                 Group {
                     HStack {
-                        HStack {
-                            Button {
-                                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                                impactHeavy.impactOccurred()
-                                state.save()
+                        Button(action: {
+                            let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+                            impactHeavy.impactOccurred()
+                            state.save()
 
-                                // deactivate saving display after 1.25 seconds
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
-                                    state.shouldDisplaySaving = false
-                                }
-                            } label: {
-                                HStack {
-                                    if state.shouldDisplaySaving {
-                                        ProgressView().padding(.trailing, 10)
-                                    }
-                                    Text(state.shouldDisplaySaving ? "Saving..." : "Save")
-                                }.padding(10)
+                            // deactivate saving display after 1.25 seconds
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) {
+                                state.shouldDisplaySaving = false
                             }
-                        }
-                        .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
-                        .disabled(shouldDisableButton)
-                        .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
-                        .tint(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }, label: {
+                            HStack {
+                                if state.shouldDisplaySaving {
+                                    ProgressView().padding(.trailing, 10)
+                                }
+                                Text(state.shouldDisplaySaving ? "Saving..." : "Save")
+                            }
+                            .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+                            .padding(10)
+                        })
+                            .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                            .disabled(shouldDisableButton)
+                            .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
+                            .tint(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                 }.padding(5)
             }
