@@ -78,9 +78,6 @@ extension Home.StateModel {
             )
         }
 
-        //TODO: - remove this after bug is fixed
-        debugPrint("\(DebuggingIdentifiers.inProgress) printing target profiles: \(targetProfiles)")
-        
         return targetProfiles
     }
 }

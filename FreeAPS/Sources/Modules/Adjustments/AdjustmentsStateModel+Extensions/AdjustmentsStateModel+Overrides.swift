@@ -189,13 +189,12 @@ extension Adjustments.StateModel {
     func updateLatestOverrideConfiguration() {
         Task { [weak self] in
             guard let self = self else { return }
-            
+
             let id = await self.overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 1)
-            
+
             // execute sequentially instead of concurrently
             await self.updateLatestOverrideConfigurationOfState(from: id)
             await self.setCurrentOverride(from: id)
-            
         }
     }
 
