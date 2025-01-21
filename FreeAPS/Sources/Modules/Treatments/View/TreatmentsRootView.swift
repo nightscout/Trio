@@ -79,21 +79,6 @@ extension Treatments {
         @ViewBuilder private func proteinAndFat() -> some View {
             HStack {
                 HStack {
-                    Text("Fat")
-                    TextFieldWithToolBar(
-                        text: $state.fat,
-                        placeholder: "0",
-                        keyboardType: .numberPad,
-                        numberFormatter: mealFormatter,
-                        previousTextField: { focusOnPreviousTextField(index: 2) },
-                        nextTextField: { focusOnNextTextField(index: 2) }
-                    ).focused($focusedField, equals: .fat)
-                    Text("g").foregroundColor(.secondary)
-                }
-
-                Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
-
-                HStack {
                     Text("Protein")
 
                     TextFieldWithToolBar(
@@ -101,9 +86,24 @@ extension Treatments {
                         placeholder: "0",
                         keyboardType: .numberPad,
                         numberFormatter: mealFormatter,
+                        previousTextField: { focusOnPreviousTextField(index: 2) },
+                        nextTextField: { focusOnNextTextField(index: 2) }
+                    ).focused($focusedField, equals: .protein)
+                    Text("g").foregroundColor(.secondary)
+                }
+
+                Divider().foregroundStyle(.primary).fontWeight(.bold).frame(width: 10)
+
+                HStack {
+                    Text("Fat")
+                    TextFieldWithToolBar(
+                        text: $state.fat,
+                        placeholder: "0",
+                        keyboardType: .numberPad,
+                        numberFormatter: mealFormatter,
                         previousTextField: { focusOnPreviousTextField(index: 3) },
                         nextTextField: { focusOnNextTextField(index: 3) }
-                    ).focused($focusedField, equals: .protein)
+                    ).focused($focusedField, equals: .fat)
                     Text("g").foregroundColor(.secondary)
                 }
             }
