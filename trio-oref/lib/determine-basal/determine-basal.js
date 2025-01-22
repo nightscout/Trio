@@ -383,7 +383,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.log("Pumphistory is empty!");
         dynISFenabled = false;
         enableDynamicCR = false;
-    } else if (dynISFenabled) {
+    } else {
         let phLastEntry = pumphistory.length - 1;
         var endDate = new Date(pumphistory[phLastEntry].timestamp);
         var startDate = new Date(pumphistory[0].timestamp);
@@ -558,7 +558,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         tddReason = ", TDD: " + round(tdd,2) + " U, " + round(bolusInsulin/tdd*100,0) + "% Bolus " + round((tempInsulin+scheduledBasalInsulin)/tdd*100,0) +  "% Basal";
 
     } else { tddReason = ", TDD: Not enough pumpData (< 21h)"; }
-
 
     var tdd_before = tdd;
 
