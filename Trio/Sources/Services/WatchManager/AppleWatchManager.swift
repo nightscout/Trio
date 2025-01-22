@@ -333,13 +333,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     /// Gets the active bolus amount by fetching last (active) bolus.
     @MainActor func getActiveBolusAmount() async {
-        if let lastBolusObjectId = await self.fetchLastBolus() {
+        if let lastBolusObjectId = await fetchLastBolus() {
             let lastBolusObject: [PumpEventStored] = await CoreDataStack.shared
-                .getNSManagedObject(with: [lastBolusObjectId], context: self.backgroundContext)
-            
-            self.activeBolusAmount = lastBolusObject.first?.bolus?.amount?.doubleValue ?? 0.0
+                .getNSManagedObject(with: [lastBolusObjectId], context: backgroundContext)
+
+            activeBolusAmount = lastBolusObject.first?.bolus?.amount?.doubleValue ?? 0.0
         }
     }
+
     // MARK: - Send to Watch
 
     /// Sends the state of type WatchState to the connected Watch
@@ -597,13 +598,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             let context = CoreDataStack.shared.newTaskContext()
 
             await context.perform {
-                let carbs = CarbEntryStored(context: context)
-                carbs.carbs = Double(truncating: amount as NSNumber)
-                carbs.date = date
-                carbs.id = UUID()
-                carbs.isFPU = false
-
-                // TODO: add FPU
+                let carbEntry = CarbEntryStored(context: context)
+                carbEntry.id = UUID()
+                carbEntry.carbs = Double(truncating: amount as NSNumber)
+                carbEntry.date = date
+                carbEntry.note = "Via Watch"
 
                 do {
                     guard context.hasChanges else { return }
@@ -638,10 +637,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 // Save carbs entry in Core Data
                 try await context.perform {
                     let carbEntry = CarbEntryStored(context: context)
+                    carbEntry.id = UUID()
                     carbEntry.carbs = NSDecimalNumber(decimal: carbsAmount).doubleValue
                     carbEntry.date = date
-
-                    // TODO: Add Fat-Protein Units (FPU) logic if required
+                    carbEntry.note = "Via Watch"
 
                     guard context.hasChanges else { return }
                     try context.save()
