@@ -11,12 +11,11 @@ protocol CarbsObserver {
 protocol CarbsStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async
-    func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async
+    func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async
     func syncDate() -> Date
     func recent() -> [CarbsEntry]
     func getCarbsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func getFPUsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
-    func deleteCarbs(at uniqueID: String, fpuID: String, complex: Bool)
     func getCarbsNotYetUploadedToHealth() async -> [CarbsEntry]
     func getCarbsNotYetUploadedToTidepool() async -> [CarbsEntry]
 }
@@ -46,8 +45,29 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             entriesToStore = await filterRemoteEntries(entries: entriesToStore)
         }
 
-        await saveCarbsToCoreData(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
+        // Check for FPU-only entries (fat/protein without carbs)
+        let fpuOnlyEntries = entriesToStore.filter { entry in
+            entry.carbs == 0 && (entry.fat ?? 0 > 0 || entry.protein ?? 0 > 0)
+        }
 
+        // Create additional Carb (non-FPU) entries with fat/protein amounts and carbs == 0
+        for entry in fpuOnlyEntries {
+            let additionalEntry = CarbsEntry(
+                id: entry.id,
+                createdAt: entry.createdAt,
+                actualDate: entry.actualDate,
+                carbs: Decimal(0),
+                fat: entry.fat,
+                protein: entry.protein,
+                note: entry.note,
+                enteredBy: entry.enteredBy,
+                isFPU: false, // it should be a Carb entry
+                fpuID: entry.fpuID
+            )
+            entriesToStore.append(additionalEntry)
+        }
+
+        await saveCarbsToCoreData(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
         await saveCarbEquivalents(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
     }
 
@@ -195,7 +215,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     private func saveCarbsToCoreData(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
-        guard let entry = entries.last, entry.carbs != 0 else { return }
+        guard let entry = entries.last else { return }
 
         await coredataContext.perform {
             let newItem = CarbEntryStored(context: self.coredataContext)
@@ -265,22 +285,26 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         storage.retrieve(OpenAPS.Monitor.carbHistory, as: [CarbsEntry].self)?.reversed() ?? []
     }
 
-    func deleteCarbs(_ treatmentObjectID: NSManagedObjectID) async {
+    func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async {
         let taskContext = CoreDataStack.shared.newTaskContext()
         taskContext.name = "deleteContext"
         taskContext.transactionAuthor = "deleteCarbs"
 
-        var carbEntry: CarbEntryStored?
+        var carbEntryFromCoreData: CarbEntryStored?
 
         await taskContext.perform {
             do {
-                carbEntry = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
-                guard let carbEntry = carbEntry else {
+                carbEntryFromCoreData = try taskContext.existingObject(with: treatmentObjectID) as? CarbEntryStored
+                guard let carbEntry = carbEntryFromCoreData else {
                     debugPrint("Carb entry for batch delete not found. \(DebuggingIdentifiers.failed)")
                     return
                 }
 
-                if carbEntry.isFPU, let fpuID = carbEntry.fpuID {
+                // entry has fpuID
+                // case 1: carb equivalent entry
+                // case 2: "parent" entry, but containing fat and/or protein, and possibly carbs
+                // => use fpuID ID to delete all corresponding entries via batch delete
+                if let fpuID = carbEntry.fpuID {
                     // fetch request for all carb entries with the same id
                     let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CarbEntryStored.fetchRequest()
                     fetchRequest.predicate = NSPredicate(format: "fpuID == %@", fpuID as CVarArg)
@@ -295,49 +319,22 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
                     // Notifiy subscribers of the batch delete
                     self.updateSubject.send(())
-                } else {
+                }
+                // entry has no fpuID
+                // => it's a carb-only entry. use its ID to for deletion
+                else {
                     taskContext.delete(carbEntry)
 
                     guard taskContext.hasChanges else { return }
                     try taskContext.save()
 
                     debugPrint(
-                        "Data Table State: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
+                        "CarbsStorage: \(#function) \(DebuggingIdentifiers.succeeded) deleted carb entry from core data"
                     )
                 }
 
             } catch {
                 debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry: \(error.localizedDescription)")
-            }
-        }
-    }
-
-    func deleteCarbs(at uniqueID: String, fpuID: String, complex: Bool) {
-        processQueue.sync {
-            var allValues = storage.retrieve(OpenAPS.Monitor.carbHistory, as: [CarbsEntry].self) ?? []
-
-            if fpuID != "" {
-                if allValues.firstIndex(where: { $0.fpuID == fpuID }) == nil {
-                    debug(.default, "Didn't find any carb equivalents to delete. ID to search for: " + fpuID.description)
-                } else {
-                    allValues.removeAll(where: { $0.fpuID == fpuID })
-                    storage.save(allValues, as: OpenAPS.Monitor.carbHistory)
-                    broadcaster.notify(CarbsObserver.self, on: processQueue) {
-                        $0.carbsDidUpdate(allValues)
-                    }
-                }
-            }
-
-            if fpuID == "" || complex {
-                if allValues.firstIndex(where: { $0.id == uniqueID }) == nil {
-                    debug(.default, "Didn't find any carb entries to delete. ID to search for: " + uniqueID.description)
-                } else {
-                    allValues.removeAll(where: { $0.id == uniqueID })
-                    storage.save(allValues, as: OpenAPS.Monitor.carbHistory)
-                    broadcaster.notify(CarbsObserver.self, on: processQueue) {
-                        $0.carbsDidUpdate(allValues)
-                    }
-                }
             }
         }
     }

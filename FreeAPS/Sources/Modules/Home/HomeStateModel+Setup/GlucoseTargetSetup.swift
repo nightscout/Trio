@@ -20,7 +20,7 @@ extension Home.StateModel {
 
         // Ensure there are targets to process
         guard !rawTargets.targets.isEmpty else {
-            print("Warning: No targets to process in rawTargets.")
+            debugPrint("\(DebuggingIdentifiers.failed) Warning: No targets to process in rawTargets.")
             return []
         }
 
@@ -37,7 +37,7 @@ extension Home.StateModel {
 
             // Validate target index to ensure safety
             guard targetIndex < targets.count else {
-                print("Error: Invalid target index \(targetIndex).")
+                debugPrint("\(DebuggingIdentifiers.failed) Error: Invalid target index \(targetIndex).")
                 continue
             }
 
@@ -77,7 +77,7 @@ extension Home.StateModel {
                 )
             )
         }
-
+      
         return targetProfiles
     }
 }

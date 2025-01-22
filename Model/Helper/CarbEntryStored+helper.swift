@@ -9,13 +9,13 @@ extension NSPredicate {
 
     static var carbsForChart: NSPredicate {
         let date = Date.oneDayAgo
-        return NSPredicate(format: "isFPU == false AND date >= %@", date as NSDate)
+        return NSPredicate(format: "isFPU == false AND date >= %@ AND carbs > 0", date as NSDate)
     }
 
     static var carbsNotYetUploadedToNightscout: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(
-            format: "date >= %@ AND isUploadedToNS == %@ AND isFPU == %@",
+            format: "date >= %@ AND isUploadedToNS == %@ AND isFPU == %@ AND carbs > 0",
             date as NSDate,
             false as NSNumber,
             false as NSNumber
