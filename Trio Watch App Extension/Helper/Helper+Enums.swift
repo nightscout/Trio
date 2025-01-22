@@ -32,16 +32,21 @@ enum WatchSize {
         let bounds = WKInterfaceDevice.current().screenBounds
 
         switch bounds {
-        case CGRect(x: 0, y: 0, width: 156, height: 195):
-            return .watch42mm
         case CGRect(x: 0, y: 0, width: 162, height: 197):
-            return .watch40mm
+            return .watch40mm // check
+
+        case CGRect(x: 0, y: 0, width: 176, height: 215):
+            return .watch41mm // check
+
+        case CGRect(x: 0, y: 0, width: 187, height: 223):
+            return .watch42mm // check
+
         case CGRect(x: 0, y: 0, width: 184, height: 224):
             return .watch44mm
-        case CGRect(x: 0, y: 0, width: 176, height: 215):
-            return .watch41mm
+
         case CGRect(x: 0, y: 0, width: 198, height: 242):
             return .watch45mm
+
         case CGRect(x: 0, y: 0, width: 205, height: 251):
             return .watch49mm
         default:

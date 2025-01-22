@@ -78,15 +78,15 @@ struct TrendShape: View {
 
     private var strokeWidth: CGFloat {
         switch deviceType {
-        case .watch40mm,
-             .watch41mm,
+        case .watch40mm:
+            return 3
+        case .watch41mm,
              .watch42mm:
             return 4
-
         case .unknown,
              .watch44mm,
              .watch45mm:
-            return 5
+            return 4
         case .watch49mm:
             return 5
         }
@@ -94,14 +94,16 @@ struct TrendShape: View {
 
     private var circleSize: CGFloat {
         switch deviceType {
-        case .watch40mm,
-             .watch41mm,
+        case .watch40mm:
+            return 72
+        case .watch41mm,
              .watch42mm:
             return 74
+        case .watch44mm:
+            return 82
         case .unknown,
-             .watch44mm,
              .watch45mm:
-            return 92
+            return 90
         case .watch49mm:
             return 92
         }
@@ -113,8 +115,9 @@ struct TrendShape: View {
              .watch41mm,
              .watch42mm:
             return 16
+        case .watch44mm:
+            return 18
         case .unknown,
-             .watch44mm,
              .watch45mm:
             return 20
         case .watch49mm:
@@ -124,14 +127,16 @@ struct TrendShape: View {
 
     private var triangleOffset: CGFloat {
         switch deviceType {
-        case .watch40mm,
-             .watch41mm,
+        case .watch40mm:
+            return 46
+        case .watch41mm,
              .watch42mm:
             return 47.5
+        case .watch44mm:
+            return 53.5
         case .unknown,
-             .watch44mm,
              .watch45mm:
-            return 59
+            return 58
         case .watch49mm:
             return 59
         }
@@ -153,74 +158,5 @@ struct TrendShape: View {
         }
         .rotationEffect(.degrees(rotationDegrees))
         .shadow(color: Color.black.opacity(0.33), radius: 3)
-    }
-}
-
-// MARK: - TREND SHAPE PREVIEWS
-
-struct TrendShape_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            TrendShape(rotationDegrees: 0, deviceType: .watch40mm)
-                .previewDisplayName("TrendShape • 40mm")
-
-            TrendShape(rotationDegrees: 0, deviceType: .watch41mm)
-                .previewDisplayName("TrendShape • 41mm")
-
-            TrendShape(rotationDegrees: 0, deviceType: .watch42mm)
-                .previewDisplayName("TrendShape • 42mm")
-
-            TrendShape(rotationDegrees: 0, deviceType: .watch44mm)
-                .previewDisplayName("TrendShape • 44mm")
-
-            TrendShape(rotationDegrees: 0, deviceType: .watch45mm)
-                .previewDisplayName("TrendShape • 45mm")
-
-            TrendShape(rotationDegrees: 0, deviceType: .watch49mm)
-                .previewDisplayName("TrendShape • 49mm")
-        }
-        .padding()
-        // Optional: to let each preview "shrink to fit" rather than fill the entire simulator screen:
-        // .previewLayout(.sizeThatFits)
-    }
-}
-
-// MARK: - TRIANGLE PREVIEWS
-
-struct Triangle_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            Triangle(deviceType: .watch40mm)
-                .fill(Color.blue)
-                .frame(width: 50, height: 50)
-                .previewDisplayName("Triangle • 40mm")
-
-            Triangle(deviceType: .watch41mm)
-                .fill(Color.green)
-                .frame(width: 50, height: 50)
-                .previewDisplayName("Triangle • 41mm")
-
-            Triangle(deviceType: .watch42mm)
-                .fill(Color.purple)
-                .frame(width: 50, height: 50)
-                .previewDisplayName("Triangle • 42mm")
-
-            Triangle(deviceType: .watch44mm)
-                .fill(Color.red)
-                .frame(width: 50, height: 50)
-                .previewDisplayName("Triangle • 44mm")
-
-            Triangle(deviceType: .watch45mm)
-                .fill(Color.orange)
-                .frame(width: 50, height: 50)
-                .previewDisplayName("Triangle • 45mm")
-
-            Triangle(deviceType: .watch49mm)
-                .fill(Color.pink)
-                .frame(width: 50, height: 50)
-                .previewDisplayName("Triangle • 49mm")
-        }
-        .padding()
-        // .previewLayout(.sizeThatFits)
     }
 }

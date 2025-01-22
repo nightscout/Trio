@@ -32,14 +32,16 @@ struct GlucoseTrendView: View {
 
     var circleSize: CGFloat {
         switch state.deviceType {
-        case .watch40mm,
-             .watch41mm,
+        case .watch40mm:
+            return 82
+        case .watch41mm,
              .watch42mm:
             return 86
+        case .watch44mm:
+            return 96
         case .unknown,
-             .watch44mm,
              .watch45mm:
-            return 105
+            return 103
         case .watch49mm:
             return 105
         }
@@ -49,10 +51,10 @@ struct GlucoseTrendView: View {
         switch state.deviceType {
         case .watch40mm,
              .watch41mm,
-             .watch42mm:
+             .watch42mm,
+             .watch44mm:
             return 1
         case .unknown,
-             .watch44mm,
              .watch45mm:
             return 1.5
         case .watch49mm:
@@ -66,8 +68,9 @@ struct GlucoseTrendView: View {
              .watch41mm,
              .watch42mm:
             return 8
+        case .watch44mm:
+            return 9
         case .unknown,
-             .watch44mm,
              .watch45mm:
             return 12
         case .watch49mm:
@@ -79,10 +82,10 @@ struct GlucoseTrendView: View {
         switch state.deviceType {
         case .watch40mm,
              .watch41mm,
-             .watch42mm:
+             .watch42mm,
+             .watch44mm:
             return .title2
         case .unknown,
-             .watch44mm,
              .watch45mm:
             return .title
         case .watch49mm:
@@ -93,13 +96,14 @@ struct GlucoseTrendView: View {
     var minutesAgoFontSize: CGFloat {
         switch state.deviceType {
         case .watch40mm,
-             .watch41mm,
-             .watch42mm:
+             .watch41mm:
             return 9
         case .unknown,
-             .watch44mm,
-             .watch45mm:
+             .watch42mm,
+             .watch44mm:
             return 10
+        case .watch45mm:
+            return 11
         case .watch49mm:
             return 10
         }
@@ -132,6 +136,8 @@ struct GlucoseTrendView: View {
                     }
                 }
             }
+
+            Spacer()
 
             Text(state.lastLoopTime ?? "--").font(.system(size: minutesAgoFontSize))
 
