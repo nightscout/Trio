@@ -9,7 +9,7 @@ public extension OpenAPS_Battery {
     @NSManaged var date: Date?
     @NSManaged var display: Bool
     @NSManaged var id: UUID?
-    @NSManaged var percent: Int16
+    @NSManaged var percent: Double
     @NSManaged var status: String?
     @NSManaged var voltage: NSDecimalNumber?
 }

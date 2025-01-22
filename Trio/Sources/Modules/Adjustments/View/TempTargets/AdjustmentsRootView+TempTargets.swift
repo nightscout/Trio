@@ -82,7 +82,7 @@ extension Adjustments.RootView {
                     isConfirmDeletePresented = true
                 }
             } label: {
-                Label("Delete", systemImage: "trash")
+                Label("Delete", systemImage: "trash.fill")
                     .tint(.red)
             }
             Button(action: {

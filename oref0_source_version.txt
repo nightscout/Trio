@@ -1,9 +1,16 @@
-oref0 branch: dev - git version: 22603e2
+oref0 branch: tdd-pumpdataCheck - git version: 46deecb
 
 Last commits:
-22603e2 skip_NetralTemps only if SMB's somehow disabled
-0ff47a3 fix weightedAverage, always calculate TDD
-e274bb0 revert to standard HBT calculation
+46deecb remove dynisf check on pumpdata calc
+2f258b2 Merge pull request #36 from mountrcg/fixTDDcheck
+4998a09 fix condition  to use weightedAverage as TDD
+ff54c14 Merge pull request #35 from mountrcg/skipNTfix
+bbdf258 Merge pull request #34 from mountrcg/TToref-reset
+6e4c8ce Merge pull request #31 from simonp22/calc_tdd
+c5f9a6a Use weightedAverage as tdd if weightPercentage > 1
+7153b43 skip_NetralTemps only if SMB's somehow disabled
+e0caaa0 revert to standard HBT calculation
+06ca64b Always calculate TDD
 363fd11 Merge pull request #28 from bjornoleh/harmonise_defaults
 2d695e1 index.js: set enableUAM to false, and remove whitespace in L11
 8f5f820 Harmonise profile defaults with openaps/oref0

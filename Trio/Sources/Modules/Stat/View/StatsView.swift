@@ -128,13 +128,8 @@ struct StatsView: View {
     var hba1c: some View {
         HStack(spacing: 50) {
             let useUnit: GlucoseUnits = {
-                if units == .mmolL && hbA1cDisplayUnit == .mmolMol {
-                    return .mgdL
-                } else if (units == .mgdL && hbA1cDisplayUnit == .mmolMol) || units == .mmolL {
-                    return .mmolL
-                } else {
-                    return .mgdL
-                }
+                if hbA1cDisplayUnit == .mmolMol { return .mmolL }
+                else { return .mgdL }
             }()
 
             let hba1cs = glucoseStats()

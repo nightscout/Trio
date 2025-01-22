@@ -19,7 +19,7 @@ struct WatchConfigGarminView: View {
     }
 
     var body: some View {
-        List {
+        Form {
             Section(
                 header: Text("Garmin Configuration"),
                 content:
@@ -43,13 +43,6 @@ struct WatchConfigGarminView: View {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = "Add Device"
-                                    selectedVerboseHint =
-                                        AnyView(
-                                            Text(
-                                                "Add Garmin Device to Trio. Please look at the docs to see which devices are supported."
-                                            )
-                                        )
                                     shouldDisplayHint.toggle()
                                 },
                                 label: {
@@ -64,14 +57,17 @@ struct WatchConfigGarminView: View {
             ).listRowBackground(Color.chart)
 
             if !state.devices.isEmpty {
-                Section(header: Text("Garmin Watch")) {
-                    List {
-                        ForEach(state.devices, id: \.uuid) { device in
-                            Text(device.friendlyName)
+                Section(
+                    header: Text("Garmin Watch"),
+                    content: {
+                        List {
+                            ForEach(state.devices, id: \.uuid) { device in
+                                Text(device.friendlyName)
+                            }
+                            .onDelete(perform: onDelete)
                         }
-                        .onDelete(perform: onDelete)
                     }
-                }.listRowBackground(Color.chart)
+                ).listRowBackground(Color.chart)
             }
         }
         .listSectionSpacing(sectionSpacing)
@@ -79,8 +75,10 @@ struct WatchConfigGarminView: View {
             SettingInputHintView(
                 hintDetent: $hintDetent,
                 shouldDisplayHint: $shouldDisplayHint,
-                hintLabel: hintLabel ?? "",
-                hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                hintLabel: "Add Device",
+                hintText: Text(
+                    "Add Garmin Device to Trio. Please look at the docs to see which devices are supported."
+                ),
                 sheetTitle: "Help"
             )
         }

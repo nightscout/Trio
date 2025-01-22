@@ -157,7 +157,8 @@ extension MainChartView {
                     units: state.units,
                     carbData: state.carbsFromPersistence,
                     fpuData: state.fpusFromPersistence,
-                    minValue: state.minYAxisValue
+                    minValue: units == .mgdL ? state.minYAxisValue : state.minYAxisValue
+                        .asMmolL
                 )
 
                 ForecastView(

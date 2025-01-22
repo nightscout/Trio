@@ -69,7 +69,7 @@ extension TrioRemoteControl {
             note: "Remote meal command",
             enteredBy: CarbsEntry.local,
             isFPU: false,
-            fpuID: nil
+            fpuID: fatDecimal ?? 0 > 0 || proteinDecimal ?? 0 > 0 ? UUID().uuidString : nil
         )
 
         await carbsStorage.storeCarbs([mealEntry], areFetchedFromRemote: false)
