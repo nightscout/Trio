@@ -337,7 +337,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @MainActor func getActiveBolusAmount() async {
         if let lastBolusObjectId = await fetchLastBolus() {
             let lastBolusObject: [PumpEventStored] = await CoreDataStack.shared
-                .getNSManagedObject(with: [lastBolusObjectId], context: backgroundContext)
+                .getNSManagedObject(with: [lastBolusObjectId], context: viewContext)
 
             activeBolusAmount = lastBolusObject.first?.bolus?.amount?.doubleValue ?? 0.0
         }
