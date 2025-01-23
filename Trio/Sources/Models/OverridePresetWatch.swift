@@ -7,7 +7,7 @@
 import Foundation
 import SwiftUI
 
-struct OverridePresetWatch: Hashable, Equatable {
+struct OverridePresetWatch: Hashable, Equatable, Codable {
     let name: String
     let isEnabled: Bool
 }
