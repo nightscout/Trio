@@ -13,24 +13,104 @@ extension Stat {
         var timeInRangeChartStyle: TimeInRangeChartStyle = .vertical
         var units: GlucoseUnits = .mgdL
         var glucoseFromPersistence: [GlucoseStored] = []
+        var loopStatRecords: [LoopStatRecord] = []
+        var groupedLoopStats: [LoopStatsByPeriod] = []
+        var mealStats: [MealStats] = []
 
-        var selectedDuration: Duration = .Today
+        var selectedDuration: Duration = .Today {
+            didSet {
+                setupGlucoseArray(for: selectedDuration)
+            }
+        }
 
-        private let context = CoreDataStack.shared.newTaskContext()
-        private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+        var selectedDurationForLoopStats: Duration = .Today {
+            didSet {
+                setupLoopStatRecords()
+            }
+        }
+
+        var selectedDurationForMealStats: Duration = .Today {
+            didSet {
+                setupMealStats(for: selectedDurationForMealStats)
+            }
+        }
+
+        /// TDD-related properties
+
+        /// Total insulin dose for the last 24 hours
+        var currentTDD: Decimal = 0
+
+        /// Total insulin dose for yesterday (previous calendar day)
+        var ytdTDDValue: Decimal = 0
+
+        /// Average TDD for the selected time period
+        var averageTDD: Decimal = 0
+
+        /// Array of daily total doses for the selected period
+        var dailyTotalDoses: [TDD] = []
+
+        /// Configuration for TDD display and calculations
+        private(set) var tddConfig = TDDConfiguration() {
+            didSet {
+                if oldValue.requestedDays != tddConfig.requestedDays ||
+                    oldValue.endDate != tddConfig.endDate
+                {
+                    Task {
+                        await updateTDDValues()
+                    }
+                }
+            }
+        }
+
+        /// Number of days to display in the TDD chart
+        var requestedDaysTDD: Int {
+            get { tddConfig.requestedDays }
+            set { tddConfig.requestedDays = newValue }
+        }
+
+        /// End date for the TDD chart
+        var requestedEndDayTDD: Date {
+            get { tddConfig.endDate }
+            set {
+                if let adjustedDate = Calendar.current.date(
+                    bySettingHour: 23,
+                    minute: 59,
+                    second: 59,
+                    of: newValue
+                ) {
+                    tddConfig.endDate = adjustedDate
+                }
+            }
+        }
+
+        let context = CoreDataStack.shared.newTaskContext()
+        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
+        let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+        let loopTaskContext = CoreDataStack.shared.newTaskContext()
+        let mealTaskContext = CoreDataStack.shared.newTaskContext()
+        let bolusTaskContext = CoreDataStack.shared.newTaskContext()
 
         enum Duration: String, CaseIterable, Identifiable {
             case Today
-            case Day
-            case Week
-            case Month
-            case Total
+            case Day = "24h"
+            case Week = "7 Days"
+            case Month = "30 Days"
+            case Total = "All"
+
             var id: Self { self }
         }
 
+        var hourlyStats: [HourlyStats] = []
+        var glucoseRangeStats: [GlucoseRangeStats] = []
+
+        var bolusStats: [BolusStats] = []
+
         override func subscribe() {
-            /// Default is today
             setupGlucoseArray(for: .Today)
+            setupTDDs()
+            setupLoopStatRecords()
+            setupMealStats(for: selectedDurationForMealStats)
+            updateBolusStats()
             highLimit = settingsManager.settings.high
             lowLimit = settingsManager.settings.low
             units = settingsManager.settings.units
@@ -40,8 +120,19 @@ extension Stat {
 
         func setupGlucoseArray(for duration: Duration) {
             Task {
-                let ids = await self.fetchGlucose(for: duration)
+                let ids = await fetchGlucose(for: duration)
                 await updateGlucoseArray(with: ids)
+
+                // Calculate hourly stats and glucose range stats asynchronously with fetched glucose IDs
+                async let hourlyStats: () = calculateHourlyStatsForGlucoseAreaChart(from: ids)
+                async let glucoseRangeStats: () = calculateGlucoseRangeStatsForStackedChart(from: ids)
+                _ = await (hourlyStats, glucoseRangeStats)
+            }
+        }
+
+        func setupTDDs() {
+            Task {
+                await updateTDDValues()
             }
         }
 
