@@ -36,14 +36,10 @@ struct TrioWatchComplicationEntryView: View {
 
     var body: some View {
         switch widgetFamily {
-        case .accessoryRectangular:
-            TrioAccessoryRectangularView(entry: entry)
         case .accessoryCircular:
             TrioAccessoryCircularView(entry: entry)
         case .accessoryCorner:
             TrioAccessoryCornerView(entry: entry)
-        case .accessoryInline:
-            TrioAccessoryInlineView(entry: entry)
         default:
             Image("ComplicationIcon")
         }
@@ -55,9 +51,12 @@ struct TrioAccessoryCornerView: View {
     var entry: TrioWatchComplicationProvider.Entry
 
     var body: some View {
-        Text("Trio")
-            .font(.caption)
-            .foregroundColor(.white)
+        Text("")
+            .widgetCurvesContent()
+            .widgetLabel {
+                Text("Trio")
+            }
+            .widgetBackground(backgroundView: Color.clear)
     }
 }
 
@@ -66,31 +65,9 @@ struct TrioAccessoryCircularView: View {
     var entry: TrioWatchComplicationProvider.Entry
 
     var body: some View {
-        Text("Trio")
-            .font(.caption)
-            .foregroundColor(.white)
-    }
-}
-
-/// Rectangular Complication
-struct TrioAccessoryRectangularView: View {
-    var entry: TrioWatchComplicationProvider.Entry
-
-    var body: some View {
-        Text("Trio")
-            .font(.headline)
-            .foregroundColor(.primary)
-    }
-}
-
-/// Inline Complication
-struct TrioAccessoryInlineView: View {
-    var entry: TrioWatchComplicationProvider.Entry
-
-    var body: some View {
-        Text("Trio")
-            .font(.caption)
-            .foregroundColor(.primary)
+        Image("ComplicationIcon")
+            .resizable()
+            .widgetBackground(backgroundView: Color.clear)
     }
 }
 
@@ -107,9 +84,19 @@ struct TrioAccessoryInlineView: View {
         .description("Displays Trio app icon as complication")
         .supportedFamilies([
             .accessoryCorner,
-            .accessoryCircular,
-            .accessoryRectangular,
-            .accessoryInline
+            .accessoryCircular
         ])
+    }
+}
+
+extension View {
+    func widgetBackground(backgroundView: some View) -> some View {
+        if #available(watchOS 10.0, iOSApplicationExtension 17.0, iOS 17.0, *) {
+            return containerBackground(for: .widget) {
+                backgroundView
+            }
+        } else {
+            return background(backgroundView)
+        }
     }
 }
