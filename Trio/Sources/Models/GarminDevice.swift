@@ -11,13 +11,13 @@ struct GarminDevice: Codable, Equatable {
     let id: UUID
     let modelName: String
     let friendlyName: String
-    
+
     init(iqDevice: IQDevice) {
         id = iqDevice.uuid
         modelName = iqDevice.modelName
         friendlyName = iqDevice.modelName
     }
-    
+
     var iqDevice: IQDevice {
         IQDevice(id: id, modelName: modelName, friendlyName: friendlyName)
     }

@@ -29,7 +29,7 @@ extension WatchConfig {
         }
 
         func deleteGarminDevice() {
-            garmin.updateListDevices(devices: devices)
+            garmin.updateDeviceList(devices)
         }
     }
 }
