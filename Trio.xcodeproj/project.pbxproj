@@ -324,8 +324,8 @@
 		BDA25F202D26D5FE00035F34 /* CarbsInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */; };
 		BDA25F222D26D62800035F34 /* BolusInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25F212D26D62200035F34 /* BolusInputView.swift */; };
 		BDA6CC882CAF219B00F942F9 /* TempTargetSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */; };
-		BDAE40002D372BAD009C12B1 /* WatchState+Requests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDAE3FFF2D372BA8009C12B1 /* WatchState+Requests.swift */; };
 		BDA7593E2D37CFC400E649A4 /* CarbEntryEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA7593D2D37CFC000E649A4 /* CarbEntryEditorView.swift */; };
+		BDAE40002D372BAD009C12B1 /* WatchState+Requests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDAE3FFF2D372BA8009C12B1 /* WatchState+Requests.swift */; };
 		BDB3C1192C03DD1000CEEAA1 /* UserDefaultsExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB3C1182C03DD1000CEEAA1 /* UserDefaultsExtension.swift */; };
 		BDB899882C564509006F3298 /* ForecastChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB899872C564509006F3298 /* ForecastChart.swift */; };
 		BDB8998A2C565D0C006F3298 /* CarbsGlucose+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB899892C565D0B006F3298 /* CarbsGlucose+helper.swift */; };
@@ -459,6 +459,8 @@
 		DD21FCB52C6952AD00AF2C25 /* DecimalPickerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */; };
 		DD246F062D2836AA0027DDE0 /* GlucoseTrendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD246F052D2836AA0027DDE0 /* GlucoseTrendView.swift */; };
 		DD2CC85C2D25DA1000445446 /* GlucoseTargetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2CC85B2D25D9CE00445446 /* GlucoseTargetsView.swift */; };
+		DD3078682D42F5CE00DE0490 /* WatchGlucoseObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3078672D42F5CE00DE0490 /* WatchGlucoseObject.swift */; };
+		DD30786A2D42F94000DE0490 /* GarminDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3078692D42F94000DE0490 /* GarminDevice.swift */; };
 		DD32CF982CC82463003686D6 /* TrioRemoteControl+Bolus.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */; };
 		DD32CF9A2CC8247B003686D6 /* TrioRemoteControl+Meal.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */; };
 		DD32CF9C2CC82499003686D6 /* TrioRemoteControl+TempTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */; };
@@ -1044,8 +1046,8 @@
 		BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbsInputView.swift; sourceTree = "<group>"; };
 		BDA25F212D26D62200035F34 /* BolusInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusInputView.swift; sourceTree = "<group>"; };
 		BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetSetup.swift; sourceTree = "<group>"; };
-		BDAE3FFF2D372BA8009C12B1 /* WatchState+Requests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WatchState+Requests.swift"; sourceTree = "<group>"; };
 		BDA7593D2D37CFC000E649A4 /* CarbEntryEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbEntryEditorView.swift; sourceTree = "<group>"; };
+		BDAE3FFF2D372BA8009C12B1 /* WatchState+Requests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WatchState+Requests.swift"; sourceTree = "<group>"; };
 		BDB3C1182C03DD1000CEEAA1 /* UserDefaultsExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsExtension.swift; sourceTree = "<group>"; };
 		BDB899872C564509006F3298 /* ForecastChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastChart.swift; sourceTree = "<group>"; };
 		BDB899892C565D0B006F3298 /* CarbsGlucose+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CarbsGlucose+helper.swift"; sourceTree = "<group>"; };
@@ -1188,6 +1190,8 @@
 		DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalPickerSettings.swift; sourceTree = "<group>"; };
 		DD246F052D2836AA0027DDE0 /* GlucoseTrendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseTrendView.swift; sourceTree = "<group>"; };
 		DD2CC85B2D25D9CE00445446 /* GlucoseTargetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseTargetsView.swift; sourceTree = "<group>"; };
+		DD3078672D42F5CE00DE0490 /* WatchGlucoseObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchGlucoseObject.swift; sourceTree = "<group>"; };
+		DD3078692D42F94000DE0490 /* GarminDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminDevice.swift; sourceTree = "<group>"; };
 		DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Bolus.swift"; sourceTree = "<group>"; };
 		DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Meal.swift"; sourceTree = "<group>"; };
 		DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+TempTarget.swift"; sourceTree = "<group>"; };
@@ -2051,6 +2055,8 @@
 		388E5A5925B6F0250019842D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				DD3078692D42F94000DE0490 /* GarminDevice.swift */,
+				DD3078672D42F5CE00DE0490 /* WatchGlucoseObject.swift */,
 				BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */,
 				BD54A9722D281A9C00F9C1EE /* TempTargetPresetWatch.swift */,
 				BD54A95A2D28087700F9C1EE /* OverridePresetWatch.swift */,
@@ -3768,6 +3774,7 @@
 				38E989DD25F5021400C0CED0 /* PumpStatus.swift in Sources */,
 				BDFD165A2AE40438007F0DDA /* TreatmentsRootView.swift in Sources */,
 				BD54A9732D281ABC00F9C1EE /* TempTargetPresetWatch.swift in Sources */,
+				DD3078682D42F5CE00DE0490 /* WatchGlucoseObject.swift in Sources */,
 				38E98A2525F52C9300C0CED0 /* IssueReporter.swift in Sources */,
 				DD1745522C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift in Sources */,
 				DD2CC85C2D25DA1000445446 /* GlucoseTargetsView.swift in Sources */,
@@ -3915,6 +3922,7 @@
 				BDC531182D1062F200088832 /* ContactImageState.swift in Sources */,
 				E592A37A2CEEC038009A472C /* ContactImageProvider.swift in Sources */,
 				CE82E02728E869DF00473A9C /* AlertEntry.swift in Sources */,
+				DD30786A2D42F94000DE0490 /* GarminDevice.swift in Sources */,
 				38E4451E274DB04600EC9A94 /* AppDelegate.swift in Sources */,
 				BD2FF1A02AE29D43005D1C5D /* CheckboxToggleStyle.swift in Sources */,
 				DDD163162C4C690300CD525A /* AdjustmentsDataFlow.swift in Sources */,

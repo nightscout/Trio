@@ -1,13 +1,13 @@
 import Foundation
 import SwiftUI
 
-struct WatchState: Hashable, Equatable, Sendable {
+struct WatchState: Hashable, Equatable, Sendable, Encodable {
     var date: Date
     var currentGlucose: String?
     var currentGlucoseColorString: String?
     var trend: String?
     var delta: String?
-    var glucoseValues: [(date: Date, glucose: Double, color: String)] = []
+    var glucoseValues: [WatchGlucoseObject] = []
     var units: GlucoseUnits = .mgdL
     var iob: String?
     var cob: String?

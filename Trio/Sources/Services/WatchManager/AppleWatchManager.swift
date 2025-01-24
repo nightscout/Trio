@@ -7,7 +7,9 @@ import WatchConnectivity
 
 /// Protocol defining the base functionality for Watch communication
 // TODO: Complete this
-protocol WatchManager {}
+protocol WatchManager {
+    func setupWatchState() async -> WatchState
+}
 
 /// Main implementation of the Watch communication manager
 /// Handles bidirectional communication between iPhone and Apple Watch
@@ -146,7 +148,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     /// Prepares the current state data to be sent to the Watch
     /// - Returns: WatchState containing current glucose readings and trends and determination infos for displaying cob and iob in the view
-    private func setupWatchState() async -> WatchState {
+    func setupWatchState() async -> WatchState {
         // Get NSManagedObjectIDs
         let glucoseIds = await fetchGlucose()
         // TODO: - if we want that the watch immediately displays updated cob and iob values when entered via treatment view from phone, we would need to use a predicate here that also filters for NON-ENACTED Determinations
@@ -247,7 +249,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     glucoseColorScheme: self.glucoseColorScheme
                 )
 
-                return (date: glucose.date ?? Date(), glucose: glucoseValue, color: glucoseColor.toHexString())
+                return WatchGlucoseObject(date: glucose.date ?? Date(), glucose: glucoseValue, color: glucoseColor.toHexString())
             }
             .sorted { $0.date < $1.date }
 
@@ -335,7 +337,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @MainActor func getActiveBolusAmount() async {
         if let lastBolusObjectId = await fetchLastBolus() {
             let lastBolusObject: [PumpEventStored] = await CoreDataStack.shared
-                .getNSManagedObject(with: [lastBolusObjectId], context: backgroundContext)
+                .getNSManagedObject(with: [lastBolusObjectId], context: viewContext)
 
             activeBolusAmount = lastBolusObject.first?.bolus?.amount?.doubleValue ?? 0.0
         }
