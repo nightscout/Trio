@@ -177,7 +177,7 @@ struct MealPresetView: View {
     }
 
     private var noPresetChosen: Bool {
-        state.selection == nil || carbs == 0 // || (state.useFPUconversion && (fat == 0 || protein == 0))
+        state.selection == nil || state.summation.isEmpty
     }
 
     @ViewBuilder private func dishInfos() -> some View {

@@ -74,7 +74,7 @@ struct AddOverrideForm: View {
             Section(footer: state.percentageDescription(state.overridePercentage)) {
                 // Percentage Picker
                 HStack {
-                    Text("Change Basal Rate by")
+                    Text("Basal Rate Adjustment")
                     Spacer()
                     Text("\(state.overridePercentage.formatted(.number)) %")
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
@@ -398,7 +398,7 @@ struct AddOverrideForm: View {
                     Button(action: {
                         Task {
                             if state.indefinite { state.overrideDuration = 0 }
-                            state.isEnabled.toggle()
+                            state.isOverrideEnabled.toggle()
                             await state.saveCustomOverride()
                             await state.resetStateVariables()
                             dismiss()

@@ -84,23 +84,25 @@ extension BasalProfileEditor {
 
                 Group {
                     HStack {
-                        Button {
+                        Button(action: {
                             let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                             impactHeavy.impactOccurred()
                             state.save()
-                        } label: {
+                        }, label: {
                             HStack {
                                 if state.syncInProgress {
                                     ProgressView().padding(.trailing, 10)
                                 }
                                 Text(state.syncInProgress ? "Saving..." : "Save")
-                            }.padding(10)
-                        }
-                        .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
-                        .disabled(shouldDisableButton)
-                        .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
-                        .tint(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                            .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+                            .padding(10)
+                        })
+                            .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                            .disabled(shouldDisableButton)
+                            .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
+                            .tint(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                 }.padding(5)
             }

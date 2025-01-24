@@ -35,7 +35,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var notificationsCgm: Bool = true
     var notificationsCarb: Bool = true
     var notificationsAlgorithm: Bool = true
-    var glucoseNotificationsAlways: Bool = false
+    var glucoseNotificationsOption: GlucoseNotificationsOption = .onlyAlarmLimits
     var useAlarmSound: Bool = false
     var addSourceInfoToGlucoseNotifications: Bool = false
     var lowGlucose: Decimal = 72
@@ -213,8 +213,11 @@ extension FreeAPSSettings: Decodable {
             settings.notificationsAlgorithm = notificationsAlgorithm
         }
 
-        if let glucoseNotificationsAlways = try? container.decode(Bool.self, forKey: .glucoseNotificationsAlways) {
-            settings.glucoseNotificationsAlways = glucoseNotificationsAlways
+        if let glucoseNotificationsOption = try? container.decode(
+            GlucoseNotificationsOption.self,
+            forKey: .glucoseNotificationsOption
+        ) {
+            settings.glucoseNotificationsOption = glucoseNotificationsOption
         }
 
         if let useAlarmSound = try? container.decode(Bool.self, forKey: .useAlarmSound) {

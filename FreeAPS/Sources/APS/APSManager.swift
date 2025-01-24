@@ -1192,16 +1192,18 @@ final class BaseAPSManager: APSManager, Injectable {
             let hbA1cDisplayUnit = self.settingsManager.settings.hbA1cDisplayUnit
 
             let hbs = Durations(
-                day: ((units == .mmolL && hbA1cDisplayUnit == .mmolMol) || (units == .mgdL && hbA1cDisplayUnit == .percent)) ?
-                    self.roundDecimal(Decimal(oneDayGlucose.ifcc), 1) : self.roundDecimal(Decimal(oneDayGlucose.ngsp), 1),
-                week: ((units == .mmolL && hbA1cDisplayUnit == .mmolMol) || (units == .mgdL && hbA1cDisplayUnit == .percent)) ?
-                    self.roundDecimal(Decimal(sevenDaysGlucose.ifcc), 1) : self
-                    .roundDecimal(Decimal(sevenDaysGlucose.ngsp), 1),
-                month: ((units == .mmolL && hbA1cDisplayUnit == .mmolMol) || (units == .mgdL && hbA1cDisplayUnit == .percent)) ?
-                    self.roundDecimal(Decimal(thirtyDaysGlucose.ifcc), 1) : self
-                    .roundDecimal(Decimal(thirtyDaysGlucose.ngsp), 1),
-                total: ((units == .mmolL && hbA1cDisplayUnit == .mmolMol) || (units == .mgdL && hbA1cDisplayUnit == .percent)) ?
-                    self.roundDecimal(Decimal(totalDaysGlucose.ifcc), 1) : self.roundDecimal(Decimal(totalDaysGlucose.ngsp), 1)
+                day: hbA1cDisplayUnit == .mmolMol ?
+                    self.roundDecimal(Decimal(oneDayGlucose.ifcc), 1) :
+                    self.roundDecimal(Decimal(oneDayGlucose.ngsp), 1),
+                week: hbA1cDisplayUnit == .mmolMol ?
+                    self.roundDecimal(Decimal(sevenDaysGlucose.ifcc), 1) :
+                    self.roundDecimal(Decimal(sevenDaysGlucose.ngsp), 1),
+                month: hbA1cDisplayUnit == .mmolMol ?
+                    self.roundDecimal(Decimal(thirtyDaysGlucose.ifcc), 1) :
+                    self.roundDecimal(Decimal(thirtyDaysGlucose.ngsp), 1),
+                total: hbA1cDisplayUnit == .mmolMol ?
+                    self.roundDecimal(Decimal(totalDaysGlucose.ifcc), 1) :
+                    self.roundDecimal(Decimal(totalDaysGlucose.ngsp), 1)
             )
 
             var oneDay_: (TIR: Double, hypos: Double, hypers: Double, normal_: Double) = (0.0, 0.0, 0.0, 0.0)
@@ -1411,7 +1413,7 @@ extension BaseAPSManager: PumpManagerStatusObserver {
                 }
 
                 batteryToStore.date = Date()
-                batteryToStore.percent = Int16(percent)
+                batteryToStore.percent = Double(percent)
                 batteryToStore.voltage = nil
                 batteryToStore.status = percent > 10 ? "normal" : "low"
                 batteryToStore.display = status.pumpBatteryChargeRemaining != nil

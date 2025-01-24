@@ -12,7 +12,7 @@ extension Adjustments.StateModel {
             overrideToEnact?.enabled = true
             overrideToEnact?.date = Date()
             overrideToEnact?.isUploadedToNS = false
-            isEnabled = true
+            isOverrideEnabled = true
 
             await disableAllActiveOverrides(except: id, createOverrideRunEntry: currentActiveOverride != nil)
             await resetStateVariables()
@@ -187,11 +187,14 @@ extension Adjustments.StateModel {
     /// Then unpack it on the view context and update the State variables which can be used on in the View for some Logic
     /// This also needs to be called when we cancel an Override via the Home View to update the State of the Button for this case
     func updateLatestOverrideConfiguration() {
-        Task {
-            let id = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 1)
-            async let updateState: () = updateLatestOverrideConfigurationOfState(from: id)
-            async let setOverride: () = setCurrentOverride(from: id)
-            _ = await (updateState, setOverride)
+        Task { [weak self] in
+            guard let self = self else { return }
+
+            let id = await self.overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 1)
+
+            // execute sequentially instead of concurrently
+            await self.updateLatestOverrideConfigurationOfState(from: id)
+            await self.setCurrentOverride(from: id)
         }
     }
 
@@ -201,8 +204,8 @@ extension Adjustments.StateModel {
             let result = try IDs.compactMap { id in
                 try viewContext.existingObject(with: id) as? OverrideStored
             }
-            isEnabled = result.first?.enabled ?? false
-            if !isEnabled {
+            isOverrideEnabled = result.first?.enabled ?? false
+            if !isOverrideEnabled {
                 await resetStateVariables()
             }
         } catch {
