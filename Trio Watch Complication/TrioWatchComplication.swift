@@ -42,6 +42,8 @@ struct TrioWatchComplicationEntryView: View {
             TrioAccessoryCornerView(entry: entry)
         default:
             Image("ComplicationIcon")
+                .widgetAccentable()
+                .widgetBackground(backgroundView: Color.clear)
         }
     }
 }
@@ -67,6 +69,7 @@ struct TrioAccessoryCircularView: View {
     var body: some View {
         Image("ComplicationIcon")
             .resizable()
+            .widgetAccentable()
             .widgetBackground(backgroundView: Color.clear)
     }
 }
