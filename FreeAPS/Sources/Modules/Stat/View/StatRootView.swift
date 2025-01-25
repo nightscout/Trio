@@ -41,7 +41,7 @@ extension Stat {
 
         enum GlucoseChartType: String, CaseIterable {
             case percentile = "Percentile"
-            case stacked = "Distribution"
+            case distribution = "Distribution"
         }
 
         enum InsulinChartType: String, CaseIterable {
@@ -51,8 +51,8 @@ extension Stat {
 
         enum LoopingChartType: String, CaseIterable {
             case loopingPerformance = "Looping Performance"
-            case trioUpTime = "Trio Up Time"
             case cgmConnectionTrace = "CGM Connection Trace"
+            case trioUpTime = "Trio Up-Time"
         }
 
         enum MealChartType: String, CaseIterable {
@@ -62,10 +62,30 @@ extension Stat {
 
         var body: some View {
             VStack {
-                segmentedPicker
+                Picker("View", selection: $selectedView) {
+                    ForEach(StatisticViewType.allCases) { viewType in
+                        Text(viewType.title).tag(viewType)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
 
-                contentView
-                    .animation(.easeInOut, value: selectedView)
+                ScrollView {
+                    VStack(spacing: Constants.spacing) {
+                        switch selectedView {
+                        case .glucose:
+                            glucoseView
+                        case .insulin:
+                            insulinView
+                        case .looping:
+                            loopingView
+                        case .meals:
+                            mealsView
+                        }
+                    }
+                    .padding()
+                }
+                .animation(.easeInOut, value: selectedView)
             }
             .background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
@@ -73,51 +93,17 @@ extension Stat {
             .navigationTitle("Statistics")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    closeButton
-                }
-            }
-        }
-
-        // MARK: - Views
-
-        private var segmentedPicker: some View {
-            Picker("View", selection: $selectedView) {
-                ForEach(StatisticViewType.allCases) { viewType in
-                    Text(viewType.title).tag(viewType)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
-        }
-
-        @ViewBuilder private var contentView: some View {
-            ScrollView {
-                VStack(spacing: Constants.spacing) {
-                    switch selectedView {
-                    case .glucose:
-                        glucoseView()
-                    case .insulin:
-                        insulinView()
-                    case .looping:
-                        loopingView()
-                    case .meals:
-                        mealsView()
+                    Button(action: state.hideModal) {
+                        Text("Close")
+                            .foregroundColor(.tabBar)
                     }
                 }
-                .padding()
-            }
-        }
-
-        private var closeButton: some View {
-            Button(action: state.hideModal) {
-                Text("Close")
-                    .foregroundColor(.tabBar)
             }
         }
 
         // MARK: - Stats View
 
-        @ViewBuilder func glucoseView() -> some View {
+        @ViewBuilder var glucoseView: some View {
             HStack {
                 Text("Chart Type")
                     .font(.headline)
@@ -151,7 +137,7 @@ extension Stat {
             }
         }
 
-        @ViewBuilder func insulinView() -> some View {
+        @ViewBuilder var insulinView: some View {
             HStack {
                 Text("Chart Type")
                     .font(.headline)
@@ -224,7 +210,7 @@ extension Stat {
                 VStack(spacing: Constants.spacing) {
                     switch selectedGlucoseChartType {
                     case .percentile:
-                        GlucoseAreaChart(
+                        GlucosePercentileChart(
                             glucose: state.glucoseFromPersistence,
                             highLimit: state.highLimit,
                             lowLimit: state.lowLimit,
@@ -232,8 +218,8 @@ extension Stat {
                             units: state.units,
                             hourlyStats: state.hourlyStats
                         )
-                    case .stacked:
-                        GlucoseStackedAreaChart(
+                    case .distribution:
+                        GlucoseDistributionChart(
                             glucose: state.glucoseFromPersistence,
                             highLimit: state.highLimit,
                             lowLimit: state.lowLimit,
@@ -281,7 +267,7 @@ extension Stat {
             }
         }
 
-        @ViewBuilder func loopingView() -> some View {
+        @ViewBuilder var loopingView: some View {
             HStack {
                 Text("Chart Type")
                     .font(.headline)
@@ -295,20 +281,12 @@ extension Stat {
                 }.pickerStyle(.menu)
             }.padding(.horizontal)
 
-            Picker("Duration", selection: $state.selectedDuration) {
+            Picker("Duration", selection: $state.selectedDurationForLoopStats) {
                 ForEach(StateModel.Duration.allCases, id: \.self) { duration in
                     Text(duration.rawValue)
                 }
             }
             .pickerStyle(.segmented)
-
-            // TODO: ensure looping uses same day selection
-//            Picker("Duration", selection: $state.selectedDurationForLoopStats) {
-//                ForEach(StateModel.Duration.allCases, id: \.self) { duration in
-//                    Text(duration.rawValue)
-//                }
-//            }
-//            .pickerStyle(.menu)
 
             switch selectedLoopingChartType {
             case .loopingPerformance:
@@ -355,7 +333,7 @@ extension Stat {
             }
         }
 
-        @ViewBuilder func mealsView() -> some View {
+        @ViewBuilder var mealsView: some View {
             HStack {
                 Text("Chart Type")
                     .font(.headline)
@@ -369,41 +347,35 @@ extension Stat {
                 }.pickerStyle(.menu)
             }.padding(.horizontal)
 
-            Picker("Duration", selection: $state.selectedDuration) {
+            Picker("Duration", selection: $state.selectedDurationForMealStats) {
                 ForEach(StateModel.Duration.allCases, id: \.self) { duration in
                     Text(duration.rawValue)
                 }
             }
             .pickerStyle(.segmented)
 
-            // TODO: adjust this so all tabs use the same selected days
-//            Picker("Duration", selection: $state.selectedDurationForMealStats) {
-//                ForEach(StateModel.Duration.allCases, id: \.self) { duration in
-//                    Text(duration.rawValue)
-//                }
-//            }
-//            .pickerStyle(.menu)
+            StatCard {
+                switch selectedMealChartType {
+                case .totalMeals:
+                    var hasMealData: Bool {
+                        state.mealStats.contains { $0.carbs > 0 || $0.fat > 0 || $0.protein > 0 }
+                    }
 
-            switch selectedMealChartType {
-            case .totalMeals:
-                var hasMealData: Bool {
-                    state.mealStats.contains { $0.carbs > 0 || $0.fat > 0 || $0.protein > 0 }
+                    if state.mealStats.isEmpty || !hasMealData {
+                        ContentUnavailableView(
+                            "No Meal Data",
+                            systemImage: "fork.knife",
+                            description: Text("Meal statistics will appear here once data is available.")
+                        )
+                    } else {
+                        MealStatsView(
+                            mealStats: state.mealStats,
+                            selectedDuration: state.selectedDurationForMealStats
+                        )
+                    }
+                case .mealToHypoHyperDistribution:
+                    Text("TODO: Meal to Hypoglycemia/Hyperglycemia Distribution")
                 }
-
-                if state.mealStats.isEmpty || !hasMealData {
-                    ContentUnavailableView(
-                        "No Meal Data",
-                        systemImage: "fork.knife",
-                        description: Text("Meal statistics will appear here once data is available.")
-                    )
-                } else {
-                    MealStatsView(
-                        mealStats: state.mealStats,
-                        selectedDuration: state.selectedDurationForMealStats
-                    )
-                }
-            case .mealToHypoHyperDistribution:
-                Text("TODO: Meal to Hypoglycemia/Hyperglycemia Distribution")
             }
         }
     }

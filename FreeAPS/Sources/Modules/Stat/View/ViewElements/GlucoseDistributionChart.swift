@@ -1,7 +1,7 @@
 import Charts
 import SwiftUI
 
-struct GlucoseStackedAreaChart: View {
+struct GlucoseDistributionChart: View {
     let glucose: [GlucoseStored]
     let highLimit: Decimal
     let lowLimit: Decimal
@@ -11,6 +11,9 @@ struct GlucoseStackedAreaChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Text("Glucose Distribution")
+                .font(.headline)
+
             Chart(glucoseRangeStats) { range in
                 ForEach(range.values, id: \.hour) { value in
                     AreaMark(

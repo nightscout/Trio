@@ -1,7 +1,7 @@
 import Charts
 import SwiftUI
 
-struct GlucoseAreaChart: View {
+struct GlucosePercentileChart: View {
     let glucose: [GlucoseStored]
     let highLimit: Decimal
     let lowLimit: Decimal
@@ -11,52 +11,59 @@ struct GlucoseAreaChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Text("Ambulatory Glucose Profile (AGP)")
+                .font(.headline)
+
             Chart {
-                if isTodayOrLast24h {
-                    // Single day line chart
-                    ForEach(glucose.sorted(by: { ($0.date ?? Date()) < ($1.date ?? Date()) }), id: \.id) { reading in
-                        LineMark(
-                            x: .value("Time", reading.date ?? Date()),
-                            y: .value("Glucose", Double(reading.glucose))
-                        )
-                        .lineStyle(StrokeStyle(lineWidth: 2))
-                        .foregroundStyle(.blue)
-                    }
-                } else {
-                    // Statistical view for longer periods
-                    // 10-90 percentile area
-                    ForEach(hourlyStats, id: \.hour) { stats in
-                        AreaMark(
-                            x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
-                            yStart: .value("10th Percentile", stats.percentile10),
-                            yEnd: .value("90th Percentile", stats.percentile90),
-                            series: .value("10-90", "10-90")
-                        )
-                        .foregroundStyle(.blue.opacity(0.2))
-                    }
+//                if isTodayOrLast24h {
+//                    // Single day line chart
+//                    ForEach(glucose.sorted(by: { ($0.date ?? Date()) < ($1.date ?? Date()) }), id: \.id) { reading in
+//                        LineMark(
+//                            x: .value("Time", reading.date ?? Date()),
+//                            y: .value("Glucose", Double(reading.glucose))
+//                        )
+//                        .lineStyle(StrokeStyle(lineWidth: 2))
+//                        .foregroundStyle(.blue)
+//                    }
+//                } else {
 
-                    // 25-75 percentile area
-                    ForEach(hourlyStats, id: \.hour) { stats in
-                        AreaMark(
-                            x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
-                            yStart: .value("25th Percentile", stats.percentile25),
-                            yEnd: .value("75th Percentile", stats.percentile75),
-                            series: .value("25-75", "25-75")
-                        )
-                        .foregroundStyle(.blue.opacity(0.3))
-                    }
+                // TODO: ensure data is still correct
+                // TODO: ensure area marks and line mark take color of respective range
 
-                    // Median line
-                    ForEach(hourlyStats, id: \.hour) { stats in
-                        LineMark(
-                            x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
-                            y: .value("Median", stats.median),
-                            series: .value("Median", "Median")
-                        )
-                        .lineStyle(StrokeStyle(lineWidth: 2))
-                        .foregroundStyle(.blue)
-                    }
+                // Statistical view for longer periods
+                // 10-90 percentile area
+                ForEach(hourlyStats, id: \.hour) { stats in
+                    AreaMark(
+                        x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
+                        yStart: .value("10th Percentile", stats.percentile10),
+                        yEnd: .value("90th Percentile", stats.percentile90),
+                        series: .value("10-90", "10-90")
+                    )
+                    .foregroundStyle(.blue.opacity(stats.median > 0 ? 0.2 : 0))
                 }
+
+                // 25-75 percentile area
+                ForEach(hourlyStats, id: \.hour) { stats in
+                    AreaMark(
+                        x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
+                        yStart: .value("25th Percentile", stats.percentile25),
+                        yEnd: .value("75th Percentile", stats.percentile75),
+                        series: .value("25-75", "25-75")
+                    )
+                    .foregroundStyle(.blue.opacity(stats.median > 0 ? 0.3 : 0))
+                }
+
+                // Median line
+                ForEach(hourlyStats.filter { $0.median > 0 }, id: \.hour) { stats in
+                    LineMark(
+                        x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
+                        y: .value("Median", stats.median),
+                        series: .value("Median", "Median")
+                    )
+                    .lineStyle(StrokeStyle(lineWidth: 2))
+                    .foregroundStyle(.blue)
+                }
+//                }
 
                 // High/Low limit lines
                 RuleMark(y: .value("High Limit", Double(highLimit)))
@@ -67,7 +74,7 @@ struct GlucoseAreaChart: View {
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
                     .foregroundStyle(.red)
             }
-            .chartYScale(domain: 40 ... 400)
+//            .chartYScale(domain: 40 ... 400)
             .chartYAxis {
                 AxisMarks(position: .leading)
             }
@@ -86,9 +93,9 @@ struct GlucoseAreaChart: View {
             .frame(height: 200)
 
             // Legend
-            if !isTodayOrLast24h {
-                legend
-            }
+//            if !isTodayOrLast24h {
+            legend
+//            }
         }
     }
 

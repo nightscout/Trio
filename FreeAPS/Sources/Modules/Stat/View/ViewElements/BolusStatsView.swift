@@ -39,13 +39,19 @@ struct BolusStatsView: View {
                     "SMB": Color.blue,
                     "External": Color.purple
                 ])
-                .chartLegend(position: .top, alignment: .leading, spacing: 12)
+                .chartLegend(position: .bottom, alignment: .leading, spacing: 12)
                 .frame(height: 200)
                 .chartXAxis {
                     bolusStatsChartXAxisMarks
                 }
                 .chartYAxis {
                     bolusStatsChartYAxisMarks
+                }
+            }
+
+            List {
+                ForEach(bolusStats) { _ in
+                    Text("")
                 }
             }
         }
