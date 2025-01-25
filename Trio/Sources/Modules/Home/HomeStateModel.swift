@@ -140,6 +140,12 @@ extension Home {
 
         private func setupHomeViewConcurrently() {
             Task {
+                // We need to initialize settings and observers first
+                await self.setupSettings()
+                await self.setupPumpSettings()
+                self.registerObservers()
+
+                // The rest can be initialized concurrently
                 await withTaskGroup(of: Void.self) { group in
                     group.addTask {
                         self.setupGlucoseArray()
@@ -161,9 +167,6 @@ extension Home {
                     }
                     group.addTask {
                         self.setupBatteryArray()
-                    }
-                    group.addTask {
-                        await self.setupPumpSettings()
                     }
                     group.addTask {
                         await self.setupBasalProfile()
@@ -188,12 +191,6 @@ extension Home {
                     }
                     group.addTask {
                         self.setupTempTargetsRunStored()
-                    }
-                    group.addTask {
-                        await self.setupSettings()
-                    }
-                    group.addTask {
-                        self.registerObservers()
                     }
                 }
             }
