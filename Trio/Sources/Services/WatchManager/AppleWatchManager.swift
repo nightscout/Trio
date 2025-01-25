@@ -258,10 +258,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
             // Calculate delta if we have at least 2 readings
             if glucoseObjects.count >= 2 {
-                let deltaValue = glucoseObjects[0].glucose - glucoseObjects[1].glucose
+                var deltaValue = Decimal(glucoseObjects[0].glucose - glucoseObjects[1].glucose)
+
+                if self.units == .mmolL {
+                    deltaValue = Double(truncating: deltaValue as NSNumber).asMmolL
+                }
+
                 let formattedDelta = Formatter.glucoseFormatter(for: self.units)
-                    .string(from: NSNumber(value: abs(deltaValue))) ?? "0"
-                watchState.delta = deltaValue < 0 ? "-\(formattedDelta)" : "+\(formattedDelta)"
+                    .string(from: deltaValue as NSNumber) ?? "0"
+                watchState.delta = deltaValue < 0 ? "\(formattedDelta)" : "+\(formattedDelta)"
             }
 
             // Set temp target presets with their enabled status
