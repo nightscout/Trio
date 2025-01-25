@@ -115,6 +115,15 @@ struct MealPresetView: View {
                         Text(preset.dish ?? "").tag(preset as MealPresetStored?)
                     }
                 }
+                .onChange(of: state.selection) {
+                    carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
+                    if state.useFPUconversion {
+                        fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
+                        protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
+                    }
+
+                    state.addPresetToNewMeal()
+                }
                 .labelsHidden()
                 .frame(maxWidth: .infinity, alignment: .center)
                 if state.selection != nil {
