@@ -332,7 +332,7 @@ extension SMBSettings {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 20% increase").bold()
                         Text(
-                            "Maximum allowed positive percentual change in glucose level to permit SMBs. If the difference in glucose is greater than this, Trio will disable SMBs."
+                            "Maximum allowed positive percent change in glucose level to permit SMBs. If the difference in glucose is greater than this, Trio will disable SMBs."
                         )
                         Text("Note: This setting has a hard-coded cap of 40%")
                     }
