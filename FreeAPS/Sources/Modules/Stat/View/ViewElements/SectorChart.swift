@@ -5,7 +5,7 @@ import SwiftUI
 
 struct SectorChart: View {
     private enum Constants {
-        static let chartHeight: CGFloat = 200
+        static let chartHeight: CGFloat = 160
         static let spacing: CGFloat = 8
         static let labelSpacing: CGFloat = 4
     }
@@ -20,7 +20,7 @@ struct SectorChart: View {
     @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        HStack(spacing: 20) {
+        HStack(alignment: .center, spacing: 20) {
             Chart {
                 ForEach(timeInRangeData, id: \.string) { data in
                     SectorMark(
@@ -31,28 +31,28 @@ struct SectorChart: View {
                     .foregroundStyle(data.color.gradient)
                 }
             }
+            .padding(.vertical)
             .frame(height: Constants.chartHeight)
 
             // Legend
             VStack(spacing: Constants.spacing) {
                 ForEach(timeInRangeData, id: \.string) { data in
                     HStack(spacing: Constants.spacing) {
-                        Circle()
-                            .fill(data.color)
-                            .frame(width: 12, height: 12)
+                        Image(systemName: "circle.fill")
+                            .foregroundStyle(data.color)
+                            .font(.caption2)
 
                         Text(data.string)
-                            .font(.subheadline)
+                            .font(.footnote)
 
                         Spacer()
 
                         Text(formatPercentage(data.decimal))
-                            .font(.subheadline)
+                            .font(.footnote)
                             .bold()
                     }
                 }
             }
-            .padding(.top, Constants.spacing)
         }
     }
 
@@ -62,20 +62,30 @@ struct SectorChart: View {
         let total = glucose.count
         guard total > 0 else { return [] }
 
-        let hyperArray = glucose.filter { $0.glucose >= Int(highLimit) }
-        let hyperReadings = hyperArray.count
-        let hyperPercentage = Decimal(hyperReadings) / Decimal(total) * 100
+        let hyperArray = glucose.filter { $0.glucose > Int(highLimit) && $0.glucose <= 250 }
+        let hyperPercentage = Decimal(hyperArray.count) / Decimal(total) * 100
 
-        let hypoArray = glucose.filter { $0.glucose <= Int(lowLimit) }
-        let hypoReadings = hypoArray.count
-        let hypoPercentage = Decimal(hypoReadings) / Decimal(total) * 100
+        let severeHyperArray = glucose.filter { $0.glucose > 250 }
+        let severeHyperPercentage = Decimal(severeHyperArray.count) / Decimal(total) * 100
 
-        let normalPercentage = 100 - (hypoPercentage + hyperPercentage)
+        let hypoArray = glucose.filter { $0.glucose < Int(lowLimit) && $0.glucose > 54 }
+        let hypoPercentage = Decimal(hypoArray.count) / Decimal(total) * 100
+
+        let severeHypoArray = glucose.filter { $0.glucose <= 54 }
+        let severeHypoPercentage = Decimal(severeHypoArray.count) / Decimal(total) * 100
+
+        let normalPercentage = 100 - (hypoPercentage + severeHypoPercentage + severeHyperPercentage + hyperPercentage)
+
+        let timeInTighterRangeArray = glucose.filter { $0.glucose >= Int(lowLimit) && $0.glucose <= 140 }
+        let timeInTighterRangePercentage = Decimal(timeInTighterRangeArray.count) / Decimal(total) * 100
 
         return [
-            (normalPercentage, "In Range", .green),
-            (hyperPercentage, "High", .yellow),
-            (hypoPercentage, "Low", .red)
+            (severeHyperPercentage, "Very High", .orange),
+            (hyperPercentage, "High", .orange.opacity(0.6)),
+            (normalPercentage, "In Range", .green.opacity(0.6)),
+            (timeInTighterRangePercentage, "Tight Range", .green),
+            (hypoPercentage, "Low", .red.opacity(0.6)),
+            (severeHypoPercentage, "Very Low", .red)
         ]
     }
 

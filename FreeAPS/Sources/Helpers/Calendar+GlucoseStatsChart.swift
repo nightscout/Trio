@@ -17,4 +17,3 @@ extension Calendar {
         return date(byAdding: .hour, value: hour, to: today) ?? today
     }
 }
-

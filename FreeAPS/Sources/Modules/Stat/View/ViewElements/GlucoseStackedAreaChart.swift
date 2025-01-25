@@ -11,10 +11,6 @@ struct GlucoseStackedAreaChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Glucose Distribution")
-                .font(.headline)
-                .foregroundStyle(.primary)
-
             Chart(glucoseRangeStats) { range in
                 ForEach(range.values, id: \.hour) { value in
                     AreaMark(

@@ -11,10 +11,6 @@ struct GlucoseAreaChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Glucose Distribution")
-                .font(.headline)
-                .foregroundStyle(.primary)
-
             Chart {
                 if isTodayOrLast24h {
                     // Single day line chart

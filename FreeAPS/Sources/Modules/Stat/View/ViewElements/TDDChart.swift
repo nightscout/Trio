@@ -20,19 +20,10 @@ struct TDDChartView: View {
     @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        if dailyTotalDoses.isEmpty || state.currentTDD == 0 {
-            ContentUnavailableView(
-                "No TDD Data",
-                systemImage: "chart.bar.xaxis",
-                description: Text("Total Daily Doses will appear here once data is available.")
-            )
-        } else {
-            VStack(spacing: Constants.spacing) {
-                dateSelectionView
-                summaryCardView
-                chartCard
-            }
-            .padding()
+        VStack(spacing: Constants.spacing) {
+            dateSelectionView
+            summaryCardView
+            chartCard
         }
     }
 
@@ -54,7 +45,7 @@ struct TDDChartView: View {
                     Text("\(days) days").tag(days)
                 }
             }
-            .pickerStyle(MenuPickerStyle())
+            .pickerStyle(.segmented)
         }
     }
 

@@ -7,8 +7,8 @@ import Swinject
 extension Stat {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var settings: SettingsManager!
-        var highLimit: Decimal = 10 / 0.0555
-        var lowLimit: Decimal = 4 / 0.0555
+        var highLimit: Decimal = 180
+        var lowLimit: Decimal = 70
         var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
         var timeInRangeChartStyle: TimeInRangeChartStyle = .vertical
         var units: GlucoseUnits = .mgdL
@@ -92,10 +92,10 @@ extension Stat {
 
         enum Duration: String, CaseIterable, Identifiable {
             case Today
-            case Day = "24h"
-            case Week = "7 Days"
-            case Month = "30 Days"
-            case Total = "All"
+            case Day = "D"
+            case Week = "W"
+            case Month = "M"
+            case Total = "3 M."
 
             var id: Self { self }
         }
