@@ -27,7 +27,7 @@ extension DynamicSettings {
             subscribePreferencesSetting(\.adjustmentFactorSigmoid, on: $adjustmentFactorSigmoid) { adjustmentFactorSigmoid = $0 }
             subscribePreferencesSetting(\.weightPercentage, on: $weightPercentage) { weightPercentage = $0 }
             subscribePreferencesSetting(\.tddAdjBasal, on: $tddAdjBasal) { tddAdjBasal = $0 }
-            subscribePreferencesSetting(\.tddAdjBasal, on: $tddAdjBasal) { tddAdjBasal = $0 }
+            subscribePreferencesSetting(\.threshold_setting, on: $threshold_setting) { threshold_setting = $0 }
         }
     }
 }
