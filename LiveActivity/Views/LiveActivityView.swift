@@ -63,23 +63,32 @@ struct LiveActivityView: View {
                             case .currentGlucose:
                                 VStack {
                                     LiveActivityBGLabelView(context: context, additionalState: detailedViewState)
+                                        .foregroundStyle(glucoseColor)
+
                                     HStack {
                                         LiveActivityGlucoseDeltaLabelView(
                                             context: context,
-                                            glucoseColor: .primary,
-                                            isDetailed: true
+                                            glucoseColor: .primary
                                         )
                                         if !context.isStale, let direction = context.state.direction {
                                             Text(direction).font(.headline)
                                         }
                                     }
                                 }
+                            case .currentGlucoseLarge:
+                                LiveActivityBGLabelLargeView(
+                                    context: context,
+                                    additionalState: detailedViewState,
+                                    glucoseColor: glucoseColor
+                                )
                             case .iob:
                                 LiveActivityIOBLabelView(context: context, additionalState: detailedViewState)
                             case .cob:
                                 LiveActivityCOBLabelView(context: context, additionalState: detailedViewState)
                             case .updatedLabel:
                                 LiveActivityUpdatedLabelView(context: context, isDetailedLayout: true)
+                            case .totalDailyDose:
+                                LiveActivityTotalDailyDoseView(context: context, additionalState: detailedViewState)
                             case .empty:
                                 Text("").frame(width: 50, height: 50)
                             }
@@ -120,8 +129,7 @@ struct LiveActivityView: View {
                         VStack(alignment: .trailing, spacing: 5) {
                             LiveActivityGlucoseDeltaLabelView(
                                 context: context,
-                                glucoseColor: hasStaticColorScheme ? .primary : glucoseColor,
-                                isDetailed: false
+                                glucoseColor: hasStaticColorScheme ? .primary : glucoseColor
                             ).font(.title3)
                             LiveActivityUpdatedLabelView(context: context, isDetailedLayout: false).font(.caption)
                                 .foregroundStyle(.primary.opacity(0.7))
@@ -158,7 +166,7 @@ struct LiveActivityExpandedTrailingView: View {
     var glucoseColor: Color
 
     var body: some View {
-        LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: glucoseColor, isDetailed: false).font(.title2)
+        LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: glucoseColor).font(.title2)
             .padding(.trailing, 5)
     }
 }
@@ -198,7 +206,7 @@ struct LiveActivityCompactTrailingView: View {
     var glucoseColor: Color
 
     var body: some View {
-        LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: glucoseColor, isDetailed: false).padding(.trailing, 4)
+        LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: glucoseColor).padding(.trailing, 4)
     }
 }
 
