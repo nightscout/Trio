@@ -229,6 +229,11 @@ extension Home {
                 self.setupDeterminationsArray()
             }.store(in: &subscriptions)
 
+            coreDataPublisher?.filterByEntityName("TDDStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupTDDArray()
+            }.store(in: &subscriptions)
+
             coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupGlucoseArray()

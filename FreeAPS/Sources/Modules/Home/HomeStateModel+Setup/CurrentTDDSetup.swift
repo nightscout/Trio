@@ -33,7 +33,7 @@ extension Home.StateModel {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TDDStored.self,
             onContext: tddFetchContext,
-            predicate: NSPredicate.predicateForFourHoursAgo,
+            predicate: NSPredicate.predicateForOneDayAgo,
             key: "date",
             ascending: false,
             fetchLimit: 1,
