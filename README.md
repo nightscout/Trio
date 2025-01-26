@@ -16,7 +16,7 @@ You can either use the Build Script or you can run each command manually.
 
 ### Build Script:
 
-If you copy, paste, and run the following script in Terminal, it will guide you through downloading and installing Trio. More information about the script can be found [here](https://docs.diy-trio.org/en/latest/operate/build.html#build-trio-with-script).
+If you copy, paste, and run the following script in Terminal, it will guide you through downloading and installing Trio. More information about the script can be found [here](https://docs.diy-trio.org/operate/build/#build-trio-with-script).
 
 ```
 /bin/bash -c "$(curl -fsSL \
@@ -65,7 +65,7 @@ Instructions in greater detail, but not Trio-specific:
 
 [Discord Trio - Server ](http://discord.diy-trio.org)
 
-[Trio documentation](https://docs.diy-trio.org/en/latest/)
+[Trio documentation](https://docs.diy-trio.org/)
 
 TODO: Add link: Trio Website (under development, not existing yet)
 
