@@ -34,7 +34,6 @@ final class OpenAPS {
         await context.perform {
             let newOrefDetermination = OrefDetermination(context: self.context)
             newOrefDetermination.id = UUID()
-            newOrefDetermination.totalDailyDose = self.decimalToNSDecimalNumber(determination.tdd)
             newOrefDetermination.insulinSensitivity = self.decimalToNSDecimalNumber(determination.isf)
             newOrefDetermination.currentTarget = self.decimalToNSDecimalNumber(determination.current_target)
             newOrefDetermination.eventualBG = determination.eventualBG.map(NSDecimalNumber.init)
