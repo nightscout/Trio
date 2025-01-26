@@ -773,8 +773,6 @@ extension Treatments.StateModel {
                 bg: 0,
                 reservoir: 0,
                 isf: 0,
-                tdd: 0,
-                insulin: nil,
                 current_target: 0,
                 insulinForManualBolus: 0,
                 manualBolusErrorString: 0,
