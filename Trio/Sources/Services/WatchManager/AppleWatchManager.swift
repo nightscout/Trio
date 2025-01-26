@@ -206,7 +206,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 watchState.currentGlucose = "\(latestGlucose.glucose)"
             } else {
                 let mgdlValue = Decimal(latestGlucose.glucose)
-                let latestGlucoseValue = Double(truncating: mgdlValue.asMmolL as NSNumber)
+                let latestGlucoseValue = mgdlValue.formattedAsMmolL
                 watchState.currentGlucose = "\(latestGlucoseValue)"
             }
 
