@@ -217,9 +217,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
             let highGlucoseValue = isDynamicColorScheme ? hardCodedHigh : self.highGlucose
             let lowGlucoseValue = isDynamicColorScheme ? hardCodedLow : self.lowGlucose
-            let highGlucoseColorValue = self.units == .mgdL ? highGlucoseValue : highGlucoseValue.asMmolL
-            let lowGlucoseColorValue = self.units == .mgdL ? lowGlucoseValue : lowGlucoseValue.asMmolL
-            let targetGlucose = self.units == .mgdL ? self.currentGlucoseTarget : self.currentGlucoseTarget.asMmolL
+            let highGlucoseColorValue = highGlucoseValue
+            let lowGlucoseColorValue = lowGlucoseValue
+            let targetGlucose = self.currentGlucoseTarget
 
             let currentGlucoseColor = Trio.getDynamicGlucoseColor(
                 glucoseValue: Decimal(latestGlucose.glucose),
