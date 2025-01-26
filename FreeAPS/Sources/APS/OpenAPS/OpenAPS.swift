@@ -395,6 +395,7 @@ final class OpenAPS {
             let oref2Data = Oref2_variables(
                 average_total_data: currentTDD > 0 ? averageTDDLastTenDays : 0,
                 weightedAverage: currentTDD > 0 ? weightedTDD : 1,
+                currentTDD: currentTDD,
                 past2hoursAverage: currentTDD > 0 ? averageTDDLastTwoHours : 0,
                 date: Date(),
                 overridePercentage: overridePercentage,
