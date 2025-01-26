@@ -63,6 +63,7 @@ extension Formatter {
 
         switch units {
         case .mmolL:
+            formatter.minimumFractionDigits = 1
             formatter.maximumFractionDigits = 1
         case .mgdL:
             formatter.maximumFractionDigits = 0
