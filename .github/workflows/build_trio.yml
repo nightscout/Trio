@@ -18,15 +18,17 @@ env:
   ALIVE_BRANCH_DEV: alive-dev
 
 jobs:
-  validate:
-    name: Validate
-    uses: ./.github/workflows/validate_secrets.yml
-    secrets: inherit
+  # Checks if Distribution certificate is present and valid, optionally nukes and
+  # creates new certs if the repository variable ENABLE_NUKE_CERTS == 'true'
+  check_certs: 
+      name: Check certificates
+      uses: ./.github/workflows/create_certs.yml
+      secrets: inherit
 
   # Checks if GH_PAT holds workflow permissions
   # Checks for existence of alive branch; if non-existent creates it
   check_alive_and_permissions:
-    needs: validate
+    needs: check_certs
     runs-on: ubuntu-latest
     name: Check alive branch and permissions
     permissions:
@@ -96,7 +98,7 @@ jobs:
   # Checks for changes in upstream repository; if changes exist prompts sync for build
   # Performs keepalive to avoid stale fork
   check_latest_from_upstream:
-    needs: [validate, check_alive_and_permissions]
+    needs: [check_certs, check_alive_and_permissions]
     runs-on: ubuntu-latest
     name: Check upstream and keep alive
     outputs:
@@ -185,7 +187,7 @@ jobs:
   # Builds Trio
   build:
     name: Build
-    needs: [validate, check_alive_and_permissions, check_latest_from_upstream]
+    needs: [check_certs, check_alive_and_permissions, check_latest_from_upstream]
     runs-on: macos-14
     permissions:
       contents: write
