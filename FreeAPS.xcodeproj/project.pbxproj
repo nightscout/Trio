@@ -368,6 +368,7 @@
 		CE1F6DE72BAF1A180064EB8D /* BuildDetails.plist in Resources */ = {isa = PBXBuildFile; fileRef = CE1F6DE62BAF1A180064EB8D /* BuildDetails.plist */; };
 		CE1F6DE92BAF37C90064EB8D /* TidepoolConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1F6DE82BAF37C90064EB8D /* TidepoolConfigView.swift */; };
 		CE2FAD3A297D93F0001A872C /* BloodGlucoseExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE2FAD39297D93F0001A872C /* BloodGlucoseExtensions.swift */; };
+		CE3EEF9A2D463717001944DD /* OtherCGMView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3EEF992D46370A001944DD /* OtherCGMView.swift */; };
 		CE48C86428CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE48C86328CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift */; };
 		CE48C86628CA6B48007C0598 /* OmniPodManagerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE48C86528CA6B48007C0598 /* OmniPodManagerExtensions.swift */; };
 		CE51DD1C2A01970900F163F7 /* ConnectIQ 2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51DD1B2A01970800F163F7 /* ConnectIQ 2.xcframework */; };
@@ -1078,6 +1079,7 @@
 		CE398D012977349800DF218F /* CryptoKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoKit.framework; path = System/Library/Frameworks/CryptoKit.framework; sourceTree = SDKROOT; };
 		CE398D17297C9EE800DF218F /* G7SensorKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = G7SensorKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE398D1A297D69A900DF218F /* ShareClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ShareClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE3EEF992D46370A001944DD /* OtherCGMView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OtherCGMView.swift; sourceTree = "<group>"; };
 		CE48C86328CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmniBLEPumpManagerExtensions.swift; sourceTree = "<group>"; };
 		CE48C86528CA6B48007C0598 /* OmniPodManagerExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmniPodManagerExtensions.swift; sourceTree = "<group>"; };
 		CE51DD1B2A01970800F163F7 /* ConnectIQ 2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "ConnectIQ 2.xcframework"; path = "Dependencies/ConnectIQ 2.xcframework"; sourceTree = "<group>"; };
@@ -1355,6 +1357,7 @@
 		0D76BBC81CEDC1A0050F45EF /* View */ = {
 			isa = PBXGroup;
 			children = (
+				CE3EEF992D46370A001944DD /* OtherCGMView.swift */,
 				38569352270B5E350002C50D /* CGMRootView.swift */,
 				CE7950232997D81700FA576E /* CGMSettingsView.swift */,
 				CE7950252998056D00FA576E /* CGMSetupView.swift */,
@@ -3655,6 +3658,7 @@
 				DD1745522C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift in Sources */,
 				DD2CC85C2D25DA1000445446 /* GlucoseTargetsView.swift in Sources */,
 				190EBCC429FF136900BA767D /* UserInterfaceSettingsDataFlow.swift in Sources */,
+				CE3EEF9A2D463717001944DD /* OtherCGMView.swift in Sources */,
 				5A2325582BFCC168003518CA /* NightscoutConnectView.swift in Sources */,
 				3811DEB025C9D88300A708ED /* BaseKeychain.swift in Sources */,
 				110AEDE42C5193D200615CC9 /* BolusIntentRequest.swift in Sources */,

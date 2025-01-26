@@ -18,6 +18,10 @@ let cgmDefaultName = cgmName(
     subtitle: CGMType.none.subtitle
 )
 
+struct EmptyCompletionNotifying: CompletionNotifying {
+    var completionDelegate: (any LoopKitUI.CompletionDelegate)?
+}
+
 extension CGM {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var cgmManager: FetchGlucoseManager!
@@ -95,28 +99,6 @@ extension CGM {
             cgmTransmitterDeviceAddress = UserDefaults.standard.cgmTransmitterDeviceAddress
 
             subscribeSetting(\.smoothGlucose, on: $smoothGlucose, initial: { smoothGlucose = $0 })
-
-            $cgmCurrent
-                .removeDuplicates()
-                .sink { [weak self] value in
-                    guard let self = self else { return }
-                    guard self.cgmManager.cgmGlucoseSourceType != nil else {
-                        self.settingsManager.settings.cgm = .none
-                        return
-                    }
-                    if value.type != self.settingsManager.settings.cgm ||
-                        value.id != self.settingsManager.settings.cgmPluginIdentifier
-                    {
-                        self.settingsManager.settings.cgm = value.type
-                        self.settingsManager.settings.cgmPluginIdentifier = value.id
-                        self.cgmManager.updateGlucoseSource(
-                            cgmGlucoseSourceType: value.type,
-                            cgmGlucosePluginId: value.id
-                        )
-                        self.setupCGM = false
-                    }
-                }
-                .store(in: &lifetime)
         }
 
         func displayNameOfApp() -> String? {
@@ -140,6 +122,22 @@ extension CGM {
                 return cgmManager.cgmGlucoseSourceType.appURL
             }
         }
+
+        func addCGM(cgm: cgmName) {
+            cgmCurrent = cgm
+            switch cgmCurrent.type {
+            case .plugin:
+                setupCGM.toggle()
+            default:
+                cgmManager.cgmGlucoseSourceType = cgmCurrent.type
+                completionNotifyingDidComplete(EmptyCompletionNotifying())
+            }
+        }
+
+        func deleteCGM() {
+            cgmManager.deleteGlucoseSource()
+            completionNotifyingDidComplete(EmptyCompletionNotifying())
+        }
     }
 }
 
@@ -148,12 +146,14 @@ extension CGM.StateModel: CompletionDelegate {
         setupCGM = false
 
         // if CGM was deleted
-        if cgmManager.cgmGlucoseSourceType == nil {
+        if cgmManager.cgmGlucoseSourceType == .none {
             cgmCurrent = cgmDefaultName
             settingsManager.settings.cgm = cgmDefaultName.type
             settingsManager.settings.cgmPluginIdentifier = cgmDefaultName.id
             cgmManager.deleteGlucoseSource()
         } else {
+            settingsManager.settings.cgm = cgmCurrent.type
+            settingsManager.settings.cgmPluginIdentifier = cgmCurrent.id
             cgmManager.updateGlucoseSource(cgmGlucoseSourceType: cgmCurrent.type, cgmGlucosePluginId: cgmCurrent.id)
         }
 

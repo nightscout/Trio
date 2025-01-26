@@ -7,7 +7,6 @@ extension CGM {
         let resolver: Resolver
         let displayClose: Bool
         @StateObject var state = StateModel()
-        @State private var setupCGM = false
 
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
@@ -15,174 +14,71 @@ extension CGM {
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
+        @State var showCGMSelection: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
         var body: some View {
             NavigationView {
-                List {
+                Form {
                     Section(
                         header: Text("CGM Integration to Trio"),
                         content: {
-                            VStack {
-                                Picker("Type", selection: $state.cgmCurrent) {
-                                    ForEach(state.listOfCGM) { type in
-                                        VStack(alignment: .leading) {
-                                            Text(type.displayName)
-                                            Text(type.subtitle).font(.caption).foregroundColor(.secondary)
-                                        }.tag(type)
-                                    }
-                                }.padding(.top)
-
-                                HStack(alignment: .center) {
-                                    Text(
-                                        "Select your CGM. See hint for compatible devices."
-                                    )
-                                    .font(.footnote)
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(nil)
-                                    Spacer()
-                                    Button(
-                                        action: {
-                                            hintLabel = "Available CGM Types for Trio"
-                                            selectedVerboseHint =
-                                                AnyView(
-                                                    Text(
-                                                        "• Dexcom G5 \n• Dexcom G6 / ONE \n• Dexcom G7 / ONE+ \n• Dexcom Share \n• Freestyle Libre \n• Freestyle Libre Demo \n• Glucose Simulator \n• Medtronic Enlite \n• Nightscout \n• xDrip4iOS"
-                                                    )
-                                                )
-                                            shouldDisplayHint.toggle()
-                                        },
-                                        label: {
-                                            HStack {
-                                                Image(systemName: "questionmark.circle")
-                                            }
-                                        }
-                                    ).buttonStyle(BorderlessButtonStyle())
-                                }.padding(.top)
-                            }.padding(.bottom)
-
-                            if let link = state.cgmCurrent.type.externalLink {
+                            let cgmState = state.cgmCurrent
+                            if cgmState.type != .none {
                                 Button {
-                                    UIApplication.shared.open(link, options: [:], completionHandler: nil)
+                                    state.setupCGM = true
+
                                 } label: {
                                     HStack {
-                                        Text("About this source")
+                                        Image(systemName: "sensor.tag.radiowaves.forward.fill").padding()
+                                        Text(cgmState.displayName)
+                                    }
+                                }
+
+                            } else {
+                                VStack {
+                                    Button {
+                                        showCGMSelection.toggle()
+                                    } label: {
+                                        Text("Add CGM")
+                                            .font(.title3) }
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                        .buttonStyle(.bordered)
+
+                                    HStack(alignment: .center) {
+                                        Text(
+                                            "Pair your CGM with Trio. See hint for compatible devices."
+                                        )
+                                        .font(.footnote)
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(nil)
                                         Spacer()
-                                        Image(systemName: "chevron.right")
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-
-                            if state.cgmCurrent.type == .plugin {
-                                Button {
-                                    setupCGM.toggle()
-                                } label: {
-                                    HStack {
-                                        Text("CGM Configuration")
-                                        Spacer()
-                                        Image(systemName: "chevron.right")
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        }
-                    ).listRowBackground(Color.chart)
-
-                    if let appURL = state.urlOfApp() {
-                        Section {
-                            Button {
-                                UIApplication.shared.open(appURL, options: [:]) { success in
-                                    if !success {
-                                        self.router.alertMessage
-                                            .send(MessageContent(content: "Unable to open the app", type: .warning))
-                                    }
-                                }
-                            }
-
-                            label: {
-                                Label(state.displayNameOfApp() ?? "-", systemImage: "waveform.path.ecg.rectangle").font(.title3)
-                                    .padding() }
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .buttonStyle(.bordered)
-                        }
-                        .listRowBackground(Color.clear)
-                    } else if state.cgmCurrent.type == .nightscout {
-                        if let url = state.url {
-                            Section {
-                                Button {
-                                    UIApplication.shared.open(url, options: [:]) { success in
-                                        if !success {
-                                            self.router.alertMessage
-                                                .send(MessageContent(content: "No URL available", type: .warning))
-                                        }
-                                    }
-                                }
-                                label: { Label("Open URL", systemImage: "waveform.path.ecg.rectangle").font(.title3).padding() }
-                                    .frame(maxWidth: .infinity, alignment: .center)
-                                    .buttonStyle(.bordered)
-                            }
-                            .listRowBackground(Color.clear)
-                        } else {
-                            Section {
-                                Button {
-                                    state.showModal(for: .nighscoutConfigDirect)
-                                }
-                                label: {
-                                    Label("Config Nightscout", systemImage: "waveform.path.ecg.rectangle").font(.title3).padding()
-                                }
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .buttonStyle(.bordered)
-                            }
-                            .listRowBackground(Color.clear)
-                        }
-                    }
-
-                    if state.cgmCurrent.type == .xdrip {
-                        Section(header: Text("Heartbeat")) {
-                            VStack(alignment: .leading) {
-                                if let cgmTransmitterDeviceAddress = state.cgmTransmitterDeviceAddress {
-                                    Text("CGM address :").padding(.top)
-                                    Text(cgmTransmitterDeviceAddress)
-                                } else {
-                                    Text("CGM is not used as heartbeat.").padding(.top)
-                                }
-
-                                HStack(alignment: .center) {
-                                    Text(
-                                        "A heartbeat tells Trio to start a loop cycle. This is required for closed loop."
-                                    )
-                                    .font(.footnote)
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(nil)
-                                    Spacer()
-                                    Button(
-                                        action: {
-                                            hintLabel = "CGM Heartbeat"
-                                            selectedVerboseHint =
-                                                AnyView(
-                                                    Text(
-                                                        "The CGM Heartbeat can come from either a CGM or a pump to wake up Trio when phone is locked or in the background. If CGM is on the same phone as Trio and xDrip4iOS is configured to use the same AppGroup as Trio and the heartbeat feature is turned on in xDrip4iOS, then the CGM can provide a heartbeat to wake up Trio when phone is locked or app is in the background."
-                                                    )
-                                                )
-                                            shouldDisplayHint.toggle()
-                                        },
-                                        label: {
-                                            HStack {
-                                                Image(systemName: "questionmark.circle")
+                                        Button(
+                                            action: {
+                                                shouldDisplayHint.toggle()
+                                            },
+                                            label: {
+                                                HStack {
+                                                    Image(systemName: "questionmark.circle")
+                                                }
                                             }
-                                        }
-                                    ).buttonStyle(BorderlessButtonStyle())
+                                        ).buttonStyle(BorderlessButtonStyle())
+                                    }.padding(.top)
                                 }.padding(.vertical)
                             }
-                        }.listRowBackground(Color.chart)
-                    }
+                        }
+                    )
+                    .padding(.top)
+                    .listRowBackground(Color.chart)
 
                     if state.cgmCurrent.type == .plugin && state.cgmCurrent.id.contains("Libre") {
                         Section {
-                            Text("Libre Calibrations").navigationLink(to: .calibrations, from: self)
+                            NavigationLink(
+                                destination: Calibrations.RootView(resolver: resolver),
+                                label: { Text("Libre Calibrations") }
+                            )
                         }.listRowBackground(Color.chart)
                     }
 
@@ -221,45 +117,117 @@ extension CGM {
                 .navigationTitle("CGM")
                 .navigationBarTitleDisplayMode(.automatic)
                 .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
+                .sheet(isPresented: $state.setupCGM) {
+                    switch state.cgmCurrent.type {
+                    case .enlite,
+                         .nightscout,
+                         .none,
+                         .simulator,
+                         .xdrip:
+
+                        OtherCGMView(resolver: self.resolver, state: state)
+
+                    case .plugin:
+                        if let cgmFetchManager = state.cgmManager,
+                           let cgmManager = cgmFetchManager.cgmManager,
+                           state.cgmCurrent.type == cgmFetchManager.cgmGlucoseSourceType,
+                           state.cgmCurrent.id == cgmFetchManager.cgmGlucosePluginId
+                        {
+                            CGMSettingsView(
+                                cgmManager: cgmManager,
+                                bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                                unit: state.settingsManager.settings.units,
+                                completionDelegate: state
+                            )
+                        } else {
+                            CGMSetupView(
+                                CGMType: state.cgmCurrent,
+                                bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                                unit: state.settingsManager.settings.units,
+                                completionDelegate: state,
+                                setupDelegate: state,
+                                pluginCGMManager: self.state.pluginCGMManager
+                            )
+                        }
+                    }
+                }
                 .sheet(isPresented: $shouldDisplayHint) {
                     SettingInputHintView(
                         hintDetent: $hintDetent,
                         shouldDisplayHint: $shouldDisplayHint,
                         hintLabel: hintLabel ?? "",
-                        hintText: selectedVerboseHint ?? AnyView(EmptyView()),
+                        hintText: AnyView(
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(
+                                    "Current CGM Models Supported:"
+                                )
+                                VStack(alignment: .leading) {
+                                    Text("• Dexcom G5")
+                                    Text("• Dexcom G6 / ONE")
+                                    Text("• Dexcom G7 / ONE+")
+                                    Text("• Dexcom Share")
+                                    Text("• Freestyle Libre")
+                                    Text("• Freestyle Libre Demo")
+                                    Text("• Glucose Simulator")
+                                    Text("• Medtronic Enlite")
+                                    Text("• Nightscout")
+                                    Text("• xDrip4iOS")
+                                }
+                                Text(
+                                    "Note: The CGM Heartbeat can come from either a CGM or a pump to wake up Trio when phone is locked or in the background. If CGM is on the same phone as Trio and xDrip4iOS is configured to use the same AppGroup as Trio and the heartbeat feature is turned on in xDrip4iOS, then the CGM can provide a heartbeat to wake up Trio when phone is locked or app is in the background."
+                                )
+                            }
+                        ),
                         sheetTitle: "Help"
                     )
                 }
-                .onChange(of: setupCGM) { _, setupCGM in
-                    state.setupCGM = setupCGM
-                }
-                .onChange(of: state.setupCGM) { _, setupCGM in
-                    self.setupCGM = setupCGM
-                }
-                .screenNavigation(self)
-            }
-            .sheet(isPresented: $setupCGM) {
-                if let cgmFetchManager = state.cgmManager,
-                   let cgmManager = cgmFetchManager.cgmManager,
-                   state.cgmCurrent.type == cgmFetchManager.cgmGlucoseSourceType,
-                   state.cgmCurrent.id == cgmFetchManager.cgmGlucosePluginId
-                {
-                    CGMSettingsView(
-                        cgmManager: cgmManager,
-                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                        unit: state.settingsManager.settings.units,
-                        completionDelegate: state
-                    )
-                } else {
-                    CGMSetupView(
-                        CGMType: state.cgmCurrent,
-                        bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                        unit: state.settingsManager.settings.units,
-                        completionDelegate: state,
-                        setupDelegate: state,
-                        pluginCGMManager: self.state.pluginCGMManager
-                    )
-                }
+                .confirmationDialog("CGM Model", isPresented: $showCGMSelection) {
+                    Button("Nightscout") { state.addCGM(cgm: state.listOfCGM.first(where: { $0.type == .nightscout })!) }
+                    Button("Dexcom G5") {
+                        state.addCGM(cgm: state.listOfCGM.first(where: { $0.type == .plugin && $0.displayName.contains("G5") })!)
+                    }
+                    Button("Dexcom G6 / ONE") {
+                        state
+                            .addCGM(
+                                cgm: state.listOfCGM
+                                    .first(where: { $0.type == .plugin && $0.displayName.contains("G6") })!
+                            )
+                    }
+                    Button("Dexcom G7 / ONE+") {
+                        state
+                            .addCGM(
+                                cgm: state.listOfCGM
+                                    .first(where: { $0.type == .plugin && $0.displayName.contains("G7") })!
+                            )
+                    }
+                    Button("Dexcom Share") {
+                        state.addCGM(
+                            cgm: state.listOfCGM
+                                .first(where: { $0.type == .plugin && $0.displayName.contains("Dexcom Share") })!
+                        ) }
+                    Button("FreeStyle Libre") {
+                        state.addCGM(
+                            cgm: state.listOfCGM
+                                .first(
+                                    where: { $0.type == .plugin && $0.displayName == "FreeStyle Libre" }
+                                )!
+                        ) }
+                    Button("FreeStyle Libre Demo") {
+                        state.addCGM(
+                            cgm: state.listOfCGM
+                                .first(where: { $0.type == .plugin && $0.displayName == "FreeStyle Libre Demo" })!
+                        ) }
+                    Button("Medtronic Enlite") {
+                        state.addCGM(cgm: state.listOfCGM.first(where: { $0.type == .enlite })!) }
+                    Button("xDrip4iOS") {
+                        state.addCGM(cgm: state.listOfCGM.first(where: { $0.type == .xdrip })!) }
+                    Button("Glucose Simulator") {
+                        state
+                            .addCGM(
+                                cgm: state.listOfCGM
+                                    .first(where: { $0.type == .simulator })!
+                            ) }
+                } message: { Text("Select CGM Model") }
             }
         }
     }
