@@ -373,16 +373,16 @@ final class OpenAPS {
             let overrideTargetBG = activeOverrides.first?.target?.decimalValue ?? 0
 
             // Calculate averages for Total Daily Dose (TDD)
-            let totalTDD = historicalTDDData.compactMap { ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue }.reduce(0, +)
+            let totalTDD = historicalTDDData.compactMap { ($0["total"] as? NSDecimalNumber)?.decimalValue }.reduce(0, +)
             let totalDaysCount = max(historicalTDDData.count, 1)
 
             // Fetch recent TDD data for the past two hours
-            let recentTDDData = historicalTDDData.filter { ($0["timestamp"] as? Date ?? Date()) >= twoHoursAgo }
+            let recentTDDData = historicalTDDData.filter { ($0["date"] as? Date ?? Date()) >= twoHoursAgo }
             let recentDataCount = max(recentTDDData.count, 1)
-            let recentTotalTDD = recentTDDData.compactMap { ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue }
+            let recentTotalTDD = recentTDDData.compactMap { ($0["total"] as? NSDecimalNumber)?.decimalValue }
                 .reduce(0, +)
 
-            let currentTDD = historicalTDDData.last?["totalDailyDose"] as? Decimal ?? 0
+            let currentTDD = historicalTDDData.last?["total"] as? Decimal ?? 0
             let averageTDDLastTwoHours = recentTotalTDD / Decimal(recentDataCount)
             let averageTDDLastTenDays = totalTDD / Decimal(totalDaysCount)
             let weightedTDD = weightPercentage * averageTDDLastTwoHours + (1 - weightPercentage) * averageTDDLastTenDays
@@ -807,12 +807,12 @@ extension OpenAPS {
 
     func fetchHistoricalTDDData(from date: Date) -> [[String: Any]] {
         CoreDataStack.shared.fetchEntities(
-            ofType: OrefDetermination.self,
+            ofType: TDDStored.self,
             onContext: context,
-            predicate: NSPredicate(format: "timestamp > %@ AND totalDailyDose > 0", date as NSDate),
-            key: "timestamp",
+            predicate: NSPredicate(format: "date > %@ AND total > 0", date as NSDate),
+            key: "date",
             ascending: true,
-            propertiesToFetch: ["timestamp", "totalDailyDose"]
+            propertiesToFetch: ["date", "total"]
         ) as? [[String: Any]] ?? []
     }
 }
