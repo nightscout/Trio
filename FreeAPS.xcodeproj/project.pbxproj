@@ -235,6 +235,8 @@
 		38FEF413273B317A00574A46 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF412273B317A00574A46 /* HKUnit.swift */; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
+		49249B1C2D46E45E000F4866 /* CurrentTDDSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49249B1B2D46E45E000F4866 /* CurrentTDDSetup.swift */; };
+		49249B382D46E76A000F4866 /* TDD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49249B372D46E76A000F4866 /* TDD.swift */; };
 		5075C1608E6249A51495C422 /* TargetsEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */; };
 		53F2382465BF74DB1A967C8B /* PumpConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8630D58BDAD6D9C650B9B39 /* PumpConfigProvider.swift */; };
 		581516A42BCED84A00BF67D7 /* DebuggingIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581516A32BCED84A00BF67D7 /* DebuggingIdentifiers.swift */; };
@@ -945,6 +947,8 @@
 		3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorDataFlow.swift; sourceTree = "<group>"; };
 		42369F66CF91F30624C0B3A6 /* BasalProfileEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorProvider.swift; sourceTree = "<group>"; };
 		44080E4709E3AE4B73054563 /* ConfigEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorProvider.swift; sourceTree = "<group>"; };
+		49249B1B2D46E45E000F4866 /* CurrentTDDSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentTDDSetup.swift; sourceTree = "<group>"; };
+		49249B372D46E76A000F4866 /* TDD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDD.swift; sourceTree = "<group>"; };
 		4DD795BA46B193644D48138C /* TargetsEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorRootView.swift; sourceTree = "<group>"; };
 		505E09DC17A0C3D0AF4B66FE /* ISFEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorStateModel.swift; sourceTree = "<group>"; };
 		581516A32BCED84A00BF67D7 /* DebuggingIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggingIdentifiers.swift; sourceTree = "<group>"; };
@@ -2012,6 +2016,7 @@
 		388E5A5925B6F0250019842D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				49249B372D46E76A000F4866 /* TDD.swift */,
 				715120D12D3C2B84005D9FB6 /* GlucoseNotificationsOption.swift */,
 				DD07CA132CE80B73002D45A9 /* TimeInRangeChartStyle.swift */,
 				DD940BA92CA7585D000830A5 /* GlucoseColorScheme.swift */,
@@ -2106,12 +2111,9 @@
 		38A0362725ECF05300FCBB52 /* Storage */ = {
 			isa = PBXGroup;
 			children = (
-				CE82E02428E867BA00473A9C /* AlertStorage.swift */,
 				38AEE75625F0F18E0013F05B /* CarbsStorage.swift */,
 				DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */,
-				5864E8582C42CFAE00294306 /* DeterminationStorage.swift */,
 				38A0363A25ECF07E00FCBB52 /* GlucoseStorage.swift */,
-				BDC2EA442C3043B000E5BBD0 /* OverrideStorage.swift */,
 				38FCF3FC25E997A80078B0D1 /* PumpHistoryStorage.swift */,
 				38F3B2EE25ED8E2A005C48AA /* TempTargetsStorage.swift */,
 				CE82E02428E867BA00473A9C /* AlertStorage.swift */,
@@ -2379,6 +2381,7 @@
 				58645B982CA2D1A4008AFCE7 /* GlucoseSetup.swift */,
 				58645B9A2CA2D24F008AFCE7 /* CarbSetup.swift */,
 				58645B9C2CA2D275008AFCE7 /* DeterminationSetup.swift */,
+				49249B1B2D46E45E000F4866 /* CurrentTDDSetup.swift */,
 				58645B9E2CA2D2BE008AFCE7 /* PumpHistorySetup.swift */,
 				58645BA02CA2D2F8008AFCE7 /* OverrideSetup.swift */,
 				58645BA22CA2D325008AFCE7 /* BatterySetup.swift */,
@@ -3775,6 +3778,7 @@
 				38E44538274E411700EC9A94 /* Disk+[Data].swift in Sources */,
 				98641AF4F92123DA668AB931 /* CarbRatioEditorRootView.swift in Sources */,
 				BDF34F902C10CF8C00D51995 /* CoreDataStack.swift in Sources */,
+				49249B1C2D46E45E000F4866 /* CurrentTDDSetup.swift in Sources */,
 				CEE9A65C2BBB41C800EB5194 /* CalibrationService.swift in Sources */,
 				110AEDED2C51A0AE00615CC9 /* ShortcutsConfigProvider.swift in Sources */,
 				38E4453D274E411700EC9A94 /* Disk+Errors.swift in Sources */,
@@ -3793,6 +3797,7 @@
 				1967DFBE29D052C200759F30 /* Icons.swift in Sources */,
 				38E8754F275556FA00975559 /* WatchManager.swift in Sources */,
 				DDD163182C4C694000CD525A /* AdjustmentsRootView.swift in Sources */,
+				49249B382D46E76A000F4866 /* TDD.swift in Sources */,
 				389ECE052601144100D86C4F /* ConcurrentMap.swift in Sources */,
 				110AEDEC2C51A0AE00615CC9 /* ShortcutsConfigDataFlow.swift in Sources */,
 				CE7CA3562A064973004BE681 /* StateIntentRequest.swift in Sources */,

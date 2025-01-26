@@ -79,6 +79,7 @@ extension Home {
         var fpusFromPersistence: [CarbEntryStored] = []
         var determinationsFromPersistence: [OrefDetermination] = []
         var enactedAndNonEnactedDeterminations: [OrefDetermination] = []
+        var fetchedTDDs: [TDD] = []
         var insulinFromPersistence: [PumpEventStored] = []
         var tempBasals: [PumpEventStored] = []
         var suspensions: [PumpEventStored] = []
@@ -113,6 +114,7 @@ extension Home {
         let carbsFetchContext = CoreDataStack.shared.newTaskContext()
         let fpuFetchContext = CoreDataStack.shared.newTaskContext()
         let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+        let tddFetchContext = CoreDataStack.shared.newTaskContext()
         let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
         let overrideFetchContext = CoreDataStack.shared.newTaskContext()
         let tempTargetFetchContext = CoreDataStack.shared.newTaskContext()
@@ -152,6 +154,9 @@ extension Home {
                     }
                     group.addTask {
                         self.setupDeterminationsArray()
+                    }
+                    group.addTask {
+                        self.setupTDDArray()
                     }
                     group.addTask {
                         self.setupInsulinArray()

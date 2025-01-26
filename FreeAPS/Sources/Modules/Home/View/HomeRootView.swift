@@ -454,7 +454,7 @@ extension Home {
                         "TDD: " +
                             (
                                 Formatter.decimalFormatterWithTwoFractionDigits
-                                    .string(from: 33 as NSNumber) ?? // insert currentTDD !!!!!!!!!!!!!!!!!!!!!!!!
+                                    .string(from: (state.fetchedTDDs.first?.totalDailyDose ?? 0) as NSNumber) ??
                                     "0"
                             ) +
                             NSLocalizedString(" U", comment: "Insulin unit")
