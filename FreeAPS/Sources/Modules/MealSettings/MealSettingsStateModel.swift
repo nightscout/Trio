@@ -27,11 +27,7 @@ extension MealSettings {
                 $0
             })
 
-            subscribePreferencesSetting(\.maxAbsorptionTime, on: $maxAbsorptionTime.map(Int.init), initial: {
-                maxAbsorptionTime = Decimal($0)
-            }, map: {
-                $0
-            })
+            subscribePreferencesSetting(\.maxAbsorptionTime, on: $maxAbsorptionTime) { maxAbsorptionTime = $0 }
 
             subscribeSetting(\.minuteInterval, on: $minuteInterval.map(Int.init), initial: {
                 minuteInterval = Decimal($0)

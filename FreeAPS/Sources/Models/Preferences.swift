@@ -16,7 +16,7 @@ struct Preferences: JSON, Equatable {
     var exerciseMode: Bool = false
     var halfBasalExerciseTarget: Decimal = 160
     var maxCOB: Decimal = 120
-    var maxAbsorptionTime: Int = 6
+    var maxAbsorptionTime: Decimal = 6
     var wideBGTargetRange: Bool = false
     var skipNeutralTemps: Bool = false
     var unsuspendIfNoTemp: Bool = false
@@ -186,7 +186,7 @@ extension Preferences: Decodable {
             preferences.maxCOB = maxCOB
         }
 
-        if let maxAbsorptionTime = try? container.decode(Int.self, forKey: .maxAbsorptionTime) {
+        if let maxAbsorptionTime = try? container.decode(Decimal.self, forKey: .maxAbsorptionTime) {
             preferences.maxAbsorptionTime = maxAbsorptionTime
         }
 
