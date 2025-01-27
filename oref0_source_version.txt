@@ -1,6 +1,9 @@
-oref0 branch: tdd-pumpdataCheck - git version: 46deecb
+oref0 branch: maxAbsorptionTime - git version: f306168
 
 Last commits:
+f306168 reduce dynISF logging
+fb5f9bc introduce maxAbsorptionTime to orefmaxAbsorptionTime
+ade267d Merge pull request #37 from mountrcg/tdd-pumpdataCheck
 46deecb remove dynisf check on pumpdata calc
 2f258b2 Merge pull request #36 from mountrcg/fixTDDcheck
 4998a09 fix condition  to use weightedAverage as TDD
