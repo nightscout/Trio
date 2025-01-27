@@ -211,10 +211,13 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         return await backgroundContext.perform {
             var watchState = GarminWatchState()
 
-            watchState.lastLoopDateInterval = UInt64(self.apsManager.lastLoopDate.timeIntervalSince1970)
-
-            // Pull IOB and COB from the latest determination
+            /// Pull `glucose`, `trendRaw`, `delta`, `lastLoopDateInterval`, `iob`, `cob`,  `isf`, and `eventualBGRaw` from the latest determination.
             if let latestDetermination = determinationObjects.first {
+                watchState.lastLoopDateInterval = latestDetermination.timestamp.map {
+                    guard $0.timeIntervalSince1970 > 0 else { return 0 }
+                    return UInt64($0.timeIntervalSince1970)
+                }
+
                 let iobValue = latestDetermination.iob ?? 0
                 watchState.iob = Formatter.decimalFormatterWithTwoFractionDigits.string(from: iobValue)
 
