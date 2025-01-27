@@ -25,7 +25,7 @@ function defaults ( ) {
     // (If someone enters more carbs or stacks more; OpenAPS will just truncate dosing based on 120.
     // Essentially, this just limits AMA/SMB as a safety cap against excessive COB entry)
     , maxCOB: 120
-    , maxAbsorptionTime: 6 // Handling of long lasting effects of "heavy meals" containing large cqantities of fat and protein might be improved by letting the system consider meal effects for longer than the default six hours.
+    , maxMealAbsorptionTime: 6 // Handling of long lasting effects of "heavy meals" containing large cqantities of fat and protein might be improved by letting the system consider meal effects for longer than the default six hours.
     , skip_neutral_temps: false // if true, don't set neutral temps
     , unsuspend_if_no_temp: false // if true, pump will un-suspend after a zero temp finishes
     , min_5m_carbimpact: 8 // mg/dL per 5m (8 mg/dL/5m corresponds to 24g/hr at a CSF of 4 mg/dL/g (x/5*60/4))
@@ -113,7 +113,7 @@ function displayedDefaults () {
     profile.enableSMB_high_bg = allDefaults.enableSMB_high_bg;
     profile.enableSMB_high_bg_target = allDefaults.enableSMB_high_bg_target;
     profile.maxCOB = allDefaults.maxCOB;
-    profile.maxAbsorptionTime = allDefaults.maxAbsorptionTime;
+    profile.maxMealAbsorptionTime = allDefaults.maxMealAbsorptionTime;
 
     console.error(profile);
     return profile

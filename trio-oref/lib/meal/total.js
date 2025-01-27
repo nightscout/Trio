@@ -47,18 +47,18 @@ function recentCarbs(opts, time) {
     var nsCarbsToRemove = 0;
     var bwCarbsToRemove = 0;
     var journalCarbsToRemove = 0;
-    var maxAbsorptionTime = 6;
+    var maxMealAbsorptionTime = 6;
 
-    if (typeof(profile_data.maxAbsorptionTime) === 'number' && ! isNaN(profile_data.maxAbsorptionTime)) {
-        maxAbsorptionTime = profile_data.maxAbsorptionTime;
+    if (typeof(profile_data.maxMealAbsorptionTime) === 'number' && ! isNaN(profile_data.maxMealAbsorptionTime)) {
+        maxMealAbsorptionTime = profile_data.maxMealAbsorptionTime;
     } else {
-        console.error("Bad profile.maxAbsorptionTime:",profile_data.maxAbsorptionTime);
+        console.error("Bad profile.maxMealAbsorptionTime:",profile_data.maxMealAbsorptionTime);
     }
 
     treatments.forEach(function(treatment) {
         var now = time.getTime();
-        // consider carbs from up to the meal preference maxAbsorptionTime hours ago in calculating COB
-        var carbWindow = now - maxAbsorptionTime * 60*60*1000;
+        // consider carbs from up to the meal preference maxMealAbsorptionTime hours ago in calculating COB
+        var carbWindow = now - maxMealAbsorptionTime * 60*60*1000;
         var treatmentDate = new Date(tz(treatment.timestamp));
         var treatmentTime = treatmentDate.getTime();
         if (treatmentTime > carbWindow && treatmentTime <= now) {
@@ -112,14 +112,14 @@ function recentCarbs(opts, time) {
     // calculate the current deviation and steepest deviation downslope over the last hour
     COB_inputs.ciTime = time.getTime();
     // set mealTime to 6h ago for Deviation calculations
-    COB_inputs.mealTime = time.getTime() - profile_data.maxAbsorptionTime * 60 * 60 * 1000;
+    COB_inputs.mealTime = time.getTime() - profile_data.maxMealAbsorptionTime * 60 * 60 * 1000;
     var c = calcMealCOB(COB_inputs);
     //console.error(c.currentDeviation, c.slopeFromMaxDeviation);
 
     // set a hard upper limit on COB to mitigate impact of erroneous or malicious carb entry
     if (typeof(profile_data.maxCOB) === 'number' && ! isNaN(profile_data.maxCOB)) {
         mealCOB = Math.min( profile_data.maxCOB, mealCOB );
-        console.error("mealCOB: " + round(mealCOB,1) + " with maxCOB " + profile_data.maxCOB + " and maxAbsorptionTime " + maxAbsorptionTime);
+        console.error("mealCOB: " + round(mealCOB,1) + " with maxCOB " + profile_data.maxCOB + "g and maxMealAbsorptionTime " + maxMealAbsorptionTime + "hrs.");
     } else {
         console.error("Bad profile.maxCOB:",profile_data.maxCOB);
     }

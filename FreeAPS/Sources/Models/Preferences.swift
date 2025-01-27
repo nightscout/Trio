@@ -73,7 +73,7 @@ extension Preferences {
         case exerciseMode = "exercise_mode"
         case halfBasalExerciseTarget = "half_basal_exercise_target"
         case maxCOB
-        case maxMealAbsorptionTime = "maxAbsorptionTime"
+        case maxMealAbsorptionTime
         case wideBGTargetRange = "wide_bg_target_range"
         case skipNeutralTemps = "skip_neutral_temps"
         case unsuspendIfNoTemp = "unsuspend_if_no_temp"

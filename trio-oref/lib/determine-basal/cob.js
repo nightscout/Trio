@@ -51,7 +51,7 @@ function detectCarbAbsorption(inputs) {
         }
         // only consider BGs for 6h after a meal for calculating COB
         var hoursAfterMeal = (bgTime-mealTime)/(60*60*1000);
-        if (hoursAfterMeal > profile.maxAbsorptionTime || foundPreMealBG) {
+        if (hoursAfterMeal > profile.maxMealAbsorptionTime || foundPreMealBG) {
             continue;
         } else if (hoursAfterMeal < 0) {
 //console.error("Found pre-meal BG:",glucose_data[i].glucose, bgTime, Math.round(hoursAfterMeal*100)/100);
