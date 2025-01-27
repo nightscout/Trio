@@ -196,7 +196,7 @@ extension MealSettings {
                     units: state.units,
                     type: .decimal("maxMealAbsorptionTime"),
                     label: "Max. Meal Absorption Time",
-                    miniHint: "Set the maximum hours for which COB can be accumulated to define the maximum meal absorption time.",
+                    miniHint: "Set the maximum hours for which Carb entries can be accumulated into COB, which defines the maximum meal absorption time.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 6 hours").bold()
