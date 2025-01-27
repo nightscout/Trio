@@ -133,11 +133,18 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         registerHandlers()
         setupNotification()
+
+        /// Ensure that Nightscout Manager holds the `lastEnactedDetermination`, if one exists, on initialization.
+        Task {
+            async let lastEnactedDeterminationID = determinationStorage
+                .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
+
+            self.lastEnactedDetermination = await determinationStorage
+                .getOrefDeterminationNotYetUploadedToNightscout(lastEnactedDeterminationID)
+        }
     }
 
     private func subscribe() {
-//        broadcaster.register(TempTargetsObserver.self, observer: self)
-
         _ = reachabilityManager.startListening(onQueue: processQueue) { status in
             debug(.nightscout, "Network status: \(status)")
         }
@@ -463,12 +470,18 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         // Gather all relevant data for OpenAPS Status
         let iob = await fetchedIOBEntry
+
+        let suggestedToUpload = modifiedSuggestedDetermination ?? lastSuggestedDetermination
+        let enactedToUpload = fetchedEnactedDetermination ?? lastEnactedDetermination
+
         let openapsStatus = OpenAPSStatus(
             iob: iob?.first,
-            suggested: modifiedSuggestedDetermination,
-            enacted: settingsManager.settings.closedLoop ? fetchedEnactedDetermination : nil,
+            suggested: suggestedToUpload,
+            enacted: settingsManager.settings.closedLoop ? enactedToUpload : nil,
             version: Bundle.main.releaseVersionNumber ?? "Unknown"
         )
+
+        debug(.nightscout, "To be uploaded openapsStatus: \(openapsStatus)")
 
         // Gather all relevant data for NS Status
         let battery = await fetchedBattery
@@ -507,8 +520,13 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 await updateOrefDeterminationAsUploaded([suggested])
             }
 
-            lastEnactedDetermination = fetchedEnactedDetermination
-            lastSuggestedDetermination = fetchedSuggestedDetermination
+            if let lastEnactedDetermination = fetchedEnactedDetermination {
+                self.lastEnactedDetermination = lastEnactedDetermination
+            }
+
+            if let lastSuggestedDetermination = fetchedSuggestedDetermination {
+                self.lastSuggestedDetermination = lastSuggestedDetermination
+            }
 
             debug(.nightscout, "NSDeviceStatus with Determination uploaded")
         } catch {
