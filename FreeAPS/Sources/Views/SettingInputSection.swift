@@ -107,8 +107,8 @@ struct SettingInputSection<VerboseHint: View>: View {
             return pickerSettingsProvider.settings.hours
         case "maxCarbs":
             return pickerSettingsProvider.settings.maxCarbs
-        case "maxAbsorptionTime":
-            return pickerSettingsProvider.settings.maxAbsorptionTime
+        case "maxMealAbsorptionTime":
+            return pickerSettingsProvider.settings.maxMealAbsorptionTime
         case "maxFat":
             return pickerSettingsProvider.settings.maxFat
         case "maxProtein":

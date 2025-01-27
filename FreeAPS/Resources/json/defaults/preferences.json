@@ -14,7 +14,7 @@
   "exercise_mode" : false,
   "half_basal_exercise_target" : 160,
   "maxCOB" : 120,
-  "maxAbsorptionTime" : 6,
+  "maxMealAbsorptionTime" : 6,
   "wide_bg_target_range" : false,
   "skip_neutral_temps" : false,
   "unsuspend_if_no_temp" : false,
