@@ -186,12 +186,12 @@ final class BaseAPSManager: APSManager, Injectable {
     private func loop() {
         Task {
             // check the last start of looping is more the loopInterval but the previous loop was completed
-//        if lastLoopDate > lastStartLoopDate {
-//            guard lastStartLoopDate.addingTimeInterval(Config.loopInterval) < Date() else {
-//                debug(.apsManager, "too close to do a loop : \(lastStartLoopDate)")
-//                return
-//            }
-//        }
+            if lastLoopDate > lastLoopStartDate {
+                guard lastLoopStartDate.addingTimeInterval(Config.loopInterval) < Date() else {
+                    debug(.apsManager, "too close to do a loop : \(lastLoopStartDate)")
+                    return
+                }
+            }
 
             guard !isLooping.value else {
                 warning(.apsManager, "Loop already in progress. Skip recommendation.")
