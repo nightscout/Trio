@@ -2,111 +2,136 @@ import Charts
 import SwiftUI
 
 struct TDDChartView: View {
-    private enum Constants {
-        static let dayOptions = [3, 5, 7, 10, 14, 21, 28]
-        static let chartHeight: CGFloat = 200
-        static let spacing: CGFloat = 8
-        static let cornerRadius: CGFloat = 10
-        static let summaryBackgroundOpacity = 0.1
+    let selectedDuration: Stat.StateModel.StatsTimeInterval
+    let tddStats: [TDD]
+    let calculateAverage: (Date, Date) -> Decimal
+
+    @State private var scrollPosition = Date()
+    @State private var currentAverageTDD: Decimal = 0
+    @State private var selectedDate: Date?
+
+    private var visibleDomainLength: TimeInterval {
+        switch selectedDuration {
+        case .Day: return 3 * 24 * 3600 // 3 days
+        case .Week: return 7 * 24 * 3600 // 1 week
+        case .Month: return 30 * 24 * 3600 // 1 month
+        case .Total: return 90 * 24 * 3600 // 3 months
+        }
     }
 
-    let state: Stat.StateModel
-    @Binding var selectedDays: Int
-    @Binding var selectedEndDate: Date
-    @Binding var dailyTotalDoses: [TDD]
-    var averageTDD: Decimal
-    var ytdTDD: Decimal
+    private var scrollTargetDuration: TimeInterval {
+        switch selectedDuration {
+        case .Day: return 3 * 24 * 3600 // Scroll by 3 days
+        case .Week: return 7 * 24 * 3600 // Scroll by 1 week
+        case .Month: return 30 * 24 * 3600 // Scroll by 1 month
+        case .Total: return 90 * 24 * 3600 // Scroll by 3 months
+        }
+    }
 
-    @Environment(\.colorScheme) var colorScheme
+    private var strideInterval: Calendar.Component {
+        .day
+    }
+
+    private var dateFormat: Date.FormatStyle {
+        switch selectedDuration {
+        case .Day:
+            return .dateTime.weekday(.abbreviated)
+        case .Week:
+            return .dateTime.weekday(.abbreviated)
+        case .Month:
+            return .dateTime.day()
+        case .Total:
+            return .dateTime.month(.abbreviated)
+        }
+    }
+
+    private var alignmentComponents: DateComponents {
+        switch selectedDuration {
+        case .Day:
+            return DateComponents(hour: 0)
+        case .Week:
+            return DateComponents(weekday: 1)
+        case .Month:
+            return DateComponents(day: 1)
+        case .Total:
+            return DateComponents(day: 1, hour: 0)
+        }
+    }
+
+    private var visibleDateRange: (start: Date, end: Date) {
+        let halfDomain = visibleDomainLength / 2
+        let start = scrollPosition.addingTimeInterval(-halfDomain)
+        let end = scrollPosition.addingTimeInterval(halfDomain)
+        return (start, end)
+    }
+
+    private func updateAverage() {
+        let (start, end) = visibleDateRange
+        currentAverageTDD = calculateAverage(start, end)
+    }
+
+    private func getTDDForDate(_ date: Date) -> TDD? {
+        tddStats.first { tdd in
+            guard let timestamp = tdd.timestamp else { return false }
+            return Calendar.current.isDate(timestamp, inSameDayAs: date)
+        }
+    }
 
     var body: some View {
-        VStack(spacing: Constants.spacing) {
-            dateSelectionView
-            summaryCardView
-            chartCard
-        }
+        chartCard
+            .onChange(of: scrollPosition) {
+                updateAverage()
+            }
+            .onAppear {
+                updateAverage()
+            }
     }
 
     // MARK: - Views
 
-    private var dateSelectionView: some View {
-        HStack {
-            Text("Time Frame")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+    private var chartCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Total Daily Doses")
+                    .font(.headline)
 
-            Spacer()
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Average: \(currentAverageTDD.formatted(.number.precision(.fractionLength(1)))) U")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
 
-            CustomDatePicker(selection: $selectedEndDate)
-                .frame(height: 30)
-
-            Picker("Days", selection: $selectedDays) {
-                ForEach(Constants.dayOptions, id: \.self) { days in
-                    Text("\(days) days").tag(days)
+                    Text(
+                        "\(visibleDateRange.start.formatted(.dateTime.month().day())) - \(visibleDateRange.end.formatted(.dateTime.month().day()))"
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                 }
             }
-            .pickerStyle(.segmented)
-        }
-    }
-
-    private var summaryCardView: some View {
-        VStack(spacing: Constants.spacing) {
-            tddRow(
-                title: "Today",
-                value: state.currentTDD
-            )
-            Divider()
-            tddRow(
-                title: "Yesterday",
-                value: ytdTDD
-            )
-            Divider()
-            tddRow(
-                title: "Average \(selectedDays) days",
-                value: averageTDD
-            )
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: Constants.cornerRadius)
-                .fill(Color.secondary.opacity(Constants.summaryBackgroundOpacity))
-        )
-    }
-
-    private var chartCard: some View {
-        VStack(alignment: .leading, spacing: Constants.spacing) {
-            Text("Total Daily Doses")
-                .font(.headline)
 
             Chart {
-                ForEach(chartData, id: \.date) { entry in
+                ForEach(tddStats) { entry in
                     BarMark(
-                        x: .value("Date", entry.date, unit: .day),
-                        y: .value("Insulin", entry.dose)
+                        x: .value("Date", entry.timestamp ?? Date(), unit: strideInterval),
+                        y: .value("Insulin", entry.totalDailyDose ?? 0)
                     )
                     .foregroundStyle(Color.insulin.gradient)
-                    .annotation(position: .top) {
-                        if entry.dose > 0 {
-                            Text(formatDose(entry.dose))
-                                .font(.caption2)
-                                .foregroundStyle(.primary)
-                        }
-                    }
                 }
 
-                if let average = calculateAverage() {
-                    RuleMark(y: .value("Average", average))
-                        .foregroundStyle(.primary)
-                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                        .annotation(position: .automatic) {
-                            Text("\(formatDose(average)) U")
-                                .font(.caption)
-                                .foregroundStyle(Color.insulin)
-                        }
+                if let selectedDate,
+                   let selectedTDD = getTDDForDate(selectedDate)
+                {
+                    RuleMark(
+                        x: .value("Selected Date", selectedDate)
+                    )
+                    .foregroundStyle(.secondary.opacity(0.3))
+                    .annotation(
+                        position: .top,
+                        spacing: 0,
+                        overflowResolution: .init(x: .fit, y: .disabled)
+                    ) {
+                        TDDSelectionPopover(date: selectedDate, tdd: selectedTDD)
+                    }
                 }
-            }
-            .chartXAxis {
-                tddChartXAxisMarks
             }
             .chartYAxis {
                 AxisMarks { _ in
@@ -114,102 +139,62 @@ struct TDDChartView: View {
                     AxisGridLine()
                 }
             }
-            .chartYAxisLabel(alignment: .trailing) {
-                Text("Units (U)")
-                    .foregroundColor(.primary)
+            .chartXAxis {
+                AxisMarks(preset: .aligned, values: .stride(by: strideInterval)) { value in
+                    if let date = value.as(Date.self) {
+                        let day = Calendar.current.component(.day, from: date)
+
+                        switch selectedDuration {
+                        case .Month:
+                            if day % 5 == 0 { // Only show every 5th day
+                                AxisValueLabel(format: dateFormat)
+                                AxisGridLine()
+                            }
+                        case .Total:
+                            // Only show January, April, July, October
+                            if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
+                                AxisValueLabel(format: dateFormat)
+                                AxisGridLine()
+                            }
+                        default:
+                            AxisValueLabel(format: dateFormat)
+                            AxisGridLine()
+                        }
+                    }
+                }
             }
-            .chartYScale(domain: 0 ... calculateYAxisMaximum())
+            .chartXSelection(value: $selectedDate)
+            .chartScrollableAxes(.horizontal)
+            .chartScrollPosition(x: $scrollPosition)
+            .chartScrollTargetBehavior(
+                .valueAligned(
+                    matching: alignmentComponents,
+                    majorAlignment: .matching(alignmentComponents)
+                )
+            )
+            .chartXVisibleDomain(length: visibleDomainLength)
+            .frame(height: 200)
         }
-        .frame(height: 200)
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: Constants.cornerRadius)
-                .fill(Color.secondary.opacity(Constants.summaryBackgroundOpacity))
-        )
     }
 
-    // MARK: - Helper Views
+    private struct TDDSelectionPopover: View {
+        let date: Date
+        let tdd: TDD
 
-    private var tddChartXAxisMarks: some AxisContent {
-        AxisMarks(values: .stride(by: .day)) { value in
-            if let date = value.as(Date.self),
-               xAxisLabelValues().contains(where: { $0.date == date })
-            {
-                AxisValueLabel(xAxisLabelValues().first { $0.date == date }?.label ?? "")
+        var body: some View {
+            VStack(alignment: .center, spacing: 4) {
+                Text(date.formatted(.dateTime.month().day()))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text("\(tdd.totalDailyDose?.formatted(.number.precision(.fractionLength(1))) ?? "0") U")
+                    .font(.callout.bold())
             }
-            AxisGridLine()
+            .padding(8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(.systemBackground))
+                    .shadow(radius: 2)
+            )
         }
-    }
-
-    private func tddRow(title: String, value: Decimal) -> some View {
-        HStack {
-            Text(title)
-                .foregroundStyle(.secondary)
-            Spacer()
-            Text(formatDose(value))
-                .foregroundColor(.primary)
-            Text("U")
-                .foregroundStyle(.secondary)
-        }
-        .font(.subheadline)
-    }
-
-    // MARK: - Data Processing
-
-    private var chartData: [(date: Date, dose: Decimal)] {
-        completeData(forDays: selectedDays)
-    }
-
-    private func calculateAverage() -> Decimal? {
-        let nonZeroDoses = chartData.map(\.dose).filter { $0 > 0 }
-        guard !nonZeroDoses.isEmpty else { return nil }
-        return nonZeroDoses.reduce(0, +) / Decimal(nonZeroDoses.count)
-    }
-
-    private func calculateYAxisMaximum() -> Double {
-        let maxDose = chartData.map(\.dose).max() ?? 0
-        let average = calculateAverage() ?? 0
-        return (max(maxDose, average) * 1.2).doubleValue // Add 20% padding
-    }
-
-    private func formatDose(_ value: Decimal) -> String {
-        Formatter.decimalFormatterWithOneFractionDigit.string(from: value as NSNumber) ?? "0"
-    }
-
-    private func completeData(forDays days: Int) -> [(date: Date, dose: Decimal)] {
-        var completeData: [(date: Date, dose: Decimal)] = []
-        let calendar = Calendar.current
-        var currentDate = calendar.startOfDay(for: selectedEndDate)
-
-        for _ in 0 ..< days {
-            if let existingEntry = dailyTotalDoses.first(where: { entry in
-                guard let timestamp = entry.timestamp else { return false }
-                return calendar.isDate(timestamp, inSameDayAs: currentDate)
-            }) {
-                completeData.append((date: currentDate, dose: existingEntry.totalDailyDose ?? 0))
-            } else {
-                completeData.append((date: currentDate, dose: 0))
-            }
-            currentDate = calendar.date(byAdding: .day, value: -1, to: currentDate) ?? currentDate
-        }
-        return completeData.reversed()
-    }
-
-    private func xAxisLabelValues() -> [(date: Date, label: String)] {
-        let data = chartData
-        let stride = selectedDays > 13 ? max(1, selectedDays / 7) : 1
-
-        return data.enumerated().compactMap { index, entry in
-            if index % stride == 0 || index == data.count - 1 {
-                return (date: entry.date, label: Formatter.dayFormatter.string(from: entry.date))
-            }
-            return nil
-        }
-    }
-}
-
-private extension Decimal {
-    var doubleValue: Double {
-        NSDecimalNumber(decimal: self).doubleValue
     }
 }

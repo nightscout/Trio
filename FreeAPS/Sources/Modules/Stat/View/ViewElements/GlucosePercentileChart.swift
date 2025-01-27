@@ -5,9 +5,24 @@ struct GlucosePercentileChart: View {
     let glucose: [GlucoseStored]
     let highLimit: Decimal
     let lowLimit: Decimal
-    let isTodayOrLast24h: Bool
     let units: GlucoseUnits
     let hourlyStats: [HourlyStats]
+    let isToday: Bool
+
+    @State private var selection: Date? = nil
+
+    private var selectedStats: HourlyStats? {
+        guard let selection = selection else { return nil }
+
+        // Don't show stats for future times if viewing today
+        if isToday && selection > Date() {
+            return nil
+        }
+
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: selection)
+        return hourlyStats.first { Int($0.hour) == hour }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -15,18 +30,6 @@ struct GlucosePercentileChart: View {
                 .font(.headline)
 
             Chart {
-//                if isTodayOrLast24h {
-//                    // Single day line chart
-//                    ForEach(glucose.sorted(by: { ($0.date ?? Date()) < ($1.date ?? Date()) }), id: \.id) { reading in
-//                        LineMark(
-//                            x: .value("Time", reading.date ?? Date()),
-//                            y: .value("Glucose", Double(reading.glucose))
-//                        )
-//                        .lineStyle(StrokeStyle(lineWidth: 2))
-//                        .foregroundStyle(.blue)
-//                    }
-//                } else {
-
                 // TODO: ensure data is still correct
                 // TODO: ensure area marks and line mark take color of respective range
 
@@ -63,7 +66,6 @@ struct GlucosePercentileChart: View {
                     .lineStyle(StrokeStyle(lineWidth: 2))
                     .foregroundStyle(.blue)
                 }
-//                }
 
                 // High/Low limit lines
                 RuleMark(y: .value("High Limit", Double(highLimit)))
@@ -73,8 +75,23 @@ struct GlucosePercentileChart: View {
                 RuleMark(y: .value("Low Limit", Double(lowLimit)))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
                     .foregroundStyle(.red)
+
+                if let selectedStats, let selection {
+                    RuleMark(x: .value("Selection", selection))
+                        .foregroundStyle(.secondary.opacity(0.3))
+                        .annotation(
+                            position: .top,
+                            spacing: 0,
+                            overflowResolution: .init(x: .fit, y: .disabled)
+                        ) {
+                            AGPSelectionPopover(
+                                stats: selectedStats,
+                                time: selection,
+                                units: units
+                            )
+                        }
+                }
             }
-//            .chartYScale(domain: 40 ... 400)
             .chartYAxis {
                 AxisMarks(position: .leading)
             }
@@ -90,12 +107,10 @@ struct GlucosePercentileChart: View {
                     AxisGridLine()
                 }
             }
+            .chartXSelection(value: $selection)
             .frame(height: 200)
 
-            // Legend
-//            if !isTodayOrLast24h {
             legend
-//            }
         }
     }
 
@@ -156,6 +171,64 @@ struct GlucosePercentileChart: View {
             }
         }
         .padding(.horizontal)
+    }
+}
+
+struct AGPSelectionPopover: View {
+    let stats: HourlyStats
+    let time: Date
+    let units: GlucoseUnits
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Image(systemName: "clock")
+                Text(time.formatted(.dateTime.hour().minute(.twoDigits)))
+                    .font(.body).bold()
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+            Grid(alignment: .leading, horizontalSpacing: 8) {
+                GridRow {
+                    Text("90%:")
+                    Text(stats.percentile90.formatted(.number))
+                    Text(units.rawValue)
+                        .foregroundStyle(.secondary)
+                }
+                GridRow {
+                    Text("75%:")
+                    Text(stats.percentile75.formatted(.number))
+                    Text(units.rawValue)
+                        .foregroundStyle(.secondary)
+                }
+                GridRow {
+                    Text("Median:")
+                    Text(stats.median.formatted(.number))
+                    Text(units.rawValue)
+                        .foregroundStyle(.secondary)
+                }
+                GridRow {
+                    Text("25%:")
+                    Text(stats.percentile25.formatted(.number))
+                    Text(units.rawValue)
+                        .foregroundStyle(.secondary)
+                }
+                GridRow {
+                    Text("10%:")
+                    Text(stats.percentile10.formatted(.number))
+                    Text(units.rawValue)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .font(.caption)
+        }
+        .padding(8)
+        .background {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(.background)
+                .shadow(radius: 2)
+        }
     }
 }
 

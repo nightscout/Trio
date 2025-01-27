@@ -5,7 +5,6 @@ struct GlucoseDistributionChart: View {
     let glucose: [GlucoseStored]
     let highLimit: Decimal
     let lowLimit: Decimal
-    let isToday: Bool
     let units: GlucoseUnits
     let glucoseRangeStats: [GlucoseRangeStats]
 

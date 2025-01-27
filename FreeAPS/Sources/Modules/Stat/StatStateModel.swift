@@ -16,12 +16,14 @@ extension Stat {
         var loopStatRecords: [LoopStatRecord] = []
         var groupedLoopStats: [LoopStatsByPeriod] = []
         var mealStats: [MealStats] = []
-
-        var selectedDuration: Duration = .Today {
+        var tddStats: [TDD] = []
+        var selectedDurationForGlucoseStats: Duration = .Today {
             didSet {
-                setupGlucoseArray(for: selectedDuration)
+                setupGlucoseArray(for: selectedDurationForGlucoseStats)
             }
         }
+
+        var selectedDurationForInsulinStats: StatsTimeInterval = .Day
 
         var selectedDurationForLoopStats: Duration = .Today {
             didSet {
@@ -32,54 +34,6 @@ extension Stat {
         var selectedDurationForMealStats: Duration = .Today {
             didSet {
                 setupMealStats(for: selectedDurationForMealStats)
-            }
-        }
-
-        /// TDD-related properties
-
-        /// Total insulin dose for the last 24 hours
-        var currentTDD: Decimal = 0
-
-        /// Total insulin dose for yesterday (previous calendar day)
-        var ytdTDDValue: Decimal = 0
-
-        /// Average TDD for the selected time period
-        var averageTDD: Decimal = 0
-
-        /// Array of daily total doses for the selected period
-        var dailyTotalDoses: [TDD] = []
-
-        /// Configuration for TDD display and calculations
-        private(set) var tddConfig = TDDConfiguration() {
-            didSet {
-                if oldValue.requestedDays != tddConfig.requestedDays ||
-                    oldValue.endDate != tddConfig.endDate
-                {
-                    Task {
-                        await updateTDDValues()
-                    }
-                }
-            }
-        }
-
-        /// Number of days to display in the TDD chart
-        var requestedDaysTDD: Int {
-            get { tddConfig.requestedDays }
-            set { tddConfig.requestedDays = newValue }
-        }
-
-        /// End date for the TDD chart
-        var requestedEndDayTDD: Date {
-            get { tddConfig.endDate }
-            set {
-                if let adjustedDate = Calendar.current.date(
-                    bySettingHour: 23,
-                    minute: 59,
-                    second: 59,
-                    of: newValue
-                ) {
-                    tddConfig.endDate = adjustedDate
-                }
             }
         }
 
@@ -95,7 +49,16 @@ extension Stat {
             case Day = "D"
             case Week = "W"
             case Month = "M"
-            case Total = "3 M."
+            case Total = "3 M"
+
+            var id: Self { self }
+        }
+
+        enum StatsTimeInterval: String, CaseIterable, Identifiable {
+            case Day = "D"
+            case Week = "W"
+            case Month = "M"
+            case Total = "3 M"
 
             var id: Self { self }
         }
@@ -132,7 +95,10 @@ extension Stat {
 
         func setupTDDs() {
             Task {
-                await updateTDDValues()
+                let tddStats = await fetchAndMapDeterminations()
+                await MainActor.run {
+                    self.tddStats = tddStats
+                }
             }
         }
 
@@ -180,6 +146,48 @@ extension Stat {
                     "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error.localizedDescription)"
                 )
             }
+        }
+
+        var averageTDD: Decimal {
+            let calendar = Calendar.current
+            let now = Date()
+
+            // Filter TDDs based on selected time frame
+            let filteredTDDs: [TDD] = tddStats.filter { tdd in
+                guard let timestamp = tdd.timestamp else { return false }
+
+                switch selectedDurationForInsulinStats {
+                case .Day:
+                    // Last 3 days
+                    let threeDaysAgo = calendar.date(byAdding: .day, value: -3, to: now)!
+                    return timestamp >= threeDaysAgo
+                case .Week:
+                    // Last week
+                    let weekAgo = calendar.date(byAdding: .weekOfYear, value: -1, to: now)!
+                    return timestamp >= weekAgo
+                case .Month:
+                    // Last month
+                    let monthAgo = calendar.date(byAdding: .month, value: -1, to: now)!
+                    return timestamp >= monthAgo
+                case .Total:
+                    // Last 3 months
+                    let threeMonthsAgo = calendar.date(byAdding: .month, value: -3, to: now)!
+                    return timestamp >= threeMonthsAgo
+                }
+            }
+
+            let sum = filteredTDDs.reduce(Decimal.zero) { $0 + ($1.totalDailyDose ?? 0) }
+            return filteredTDDs.isEmpty ? 0 : sum / Decimal(filteredTDDs.count)
+        }
+
+        func calculateAverageTDD(from startDate: Date, to endDate: Date) -> Decimal {
+            let filteredTDDs = tddStats.filter { tdd in
+                guard let timestamp = tdd.timestamp else { return false }
+                return timestamp >= startDate && timestamp <= endDate
+            }
+
+            let sum = filteredTDDs.reduce(Decimal.zero) { $0 + ($1.totalDailyDose ?? 0) }
+            return filteredTDDs.isEmpty ? 0 : sum / Decimal(filteredTDDs.count)
         }
     }
 }

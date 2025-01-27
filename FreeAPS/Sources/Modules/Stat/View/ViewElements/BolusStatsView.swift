@@ -3,8 +3,6 @@ import SwiftUI
 
 struct BolusStatsView: View {
     let bolusStats: [BolusStats]
-    @Binding var selectedDays: Int
-    @Binding var selectedEndDate: Date
 
     var body: some View {
         StatCard {
@@ -61,11 +59,11 @@ struct BolusStatsView: View {
         AxisMarks { value in
             if let date = value.as(Date.self) {
                 AxisValueLabel {
-                    if selectedDays < 8 {
-                        Text(date, format: .dateTime.weekday(.abbreviated))
-                    } else {
-                        Text(date, format: .dateTime.day().month(.defaultDigits))
-                    }
+//                    if selectedDays < 8 {
+//                        Text(date, format: .dateTime.weekday(.abbreviated))
+//                    } else {
+//                        Text(date, format: .dateTime.day().month(.defaultDigits))
+//                    }
                 }
                 AxisGridLine()
             }

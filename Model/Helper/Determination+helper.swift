@@ -51,7 +51,8 @@ extension NSPredicate {
         )
     }
 
-    static func determinationPeriod(from startDate: Date, to endDate: Date) -> NSPredicate {
-        NSPredicate(format: "deliverAt >= %@ AND deliverAt <= %@", startDate as NSDate, endDate as NSDate)
+    static var determinationsForStats: NSPredicate {
+        let date = Date.threeMonthsAgo
+        return NSPredicate(format: "deliverAt >= %@", date as NSDate)
     }
 }

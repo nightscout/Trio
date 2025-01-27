@@ -85,7 +85,7 @@ extension Stat {
                     }
                     .padding()
                 }
-                .animation(.easeInOut, value: selectedView)
+//                .animation(.easeInOut, value: selectedView)
             }
             .background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
@@ -118,7 +118,7 @@ extension Stat {
                 .pickerStyle(.menu)
             }.padding(.horizontal)
 
-            Picker("Duration", selection: $state.selectedDuration) {
+            Picker("Duration", selection: $state.selectedDurationForGlucoseStats) {
                 ForEach(StateModel.Duration.allCases, id: \.self) { duration in
                     Text(duration.rawValue)
                 }
@@ -151,17 +151,16 @@ extension Stat {
                 }.pickerStyle(.menu)
             }.padding(.horizontal)
 
-            Picker("Duration", selection: $state.selectedDuration) {
-                ForEach(StateModel.Duration.allCases, id: \.self) { duration in
-                    Text(duration.rawValue)
+            Picker("Duration", selection: $state.selectedDurationForInsulinStats) {
+                ForEach(StateModel.StatsTimeInterval.allCases) { timeInterval in
+                    Text(timeInterval.rawValue).tag(timeInterval)
                 }
             }
             .pickerStyle(.segmented)
 
-            // TODO: rework TDDChartView and BolusView to respect selectedDays from here and omit datepicker
             switch selectedInsulinChartType {
             case .totalDailyDose:
-                if state.dailyTotalDoses.isEmpty || state.currentTDD == 0 {
+                if state.tddStats.isEmpty {
                     ContentUnavailableView(
                         "No TDD Data",
                         systemImage: "chart.bar.xaxis",
@@ -169,19 +168,12 @@ extension Stat {
                     )
                 } else {
                     TDDChartView(
-                        state: state,
-                        selectedDays: $state.requestedDaysTDD,
-                        selectedEndDate: $state.requestedEndDayTDD,
-                        dailyTotalDoses: $state.dailyTotalDoses,
-                        averageTDD: state.averageTDD,
-                        ytdTDD: state.ytdTDDValue
+                        selectedDuration: state.selectedDurationForInsulinStats,
+                        tddStats: state.tddStats,
+                        calculateAverage: { start, end in
+                            state.calculateAverageTDD(from: start, to: end)
+                        }
                     )
-                    .onChange(of: state.requestedDaysTDD) {
-                        state.updateBolusStats()
-                    }
-                    .onChange(of: state.requestedEndDayTDD) {
-                        state.updateBolusStats()
-                    }
                 }
 
             case .bolusDistribution:
@@ -197,9 +189,7 @@ extension Stat {
                     )
                 } else {
                     BolusStatsView(
-                        bolusStats: state.bolusStats,
-                        selectedDays: $state.requestedDaysTDD,
-                        selectedEndDate: $state.requestedEndDayTDD
+                        bolusStats: state.bolusStats
                     )
                 }
             }
@@ -214,16 +204,15 @@ extension Stat {
                             glucose: state.glucoseFromPersistence,
                             highLimit: state.highLimit,
                             lowLimit: state.lowLimit,
-                            isTodayOrLast24h: state.selectedDuration == .Today || state.selectedDuration == .Day,
                             units: state.units,
-                            hourlyStats: state.hourlyStats
+                            hourlyStats: state.hourlyStats,
+                            isToday: state.selectedDurationForGlucoseStats == .Today
                         )
                     case .distribution:
                         GlucoseDistributionChart(
                             glucose: state.glucoseFromPersistence,
                             highLimit: state.highLimit,
                             lowLimit: state.lowLimit,
-                            isToday: state.selectedDuration == .Today || state.selectedDuration == .Day,
                             units: state.units,
                             glucoseRangeStats: state.glucoseRangeStats
                         )

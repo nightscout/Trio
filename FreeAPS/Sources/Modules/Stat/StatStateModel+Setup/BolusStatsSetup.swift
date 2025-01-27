@@ -18,10 +18,10 @@ extension Stat.StateModel {
     /// Updates the bolus statistics for the currently selected time period
     func updateBolusStats() {
         Task {
-            let stats = await fetchBolusStats(days: requestedDaysTDD, endDate: requestedEndDayTDD)
-            await MainActor.run {
-                self.bolusStats = stats
-            }
+//            let stats = await fetchBolusStats(days: requestedDaysTDD, endDate: requestedEndDayTDD)
+//            await MainActor.run {
+//                self.bolusStats = stats
+//            }
         }
     }
 
