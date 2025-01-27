@@ -108,7 +108,7 @@ struct PumpView: View {
                             .fontDesign(.rounded)
                     }
                     // aligns the stopwatch icon exactly with the first pixel of the reservoir icon
-                    .padding(.leading, 12)
+                    .padding(.leading, date.timeIntervalSince(timerDate) > 0 ? 12 : 0)
                 }
             }
         }
