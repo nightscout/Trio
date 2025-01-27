@@ -183,6 +183,30 @@ extension MealSettings {
                 ).listRowBackground(Color.chart)
 
                 SettingInputSection(
+                    decimalValue: $state.maxAbsorptionTime,
+                    booleanValue: $booleanPlaceholder,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = "Maximum Meal Absorption Time"
+                        }
+                    ),
+                    units: state.units,
+                    type: .decimal("timeCap"),
+                    label: "Maximum Meal Absorption Time",
+                    miniHint: "Set the maximum hours for which COB can be accumulated to define the maximum absorption time.",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: 6 hours").bold()
+                        Text(
+                            "Handling of long lasting effects of heavy meals containing large cqantities of fat and protein might be improved by letting the system consider meal effects for longer than the default six hours."
+                        )
+                    }
+                )
+
+                SettingInputSection(
                     decimalValue: $decimalPlaceholder,
                     booleanValue: $state.useFPUconversion,
                     shouldDisplayHint: $shouldDisplayHint,

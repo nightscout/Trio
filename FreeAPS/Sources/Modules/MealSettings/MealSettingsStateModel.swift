@@ -11,6 +11,7 @@ extension MealSettings {
         @Published var timeCap: Decimal = 8
         @Published var minuteInterval: Decimal = 30
         @Published var delay: Decimal = 60
+        @Published var maxAbsorptionTime: Decimal = 6
 
         override func subscribe() {
             units = settingsManager.settings.units
@@ -19,8 +20,15 @@ extension MealSettings {
             subscribeSetting(\.maxCarbs, on: $maxCarbs) { maxCarbs = $0 }
             subscribeSetting(\.maxFat, on: $maxFat) { maxFat = $0 }
             subscribeSetting(\.maxProtein, on: $maxProtein) { maxProtein = $0 }
+
             subscribeSetting(\.timeCap, on: $timeCap.map(Int.init), initial: {
                 timeCap = Decimal($0)
+            }, map: {
+                $0
+            })
+
+            subscribePreferencesSetting(\.maxAbsorptionTime, on: $maxAbsorptionTime.map(Int.init), initial: {
+                maxAbsorptionTime = Decimal($0)
             }, map: {
                 $0
             })

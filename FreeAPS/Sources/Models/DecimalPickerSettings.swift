@@ -77,6 +77,7 @@ struct DecimalPickerSettings {
         type: PickerSetting.PickerSettingType.glucose
     )
     var maxCOB = PickerSetting(value: 120, step: 5, min: 0, max: 300, type: PickerSetting.PickerSettingType.gram)
+    var maxAbsorptionTime = PickerSetting(value: 6, step: 1, min: 4, max: 10, type: PickerSetting.PickerSettingType.hour)
     var min5mCarbimpact = PickerSetting(value: 8, step: 1, min: 1, max: 20, type: PickerSetting.PickerSettingType.glucose)
     var remainingCarbsFraction = PickerSetting(
         value: 1.0,
