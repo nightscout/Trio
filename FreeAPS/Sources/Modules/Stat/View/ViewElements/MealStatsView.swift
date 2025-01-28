@@ -10,6 +10,7 @@ struct MealStatsView: View {
     @State private var selectedDate: Date?
     @State private var currentAverages: (carbs: Double, fat: Double, protein: Double) = (0, 0, 0)
     @State private var updateTimer = Stat.UpdateTimer()
+    @State private var isScrolling = false
 
     private var visibleDomainLength: TimeInterval {
         switch selectedDuration {
@@ -30,7 +31,7 @@ struct MealStatsView: View {
     private var dateFormat: Date.FormatStyle {
         switch selectedDuration {
         case .Day:
-            return .dateTime.weekday(.abbreviated)
+            return .dateTime.hour()
         case .Week:
             return .dateTime.weekday(.abbreviated)
         case .Month:
@@ -69,6 +70,37 @@ struct MealStatsView: View {
         }
     }
 
+    private func formatVisibleDateRange(showTimeRange: Bool = false) -> String {
+        let start = visibleDateRange.start
+        let end = visibleDateRange.end
+        let calendar = Calendar.current
+
+        switch selectedDuration {
+        case .Day:
+            let today = Date()
+            let isToday = calendar.isDate(start, inSameDayAs: today)
+            let isYesterday = calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!)
+
+            if isToday || isYesterday, !showTimeRange {
+                return isToday ? "Today" : "Yesterday"
+            }
+
+            let timeRange =
+                "\(start.formatted(.dateTime.hour(.twoDigits(amPM: .wide)))) - \(end.formatted(.dateTime.hour(.twoDigits(amPM: .wide))))"
+
+            if isToday {
+                return "Today, \(timeRange)"
+            } else if isYesterday {
+                return "Yesterday, \(timeRange)"
+            } else {
+                return "\(start.formatted(.dateTime.month().day())), \(timeRange)"
+            }
+
+        default:
+            return "\(start.formatted(.dateTime.month().day())) - \(end.formatted(.dateTime.month().day()))"
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             statsView
@@ -77,21 +109,21 @@ struct MealStatsView: View {
                 ForEach(mealStats) { stat in
                     // Carbs (Bottom)
                     BarMark(
-                        x: .value("Date", stat.date, unit: .day),
+                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
                         y: .value("Amount", stat.carbs)
                     )
                     .foregroundStyle(by: .value("Type", "Carbs"))
 
                     // Fat (Middle)
                     BarMark(
-                        x: .value("Date", stat.date, unit: .day),
+                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
                         y: .value("Amount", stat.fat)
                     )
                     .foregroundStyle(by: .value("Type", "Fat"))
 
                     // Protein (Top)
                     BarMark(
-                        x: .value("Date", stat.date, unit: .day),
+                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
                         y: .value("Amount", stat.protein)
                     )
                     .foregroundStyle(by: .value("Type", "Protein"))
@@ -123,18 +155,24 @@ struct MealStatsView: View {
                 AxisMarks(position: .trailing) { value in
                     if let amount = value.as(Double.self) {
                         AxisValueLabel {
-                            Text(amount.formatted(.number.precision(.fractionLength(1))) + " g")
+                            Text(amount.formatted(.number.precision(.fractionLength(0))) + " g")
                         }
                         AxisGridLine()
                     }
                 }
             }
             .chartXAxis {
-                AxisMarks(preset: .aligned, values: .stride(by: .day)) { value in
+                AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .Day ? .hour : .day)) { value in
                     if let date = value.as(Date.self) {
                         let day = Calendar.current.component(.day, from: date)
+                        let hour = Calendar.current.component(.hour, from: date)
 
                         switch selectedDuration {
+                        case .Day:
+                            if hour % 6 == 0 { // Show only every 6 hours (0, 6, 12, 18)
+                                AxisValueLabel(format: dateFormat, centered: true)
+                                AxisGridLine()
+                            }
                         case .Month:
                             if day % 5 == 0 { // Only show every 5th day
                                 AxisValueLabel(format: dateFormat, centered: true)
@@ -158,8 +196,12 @@ struct MealStatsView: View {
             .chartScrollPosition(x: $scrollPosition)
             .chartScrollTargetBehavior(
                 .valueAligned(
-                    matching: DateComponents(hour: 0), // Align to start of day
-                    majorAlignment: .matching(alignmentComponents)
+                    matching: selectedDuration == .Day ?
+                        DateComponents(minute: 0) : // Align to next hour for Day view
+                        DateComponents(hour: 0), // Align to start of day for other views
+                    majorAlignment: .matching(
+                        alignmentComponents
+                    )
                 )
             )
             .chartXVisibleDomain(length: visibleDomainLength)
@@ -170,8 +212,10 @@ struct MealStatsView: View {
             updateAverages()
         }
         .onChange(of: scrollPosition) {
+            isScrolling = true
             updateTimer.scheduleUpdate {
                 updateAverages()
+                isScrolling = false
             }
         }
         .onChange(of: selectedDuration) {
@@ -223,11 +267,9 @@ struct MealStatsView: View {
 
             Spacer()
 
-            Text(
-                "\(visibleDateRange.start.formatted(.dateTime.month().day())) - \(visibleDateRange.end.formatted(.dateTime.month().day()))"
-            )
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
+            Text(formatVisibleDateRange(showTimeRange: isScrolling))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
     }
 }

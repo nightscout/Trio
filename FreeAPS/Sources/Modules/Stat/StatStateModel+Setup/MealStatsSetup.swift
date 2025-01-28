@@ -46,25 +46,31 @@ extension Stat.StateModel {
 
             let calendar = Calendar.current
 
-            // Group entries by day using calendar's startOfDay
+            // Group entries by day or hour depending on selected duration
             let groupedEntries = Dictionary(grouping: fetchedResults) { entry in
-                calendar.startOfDay(for: entry.date ?? Date())
+                if self.selectedDurationForMealStats == .Day {
+                    // For Day view, group by hour
+                    let components = calendar.dateComponents([.year, .month, .day, .hour], from: entry.date ?? Date())
+                    return calendar.date(from: components) ?? Date()
+                } else {
+                    // For other views, group by day
+                    return calendar.startOfDay(for: entry.date ?? Date())
+                }
             }
 
-            // Get all unique dates from the entries - they'll already be sorted
-            let dates = groupedEntries.keys.sorted()
+            // Get all unique dates/hours from the entries
+            let timePoints = groupedEntries.keys.sorted()
 
-            // Calculate statistics for each day
-            return dates.map { date in
-                let entries = groupedEntries[date, default: []]
+            // Calculate statistics for each time point
+            return timePoints.map { timePoint in
+                let entries = groupedEntries[timePoint, default: []]
 
-                // Sum up macronutrients for the day
                 let carbsTotal = entries.reduce(0.0) { $0 + $1.carbs }
                 let fatTotal = entries.reduce(0.0) { $0 + $1.fat }
                 let proteinTotal = entries.reduce(0.0) { $0 + $1.protein }
 
                 return MealStats(
-                    date: date,
+                    date: timePoint,
                     carbs: carbsTotal,
                     fat: fatTotal,
                     protein: proteinTotal

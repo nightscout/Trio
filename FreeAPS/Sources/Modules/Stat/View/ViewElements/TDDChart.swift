@@ -11,6 +11,7 @@ struct TDDChartView: View {
     @State private var currentAverageTDD: Decimal = 0
     @State private var currentMedianTDD: Decimal = 0
     @State private var selectedDate: Date?
+    @State private var isScrolling = false
 
     @State private var updateTimer = Stat.UpdateTimer()
 
@@ -35,7 +36,7 @@ struct TDDChartView: View {
     private var dateFormat: Date.FormatStyle {
         switch selectedDuration {
         case .Day:
-            return .dateTime.weekday(.abbreviated)
+            return .dateTime.hour()
         case .Week:
             return .dateTime.weekday(.abbreviated)
         case .Month:
@@ -90,8 +91,10 @@ struct TDDChartView: View {
                 updateStats()
             }
             .onChange(of: scrollPosition) {
+                isScrolling = true
                 updateTimer.scheduleUpdate {
                     updateStats()
+                    isScrolling = false
                 }
             }
             .onChange(of: selectedDuration) {
@@ -109,8 +112,8 @@ struct TDDChartView: View {
             Chart {
                 ForEach(tddStats) { entry in
                     BarMark(
-                        x: .value("Date", entry.timestamp ?? Date(), unit: .day),
-                        y: .value("Insulin", entry.totalDailyDose ?? 0)
+                        x: .value("Date", entry.timestamp ?? Date(), unit: selectedDuration == .Day ? .hour : .day),
+                        y: .value("TDD", entry.totalDailyDose ?? 0)
                     )
                     .foregroundStyle(Color.insulin.gradient)
                 }
@@ -138,18 +141,23 @@ struct TDDChartView: View {
                 }
             }
             .chartXAxis {
-                AxisMarks(preset: .aligned, values: .stride(by: .day)) { value in
+                AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .Day ? .hour : .day)) { value in
                     if let date = value.as(Date.self) {
                         let day = Calendar.current.component(.day, from: date)
+                        let hour = Calendar.current.component(.hour, from: date)
 
                         switch selectedDuration {
+                        case .Day:
+                            if hour % 6 == 0 { // Show only every 6 hours
+                                AxisValueLabel(format: dateFormat, centered: true)
+                                AxisGridLine()
+                            }
                         case .Month:
                             if day % 5 == 0 { // Only show every 5th day
                                 AxisValueLabel(format: dateFormat, centered: true)
                                 AxisGridLine()
                             }
                         case .Total:
-                            // Only show January, April, July, October
                             if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
                                 AxisValueLabel(format: dateFormat, centered: true)
                                 AxisGridLine()
@@ -166,7 +174,9 @@ struct TDDChartView: View {
             .chartScrollPosition(x: $scrollPosition)
             .chartScrollTargetBehavior(
                 .valueAligned(
-                    matching: DateComponents(hour: 0), // Align to start of day
+                    matching: selectedDuration == .Day ?
+                        DateComponents(minute: 0) : // Align to next hour for Day view
+                        DateComponents(hour: 0), // Align to start of day for other views
                     majorAlignment: .matching(alignmentComponents)
                 )
             )
@@ -206,11 +216,40 @@ struct TDDChartView: View {
 
             Spacer()
 
-            Text(
-                "\(visibleDateRange.start.formatted(.dateTime.month().day())) - \(visibleDateRange.end.formatted(.dateTime.month().day()))"
-            )
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
+            Text(formatVisibleDateRange(showTimeRange: isScrolling))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func formatVisibleDateRange(showTimeRange: Bool = false) -> String {
+        let start = visibleDateRange.start
+        let end = visibleDateRange.end
+        let calendar = Calendar.current
+
+        switch selectedDuration {
+        case .Day:
+            let today = Date()
+            let isToday = calendar.isDate(start, inSameDayAs: today)
+            let isYesterday = calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!)
+
+            if isToday || isYesterday, !showTimeRange {
+                return isToday ? "Today" : "Yesterday"
+            }
+
+            let timeRange =
+                "\(start.formatted(.dateTime.hour(.twoDigits(amPM: .wide)))) - \(end.formatted(.dateTime.hour(.twoDigits(amPM: .wide))))"
+
+            if isToday {
+                return "Today, \(timeRange)"
+            } else if isYesterday {
+                return "Yesterday, \(timeRange)"
+            } else {
+                return "\(start.formatted(.dateTime.month().day())), \(timeRange)"
+            }
+
+        default:
+            return "\(start.formatted(.dateTime.month().day())) - \(end.formatted(.dateTime.month().day()))"
         }
     }
 

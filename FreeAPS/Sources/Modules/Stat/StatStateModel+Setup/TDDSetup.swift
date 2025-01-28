@@ -24,26 +24,40 @@ extension Stat.StateModel {
         return await determinationFetchContext.perform {
             guard let fetchedResults = results as? [[String: Any]] else { return [] }
 
-            // Group determinations by day
             let calendar = Calendar.current
-            let groupedByDay = Dictionary(grouping: fetchedResults) { result -> Date in
+
+            // Group determinations by day or hour
+            let groupedByTime = Dictionary(grouping: fetchedResults) { result -> Date in
                 guard let deliverAt = result["deliverAt"] as? Date else { return Date() }
-                return calendar.startOfDay(for: deliverAt)
+
+                if self.selectedDurationForInsulinStats == .Day {
+                    // For Day view, group by hour
+                    let components = calendar.dateComponents([.year, .month, .day, .hour], from: deliverAt)
+                    return calendar.date(from: components) ?? Date()
+                } else {
+                    // For other views, group by day
+                    return calendar.startOfDay(for: deliverAt)
+                }
             }
 
-            // Calculate total daily doses for each day
-            return groupedByDay.map { date, determinations -> TDD in
+            // Get all unique time points
+            let timePoints = groupedByTime.keys.sorted()
+
+            // Calculate totals for each time point
+            return timePoints.map { timePoint in
+                let determinations = groupedByTime[timePoint, default: []]
+
                 let totalDose = determinations.reduce(Decimal.zero) { sum, determination in
                     sum + (determination["totalDailyDose"] as? Decimal ?? 0)
                 }
 
-                // Calculate average dose for the day
+                // Calculate average dose for the time period
                 let count = Decimal(determinations.count)
                 let averageDose = count > 0 ? totalDose / count : 0
 
                 return TDD(
                     totalDailyDose: averageDose,
-                    timestamp: date
+                    timestamp: timePoint
                 )
             }
         }

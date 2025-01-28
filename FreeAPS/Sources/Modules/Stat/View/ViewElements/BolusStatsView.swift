@@ -10,6 +10,7 @@ struct BolusStatsView: View {
     @State private var selectedDate: Date?
     @State private var currentAverages: (manual: Double, smb: Double, external: Double) = (0, 0, 0)
     @State private var updateTimer = Stat.UpdateTimer()
+    @State private var isScrolling = false
 
     private var visibleDomainLength: TimeInterval {
         switch selectedDuration {
@@ -30,7 +31,7 @@ struct BolusStatsView: View {
     private var dateFormat: Date.FormatStyle {
         switch selectedDuration {
         case .Day:
-            return .dateTime.weekday(.abbreviated)
+            return .dateTime.hour()
         case .Week:
             return .dateTime.weekday(.abbreviated)
         case .Month:
@@ -69,6 +70,37 @@ struct BolusStatsView: View {
         }
     }
 
+    private func formatVisibleDateRange(showTimeRange: Bool = false) -> String {
+        let start = visibleDateRange.start
+        let end = visibleDateRange.end
+        let calendar = Calendar.current
+
+        switch selectedDuration {
+        case .Day:
+            let today = Date()
+            let isToday = calendar.isDate(start, inSameDayAs: today)
+            let isYesterday = calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!)
+
+            if isToday || isYesterday, !showTimeRange {
+                return isToday ? "Today" : "Yesterday"
+            }
+
+            let timeRange =
+                "\(start.formatted(.dateTime.hour(.twoDigits(amPM: .wide)))) - \(end.formatted(.dateTime.hour(.twoDigits(amPM: .wide))))"
+
+            if isToday {
+                return "Today, \(timeRange)"
+            } else if isYesterday {
+                return "Yesterday, \(timeRange)"
+            } else {
+                return "\(start.formatted(.dateTime.month().day())), \(timeRange)"
+            }
+
+        default:
+            return "\(start.formatted(.dateTime.month().day())) - \(end.formatted(.dateTime.month().day()))"
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             statsView
@@ -77,21 +109,21 @@ struct BolusStatsView: View {
                 ForEach(bolusStats) { stat in
                     // External Bolus (Bottom)
                     BarMark(
-                        x: .value("Date", stat.date, unit: .day),
+                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
                         y: .value("Amount", stat.external)
                     )
                     .foregroundStyle(by: .value("Type", "External"))
 
                     // SMB (Middle)
                     BarMark(
-                        x: .value("Date", stat.date, unit: .day),
+                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
                         y: .value("Amount", stat.smb)
                     )
                     .foregroundStyle(by: .value("Type", "SMB"))
 
                     // Manual Bolus (Top)
                     BarMark(
-                        x: .value("Date", stat.date, unit: .day),
+                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
                         y: .value("Amount", stat.manualBolus)
                     )
                     .foregroundStyle(by: .value("Type", "Manual"))
@@ -123,25 +155,30 @@ struct BolusStatsView: View {
                 AxisMarks(position: .trailing) { value in
                     if let amount = value.as(Double.self) {
                         AxisValueLabel {
-                            Text(amount.formatted(.number.precision(.fractionLength(1))) + " U")
+                            Text(amount.formatted(.number.precision(.fractionLength(0))) + " U")
                         }
                         AxisGridLine()
                     }
                 }
             }
             .chartXAxis {
-                AxisMarks(preset: .aligned, values: .stride(by: .day)) { value in
+                AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .Day ? .hour : .day)) { value in
                     if let date = value.as(Date.self) {
                         let day = Calendar.current.component(.day, from: date)
+                        let hour = Calendar.current.component(.hour, from: date)
 
                         switch selectedDuration {
+                        case .Day:
+                            if hour % 6 == 0 { // Show only every 6 hours (0, 6, 12, 18)
+                                AxisValueLabel(format: dateFormat, centered: true)
+                                AxisGridLine()
+                            }
                         case .Month:
                             if day % 5 == 0 { // Only show every 5th day
                                 AxisValueLabel(format: dateFormat, centered: true)
                                 AxisGridLine()
                             }
                         case .Total:
-                            // Only show January, April, July, October
                             if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
                                 AxisValueLabel(format: dateFormat, centered: true)
                                 AxisGridLine()
@@ -158,7 +195,9 @@ struct BolusStatsView: View {
             .chartScrollPosition(x: $scrollPosition)
             .chartScrollTargetBehavior(
                 .valueAligned(
-                    matching: DateComponents(hour: 0), // Align to start of day
+                    matching: selectedDuration == .Day ?
+                        DateComponents(minute: 0) : // Align to next hour for Day view
+                        DateComponents(hour: 0), // Align to start of day for other views
                     majorAlignment: .matching(alignmentComponents)
                 )
             )
@@ -170,8 +209,10 @@ struct BolusStatsView: View {
             updateAverages()
         }
         .onChange(of: scrollPosition) {
+            isScrolling = true
             updateTimer.scheduleUpdate {
                 updateAverages()
+                isScrolling = false
             }
         }
         .onChange(of: selectedDuration) {
@@ -223,11 +264,9 @@ struct BolusStatsView: View {
 
             Spacer()
 
-            Text(
-                "\(visibleDateRange.start.formatted(.dateTime.month().day())) - \(visibleDateRange.end.formatted(.dateTime.month().day()))"
-            )
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
+            Text(formatVisibleDateRange(showTimeRange: isScrolling))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
     }
 }

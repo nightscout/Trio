@@ -26,7 +26,7 @@ extension Stat.StateModel {
 
     /// Fetches and processes bolus statistics for a specific date range
     /// - Returns: Array of BolusStats containing daily bolus statistics
-    func fetchBolusStats() async -> [BolusStats] {
+    private func fetchBolusStats() async -> [BolusStats] {
         let calendar = Calendar.current
 
         // Fetch bolus records from Core Data
@@ -42,14 +42,27 @@ extension Stat.StateModel {
         return await bolusTaskContext.perform {
             guard let fetchedResults = results as? [BolusStored] else { return [] }
 
-            // Group boluses by day
-            let groupedByDay = Dictionary(grouping: fetchedResults) { bolus -> Date in
+            // Group boluses by day or hour depending on selected duration
+            let groupedByTime = Dictionary(grouping: fetchedResults) { bolus -> Date in
                 guard let timestamp = bolus.pumpEvent?.timestamp else { return Date() }
-                return calendar.startOfDay(for: timestamp)
+
+                if self.selectedDurationForInsulinStats == .Day {
+                    // For Day view, group by hour
+                    let components = calendar.dateComponents([.year, .month, .day, .hour], from: timestamp)
+                    return calendar.date(from: components) ?? Date()
+                } else {
+                    // For other views, group by day
+                    return calendar.startOfDay(for: timestamp)
+                }
             }
 
-            // Calculate daily totals
-            return groupedByDay.map { date, boluses -> BolusStats in
+            // Get all unique time points
+            let timePoints = groupedByTime.keys.sorted()
+
+            // Calculate totals for each time point
+            return timePoints.map { timePoint in
+                let boluses = groupedByTime[timePoint, default: []]
+
                 // Calculate total manual boluses (excluding SMB and external)
                 let manualBolus = boluses
                     .filter { !($0.isExternal || $0.isSMB) }
@@ -66,7 +79,7 @@ extension Stat.StateModel {
                     .reduce(0.0) { $0 + (($1.amount as? Decimal) ?? 0).doubleValue }
 
                 return BolusStats(
-                    date: date,
+                    date: timePoint,
                     manualBolus: manualBolus,
                     smb: smb,
                     external: external
