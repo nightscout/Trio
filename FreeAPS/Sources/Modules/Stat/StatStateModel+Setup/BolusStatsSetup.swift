@@ -15,72 +15,53 @@ struct BolusStats: Identifiable {
 }
 
 extension Stat.StateModel {
-    /// Updates the bolus statistics for the currently selected time period
-    func updateBolusStats() {
+    func setupBolusStats() {
         Task {
-//            let stats = await fetchBolusStats(days: requestedDaysTDD, endDate: requestedEndDayTDD)
-//            await MainActor.run {
-//                self.bolusStats = stats
-//            }
+            let stats = await fetchBolusStats()
+            await MainActor.run {
+                self.bolusStats = stats
+            }
         }
     }
 
     /// Fetches and processes bolus statistics for a specific date range
-    /// - Parameters:
-    ///   - days: Number of days to fetch
-    ///   - endDate: The end date of the range
     /// - Returns: Array of BolusStats containing daily bolus statistics
-    func fetchBolusStats(days: Int, endDate: Date) async -> [BolusStats] {
+    func fetchBolusStats() async -> [BolusStats] {
         let calendar = Calendar.current
-        let endDate = calendar.startOfDay(for: endDate)
-        let startDate = calendar.date(byAdding: .day, value: -(days - 1), to: endDate)!
 
         // Fetch bolus records from Core Data
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: BolusStored.self,
             onContext: bolusTaskContext,
-            predicate: NSPredicate(
-                format: "pumpEvent.timestamp >= %@ AND pumpEvent.timestamp < %@",
-                startDate as NSDate,
-                calendar.date(byAdding: .day, value: 1, to: endDate)! as NSDate
-            ),
+            predicate: NSPredicate.pumpHistoryForStats,
             key: "pumpEvent.timestamp",
-            ascending: false,
+            ascending: true,
             batchSize: 100
         )
 
         return await bolusTaskContext.perform {
             guard let fetchedResults = results as? [BolusStored] else { return [] }
 
-            // Group entries by day
-            let groupedEntries = Dictionary(grouping: fetchedResults) { entry in
-                calendar.startOfDay(for: entry.pumpEvent?.timestamp ?? Date())
+            // Group boluses by day
+            let groupedByDay = Dictionary(grouping: fetchedResults) { bolus -> Date in
+                guard let timestamp = bolus.pumpEvent?.timestamp else { return Date() }
+                return calendar.startOfDay(for: timestamp)
             }
 
-            // Create array of all dates in the range
-            var dates: [Date] = []
-            var currentDate = startDate
-            while currentDate <= endDate {
-                dates.append(calendar.startOfDay(for: currentDate))
-                currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
-            }
-
-            // Calculate statistics for each day
-            return dates.map { date in
-                let dayEntries = groupedEntries[date, default: []]
-
+            // Calculate daily totals
+            return groupedByDay.map { date, boluses -> BolusStats in
                 // Calculate total manual boluses (excluding SMB and external)
-                let manualBolus = dayEntries
+                let manualBolus = boluses
                     .filter { !($0.isExternal || $0.isSMB) }
                     .reduce(0.0) { $0 + (($1.amount as? Decimal) ?? 0).doubleValue }
 
                 // Calculate total SMB
-                let smb = dayEntries
+                let smb = boluses
                     .filter { $0.isSMB }
                     .reduce(0.0) { $0 + (($1.amount as? Decimal) ?? 0).doubleValue }
 
                 // Calculate total external boluses
-                let external = dayEntries
+                let external = boluses
                     .filter { $0.isExternal }
                     .reduce(0.0) { $0 + (($1.amount as? Decimal) ?? 0).doubleValue }
 
@@ -90,8 +71,27 @@ extension Stat.StateModel {
                     smb: smb,
                     external: external
                 )
-            }.sorted { $0.date < $1.date }
+            }
         }
+    }
+
+    func calculateAverageBolus(from startDate: Date, to endDate: Date) -> (manual: Double, smb: Double, external: Double) {
+        let visibleStats = bolusStats.filter { stat in
+            stat.date >= startDate && stat.date <= endDate
+        }
+
+        guard !visibleStats.isEmpty else { return (0, 0, 0) }
+
+        let count = Double(visibleStats.count)
+        let manualSum = visibleStats.reduce(0.0) { $0 + $1.manualBolus }
+        let smbSum = visibleStats.reduce(0.0) { $0 + $1.smb }
+        let externalSum = visibleStats.reduce(0.0) { $0 + $1.external }
+
+        return (
+            manualSum / count,
+            smbSum / count,
+            externalSum / count
+        )
     }
 }
 

@@ -158,39 +158,48 @@ extension Stat {
             }
             .pickerStyle(.segmented)
 
-            switch selectedInsulinChartType {
-            case .totalDailyDose:
-                if state.tddStats.isEmpty {
-                    ContentUnavailableView(
-                        "No TDD Data",
-                        systemImage: "chart.bar.xaxis",
-                        description: Text("Total Daily Doses will appear here once data is available.")
-                    )
-                } else {
-                    TDDChartView(
-                        selectedDuration: state.selectedDurationForInsulinStats,
-                        tddStats: state.tddStats,
-                        calculateAverage: { start, end in
-                            state.calculateAverageTDD(from: start, to: end)
-                        }
-                    )
-                }
+            StatCard {
+                switch selectedInsulinChartType {
+                case .totalDailyDose:
+                    if state.tddStats.isEmpty {
+                        ContentUnavailableView(
+                            "No TDD Data",
+                            systemImage: "chart.bar.xaxis",
+                            description: Text("Total Daily Doses will appear here once data is available.")
+                        )
+                    } else {
+                        TDDChartView(
+                            selectedDuration: $state.selectedDurationForInsulinStats,
+                            tddStats: state.tddStats,
+                            calculateAverage: { start, end in
+                                await state.calculateAverageTDD(from: start, to: end)
+                            },
+                            calculateMedian: { start, end in
+                                await state.calculateMedianTDD(from: start, to: end)
+                            }
+                        )
+                    }
 
-            case .bolusDistribution:
-                var hasBolusData: Bool {
-                    state.bolusStats.contains { $0.manualBolus > 0 || $0.smb > 0 || $0.external > 0 }
-                }
+                case .bolusDistribution:
+                    var hasBolusData: Bool {
+                        state.bolusStats.contains { $0.manualBolus > 0 || $0.smb > 0 || $0.external > 0 }
+                    }
 
-                if state.bolusStats.isEmpty || !hasBolusData {
-                    ContentUnavailableView(
-                        "No Bolus Data",
-                        systemImage: "cross.vial",
-                        description: Text("Bolus statistics will appear here once data is available.")
-                    )
-                } else {
-                    BolusStatsView(
-                        bolusStats: state.bolusStats
-                    )
+                    if state.bolusStats.isEmpty || !hasBolusData {
+                        ContentUnavailableView(
+                            "No Bolus Data",
+                            systemImage: "cross.vial",
+                            description: Text("Bolus statistics will appear here once data is available.")
+                        )
+                    } else {
+                        BolusStatsView(
+                            selectedDuration: $state.selectedDurationForInsulinStats,
+                            bolusStats: state.bolusStats,
+                            calculateAverages: { start, end in
+                                await state.calculateAverageBolus(from: start, to: end)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -337,8 +346,8 @@ extension Stat {
             }.padding(.horizontal)
 
             Picker("Duration", selection: $state.selectedDurationForMealStats) {
-                ForEach(StateModel.Duration.allCases, id: \.self) { duration in
-                    Text(duration.rawValue)
+                ForEach(StateModel.StatsTimeInterval.allCases, id: \.self) { timeInterval in
+                    Text(timeInterval.rawValue)
                 }
             }
             .pickerStyle(.segmented)
@@ -358,8 +367,11 @@ extension Stat {
                         )
                     } else {
                         MealStatsView(
+                            selectedDuration: $state.selectedDurationForMealStats,
                             mealStats: state.mealStats,
-                            selectedDuration: state.selectedDurationForMealStats
+                            calculateAverages: { start, end in
+                                await state.calculateAverageMealStats(from: start, to: end)
+                            }
                         )
                     }
                 case .mealToHypoHyperDistribution:

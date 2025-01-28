@@ -63,6 +63,11 @@ extension NSPredicate {
         return NSPredicate(format: "timestamp >= %@", date as NSDate)
     }
 
+    static var pumpHistoryForStats: NSPredicate {
+        let date = Date.threeMonthsAgo
+        return NSPredicate(format: "pumpEvent.timestamp >= %@", date as NSDate)
+    }
+
     static var recentPumpHistory: NSPredicate {
         let date = Date.twentyMinutesAgo
         return NSPredicate(format: "timestamp >= %@", date as NSDate)

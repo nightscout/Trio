@@ -17,6 +17,7 @@ extension Stat {
         var groupedLoopStats: [LoopStatsByPeriod] = []
         var mealStats: [MealStats] = []
         var tddStats: [TDD] = []
+        var bolusStats: [BolusStats] = []
         var selectedDurationForGlucoseStats: Duration = .Today {
             didSet {
                 setupGlucoseArray(for: selectedDurationForGlucoseStats)
@@ -24,16 +25,11 @@ extension Stat {
         }
 
         var selectedDurationForInsulinStats: StatsTimeInterval = .Day
+        var selectedDurationForMealStats: StatsTimeInterval = .Day
 
         var selectedDurationForLoopStats: Duration = .Today {
             didSet {
                 setupLoopStatRecords()
-            }
-        }
-
-        var selectedDurationForMealStats: Duration = .Today {
-            didSet {
-                setupMealStats(for: selectedDurationForMealStats)
             }
         }
 
@@ -66,14 +62,12 @@ extension Stat {
         var hourlyStats: [HourlyStats] = []
         var glucoseRangeStats: [GlucoseRangeStats] = []
 
-        var bolusStats: [BolusStats] = []
-
         override func subscribe() {
             setupGlucoseArray(for: .Today)
             setupTDDs()
+            setupBolusStats()
             setupLoopStatRecords()
-            setupMealStats(for: selectedDurationForMealStats)
-            updateBolusStats()
+            setupMealStats()
             highLimit = settingsManager.settings.high
             lowLimit = settingsManager.settings.low
             units = settingsManager.settings.units
@@ -90,15 +84,6 @@ extension Stat {
                 async let hourlyStats: () = calculateHourlyStatsForGlucoseAreaChart(from: ids)
                 async let glucoseRangeStats: () = calculateGlucoseRangeStatsForStackedChart(from: ids)
                 _ = await (hourlyStats, glucoseRangeStats)
-            }
-        }
-
-        func setupTDDs() {
-            Task {
-                let tddStats = await fetchAndMapDeterminations()
-                await MainActor.run {
-                    self.tddStats = tddStats
-                }
             }
         }
 
@@ -147,47 +132,22 @@ extension Stat {
                 )
             }
         }
+    }
 
-        var averageTDD: Decimal {
-            let calendar = Calendar.current
-            let now = Date()
+    @Observable final class UpdateTimer {
+        private var workItem: DispatchWorkItem?
 
-            // Filter TDDs based on selected time frame
-            let filteredTDDs: [TDD] = tddStats.filter { tdd in
-                guard let timestamp = tdd.timestamp else { return false }
+        func scheduleUpdate(action: @escaping () -> Void) {
+            workItem?.cancel()
 
-                switch selectedDurationForInsulinStats {
-                case .Day:
-                    // Last 3 days
-                    let threeDaysAgo = calendar.date(byAdding: .day, value: -3, to: now)!
-                    return timestamp >= threeDaysAgo
-                case .Week:
-                    // Last week
-                    let weekAgo = calendar.date(byAdding: .weekOfYear, value: -1, to: now)!
-                    return timestamp >= weekAgo
-                case .Month:
-                    // Last month
-                    let monthAgo = calendar.date(byAdding: .month, value: -1, to: now)!
-                    return timestamp >= monthAgo
-                case .Total:
-                    // Last 3 months
-                    let threeMonthsAgo = calendar.date(byAdding: .month, value: -3, to: now)!
-                    return timestamp >= threeMonthsAgo
+            let newWorkItem = DispatchWorkItem {
+                Task { @MainActor in
+                    action()
                 }
             }
+            workItem = newWorkItem
 
-            let sum = filteredTDDs.reduce(Decimal.zero) { $0 + ($1.totalDailyDose ?? 0) }
-            return filteredTDDs.isEmpty ? 0 : sum / Decimal(filteredTDDs.count)
-        }
-
-        func calculateAverageTDD(from startDate: Date, to endDate: Date) -> Decimal {
-            let filteredTDDs = tddStats.filter { tdd in
-                guard let timestamp = tdd.timestamp else { return false }
-                return timestamp >= startDate && timestamp <= endDate
-            }
-
-            let sum = filteredTDDs.reduce(Decimal.zero) { $0 + ($1.totalDailyDose ?? 0) }
-            return filteredTDDs.isEmpty ? 0 : sum / Decimal(filteredTDDs.count)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: newWorkItem)
         }
     }
 }

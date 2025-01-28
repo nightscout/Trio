@@ -2,13 +2,17 @@ import Charts
 import SwiftUI
 
 struct TDDChartView: View {
-    let selectedDuration: Stat.StateModel.StatsTimeInterval
+    @Binding var selectedDuration: Stat.StateModel.StatsTimeInterval
     let tddStats: [TDD]
-    let calculateAverage: (Date, Date) -> Decimal
+    let calculateAverage: @Sendable(Date, Date) async -> Decimal
+    let calculateMedian: @Sendable(Date, Date) async -> Decimal
 
     @State private var scrollPosition = Date()
     @State private var currentAverageTDD: Decimal = 0
+    @State private var currentMedianTDD: Decimal = 0
     @State private var selectedDate: Date?
+
+    @State private var updateTimer = Stat.UpdateTimer()
 
     private var visibleDomainLength: TimeInterval {
         switch selectedDuration {
@@ -28,10 +32,6 @@ struct TDDChartView: View {
         }
     }
 
-    private var strideInterval: Calendar.Component {
-        .day
-    }
-
     private var dateFormat: Date.FormatStyle {
         switch selectedDuration {
         case .Day:
@@ -48,13 +48,12 @@ struct TDDChartView: View {
     private var alignmentComponents: DateComponents {
         switch selectedDuration {
         case .Day:
-            return DateComponents(hour: 0)
+            return DateComponents(hour: 0) // Align to start of day
         case .Week:
-            return DateComponents(weekday: 1)
-        case .Month:
-            return DateComponents(day: 1)
-        case .Total:
-            return DateComponents(day: 1, hour: 0)
+            return DateComponents(weekday: 2) // 2 = Monday in Calendar
+        case .Month,
+             .Total:
+            return DateComponents(day: 1) // Align to first day of month
         }
     }
 
@@ -65,9 +64,17 @@ struct TDDChartView: View {
         return (start, end)
     }
 
-    private func updateAverage() {
-        let (start, end) = visibleDateRange
-        currentAverageTDD = calculateAverage(start, end)
+    private func updateStats() {
+        Task.detached(priority: .userInitiated) {
+            let dateRange = await MainActor.run { visibleDateRange }
+            let avgTDD = await calculateAverage(dateRange.start, dateRange.end)
+            let medTDD = await calculateMedian(dateRange.start, dateRange.end)
+
+            await MainActor.run {
+                currentAverageTDD = avgTDD
+                currentMedianTDD = medTDD
+            }
+        }
     }
 
     private func getTDDForDate(_ date: Date) -> TDD? {
@@ -79,11 +86,17 @@ struct TDDChartView: View {
 
     var body: some View {
         chartCard
-            .onChange(of: scrollPosition) {
-                updateAverage()
-            }
             .onAppear {
-                updateAverage()
+                updateStats()
+            }
+            .onChange(of: scrollPosition) {
+                updateTimer.scheduleUpdate {
+                    updateStats()
+                }
+            }
+            .onChange(of: selectedDuration) {
+                updateStats()
+                scrollPosition = Date()
             }
     }
 
@@ -91,27 +104,12 @@ struct TDDChartView: View {
 
     private var chartCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Total Daily Doses")
-                    .font(.headline)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Average: \(currentAverageTDD.formatted(.number.precision(.fractionLength(1)))) U")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-
-                    Text(
-                        "\(visibleDateRange.start.formatted(.dateTime.month().day())) - \(visibleDateRange.end.formatted(.dateTime.month().day()))"
-                    )
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                }
-            }
+            statsView
 
             Chart {
                 ForEach(tddStats) { entry in
                     BarMark(
-                        x: .value("Date", entry.timestamp ?? Date(), unit: strideInterval),
+                        x: .value("Date", entry.timestamp ?? Date(), unit: .day),
                         y: .value("Insulin", entry.totalDailyDose ?? 0)
                     )
                     .foregroundStyle(Color.insulin.gradient)
@@ -140,7 +138,7 @@ struct TDDChartView: View {
                 }
             }
             .chartXAxis {
-                AxisMarks(preset: .aligned, values: .stride(by: strideInterval)) { value in
+                AxisMarks(preset: .aligned, values: .stride(by: .day)) { value in
                     if let date = value.as(Date.self) {
                         let day = Calendar.current.component(.day, from: date)
 
@@ -174,6 +172,45 @@ struct TDDChartView: View {
             )
             .chartXVisibleDomain(length: visibleDomainLength)
             .frame(height: 200)
+        }
+    }
+
+    private var statsView: some View {
+        HStack {
+            Grid(alignment: .leading) {
+                GridRow {
+                    Text("Average:")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                    Text(currentAverageTDD.formatted(.number.precision(.fractionLength(1))))
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .gridColumnAlignment(.trailing)
+                    Text("U")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                }
+                GridRow {
+                    Text("Median:")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                    Text(currentMedianTDD.formatted(.number.precision(.fractionLength(1))))
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .gridColumnAlignment(.trailing)
+                    Text("U")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer()
+
+            Text(
+                "\(visibleDateRange.start.formatted(.dateTime.month().day())) - \(visibleDateRange.end.formatted(.dateTime.month().day()))"
+            )
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
         }
     }
 
