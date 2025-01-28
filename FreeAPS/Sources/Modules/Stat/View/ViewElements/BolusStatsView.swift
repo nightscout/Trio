@@ -158,7 +158,7 @@ struct BolusStatsView: View {
             .chartScrollPosition(x: $scrollPosition)
             .chartScrollTargetBehavior(
                 .valueAligned(
-                    matching: alignmentComponents,
+                    matching: DateComponents(hour: 0), // Align to start of day
                     majorAlignment: .matching(alignmentComponents)
                 )
             )

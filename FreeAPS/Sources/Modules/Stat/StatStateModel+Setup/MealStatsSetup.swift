@@ -77,7 +77,7 @@ extension Stat.StateModel {
         from startDate: Date,
         to endDate: Date
     ) async -> (carbs: Double, fat: Double, protein: Double) {
-        let filteredStats = self.mealStats.filter { stat in
+        let filteredStats = mealStats.filter { stat in
             stat.date >= startDate && stat.date <= endDate
         }
 
