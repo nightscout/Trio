@@ -135,6 +135,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         setupNotification()
 
         /// Ensure that Nightscout Manager holds the `lastEnactedDetermination`, if one exists, on initialization.
+        /// We have to set this here in `init()`, so there's a `lastEnactedDetermination` available after an app restart
+        /// for `uploadStatus()`, as within that fuction `lastEnactedDetermination` is reassigned at the very end of the function.
+        /// This way, we ensure the latest enacted determination is always part of `devicestatus` and avoid having instances
+        /// where the first uploaded non-enacted determination (i.e., "suggested"), lacks the "enacted" data.
         Task {
             async let lastEnactedDeterminationID = determinationStorage
                 .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
@@ -400,6 +404,24 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
+    /// Asynchronously uploads the current status to Nightscout, including OpenAPS status, pump status, and uploader details.
+    ///
+    /// This function gathers and processes various pieces of information such as the "enacted" and "suggested" determinations,
+    /// pump battery and reservoir levels, insulin-on-board (IOB), and the uploader's battery status. It ensures that only
+    /// valid determinations are uploaded by filtering out duplicates and handling unit conversions based on the user's
+    /// settings. If the status upload is successful, it updates the determination storage to mark them as uploaded.
+    ///
+    /// Key steps:
+    /// - Fetch the last unuploaded enacted and suggested determinations from the storage.
+    /// - Retrieve pump-related data such as battery, reservoir, and status.
+    /// - Parse determinations to ensure they are properly formatted for Nightscout, including unit conversions if needed.
+    /// - Construct an `OpenAPSStatus` object with relevant information for upload.
+    /// - Construct a `NightscoutStatus` object with all gathered data.
+    /// - Attempt to upload the status to Nightscout. On success, update the storage to mark determinations as uploaded.
+    /// - Schedule a task to upload pod age data separately.
+    ///
+    /// - Note: Ensure `nightscoutAPI` is initialized and `isUploadEnabled` is set to `true` before invoking this function.
+    /// - Returns: Nothing.
     func uploadStatus() async {
         guard let nightscout = nightscoutAPI, isUploadEnabled else {
             debug(.nightscout, "NS API not available or upload disabled. Aborting NS Status upload.")
