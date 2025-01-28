@@ -137,17 +137,17 @@ struct MealStatsView: View {
                         switch selectedDuration {
                         case .Month:
                             if day % 5 == 0 { // Only show every 5th day
-                                AxisValueLabel(format: dateFormat)
+                                AxisValueLabel(format: dateFormat, centered: true)
                                 AxisGridLine()
                             }
                         case .Total:
                             // Only show January, April, July, October
                             if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
-                                AxisValueLabel(format: dateFormat)
+                                AxisValueLabel(format: dateFormat, centered: true)
                                 AxisGridLine()
                             }
                         default:
-                            AxisValueLabel(format: dateFormat)
+                            AxisValueLabel(format: dateFormat, centered: true)
                             AxisGridLine()
                         }
                     }
