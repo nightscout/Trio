@@ -29,7 +29,7 @@ This method for building without a Mac was ported from Loop. If you have used th
 
 There are more detailed instructions in LoopDocs for doing Browser Builds of Loop and other apps, including troubleshooting and build errors. Please refer to [LoopDocs](https://loopkit.github.io/loopdocs/gh-actions/gh-other-apps/) for more details.
 
-If you build multiple apps, you may want to use a free *GitHub* organization. Please refer to [LoopDocs: Use a *GitHub* Organization Account](https://loopkit.github.io/loopdocs/gh-actions/gh-other-apps/#use-a-github-organization-account).
+If you build multiple apps, it is strongly recommended that you configure a free *GitHub* organization and do all your building in the organization. This means you enter items one time for the organization (6 SECRETS required to build and 1 VARIABLE required to automatically update your certificates annually). Otherwise, those 6 SECRETS must be entered for every repository. Please refer to [LoopDocs: Use a *GitHub* Organization Account](https://loopkit.github.io/loopdocs/gh-actions/gh-other-apps/#use-a-github-organization-account).
 
 ## Prerequisites
 
@@ -62,7 +62,7 @@ This step is common for all GitHub Browser Builds; do this step only once. You w
 
 ## Create GitHub Personal Access Token
 
-If you have previously built another app using the "browser build" method, you use the same personal access token (`GH_PAT`), so skip this step.
+If you have previously built another app using the "browser build" method, you use the same personal access token (`GH_PAT`), so skip this step. If you use a free GitHub organization to build, you still use the same personal access token. This is created using your personal GitHub username.
 
 Log into your GitHub account to create a personal access token; this is one of two GitHub secrets needed for your build.
 
@@ -85,15 +85,20 @@ The first time you build with the GitHub Browser Build method for any DIY app, y
 
 ## Setup Github Trio repository
 
-1. Fork https://github.com/nightscout/Trio into your account. If you already have a fork of Trio in GitHub, you can't make another one. You can continue to work with your existing fork, or delete that from GitHub and then fork https://github.com/nightscout/Trio.
-1. In the forked Trio repo, go to Settings -> Secrets and variables -> Actions.
-1. For each of the following secrets, tap on "New repository secret", then add the name of the secret, along with the value you recorded for it:
+1. Fork https://github.com/nightscout/Trio into your GitHub username (using your organization if you have one). If you already have a fork of Trio in that username, you should not make another one. Do not rename the repository. You can continue to work with your existing fork, or delete that from GitHub and then fork again.
+1. If you are using an organization, do this step at the organization level, e.g., username-org. If you are not using an organization, do this step at the repository level, e.g., username/Trio:
+    * Go to Settings -> Secrets and variables -> Actions and make sure the Secrets tab is open
+1. For each of the following secrets, tap on "New organization secret" or "New repository secret", then add the name of the secret, along with the value you recorded for it:
     * `TEAMID`
     * `FASTLANE_ISSUER_ID`
     * `FASTLANE_KEY_ID`
     * `FASTLANE_KEY`
     * `GH_PAT`
     * `MATCH_PASSWORD`
+1. If you are using an organization, do this step at the organization level, e.g., username-org. If you are not using an organization, do this step at the repository level, e.g., username/Trio:
+    * Go to Settings -> Secrets and variables -> Actions and make sure the Variables tab is open
+1. Tap on "Create new organization variable" or "Create new repository variable", then add the name below and enter the value true. Unlike secrets these variables are visible and can be edited.
+    * `ENABLE_NUKE_CERTS`
 
 ## Validate repository secrets
 
@@ -191,7 +196,7 @@ There is an additional identifier, but it does not need the App Group added to i
 
 ## Create Trio App in App Store Connect
 
-If you created a Trio app in App Store Connect before, skip ahead to [Create Building Certficates](#create-building-certficates).
+If you created a Trio app in App Store Connect before, skip ahead to [Create Building Certificates](#create-building-certificates).
 
 1. Go to the [apps list](https://appstoreconnect.apple.com/apps) on App Store Connect and click the blue "plus" icon to create a New App.
     * Select "iOS".
@@ -205,12 +210,11 @@ If you created a Trio app in App Store Connect before, skip ahead to [Create Bui
 
 You do not need to fill out the next form. That is for submitting to the app store.
 
-## Create Building Certficates
+## Create Building Certificates
 
-1. Go back to the "Actions" tab of your Trio repository in github.
-1. Select "3. Create Certificates".
-1. Click "Run Workflow", and tap the green button.
-1. Wait, and within a minute or two you should see a green checkmark indicating the workflow succeeded.
+This step is no longer required. The Build Trio function now takes care of this for you. It does not hurt to run it but is not needed.
+
+Once a year, you will get an email from Apple indicating your certificate will expire in 30 days. You can ignore that email. When it does expire, the next time an automatic or manual build happens, the expired certificate information will be removed (nuked) from your Match-Secrets repository and a new one created. This should happen without you needing to take any action.
 
 ## Build Trio!
 
@@ -304,3 +308,14 @@ Your build will run on the following conditions:
 * If you disable any automation (both variables set to `false`), no updates, keep-alive or building happens when Build Trio runs
 * If you disabled just scheduled synchronization (`SCHEDULED_SYNC` set to`false`), it will only run once a month, on the first of the month, no update will happen; keep-alive will run
 * If you disabled just scheduled build (`SCHEDULED_BUILD` set to`false`), it will run once weekly, every Wednesday, to check for changes; if there are changes, it will update and build; keep-alive will run
+
+## What if I build using more than one GitHub username
+
+This is not typical. But if you do use more than one GitHub username, follow these steps at the time of the annual certificate renewal.
+
+1. After the certificates were removed (nuked) from username1 Match-Secrets storage, you need to switch to username2
+1. Add the variable FORCE_NUKE_CERTS=true to the username2/Trio repository
+1. Run the action Create Certificate (or Build, but Create is faster)
+1. Immediately set FORCE_NUKE_CERTS=false or delete the variable
+
+Now certificates for username2 have been cleared out of Match-Secrets storage for username2. Building can proceed as usual for both username1 and username2.
