@@ -8,31 +8,31 @@ enum JSONError: Error {
 }
 
 enum JSONBridge {
-    static func preferences(from: JSON) throws -> OpenAPSKit.Preferences {
+    static func preferences(from: JSON) throws -> OKPreferences {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func pumpSettings(from: JSON) throws -> OpenAPSKit.PumpSettings {
+    static func pumpSettings(from: JSON) throws -> OKPumpSettings {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func bgTargets(from: JSON) throws -> OpenAPSKit.BGTargets {
+    static func bgTargets(from: JSON) throws -> OKBGTargets {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func basalProfile(from: JSON) throws -> [OpenAPSKit.BasalProfileEntry] {
+    static func basalProfile(from: JSON) throws -> [OKBasalProfileEntry] {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func insulinSensitivities(from: JSON) throws -> OpenAPSKit.InsulinSensitivities {
+    static func insulinSensitivities(from: JSON) throws -> OKInsulinSensitivities {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func carbRatios(from: JSON) throws -> OpenAPSKit.CarbRatios {
+    static func carbRatios(from: JSON) throws -> OKCarbRatios {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func tempTargets(from: JSON) throws -> [OpenAPSKit.TempTarget] {
+    static func tempTargets(from: JSON) throws -> [OKTempTarget] {
         try JSONBridge.from(string: from.rawJSON)
     }
 
@@ -40,12 +40,12 @@ enum JSONBridge {
         from.rawJSON
     }
 
-    static func autotune(from: JSON) throws -> OpenAPSKit.Autotune? {
+    static func autotune(from: JSON) throws -> OKAutotune? {
         guard from.rawJSON != RawJSON.null else { return nil }
         return try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func freeapsSettings(from: JSON) throws -> OpenAPSKit.FreeAPSSettings {
+    static func freeapsSettings(from: JSON) throws -> OKFreeAPSSettings {
         try JSONBridge.from(string: from.rawJSON)
     }
 

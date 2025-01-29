@@ -235,7 +235,7 @@
 		38FEF413273B317A00574A46 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF412273B317A00574A46 /* HKUnit.swift */; };
 		3B5CD1EC2D4912A600CE213C /* OpenAPSSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD1E92D4912A600CE213C /* OpenAPSSwift.swift */; };
 		3B5CD1ED2D4912A600CE213C /* JSONBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD1EA2D4912A600CE213C /* JSONBridge.swift */; };
-		3B5CD1EF2D4915BF00CE213C /* OpenAPSKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3B5CD1EE2D4915BF00CE213C /* OpenAPSKit */; };
+		3B5CD2762D4A74FF00CE213C /* OpenAPSKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3B5CD2752D4A74FF00CE213C /* OpenAPSKit */; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
 		5075C1608E6249A51495C422 /* TargetsEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */; };
@@ -1299,7 +1299,7 @@
 				B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */,
 				CE95BF5B2BA770C300DC3DE3 /* LoopKit.framework in Frameworks */,
 				38B17B6625DD90E0005CAE3D /* SwiftDate in Frameworks */,
-				3B5CD1EF2D4915BF00CE213C /* OpenAPSKit in Frameworks */,
+				3B5CD2762D4A74FF00CE213C /* OpenAPSKit in Frameworks */,
 				3833B46D26012030003021B3 /* Algorithms in Frameworks */,
 				CEB434FD28B90B7C00B70274 /* SwiftCharts in Frameworks */,
 				CE95BF5F2BA7715800DC3DE3 /* MockKit.framework in Frameworks */,
@@ -3140,7 +3140,7 @@
 				38DF1788276FC8C400B3528F /* SwiftMessages */,
 				CEB434FC28B90B7C00B70274 /* SwiftCharts */,
 				B958F1B62BA0711600484851 /* MKRingProgressView */,
-				3B5CD1EE2D4915BF00CE213C /* OpenAPSKit */,
+				3B5CD2752D4A74FF00CE213C /* OpenAPSKit */,
 			);
 			productName = FreeAPS;
 			productReference = 388E595825AD948C0019842D /* FreeAPS.app */;
@@ -3283,7 +3283,7 @@
 				38DF1787276FC8C300B3528F /* XCRemoteSwiftPackageReference "SwiftMessages" */,
 				CEB434FB28B90B7C00B70274 /* XCRemoteSwiftPackageReference "SwiftCharts" */,
 				B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */,
-				3B5CD1E82D49126800CE213C /* XCLocalSwiftPackageReference "../OpenAPSKit" */,
+				3B5CD2742D4A74FF00CE213C /* XCRemoteSwiftPackageReference "OpenAPSKit" */,
 			);
 			productRefGroup = 388E595925AD948C0019842D /* Products */;
 			projectDirPath = "";
@@ -4597,13 +4597,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		3B5CD1E82D49126800CE213C /* XCLocalSwiftPackageReference "../OpenAPSKit" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../OpenAPSKit;
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCRemoteSwiftPackageReference section */
 		3811DE0E25C9D37700A708ED /* XCRemoteSwiftPackageReference "Swinject" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -4635,6 +4628,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 9.0.0;
+			};
+		};
+		3B5CD2742D4A74FF00CE213C /* XCRemoteSwiftPackageReference "OpenAPSKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kingst/OpenAPSKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
 			};
 		};
 		B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */ = {
@@ -4681,9 +4682,9 @@
 			package = 38B17B6425DD90E0005CAE3D /* XCRemoteSwiftPackageReference "SwiftDate" */;
 			productName = SwiftDate;
 		};
-		3B5CD1EE2D4915BF00CE213C /* OpenAPSKit */ = {
+		3B5CD2752D4A74FF00CE213C /* OpenAPSKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 3B5CD1E82D49126800CE213C /* XCLocalSwiftPackageReference "../OpenAPSKit" */;
+			package = 3B5CD2742D4A74FF00CE213C /* XCRemoteSwiftPackageReference "OpenAPSKit" */;
 			productName = OpenAPSKit;
 		};
 		B958F1B62BA0711600484851 /* MKRingProgressView */ = {
