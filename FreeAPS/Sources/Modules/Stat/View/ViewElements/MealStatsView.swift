@@ -105,107 +105,7 @@ struct MealStatsView: View {
         VStack(alignment: .leading, spacing: 8) {
             statsView
 
-            Chart {
-                ForEach(mealStats) { stat in
-                    // Carbs (Bottom)
-                    BarMark(
-                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
-                        y: .value("Amount", stat.carbs)
-                    )
-                    .foregroundStyle(by: .value("Type", "Carbs"))
-
-                    // Fat (Middle)
-                    BarMark(
-                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
-                        y: .value("Amount", stat.fat)
-                    )
-                    .foregroundStyle(by: .value("Type", "Fat"))
-
-                    // Protein (Top)
-                    BarMark(
-                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
-                        y: .value("Amount", stat.protein)
-                    )
-                    .foregroundStyle(by: .value("Type", "Protein"))
-                }
-
-                if let selectedDate,
-                   let selectedMeal = getMealForDate(selectedDate)
-                {
-                    RuleMark(
-                        x: .value("Selected Date", selectedDate)
-                    )
-                    .foregroundStyle(.secondary.opacity(0.3))
-                    .annotation(
-                        position: .top,
-                        spacing: 0,
-                        overflowResolution: .init(x: .fit, y: .disabled)
-                    ) {
-                        MealSelectionPopover(date: selectedDate, meal: selectedMeal)
-                    }
-                }
-            }
-            .chartForegroundStyleScale([
-                "Carbs": Color.orange,
-                "Fat": Color.blue,
-                "Protein": Color.green
-            ])
-            .chartLegend(position: .bottom, alignment: .leading, spacing: 12)
-            .chartYAxis {
-                AxisMarks(position: .trailing) { value in
-                    if let amount = value.as(Double.self) {
-                        AxisValueLabel {
-                            Text(amount.formatted(.number.precision(.fractionLength(0))) + " g")
-                        }
-                        AxisGridLine()
-                    }
-                }
-            }
-            .chartXAxis {
-                AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .Day ? .hour : .day)) { value in
-                    if let date = value.as(Date.self) {
-                        let day = Calendar.current.component(.day, from: date)
-                        let hour = Calendar.current.component(.hour, from: date)
-
-                        switch selectedDuration {
-                        case .Day:
-                            if hour % 6 == 0 { // Show only every 6 hours (0, 6, 12, 18)
-                                AxisValueLabel(format: dateFormat, centered: true)
-                                AxisGridLine()
-                            }
-                        case .Month:
-                            if day % 5 == 0 { // Only show every 5th day
-                                AxisValueLabel(format: dateFormat, centered: true)
-                                AxisGridLine()
-                            }
-                        case .Total:
-                            // Only show January, April, July, October
-                            if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
-                                AxisValueLabel(format: dateFormat, centered: true)
-                                AxisGridLine()
-                            }
-                        default:
-                            AxisValueLabel(format: dateFormat, centered: true)
-                            AxisGridLine()
-                        }
-                    }
-                }
-            }
-            .chartXSelection(value: $selectedDate)
-            .chartScrollableAxes(.horizontal)
-            .chartScrollPosition(x: $scrollPosition)
-            .chartScrollTargetBehavior(
-                .valueAligned(
-                    matching: selectedDuration == .Day ?
-                        DateComponents(minute: 0) : // Align to next hour for Day view
-                        DateComponents(hour: 0), // Align to start of day for other views
-                    majorAlignment: .matching(
-                        alignmentComponents
-                    )
-                )
-            )
-            .chartXVisibleDomain(length: visibleDomainLength)
-            .frame(height: 200)
+            chartsView
         }
 
         .onAppear {
@@ -271,6 +171,113 @@ struct MealStatsView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    private var chartsView: some View {
+        Chart {
+            ForEach(mealStats) { stat in
+                // Carbs Bar
+                BarMark(
+                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                    y: .value("Amount", stat.carbs)
+                )
+                .foregroundStyle(by: .value("Type", "Carbs"))
+                .position(by: .value("Type", "Carbs"))
+
+                // Fat Bar
+                BarMark(
+                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                    y: .value("Amount", stat.fat)
+                )
+                .foregroundStyle(by: .value("Type", "Fat"))
+                .position(by: .value("Type", "Fat"))
+
+                // Protein Bar
+                BarMark(
+                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                    y: .value("Amount", stat.protein)
+                )
+                .foregroundStyle(by: .value("Type", "Protein"))
+                .position(by: .value("Type", "Protein"))
+            }
+
+            if let selectedDate,
+               let selectedMeal = getMealForDate(selectedDate)
+            {
+                RuleMark(
+                    x: .value("Selected Date", selectedDate)
+                )
+                .foregroundStyle(.secondary.opacity(0.3))
+                .annotation(
+                    position: .top,
+                    spacing: 0,
+                    overflowResolution: .init(x: .fit, y: .disabled)
+                ) {
+                    MealSelectionPopover(date: selectedDate, meal: selectedMeal)
+                }
+            }
+        }
+        .chartForegroundStyleScale([
+            "Carbs": Color.orange,
+            "Fat": Color.blue,
+            "Protein": Color.green
+        ])
+        .chartLegend(position: .bottom, alignment: .leading, spacing: 12)
+        .chartYAxis {
+            AxisMarks(position: .trailing) { value in
+                if let amount = value.as(Double.self) {
+                    AxisValueLabel {
+                        Text(amount.formatted(.number.precision(.fractionLength(0))) + " g")
+                    }
+                    AxisGridLine()
+                }
+            }
+        }
+        .chartXAxis {
+            AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .Day ? .hour : .day)) { value in
+                if let date = value.as(Date.self) {
+                    let day = Calendar.current.component(.day, from: date)
+                    let hour = Calendar.current.component(.hour, from: date)
+
+                    switch selectedDuration {
+                    case .Day:
+                        if hour % 6 == 0 { // Show only every 6 hours (0, 6, 12, 18)
+                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisGridLine()
+                        }
+                    case .Month:
+                        if day % 5 == 0 { // Only show every 5th day
+                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisGridLine()
+                        }
+                    case .Total:
+                        // Only show January, April, July, October
+                        if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
+                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisGridLine()
+                        }
+                    default:
+                        AxisValueLabel(format: dateFormat, centered: true)
+                        AxisGridLine()
+                    }
+                }
+            }
+        }
+        .chartXSelection(value: $selectedDate)
+        .chartScrollableAxes(.horizontal)
+        .chartScrollPosition(x: $scrollPosition)
+        .chartScrollTargetBehavior(
+            .valueAligned(
+                matching: selectedDuration == .Day ?
+                    DateComponents(minute: 0) : // Align to next hour for Day view
+                    DateComponents(hour: 0), // Align to start of day for other views
+                majorAlignment: .matching(
+                    alignmentComponents
+                )
+            )
+        )
+        .chartXVisibleDomain(length: visibleDomainLength)
+        .frame(height: 200)
     }
 }
 
