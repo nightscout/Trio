@@ -47,6 +47,8 @@ struct BolusConfirmationView: View {
                 .tint(confirmationProgress >= 1.0 ? .loopGreen : .gray)
                 .padding(.horizontal)
 
+            Text("To confirm, dial crown.").font(.footnote)
+
             Spacer()
 
             Button("Cancel") {
@@ -100,8 +102,8 @@ struct BolusConfirmationView: View {
                     systemName: WKInterfaceDevice.current()
                         .wristLocation == .left ? "digitalcrown.arrow.clockwise.fill" : "digitalcrown.arrow.counterclockwise.fill"
                 )
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(Color.white)
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(Color.primary, Color.insulin)
             }
         }
         .blur(radius: state.showBolusProgressOverlay ? 3 : 0)
