@@ -215,10 +215,10 @@ struct BolusStatsView: View {
             }
         }
         .chartForegroundStyleScale([
-           "Manual": Color.teal,
-           "SMB": Color.blue,
-           "External": Color.purple
-       ])
+            "Manual": Color.teal,
+            "SMB": Color.blue,
+            "External": Color.purple
+        ])
         .chartLegend(position: .bottom, alignment: .leading, spacing: 12)
         .chartYAxis {
             AxisMarks(position: .trailing) { value in
