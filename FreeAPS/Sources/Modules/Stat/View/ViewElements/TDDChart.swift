@@ -115,7 +115,7 @@ struct TDDChartView: View {
                         x: .value("Date", entry.timestamp ?? Date(), unit: selectedDuration == .Day ? .hour : .day),
                         y: .value("TDD", entry.totalDailyDose ?? 0)
                     )
-                    .foregroundStyle(Color.insulin.gradient)
+                    .foregroundStyle(Color.insulin)
                 }
 
                 if let selectedDate,

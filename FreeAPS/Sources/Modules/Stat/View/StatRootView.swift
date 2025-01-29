@@ -94,6 +94,70 @@ extension Stat {
             }
         }
 
+        private var timeInRangeCard: some View {
+            StatCard {
+                VStack(spacing: Constants.spacing) {
+                    switch state.selectedGlucoseChartType {
+                    case .percentile:
+                        GlucosePercentileChart(
+                            selectedDuration: $state.selectedDurationForGlucoseStats,
+                            state: state,
+                            glucose: state.glucoseFromPersistence,
+                            highLimit: state.highLimit,
+                            lowLimit: state.lowLimit,
+                            units: state.units,
+                            hourlyStats: state.hourlyStats
+                        )
+                    case .distribution:
+                        GlucoseDistributionChart(
+                            selectedDuration: $state.selectedDurationForGlucoseStats,
+                            state: state,
+                            glucose: state.glucoseFromPersistence,
+                            highLimit: state.highLimit,
+                            lowLimit: state.lowLimit,
+                            units: state.units,
+                            glucoseRangeStats: state.glucoseRangeStats
+                        )
+                    }
+
+                    Divider()
+
+                    SectorChart(
+                        highLimit: state.highLimit,
+                        lowLimit: state.lowLimit,
+                        units: state.units,
+                        hbA1cDisplayUnit: state.hbA1cDisplayUnit,
+                        timeInRangeChartStyle: state.timeInRangeChartStyle,
+                        glucose: state.glucoseFromPersistence
+                    )
+                }
+            }
+        }
+
+        private var glucoseStatsCard: some View {
+            StatCard {
+                VStack(spacing: Constants.spacing) {
+                    BareStatisticsView.HbA1cView(
+                        highLimit: state.highLimit,
+                        lowLimit: state.lowLimit,
+                        units: state.units,
+                        hbA1cDisplayUnit: state.hbA1cDisplayUnit,
+                        glucose: state.glucoseFromPersistence
+                    )
+
+                    Divider()
+
+                    BareStatisticsView.BloodGlucoseView(
+                        highLimit: state.highLimit,
+                        lowLimit: state.lowLimit,
+                        units: state.units,
+                        hbA1cDisplayUnit: state.hbA1cDisplayUnit,
+                        glucose: state.glucoseFromPersistence
+                    )
+                }
+            }
+        }
+
         @ViewBuilder var insulinView: some View {
             HStack {
                 Text("Chart Type")
@@ -157,70 +221,6 @@ extension Stat {
                             }
                         )
                     }
-                }
-            }
-        }
-
-        private var timeInRangeCard: some View {
-            StatCard {
-                VStack(spacing: Constants.spacing) {
-                    switch state.selectedGlucoseChartType {
-                    case .percentile:
-                        GlucosePercentileChart(
-                            selectedDuration: $state.selectedDurationForGlucoseStats,
-                            state: state,
-                            glucose: state.glucoseFromPersistence,
-                            highLimit: state.highLimit,
-                            lowLimit: state.lowLimit,
-                            units: state.units,
-                            hourlyStats: state.hourlyStats
-                        )
-                    case .distribution:
-                        GlucoseDistributionChart(
-                            selectedDuration: $state.selectedDurationForGlucoseStats,
-                            state: state,
-                            glucose: state.glucoseFromPersistence,
-                            highLimit: state.highLimit,
-                            lowLimit: state.lowLimit,
-                            units: state.units,
-                            glucoseRangeStats: state.glucoseRangeStats
-                        )
-                    }
-
-                    Divider()
-
-                    SectorChart(
-                        highLimit: state.highLimit,
-                        lowLimit: state.lowLimit,
-                        units: state.units,
-                        hbA1cDisplayUnit: state.hbA1cDisplayUnit,
-                        timeInRangeChartStyle: state.timeInRangeChartStyle,
-                        glucose: state.glucoseFromPersistence
-                    )
-                }
-            }
-        }
-
-        private var glucoseStatsCard: some View {
-            StatCard {
-                VStack(spacing: Constants.spacing) {
-                    BareStatisticsView.HbA1cView(
-                        highLimit: state.highLimit,
-                        lowLimit: state.lowLimit,
-                        units: state.units,
-                        hbA1cDisplayUnit: state.hbA1cDisplayUnit,
-                        glucose: state.glucoseFromPersistence
-                    )
-
-                    Divider()
-
-                    BareStatisticsView.BloodGlucoseView(
-                        highLimit: state.highLimit,
-                        lowLimit: state.lowLimit,
-                        units: state.units,
-                        hbA1cDisplayUnit: state.hbA1cDisplayUnit,
-                        glucose: state.glucoseFromPersistence
-                    )
                 }
             }
         }
