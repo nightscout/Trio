@@ -15,8 +15,12 @@ struct MealStats: Identifiable {
 }
 
 extension Stat.StateModel {
-    /// Initiates the process of fetching and processing meal statistics
-    /// - Parameter duration: The time period to fetch records for
+    /// Initializes and fetches meal statistics
+    ///
+    /// This function:
+    /// 1. Fetches carbohydrate records from CoreData
+    /// 2. Groups and processes the records into meal statistics
+    /// 3. Updates the mealStats array on the main thread
     func setupMealStats() {
         Task {
             let stats = await fetchMealStats()
@@ -27,8 +31,16 @@ extension Stat.StateModel {
     }
 
     /// Fetches and processes meal statistics for a specific duration
-    /// - Parameter duration: The time period to fetch records for (Today, 24h, 7 Days, 30 Days, or All)
     /// - Returns: Array of MealStats containing daily meal statistics, sorted by date
+    ///
+    /// This function:
+    /// 1. Fetches carbohydrate entries from CoreData
+    /// 2. Groups entries by day or hour based on selected duration
+    /// 3. Calculates total macronutrients for each time period
+    ///
+    /// The grouping logic:
+    /// - For Day view: Groups by hour to show meal distribution
+    /// - For other views: Groups by day to show daily totals
     private func fetchMealStats() async -> [MealStats] {
         // Fetch CarbEntryStored entries from Core Data
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
@@ -79,6 +91,17 @@ extension Stat.StateModel {
         }
     }
 
+    /// Calculates average meal statistics for a specified date range
+    /// - Parameters:
+    ///   - startDate: Start date of the range
+    ///   - endDate: End date of the range
+    /// - Returns: Tuple containing average values for carbs, fat, and protein
+    ///
+    /// The calculation process:
+    /// 1. Filters meal records within the date range
+    /// 2. Calculates total values for each macronutrient
+    /// 3. Divides totals by number of records to get averages
+    /// 4. Returns (0,0,0) if no records are found
     func calculateAverageMealStats(
         from startDate: Date,
         to endDate: Date

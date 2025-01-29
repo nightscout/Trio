@@ -15,6 +15,12 @@ struct BolusStats: Identifiable {
 }
 
 extension Stat.StateModel {
+    /// Initializes and fetches bolus statistics
+    ///
+    /// This function:
+    /// 1. Fetches bolus records from CoreData
+    /// 2. Groups and processes the records into bolus statistics
+    /// 3. Updates the bolusStats array on the main thread
     func setupBolusStats() {
         Task {
             let stats = await fetchBolusStats()
@@ -88,6 +94,16 @@ extension Stat.StateModel {
         }
     }
 
+    /// Calculates the average daily insulin amounts for manual boluses, SMB (Super Micro Boluses), and external boluses
+    /// within the specified date range
+    /// - Parameters:
+    ///   - startDate: The beginning date of the period to calculate averages for (inclusive)
+    ///   - endDate: The ending date of the period to calculate averages for (inclusive)
+    /// - Returns: A tuple containing three values:
+    ///   - manual: Average daily amount of manual boluses
+    ///   - smb: Average daily amount of Super Micro Boluses (SMB)
+    ///   - external: Average daily amount of external boluses (entered directly on pump)
+    /// - Note: Returns (0, 0, 0) if no data exists for the specified date range
     func calculateAverageBolus(from startDate: Date, to endDate: Date) -> (manual: Double, smb: Double, external: Double) {
         let visibleStats = bolusStats.filter { stat in
             stat.date >= startDate && stat.date <= endDate

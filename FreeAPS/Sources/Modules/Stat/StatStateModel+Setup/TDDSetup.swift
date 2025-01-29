@@ -2,6 +2,12 @@ import CoreData
 import Foundation
 
 extension Stat.StateModel {
+    /// Initializes and fetches Total Daily Dose (TDD) statistics
+    ///
+    /// This function:
+    /// 1. Fetches TDD determinations from CoreData
+    /// 2. Maps the determinations to TDD records
+    /// 3. Updates the tddStats array on the main thread
     func setupTDDs() {
         Task {
             let tddStats = await fetchAndMapDeterminations()
@@ -11,6 +17,17 @@ extension Stat.StateModel {
         }
     }
 
+    /// Fetches and processes OpenAPS determinations to calculate Total Daily Doses
+    /// - Returns: Array of TDD records sorted by date
+    ///
+    /// This function:
+    /// 1. Fetches OpenAPS determinations from CoreData
+    /// 2. Groups determinations by time period (day or hour based on selected duration)
+    /// 3. Calculates average insulin doses for each time period
+    ///
+    /// The grouping logic:
+    /// - For Day view: Groups by hour to show hourly distribution
+    /// - For other views: Groups by day to show daily totals
     func fetchAndMapDeterminations() async -> [TDD] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
@@ -63,6 +80,15 @@ extension Stat.StateModel {
         }
     }
 
+    /// Calculates the average Total Daily Dose for the currently selected time period
+    ///
+    /// Time periods and their ranges:
+    /// - Day: Last 3 days
+    /// - Week: Last 7 days
+    /// - Month: Last 30 days
+    /// - Total: Last 3 months
+    ///
+    /// Returns 0 if no TDD records are available for the selected period
     var averageTDD: Decimal {
         let calendar = Calendar.current
         let now = Date()
@@ -95,6 +121,17 @@ extension Stat.StateModel {
         return filteredTDDs.isEmpty ? 0 : sum / Decimal(filteredTDDs.count)
     }
 
+    /// Calculates the average Total Daily Dose for a specified date range
+    /// - Parameters:
+    ///   - startDate: Start date of the range
+    ///   - endDate: End date of the range
+    /// - Returns: Average TDD value for the period
+    ///
+    /// The function:
+    /// 1. Filters TDD records within the specified date range
+    /// 2. Calculates the sum of all TDDs in the range
+    /// 3. Returns the average (sum divided by number of records)
+    /// 4. Returns 0 if no records are found
     func calculateAverageTDD(from startDate: Date, to endDate: Date) async -> Decimal {
         let filteredTDDs = tddStats.filter { tdd in
             guard let timestamp = tdd.timestamp else { return false }
@@ -105,6 +142,18 @@ extension Stat.StateModel {
         return filteredTDDs.isEmpty ? 0 : sum / Decimal(filteredTDDs.count)
     }
 
+    /// Calculates the median Total Daily Dose for a specified date range
+    /// - Parameters:
+    ///   - startDate: Start date of the range
+    ///   - endDate: End date of the range
+    /// - Returns: Median TDD value for the period
+    ///
+    /// The calculation process:
+    /// 1. Filters TDD records within the date range
+    /// 2. Sorts all TDD values
+    /// 3. For odd number of values: Returns the middle value
+    /// 4. For even number of values: Returns average of two middle values
+    /// 5. Returns 0 if no records are found
     func calculateMedianTDD(from startDate: Date, to endDate: Date) async -> Decimal {
         let filteredTDDs = tddStats.filter { tdd in
             guard let timestamp = tdd.timestamp else { return false }

@@ -1,132 +1,107 @@
 import CoreData
 import Foundation
 
-/// Represents the distribution of glucose values within specific ranges for each hour.
-///
-/// This struct is used to visualize how glucose values are distributed across different
-/// ranges (e.g., low, normal, high) throughout the day. Each range has a name and
-/// corresponding hourly values showing the percentage of readings in that range.
-///
-/// Example ranges and their meanings:
-/// - "<54": Urgent low
-/// - "54-70": Low
-/// - "70-140": Target range
-/// - "140-180": High
-/// - "180-200": Very high
-/// - "200-220": Very high+
-/// - ">220": Urgent high
-///
-/// Example usage:
-/// ```swift
-/// let range = GlucoseRangeStats(
-///     name: "70-140",           // Target range
-///     values: [
-///         (hour: 8, count: 75), // 75% of readings at 8 AM were in range
-///         (hour: 9, count: 80)  // 80% of readings at 9 AM were in range
-///     ]
-/// )
-/// ```
-///
-/// This data structure is used to create stacked area charts showing the
-/// distribution of glucose values across different ranges for each hour of the day.
-public struct GlucoseRangeStats: Identifiable {
-    /// The name of the glucose range (e.g., "70-140", "<54")
-    let name: String
+extension Stat {
+    /// Represents a single data point in the glucose range distribution
+    /// - hour: The hour of the day (0-23)
+    /// - count: The percentage of readings in this range for the given hour (0-100)
+    struct GlucoseRangeValue {
+        let hour: Int
+        let count: Double
+    }
 
-    /// Array of tuples containing the hour and percentage of readings in this range
-    /// - hour: Hour of the day (0-23)
-    /// - count: Percentage of readings in this range for the given hour (0-100)
-    let values: [(hour: Int, count: Int)]
-
-    /// Unique identifier for the range, derived from its name
-    public var id: String { name }
+    /// Represents the distribution of glucose values within specific ranges for each hour
+    ///
+    /// This struct is used to visualize how glucose values are distributed across different
+    /// ranges (e.g., low, target, high) throughout the day. Each range has a name and
+    /// corresponding hourly values showing the percentage of readings in that range.
+    ///
+    /// Example ranges and their meanings:
+    /// - "<54": Urgent low
+    /// - "54-70": Low
+    /// - "70-140": Target range
+    /// - "140-180": High
+    /// - "180-200": Very high
+    /// - "200-220": Very high+
+    /// - ">220": Urgent high
+    struct GlucoseRangeStats: Identifiable {
+        let id = UUID()
+        /// The name of the glucose range (e.g., "70-140", "<54")
+        let name: String
+        /// Array of hourly values containing percentages for this range
+        let values: [GlucoseRangeValue]
+    }
 }
 
 extension Stat.StateModel {
-    /// Calculates hourly glucose range distribution statistics.
-    /// The calculation runs asynchronously using the CoreData context.
+    /// Calculates range statistics for grouped glucose values
+    /// - Parameter groupedValues: Dictionary with dates as keys and arrays of glucose readings as values
+    /// - Returns: Dictionary with dates as keys and arrays of range statistics as values
     ///
-    /// The calculation works as follows:
-    /// 1. Count unique days for each hour to handle missing data
-    /// 2. For each glucose range and hour:
-    ///    - Count readings in that range
-    ///    - Calculate percentage based on number of days with readings
-    ///
-    /// Example:
-    /// If we have data for 7 days and at 6:00 AM:
-    /// - 3 days had readings in range 70-140
-    /// - 2 days had readings in range 140-180
-    /// - 2 day had a reading in range 180-200
-    /// Then for 6:00 AM:
-    /// - 70-140 = (3/7)*100 = 42.9%
-    /// - 140-180 = (2/7)*100 = 28.6%
-    /// - 180-200 = (2/7)*100 = 28.6%
-    func calculateGlucoseRangeStatsForStackedChart(from ids: [NSManagedObjectID]) async {
-        let taskContext = CoreDataStack.shared.newTaskContext()
+    /// This function processes glucose readings grouped by date to calculate the distribution
+    /// of values across different ranges for each hour of the day.
+    func calculateRangeStats(
+        for groupedValues: [Date: [GlucoseStored]]
+    ) -> [Date: [Stat.GlucoseRangeStats]] {
+        groupedValues.mapValues { values in
+            calculateGlucoseRangeStats(from: values.map(\.objectID))
+        }
+    }
 
+    /// Calculates the distribution of glucose values across different ranges for each hour
+    /// - Parameter ids: Array of NSManagedObjectIDs for glucose readings
+    /// - Returns: Array of GlucoseRangeStats containing percentage distributions
+    ///
+    /// The calculation process:
+    /// 1. Groups readings by hour of day
+    /// 2. Defines glucose ranges and their conditions
+    /// 3. For each range and hour:
+    ///    - Counts readings that fall within the range
+    ///    - Calculates percentage of total readings in that range
+    ///
+    /// The results are used to create stacked area charts showing:
+    /// - Distribution of glucose values across ranges
+    /// - Patterns in glucose control throughout the day
+    /// - Time spent in different ranges for each hour
+    func calculateGlucoseRangeStats(from ids: [NSManagedObjectID]) -> [Stat.GlucoseRangeStats] {
         let calendar = Calendar.current
 
-        let stats = await taskContext.perform {
-            // Convert IDs to GlucoseStored objects using the context
-            let readings = ids.compactMap { id -> GlucoseStored? in
-                do {
-                    return try taskContext.existingObject(with: id) as? GlucoseStored
-                } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) Error fetching glucose: \(error)")
-                    return nil
-                }
-            }
+        // Group glucose values by hour
+        let hourlyGroups = Dictionary(
+            grouping: fetchGlucoseValues(from: ids),
+            by: { calendar.component(.hour, from: $0.date ?? Date()) }
+        )
 
-            // Count unique days for each hour
-            let daysPerHour = (0 ... 23).map { hour in
-                let uniqueDays = Set(readings.compactMap { reading -> Date? in
-                    guard let date = reading.date else { return nil }
-                    if calendar.component(.hour, from: date) == hour {
-                        return calendar.startOfDay(for: date)
-                    }
-                    return nil
-                })
-                return (hour: hour, days: uniqueDays.count)
-            }
-
-            // Define glucose ranges and their conditions
-            // Ranges are processed from bottom to top in the stacked chart
-            let ranges: [(name: String, condition: (Int) -> Bool)] = [
-                ("<54", { g in g <= 54 }),
-                ("54-70", { g in g > 54 && g < 70 }),
-                ("70-140", { g in g >= 70 && g <= 140 }),
-                ("140-180", { g in g > 140 && g <= 180 }),
-                ("180-200", { g in g > 180 && g <= 200 }),
-                ("200-220", { g in g > 200 && g <= 220 }),
-                (">220", { g in g > 220 })
-            ]
-
-            // Process each range to create the chart data
-            return ranges.map { rangeName, condition in
-                // Calculate values for each hour within this range
-                let hourlyValues = (0 ... 23).map { hour in
-                    let totalDaysForHour = Double(daysPerHour[hour].days)
-                    // Skip if no data for this hour
-                    guard totalDaysForHour > 0 else { return (hour: hour, count: 0) }
-
-                    // Count readings that match the range condition for this hour
-                    let readingsInRange = readings.filter { reading in
-                        guard let date = reading.date else { return false }
-                        return calendar.component(.hour, from: date) == hour &&
-                            condition(Int(reading.glucose))
-                    }.count
-
-                    // Convert to percentage based on number of days with data
-                    let percentage = (Double(readingsInRange) / totalDaysForHour) * 100.0
-                    return (hour: hour, count: Int(percentage))
-                }
-                return GlucoseRangeStats(name: rangeName, values: hourlyValues)
-            }
+        // Prepare hourly values for processing
+        let hourlyValues = (0 ... 23).map { hour -> (hour: Int, values: [Double]) in
+            let values = hourlyGroups[hour]?.compactMap { Double($0.glucose) } ?? []
+            return (hour, values)
         }
 
-        // Update stats on main thread
-        await MainActor.run {
-            self.glucoseRangeStats = stats
+        // Define glucose ranges and their conditions
+        let ranges: [(name: String, filter: (Double) -> Bool)] = [
+            ("<54", { [self] in $0 < Double(self.lowLimit - 20) }),
+            ("54-70", { [self] in $0 >= Double(self.lowLimit - 20) && $0 < Double(self.lowLimit) }),
+            ("70-140", { [self] in $0 >= Double(self.lowLimit) && $0 <= 140 }),
+            ("140-180", { [self] in $0 > 140 && $0 <= Double(self.highLimit) }),
+            ("180-200", { [self] in $0 > Double(self.highLimit) && $0 <= 200 }),
+            ("200-220", { $0 > 200 && $0 <= 220 }),
+            (">220", { $0 > 220 })
+        ]
+
+        // Calculate percentage distribution for each range
+        return ranges.map { range in
+            Stat.GlucoseRangeStats(
+                name: range.name,
+                values: hourlyValues.map { hour, values in
+                    let total = Double(values.count)
+                    let count = values.filter(range.filter).count
+                    return Stat.GlucoseRangeValue(
+                        hour: hour,
+                        count: total > 0 ? Double(count) / total : 0
+                    )
+                }
+            )
         }
     }
 }

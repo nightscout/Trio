@@ -16,54 +16,12 @@ extension Stat {
         @Environment(AppState.self) var appState
 
         @State var state = StateModel()
-        @State private var selectedView: StatisticViewType = .glucose
-        @State private var selectedGlucoseChartType: GlucoseChartType = .percentile
-        @State private var selectedInsulinChartType: InsulinChartType = .totalDailyDose
-        @State private var selectedLoopingChartType: LoopingChartType = .loopingPerformance
-        @State private var selectedMealChartType: MealChartType = .totalMeals
-
-        enum StatisticViewType: String, CaseIterable, Identifiable {
-            case glucose
-            case insulin
-            case looping
-            case meals
-
-            var id: String { rawValue }
-            var title: String {
-                switch self {
-                case .glucose: return "Glucose"
-                case .insulin: return "Insulin"
-                case .looping: return "Looping"
-                case .meals: return "Meals"
-                }
-            }
-        }
-
-        enum GlucoseChartType: String, CaseIterable {
-            case percentile = "Percentile"
-            case distribution = "Distribution"
-        }
-
-        enum InsulinChartType: String, CaseIterable {
-            case totalDailyDose = "Total Daily Dose"
-            case bolusDistribution = "Bolus Distribution"
-        }
-
-        enum LoopingChartType: String, CaseIterable {
-            case loopingPerformance = "Looping Performance"
-            case cgmConnectionTrace = "CGM Connection Trace"
-            case trioUpTime = "Trio Up-Time"
-        }
-
-        enum MealChartType: String, CaseIterable {
-            case totalMeals = "Total Meals"
-            case mealToHypoHyperDistribution = "Meal to Hypo/Hyper"
-        }
+        @State private var selectedView: StateModel.StatisticViewType = .glucose
 
         var body: some View {
             VStack {
                 Picker("View", selection: $selectedView) {
-                    ForEach(StatisticViewType.allCases) { viewType in
+                    ForEach(StateModel.StatisticViewType.allCases) { viewType in
                         Text(viewType.title).tag(viewType)
                     }
                 }
@@ -85,7 +43,6 @@ extension Stat {
                     }
                     .padding()
                 }
-//                .animation(.easeInOut, value: selectedView)
             }
             .background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
@@ -110,7 +67,7 @@ extension Stat {
 
                 Spacer()
 
-                Picker("Glucose Chart Type", selection: $selectedGlucoseChartType) {
+                Picker("Glucose Chart Type", selection: $state.selectedGlucoseChartType) {
                     ForEach(GlucoseChartType.allCases, id: \.self) { type in
                         Text(type.rawValue)
                     }
@@ -119,8 +76,8 @@ extension Stat {
             }.padding(.horizontal)
 
             Picker("Duration", selection: $state.selectedDurationForGlucoseStats) {
-                ForEach(StateModel.Duration.allCases, id: \.self) { duration in
-                    Text(duration.rawValue)
+                ForEach(StateModel.StatsTimeInterval.allCases, id: \.self) { timeInterval in
+                    Text(timeInterval.rawValue)
                 }
             }
             .pickerStyle(.segmented)
@@ -144,7 +101,7 @@ extension Stat {
 
                 Spacer()
 
-                Picker("Insulin Chart Type", selection: $selectedInsulinChartType) {
+                Picker("Insulin Chart Type", selection: $state.selectedInsulinChartType) {
                     ForEach(InsulinChartType.allCases, id: \.self) { type in
                         Text(type.rawValue)
                     }
@@ -159,7 +116,7 @@ extension Stat {
             .pickerStyle(.segmented)
 
             StatCard {
-                switch selectedInsulinChartType {
+                switch state.selectedInsulinChartType {
                 case .totalDailyDose:
                     if state.tddStats.isEmpty {
                         ContentUnavailableView(
@@ -207,18 +164,21 @@ extension Stat {
         private var timeInRangeCard: some View {
             StatCard {
                 VStack(spacing: Constants.spacing) {
-                    switch selectedGlucoseChartType {
+                    switch state.selectedGlucoseChartType {
                     case .percentile:
                         GlucosePercentileChart(
+                            selectedDuration: $state.selectedDurationForGlucoseStats,
+                            state: state,
                             glucose: state.glucoseFromPersistence,
                             highLimit: state.highLimit,
                             lowLimit: state.lowLimit,
                             units: state.units,
-                            hourlyStats: state.hourlyStats,
-                            isToday: state.selectedDurationForGlucoseStats == .Today
+                            hourlyStats: state.hourlyStats
                         )
                     case .distribution:
                         GlucoseDistributionChart(
+                            selectedDuration: $state.selectedDurationForGlucoseStats,
+                            state: state,
                             glucose: state.glucoseFromPersistence,
                             highLimit: state.highLimit,
                             lowLimit: state.lowLimit,
@@ -272,7 +232,7 @@ extension Stat {
 
                 Spacer()
 
-                Picker("Looping Chart Type", selection: $selectedLoopingChartType) {
+                Picker("Looping Chart Type", selection: $state.selectedLoopingChartType) {
                     ForEach(LoopingChartType.allCases, id: \.self) { type in
                         Text(type.rawValue)
                     }
@@ -286,7 +246,7 @@ extension Stat {
             }
             .pickerStyle(.segmented)
 
-            switch selectedLoopingChartType {
+            switch state.selectedLoopingChartType {
             case .loopingPerformance:
                 if state.loopStatRecords.isEmpty {
                     ContentUnavailableView(
@@ -338,7 +298,7 @@ extension Stat {
 
                 Spacer()
 
-                Picker("Meal Chart Type", selection: $selectedMealChartType) {
+                Picker("Meal Chart Type", selection: $state.selectedMealChartType) {
                     ForEach(MealChartType.allCases, id: \.self) { type in
                         Text(type.rawValue)
                     }
@@ -353,7 +313,7 @@ extension Stat {
             .pickerStyle(.segmented)
 
             StatCard {
-                switch selectedMealChartType {
+                switch state.selectedMealChartType {
                 case .totalMeals:
                     var hasMealData: Bool {
                         state.mealStats.contains { $0.carbs > 0 || $0.fat > 0 || $0.protein > 0 }
