@@ -65,7 +65,7 @@ struct BolusInputView: View {
                                 .foregroundColor(Color.insulin)
                         }
                         .buttonStyle(.borderless)
-                        .disabled(bolusAmount < 1)
+                        .disabled(bolusAmount == 0)
 
                         Spacer()
 
