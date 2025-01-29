@@ -68,7 +68,7 @@ extension Stat.StateModel {
 
             // Group entries by hour for hourly statistics
             let now = Date()
-            let twentyDaysAgo = Calendar.current.date(byAdding: .day, value: -20, to: now) ?? now
+            let twentyDaysAgo = Calendar.current.date(byAdding: .day, value: -10, to: now) ?? now
 
             let hourlyGrouped = Dictionary(grouping: fetchedResults.filter { entry in
                 guard let date = entry.pumpEvent?.timestamp else { return false }
