@@ -202,11 +202,13 @@ extension Stat {
                     }
 
                 case .bolusDistribution:
+                    // TODO: -
                     var hasBolusData: Bool {
-                        state.bolusStats.contains { $0.manualBolus > 0 || $0.smb > 0 || $0.external > 0 }
+                        state.dailyBolusStats.contains { $0.manualBolus > 0 || $0.smb > 0 || $0.external > 0 }
                     }
 
-                    if state.bolusStats.isEmpty || !hasBolusData {
+                    // TODO: -
+                    if state.dailyBolusStats.isEmpty || !hasBolusData {
                         ContentUnavailableView(
                             "No Bolus Data",
                             systemImage: "cross.vial",
@@ -215,10 +217,9 @@ extension Stat {
                     } else {
                         BolusStatsView(
                             selectedDuration: $state.selectedDurationForInsulinStats,
-                            bolusStats: state.bolusStats,
-                            calculateAverages: { start, end in
-                                await state.calculateAverageBolus(from: start, to: end)
-                            }
+                            bolusStats: state.selectedDurationForInsulinStats == .Day ?
+                                state.hourlyBolusStats : state.dailyBolusStats,
+                            state: state
                         )
                     }
                 }

@@ -75,6 +75,11 @@ extension Stat {
         var dailyMealStats: [MealStats] = []
         var dailyAveragesCache: [Date: (carbs: Double, fat: Double, protein: Double)] = [:]
 
+        // Cache for Bolus Stats
+        var hourlyBolusStats: [BolusStats] = []
+        var dailyBolusStats: [BolusStats] = []
+        var bolusAveragesCache: [Date: (manual: Double, smb: Double, external: Double)] = [:]
+
         // Selected Duration for Glucose Stats
         var selectedDurationForGlucoseStats: StatsTimeInterval = .Day {
             didSet {
