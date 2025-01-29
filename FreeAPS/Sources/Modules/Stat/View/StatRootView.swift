@@ -182,7 +182,7 @@ extension Stat {
             StatCard {
                 switch state.selectedInsulinChartType {
                 case .totalDailyDose:
-                    if state.tddStats.isEmpty {
+                    if state.dailyTDDStats.isEmpty {
                         ContentUnavailableView(
                             "No TDD Data",
                             systemImage: "chart.bar.xaxis",
@@ -191,13 +191,9 @@ extension Stat {
                     } else {
                         TDDChartView(
                             selectedDuration: $state.selectedDurationForInsulinStats,
-                            tddStats: state.tddStats,
-                            calculateAverage: { start, end in
-                                await state.calculateAverageTDD(from: start, to: end)
-                            },
-                            calculateMedian: { start, end in
-                                await state.calculateMedianTDD(from: start, to: end)
-                            }
+                            tddStats: state.selectedDurationForInsulinStats == .Day ?
+                                state.hourlyTDDStats : state.dailyTDDStats,
+                            state: state
                         )
                     }
 

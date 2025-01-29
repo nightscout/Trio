@@ -3,34 +3,27 @@ import SwiftUI
 
 struct TDDChartView: View {
     @Binding var selectedDuration: Stat.StateModel.StatsTimeInterval
-    let tddStats: [TDD]
-    let calculateAverage: @Sendable(Date, Date) async -> Decimal
-    let calculateMedian: @Sendable(Date, Date) async -> Decimal
+    let tddStats: [TDDStats]
+    let state: Stat.StateModel
 
     @State private var scrollPosition = Date()
-    @State private var currentAverageTDD: Decimal = 0
-    @State private var currentMedianTDD: Decimal = 0
     @State private var selectedDate: Date?
-    @State private var isScrolling = false
-
+    @State private var currentAverage: Double = 0
     @State private var updateTimer = Stat.UpdateTimer()
 
     private var visibleDomainLength: TimeInterval {
         switch selectedDuration {
-        case .Day: return 3 * 24 * 3600 // 3 days
-        case .Week: return 7 * 24 * 3600 // 1 week
-        case .Month: return 30 * 24 * 3600 // 1 month
-        case .Total: return 90 * 24 * 3600 // 3 months
+        case .Day: return 24 * 3600
+        case .Week: return 7 * 24 * 3600
+        case .Month: return 30 * 24 * 3600
+        case .Total: return 90 * 24 * 3600
         }
     }
 
-    private var scrollTargetDuration: TimeInterval {
-        switch selectedDuration {
-        case .Day: return 3 * 24 * 3600 // Scroll by 3 days
-        case .Week: return 7 * 24 * 3600 // Scroll by 1 week
-        case .Month: return 30 * 24 * 3600 // Scroll by 1 month
-        case .Total: return 90 * 24 * 3600 // Scroll by 3 months
-        }
+    private var visibleDateRange: (start: Date, end: Date) {
+        let start = scrollPosition
+        let end = start.addingTimeInterval(visibleDomainLength)
+        return (start, end)
     }
 
     private var dateFormat: Date.FormatStyle {
@@ -49,228 +42,230 @@ struct TDDChartView: View {
     private var alignmentComponents: DateComponents {
         switch selectedDuration {
         case .Day:
-            return DateComponents(hour: 0) // Align to start of day
+            return DateComponents(hour: 0)
         case .Week:
-            return DateComponents(weekday: 2) // 2 = Monday in Calendar
+            return DateComponents(weekday: 2)
         case .Month,
              .Total:
-            return DateComponents(day: 1) // Align to first day of month
+            return DateComponents(day: 1)
         }
     }
 
-    private var visibleDateRange: (start: Date, end: Date) {
-        let halfDomain = visibleDomainLength / 2
-        let start = scrollPosition.addingTimeInterval(-halfDomain)
-        let end = scrollPosition.addingTimeInterval(halfDomain)
-        return (start, end)
+    private func getTDDForDate(_ date: Date) -> TDDStats? {
+        tddStats.first { stat in
+            Calendar.current.isDate(stat.date, inSameDayAs: date)
+        }
     }
 
-    private func updateStats() {
-        Task.detached(priority: .userInitiated) {
-            let dateRange = await MainActor.run { visibleDateRange }
-            let avgTDD = await calculateAverage(dateRange.start, dateRange.end)
-            let medTDD = await calculateMedian(dateRange.start, dateRange.end)
+    private func updateAverages() {
+        currentAverage = state.getCachedTDDAverages(for: visibleDateRange)
+    }
 
-            await MainActor.run {
-                currentAverageTDD = avgTDD
-                currentMedianTDD = medTDD
+    /// Formats the visible date range into a human-readable string
+    private func formatVisibleDateRange() -> String {
+        let start = visibleDateRange.start
+        let end = visibleDateRange.end
+        let calendar = Calendar.current
+        let today = Date()
+
+        let timeFormat = start.formatted(.dateTime.hour().minute())
+
+        // Special handling for Day view with relative dates
+        if selectedDuration == .Day {
+            let startDateText: String
+            let endDateText: String
+
+            // Format start date
+            if calendar.isDate(start, inSameDayAs: today) {
+                startDateText = "Today"
+            } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
+                startDateText = "Yesterday"
+            } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
+                startDateText = "Tomorrow"
+            } else {
+                startDateText = start.formatted(.dateTime.day().month())
             }
+
+            // Format end date
+            if calendar.isDate(end, inSameDayAs: today) {
+                endDateText = "Today"
+            } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
+                endDateText = "Yesterday"
+            } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
+                endDateText = "Tomorrow"
+            } else {
+                endDateText = end.formatted(.dateTime.day().month())
+            }
+
+            // If start and end are on the same day, show date only once
+            if calendar.isDate(start, inSameDayAs: end) {
+                return "\(startDateText), \(timeFormat) - \(end.formatted(.dateTime.hour().minute()))"
+            }
+
+            return "\(startDateText), \(timeFormat) - \(endDateText), \(end.formatted(.dateTime.hour().minute()))"
         }
+
+        // Standard format for other views
+        return "\(start.formatted()) - \(end.formatted())"
     }
 
-    private func getTDDForDate(_ date: Date) -> TDD? {
-        tddStats.first { tdd in
-            guard let timestamp = tdd.timestamp else { return false }
-            return Calendar.current.isDate(timestamp, inSameDayAs: date)
+    private func getInitialScrollPosition() -> Date {
+        let calendar = Calendar.current
+        let now = Date()
+
+        switch selectedDuration {
+        case .Day:
+            return calendar.date(byAdding: .day, value: -1, to: now)!
+        case .Week:
+            return calendar.date(byAdding: .day, value: -7, to: now)!
+        case .Month:
+            return calendar.date(byAdding: .month, value: -1, to: now)!
+        case .Total:
+            return calendar.date(byAdding: .month, value: -3, to: now)!
         }
     }
 
     var body: some View {
-        chartCard
-            .onAppear {
-                updateStats()
-            }
-            .onChange(of: scrollPosition) {
-                isScrolling = true
-                updateTimer.scheduleUpdate {
-                    updateStats()
-                    isScrolling = false
-                }
-            }
-            .onChange(of: selectedDuration) {
-                updateStats()
-                scrollPosition = Date()
-            }
-    }
-
-    // MARK: - Views
-
-    private var chartCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             statsView
-
-            Chart {
-                ForEach(tddStats) { entry in
-                    BarMark(
-                        x: .value("Date", entry.timestamp ?? Date(), unit: selectedDuration == .Day ? .hour : .day),
-                        y: .value("TDD", entry.totalDailyDose ?? 0)
-                    )
-                    .foregroundStyle(Color.insulin)
-                }
-
-                if let selectedDate,
-                   let selectedTDD = getTDDForDate(selectedDate)
-                {
-                    RuleMark(
-                        x: .value("Selected Date", selectedDate)
-                    )
-                    .foregroundStyle(.secondary.opacity(0.3))
-                    .annotation(
-                        position: .top,
-                        spacing: 0,
-                        overflowResolution: .init(x: .fit, y: .disabled)
-                    ) {
-                        TDDSelectionPopover(date: selectedDate, tdd: selectedTDD)
-                    }
-                }
+            chartsView
+        }
+        .onAppear {
+            scrollPosition = getInitialScrollPosition()
+            updateAverages()
+        }
+        .onChange(of: scrollPosition) {
+            updateTimer.scheduleUpdate {
+                updateAverages()
             }
-            .chartYAxis {
-                AxisMarks { _ in
-                    AxisValueLabel()
-                    AxisGridLine()
-                }
+        }
+        .onChange(of: selectedDuration) {
+            Task {
+                scrollPosition = getInitialScrollPosition()
+                updateAverages()
             }
-            .chartXAxis {
-                AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .Day ? .hour : .day)) { value in
-                    if let date = value.as(Date.self) {
-                        let day = Calendar.current.component(.day, from: date)
-                        let hour = Calendar.current.component(.hour, from: date)
-
-                        switch selectedDuration {
-                        case .Day:
-                            if hour % 6 == 0 { // Show only every 6 hours
-                                AxisValueLabel(format: dateFormat, centered: true)
-                                AxisGridLine()
-                            }
-                        case .Month:
-                            if day % 5 == 0 { // Only show every 5th day
-                                AxisValueLabel(format: dateFormat, centered: true)
-                                AxisGridLine()
-                            }
-                        case .Total:
-                            if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
-                                AxisValueLabel(format: dateFormat, centered: true)
-                                AxisGridLine()
-                            }
-                        default:
-                            AxisValueLabel(format: dateFormat, centered: true)
-                            AxisGridLine()
-                        }
-                    }
-                }
-            }
-            .chartXSelection(value: $selectedDate)
-            .chartScrollableAxes(.horizontal)
-            .chartScrollPosition(x: $scrollPosition)
-            .chartScrollTargetBehavior(
-                .valueAligned(
-                    matching: selectedDuration == .Day ?
-                        DateComponents(minute: 0) : // Align to next hour for Day view
-                        DateComponents(hour: 0), // Align to start of day for other views
-                    majorAlignment: .matching(alignmentComponents)
-                )
-            )
-            .chartXVisibleDomain(length: visibleDomainLength)
-            .frame(height: 200)
         }
     }
 
     private var statsView: some View {
         HStack {
-            Grid(alignment: .leading) {
-                GridRow {
-                    Text("Average:")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Text(currentAverageTDD.formatted(.number.precision(.fractionLength(1))))
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                        .gridColumnAlignment(.trailing)
-                    Text("U")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                }
-                GridRow {
-                    Text("Median:")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Text(currentMedianTDD.formatted(.number.precision(.fractionLength(1))))
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                        .gridColumnAlignment(.trailing)
-                    Text("U")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            Text("Average:")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            Text(currentAverage.formatted(.number.precision(.fractionLength(1))))
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            Text("U")
+                .font(.headline)
+                .foregroundStyle(.secondary)
 
             Spacer()
 
-            Text(formatVisibleDateRange(showTimeRange: isScrolling))
+            Text(formatVisibleDateRange())
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
     }
 
-    private func formatVisibleDateRange(showTimeRange: Bool = false) -> String {
-        let start = visibleDateRange.start
-        let end = visibleDateRange.end
-        let calendar = Calendar.current
-
-        switch selectedDuration {
-        case .Day:
-            let today = Date()
-            let isToday = calendar.isDate(start, inSameDayAs: today)
-            let isYesterday = calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!)
-
-            if isToday || isYesterday, !showTimeRange {
-                return isToday ? "Today" : "Yesterday"
-            }
-
-            let timeRange =
-                "\(start.formatted(.dateTime.hour(.twoDigits(amPM: .wide)))) - \(end.formatted(.dateTime.hour(.twoDigits(amPM: .wide))))"
-
-            if isToday {
-                return "Today, \(timeRange)"
-            } else if isYesterday {
-                return "Yesterday, \(timeRange)"
-            } else {
-                return "\(start.formatted(.dateTime.month().day())), \(timeRange)"
-            }
-
-        default:
-            return "\(start.formatted(.dateTime.month().day())) - \(end.formatted(.dateTime.month().day()))"
-        }
-    }
-
-    private struct TDDSelectionPopover: View {
-        let date: Date
-        let tdd: TDD
-
-        var body: some View {
-            VStack(alignment: .center, spacing: 4) {
-                Text(date.formatted(.dateTime.month().day()))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text("\(tdd.totalDailyDose?.formatted(.number.precision(.fractionLength(1))) ?? "0") U")
-                    .font(.callout.bold())
-            }
-            .padding(8)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(.systemBackground))
-                    .shadow(radius: 2)
+    private var chartsView: some View {
+        Chart(tddStats) { stat in
+            BarMark(
+                x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                y: .value("Amount", stat.amount)
             )
+            .foregroundStyle(Color.insulin)
+
+            if let selectedDate,
+               let selectedTDD = getTDDForDate(selectedDate)
+            {
+                RuleMark(
+                    x: .value("Selected Date", selectedDate)
+                )
+                .foregroundStyle(.secondary.opacity(0.3))
+                .annotation(
+                    position: .top,
+                    spacing: 0,
+                    overflowResolution: .init(x: .fit, y: .disabled)
+                ) {
+                    TDDSelectionPopover(date: selectedDate, tdd: selectedTDD)
+                }
+            }
+        }
+        .chartYAxis {
+            AxisMarks(position: .trailing) { value in
+                if let amount = value.as(Double.self) {
+                    AxisValueLabel {
+                        Text(amount.formatted(.number.precision(.fractionLength(0))) + " U")
+                    }
+                    AxisGridLine()
+                }
+            }
+        }
+        .chartXAxis {
+            AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .Day ? .hour : .day)) { value in
+                if let date = value.as(Date.self) {
+                    let day = Calendar.current.component(.day, from: date)
+                    let hour = Calendar.current.component(.hour, from: date)
+
+                    switch selectedDuration {
+                    case .Day:
+                        if hour % 6 == 0 {
+                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisGridLine()
+                        }
+                    case .Month:
+                        if day % 5 == 0 {
+                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisGridLine()
+                        }
+                    case .Total:
+                        if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
+                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisGridLine()
+                        }
+                    default:
+                        AxisValueLabel(format: dateFormat, centered: true)
+                        AxisGridLine()
+                    }
+                }
+            }
+        }
+        .chartXSelection(value: $selectedDate)
+        .chartScrollableAxes(.horizontal)
+        .chartScrollPosition(x: $scrollPosition)
+        .chartScrollTargetBehavior(
+            .valueAligned(
+                matching: selectedDuration == .Day ?
+                    DateComponents(minute: 0) :
+                    DateComponents(hour: 0),
+                majorAlignment: .matching(alignmentComponents)
+            )
+        )
+        .chartXVisibleDomain(length: visibleDomainLength)
+        .frame(height: 200)
+    }
+}
+
+private struct TDDSelectionPopover: View {
+    let date: Date
+    let tdd: TDDStats
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(date.formatted(.dateTime.month().day()))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Text(tdd.amount.formatted(.number.precision(.fractionLength(1))) + " U")
+                .font(.caption)
+                .bold()
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(.background)
+                .shadow(radius: 2)
         }
     }
 }

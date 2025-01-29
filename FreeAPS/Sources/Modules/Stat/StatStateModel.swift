@@ -75,6 +75,11 @@ extension Stat {
         var dailyMealStats: [MealStats] = []
         var dailyAveragesCache: [Date: (carbs: Double, fat: Double, protein: Double)] = [:]
 
+        // Cache for TDD Stats
+        var hourlyTDDStats: [TDDStats] = []
+        var dailyTDDStats: [TDDStats] = []
+        var tddAveragesCache: [Date: Double] = [:]
+
         // Cache for Bolus Stats
         var hourlyBolusStats: [BolusStats] = []
         var dailyBolusStats: [BolusStats] = []
@@ -124,7 +129,7 @@ extension Stat {
         // Fetching Contexts
         let context = CoreDataStack.shared.newTaskContext()
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-        let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+        let tddTaskContext = CoreDataStack.shared.newTaskContext()
         let loopTaskContext = CoreDataStack.shared.newTaskContext()
         let mealTaskContext = CoreDataStack.shared.newTaskContext()
         let bolusTaskContext = CoreDataStack.shared.newTaskContext()
@@ -184,7 +189,7 @@ extension Stat {
 
         override func subscribe() {
             setupGlucoseArray()
-            setupTDDs()
+            setupTDDStats()
             setupBolusStats()
             setupLoopStatRecords()
             setupMealStats()

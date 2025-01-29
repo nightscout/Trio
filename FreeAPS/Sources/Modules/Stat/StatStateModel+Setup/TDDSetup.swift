@@ -1,173 +1,165 @@
 import CoreData
 import Foundation
 
+/// Represents statistical data about Total Daily Dose for a specific time period
+struct TDDStats: Identifiable {
+    let id = UUID()
+    /// The date representing this time period
+    let date: Date
+    /// Total insulin in units
+    let amount: Double
+}
+
 extension Stat.StateModel {
-    /// Initializes and fetches Total Daily Dose (TDD) statistics
-    ///
-    /// This function:
-    /// 1. Fetches TDD determinations from CoreData
-    /// 2. Maps the determinations to TDD records
-    /// 3. Updates the tddStats array on the main thread
-    func setupTDDs() {
+    /// Sets up TDD statistics by fetching and processing insulin data
+    func setupTDDStats() {
         Task {
-            let tddStats = await fetchAndMapDeterminations()
+            let (hourly, daily) = await fetchTDDStats()
+
             await MainActor.run {
-                self.tddStats = tddStats
+                self.hourlyTDDStats = hourly
+                self.dailyTDDStats = daily
             }
+
+            // Initially calculate and cache daily averages
+            await calculateAndCacheTDDAverages()
         }
     }
 
-    /// Fetches and processes OpenAPS determinations to calculate Total Daily Doses
-    /// - Returns: Array of TDD records sorted by date
-    ///
-    /// This function:
-    /// 1. Fetches OpenAPS determinations from CoreData
-    /// 2. Groups determinations by time period (day or hour based on selected duration)
-    /// 3. Calculates average insulin doses for each time period
-    ///
-    /// The grouping logic:
-    /// - For Day view: Groups by hour to show hourly distribution
-    /// - For other views: Groups by day to show daily totals
-    func fetchAndMapDeterminations() async -> [TDD] {
+    /// Fetches and processes Total Daily Dose (TDD) statistics from CoreData
+    /// - Returns: A tuple containing hourly and daily TDD statistics arrays
+    /// - Note: Processes both hourly statistics for the last 10 days and complete daily statistics
+    private func fetchTDDStats() async -> (hourly: [TDDStats], daily: [TDDStats]) {
+        // Fetch temp basal records from CoreData
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: OrefDetermination.self,
-            onContext: determinationFetchContext,
-            predicate: NSPredicate.determinationsForStats,
-            key: "deliverAt",
+            ofType: TempBasalStored.self,
+            onContext: tddTaskContext,
+            predicate: NSPredicate.pumpHistoryForStats,
+            key: "pumpEvent.timestamp",
             ascending: true,
-            propertiesToFetch: ["objectID", "timestamp", "deliverAt", "totalDailyDose"]
+            batchSize: 100
         )
 
-        return await determinationFetchContext.perform {
-            guard let fetchedResults = results as? [[String: Any]] else { return [] }
+        var hourlyStats: [TDDStats] = []
+        var dailyStats: [TDDStats] = []
+
+        await tddTaskContext.perform {
+            guard let fetchedResults = results as? [TempBasalStored] else {
+                return
+            }
 
             let calendar = Calendar.current
 
-            // Group determinations by day or hour
-            let groupedByTime = Dictionary(grouping: fetchedResults) { result -> Date in
-                guard let deliverAt = result["deliverAt"] as? Date else { return Date() }
+            // Calculate date range for hourly statistics (last 10 days)
+            // TODO: - Introduce paging to also be able to show complete history
+            let now = Date()
+            let tenDaysAgo = Calendar.current.date(byAdding: .day, value: -10, to: now) ?? now
 
-                if self.selectedDurationForInsulinStats == .Day {
-                    // For Day view, group by hour
-                    let components = calendar.dateComponents([.year, .month, .day, .hour], from: deliverAt)
-                    return calendar.date(from: components) ?? Date()
-                } else {
-                    // For other views, group by day
-                    return calendar.startOfDay(for: deliverAt)
-                }
+            // Group entries by hour for hourly statistics, filtering for last 10 days only
+            let hourlyGrouped = Dictionary(grouping: fetchedResults.filter { entry in
+                guard let date = entry.pumpEvent?.timestamp else { return false }
+                return date >= tenDaysAgo && date <= now
+            }) { entry in
+                // Create date components for hour-level grouping
+                let components = calendar.dateComponents(
+                    [.year, .month, .day, .hour],
+                    from: entry.pumpEvent?.timestamp ?? Date()
+                )
+                return calendar.date(from: components) ?? Date()
             }
 
-            // Get all unique time points
-            let timePoints = groupedByTime.keys.sorted()
+            // Group entries by day for complete daily statistics
+            let dailyGrouped = Dictionary(grouping: fetchedResults) { entry in
+                calendar.startOfDay(for: entry.pumpEvent?.timestamp ?? Date())
+            }
 
-            // Calculate totals for each time point
-            return timePoints.map { timePoint in
-                let determinations = groupedByTime[timePoint, default: []]
+            // Process hourly statistics
+            hourlyStats = hourlyGrouped.keys.sorted().map { timePoint in
+                let entries = hourlyGrouped[timePoint, default: []]
+                // Calculate total insulin for each hour
+                return TDDStats(
+                    date: timePoint,
+                    amount: entries.reduce(0.0) { sum, entry in
+                        sum + (entry.rate?.doubleValue ?? 0) * Double(entry.duration) / 60.0
+                    }
+                )
+            }
 
-                let totalDose = determinations.reduce(Decimal.zero) { sum, determination in
-                    sum + (determination["totalDailyDose"] as? Decimal ?? 0)
-                }
-
-                // Calculate average dose for the time period
-                let count = Decimal(determinations.count)
-                let averageDose = count > 0 ? totalDose / count : 0
-
-                return TDD(
-                    totalDailyDose: averageDose,
-                    timestamp: timePoint
+            // Process daily statistics
+            dailyStats = dailyGrouped.keys.sorted().map { timePoint in
+                let entries = dailyGrouped[timePoint, default: []]
+                // Calculate total insulin for each day
+                return TDDStats(
+                    date: timePoint,
+                    amount: entries.reduce(0.0) { sum, entry in
+                        sum + (entry.rate?.doubleValue ?? 0) * Double(entry.duration) / 60.0
+                    }
                 )
             }
         }
+
+        return (hourlyStats, dailyStats)
     }
 
-    /// Calculates the average Total Daily Dose for the currently selected time period
-    ///
-    /// Time periods and their ranges:
-    /// - Day: Last 3 days
-    /// - Week: Last 7 days
-    /// - Month: Last 30 days
-    /// - Total: Last 3 months
-    ///
-    /// Returns 0 if no TDD records are available for the selected period
-    var averageTDD: Decimal {
+    /// Calculates and caches the daily averages of Total Daily Dose (TDD) insulin values
+    /// - Note: This function runs asynchronously and updates the tddAveragesCache on the main actor
+    private func calculateAndCacheTDDAverages() async {
+        // Get calendar for date calculations
         let calendar = Calendar.current
-        let now = Date()
 
-        // Filter TDDs based on selected time frame
-        let filteredTDDs: [TDD] = tddStats.filter { tdd in
-            guard let timestamp = tdd.timestamp else { return false }
-
-            switch selectedDurationForInsulinStats {
-            case .Day:
-                // Last 3 days
-                let threeDaysAgo = calendar.date(byAdding: .day, value: -3, to: now)!
-                return timestamp >= threeDaysAgo
-            case .Week:
-                // Last week
-                let weekAgo = calendar.date(byAdding: .weekOfYear, value: -1, to: now)!
-                return timestamp >= weekAgo
-            case .Month:
-                // Last month
-                let monthAgo = calendar.date(byAdding: .month, value: -1, to: now)!
-                return timestamp >= monthAgo
-            case .Total:
-                // Last 3 months
-                let threeMonthsAgo = calendar.date(byAdding: .month, value: -3, to: now)!
-                return timestamp >= threeMonthsAgo
+        // Calculate daily averages on background context
+        let dailyAverages = await tddTaskContext.perform { [dailyTDDStats] in
+            // Group TDD stats by calendar day
+            let groupedByDay = Dictionary(grouping: dailyTDDStats) { stat in
+                calendar.startOfDay(for: stat.date)
             }
+
+            // Calculate average TDD for each day
+            var averages: [Date: Double] = [:]
+            for (day, stats) in groupedByDay {
+                // Sum up all TDD values for the day
+                let total = stats.reduce(0.0) { $0 + $1.amount }
+                let count = Double(stats.count)
+                // Store average in dictionary
+                averages[day] = total / count
+            }
+            return averages
         }
 
-        let sum = filteredTDDs.reduce(Decimal.zero) { $0 + ($1.totalDailyDose ?? 0) }
-        return filteredTDDs.isEmpty ? 0 : sum / Decimal(filteredTDDs.count)
+        // Update cache on main actor
+        await MainActor.run {
+            self.tddAveragesCache = dailyAverages
+        }
     }
 
-    /// Calculates the average Total Daily Dose for a specified date range
-    /// - Parameters:
-    ///   - startDate: Start date of the range
-    ///   - endDate: End date of the range
-    /// - Returns: Average TDD value for the period
-    ///
-    /// The function:
-    /// 1. Filters TDD records within the specified date range
-    /// 2. Calculates the sum of all TDDs in the range
-    /// 3. Returns the average (sum divided by number of records)
-    /// 4. Returns 0 if no records are found
-    func calculateAverageTDD(from startDate: Date, to endDate: Date) async -> Decimal {
-        let filteredTDDs = tddStats.filter { tdd in
-            guard let timestamp = tdd.timestamp else { return false }
-            return timestamp >= startDate && timestamp <= endDate
-        }
-
-        let sum = filteredTDDs.reduce(Decimal.zero) { $0 + ($1.totalDailyDose ?? 0) }
-        return filteredTDDs.isEmpty ? 0 : sum / Decimal(filteredTDDs.count)
+    /// Gets the cached average Total Daily Dose (TDD) of insulin for a specified date range
+    /// - Parameter range: A tuple containing the start and end dates to get averages for
+    /// - Returns: The average TDD in units for the specified date range
+    func getCachedTDDAverages(for range: (start: Date, end: Date)) -> Double {
+        // Calculate and return the TDD averages for the given date range using cached values
+        calculateTDDAveragesForDateRange(from: range.start, to: range.end)
     }
 
-    /// Calculates the median Total Daily Dose for a specified date range
+    /// Calculates the average Total Daily Dose (TDD) of insulin for a specified date range
     /// - Parameters:
-    ///   - startDate: Start date of the range
-    ///   - endDate: End date of the range
-    /// - Returns: Median TDD value for the period
-    ///
-    /// The calculation process:
-    /// 1. Filters TDD records within the date range
-    /// 2. Sorts all TDD values
-    /// 3. For odd number of values: Returns the middle value
-    /// 4. For even number of values: Returns average of two middle values
-    /// 5. Returns 0 if no records are found
-    func calculateMedianTDD(from startDate: Date, to endDate: Date) async -> Decimal {
-        let filteredTDDs = tddStats.filter { tdd in
-            guard let timestamp = tdd.timestamp else { return false }
-            return timestamp >= startDate && timestamp <= endDate
+    ///   - startDate: The start date of the range to calculate averages for
+    ///   - endDate: The end date of the range to calculate averages for
+    /// - Returns: The average TDD in units for the specified date range. Returns 0.0 if no data exists.
+    private func calculateTDDAveragesForDateRange(from startDate: Date, to endDate: Date) -> Double {
+        // Filter cached TDD values to only include those within the date range
+        let relevantStats = tddAveragesCache.filter { date, _ in
+            date >= startDate && date <= endDate
         }
 
-        let sortedDoses = filteredTDDs.compactMap(\.totalDailyDose).sorted()
-        guard !sortedDoses.isEmpty else { return 0 }
+        // Return 0 if no data exists for the specified range
+        guard !relevantStats.isEmpty else { return 0.0 }
 
-        let middle = sortedDoses.count / 2
-        if sortedDoses.count % 2 == 0 {
-            return (sortedDoses[middle - 1] + sortedDoses[middle]) / 2
-        } else {
-            return sortedDoses[middle]
-        }
+        // Calculate total TDD by summing all values
+        let total = relevantStats.values.reduce(0.0, +)
+        // Convert count to Double for floating point division
+        let count = Double(relevantStats.count)
+
+        // Return average TDD
+        return total / count
     }
 }

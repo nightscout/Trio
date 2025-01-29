@@ -211,7 +211,7 @@ struct BolusStatsView: View {
                 y: .value("Amount", stat.manualBolus)
             )
             .foregroundStyle(by: .value("Type", "Manual"))
-            .position(by: .value("Type", "Manual"))
+            .position(by: .value("Type", "Boluses"))
 
             // Carb Bolus Bar
             BarMark(
@@ -219,7 +219,7 @@ struct BolusStatsView: View {
                 y: .value("Amount", stat.smb)
             )
             .foregroundStyle(by: .value("Type", "SMB"))
-            .position(by: .value("Type", "SMB"))
+            .position(by: .value("Type", "Boluses"))
 
             // Correction Bolus Bar
             BarMark(
@@ -227,7 +227,7 @@ struct BolusStatsView: View {
                 y: .value("Amount", stat.external)
             )
             .foregroundStyle(by: .value("Type", "External"))
-            .position(by: .value("Type", "External"))
+            .position(by: .value("Type", "Boluses"))
 
             if let selectedDate,
                let selectedBolus = getBolusForDate(selectedDate)
@@ -246,8 +246,8 @@ struct BolusStatsView: View {
             }
         }
         .chartForegroundStyleScale([
-            "Manual": Color.teal,
             "SMB": Color.blue,
+            "Manual": Color.teal,
             "External": Color.purple
         ])
         .chartLegend(position: .bottom, alignment: .leading, spacing: 12)

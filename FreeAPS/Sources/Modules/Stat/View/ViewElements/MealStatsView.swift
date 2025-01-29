@@ -257,32 +257,30 @@ struct MealStatsView: View {
     }
 
     private var chartsView: some View {
-        Chart {
-            ForEach(mealStats) { stat in
-                // Carbs Bar
-                BarMark(
-                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
-                    y: .value("Amount", stat.carbs)
-                )
-                .foregroundStyle(by: .value("Type", "Carbs"))
-                .position(by: .value("Type", "Carbs"))
+        Chart(mealStats) { stat in
+            // Carbs Bar (bottom)
+            BarMark(
+                x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                y: .value("Amount", stat.carbs)
+            )
+            .foregroundStyle(by: .value("Type", "Carbs"))
+            .position(by: .value("Type", "Macros"))
 
-                // Fat Bar
-                BarMark(
-                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
-                    y: .value("Amount", stat.fat)
-                )
-                .foregroundStyle(by: .value("Type", "Fat"))
-                .position(by: .value("Type", "Fat"))
+            // Fat Bar (middle)
+            BarMark(
+                x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                y: .value("Amount", stat.fat)
+            )
+            .foregroundStyle(by: .value("Type", "Fat"))
+            .position(by: .value("Type", "Macros"))
 
-                // Protein Bar
-                BarMark(
-                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
-                    y: .value("Amount", stat.protein)
-                )
-                .foregroundStyle(by: .value("Type", "Protein"))
-                .position(by: .value("Type", "Protein"))
-            }
+            // Protein Bar (top)
+            BarMark(
+                x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                y: .value("Amount", stat.protein)
+            )
+            .foregroundStyle(by: .value("Type", "Protein"))
+            .position(by: .value("Type", "Macros"))
 
             if let selectedDate,
                let selectedMeal = getMealForDate(selectedDate)
@@ -302,8 +300,8 @@ struct MealStatsView: View {
         }
         .chartForegroundStyleScale([
             "Carbs": Color.orange,
-            "Fat": Color.blue,
-            "Protein": Color.green
+            "Fat": Color.green,
+            "Protein": Color.blue
         ])
         .chartLegend(position: .bottom, alignment: .leading, spacing: 12)
         .chartYAxis {
@@ -324,17 +322,16 @@ struct MealStatsView: View {
 
                     switch selectedDuration {
                     case .Day:
-                        if hour % 6 == 0 { // Show only every 6 hours (0, 6, 12, 18)
+                        if hour % 6 == 0 {
                             AxisValueLabel(format: dateFormat, centered: true)
                             AxisGridLine()
                         }
                     case .Month:
-                        if day % 5 == 0 { // Only show every 5th day
+                        if day % 5 == 0 {
                             AxisValueLabel(format: dateFormat, centered: true)
                             AxisGridLine()
                         }
                     case .Total:
-                        // Only show January, April, July, October
                         if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
                             AxisValueLabel(format: dateFormat, centered: true)
                             AxisGridLine()
@@ -352,11 +349,9 @@ struct MealStatsView: View {
         .chartScrollTargetBehavior(
             .valueAligned(
                 matching: selectedDuration == .Day ?
-                    DateComponents(minute: 0) : // Align to next hour for Day view
-                    DateComponents(hour: 0), // Align to start of day for other views
-                majorAlignment: .matching(
-                    alignmentComponents
-                )
+                    DateComponents(minute: 0) :
+                    DateComponents(hour: 0),
+                majorAlignment: .matching(alignmentComponents)
             )
         )
         .chartXVisibleDomain(length: visibleDomainLength)
