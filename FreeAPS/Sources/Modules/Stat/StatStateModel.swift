@@ -49,7 +49,6 @@ extension Stat {
         var glucoseFromPersistence: [GlucoseStored] = []
         var loopStatRecords: [LoopStatRecord] = []
         var groupedLoopStats: [LoopStatsByPeriod] = []
-        var mealStats: [MealStats] = []
         var tddStats: [TDD] = []
         var bolusStats: [BolusStats] = []
         var hourlyStats: [HourlyStats] = []
@@ -70,6 +69,11 @@ extension Stat {
         private var weeklyRangeStatsCache: [Date: [GlucoseRangeStats]] = [:]
         private var monthlyRangeStatsCache: [Date: [GlucoseRangeStats]] = [:]
         private var totalRangeStatsCache: [GlucoseRangeStats] = []
+
+        // Cache for Meal Stats
+        var hourlyMealStats: [MealStats] = []
+        var dailyMealStats: [MealStats] = []
+        var dailyAveragesCache: [Date: (carbs: Double, fat: Double, protein: Double)] = [:]
 
         // Selected Duration for Glucose Stats
         var selectedDurationForGlucoseStats: StatsTimeInterval = .Day {

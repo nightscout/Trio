@@ -315,11 +315,13 @@ extension Stat {
             StatCard {
                 switch state.selectedMealChartType {
                 case .totalMeals:
+                    // TODO: -
                     var hasMealData: Bool {
-                        state.mealStats.contains { $0.carbs > 0 || $0.fat > 0 || $0.protein > 0 }
+                        state.dailyMealStats.contains { $0.carbs > 0 || $0.fat > 0 || $0.protein > 0 }
                     }
 
-                    if state.mealStats.isEmpty || !hasMealData {
+                    // TODO: -
+                    if state.dailyMealStats.isEmpty || !hasMealData {
                         ContentUnavailableView(
                             "No Meal Data",
                             systemImage: "fork.knife",
@@ -328,10 +330,9 @@ extension Stat {
                     } else {
                         MealStatsView(
                             selectedDuration: $state.selectedDurationForMealStats,
-                            mealStats: state.mealStats,
-                            calculateAverages: { start, end in
-                                await state.calculateAverageMealStats(from: start, to: end)
-                            }
+                            mealStats: state.selectedDurationForMealStats == .Day ?
+                                state.hourlyMealStats : state.dailyMealStats,
+                            state: state
                         )
                     }
                 case .mealToHypoHyperDistribution:
