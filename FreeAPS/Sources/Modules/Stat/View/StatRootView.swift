@@ -76,7 +76,7 @@ extension Stat {
             }.padding(.horizontal)
 
             Picker("Duration", selection: $state.selectedDurationForGlucoseStats) {
-                ForEach(StateModel.StatsTimeInterval.allCases, id: \.self) { timeInterval in
+                ForEach(StateModel.Duration.allCases, id: \.self) { timeInterval in
                     Text(timeInterval.rawValue)
                 }
             }
@@ -100,18 +100,15 @@ extension Stat {
                     switch state.selectedGlucoseChartType {
                     case .percentile:
                         GlucosePercentileChart(
-                            selectedDuration: $state.selectedDurationForGlucoseStats,
-                            state: state,
                             glucose: state.glucoseFromPersistence,
                             highLimit: state.highLimit,
                             lowLimit: state.lowLimit,
                             units: state.units,
-                            hourlyStats: state.hourlyStats
+                            hourlyStats: state.hourlyStats,
+                            isToday: state.selectedDurationForGlucoseStats == .Today
                         )
                     case .distribution:
                         GlucoseDistributionChart(
-                            selectedDuration: $state.selectedDurationForGlucoseStats,
-                            state: state,
                             glucose: state.glucoseFromPersistence,
                             highLimit: state.highLimit,
                             lowLimit: state.lowLimit,

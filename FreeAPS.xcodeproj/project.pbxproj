@@ -2529,11 +2529,11 @@
 			isa = PBXGroup;
 			children = (
 				BD249DA02D42FD1000412DEB /* TDDSetup.swift */,
-				BD249D9E2D42FD0200412DEB /* StackedChartSetup.swift */,
 				BD249D9C2D42FCF300412DEB /* MealStatsSetup.swift */,
-				BD249D9A2D42FCD800412DEB /* LoopChartSetup.swift */,
 				BD249D982D42FCCA00412DEB /* BolusStatsSetup.swift */,
 				BD249D962D42FCBD00412DEB /* AreaChartSetup.swift */,
+				BD249D9E2D42FD0200412DEB /* StackedChartSetup.swift */,
+				BD249D9A2D42FCD800412DEB /* LoopChartSetup.swift */,
 			);
 			path = "StatStateModel+Setup";
 			sourceTree = "<group>";
