@@ -320,13 +320,13 @@ struct MealStatsView: View {
                 RuleMark(
                     x: .value("Selected Date", selectedDate)
                 )
-                .foregroundStyle(.secondary.opacity(0.3))
+                .foregroundStyle(.secondary.opacity(0.5))
                 .annotation(
                     position: .top,
                     spacing: 0,
                     overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
                 ) {
-                    MealSelectionPopover(date: selectedDate, meal: selectedMeal)
+                    MealSelectionPopover(date: selectedDate, meal: selectedMeal, selectedDuration: selectedDuration)
                 }
             }
         }
@@ -403,13 +403,15 @@ private struct MealSelectionPopover: View {
     let date: Date
     // The meal statistics to display
     let meal: MealStats
+    // The selected duration in the time picker
+    let selectedDuration: Stat.StateModel.StatsTimeInterval
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             // Display formatted date header
-            Text(date.formatted(.dateTime.month().day()))
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Text(selectedDuration == .Day ? date.formatted(.dateTime.hour().minute()) : date.formatted(.dateTime.month().day()))
+                .font(.subheadline)
+                .fontWeight(.bold)
 
             // Grid layout for macronutrient values
             Grid(alignment: .leading) {
@@ -435,14 +437,13 @@ private struct MealSelectionPopover: View {
                     Text("g")
                 }
             }
-            .font(.caption)
+            .font(.headline.bold())
         }
-        .padding(8)
+        .foregroundStyle(.white)
+        .padding(20)
         .background(
-            // Add background styling with shadow
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.systemBackground))
-                .shadow(radius: 2)
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.orange.gradient)
         )
     }
 }

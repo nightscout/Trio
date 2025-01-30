@@ -76,7 +76,7 @@ struct GlucosePercentileChart: View {
 
                 if let selectedStats, let selection {
                     RuleMark(x: .value("Selection", selection))
-                        .foregroundStyle(.secondary.opacity(0.3))
+                        .foregroundStyle(.secondary.opacity(0.5))
                         .annotation(
                             position: .top,
                             spacing: 0,
@@ -109,7 +109,7 @@ struct GlucosePercentileChart: View {
                     AxisGridLine()
                 }
             }
-            .chartXSelection(value: $selection)
+            .chartXSelection(value: $selection.animation(.easeInOut))
             .frame(height: 200)
 
             legend
@@ -186,10 +186,9 @@ struct AGPSelectionPopover: View {
             HStack {
                 Image(systemName: "clock")
                 Text(time.formatted(.dateTime.hour().minute(.twoDigits)))
-                    .font(.body).bold()
+                    .fontWeight(.bold)
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            .font(.subheadline)
 
             Grid(alignment: .leading, horizontalSpacing: 8) {
                 GridRow {
@@ -223,13 +222,13 @@ struct AGPSelectionPopover: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .font(.caption)
+            .font(.headline.bold())
         }
-        .padding(8)
+        .foregroundStyle(.white)
+        .padding(20)
         .background {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(.background)
-                .shadow(radius: 2)
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.blue.gradient)
         }
     }
 }

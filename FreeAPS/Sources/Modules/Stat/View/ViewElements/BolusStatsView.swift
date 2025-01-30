@@ -267,13 +267,13 @@ struct BolusStatsView: View {
                 RuleMark(
                     x: .value("Selected Date", selectedDate)
                 )
-                .foregroundStyle(.secondary.opacity(0.3))
+                .foregroundStyle(.secondary.opacity(0.5))
                 .annotation(
                     position: .top,
                     spacing: 0,
                     overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
                 ) {
-                    BolusSelectionPopover(date: selectedDate, bolus: selectedBolus)
+                    BolusSelectionPopover(date: selectedDate, bolus: selectedBolus, selectedDuration: selectedDuration)
                 }
             }
         }
@@ -344,12 +344,12 @@ struct BolusStatsView: View {
 private struct BolusSelectionPopover: View {
     let date: Date
     let bolus: BolusStats
-
+    let selectedDuration: Stat.StateModel.StatsTimeInterval
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(date.formatted(.dateTime.month().day()))
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Text(selectedDuration == .Day ? date.formatted(.dateTime.hour().minute()) : date.formatted(.dateTime.month().day()))
+                .font(.subheadline)
+                .fontWeight(.bold)
 
             Grid(alignment: .leading) {
                 GridRow {
@@ -371,13 +371,13 @@ private struct BolusSelectionPopover: View {
                     Text("U")
                 }
             }
-            .font(.caption)
+            .font(.headline.bold())
         }
-        .padding(8)
+        .foregroundStyle(.white)
+        .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.systemBackground))
-                .shadow(radius: 2)
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.blue.gradient)
         )
     }
 }
