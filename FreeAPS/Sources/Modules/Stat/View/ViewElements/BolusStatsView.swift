@@ -57,8 +57,15 @@ struct BolusStatsView: View {
 
     /// Returns bolus statistics for a specific date
     private func getBolusForDate(_ date: Date) -> BolusStats? {
-        bolusStats.first { stat in
-            Calendar.current.isDate(stat.date, inSameDayAs: date)
+        let calendar = Calendar.current
+
+        return bolusStats.first { stat in
+            switch selectedDuration {
+            case .Day:
+                return calendar.isDate(stat.date, equalTo: date, toGranularity: .hour)
+            default:
+                return calendar.isDate(stat.date, inSameDayAs: date)
+            }
         }
     }
 

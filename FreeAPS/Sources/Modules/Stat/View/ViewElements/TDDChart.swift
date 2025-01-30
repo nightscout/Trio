@@ -52,8 +52,15 @@ struct TDDChartView: View {
     }
 
     private func getTDDForDate(_ date: Date) -> TDDStats? {
-        tddStats.first { stat in
-            Calendar.current.isDate(stat.date, inSameDayAs: date)
+        let calendar = Calendar.current
+
+        return tddStats.first { stat in
+            switch selectedDuration {
+            case .Day:
+                return calendar.isDate(stat.date, equalTo: date, toGranularity: .hour)
+            default:
+                return calendar.isDate(stat.date, inSameDayAs: date)
+            }
         }
     }
 

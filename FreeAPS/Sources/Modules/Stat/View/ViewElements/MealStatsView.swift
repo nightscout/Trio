@@ -86,8 +86,15 @@ struct MealStatsView: View {
     /// This function searches through the meal statistics array to find the first entry
     /// that matches the provided date (comparing only the day component, not time).
     private func getMealForDate(_ date: Date) -> MealStats? {
-        mealStats.first { stat in
-            Calendar.current.isDate(stat.date, inSameDayAs: date)
+        let calendar = Calendar.current
+
+        return mealStats.first { stat in
+            switch selectedDuration {
+            case .Day:
+                return calendar.isDate(stat.date, equalTo: date, toGranularity: .hour)
+            default:
+                return calendar.isDate(stat.date, inSameDayAs: date)
+            }
         }
     }
 
