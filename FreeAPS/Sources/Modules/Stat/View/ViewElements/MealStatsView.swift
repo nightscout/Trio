@@ -184,6 +184,15 @@ struct MealStatsView: View {
         }
     }
 
+    private func isSameTimeUnit(_ date1: Date, _ date2: Date) -> Bool {
+        switch selectedDuration {
+        case .Day:
+            return Calendar.current.isDate(date1, equalTo: date2, toGranularity: .hour)
+        default:
+            return Calendar.current.isDate(date1, inSameDayAs: date2)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             statsView
@@ -257,31 +266,47 @@ struct MealStatsView: View {
     }
 
     private var chartsView: some View {
-        Chart(mealStats) { stat in
-            // Carbs Bar (bottom)
-            BarMark(
-                x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
-                y: .value("Amount", stat.carbs)
-            )
-            .foregroundStyle(by: .value("Type", "Carbs"))
-            .position(by: .value("Type", "Macros"))
+        Chart {
+            ForEach(mealStats) { stat in
+                // Carbs Bar (bottom)
+                BarMark(
+                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                    y: .value("Amount", stat.carbs)
+                )
+                .foregroundStyle(by: .value("Type", "Carbs"))
+                .position(by: .value("Type", "Macros"))
+                .opacity(
+                    selectedDate.map { date in
+                        isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                    } ?? 1
+                )
+                // Fat Bar (middle)
+                BarMark(
+                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                    y: .value("Amount", stat.fat)
+                )
+                .foregroundStyle(by: .value("Type", "Fat"))
+                .position(by: .value("Type", "Macros"))
+                .opacity(
+                    selectedDate.map { date in
+                        isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                    } ?? 1
+                )
+                // Protein Bar (top)
+                BarMark(
+                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                    y: .value("Amount", stat.protein)
+                )
+                .foregroundStyle(by: .value("Type", "Protein"))
+                .position(by: .value("Type", "Macros"))
+                .opacity(
+                    selectedDate.map { date in
+                        isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                    } ?? 1
+                )
+            }
 
-            // Fat Bar (middle)
-            BarMark(
-                x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
-                y: .value("Amount", stat.fat)
-            )
-            .foregroundStyle(by: .value("Type", "Fat"))
-            .position(by: .value("Type", "Macros"))
-
-            // Protein Bar (top)
-            BarMark(
-                x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
-                y: .value("Amount", stat.protein)
-            )
-            .foregroundStyle(by: .value("Type", "Protein"))
-            .position(by: .value("Type", "Macros"))
-
+            // Selection popover outside of the ForEach loop!
             if let selectedDate,
                let selectedMeal = getMealForDate(selectedDate)
             {
@@ -292,7 +317,7 @@ struct MealStatsView: View {
                 .annotation(
                     position: .top,
                     spacing: 0,
-                    overflowResolution: .init(x: .fit, y: .disabled)
+                    overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
                 ) {
                     MealSelectionPopover(date: selectedDate, meal: selectedMeal)
                 }
@@ -343,8 +368,8 @@ struct MealStatsView: View {
                 }
             }
         }
-        .chartXSelection(value: $selectedDate)
         .chartScrollableAxes(.horizontal)
+        .chartXSelection(value: $selectedDate.animation(.easeInOut))
         .chartScrollPosition(x: $scrollPosition)
         .chartScrollTargetBehavior(
             .valueAligned(
@@ -355,7 +380,7 @@ struct MealStatsView: View {
             )
         )
         .chartXVisibleDomain(length: visibleDomainLength)
-        .frame(height: 200)
+        .frame(height: 250)
     }
 }
 

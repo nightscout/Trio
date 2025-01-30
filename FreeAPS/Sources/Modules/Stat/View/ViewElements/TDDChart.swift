@@ -125,6 +125,15 @@ struct TDDChartView: View {
         }
     }
 
+    private func isSameTimeUnit(_ date1: Date, _ date2: Date) -> Bool {
+        switch selectedDuration {
+        case .Day:
+            return Calendar.current.isDate(date1, equalTo: date2, toGranularity: .hour)
+        default:
+            return Calendar.current.isDate(date1, inSameDayAs: date2)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             statsView
@@ -168,13 +177,21 @@ struct TDDChartView: View {
     }
 
     private var chartsView: some View {
-        Chart(tddStats) { stat in
-            BarMark(
-                x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
-                y: .value("Amount", stat.amount)
-            )
-            .foregroundStyle(Color.insulin)
+        Chart {
+            ForEach(tddStats) { stat in
+                BarMark(
+                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                    y: .value("Amount", stat.amount)
+                )
+                .foregroundStyle(Color.insulin)
+                .opacity(
+                    selectedDate.map { date in
+                        isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                    } ?? 1
+                )
+            }
 
+            // Selection popover outside of the ForEach loop!
             if let selectedDate,
                let selectedTDD = getTDDForDate(selectedDate)
             {
@@ -185,7 +202,7 @@ struct TDDChartView: View {
                 .annotation(
                     position: .top,
                     spacing: 0,
-                    overflowResolution: .init(x: .fit, y: .disabled)
+                    overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
                 ) {
                     TDDSelectionPopover(date: selectedDate, tdd: selectedTDD)
                 }
@@ -230,8 +247,8 @@ struct TDDChartView: View {
                 }
             }
         }
-        .chartXSelection(value: $selectedDate)
         .chartScrollableAxes(.horizontal)
+        .chartXSelection(value: $selectedDate.animation(.easeInOut))
         .chartScrollPosition(x: $scrollPosition)
         .chartScrollTargetBehavior(
             .valueAligned(
@@ -242,7 +259,7 @@ struct TDDChartView: View {
             )
         )
         .chartXVisibleDomain(length: visibleDomainLength)
-        .frame(height: 200)
+        .frame(height: 250)
     }
 }
 

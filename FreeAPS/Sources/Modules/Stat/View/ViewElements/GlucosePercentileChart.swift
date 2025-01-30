@@ -34,8 +34,8 @@ struct GlucosePercentileChart: View {
                 // TODO: ensure area marks and line mark take color of respective range
 
                 // Statistical view for longer periods
-                // 10-90 percentile area
                 ForEach(hourlyStats, id: \.hour) { stats in
+                    // 10-90 percentile area
                     AreaMark(
                         x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
                         yStart: .value("10th Percentile", stats.percentile10),
@@ -43,10 +43,8 @@ struct GlucosePercentileChart: View {
                         series: .value("10-90", "10-90")
                     )
                     .foregroundStyle(.blue.opacity(stats.median > 0 ? 0.2 : 0))
-                }
 
-                // 25-75 percentile area
-                ForEach(hourlyStats, id: \.hour) { stats in
+                    // 25-75 percentile area
                     AreaMark(
                         x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
                         yStart: .value("25th Percentile", stats.percentile25),
@@ -54,17 +52,17 @@ struct GlucosePercentileChart: View {
                         series: .value("25-75", "25-75")
                     )
                     .foregroundStyle(.blue.opacity(stats.median > 0 ? 0.3 : 0))
-                }
 
-                // Median line
-                ForEach(hourlyStats.filter { $0.median > 0 }, id: \.hour) { stats in
-                    LineMark(
-                        x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
-                        y: .value("Median", stats.median),
-                        series: .value("Median", "Median")
-                    )
-                    .lineStyle(StrokeStyle(lineWidth: 2))
-                    .foregroundStyle(.blue)
+                    // Median line
+                    if stats.median > 0 {
+                        LineMark(
+                            x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
+                            y: .value("Median", stats.median),
+                            series: .value("Median", "Median")
+                        )
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .foregroundStyle(.blue)
+                    }
                 }
 
                 // High/Low limit lines
@@ -82,7 +80,11 @@ struct GlucosePercentileChart: View {
                         .annotation(
                             position: .top,
                             spacing: 0,
-                            overflowResolution: .init(x: .fit, y: .disabled)
+//                            overflowResolution: .init(x: .fit, y: .disabled)
+                            overflowResolution: .init(
+                                x: .fit(to: .chart),
+                                y: .fit(to: .chart)
+                            ) // for coherence with the other charts
                         ) {
                             AGPSelectionPopover(
                                 stats: selectedStats,
