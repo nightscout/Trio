@@ -1,5 +1,4 @@
 import Foundation
-import OpenAPSKit
 
 struct OpenAPSSwift {
     static func makeProfile(
@@ -26,7 +25,7 @@ struct OpenAPSSwift {
             let autotune = try JSONBridge.autotune(from: autotune)
             let freeaps = try JSONBridge.freeapsSettings(from: freeaps)
 
-            let profile = try OpenAPSKit.ProfileGenerator.generate(
+            let profile = try ProfileGenerator.generate(
                 pumpSettings: pumpSettings,
                 bgTargets: bgTargets,
                 basalProfile: basalProfile,

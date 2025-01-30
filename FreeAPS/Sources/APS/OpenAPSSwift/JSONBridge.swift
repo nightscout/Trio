@@ -1,5 +1,4 @@
 import Foundation
-import OpenAPSKit
 
 enum JSONError: Error {
     case invalidString
@@ -8,31 +7,31 @@ enum JSONError: Error {
 }
 
 enum JSONBridge {
-    static func preferences(from: JSON) throws -> OKPreferences {
+    static func preferences(from: JSON) throws -> Preferences {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func pumpSettings(from: JSON) throws -> OKPumpSettings {
+    static func pumpSettings(from: JSON) throws -> PumpSettings {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func bgTargets(from: JSON) throws -> OKBGTargets {
+    static func bgTargets(from: JSON) throws -> BGTargets {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func basalProfile(from: JSON) throws -> [OKBasalProfileEntry] {
+    static func basalProfile(from: JSON) throws -> [BasalProfileEntry] {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func insulinSensitivities(from: JSON) throws -> OKInsulinSensitivities {
+    static func insulinSensitivities(from: JSON) throws -> InsulinSensitivities {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func carbRatios(from: JSON) throws -> OKCarbRatios {
+    static func carbRatios(from: JSON) throws -> CarbRatios {
         try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func tempTargets(from: JSON) throws -> [OKTempTarget] {
+    static func tempTargets(from: JSON) throws -> [TempTarget] {
         try JSONBridge.from(string: from.rawJSON)
     }
 
@@ -40,12 +39,12 @@ enum JSONBridge {
         from.rawJSON
     }
 
-    static func autotune(from: JSON) throws -> OKAutotune? {
+    static func autotune(from: JSON) throws -> Autotune? {
         guard from.rawJSON != RawJSON.null else { return nil }
         return try JSONBridge.from(string: from.rawJSON)
     }
 
-    static func freeapsSettings(from: JSON) throws -> OKFreeAPSSettings {
+    static func freeapsSettings(from: JSON) throws -> FreeAPSSettings {
         try JSONBridge.from(string: from.rawJSON)
     }
 

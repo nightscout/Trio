@@ -1,5 +1,5 @@
 {
-  "originHash" : "46d76138047ae4a072c17dbca57a7f0f33fdfc4ac6e414d933801acd7488e4bb",
+  "originHash" : "52d77fc35af7fe71614051dee0b291e2a0d38522eac7ae4d37d2442e81c7530c",
   "pins" : [
     {
       "identity" : "cryptoswift",
@@ -17,15 +17,6 @@
       "state" : {
         "branch" : "master",
         "revision" : "660888aab1d2ab0ed7eb9eb53caec12af4955fa7"
-      }
-    },
-    {
-      "identity" : "openapskit",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kingst/OpenAPSKit.git",
-      "state" : {
-        "revision" : "5abb2e9735c71172abf38697825a90f24fbcad61",
-        "version" : "1.0.0"
       }
     },
     {

@@ -235,7 +235,27 @@
 		38FEF413273B317A00574A46 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF412273B317A00574A46 /* HKUnit.swift */; };
 		3B5CD1EC2D4912A600CE213C /* OpenAPSSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD1E92D4912A600CE213C /* OpenAPSSwift.swift */; };
 		3B5CD1ED2D4912A600CE213C /* JSONBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD1EA2D4912A600CE213C /* JSONBridge.swift */; };
-		3B5CD2762D4A74FF00CE213C /* OpenAPSKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3B5CD2752D4A74FF00CE213C /* OpenAPSKit */; };
+		3B5CD2982D4AEA3C00CE213C /* Carbs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2922D4AEA3C00CE213C /* Carbs.swift */; };
+		3B5CD2992D4AEA3C00CE213C /* Isf.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2932D4AEA3C00CE213C /* Isf.swift */; };
+		3B5CD29A2D4AEA3C00CE213C /* ProfileError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2942D4AEA3C00CE213C /* ProfileError.swift */; };
+		3B5CD29B2D4AEA3C00CE213C /* Basal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2912D4AEA3C00CE213C /* Basal.swift */; };
+		3B5CD29C2D4AEA3C00CE213C /* ProfileGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2952D4AEA3C00CE213C /* ProfileGenerator.swift */; };
+		3B5CD29D2D4AEA3C00CE213C /* Targets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2962D4AEA3C00CE213C /* Targets.swift */; };
+		3B5CD2A12D4AEA5100CE213C /* JavascriptOptional.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD29E2D4AEA5100CE213C /* JavascriptOptional.swift */; };
+		3B5CD2A22D4AEA5100CE213C /* JSONCompare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD29F2D4AEA5100CE213C /* JSONCompare.swift */; };
+		3B5CD2A52D4AEA5D00CE213C /* Date+MinutesFromMidnight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2A32D4AEA5D00CE213C /* Date+MinutesFromMidnight.swift */; };
+		3B5CD2B32D4AEA6600CE213C /* Autotune.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2A82D4AEA6600CE213C /* Autotune.swift */; };
+		3B5CD2B72D4AEA6600CE213C /* ComputedBGTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2A72D4AEA6600CE213C /* ComputedBGTargets.swift */; };
+		3B5CD2B82D4AEA6600CE213C /* ComputedInsulinSensitivities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2AD2D4AEA6600CE213C /* ComputedInsulinSensitivities.swift */; };
+		3B5CD2BE2D4AEA6600CE213C /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2AF2D4AEA6600CE213C /* Profile.swift */; };
+		3B5CD2C92D4AECD500CE213C /* ProfileCarbsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2C32D4AECD500CE213C /* ProfileCarbsTests.swift */; };
+		3B5CD2CA2D4AECD500CE213C /* ProfileJavascriptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2C52D4AECD500CE213C /* ProfileJavascriptTests.swift */; };
+		3B5CD2CB2D4AECD500CE213C /* ProfileTargetsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2C62D4AECD500CE213C /* ProfileTargetsTests.swift */; };
+		3B5CD2CD2D4AECD500CE213C /* ProfileIsfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2C42D4AECD500CE213C /* ProfileIsfTests.swift */; };
+		3B5CD2CE2D4AECD500CE213C /* ProfileBasalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2C12D4AECD500CE213C /* ProfileBasalTests.swift */; };
+		3BCE75B32D4B38AE009E9453 /* InsulinSensitivities+Convert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */; };
+		3BCE75B52D4B391F009E9453 /* Decimal+rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */; };
+		3BCE75B72D4B3DCF009E9453 /* BGTargets+Convert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B62D4B3DC4009E9453 /* BGTargets+Convert.swift */; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
 		5075C1608E6249A51495C422 /* TargetsEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */; };
@@ -941,6 +961,27 @@
 		38FEF412273B317A00574A46 /* HKUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HKUnit.swift; sourceTree = "<group>"; };
 		3B5CD1E92D4912A600CE213C /* OpenAPSSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSSwift.swift; sourceTree = "<group>"; };
 		3B5CD1EA2D4912A600CE213C /* JSONBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONBridge.swift; sourceTree = "<group>"; };
+		3B5CD2912D4AEA3C00CE213C /* Basal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Basal.swift; sourceTree = "<group>"; };
+		3B5CD2922D4AEA3C00CE213C /* Carbs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Carbs.swift; sourceTree = "<group>"; };
+		3B5CD2932D4AEA3C00CE213C /* Isf.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Isf.swift; sourceTree = "<group>"; };
+		3B5CD2942D4AEA3C00CE213C /* ProfileError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileError.swift; sourceTree = "<group>"; };
+		3B5CD2952D4AEA3C00CE213C /* ProfileGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileGenerator.swift; sourceTree = "<group>"; };
+		3B5CD2962D4AEA3C00CE213C /* Targets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Targets.swift; sourceTree = "<group>"; };
+		3B5CD29E2D4AEA5100CE213C /* JavascriptOptional.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JavascriptOptional.swift; sourceTree = "<group>"; };
+		3B5CD29F2D4AEA5100CE213C /* JSONCompare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONCompare.swift; sourceTree = "<group>"; };
+		3B5CD2A32D4AEA5D00CE213C /* Date+MinutesFromMidnight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+MinutesFromMidnight.swift"; sourceTree = "<group>"; };
+		3B5CD2A72D4AEA6600CE213C /* ComputedBGTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputedBGTargets.swift; sourceTree = "<group>"; };
+		3B5CD2A82D4AEA6600CE213C /* Autotune.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Autotune.swift; sourceTree = "<group>"; };
+		3B5CD2AD2D4AEA6600CE213C /* ComputedInsulinSensitivities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputedInsulinSensitivities.swift; sourceTree = "<group>"; };
+		3B5CD2AF2D4AEA6600CE213C /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
+		3B5CD2C12D4AECD500CE213C /* ProfileBasalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileBasalTests.swift; sourceTree = "<group>"; };
+		3B5CD2C32D4AECD500CE213C /* ProfileCarbsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCarbsTests.swift; sourceTree = "<group>"; };
+		3B5CD2C42D4AECD500CE213C /* ProfileIsfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileIsfTests.swift; sourceTree = "<group>"; };
+		3B5CD2C52D4AECD500CE213C /* ProfileJavascriptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileJavascriptTests.swift; sourceTree = "<group>"; };
+		3B5CD2C62D4AECD500CE213C /* ProfileTargetsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileTargetsTests.swift; sourceTree = "<group>"; };
+		3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InsulinSensitivities+Convert.swift"; sourceTree = "<group>"; };
+		3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Decimal+rounding.swift"; sourceTree = "<group>"; };
+		3BCE75B62D4B3DC4009E9453 /* BGTargets+Convert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BGTargets+Convert.swift"; sourceTree = "<group>"; };
 		3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorProvider.swift; sourceTree = "<group>"; };
 		3BF768BD6264FF7D71D66767 /* NightscoutConfigProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigProvider.swift; sourceTree = "<group>"; };
 		3F60E97100041040446F44E7 /* PumpConfigStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigStateModel.swift; sourceTree = "<group>"; };
@@ -1299,7 +1340,6 @@
 				B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */,
 				CE95BF5B2BA770C300DC3DE3 /* LoopKit.framework in Frameworks */,
 				38B17B6625DD90E0005CAE3D /* SwiftDate in Frameworks */,
-				3B5CD2762D4A74FF00CE213C /* OpenAPSKit in Frameworks */,
 				3833B46D26012030003021B3 /* Algorithms in Frameworks */,
 				CEB434FD28B90B7C00B70274 /* SwiftCharts in Frameworks */,
 				CE95BF5F2BA7715800DC3DE3 /* MockKit.framework in Frameworks */,
@@ -2291,6 +2331,7 @@
 				38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */,
 				CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */,
 				CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */,
+				3B5CD2C72D4AECD500CE213C /* OpenAPSSwiftTests */,
 			);
 			path = FreeAPSTests;
 			sourceTree = "<group>";
@@ -2298,10 +2339,70 @@
 		3B5CD1EB2D4912A600CE213C /* OpenAPSSwift */ = {
 			isa = PBXGroup;
 			children = (
+				3B5CD2A42D4AEA5D00CE213C /* Extensions */,
+				3B5CD2B22D4AEA6600CE213C /* Models */,
+				3B5CD2972D4AEA3C00CE213C /* Profile */,
+				3B5CD2A02D4AEA5100CE213C /* Utils */,
 				3B5CD1E92D4912A600CE213C /* OpenAPSSwift.swift */,
 				3B5CD1EA2D4912A600CE213C /* JSONBridge.swift */,
 			);
 			path = OpenAPSSwift;
+			sourceTree = "<group>";
+		};
+		3B5CD2972D4AEA3C00CE213C /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				3B5CD2912D4AEA3C00CE213C /* Basal.swift */,
+				3B5CD2922D4AEA3C00CE213C /* Carbs.swift */,
+				3B5CD2932D4AEA3C00CE213C /* Isf.swift */,
+				3B5CD2942D4AEA3C00CE213C /* ProfileError.swift */,
+				3B5CD2952D4AEA3C00CE213C /* ProfileGenerator.swift */,
+				3B5CD2962D4AEA3C00CE213C /* Targets.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		3B5CD2A02D4AEA5100CE213C /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				3B5CD29E2D4AEA5100CE213C /* JavascriptOptional.swift */,
+				3B5CD29F2D4AEA5100CE213C /* JSONCompare.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		3B5CD2A42D4AEA5D00CE213C /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				3BCE75B62D4B3DC4009E9453 /* BGTargets+Convert.swift */,
+				3B5CD2A32D4AEA5D00CE213C /* Date+MinutesFromMidnight.swift */,
+				3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */,
+				3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		3B5CD2B22D4AEA6600CE213C /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				3B5CD2A82D4AEA6600CE213C /* Autotune.swift */,
+				3B5CD2A72D4AEA6600CE213C /* ComputedBGTargets.swift */,
+				3B5CD2AD2D4AEA6600CE213C /* ComputedInsulinSensitivities.swift */,
+				3B5CD2AF2D4AEA6600CE213C /* Profile.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		3B5CD2C72D4AECD500CE213C /* OpenAPSSwiftTests */ = {
+			isa = PBXGroup;
+			children = (
+				3B5CD2C12D4AECD500CE213C /* ProfileBasalTests.swift */,
+				3B5CD2C32D4AECD500CE213C /* ProfileCarbsTests.swift */,
+				3B5CD2C42D4AECD500CE213C /* ProfileIsfTests.swift */,
+				3B5CD2C52D4AECD500CE213C /* ProfileJavascriptTests.swift */,
+				3B5CD2C62D4AECD500CE213C /* ProfileTargetsTests.swift */,
+			);
+			path = OpenAPSSwiftTests;
 			sourceTree = "<group>";
 		};
 		4E8C7B59F8065047ECE20965 /* View */ = {
@@ -3140,7 +3241,6 @@
 				38DF1788276FC8C400B3528F /* SwiftMessages */,
 				CEB434FC28B90B7C00B70274 /* SwiftCharts */,
 				B958F1B62BA0711600484851 /* MKRingProgressView */,
-				3B5CD2752D4A74FF00CE213C /* OpenAPSKit */,
 			);
 			productName = FreeAPS;
 			productReference = 388E595825AD948C0019842D /* FreeAPS.app */;
@@ -3283,7 +3383,6 @@
 				38DF1787276FC8C300B3528F /* XCRemoteSwiftPackageReference "SwiftMessages" */,
 				CEB434FB28B90B7C00B70274 /* XCRemoteSwiftPackageReference "SwiftCharts" */,
 				B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */,
-				3B5CD2742D4A74FF00CE213C /* XCRemoteSwiftPackageReference "OpenAPSKit" */,
 			);
 			productRefGroup = 388E595925AD948C0019842D /* Products */;
 			projectDirPath = "";
@@ -3474,6 +3573,7 @@
 				38B4F3CD25E5031100E76A18 /* Broadcaster.swift in Sources */,
 				383420D925FFEB3F002D46C1 /* Popup.swift in Sources */,
 				DD1745402C55BFC100211FAC /* AlgorithmAdvancedSettingsRootView.swift in Sources */,
+				3BCE75B32D4B38AE009E9453 /* InsulinSensitivities+Convert.swift in Sources */,
 				58645BA52CA2D347008AFCE7 /* ForecastSetup.swift in Sources */,
 				110AEDEE2C51A0AE00615CC9 /* ShortcutsConfigStateModel.swift in Sources */,
 				DD9ECB722CA9A0BA00AA7C45 /* RemoteControlConfigDataFlow.swift in Sources */,
@@ -3524,6 +3624,10 @@
 				BDC2EA452C3043B000E5BBD0 /* OverrideStorage.swift in Sources */,
 				3811DE4225C9D4A100A708ED /* SettingsDataFlow.swift in Sources */,
 				CEE9A6562BBB418300EB5194 /* CalibrationsRootView.swift in Sources */,
+				3B5CD2B32D4AEA6600CE213C /* Autotune.swift in Sources */,
+				3B5CD2B72D4AEA6600CE213C /* ComputedBGTargets.swift in Sources */,
+				3B5CD2B82D4AEA6600CE213C /* ComputedInsulinSensitivities.swift in Sources */,
+				3B5CD2BE2D4AEA6600CE213C /* Profile.swift in Sources */,
 				3811DE2525C9D48300A708ED /* MainRootView.swift in Sources */,
 				CE94598229E9E3D30047C9C6 /* WatchConfigProvider.swift in Sources */,
 				DD1745322C55AE6000211FAC /* TargetBehavoirStateModel.swift in Sources */,
@@ -3534,6 +3638,7 @@
 				58645BA32CA2D325008AFCE7 /* BatterySetup.swift in Sources */,
 				388E5A5C25B6F0770019842D /* JSON.swift in Sources */,
 				3811DF0225CA9FEA00A708ED /* Credentials.swift in Sources */,
+				3BCE75B72D4B3DCF009E9453 /* BGTargets+Convert.swift in Sources */,
 				5837A5302BD2E3C700A5DC04 /* CarbEntryStored+helper.swift in Sources */,
 				389A572026079BAA00BC102F /* Interpolation.swift in Sources */,
 				DD9ECB702CA9A0BA00AA7C45 /* RemoteControlConfigStateModel.swift in Sources */,
@@ -3567,6 +3672,12 @@
 				DD1745462C55C61500211FAC /* AutosensSettingsProvider.swift in Sources */,
 				DDA6E2852D2361F800C2988C /* LoopStatusView.swift in Sources */,
 				DDA6E3202D258E0500C2988C /* OverrideHelpView.swift in Sources */,
+				3B5CD2982D4AEA3C00CE213C /* Carbs.swift in Sources */,
+				3B5CD2992D4AEA3C00CE213C /* Isf.swift in Sources */,
+				3B5CD29A2D4AEA3C00CE213C /* ProfileError.swift in Sources */,
+				3B5CD29B2D4AEA3C00CE213C /* Basal.swift in Sources */,
+				3B5CD29C2D4AEA3C00CE213C /* ProfileGenerator.swift in Sources */,
+				3B5CD29D2D4AEA3C00CE213C /* Targets.swift in Sources */,
 				DDA6E2502D22187500C2988C /* ChartLegendView.swift in Sources */,
 				3811DEAF25C9D88300A708ED /* KeyValueStorage.swift in Sources */,
 				DDD6D4D32CDE90720029439A /* HbA1cDisplayUnit.swift in Sources */,
@@ -3670,6 +3781,7 @@
 				38E989DD25F5021400C0CED0 /* PumpStatus.swift in Sources */,
 				BDFD165A2AE40438007F0DDA /* TreatmentsRootView.swift in Sources */,
 				38E98A2525F52C9300C0CED0 /* IssueReporter.swift in Sources */,
+				3BCE75B52D4B391F009E9453 /* Decimal+rounding.swift in Sources */,
 				DD1745522C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift in Sources */,
 				DD2CC85C2D25DA1000445446 /* GlucoseTargetsView.swift in Sources */,
 				190EBCC429FF136900BA767D /* UserInterfaceSettingsDataFlow.swift in Sources */,
@@ -3839,6 +3951,7 @@
 				FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */,
 				BD4E1A7C2D3686D900D21626 /* StartEndMarkerSetup.swift in Sources */,
 				F90692D3274B9A130037068D /* AppleHealthKitRootView.swift in Sources */,
+				3B5CD2A52D4AEA5D00CE213C /* Date+MinutesFromMidnight.swift in Sources */,
 				BDF34F852C10C62E00D51995 /* GlucoseData.swift in Sources */,
 				19E1F7EC29D082FE005C8D20 /* IconConfigStateModel.swift in Sources */,
 				711C0CB42CAABE788916BC9D /* ManualTempBasalDataFlow.swift in Sources */,
@@ -3871,6 +3984,8 @@
 				DD1745292C55642100211FAC /* SettingInputSection.swift in Sources */,
 				38569349270B5DFB0002C50D /* AppGroupSource.swift in Sources */,
 				F5CA3DB1F9DC8B05792BBFAA /* CGMDataFlow.swift in Sources */,
+				3B5CD2A12D4AEA5100CE213C /* JavascriptOptional.swift in Sources */,
+				3B5CD2A22D4AEA5100CE213C /* JSONCompare.swift in Sources */,
 				BDF34F952C10D27300D51995 /* DeterminationData.swift in Sources */,
 				BA00D96F7B2FF169A06FB530 /* CGMStateModel.swift in Sources */,
 				BD7DA9A52AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift in Sources */,
@@ -3959,6 +4074,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B5CD2C92D4AECD500CE213C /* ProfileCarbsTests.swift in Sources */,
+				3B5CD2CA2D4AECD500CE213C /* ProfileJavascriptTests.swift in Sources */,
+				3B5CD2CB2D4AECD500CE213C /* ProfileTargetsTests.swift in Sources */,
+				3B5CD2CD2D4AECD500CE213C /* ProfileIsfTests.swift in Sources */,
+				3B5CD2CE2D4AECD500CE213C /* ProfileBasalTests.swift in Sources */,
 				CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */,
 				CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */,
 				38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */,
@@ -4630,14 +4750,6 @@
 				minimumVersion = 9.0.0;
 			};
 		};
-		3B5CD2742D4A74FF00CE213C /* XCRemoteSwiftPackageReference "OpenAPSKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/kingst/OpenAPSKit.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
 		B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/maxkonovalov/MKRingProgressView.git";
@@ -4681,11 +4793,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 38B17B6425DD90E0005CAE3D /* XCRemoteSwiftPackageReference "SwiftDate" */;
 			productName = SwiftDate;
-		};
-		3B5CD2752D4A74FF00CE213C /* OpenAPSKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3B5CD2742D4A74FF00CE213C /* XCRemoteSwiftPackageReference "OpenAPSKit" */;
-			productName = OpenAPSKit;
 		};
 		B958F1B62BA0711600484851 /* MKRingProgressView */ = {
 			isa = XCSwiftPackageProductDependency;

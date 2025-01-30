@@ -2,7 +2,6 @@ import Combine
 import CoreData
 import Foundation
 import JavaScriptCore
-import OpenAPSKit
 
 final class OpenAPS {
     private let jsWorker = JavaScriptWorker()
@@ -767,7 +766,7 @@ final class OpenAPS {
         )
         let nativeDuration = Date().timeIntervalSince(startNativeAt)
 
-        OpenAPSKit.JSONCompare.logDifferences(
+        JSONCompare.logDifferences(
             label: "makeProfile",
             native: nativeJson,
             nativeRuntime: nativeDuration,
