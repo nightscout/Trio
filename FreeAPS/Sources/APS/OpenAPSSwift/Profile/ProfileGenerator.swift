@@ -77,8 +77,6 @@ enum ProfileGenerator {
         autotune _: Autotune?,
         freeaps _: FreeAPSSettings
     ) throws -> Profile {
-        let bgTargets = bgTargets.inMgDl()
-        let isf = isf.inMgDl()
         let model = model.replacingOccurrences(of: "\"", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !carbRatios.schedule.isEmpty else {
@@ -97,39 +95,9 @@ enum ProfileGenerator {
             preferences.insulinPeakTime = 55
         default:
             // don't do anything
-            print("don't modify insulin peak time")
+            debug(.openAPS, "don't modify insulin peak time")
         }
 
-        /* From Javascript
-         for (var pref in preferences) {
-           if (preferences.hasOwnProperty(pref)) {
-             inputs[pref] = preferences[pref];
-           }
-         }
-
-         inputs.max_iob = inputs.max_iob || 0;
-         */
-        // we don't need the JS logic above because it is handled by
-        // our update function
-
-        // in Trio it looks like autotune is always null
-        /*
-          var basalProfile = basalProfile
-          var carbRatios = carbRatios
-         if let autotune = autotune {
-             if let basal = autotune.basalProfile {
-                 basalProfile = basal
-             }
-             // onlyAutotuneBasals is not defined in Swift
-             if let isfProfile = autotune.isfProfile {
-                 // TODO: should we convert this to mg/dL as well?
-                 isf = isfProfile
-             }
-             if let carbRatio = autotune.carbRatio {
-                 carbRatios.schedule[0].ratio = carbRatio
-             }
-         }
-          */
         return try generate(
             pumpSettings: pumpSettings,
             bgTargets: bgTargets,
@@ -153,8 +121,7 @@ enum ProfileGenerator {
         tempTargets: [TempTarget],
         model: String
     ) throws -> Profile {
-        // var profile = opts && opts.type ? opts : defaults( );
-        var profile = Profile() // uses defaults
+        var profile = Profile() // start with the defaults
 
         // check if inputs has overrides for any of the default prefs
         // and apply if applicable. Note, this comes from the generate/profile.js
@@ -193,11 +160,8 @@ enum ProfileGenerator {
             throw ProfileError.invalidMaxBasal(value: profile.maxBasal)
         }
 
-        // var range = targets.bgTargetsLookup(inputs, profile);
         profile.outUnits = bgTargets.userPreferredUnits.rawValue
         let (updatedTargets, range) = try Targets.bgTargetsLookup(targets: bgTargets, tempTargets: tempTargets, profile: profile)
-        // profile.min_bg = Math.round(range.min_bg);
-        // profile.max_bg = Math.round(range.max_bg);
         profile.minBg = range.minBg?.rounded()
         profile.maxBg = range.maxBg?.rounded()
         // Note: we're using updatedTargets here because in Javascript the bgTargetsLookup
@@ -222,16 +186,13 @@ enum ProfileGenerator {
             targets: roundedTargets
         )
 
-        // delete profile.bg_targets.raw;
-        // Note: we don't need this in Swift as we don't have the raw property
-
         profile.temptargetSet = range.temptargetSet
         let (sens, isfUpdated) = try Isf.isfLookup(isfDataInput: isf)
         profile.sens = sens
         profile.isfProfile = isfUpdated
 
         guard let sens = profile.sens, sens >= 5 else {
-            print("ISF of \(String(describing: profile.sens)) is not supported")
+            debug(.openAPS, "ISF of \(String(describing: profile.sens)) is not supported")
             throw ProfileError.invalidISF(value: profile.sens)
         }
 

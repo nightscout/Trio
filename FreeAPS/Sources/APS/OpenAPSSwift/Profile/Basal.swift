@@ -8,7 +8,7 @@ struct Basal {
         let basalProfileData = basalProfile
 
         guard let lastBasalRate = basalProfileData.last?.rate, lastBasalRate != 0 else {
-            print("ERROR: bad basal schedule \(basalProfile)")
+            warning(.openAPS, "Warning: bad basal schedule \(basalProfile)")
             return nil
         }
 

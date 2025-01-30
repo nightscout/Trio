@@ -87,19 +87,6 @@ import Testing
         #expect(result.low == 100)
     }
 
-    @Test("should bound target range for mmol/L input") func boundMmolTargets() async throws {
-        let mmolTargets = BGTargets(
-            units: .mmolL,
-            userPreferredUnits: .mmolL,
-            targets: [
-                BGTargetEntry(low: 3, high: 4, start: "00:00:00", offset: 0)
-            ]
-        )
-        let (_, result) = try Targets.bgTargetsLookup(targets: mmolTargets, tempTargets: [], profile: profile)
-        #expect(result.maxBg == 80)
-        #expect(result.minBg == 80)
-    }
-
     @Test("should enforce hard limits on target range") func enforceHardLimits() async throws {
         let extremeTargets = BGTargets(
             units: .mgdL,

@@ -63,12 +63,12 @@ public enum JSONCompare {
         javascriptRuntime: TimeInterval
     ) {
         guard let differences = try? differences(native: native, javascript: javascript) else {
-            print("Exception calculating differences")
+            warning(.openAPS, "Exception calculating differences")
             return
         }
 
         // TODO: For now we'll just print this out to the console but we'll add proper logging next
-        print("\(label) -> n: \(nativeRuntime)s, js: \(javascriptRuntime)s")
+        debug(.openAPS, "\(label) -> n: \(nativeRuntime)s, js: \(javascriptRuntime)s")
         prettyPrint(differences)
     }
 
@@ -79,7 +79,7 @@ public enum JSONCompare {
         if let data = try? encoder.encode(differences),
            let prettyString = String(data: data, encoding: .utf8)
         {
-            print(prettyString)
+            debug(.openAPS, prettyString)
         }
     }
 

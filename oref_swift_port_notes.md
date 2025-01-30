@@ -25,9 +25,12 @@ something different if people have strong opinions here.
 
 Our plan is:
 
-1. Port one function at a time. The functions are `iob`, `meal`,
-`autotunePrepare`, `autotuneRun`, `determineBasal`, `autosense`,
-`exportDefaultPreferences`, and `makeProfile`.
+1. Port one function at a time. The functions, in order, are:
+  - `makeProfile`
+  - `iob`
+  - `meal`
+  - `autosense`
+  - `determineBasal`
 
 2. For each function, the process will be:
   - Write the code in Swift

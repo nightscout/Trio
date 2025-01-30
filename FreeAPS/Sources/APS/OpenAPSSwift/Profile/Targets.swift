@@ -1,12 +1,9 @@
 import Foundation
 
 struct Targets {
-    ///  The Javascript implementation was hard to port. First, it mutates
-    ///  the inputs in a way that is visible in the Profile. Second, there
-    ///  is a line of code where it sets the high value to low but only if
-    ///  it's not a temp target. I'm going to port it as is for now, but this
-    ///  is worth revisiting after we're done with the port.
-    ///
+    // The Javascript implementation was hard to port because it
+    // mutates the inputs in a way that is visible in the Profile.
+    //
     //  TODO: See if we can get rid of the logic that mutates inputs in Javascript
     static func lookup(
         targets: BGTargets,
@@ -56,7 +53,7 @@ struct Targets {
                     break
                 }
             } else {
-                print("eventualBG target range invalid: \(target.targetBottom ?? -1)-\(target.targetTop ?? -1)")
+                warning(.openAPS, "eventualBG target range invalid: \(target.targetBottom ?? -1)-\(target.targetTop ?? -1)")
                 break
             }
         }
@@ -69,9 +66,6 @@ struct Targets {
 
     static func boundTargetRange(_ entry: ComputedBGTargetEntry) -> ComputedBGTargetEntry {
         var target = entry
-        // Convert from mmol/L to mg/dL if needed
-        if target.high < 20 { target.high *= 18 }
-        if target.low < 20 { target.low *= 18 }
 
         // hard-code lower bounds for min_bg and max_bg in case pump is set too low, or units are wrong
         var maxBg = max(80, target.high)

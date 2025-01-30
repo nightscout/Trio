@@ -20,7 +20,7 @@ struct Carbs {
 
         // Check for invalid values
         if currentRatio < 3 || currentRatio > 150 {
-            print("Error: carbRatio of \(currentRatio) out of bounds.")
+            warning(.openAPS, "Warning: carbRatio of \(currentRatio) out of bounds.")
             return nil
         }
 
