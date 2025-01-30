@@ -80,11 +80,7 @@ struct GlucosePercentileChart: View {
                         .annotation(
                             position: .top,
                             spacing: 0,
-//                            overflowResolution: .init(x: .fit, y: .disabled)
-                            overflowResolution: .init(
-                                x: .fit(to: .chart),
-                                y: .fit(to: .chart)
-                            ) // for coherence with the other charts
+                            overflowResolution: .init(x: .fit, y: .disabled)
                         ) {
                             AGPSelectionPopover(
                                 stats: selectedStats,
@@ -95,17 +91,26 @@ struct GlucosePercentileChart: View {
                 }
             }
             .chartYAxis {
-                AxisMarks(position: .leading)
+                AxisMarks(position: .trailing) { value in
+                    if let glucose = value.as(Double.self) {
+                        AxisValueLabel {
+                            Text(glucose.formatted(.number.precision(.fractionLength(0))))
+                                .font(.footnote)
+                        }
+                        AxisGridLine()
+                    }
+                }
             }
-            .chartYAxisLabel(alignment: .leading) {
+            .chartYAxisLabel(alignment: .trailing) {
                 Text("\(units.rawValue)")
                     .foregroundStyle(.primary)
-                    .font(.caption)
+                    .font(.footnote)
                     .padding(.vertical, 3)
             }
             .chartXAxis {
                 AxisMarks(values: .stride(by: .hour, count: 3)) { _ in
                     AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
+                        .font(.footnote)
                     AxisGridLine()
                 }
             }
@@ -181,11 +186,19 @@ struct AGPSelectionPopover: View {
     let time: Date
     let units: GlucoseUnits
 
+    private var timeText: String {
+        if let hour = Calendar.current.dateComponents([.hour], from: time).hour {
+            return "\(hour):00-\(hour + 1):00"
+        } else {
+            return time.formatted(.dateTime.hour().minute())
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Image(systemName: "clock")
-                Text(time.formatted(.dateTime.hour().minute(.twoDigits)))
+                Text(timeText)
                     .fontWeight(.bold)
             }
             .font(.subheadline)

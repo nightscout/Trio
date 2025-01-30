@@ -124,12 +124,11 @@ struct MealStatsView: View {
         let calendar = Calendar.current
         let today = Date()
 
-        let timeFormat = start.formatted(.dateTime.hour().minute())
-
         // Special handling for Day view with relative dates
         if selectedDuration == .Day {
             let startDateText: String
             let endDateText: String
+            let timeFormat = start.formatted(.dateTime.hour().minute())
 
             // Format start date
             if calendar.isDate(start, inSameDayAs: today) {
@@ -161,8 +160,32 @@ struct MealStatsView: View {
             return "\(startDateText), \(timeFormat) - \(endDateText), \(end.formatted(.dateTime.hour().minute()))"
         }
 
-        // Standard format for other views
-        return "\(start.formatted()) - \(end.formatted())"
+        // Standard format for other views - only show dates without time
+        let startText: String
+        let endText: String
+
+        // Check for relative dates
+        if calendar.isDate(start, inSameDayAs: today) {
+            startText = "Today"
+        } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
+            startText = "Yesterday"
+        } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
+            startText = "Tomorrow"
+        } else {
+            startText = start.formatted(.dateTime.day().month())
+        }
+
+        if calendar.isDate(end, inSameDayAs: today) {
+            endText = "Today"
+        } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
+            endText = "Yesterday"
+        } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
+            endText = "Tomorrow"
+        } else {
+            endText = end.formatted(.dateTime.day().month())
+        }
+
+        return "\(startText) - \(endText)"
     }
 
     /// Returns the initial scroll position date based on the selected duration
@@ -267,7 +290,7 @@ struct MealStatsView: View {
             Spacer()
 
             Text(formatVisibleDateRange())
-                .font(.subheadline)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
         }
     }
@@ -341,7 +364,7 @@ struct MealStatsView: View {
                 if let amount = value.as(Double.self) {
                     AxisValueLabel {
                         Text(amount.formatted(.number.precision(.fractionLength(0))) + " g")
-                            .font(.subheadline)
+                            .font(.footnote)
                     }
                     AxisGridLine()
                 }
@@ -357,24 +380,24 @@ struct MealStatsView: View {
                     case .Day:
                         if hour % 6 == 0 {
                             AxisValueLabel(format: dateFormat, centered: true)
-                                .font(.subheadline)
+                                .font(.footnote)
                             AxisGridLine()
                         }
                     case .Month:
                         if day % 5 == 0 {
                             AxisValueLabel(format: dateFormat, centered: true)
-                                .font(.subheadline)
+                                .font(.footnote)
                             AxisGridLine()
                         }
                     case .Total:
                         if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
                             AxisValueLabel(format: dateFormat, centered: true)
-                                .font(.subheadline)
+                                .font(.footnote)
                             AxisGridLine()
                         }
                     default:
                         AxisValueLabel(format: dateFormat, centered: true)
-                            .font(.subheadline)
+                            .font(.footnote)
                         AxisGridLine()
                     }
                 }
@@ -411,11 +434,20 @@ private struct MealSelectionPopover: View {
     // The selected duration in the time picker
     let selectedDuration: Stat.StateModel.StatsTimeInterval
 
+    private var timeText: String {
+        if selectedDuration == .Day {
+            let hour = Calendar.current.component(.hour, from: date)
+            return "\(hour):00-\(hour + 1):00"
+        } else {
+            return date.formatted(.dateTime.month().day())
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             // Display formatted date header
-            Text(selectedDuration == .Day ? date.formatted(.dateTime.hour().minute()) : date.formatted(.dateTime.month().day()))
-                .font(.subheadline)
+            Text(timeText)
+                .font(.footnote)
                 .fontWeight(.bold)
 
             // Grid layout for macronutrient values

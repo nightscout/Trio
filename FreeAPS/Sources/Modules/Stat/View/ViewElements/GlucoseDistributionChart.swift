@@ -33,17 +33,26 @@ struct GlucoseDistributionChart: View {
                 ">220": .orange.opacity(0.8)
             ])
             .chartYAxis {
-                AxisMarks(position: .leading)
+                AxisMarks(position: .trailing) { value in
+                    if let percentage = value.as(Double.self) {
+                        AxisValueLabel {
+                            Text((percentage / 100).formatted(.percent.precision(.fractionLength(0))))
+                                .font(.footnote)
+                        }
+                        AxisGridLine()
+                    }
+                }
             }
-            .chartYAxisLabel(alignment: .leading) {
+            .chartYAxisLabel(alignment: .trailing) {
                 Text("Percentage")
                     .foregroundStyle(.primary)
-                    .font(.caption)
+                    .font(.footnote)
                     .padding(.vertical, 3)
             }
             .chartXAxis {
                 AxisMarks(values: .stride(by: .hour, count: 3)) { _ in
                     AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
+                        .font(.footnote)
                     AxisGridLine()
                 }
             }

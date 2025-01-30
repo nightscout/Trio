@@ -81,12 +81,11 @@ struct BolusStatsView: View {
         let calendar = Calendar.current
         let today = Date()
 
-        let timeFormat = start.formatted(.dateTime.hour().minute())
-
         // Special handling for Day view with relative dates
         if selectedDuration == .Day {
             let startDateText: String
             let endDateText: String
+            let timeFormat = start.formatted(.dateTime.hour().minute())
 
             // Format start date
             if calendar.isDate(start, inSameDayAs: today) {
@@ -118,8 +117,32 @@ struct BolusStatsView: View {
             return "\(startDateText), \(timeFormat) - \(endDateText), \(end.formatted(.dateTime.hour().minute()))"
         }
 
-        // Standard format for other views
-        return "\(start.formatted()) - \(end.formatted())"
+        // Standard format for other views - only show dates without time
+        let startText: String
+        let endText: String
+
+        // Check for relative dates
+        if calendar.isDate(start, inSameDayAs: today) {
+            startText = "Today"
+        } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
+            startText = "Yesterday"
+        } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
+            startText = "Tomorrow"
+        } else {
+            startText = start.formatted(.dateTime.day().month())
+        }
+
+        if calendar.isDate(end, inSameDayAs: today) {
+            endText = "Today"
+        } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
+            endText = "Yesterday"
+        } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
+            endText = "Tomorrow"
+        } else {
+            endText = end.formatted(.dateTime.day().month())
+        }
+
+        return "\(startText) - \(endText)"
     }
 
     private func isSameTimeUnit(_ date1: Date, _ date2: Date) -> Bool {
@@ -214,7 +237,7 @@ struct BolusStatsView: View {
             Spacer()
 
             Text(formatVisibleDateRange())
-                .font(.subheadline)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
         }
     }
@@ -288,7 +311,7 @@ struct BolusStatsView: View {
                 if let amount = value.as(Double.self) {
                     AxisValueLabel {
                         Text(amount.formatted(.number.precision(.fractionLength(0))) + " U")
-                            .font(.subheadline)
+                            .font(.footnote)
                     }
                     AxisGridLine()
                 }
@@ -304,25 +327,25 @@ struct BolusStatsView: View {
                     case .Day:
                         if hour % 6 == 0 { // Show only every 6 hours
                             AxisValueLabel(format: dateFormat, centered: true)
-                                .font(.subheadline)
+                                .font(.footnote)
                             AxisGridLine()
                         }
                     case .Month:
                         if day % 5 == 0 { // Only show every 5th day
                             AxisValueLabel(format: dateFormat, centered: true)
-                                .font(.subheadline)
+                                .font(.footnote)
                             AxisGridLine()
                         }
                     case .Total:
                         // Only show January, April, July, October
                         if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
                             AxisValueLabel(format: dateFormat, centered: true)
-                                .font(.subheadline)
+                                .font(.footnote)
                             AxisGridLine()
                         }
                     default:
                         AxisValueLabel(format: dateFormat, centered: true)
-                            .font(.subheadline)
+                            .font(.footnote)
                         AxisGridLine()
                     }
                 }
@@ -350,10 +373,20 @@ private struct BolusSelectionPopover: View {
     let date: Date
     let bolus: BolusStats
     let selectedDuration: Stat.StateModel.StatsTimeInterval
+
+    private var timeText: String {
+        if selectedDuration == .Day {
+            let hour = Calendar.current.component(.hour, from: date)
+            return "\(hour):00-\(hour + 1):00"
+        } else {
+            return date.formatted(.dateTime.month().day())
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(selectedDuration == .Day ? date.formatted(.dateTime.hour().minute()) : date.formatted(.dateTime.month().day()))
-                .font(.subheadline)
+            Text(timeText)
+                .font(.footnote)
                 .fontWeight(.bold)
 
             Grid(alignment: .leading) {
