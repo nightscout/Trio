@@ -341,6 +341,7 @@ struct MealStatsView: View {
                 if let amount = value.as(Double.self) {
                     AxisValueLabel {
                         Text(amount.formatted(.number.precision(.fractionLength(0))) + " g")
+                            .font(.subheadline)
                     }
                     AxisGridLine()
                 }
@@ -356,20 +357,24 @@ struct MealStatsView: View {
                     case .Day:
                         if hour % 6 == 0 {
                             AxisValueLabel(format: dateFormat, centered: true)
+                                .font(.subheadline)
                             AxisGridLine()
                         }
                     case .Month:
                         if day % 5 == 0 {
                             AxisValueLabel(format: dateFormat, centered: true)
+                                .font(.subheadline)
                             AxisGridLine()
                         }
                     case .Total:
                         if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
                             AxisValueLabel(format: dateFormat, centered: true)
+                                .font(.subheadline)
                             AxisGridLine()
                         }
                     default:
                         AxisValueLabel(format: dateFormat, centered: true)
+                            .font(.subheadline)
                         AxisGridLine()
                     }
                 }
