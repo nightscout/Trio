@@ -77,7 +77,6 @@ extension Home.StateModel {
                 )
             )
         }
-
         return targetProfiles
     }
 }
