@@ -15,7 +15,11 @@ struct GlucoseTrendView: View {
               timeString != "--",
               let minutes = timeString.split(separator: " ").first.flatMap({ Int($0) })
         else {
-            return .secondary
+            return Color.secondary
+        }
+
+        guard !isWatchStateDated else {
+            return Color.secondary
         }
 
         switch minutes {
@@ -28,6 +32,10 @@ struct GlucoseTrendView: View {
         default:
             return Color.secondary
         }
+    }
+
+    var isWatchStateDated: Bool {
+        state.lastWatchStateUpdate ?? Date().timeIntervalSince1970 < Date().timeIntervalSince1970 - 15
     }
 
     var circleSize: CGFloat {
@@ -118,28 +126,36 @@ struct GlucoseTrendView: View {
                     .background(Circle().fill(Color.bgDarkBlue))
                     .shadow(color: statusColor(for: state.lastLoopTime), radius: shadowRadius)
 
-                TrendShape(rotationDegrees: rotationDegrees, deviceType: state.deviceType)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.6), value: rotationDegrees)
-                    .shadow(color: Color.black.opacity(0.5), radius: 5)
+                TrendShape(
+                    isWatchStateDated: isWatchStateDated,
+                    rotationDegrees: rotationDegrees,
+                    deviceType: state.deviceType
+                )
+                .animation(.spring(response: 0.5, dampingFraction: 0.6), value: rotationDegrees)
+                .shadow(color: Color.black.opacity(0.5), radius: 5)
 
                 VStack(alignment: .center) {
                     Text(state.currentGlucose)
                         .fontWeight(.semibold)
                         .font(currentGlucoseFontSize)
-                        .foregroundStyle(state.currentGlucoseColorString.toColor())
+                        .foregroundStyle(isWatchStateDated ? Color.secondary : state.currentGlucoseColorString.toColor())
+                        .strikethrough(isWatchStateDated)
 
                     if let delta = state.delta {
                         Text(delta)
                             .fontWeight(.semibold)
                             .font(.system(.caption))
                             .foregroundStyle(.secondary)
+                            .strikethrough(isWatchStateDated)
                     }
                 }
             }
 
             Spacer()
 
-            Text(state.lastLoopTime ?? "--").font(.system(size: minutesAgoFontSize))
+            Text(isWatchStateDated ? "STALE DATA" : state.lastLoopTime ?? "--")
+                .font(.system(size: minutesAgoFontSize))
+                .fontWidth(isWatchStateDated ? .expanded : .standard)
 
             Spacer()
 

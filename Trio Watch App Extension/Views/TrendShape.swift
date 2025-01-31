@@ -53,6 +53,7 @@ struct Triangle: Shape {
 
 /// A view that displays a circular trend indicator with a directional triangle
 struct TrendShape: View {
+    let isWatchStateDated: Bool
     /// Rotation angle in degrees for the trend direction
     let rotationDegrees: Double
     /// Flag to be able to adjust size based on Apple Watch size
@@ -71,6 +72,17 @@ struct TrendShape: View {
         center: .center,
         startAngle: .degrees(270),
         endAngle: .degrees(-90)
+    )
+
+    private let staleWatchStateGradient = AngularGradient(
+        colors: [
+            Color.secondary,
+            Color.secondary.opacity(0.8),
+            Color.secondary.opacity(0.6),
+            Color.secondary.opacity(0.4),
+            Color.secondary
+        ],
+        center: .center
     )
 
     // Color for the direction indicator triangle
@@ -146,7 +158,7 @@ struct TrendShape: View {
         ZStack {
             // Outer circle with gradient
             Circle()
-                .stroke(angularGradient, lineWidth: strokeWidth)
+                .stroke(isWatchStateDated ? staleWatchStateGradient : angularGradient, lineWidth: strokeWidth)
                 .frame(width: circleSize, height: circleSize)
                 .background(Circle().fill(Color.black))
 
@@ -155,6 +167,7 @@ struct TrendShape: View {
                 .fill(triangleColor)
                 .frame(width: triangleSize, height: triangleSize)
                 .offset(x: triangleOffset)
+                .opacity(isWatchStateDated ? 0 : 1)
         }
         .rotationEffect(.degrees(rotationDegrees))
         .shadow(color: Color.black.opacity(0.33), radius: 3)
