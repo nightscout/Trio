@@ -48,6 +48,7 @@ extension Stat {
         var units: GlucoseUnits = .mgdL
         var glucoseFromPersistence: [GlucoseStored] = []
         var loopStatRecords: [LoopStatRecord] = []
+        var loopStats: [(category: String, count: Int, percentage: Double)] = []
         var groupedLoopStats: [LoopStatsByPeriod] = []
         var tddStats: [TDD] = []
         var bolusStats: [BolusStats] = []

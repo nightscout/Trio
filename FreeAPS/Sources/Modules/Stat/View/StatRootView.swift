@@ -263,7 +263,7 @@ extension Stat {
                     LoopStatsView(
                         loopStatRecords: state.loopStatRecords,
                         selectedDuration: state.selectedDurationForLoopStats,
-                        groupedStats: state.groupedLoopStats
+                        statsData: state.loopStats
                     )
                 }
             }

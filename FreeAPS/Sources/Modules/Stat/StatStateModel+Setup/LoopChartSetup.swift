@@ -31,180 +31,186 @@ extension Stat.StateModel {
     /// 3. Updating loop stat records on the main thread (!) for the Loop duration chart
     func setupLoopStatRecords() {
         Task {
-            let recordIDs = await self.fetchLoopStatRecords(for: selectedDurationForLoopStats)
+            let (recordIDs, failedRecordIDs) = await self.fetchLoopStatRecords(for: selectedDurationForLoopStats)
 
-            // Used for the Loop stats chart (success/failure percentages)
-            let stats = await calculateLoopStats(from: recordIDs)
+            // Update loop records for duration chart
+            await self.updateLoopStatRecords(allLoopIds: recordIDs)
 
-            // Update property on main thread to avoid data races
+            // Calculate statistics and update on main thread
+            let stats = await self.getLoopStats(
+                allLoopIds: recordIDs,
+                failedLoopIds: failedRecordIDs,
+                duration: selectedDurationForLoopStats
+            )
+
             await MainActor.run {
-                self.groupedLoopStats = stats
+                self.loopStats = stats
             }
-
-            // Used for the Loop duration chart (execution times)
-            await self.updateLoopStatRecords(from: recordIDs)
         }
     }
 
-    /// Fetches loop stat record IDs from Core Data based on the selected time duration
-    /// - Parameter duration: The time period to fetch records for (Today, Day, Week, Month, or Total)
-    /// - Returns: Array of NSManagedObjectIDs for the matching loop stat records
-    func fetchLoopStatRecords(for duration: Duration) async -> [NSManagedObjectID] {
-        // Create compound predicate combining duration and non-nil constraints
-        let predicate: NSCompoundPredicate
-        let durationPredicate: NSPredicate
-        let nonNilDurationPredicate = NSPredicate(format: "duration != nil AND duration != 0")
-
-        // Set up date-based predicate based on selected duration
+    /// Fetches loop statistics records for the specified duration
+    /// - Parameter duration: The time period to fetch records for
+    /// - Returns: A tuple containing arrays of NSManagedObjectIDs for (all loops, failed loops)
+    func fetchLoopStatRecords(for duration: Duration) async -> ([NSManagedObjectID], [NSManagedObjectID]) {
+        // Calculate the date range based on selected duration
+        let now = Date()
+        let startDate: Date
         switch duration {
-        case .Day,
-             .Today:
-            durationPredicate = NSPredicate(
-                format: "end >= %@",
-                Calendar.current.date(
-                    byAdding: .day,
-                    value: -2,
-                    to: Calendar.current.startOfDay(for: Date())
-                )! as CVarArg
-            )
+        case .Day:
+            startDate = Calendar.current.startOfDay(for: now)
+        case .Today:
+            startDate = now.addingTimeInterval(-24.hours.timeInterval)
         case .Week:
-            durationPredicate = NSPredicate(
-                format: "end >= %@",
-                Calendar.current.date(
-                    byAdding: .day,
-                    value: -7,
-                    to: Calendar.current.startOfDay(for: Date())
-                )! as CVarArg
-            )
+            startDate = now.addingTimeInterval(-7.days.timeInterval)
         case .Month:
-            durationPredicate = NSPredicate(
-                format: "end >= %@",
-                Calendar.current.date(
-                    byAdding: .month,
-                    value: -1,
-                    to: Calendar.current.startOfDay(for: Date())
-                )! as CVarArg
-            )
+            startDate = now.addingTimeInterval(-30.days.timeInterval)
         case .Total:
-            durationPredicate = NSPredicate(
-                format: "end >= %@",
-                Calendar.current.date(
-                    byAdding: .month,
-                    value: -3,
-                    to: Calendar.current.startOfDay(for: Date())
-                )! as CVarArg
-            )
+            startDate = now.addingTimeInterval(-90.days.timeInterval)
         }
-        predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [durationPredicate, nonNilDurationPredicate])
 
-        // Fetch records using the constructed predicate
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        // Perform both fetches asynchronously
+        async let allLoopsResult = CoreDataStack.shared.fetchEntitiesAsync(
             ofType: LoopStatRecord.self,
             onContext: loopTaskContext,
-            predicate: predicate,
-            key: "end",
-            ascending: false,
-            batchSize: 100
+            predicate: NSPredicate(format: "start > %@", startDate as NSDate),
+            key: "start",
+            ascending: false
         )
 
-        return await loopTaskContext.perform {
-            guard let fetchedResults = results as? [LoopStatRecord] else { return [] }
-            return fetchedResults.map(\.objectID)
-        }
-    }
+        async let failedLoopsResult = CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: LoopStatRecord.self,
+            onContext: loopTaskContext,
+            predicate: NSPredicate(
+                format: "start > %@ AND loopStatus != %@",
+                startDate as NSDate,
+                "Success"
+            ),
+            key: "start",
+            ascending: false
+        )
 
-    /// Calculates statistics for loop executions grouped by time periods
-    /// - Parameter ids: Array of NSManagedObjectIDs for loop stat records
-    /// - Returns: Array of LoopStatsByPeriod containing success/failure statistics
-    func calculateLoopStats(from ids: [NSManagedObjectID]) async -> [LoopStatsByPeriod] {
-        await loopTaskContext.perform {
-            let calendar = Calendar.current
-            let now = Date()
+        // Wait for both results and convert to object IDs
+        let (allLoops, failedLoops) = await (allLoopsResult, failedLoopsResult)
 
-            // Convert IDs to LoopStatRecord objects
-            let records = ids.compactMap { id -> LoopStatRecord? in
-                do {
-                    return try self.loopTaskContext.existingObject(with: id) as? LoopStatRecord
-                } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) Error fetching loop stat: \(error)")
-                    return nil
-                }
-            }
-
-            // Determine start date based on selected duration
-            let startDate: Date
-            switch self.selectedDurationForLoopStats {
-            case .Day,
-                 .Today:
-                startDate = calendar.date(byAdding: .day, value: -2, to: calendar.startOfDay(for: now))!
-            case .Week:
-                startDate = calendar.date(byAdding: .day, value: -7, to: calendar.startOfDay(for: now))!
-            case .Month:
-                startDate = calendar.date(byAdding: .month, value: -1, to: calendar.startOfDay(for: now))!
-            case .Total:
-                startDate = calendar.date(byAdding: .month, value: -3, to: calendar.startOfDay(for: now))!
-            }
-
-            // Create array of all dates in the range
-            var dates: [Date] = []
-            var currentDate = startDate
-            while currentDate <= now {
-                dates.append(calendar.startOfDay(for: currentDate))
-                currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
-            }
-
-            // Group records by day
-            let recordsByDay = Dictionary(grouping: records) { record in
-                guard let date = record.start else { return Date() }
-                return calendar.startOfDay(for: date)
-            }
-
-            // Create stats for each day, including days with no data
-            return dates.map { date in
-                let dayRecords = recordsByDay[date, default: []]
-                let successful = dayRecords.filter { $0.loopStatus?.contains("Success") ?? false }.count
-                let failed = dayRecords.count - successful
-
-                // Calculate glucose count for the period
-                let glucoseFetchRequest = GlucoseStored.fetchRequest()
-                let periodStart = date
-                let periodEnd = calendar.date(byAdding: .day, value: 1, to: date)!
-
-                glucoseFetchRequest.predicate = NSPredicate(
-                    format: "date >= %@ AND date < %@",
-                    periodStart as NSDate,
-                    periodEnd as NSDate
-                )
-
-                var glucoseCount = 0
-                do {
-                    glucoseCount = try self.loopTaskContext.count(for: glucoseFetchRequest)
-                } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) Error counting glucose readings: \(error)")
-                }
-
-                return LoopStatsByPeriod(
-                    period: date,
-                    successful: successful,
-                    failed: failed,
-                    medianDuration: BareStatisticsView
-                        .medianCalculationDouble(array: dayRecords.compactMap { $0.duration as Double? }),
-                    glucoseCount: glucoseCount
-                )
-            }.sorted { $0.period < $1.period }
-        }
+        return (
+            (allLoops as? [LoopStatRecord] ?? []).map(\.objectID),
+            (failedLoops as? [LoopStatRecord] ?? []).map(\.objectID)
+        )
     }
 
     /// Updates the loopStatRecords array on the main thread with records from the provided IDs
-    /// - Parameter ids: Array of NSManagedObjectIDs for loop stat records
-    @MainActor func updateLoopStatRecords(from ids: [NSManagedObjectID]) {
-        loopStatRecords = ids.compactMap { id -> LoopStatRecord? in
+    /// - Parameters:
+    ///   - allLoopIds: Array of NSManagedObjectIDs for all loop records
+    @MainActor func updateLoopStatRecords(allLoopIds: [NSManagedObjectID]) {
+        loopStatRecords = allLoopIds.compactMap { id -> LoopStatRecord? in
             do {
                 return try viewContext.existingObject(with: id) as? LoopStatRecord
             } catch {
-                debugPrint("Error fetching loop stat: \(error)")
+                debugPrint("\(DebuggingIdentifiers.failed) Error fetching loop stat: \(error)")
                 return nil
             }
+        }
+    }
+
+    /// Calculates loop and glucose statistics based on the provided record IDs
+    /// - Parameters:
+    ///   - allLoopIds: Array of NSManagedObjectIDs for all loop records
+    ///   - failedLoopIds: Array of NSManagedObjectIDs for failed loop records
+    ///   - duration: The time period for statistics calculation
+    /// - Returns: Array of tuples containing category, count and percentage for each statistic
+    func getLoopStats(
+        allLoopIds: [NSManagedObjectID],
+        failedLoopIds: [NSManagedObjectID],
+        duration: Duration
+    ) async -> [(category: String, count: Int, percentage: Double)] {
+        // Calculate the date range for glucose readings
+        let now = Date()
+        let startDate: Date
+        switch duration {
+        case .Day:
+            startDate = Calendar.current.startOfDay(for: now)
+        case .Today:
+            startDate = now.addingTimeInterval(-24.hours.timeInterval)
+        case .Week:
+            startDate = now.addingTimeInterval(-7.days.timeInterval)
+        case .Month:
+            startDate = now.addingTimeInterval(-30.days.timeInterval)
+        case .Total:
+            startDate = now.addingTimeInterval(-90.days.timeInterval)
+        }
+
+        // Get glucose statistics
+        let totalGlucose = await calculateGlucoseStats(from: startDate, to: now)
+
+        // Get NSManagedObject
+        let allLoops = await CoreDataStack.shared.getNSManagedObject(with: allLoopIds, context: loopTaskContext)
+        let failedLoops = await CoreDataStack.shared.getNSManagedObject(with: failedLoopIds, context: loopTaskContext)
+
+        return await loopTaskContext.perform {
+            let totalLoopsCount = allLoops.count
+            let failedLoopsCount = failedLoops.count
+            let successfulLoops = totalLoopsCount - failedLoopsCount
+            let maxLoopsPerDay = 288.0 // Maximum possible loops per day (every 5 minutes)
+
+            switch duration {
+            case .Day:
+                // For Day view: Calculate percentage based on maximum possible loops per day
+                let loopPercentage = (Double(successfulLoops) / maxLoopsPerDay) * 100
+                let glucosePercentage = (Double(totalGlucose) / maxLoopsPerDay) * 100
+
+                return [
+                    ("Loop Success Rate", successfulLoops, loopPercentage),
+                    ("Glucose Count", totalGlucose, glucosePercentage)
+                ]
+
+            case .Month,
+                 .Today,
+                 .Total,
+                 .Week:
+                // For other views: Calculate average per day
+                let numberOfDays = max(1, Calendar.current.dateComponents([.day], from: startDate, to: now).day ?? 1)
+
+                let averageLoopsPerDay = Double(successfulLoops) / Double(numberOfDays)
+                let averageGlucosePerDay = Double(totalGlucose) / Double(numberOfDays)
+
+                let loopPercentage = (averageLoopsPerDay / maxLoopsPerDay) * 100
+                let glucosePercentage = (averageGlucosePerDay / maxLoopsPerDay) * 100
+
+                return [
+                    ("Successful Loops", Int(round(averageLoopsPerDay)), loopPercentage),
+                    ("Glucose Count", Int(round(averageGlucosePerDay)), glucosePercentage)
+                ]
+            }
+        }
+    }
+
+    /// Fetches and calculates glucose statistics for the given time period
+    /// - Parameters:
+    ///   - startDate: The start date of the period to analyze
+    ///   - now: The current date (end of period)
+    /// - Returns: Number of glucose readings in the period
+    private func calculateGlucoseStats(
+        from startDate: Date,
+        to _: Date
+    ) async -> Int {
+        // Create predicate for glucose readings
+        let glucosePredicate = NSPredicate(format: "date >= %@", startDate as NSDate)
+
+        // Fetch glucose readings asynchronously
+        let glucoseResult = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: loopTaskContext,
+            predicate: glucosePredicate,
+            key: "date",
+            ascending: false
+        )
+
+        return await loopTaskContext.perform {
+            guard let readings = glucoseResult as? [GlucoseStored] else {
+                return 0
+            }
+            return readings.count
         }
     }
 }

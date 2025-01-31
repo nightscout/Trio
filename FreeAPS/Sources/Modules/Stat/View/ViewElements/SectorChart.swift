@@ -32,7 +32,7 @@ struct SectorChart: View {
                         outerRadius: selectedRange == data.range ? 100 : 80,
                         angularInset: 1.5
                     )
-                    .cornerRadius(8)
+                    .cornerRadius(3)
                     .foregroundStyle(data.color.gradient)
                     .annotation(position: .overlay, alignment: .center, spacing: 0) {
                         if data.percentage > 0 {
@@ -47,9 +47,9 @@ struct SectorChart: View {
             .chartLegend(position: .bottom, spacing: 20)
             .chartAngleSelection(value: $selectedCount)
             .chartForegroundStyleScale([
-                "High": Color.orange.gradient,
-                "In Range": Color.green.gradient,
-                "Low": Color.red.gradient
+                "High": Color.orange,
+                "In Range": Color.green,
+                "Low": Color.red
             ])
             .padding(.vertical)
             .frame(height: 250)
