@@ -216,24 +216,24 @@ struct MealPresetView: View {
 
                     if state.useFPUconversion {
                         Group {
-                            Text("Fat: ")
+                            Text("Protein: ")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                             HStack(spacing: 2) {
-                                Text("\(fat as NSNumber, formatter: mealFormatter)")
+                                Text("\(protein as NSNumber, formatter: mealFormatter)")
                                     .font(.footnote)
                                 Text(" g")
                                     .font(.footnote)
                                     .foregroundStyle(.secondary)
                             }
                         }
-
+                        
                         Group {
-                            Text("Protein: ")
+                            Text("Fat: ")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                             HStack(spacing: 2) {
-                                Text("\(protein as NSNumber, formatter: mealFormatter)")
+                                Text("\(fat as NSNumber, formatter: mealFormatter)")
                                     .font(.footnote)
                                 Text(" g")
                                     .font(.footnote)

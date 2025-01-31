@@ -81,39 +81,6 @@ extension MealSettings {
                             if state.useFPUconversion {
                                 VStack {
                                     HStack {
-                                        Text("Max Fat")
-
-                                        Spacer()
-
-                                        Group {
-                                            Text(state.maxFat.description)
-                                                .foregroundColor(!displayPickerMaxFat ? .primary : .accentColor)
-
-                                            Text(" g").foregroundColor(.secondary)
-                                        }
-                                    }
-                                    .onTapGesture {
-                                        displayPickerMaxFat.toggle()
-                                    }
-                                }
-                                .padding(.top)
-
-                                if displayPickerMaxFat {
-                                    let setting = PickerSettingsProvider.shared.settings.maxFat
-                                    Picker(selection: $state.maxFat, label: Text("")) {
-                                        ForEach(
-                                            PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
-                                            id: \.self
-                                        ) { value in
-                                            Text("\(value.description)").tag(value)
-                                        }
-                                    }
-                                    .pickerStyle(WheelPickerStyle())
-                                    .frame(maxWidth: .infinity)
-                                }
-
-                                VStack {
-                                    HStack {
                                         Text("Max Protein")
 
                                         Spacer()
@@ -134,6 +101,39 @@ extension MealSettings {
                                 if displayPickerMaxProtein {
                                     let setting = PickerSettingsProvider.shared.settings.maxProtein
                                     Picker(selection: $state.maxProtein, label: Text("")) {
+                                        ForEach(
+                                            PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
+                                            id: \.self
+                                        ) { value in
+                                            Text("\(value.description)").tag(value)
+                                        }
+                                    }
+                                    .pickerStyle(WheelPickerStyle())
+                                    .frame(maxWidth: .infinity)
+                                }
+                                
+                                VStack {
+                                    HStack {
+                                        Text("Max Fat")
+
+                                        Spacer()
+
+                                        Group {
+                                            Text(state.maxFat.description)
+                                                .foregroundColor(!displayPickerMaxFat ? .primary : .accentColor)
+
+                                            Text(" g").foregroundColor(.secondary)
+                                        }
+                                    }
+                                    .onTapGesture {
+                                        displayPickerMaxFat.toggle()
+                                    }
+                                }
+                                .padding(.top)
+
+                                if displayPickerMaxFat {
+                                    let setting = PickerSettingsProvider.shared.settings.maxFat
+                                    Picker(selection: $state.maxFat, label: Text("")) {
                                         ForEach(
                                             PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
                                             id: \.self
