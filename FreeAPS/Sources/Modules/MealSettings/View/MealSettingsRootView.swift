@@ -111,7 +111,7 @@ extension MealSettings {
                                     .pickerStyle(WheelPickerStyle())
                                     .frame(maxWidth: .infinity)
                                 }
-                                
+
                                 VStack {
                                     HStack {
                                         Text("Max Fat")

@@ -227,7 +227,7 @@ struct MealPresetView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        
+
                         Group {
                             Text("Fat: ")
                                 .font(.footnote)
