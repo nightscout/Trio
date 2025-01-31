@@ -195,13 +195,16 @@ extension MealSettings {
                     ),
                     units: state.units,
                     type: .decimal("maxMealAbsorptionTime"),
-                    label: "Max. Meal Absorption Time",
-                    miniHint: "Set the max. duration in hours that carb entries can contribute to Carbs on Board (COB), defining the maximum time the system tracks meal absorption.",
+                    label: "Max Meal Absorption Time",
+                    miniHint: "The max meal absorption time limits the duration the algorithm will track carb entries in estimating Carbs on Board (COB)",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 6 hours").bold()
                         Text(
-                            "For meals high in fat and protein, which can cause slower or prolonged digestion, you may improve system performance by extending the tracking time beyond the default six hours."
+                            "Meals that are high in fat and protein can slow digestion. This can result in the Carbohydrate on Board (COB) determination excluding carbs that are still being absorbed beyond the default time frame of 6 hours."
+                        )
+                        Text(
+                            "Increasing this setting will extend the time frame that carbs entered are available for determining COB."
                         )
                     }
                 )
