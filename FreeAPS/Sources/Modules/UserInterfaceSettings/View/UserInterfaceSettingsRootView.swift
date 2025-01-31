@@ -69,7 +69,7 @@ extension UserInterfaceSettings {
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 10) {
                                                     Text(
-                                                        "Set the Trio's apperance. Descriptions of each option found below."
+                                                        "Sets Trio's appearance. Descriptions of each option found below."
                                                     )
                                                     VStack(alignment: .leading, spacing: 5) {
                                                         Text("System Default:").bold()
