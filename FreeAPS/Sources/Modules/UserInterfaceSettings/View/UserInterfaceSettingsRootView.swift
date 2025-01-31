@@ -47,7 +47,7 @@ extension UserInterfaceSettings {
                         VStack {
                             Picker(
                                 selection: $colorSchemePreference,
-                                label: Text("Trio Color Scheme")
+                                label: Text("Appearance")
                             ) {
                                 ForEach(ColorSchemeOption.allCases) { selection in
                                     Text(selection.displayName).tag(selection)
@@ -56,7 +56,7 @@ extension UserInterfaceSettings {
 
                             HStack(alignment: .center) {
                                 Text(
-                                    "Choose app color scheme. See hint for more details."
+                                    "Choose Trio's appearance. See hint for more details."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -69,7 +69,7 @@ extension UserInterfaceSettings {
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 10) {
                                                     Text(
-                                                        "Set the app color scheme. Descriptions of each option found below."
+                                                        "Set the Trio's apperance. Descriptions of each option found below."
                                                     )
                                                     VStack(alignment: .leading, spacing: 5) {
                                                         Text("System Default:").bold()
