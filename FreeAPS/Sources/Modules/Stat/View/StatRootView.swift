@@ -123,8 +123,6 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        hbA1cDisplayUnit: state.hbA1cDisplayUnit,
-                        timeInRangeChartStyle: state.timeInRangeChartStyle,
                         glucose: state.glucoseFromPersistence
                     )
                 }
