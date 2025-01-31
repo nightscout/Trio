@@ -697,8 +697,7 @@ extension Treatments.StateModel {
             onContext: glucoseFetchContext,
             predicate: NSPredicate.glucose,
             key: "date",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         return await glucoseFetchContext.perform {

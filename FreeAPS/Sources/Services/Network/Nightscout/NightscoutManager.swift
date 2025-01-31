@@ -12,7 +12,7 @@ protocol NightscoutManager: GlucoseSource {
     func deleteCarbs(withID id: String) async
     func deleteInsulin(withID id: String) async
     func deleteManualGlucose(withID id: String) async
-    func uploadStatus() async
+    func uploadDeviceStatus() async
     func uploadGlucose() async
     func uploadCarbs() async
     func uploadPumpHistory() async
@@ -39,6 +39,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() private var reachabilityManager: ReachabilityManager!
     @Injected() var healthkitManager: HealthKitManager!
 
+    private let orefDeterminationSubject = PassthroughSubject<Void, Never>()
     private let uploadOverridesSubject = PassthroughSubject<Void, Never>()
     private let uploadPumpHistorySubject = PassthroughSubject<Void, Never>()
     private let uploadCarbsSubject = PassthroughSubject<Void, Never>()
@@ -91,52 +92,13 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 .share()
                 .eraseToAnyPublisher()
 
-        glucoseStorage.updatePublisher
-            .receive(on: DispatchQueue.global(qos: .background))
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                Task {
-                    await self.uploadGlucose()
-                }
-            }
-            .store(in: &subscriptions)
-
-        uploadOverridesSubject
-            .debounce(for: .seconds(1), scheduler: DispatchQueue.global(qos: .background))
-            .sink { [weak self] in
-                guard let self = self else { return }
-                Task {
-                    await self.uploadOverrides()
-                }
-            }
-            .store(in: &subscriptions)
-
-        uploadPumpHistorySubject
-            .debounce(for: .seconds(1), scheduler: DispatchQueue.global(qos: .background))
-            .sink { [weak self] in
-                guard let self = self else { return }
-                Task {
-                    await self.uploadPumpHistory()
-                }
-            }
-            .store(in: &subscriptions)
-
-        uploadCarbsSubject
-            .debounce(for: .seconds(1), scheduler: DispatchQueue.global(qos: .background))
-            .sink { [weak self] in
-                guard let self = self else { return }
-                Task {
-                    await self.uploadCarbs()
-                }
-            }
-            .store(in: &subscriptions)
-
+        registerSubscribers()
         registerHandlers()
         setupNotification()
 
         /// Ensure that Nightscout Manager holds the `lastEnactedDetermination`, if one exists, on initialization.
         /// We have to set this here in `init()`, so there's a `lastEnactedDetermination` available after an app restart
-        /// for `uploadStatus()`, as within that fuction `lastEnactedDetermination` is reassigned at the very end of the function.
+        /// for `uploadDeviceStatus()`, as within that fuction `lastEnactedDetermination` is reassigned at the very end of the function.
         /// This way, we ensure the latest enacted determination is always part of `devicestatus` and avoid having instances
         /// where the first uploaded non-enacted determination (i.e., "suggested"), lacks the "enacted" data.
         Task {
@@ -155,12 +117,39 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func registerHandlers() {
-        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task.detached {
-                await self.uploadStatus()
+        coreDataPublisher?
+            .filterByEntityName("OrefDetermination")
+            .sink { [weak self] determinationObjects in
+                guard let self = self else { return }
+
+                // Collect objectIDs of determinationObjects here
+                let determinationObjectsIDs = determinationObjects
+                    .compactMap { $0 as? OrefDetermination }
+                    .map(\.objectID)
+
+                guard !determinationObjectsIDs.isEmpty else { return }
+
+                // Now hop onto the background context’s queue
+                self.backgroundContext.perform {
+                    do {
+                        // Fetch only those determination objects
+                        let request: NSFetchRequest<OrefDetermination> = OrefDetermination.fetchRequest()
+                        request.predicate = NSPredicate(format: "SELF IN %@", determinationObjectsIDs)
+                        let results = try self.backgroundContext.fetch(request)
+
+                        // Safely filter out anything that’s deleted or already uploaded
+                        let unuploaded = results.filter { !$0.isDeleted && !$0.isUploadedToNS }
+
+                        // If valid, proceed to send to subject for further processing
+                        if !unuploaded.isEmpty {
+                            self.orefDeterminationSubject.send()
+                        }
+                    } catch {
+                        debugPrint("Failed to fetch OrefDetermination objects: \(error)")
+                    }
+                }
             }
-        }.store(in: &subscriptions)
+            .store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
             self?.uploadOverridesSubject.send()
@@ -184,13 +173,67 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
         }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
-            self?.uploadPumpHistorySubject.send()
-        }.store(in: &subscriptions)
+        coreDataPublisher?.filterByEntityName("PumpEventStored")
+            .sink { [weak self] pumpEventObjects in
+                guard let self = self else { return }
 
-        coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
-            self?.uploadCarbsSubject.send()
-        }.store(in: &subscriptions)
+                // Collect objectIDs of pumpEventObjects here
+                let pumpEventObjectsIDs = pumpEventObjects
+                    .compactMap { $0 as? PumpEventStored }
+                    .map(\.objectID)
+
+                guard !pumpEventObjectsIDs.isEmpty else { return }
+
+                // Now hop onto the background context’s queue
+                self.backgroundContext.perform {
+                    do {
+                        let request: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
+                        request.predicate = NSPredicate(format: "SELF IN %@", pumpEventObjectsIDs)
+                        let results = try self.backgroundContext.fetch(request)
+
+                        // Safely filter out anything that’s deleted or already uploaded
+                        let unuploaded = results.filter { !$0.isDeleted && !$0.isUploadedToNS }
+
+                        // If valid, proceed to send to subject for further processing
+                        if !unuploaded.isEmpty {
+                            self.uploadPumpHistorySubject.send()
+                        }
+                    } catch {
+                        debugPrint("Failed to fetch OrefDetermination objects: \(error)")
+                    }
+                }
+            }.store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("CarbEntryStored")
+            .sink { [weak self] carbEntryObjects in
+                guard let self = self else { return }
+
+                // Collect objectIDs of carbEntryObjects here
+                let carbEntryObjecIDs = carbEntryObjects
+                    .compactMap { $0 as? CarbEntryStored }
+                    .map(\.objectID)
+
+                guard !carbEntryObjecIDs.isEmpty else { return }
+
+                // Now hop onto the background context’s queue
+                self.backgroundContext.perform {
+                    do {
+                        let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+                        request.predicate = NSPredicate(format: "SELF IN %@", carbEntryObjecIDs)
+                        let results = try self.backgroundContext.fetch(request)
+
+                        // Safely filter out anything that’s deleted or already uploaded
+                        let unuploaded = results.filter { !$0.isDeleted && !$0.isUploadedToNS }
+
+                        // If valid, proceed to send to subject for further processing
+                        if !unuploaded.isEmpty {
+                            self.uploadCarbsSubject.send()
+                        }
+                    } catch {
+                        debugPrint("Failed to fetch OrefDetermination objects: \(error)")
+                    }
+                }
+            }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
@@ -198,6 +241,61 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 await self.uploadManualGlucose()
             }
         }.store(in: &subscriptions)
+    }
+
+    func registerSubscribers() {
+        glucoseStorage.updatePublisher
+            .receive(on: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    await self.uploadGlucose()
+                }
+            }
+            .store(in: &subscriptions)
+
+        /// We add debouncing behavior here for two main reasons
+        /// 1. To ensure that any upload flag updates have properly been performed, and in subsequent fetching processes only truly unuploaded data is fetched
+        /// 2. To not spam the user's NS site with a high number of uploads in a very short amount of time (less than 1sec)
+        orefDeterminationSubject
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] in
+                guard let self = self else { return }
+                Task {
+                    await self.uploadDeviceStatus()
+                }
+            }
+            .store(in: &subscriptions)
+
+        uploadOverridesSubject
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] in
+                guard let self = self else { return }
+                Task {
+                    await self.uploadOverrides()
+                }
+            }
+            .store(in: &subscriptions)
+
+        uploadPumpHistorySubject
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] in
+                guard let self = self else { return }
+                Task {
+                    await self.uploadPumpHistory()
+                }
+            }
+            .store(in: &subscriptions)
+
+        uploadCarbsSubject
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] in
+                guard let self = self else { return }
+                Task {
+                    await self.uploadCarbs()
+                }
+            }
+            .store(in: &subscriptions)
     }
 
     func setupNotification() {
@@ -422,7 +520,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     ///
     /// - Note: Ensure `nightscoutAPI` is initialized and `isUploadEnabled` is set to `true` before invoking this function.
     /// - Returns: Nothing.
-    func uploadStatus() async {
+    func uploadDeviceStatus() async {
         guard let nightscout = nightscoutAPI, isUploadEnabled else {
             debug(.nightscout, "NS API not available or upload disabled. Aborting NS Status upload.")
             return
@@ -531,15 +629,17 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         )
 
         do {
-            try await nightscout.uploadStatus(status)
-            debug(.nightscout, "Status uploaded")
+            try await nightscout.uploadDeviceStatus(status)
+            debug(.nightscout, "NSDeviceStatus with Determination uploaded")
 
             if let enacted = fetchedEnactedDetermination {
                 await updateOrefDeterminationAsUploaded([enacted])
+                debug(.nightscout, "Flagged last fetched enacted determination as uploaded")
             }
 
             if let suggested = fetchedSuggestedDetermination {
                 await updateOrefDeterminationAsUploaded([suggested])
+                debug(.nightscout, "Flagged last fetched suggested determination as uploaded")
             }
 
             if let lastEnactedDetermination = fetchedEnactedDetermination {
@@ -549,8 +649,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             if let lastSuggestedDetermination = fetchedSuggestedDetermination {
                 self.lastSuggestedDetermination = lastSuggestedDetermination
             }
-
-            debug(.nightscout, "NSDeviceStatus with Determination uploaded")
         } catch {
             debug(.nightscout, error.localizedDescription)
         }
