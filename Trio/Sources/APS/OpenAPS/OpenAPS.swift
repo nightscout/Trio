@@ -693,28 +693,33 @@ final class OpenAPS {
         model: JSON,
         autotune: JSON,
         trioSettings: JSON
-    ) async throws -> RawJSON {
-        try await withCheckedThrowingContinuation { continuation in
-            jsWorker.inCommonContext { worker in
-                worker.evaluateBatch(scripts: [
-                    Script(name: Prepare.log),
-                    Script(name: Bundle.profile),
-                    Script(name: Prepare.profile)
-                ])
-                let result = worker.call(function: Function.generate, with: [
-                    pumpSettings,
-                    bgTargets,
-                    isf,
-                    basalProfile,
-                    preferences,
-                    carbRatio,
-                    tempTargets,
-                    model,
-                    autotune,
-                    trioSettings
-                ])
-                continuation.resume(returning: result)
+    ) async -> OrefFunctionResult {
+        do {
+            let result = try await withCheckedThrowingContinuation { continuation in
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: Prepare.log),
+                        Script(name: Bundle.profile),
+                        Script(name: Prepare.profile)
+                    ])
+                    let result = worker.call(function: Function.generate, with: [
+                        pumpSettings,
+                        bgTargets,
+                        isf,
+                        basalProfile,
+                        preferences,
+                        carbRatio,
+                        tempTargets,
+                        model,
+                        autotune,
+                        trioSettings
+                    ])
+                    continuation.resume(returning: result)
+                }
             }
+            return .success(result)
+        } catch {
+            return .failure(error)
         }
     }
 
@@ -731,9 +736,8 @@ final class OpenAPS {
         trioSettings: JSON,
         useSwiftOref: Bool
     ) async throws -> RawJSON {
-        // TODO: Compare exceptions as well
         let startJavascriptAt = Date()
-        let jsJson = try await makeProfileJavascript(
+        let jsResult = await makeProfileJavascript(
             preferences: preferences,
             pumpSettings: pumpSettings,
             bgTargets: bgTargets,
@@ -750,11 +754,11 @@ final class OpenAPS {
         // Important: we want to make sure that this flag ensures that none
         // of the native code runs
         guard useSwiftOref else {
-            return jsJson
+            return try jsResult.returnOrThrow()
         }
 
-        let startNativeAt = Date()
-        let nativeJson = OpenAPSSwift.makeProfile(
+        let startSwiftAt = Date()
+        let swiftResult = OpenAPSSwift.makeProfile(
             preferences: preferences,
             pumpSettings: pumpSettings,
             bgTargets: bgTargets,
@@ -765,17 +769,17 @@ final class OpenAPS {
             model: model,
             trioSettings: trioSettings
         )
-        let nativeDuration = Date().timeIntervalSince(startNativeAt)
+        let swiftDuration = Date().timeIntervalSince(startSwiftAt)
 
         JSONCompare.logDifferences(
             function: .makeProfile,
-            native: nativeJson,
-            nativeRuntime: nativeDuration,
-            javascript: jsJson,
-            javascriptRuntime: javascriptDuration
+            swift: swiftResult,
+            swiftDuration: swiftDuration,
+            javascript: jsResult,
+            javascriptDuration: javascriptDuration
         )
 
-        return jsJson
+        return try jsResult.returnOrThrow()
     }
 
     private func loadJSON(name: String) -> String {

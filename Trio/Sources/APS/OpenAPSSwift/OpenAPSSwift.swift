@@ -11,7 +11,7 @@ struct OpenAPSSwift {
         tempTargets: JSON,
         model: JSON,
         trioSettings: JSON
-    ) -> RawJSON {
+    ) -> OrefFunctionResult {
         do {
             let preferences = try JSONBridge.preferences(from: preferences)
             let pumpSettings = try JSONBridge.pumpSettings(from: pumpSettings)
@@ -35,10 +35,9 @@ struct OpenAPSSwift {
                 trioSettings: trioSettings
             )
 
-            return try JSONBridge.to(profile)
+            return try .success(JSONBridge.to(profile))
         } catch {
-            warning(.openAPS, "OpenAPSSwift exception \(error)")
-            return .null
+            return .failure(error)
         }
     }
 }
