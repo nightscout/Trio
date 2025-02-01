@@ -352,15 +352,15 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Use Swift Oref", comment: "Use Swift Oref"),
-                    miniHint: "Enables the Swift implementation of the Oref algorithm",
+                    miniHint: "Use new Swift OpenAPS Oref algorithm",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: ON").bold()
+                        Text("Default: OFF").bold()
                         Text(
-                            "The Use Swift Oref option enables our native implementation of the Oref algorithm."
+                            "This experimental option uses a new version of the OpenAPS Oref algorithm written directly in Swift programming language, replacing the current JavaScript version."
                         )
                         Text(
-                            "Note: When enabled, we log anonymous information about differences between the Swift and Javascript Oref implementations for development."
+                            "When enabled, we'll securely log anonymous technical data comparing the Swift and existing JavaScript algorithms to improve calculation accuracy."
                         )
                     }
                 )
