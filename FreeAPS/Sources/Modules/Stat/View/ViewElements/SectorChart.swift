@@ -149,15 +149,15 @@ struct SectorChart: View {
             let high = glucose.filter { $0.glucose > Int(highLimit) && $0.glucose <= 250 }.count
 
             // Format glucose values
-            let highLimitMmol = Decimal(Int(highLimit)).asMmolL
-            let veryHighThresholdMmol = Decimal(250).asMmolL
+            let highLimitTreshold = units == .mmolL ? Decimal(Int(highLimit)).asMmolL : highLimit
+            let veryHighThreshold = units == .mmolL ? Decimal(250).asMmolL : 250
 
             return RangeDetail(
                 title: "High Glucose",
                 color: .orange,
                 items: [
-                    ("Very High (>\(veryHighThresholdMmol) \(units.rawValue))", Decimal(veryHigh) / total * 100),
-                    ("High (\(highLimitMmol)-\(veryHighThresholdMmol) \(units.rawValue))", Decimal(high) / total * 100)
+                    ("Very High (>\(veryHighThreshold) \(units.rawValue))", Decimal(veryHigh) / total * 100),
+                    ("High (\(highLimitTreshold)-\(veryHighThreshold) \(units.rawValue))", Decimal(high) / total * 100)
                 ]
             )
         case .inRange:
@@ -167,16 +167,16 @@ struct SectorChart: View {
             let normal = glucose.filter { $0.glucose > 140 && $0.glucose <= Int(highLimit) }.count
 
             // Format glucose values
-            let lowLimitMmol = Decimal(Int(lowLimit)).asMmolL
-            let highLimitMmol = Decimal(Int(highLimit)).asMmolL
-            let tightThresholdMmol = Decimal(140).asMmolL
+            let lowLimitTreshold = units == .mmolL ? Decimal(Int(lowLimit)).asMmolL : lowLimit
+            let highLimitTreshold = units == .mmolL ? Decimal(Int(highLimit)).asMmolL : highLimit
+            let tightThresholdTreshold = units == .mmolL ? Decimal(140).asMmolL : 140
 
             return RangeDetail(
                 title: "In Range",
                 color: .green,
                 items: [
-                    ("Tight (\(lowLimitMmol)-\(tightThresholdMmol) \(units.rawValue)", Decimal(tight) / total * 100),
-                    ("Normal (\(tightThresholdMmol)-\(highLimitMmol) \(units.rawValue)", Decimal(normal) / total * 100)
+                    ("Tight (\(lowLimitTreshold)-\(tightThresholdTreshold) \(units.rawValue))", Decimal(tight) / total * 100),
+                    ("Normal (\(tightThresholdTreshold)-\(highLimitTreshold) \(units.rawValue))", Decimal(normal) / total * 100)
                 ]
             )
         case .low:
@@ -186,15 +186,15 @@ struct SectorChart: View {
             let low = glucose.filter { $0.glucose > 54 && $0.glucose < Int(lowLimit) }.count
 
             // Format glucose values
-            let lowLimitMmol = Decimal(Int(lowLimit)).asMmolL
-            let veryLowThresholdMmol = Decimal(54).asMmolL
+            let lowLimitTreshold = units == .mmolL ? Decimal(Int(lowLimit)).asMmolL : lowLimit
+            let veryLowThresholdTreshold = units == .mmolL ? Decimal(54).asMmolL : 54
 
             return RangeDetail(
                 title: "Low Glucose",
                 color: .red,
                 items: [
-                    ("Very Low (<\(veryLowThresholdMmol) \(units.rawValue))", Decimal(veryLow) / total * 100),
-                    ("Low (\(veryLowThresholdMmol)-\(lowLimitMmol) \(units.rawValue))", Decimal(low) / total * 100)
+                    ("Very Low (<\(veryLowThresholdTreshold) \(units.rawValue))", Decimal(veryLow) / total * 100),
+                    ("Low (\(veryLowThresholdTreshold)-\(lowLimitTreshold) \(units.rawValue))", Decimal(low) / total * 100)
                 ]
             )
         }
