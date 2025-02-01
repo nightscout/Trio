@@ -94,8 +94,11 @@ struct GlucosePercentileChart: View {
                 AxisMarks(position: .trailing) { value in
                     if let glucose = value.as(Double.self) {
                         AxisValueLabel {
-                            Text(glucose.formatted(.number.precision(.fractionLength(0))))
-                                .font(.footnote)
+                            Text(
+                                units == .mmolL ? glucose.asMmolL.formatted(.number.precision(.fractionLength(0))) : glucose
+                                    .formatted(.number.precision(.fractionLength(0)))
+                            )
+                            .font(.footnote)
                         }
                         AxisGridLine()
                     }
@@ -206,31 +209,31 @@ struct AGPSelectionPopover: View {
             Grid(alignment: .leading, horizontalSpacing: 8) {
                 GridRow {
                     Text("90%:")
-                    Text(stats.percentile90.formatted(.number))
+                    Text(units == .mmolL ? stats.percentile90.asMmolL.formatted(.number) : stats.percentile90.formatted(.number))
                     Text(units.rawValue)
                         .foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("75%:")
-                    Text(stats.percentile75.formatted(.number))
+                    Text(units == .mmolL ? stats.percentile75.asMmolL.formatted(.number) : stats.percentile75.formatted(.number))
                     Text(units.rawValue)
                         .foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("Median:")
-                    Text(stats.median.formatted(.number))
+                    Text(units == .mmolL ? stats.median.asMmolL.formatted(.number) : stats.median.formatted(.number))
                     Text(units.rawValue)
                         .foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("25%:")
-                    Text(stats.percentile25.formatted(.number))
+                    Text(units == .mmolL ? stats.percentile25.asMmolL.formatted(.number) : stats.percentile25.formatted(.number))
                     Text(units.rawValue)
                         .foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("10%:")
-                    Text(stats.percentile10.formatted(.number))
+                    Text(units == .mmolL ? stats.percentile10.asMmolL.formatted(.number) : stats.percentile10.formatted(.number))
                     Text(units.rawValue)
                         .foregroundStyle(.secondary)
                 }
