@@ -53,6 +53,7 @@ struct Preferences: JSON, Equatable {
     var enableSMB_high_bg_target: Decimal = 110
     var threshold_setting: Decimal = 60
     var updateInterval: Decimal = 20
+    var useSwiftOref: Bool = true
 }
 
 extension Preferences {
@@ -108,6 +109,7 @@ extension Preferences {
         case enableSMB_high_bg_target
         case threshold_setting
         case updateInterval
+        case useSwiftOref
     }
 }
 
@@ -326,6 +328,10 @@ extension Preferences: Decodable {
 
         if let updateInterval = try? container.decode(Decimal.self, forKey: .updateInterval) {
             preferences.updateInterval = updateInterval
+        }
+
+        if let useSwiftOref = try? container.decode(Bool.self, forKey: .useSwiftOref) {
+            preferences.useSwiftOref = useSwiftOref
         }
 
         self = preferences

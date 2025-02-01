@@ -338,6 +338,32 @@ extension AlgorithmAdvancedSettings {
                         Text("Note: A CGM is considered noisy when it provides inconsistent readings.")
                     }
                 )
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.useSwiftOref,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = NSLocalizedString("Use Swift Oref", comment: "Use Swift Oref")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: NSLocalizedString("Use Swift Oref", comment: "Use Swift Oref"),
+                    miniHint: "Enables the Swift implementation of the Oref algorithm",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: ON").bold()
+                        Text(
+                            "The Use Swift Oref option enables our native implementation of the Oref algorithm."
+                        )
+                        Text(
+                            "Note: When enabled, we log anonymous information about differences between the Swift and Javascript Oref implementations for development."
+                        )
+                    }
+                )
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
