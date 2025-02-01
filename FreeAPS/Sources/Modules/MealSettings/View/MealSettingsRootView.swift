@@ -162,7 +162,7 @@ extension MealSettings {
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 5) {
                                                     Text("Max Carbs:").bold()
-                                                    Text("Enter the largest carbohydrate value allowed per meal entry")
+                                                    Text("Enter the largest carb value allowed per meal entry")
                                                     Text("Max Fat:").bold()
                                                     Text("Enter the largest fat value allowed per meal entry")
                                                     Text("Max Protein:").bold()
@@ -201,7 +201,7 @@ extension MealSettings {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 6 hours").bold()
                         Text(
-                            "Meals that are high in fat and protein can slow digestion. This can result in the Carbohydrate on Board (COB) determination excluding carbs that are still being absorbed beyond the default time frame of 6 hours."
+                            "Meals that are high in fat and protein can slow digestion. This can result in the Carbs on Board (COB) determination excluding carbs that are still being absorbed beyond the default time frame of 6 hours."
                         )
                         Text(
                             "Increasing this setting will extend the time frame that carbs entered are available for determining COB."
