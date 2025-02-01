@@ -204,7 +204,7 @@ extension MealSettings {
                             "Meals that are high in fat and protein can slow digestion. This can result in the Carbs on Board (COB) determination excluding carbs that are still being absorbed beyond the default time frame of 6 hours."
                         )
                         Text(
-                            "Increasing this setting will extend the time frame that carbs entered are available for determining COB."
+                            "Increasing this setting will extend the time frame that entered carbs are available for determining COB."
                         )
                     }
                 )
