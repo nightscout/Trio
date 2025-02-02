@@ -99,8 +99,7 @@ them down to make sure we can keep an eye on it.
 - **Double vs Decimal.** In Swift we use the Decimal class for
     floating point computation. However, our goal is to match the
     current Javascript implementation, which uses Double, so we need
-    to keep an eye on this because floating point math is non
-    associative.
+    to keep an eye on this because the two can be different.
 
 - **Trio-specific inputs.** There are places where the Trio
     implementation it a little different than what the Javascript
@@ -119,15 +118,6 @@ them down to make sure we can keep an eye on it.
     in Swift. See the Profile extension that implements `update` for
     more details.
 
-## Current TBD
-
-The biggest item we need to figure out is how to do the logging for
-inconsistencies within Trio. My preference is to log the inputs and
-outputs for any inconsistencies found, and to keep some high level
-stats on how often the comparison has been done. Plus, we should have
-a way for people to opt-out if they want, but it's important that we
-have logging turned on by default to get the data we need.
-
 ## Todos
 
 So far, the biggest cleanup items are to see if we can avoid
@@ -139,6 +129,12 @@ The next biggest change is to be consistent with time. There are a
 bunch of places that the Javascript uses the current time of day, we
 should pass in one time to both algorithms so that they produce
 consistent results.
+
+In terms of enhancements after the port, here are some issues that we
+created to track some cleanup that we should do:
+- [Refactor outUnits in Profile](https://github.com/nightscout/Trio-dev/issues/289)
+- [Allow 0 basal rates](https://github.com/nightscout/Trio-dev/issues/288)
+- [Use insulin-based curves](https://github.com/nightscout/Trio-dev/issues/287)
 
 ## Sources
 

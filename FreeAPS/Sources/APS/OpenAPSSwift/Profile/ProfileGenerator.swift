@@ -110,7 +110,7 @@ enum ProfileGenerator {
         )
     }
 
-    /// Direct port of the OpenASP profile generate function
+    /// Direct port of the OpenAPS profile generate function
     static func generate(
         pumpSettings: PumpSettings,
         bgTargets: BGTargets,
