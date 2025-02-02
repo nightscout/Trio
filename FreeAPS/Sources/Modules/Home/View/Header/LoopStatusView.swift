@@ -6,7 +6,7 @@ struct LoopStatusView: View {
 
     var state: Home.StateModel
 
-    @State var sheetDetent = PresentationDetent.fraction(0.8)
+    @State private var sheetContentHeight = CGFloat.zero
     // Help Sheet
     @State var isHelpSheetPresented: Bool = false
     @State var helpSheetDetent = PresentationDetent.fraction(0.9)
@@ -14,23 +14,49 @@ struct LoopStatusView: View {
     @State private var statusTitle: String = ""
 
     var body: some View {
-        NavigationStack {
+        ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Current Loop Status").bold().padding(.top, 20)
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Current Loop Status").bold()
 
-                Text(statusTitle)
-                    .font(.headline)
-                    .bold()
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .foregroundColor(statusBadgeTextColor)
-                    .background(statusBadgeColor)
-                    .clipShape(Capsule())
+                        Text(statusTitle)
+                            .font(.headline)
+                            .bold()
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .foregroundColor(statusBadgeTextColor)
+                            .background(statusBadgeColor)
+                            .clipShape(Capsule())
+                    }
+
+                    Spacer()
+
+                    Button(
+                        action: {
+                            isHelpSheetPresented.toggle()
+                        },
+                        label: {
+                            Image(systemName: "questionmark.circle")
+                        }
+                    )
+                }.padding(.top, 20)
+//                Text("Current Loop Status").bold().padding(.top, 20)
+//
+//                Text(statusTitle)
+//                    .font(.headline)
+//                    .bold()
+//                    .padding(.horizontal, 12)
+//                    .padding(.vertical, 6)
+//                    .foregroundColor(statusBadgeTextColor)
+//                    .background(statusBadgeColor)
+//                    .clipShape(Capsule())
 
                 if let errorMessage = state.errorMessage, let date = state.errorDate {
                     Group {
                         Text("Error During Algorithm Run at \(Formatter.dateFormatter.string(from: date))").font(.headline)
-                        Text(errorMessage).font(.caption)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(errorMessage).font(.caption).fixedSize(horizontal: false, vertical: true)
                     }.foregroundColor(.loopRed)
                 }
 
@@ -40,9 +66,11 @@ struct LoopStatusView: View {
                             .bold()
                             .padding(.top)
                             .foregroundStyle(Color.loopRed)
+                            .fixedSize(horizontal: false, vertical: true)
 
                         Text("SMBs and Non-Zero Temp. Basal Rates are disabled.")
                             .font(.subheadline)
+                            .fixedSize(horizontal: false, vertical: true)
 
                     } else {
                         Text("Latest Raw Algorithm Output")
@@ -94,24 +122,13 @@ struct LoopStatusView: View {
             }
             .padding(.vertical)
             .padding(.horizontal, 20)
-            .presentationDetents(
-                [.fraction(0.8), .large],
-                selection: $sheetDetent
-            )
             .ignoresSafeArea(edges: .top)
-            .background(appState.trioBackgroundColor(for: colorScheme))
-            .toolbar(content: {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(
-                        action: {
-                            isHelpSheetPresented.toggle()
-                        },
-                        label: {
-                            Image(systemName: "questionmark.circle")
-                        }
-                    )
+            .background {
+                GeometryReader { geo in
+                    Color.clear
+                        .preference(key: ContentSizeKey.self, value: geo.size)
                 }
-            })
+            }
             .onAppear {
                 setStatusTitle()
             }
@@ -119,6 +136,12 @@ struct LoopStatusView: View {
                 LoopStatusHelpView(state: state, helpSheetDetent: $helpSheetDetent, isHelpSheetPresented: $isHelpSheetPresented)
             }
         }
+        .presentationDetents([.height(sheetContentHeight)])
+        .presentationDragIndicator(.visible)
+        .onPreferenceChange(ContentSizeKey.self) { newSize in
+            sheetContentHeight = newSize.height
+        }
+        .background(appState.trioBackgroundColor(for: colorScheme))
         .scrollContentBackground(.hidden)
     }
 
@@ -250,5 +273,20 @@ struct LoopStatusView: View {
         }
 
         return updatedConclusion.capitalizingFirstLetter()
+    }
+}
+
+struct ContentSizeKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        // If multiple views report sizes, pick whichever logic you prefer:
+        // - The largest height
+        // - The sum
+        // For a single child, just use nextValue() directly if you like.
+        let next = nextValue()
+        if next.height > value.height {
+            value = next
+        }
     }
 }
