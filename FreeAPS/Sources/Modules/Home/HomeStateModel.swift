@@ -120,7 +120,7 @@ extension Home {
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         // Queue for handling Core Data change notifications
-        private let queue = DispatchQueue(label: "HomeStateModel.queue")
+        private let queue = DispatchQueue(label: "HomeStateModel.queue", qos: .userInitiated)
         private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
         private var subscriptions = Set<AnyCancellable>()
 

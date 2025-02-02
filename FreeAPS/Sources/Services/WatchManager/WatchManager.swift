@@ -59,7 +59,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
     // Queue for handling Core Data change notifications
-    private let queue = DispatchQueue(label: "BaseWatchManager.queue")
+    private let queue = DispatchQueue(label: "BaseWatchManager.queue", qos: .userInitiated)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 

@@ -58,7 +58,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     private var backgroundContext = CoreDataStack.shared.newTaskContext()
 
     // Queue for handling Core Data change notifications
-    private let queue = DispatchQueue(label: "BaseHealthKitManager.queue")
+    private let queue = DispatchQueue(label: "BaseHealthKitManager.queue", qos: .userInitiated)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 

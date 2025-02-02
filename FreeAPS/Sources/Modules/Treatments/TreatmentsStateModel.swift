@@ -122,7 +122,7 @@ extension Treatments {
         var isActive: Bool = false
 
         // Queue for handling Core Data change notifications
-        private let queue = DispatchQueue(label: "TreatmentsStateModel.queue")
+        private let queue = DispatchQueue(label: "TreatmentsStateModel.queue", qos: .userInitiated)
         private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
         private var subscriptions = Set<AnyCancellable>()
 

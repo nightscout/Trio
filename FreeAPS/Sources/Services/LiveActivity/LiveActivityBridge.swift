@@ -48,7 +48,7 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
     let context = CoreDataStack.shared.newTaskContext()
 
     // Queue for handling Core Data change notifications
-    private let queue = DispatchQueue(label: "LiveActivityBridge.queue")
+    private let queue = DispatchQueue(label: "LiveActivityBridge.queue", qos: .userInitiated)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
     private let orefDeterminationSubject = PassthroughSubject<Void, Never>()

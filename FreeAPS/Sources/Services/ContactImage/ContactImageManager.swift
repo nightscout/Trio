@@ -33,7 +33,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     private let backgroundContext = CoreDataStack.shared.newTaskContext()
 
     // Queue for handling Core Data change notifications
-    private let queue = DispatchQueue(label: "BaseContactImageManager.queue")
+    private let queue = DispatchQueue(label: "BaseContactImageManager.queue", qos: .userInitiated)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
