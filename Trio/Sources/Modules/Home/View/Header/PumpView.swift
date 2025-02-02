@@ -101,11 +101,21 @@ struct PumpView: View {
                         Image(systemName: "stopwatch.fill")
                             .font(.callout)
                             .foregroundStyle(timerColor)
+                        
+                        let remainingTimeString = remainingTimeString(time: date.timeIntervalSince(timerDate))
 
-                        Text(remainingTimeString(time: date.timeIntervalSince(timerDate)))
-                            .font(.callout)
+                        Text(remainingTimeString)
+                            .font(date.timeIntervalSince(timerDate) > 0 ? .callout : .subheadline)
                             .fontWeight(.bold)
                             .fontDesign(.rounded)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .frame(
+                                // If the string is > 6 chars, i.e., exceeds "xd yh", limit width to 80 pts
+                                // This forces the "Replace pod" string to wrap to 2 lines.
+                                maxWidth: remainingTimeString.count > 6 ? 80 : .infinity,
+                                alignment: .leading
+                            )
                     }
                     // aligns the stopwatch icon exactly with the first pixel of the reservoir icon
                     .padding(.leading, date.timeIntervalSince(timerDate) > 0 ? 12 : 0)

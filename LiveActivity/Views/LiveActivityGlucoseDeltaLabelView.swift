@@ -11,7 +11,6 @@ import WidgetKit
 struct LiveActivityGlucoseDeltaLabelView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
     var glucoseColor: Color
-    var isDetailed: Bool = false
 
     var body: some View {
         if !context.state.change.isEmpty {

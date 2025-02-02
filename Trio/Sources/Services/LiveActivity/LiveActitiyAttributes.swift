@@ -3,13 +3,15 @@ import Foundation
 
 struct LiveActivityAttributes: ActivityAttributes {
     enum LiveActivityItem: String, Hashable, Codable, Equatable {
+        case currentGlucoseLarge
         case currentGlucose
         case iob
         case cob
         case updatedLabel
+        case totalDailyDose
         case empty
 
-        static let defaultItems: [Self] = [.currentGlucose, .iob, .cob, .updatedLabel]
+        static let defaultItems: [Self] = [.currentGlucoseLarge, .iob, .cob, .updatedLabel]
     }
 
     struct ContentState: Codable, Hashable {
@@ -34,6 +36,7 @@ struct LiveActivityAttributes: ActivityAttributes {
         let rotationDegrees: Double
         let cob: Decimal
         let iob: Decimal
+        let tdd: Decimal
         let isOverrideActive: Bool
         let overrideName: String
         let overrideDate: Date

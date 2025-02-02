@@ -355,6 +355,7 @@ extension Adjustments.StateModel {
         tempTargetDuration = 0
         percentage = 100
         halfBasalTarget = settingHalfBasalTarget
+        date = Date()
     }
 
     // MARK: - Calculations
