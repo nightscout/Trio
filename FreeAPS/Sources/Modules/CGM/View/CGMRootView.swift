@@ -29,14 +29,14 @@ extension CGM {
                             if cgmState.type != .none {
                                 Button {
                                     state.setupCGM = true
-
                                 } label: {
                                     HStack {
-                                        Image(systemName: "sensor.tag.radiowaves.forward.fill").padding()
+                                        Image(systemName: "sensor.tag.radiowaves.forward.fill")
                                         Text(cgmState.displayName)
                                     }
-                                }
-
+                                    .frame(maxWidth: .infinity, minHeight: 50, alignment: .center)
+                                    .font(.title2)
+                                }.padding()
                             } else {
                                 VStack {
                                     Button {
@@ -70,7 +70,6 @@ extension CGM {
                             }
                         }
                     )
-                    .padding(.top)
                     .listRowBackground(Color.chart)
 
                     if state.cgmCurrent.type == .plugin && state.cgmCurrent.id.contains("Libre") {

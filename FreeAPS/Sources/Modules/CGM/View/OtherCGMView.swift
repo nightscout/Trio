@@ -79,19 +79,28 @@ struct OtherCGMView: BaseView {
                     state.deleteCGM()
                     presentationMode.wrappedValue.dismiss()
                 } label: {
-                    Text("Delete CGM").foregroundColor(.red)
-                        .frame(maxWidth: .infinity)
-                        .multilineTextAlignment(.center)
+                    Text("Delete CGM")
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .frame(height: 35)
                 }
-
-            }.listSectionSpacing(sectionSpacing)
-                .navigationTitle(state.cgmCurrent.displayName)
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationBarItems(leading: Button("Close") {
-                    presentationMode.wrappedValue.dismiss()
-                })
-                .scrollContentBackground(.hidden)
-                .background(appState.trioBackgroundColor(for: colorScheme))
+                .listRowBackground(Color(.systemRed))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+            .navigationTitle(state.cgmCurrent.displayName)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                /// proper positioning should be .leading
+                /// but to keep this in line with LoopKit submodules, set placement to .trailing
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Close") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(appState.trioBackgroundColor(for: colorScheme))
         }
     }
 }
