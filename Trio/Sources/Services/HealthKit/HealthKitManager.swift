@@ -57,7 +57,9 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
     private var backgroundContext = CoreDataStack.shared.newTaskContext()
 
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    // Queue for handling Core Data change notifications
+    private let queue = DispatchQueue(label: "BaseHealthKitManager.queue", qos: .background)
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
     var isAvailableOnCurrentDevice: Bool {
@@ -69,7 +71,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
         coreDataPublisher =
             changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
 

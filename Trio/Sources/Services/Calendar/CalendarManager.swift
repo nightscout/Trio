@@ -19,7 +19,9 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var storage: FileStorage!
 
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    // Queue for handling Core Data change notifications
+    private let queue = DispatchQueue(label: "BaseCalendarManager.queue", qos: .background)
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
     private var glucoseFormatter: NumberFormatter {
@@ -62,7 +64,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
 
         coreDataPublisher =
             changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
 
