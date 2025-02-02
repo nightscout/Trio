@@ -42,6 +42,12 @@ extension Formatter {
         return dateFormatter
     }()
 
+    static let dayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d"
+        return formatter
+    }()
+
     static let decimalFormatterWithOneFractionDigit: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
