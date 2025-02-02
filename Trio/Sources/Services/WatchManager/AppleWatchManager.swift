@@ -610,6 +610,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 carbEntry.carbs = Double(truncating: amount as NSNumber)
                 carbEntry.date = date
                 carbEntry.note = "Via Watch"
+                carbEntry.isFPU = false // set this to false to ensure watch-entered carbs are displayed in main chart
 
                 do {
                     guard context.hasChanges else { return }
@@ -648,6 +649,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     carbEntry.carbs = NSDecimalNumber(decimal: carbsAmount).doubleValue
                     carbEntry.date = date
                     carbEntry.note = "Via Watch"
+                    carbEntry.isFPU = false // set this to false to ensure watch-entered carbs are displayed in main chart
 
                     guard context.hasChanges else { return }
                     try context.save()

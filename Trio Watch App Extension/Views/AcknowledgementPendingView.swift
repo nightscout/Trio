@@ -18,7 +18,7 @@ struct AcknowledgementPendingView: View {
         case .success:
             return Image(systemName: "checkmark.circle").foregroundStyle(Color.loopGreen)
         case .failure:
-            return Image(systemName: "progress.indicator").foregroundStyle(Color.loopRed)
+            return Image(systemName: "xmark").foregroundStyle(Color.loopRed)
         }
     }
 
@@ -34,6 +34,7 @@ struct AcknowledgementPendingView: View {
                 } else if state.showAcknowledgmentBanner {
                     statusIcon.padding()
                     Text(state.acknowledgmentMessage).multilineTextAlignment(.center)
+                        .foregroundStyle(state.acknowledgementStatus == .failure ? Color.loopRed : Color.primary)
                 }
             }
             .padding()

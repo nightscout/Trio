@@ -69,7 +69,6 @@ struct TrioMainWatchView: View {
                         rotationDegrees: rotationDegrees,
                         isWatchStateDated: isWatchStateDated || isSessionUnreachable
                     )
-                    .tag(0)
 
                     if state.showSyncingAnimation {
                         Image(systemName: "iphone.radiowaves.left.and.right")
@@ -86,7 +85,7 @@ struct TrioMainWatchView: View {
                                     7 // Font .body == 14, so half of default size for the SF Symbol image
                             )
                     }
-                }
+                }.tag(0)
 
                 // Page 2: Glucose chart
                 GlucoseChartView(glucoseValues: state.glucoseValues)
