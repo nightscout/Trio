@@ -88,8 +88,11 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Current glucose units, either mg/dL or mmol/L, read from user settings.
     private var units: GlucoseUnits = .mgdL
 
+    /// Queue for handling Core Data change notifications
+    private let queue = DispatchQueue(label: "BaseGarminManager.queue", qos: .utility)
+
     /// Publishes any changed CoreData objects that match our filters (e.g., OrefDetermination, GlucoseStored).
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
 
     /// Additional local subscriptions (separate from `cancellables`) for CoreData events.
     private var subscriptions = Set<AnyCancellable>()
@@ -122,7 +125,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
         coreDataPublisher =
             changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
 

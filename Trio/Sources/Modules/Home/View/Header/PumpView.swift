@@ -101,7 +101,7 @@ struct PumpView: View {
                         Image(systemName: "stopwatch.fill")
                             .font(.callout)
                             .foregroundStyle(timerColor)
-                        
+
                         let remainingTimeString = remainingTimeString(time: date.timeIntervalSince(timerDate))
 
                         Text(remainingTimeString)
