@@ -314,7 +314,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                         basalScheduledRate_ = basalprofile[m].rate;
                         totalInsulin += accountForIncrements(basalScheduledRate_ * basDuration);
                         totalDuration -= basDuration;
-                        //console.log("Dynamic ratios log: scheduled insulin added: " + accountForIncrements(basalScheduledRate_ * basDuration) + " U. Bas duration: " + basDuration.toPrecision(3) + " h. Base Rate: " + basalScheduledRate_ + " U/h" + ". Time :" + baseTime_);
+                        console.log("Dynamic ratios log: scheduled insulin added: " + accountForIncrements(basalScheduledRate_ * basDuration) + " U. Bas duration: " + basDuration.toPrecision(3) + " h. Base Rate: " + basalScheduledRate_ + " U/h" + ". Time :" + baseTime_);
                         // Move clock to new date
                         old = addTimeToDate(old, basDuration);
                     }
@@ -338,7 +338,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                                 basalScheduledRate_ = basalprofile[m].rate;
                                 totalInsulin += accountForIncrements(basalScheduledRate_ * basDuration);
                                 totalDuration -= basDuration;
-                                //console.log("Dynamic ratios log: scheduled insulin added: " + accountForIncrements(basalScheduledRate_ * basDuration) + " U. Bas duration: " + basDuration.toPrecision(3) + " h. Base Rate: " + basalScheduledRate_ + " U/h" + ". Time :" + baseTime_);
+                                console.log("Dynamic ratios log: scheduled insulin added: " + accountForIncrements(basalScheduledRate_ * basDuration) + " U. Bas duration: " + basDuration.toPrecision(3) + " h. Base Rate: " + basalScheduledRate_ + " U/h" + ". Time :" + baseTime_);
                                 // Move clock to new date
                                 old = addTimeToDate(old, basDuration);
                             }
@@ -359,7 +359,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                             basalScheduledRate_ = basalprofile[m].rate;
                             totalInsulin += accountForIncrements(basalScheduledRate_ * basDuration);
                             totalDuration -= basDuration;
-                            //console.log("Dynamic ratios log: scheduled insulin added: " + accountForIncrements(basalScheduledRate_ * basDuration) + " U. Bas duration: " + basDuration.toPrecision(3) + " h. Base Rate: " + basalScheduledRate_ + " U/h" + ". Time :" + baseTime_);
+                            console.log("Dynamic ratios log: scheduled insulin added: " + accountForIncrements(basalScheduledRate_ * basDuration) + " U. Bas duration: " + basDuration.toPrecision(3) + " h. Base Rate: " + basalScheduledRate_ + " U/h" + ". Time :" + baseTime_);
                             // Move clock to new date
                             old = addTimeToDate(old, basDuration);
                         }
@@ -1307,7 +1307,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                     IOBpredBG = IOBpredBGs[IOBpredBGs.length-1] + (round(( -iobTick.activity * (1800 / ( tdd * adjustmentFactor * (Math.log((Math.max( IOBpredBGs[IOBpredBGs.length-1],39) / insulinFactor ) + 1 ) ) )) * 5 ),2)) + predDev;
                     //var ZTpredBG = ZTpredBGs[ZTpredBGs.length-1] + predZTBGI; // Adding dynamic ISF in predictions for UAM, ZT and IOB:
                     ZTpredBG = ZTpredBGs[ZTpredBGs.length-1] + (round(( -iobTick.iobWithZeroTemp.activity * (1800 / ( tdd * adjustmentFactor * (Math.log(( Math.max(ZTpredBGs[ZTpredBGs.length-1],39) / insulinFactor ) + 1 ) ) )) * 5 ), 2));
-                    //console.log("Dynamic ISF (Logarithmic Formula) )adjusted predictions for IOB and ZT: IOBpredBG: " + round(IOBpredBG,2) + " , ZTpredBG: " + round(ZTpredBG,2));
+                    console.log("Dynamic ISF (Logarithmic Formula) )adjusted predictions for IOB and ZT: IOBpredBG: " + round(IOBpredBG,2) + " , ZTpredBG: " + round(ZTpredBG,2));
                     break;
                 default:
                     IOBpredBG = IOBpredBGs[IOBpredBGs.length-1] + predBGI + predDev;
@@ -1347,7 +1347,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 case dynISFenabled && !enable_sigmoid:
                     //UAMpredBG = UAMpredBGs[UAMpredBGs.length-1] + predBGI + Math.min(0, predDev) + predUCI; // Adding dynamic ISF in predictions for UAM:
                     UAMpredBG = UAMpredBGs[UAMpredBGs.length-1] + (round(( -iobTick.activity * (1800 / ( tdd * adjustmentFactor * (Math.log(( Math.max(UAMpredBGs[UAMpredBGs.length-1],39) / insulinFactor ) + 1 ) ) )) * 5 ),2)) + Math.min(0, predDev) + predUCI;
-                    //console.log("Dynamic ISF (Logarithmic Formula) adjusted prediction for UAM: UAMpredBG: " + round(UAMpredBG,2));
+                    console.log("Dynamic ISF (Logarithmic Formula) adjusted prediction for UAM: UAMpredBG: " + round(UAMpredBG,2));
                     break;
                 default:
                     UAMpredBG = UAMpredBGs[UAMpredBGs.length-1] + predBGI + Math.min(0, predDev) + predUCI;

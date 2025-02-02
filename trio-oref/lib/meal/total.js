@@ -112,7 +112,7 @@ function recentCarbs(opts, time) {
     // calculate the current deviation and steepest deviation downslope over the last hour
     COB_inputs.ciTime = time.getTime();
     // set mealTime to 6h ago for Deviation calculations
-    COB_inputs.mealTime = time.getTime() - profile_data.maxMealAbsorptionTime * 60 * 60 * 1000;
+    COB_inputs.mealTime = time.getTime() - maxMealAbsorptionTime * 60 * 60 * 1000;
     var c = calcMealCOB(COB_inputs);
     //console.error(c.currentDeviation, c.slopeFromMaxDeviation);
 
