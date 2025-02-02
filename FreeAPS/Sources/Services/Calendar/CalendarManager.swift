@@ -212,8 +212,8 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         guard settingsManager.settings.useCalendar, let calendar = currentCalendar,
               let determinationId = await getLastDetermination() else { return }
 
-        // Ignore the update if the last one was less than 10 seconds ago
-        if lastCalendarUpdate.timeIntervalSinceNow > -10 {
+        // Ignore the update if the last one was less than 1 minute ago
+        if lastCalendarUpdate.timeIntervalSinceNow > -60 {
             return
         }
 
