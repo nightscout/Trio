@@ -21,7 +21,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
 
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
     private var subscriptions = Set<AnyCancellable>()
-    private var lastCalendarUpdate = Date()
+    private var previousDeterminationId: NSManagedObjectID?
 
     private var glucoseFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -212,12 +212,11 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         guard settingsManager.settings.useCalendar, let calendar = currentCalendar,
               let determinationId = await getLastDetermination() else { return }
 
-        // Ignore the update if the last one was less than 1 minute ago
-        if lastCalendarUpdate.timeIntervalSinceNow > -60 {
+        // Ignore the update if the determinationId is the same as it was at last update
+        if determinationId == previousDeterminationId {
             return
         }
-
-        lastCalendarUpdate = Date()
+        previousDeterminationId = determinationId
 
         let glucoseIds = await fetchGlucose()
 
