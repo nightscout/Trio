@@ -63,7 +63,6 @@ struct LiveActivityView: View {
                             case .currentGlucose:
                                 VStack {
                                     LiveActivityBGLabelView(context: context, additionalState: detailedViewState)
-                                        .foregroundStyle(glucoseColor)
 
                                     HStack {
                                         LiveActivityGlucoseDeltaLabelView(
