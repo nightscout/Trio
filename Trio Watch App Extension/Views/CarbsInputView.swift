@@ -40,7 +40,10 @@ struct CarbsInputView: View {
             HStack {
                 // "-" Button
                 Button(action: {
-                    if carbsAmount > 0 { carbsAmount -= 1 }
+                    if carbsAmount > 0 {
+                        let currentAmount = carbsAmount
+                        carbsAmount < 5 ? carbsAmount = 0 : (carbsAmount -= 5)
+                    }
                 }) {
                     Image(systemName: "minus.circle.fill")
                         .font(.title3)
@@ -72,7 +75,7 @@ struct CarbsInputView: View {
 
                 // "+" Button
                 Button(action: {
-                    carbsAmount += 1
+                    carbsAmount += 5
                 }) {
                     Image(systemName: "plus.circle.fill")
                         .font(.title3)
