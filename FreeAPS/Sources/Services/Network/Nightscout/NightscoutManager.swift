@@ -80,7 +80,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private var lastSuggestedDetermination: Determination?
 
     // Queue for handling Core Data change notifications
-    private let queue = DispatchQueue(label: "BaseNightscoutManager.queue", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "BaseNightscoutManager.queue", qos: .background)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 

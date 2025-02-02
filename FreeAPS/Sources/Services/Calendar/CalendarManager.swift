@@ -20,7 +20,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     @Injected() private var storage: FileStorage!
 
     // Queue for handling Core Data change notifications
-    private let queue = DispatchQueue(label: "BaseCalendarManager.queue", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "BaseCalendarManager.queue", qos: .background)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
