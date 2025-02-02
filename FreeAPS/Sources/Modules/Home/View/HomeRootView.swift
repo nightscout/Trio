@@ -848,11 +848,6 @@ extension Home {
 
         @ViewBuilder func mainViewElements(_ geo: GeometryProxy) -> some View {
             VStack(spacing: 0) {
-                if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
-                    pumpTimezoneView(badgeImage, badgeColor)
-                        .padding(.top, 10)
-                        .padding(.horizontal, 20)
-                }
                 ZStack {
                     /// glucose bobble
                     glucoseView
@@ -868,12 +863,17 @@ extension Home {
                         pumpView
                         Spacer()
                     }.padding(.leading, 20)
-                }.padding(.top, 10)
-                    .safeAreaInset(edge: .top, spacing: 0) {
-                        if notificationsDisabled {
-                            alertSafetyNotificationsView(geo: geo)
-                        }
+                }
+                .padding(.top, 10)
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    if notificationsDisabled {
+                        alertSafetyNotificationsView(geo: geo)
                     }
+                    if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
+                        pumpTimezoneView(badgeImage, badgeColor)
+                            .padding(.horizontal, 20)
+                    }
+                }
 
                 mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
                     .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
@@ -901,7 +901,7 @@ extension Home {
                         iconString: "info",
                         action: { state.isLegendPresented.toggle() }
                     )
-                }.padding([.horizontal, .top, .bottom])
+                }.padding([.horizontal, .bottom])
 
                 if let progress = state.bolusProgress {
                     bolusView(geo: geo, progress)
