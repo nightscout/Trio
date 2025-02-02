@@ -53,7 +53,9 @@ extension CarbRatioEditor {
                                         ProgressView().padding(.trailing, 10)
                                     }
                                     Text(state.shouldDisplaySaving ? "Saving..." : "Save")
-                                }.padding(10)
+                                }
+                                .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+                                .padding(10)
                             }
                         }
                         .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)

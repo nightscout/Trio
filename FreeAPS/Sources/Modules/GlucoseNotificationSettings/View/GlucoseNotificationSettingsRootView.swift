@@ -42,6 +42,28 @@ extension GlucoseNotificationSettings {
             List {
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.useAlarmSound,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = "Play Alarm Sound"
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: "Play Alarm Sound",
+                    miniHint: "Alarm with every Trio notification.",
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "This will cause a sound to be triggered by Trio notifications for Carbs Required, and Glucose Low/High Alarms."
+                        )
+                    }
+                )
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
                     booleanValue: $state.notificationsPump,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
@@ -161,75 +183,94 @@ extension GlucoseNotificationSettings {
                     miniHint: "Show your current glucose on Trio app icon.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
-                        Text("This will add your current glucose on the top right of your Trio icon as a red notification badge.")
+                        Text(
+                            "This will add your current glucose on the top right of your Trio icon as a red notification badge. Changing setting takes effect on next Glucose reading."
+                        )
                     },
                     headerText: "Various Glucose Notifications"
                 )
 
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.glucoseNotificationsAlways,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Always Notify Glucose"
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: "Always Notify Glucose",
-                    miniHint: "Trigger a notification every time your glucose is updated.",
-                    verboseHint: VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
-                        Text("A notification will be triggered every time your glucose is updated in Trio.")
-                    }
-                )
+                Section {
+                    VStack {
+                        Picker(
+                            selection: $state.glucoseNotificationsOption,
+                            label: Text("Glucose Notifications")
+                        ) {
+                            ForEach(GlucoseNotificationsOption.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
+                            }
+                        }.padding(.top)
 
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.useAlarmSound,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Play Alarm Sound"
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: "Play Alarm Sound",
-                    miniHint: "Alarm with every Trio notification.",
-                    verboseHint: VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
-                        Text("This will cause a sound to be triggered by every Trio notification.")
-                    }
-                )
+                        HStack(alignment: .center) {
+                            Text(
+                                "Choose glucose notifications option. See hint for more details."
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = "Glucose Notifications"
+                                    selectedVerboseHint =
+                                        AnyView(
+                                            VStack(alignment: .leading, spacing: 10) {
+                                                Text(
+                                                    "Set the Glucose Notifications Option. Descriptions for each option found below."
+                                                )
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Disabled:").bold()
+                                                    Text("No Glucose Notificatitons will be triggered.")
+                                                }
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Always:").bold()
+                                                    Text(
+                                                        "A notification will be triggered every time your glucose is updated in Trio."
+                                                    )
+                                                }
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text("Only Alarm Limits:").bold()
+                                                    Text(
+                                                        "A notification will be triggered only when glucose levels are below the LOW limit or above the HIGH limit, as specified in Glucose Alarm Limits below."
+                                                    )
+                                                }
+                                            }
+                                        )
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+                }.listRowBackground(Color.chart)
 
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.addSourceInfoToGlucoseNotifications,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Add Glucose Source to Alarm"
+                if state.glucoseNotificationsOption != GlucoseNotificationsOption.disabled {
+                    self.lowAndHighGlucoseAlertSection
+                    SettingInputSection(
+                        decimalValue: $decimalPlaceholder,
+                        booleanValue: $state.addSourceInfoToGlucoseNotifications,
+                        shouldDisplayHint: $shouldDisplayHint,
+                        selectedVerboseHint: Binding(
+                            get: { selectedVerboseHint },
+                            set: {
+                                selectedVerboseHint = $0.map { AnyView($0) }
+                                hintLabel = "Add Glucose Source to Alarm"
+                            }
+                        ),
+                        units: state.units,
+                        type: .boolean,
+                        label: "Add Glucose Source to Alarm",
+                        miniHint: "Source of the glucose reading will be added to the notification.",
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+                            Text("The source of the glucose reading will be added to the notification.")
                         }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: "Add Glucose Source to Alarm",
-                    miniHint: "Source of the glucose reading will be added to the notification.",
-                    verboseHint: VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
-                        Text("The source of the glucose reading will be added to the notification.")
-                    }
-                )
-
-                self.lowAndHighGlucoseAlertSection
+                    )
+                }
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {
@@ -336,8 +377,14 @@ extension GlucoseNotificationSettings {
                                 hintLabel = "Low and High Glucose Alarm Limits"
                                 selectedVerboseHint =
                                     AnyView(VStack(alignment: .leading, spacing: 10) {
-                                        Text("Low Default: 70 mg/dL").bold()
-                                        Text("High Default: 180 mg/dL").bold()
+                                        let low: Decimal = 70
+                                        let high: Decimal = 180
+                                        let labelLow = (state.units == .mgdL ? low.description : low.formattedAsMmolL) + " " +
+                                            state.units.rawValue
+                                        let labelHigh = (state.units == .mgdL ? high.description : high.formattedAsMmolL) + " " +
+                                            state.units.rawValue
+                                        Text("Low Default: " + labelLow).bold()
+                                        Text("High Default: " + labelHigh).bold()
                                         VStack(alignment: .leading, spacing: 10) {
                                             Text(
                                                 "These two settings determine the range outside of which you will be notified via push notifications."

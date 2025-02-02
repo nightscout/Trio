@@ -74,7 +74,7 @@ struct PumpView: View {
                         Image(systemName: "battery.100")
                             .font(.callout)
                             .foregroundStyle(batteryColor)
-                        Text("\(Int(battery.first?.percent ?? 100)) %")
+                        Text("\(Formatter.integerFormatter.string(for: battery.first?.percent ?? 100) ?? "100") %")
                             .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                 }
@@ -91,7 +91,7 @@ struct PumpView: View {
                             .fontDesign(.rounded)
                     }
                     // aligns the stopwatch icon exactly with the first pixel of the reservoir icon
-                    .padding(.leading, 12)
+                    .padding(.leading, date.timeIntervalSince(timerDate) > 0 ? 12 : 0)
                 }
             }
         }

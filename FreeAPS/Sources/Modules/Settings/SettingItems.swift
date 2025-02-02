@@ -219,13 +219,13 @@ enum SettingItems {
             title: "Trio Notifications",
             view: .glucoseNotificationSettings,
             searchContents: [
+                "Play Alarm Sound",
                 "Always Notify Pump",
                 "Always Notify CGM",
                 "Always Notify Carb",
                 "Always Notify Algorithm",
                 "Show Glucose App Badge",
-                "Always Notify Glucose",
-                "Play Alarm Sound",
+                "Glucose Notifications",
                 "Add Glucose Source to Alarm",
                 "Low Glucose Alarm Limit",
                 "High Glucose Alarm Limit"

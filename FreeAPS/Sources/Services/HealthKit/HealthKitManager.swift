@@ -245,26 +245,27 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             for allSamples in carbs {
                 guard let id = allSamples.id else { continue }
                 let fpuID = allSamples.fpuID ?? id
-
                 let startDate = allSamples.actualDate ?? Date()
 
-                // Carbs Sample
+                // Carbs Sample (only if value is greater than 0)
                 let carbValue = allSamples.carbs
-                let carbSample = HKQuantitySample(
-                    type: carbSampleType,
-                    quantity: HKQuantity(unit: .gram(), doubleValue: Double(carbValue)),
-                    start: startDate,
-                    end: startDate,
-                    metadata: [
-                        HKMetadataKeyExternalUUID: id,
-                        HKMetadataKeySyncIdentifier: id,
-                        HKMetadataKeySyncVersion: 1
-                    ]
-                )
-                samples.append(carbSample)
+                if carbValue > 0 {
+                    let carbSample = HKQuantitySample(
+                        type: carbSampleType,
+                        quantity: HKQuantity(unit: .gram(), doubleValue: Double(carbValue)),
+                        start: startDate,
+                        end: startDate,
+                        metadata: [
+                            HKMetadataKeyExternalUUID: id,
+                            HKMetadataKeySyncIdentifier: id,
+                            HKMetadataKeySyncVersion: 1
+                        ]
+                    )
+                    samples.append(carbSample)
+                }
 
-                // Fat Sample (if available)
-                if let fatValue = allSamples.fat {
+                // Fat Sample (only if value is greater than 0)
+                if let fatValue = allSamples.fat, fatValue > 0 {
                     let fatSample = HKQuantitySample(
                         type: fatSampleType,
                         quantity: HKQuantity(unit: .gram(), doubleValue: Double(fatValue)),
@@ -279,8 +280,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                     samples.append(fatSample)
                 }
 
-                // Protein Sample (if available)
-                if let proteinValue = allSamples.protein {
+                // Protein Sample (only if value is greater than 0)
+                if let proteinValue = allSamples.protein, proteinValue > 0 {
                     let proteinSample = HKQuantitySample(
                         type: proteinSampleType,
                         quantity: HKQuantity(unit: .gram(), doubleValue: Double(proteinValue)),
