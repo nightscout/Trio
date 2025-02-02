@@ -47,7 +47,7 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
 
     let context = CoreDataStack.shared.newTaskContext()
 
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
     private let orefDeterminationSubject = PassthroughSubject<Void, Never>()
 

@@ -40,7 +40,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
 
     private var backgroundContext = CoreDataStack.shared.newTaskContext()
 
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
     @PersistedProperty(key: "TidepoolState") var rawTidepoolManager: Service.RawValue?

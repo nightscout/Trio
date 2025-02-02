@@ -58,7 +58,7 @@ final class BaseWatchManager: NSObject, WatchManager, Injectable {
     let context = CoreDataStack.shared.newTaskContext()
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
     private var lifetime = Lifetime()

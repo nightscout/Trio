@@ -121,7 +121,7 @@ extension Treatments {
 
         var isActive: Bool = false
 
-        private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+        private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
         private var subscriptions = Set<AnyCancellable>()
 
         typealias PumpEvent = PumpEventStored.EventType

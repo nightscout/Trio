@@ -79,7 +79,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private var lastEnactedDetermination: Determination?
     private var lastSuggestedDetermination: Determination?
 
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
     init(resolver: Resolver) {
@@ -119,25 +119,18 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private func registerHandlers() {
         coreDataPublisher?
             .filterByEntityName("OrefDetermination")
-            .sink { [weak self] determinationObjects in
+            .sink { [weak self] objectIDs in
                 guard let self = self else { return }
 
-                // Collect objectIDs of determinationObjects here
-                let determinationObjectsIDs = determinationObjects
-                    .compactMap { $0 as? OrefDetermination }
-                    .map(\.objectID)
-
-                guard !determinationObjectsIDs.isEmpty else { return }
-
-                // Now hop onto the background context’s queue
+                // Now hop onto the background context's queue
                 self.backgroundContext.perform {
                     do {
                         // Fetch only those determination objects
                         let request: NSFetchRequest<OrefDetermination> = OrefDetermination.fetchRequest()
-                        request.predicate = NSPredicate(format: "SELF IN %@", determinationObjectsIDs)
+                        request.predicate = NSPredicate(format: "SELF IN %@", objectIDs)
                         let results = try self.backgroundContext.fetch(request)
 
-                        // Safely filter out anything that’s deleted or already uploaded
+                        // Safely filter out anything that's deleted or already uploaded
                         let unuploaded = results.filter { !$0.isDeleted && !$0.isUploadedToNS }
 
                         // If valid, proceed to send to subject for further processing
@@ -174,21 +167,14 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("PumpEventStored")
-            .sink { [weak self] pumpEventObjects in
+            .sink { [weak self] objectIDs in
                 guard let self = self else { return }
-
-                // Collect objectIDs of pumpEventObjects here
-                let pumpEventObjectsIDs = pumpEventObjects
-                    .compactMap { $0 as? PumpEventStored }
-                    .map(\.objectID)
-
-                guard !pumpEventObjectsIDs.isEmpty else { return }
 
                 // Now hop onto the background context’s queue
                 self.backgroundContext.perform {
                     do {
                         let request: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
-                        request.predicate = NSPredicate(format: "SELF IN %@", pumpEventObjectsIDs)
+                        request.predicate = NSPredicate(format: "SELF IN %@", objectIDs)
                         let results = try self.backgroundContext.fetch(request)
 
                         // Safely filter out anything that’s deleted or already uploaded
@@ -199,27 +185,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                             self.uploadPumpHistorySubject.send()
                         }
                     } catch {
-                        debugPrint("Failed to fetch OrefDetermination objects: \(error)")
+                        debugPrint("Failed to fetch PumpEventStored objects: \(error)")
                     }
                 }
-            }.store(in: &subscriptions)
+            }
+            .store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("CarbEntryStored")
-            .sink { [weak self] carbEntryObjects in
+            .sink { [weak self] objectIDs in
                 guard let self = self else { return }
-
-                // Collect objectIDs of carbEntryObjects here
-                let carbEntryObjecIDs = carbEntryObjects
-                    .compactMap { $0 as? CarbEntryStored }
-                    .map(\.objectID)
-
-                guard !carbEntryObjecIDs.isEmpty else { return }
 
                 // Now hop onto the background context’s queue
                 self.backgroundContext.perform {
                     do {
                         let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
-                        request.predicate = NSPredicate(format: "SELF IN %@", carbEntryObjecIDs)
+                        request.predicate = NSPredicate(format: "SELF IN %@", objectIDs)
                         let results = try self.backgroundContext.fetch(request)
 
                         // Safely filter out anything that’s deleted or already uploaded
@@ -230,17 +210,20 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                             self.uploadCarbsSubject.send()
                         }
                     } catch {
-                        debugPrint("Failed to fetch OrefDetermination objects: \(error)")
+                        debugPrint("Failed to fetch CarbEntryStored objects: \(error)")
                     }
                 }
-            }.store(in: &subscriptions)
-
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task.detached {
-                await self.uploadManualGlucose()
             }
-        }.store(in: &subscriptions)
+            .store(in: &subscriptions)
+
+        coreDataPublisher?.filterByEntityName("GlucoseStored")
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task.detached {
+                    await self.uploadManualGlucose()
+                }
+            }
+            .store(in: &subscriptions)
     }
 
     func registerSubscribers() {

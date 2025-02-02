@@ -57,7 +57,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
     private var backgroundContext = CoreDataStack.shared.newTaskContext()
 
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
     var isAvailableOnCurrentDevice: Bool {
