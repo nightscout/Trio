@@ -139,26 +139,8 @@ import WatchConnectivity
                 return
             }
 
-            // the order here is probably not perfect and needs to be re-arranged
             if activationState == .activated {
-                guard let lastUpdateTimestamp = self.lastWatchStateUpdate else {
-                    // nil => force update
-                    self.showSyncingAnimation = true
-                    self.requestWatchStateUpdate()
-                    return
-                }
-
-                let now = Date().timeIntervalSince1970
-                let secondsSinceUpdate = now - lastUpdateTimestamp
-
-                // If more than 15 minutes in seconds
-                if secondsSinceUpdate > 15 * 60 {
-                    self.showSyncingAnimation = true
-                    self.requestWatchStateUpdate()
-                    return
-                }
-
-                // Otherwise do the rest...
+                self.forceConditionalWatchStateUpdate()
 
                 print("⌚️ Watch session activated with state: \(activationState.rawValue)")
 
@@ -342,10 +324,7 @@ import WatchConnectivity
             print("⌚️ Watch reachability changed: \(session.isReachable)")
 
             if session.isReachable {
-                if let timestamp = self.lastWatchStateUpdate, timestamp < Date().timeIntervalSince1970 - 15 {
-                    // request fresh data from watch
-                    self.requestWatchStateUpdate()
-                }
+                self.forceConditionalWatchStateUpdate()
 
                 // reset input amounts
                 self.bolusAmount = 0
@@ -355,6 +334,34 @@ import WatchConnectivity
             }
         }
     }
+    
+    /// Conditionally triggers a watch state update if the last known update was too long ago or has never occurred.
+    ///
+    /// This method checks the `lastWatchStateUpdate` timestamp to determine how many seconds
+    /// have elapsed since the last update under the following conditions
+    ///  - If `lastWatchStateUpdate` is `nil` (meaning there has never been an update), or
+    ///  - If more than 15 seconds have passed,
+    ///
+    /// it will show a syncing animation and request a new watch state update from the iPhone app.
+    private func forceConditionalWatchStateUpdate() {
+        guard let lastUpdateTimestamp = self.lastWatchStateUpdate else {
+            // If there's no recorded timestamp, we must force a fresh update immediately.
+            self.showSyncingAnimation = true
+            self.requestWatchStateUpdate()
+            return
+        }
+
+        let now = Date().timeIntervalSince1970
+        let secondsSinceUpdate = now - lastUpdateTimestamp
+
+        // If more than 15 seconds have elapsed since the last update, force an(other) update.
+        if secondsSinceUpdate > 15 {
+            self.showSyncingAnimation = true
+            self.requestWatchStateUpdate()
+            return
+        }
+    }
+
 
     /// Handles incoming messages that either contain an acknowledgement or fresh watchState data  (<15 min)
     private func processWatchMessage(_ message: [String: Any]) {

@@ -27,8 +27,8 @@ struct TrioMainWatchView: View {
         }
         let now = Date().timeIntervalSince1970
         let secondsSinceUpdate = now - lastUpdateTimestamp
-        // Return true if last update older than 15 min
-        return secondsSinceUpdate > 15 * 60
+        // Return true if last update older than 5 min, so 1 loop cycle
+        return secondsSinceUpdate > 5 * 60
     }
 
     var isSessionUnreachable: Bool {
