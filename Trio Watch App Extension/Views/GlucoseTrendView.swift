@@ -3,6 +3,7 @@ import SwiftUI
 struct GlucoseTrendView: View {
     let state: WatchState
     let rotationDegrees: Double
+    let isWatchStateDated: Bool
 
     /// Determines the status color based on the time elapsed since the last loop
     /// - Parameter timeString: The time string representing minutes since last loop (format: "X min")
@@ -32,10 +33,6 @@ struct GlucoseTrendView: View {
         default:
             return Color.secondary
         }
-    }
-
-    var isWatchStateDated: Bool {
-        state.lastWatchStateUpdate ?? Date().timeIntervalSince1970 < Date().timeIntervalSince1970 - 15
     }
 
     var circleSize: CGFloat {
@@ -135,18 +132,16 @@ struct GlucoseTrendView: View {
                 .shadow(color: Color.black.opacity(0.5), radius: 5)
 
                 VStack(alignment: .center) {
-                    Text(state.currentGlucose)
+                    Text(isWatchStateDated ? "--" : state.currentGlucose)
                         .fontWeight(.semibold)
                         .font(currentGlucoseFontSize)
                         .foregroundStyle(isWatchStateDated ? Color.secondary : state.currentGlucoseColorString.toColor())
-                        .strikethrough(isWatchStateDated)
 
                     if let delta = state.delta {
-                        Text(delta)
+                        Text(isWatchStateDated ? "--" : delta)
                             .fontWeight(.semibold)
                             .font(.system(.caption))
                             .foregroundStyle(.secondary)
-                            .strikethrough(isWatchStateDated)
                     }
                 }
             }

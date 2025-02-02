@@ -1,5 +1,6 @@
 import Charts
 import SwiftUI
+import WatchKit
 
 struct TrioMainWatchView: View {
     @State private var state = WatchState()
@@ -18,6 +19,25 @@ struct TrioMainWatchView: View {
 
     // treatments
     @State private var selectedTreatment: TreatmentOption?
+
+    var isWatchStateDated: Bool {
+        // If `lastWatchStateUpdate` is nil, treat as "dated"
+        guard let lastUpdateTimestamp = state.lastWatchStateUpdate else {
+            return true
+        }
+        let now = Date().timeIntervalSince1970
+        let secondsSinceUpdate = now - lastUpdateTimestamp
+        // Return true if last update older than 15 min
+        return secondsSinceUpdate > 15 * 60
+    }
+
+    var isSessionUnreachable: Bool {
+        guard let session = state.session else {
+            return true // No session at all => unreachable
+        }
+        // Return true if not .activated OR not reachable
+        return session.activationState != .activated || !session.isReachable
+    }
 
     // Active adjustment indicator
     private func isAdjustmentActive<T>(for presets: [T], predicate: (T) -> Bool) -> Bool {
@@ -40,15 +60,33 @@ struct TrioMainWatchView: View {
     )
 
     var body: some View {
-        mainTabView
-    }
-
-    @ViewBuilder private var mainTabView: some View {
         NavigationStack(path: $navigationPath) {
             TabView(selection: $currentPage) {
                 // Page 1: Current glucose trend in "BG bobble"
-                GlucoseTrendView(state: state, rotationDegrees: rotationDegrees)
+                ZStack {
+                    GlucoseTrendView(
+                        state: state,
+                        rotationDegrees: rotationDegrees,
+                        isWatchStateDated: isWatchStateDated || isSessionUnreachable
+                    )
                     .tag(0)
+
+                    if state.showSyncingAnimation {
+                        Image(systemName: "iphone.radiowaves.left.and.right")
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(Color.primary, Color.tabBar, Color.clear)
+                            .symbolEffect(
+                                .variableColor.iterative,
+                                options: .repeating,
+                                value: state.showSyncingAnimation
+                            )
+                            .position(
+                                x: 20,
+                                y: (WKInterfaceDevice.current().screenBounds.height / 4) -
+                                    7 // Font .body == 14, so half of default size for the SF Symbol image
+                            )
+                    }
+                }
 
                 // Page 2: Glucose chart
                 GlucoseChartView(glucoseValues: state.glucoseValues)
@@ -68,15 +106,15 @@ struct TrioMainWatchView: View {
                         Image(systemName: "syringe.fill")
                             .foregroundStyle(Color.insulin)
 
-                        Text(state.iob ?? "--")
-                            .foregroundStyle(.white)
+                        Text(isWatchStateDated || isSessionUnreachable ? "--" : state.iob ?? "--")
+                            .foregroundStyle(isWatchStateDated ? Color.secondary : Color.white)
                     }.font(.caption2)
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack {
-                        Text(state.cob ?? "--")
-                            .foregroundStyle(.white)
+                        Text(isWatchStateDated || isSessionUnreachable ? "--" : state.cob ?? "--")
+                            .foregroundStyle(isWatchStateDated || isSessionUnreachable ? Color.secondary : Color.white)
 
                         Image(systemName: "fork.knife")
                             .foregroundStyle(Color.orange)
@@ -170,6 +208,7 @@ struct TrioMainWatchView: View {
                 }
             }
         }
+        .ignoresSafeArea()
         .blur(radius: state.showBolusProgressOverlay ? 3 : 0)
         .overlay {
             if state.showBolusProgressOverlay {
@@ -177,16 +216,6 @@ struct TrioMainWatchView: View {
                     state.shouldNavigateToRoot = false
                     navigationPath.append(NavigationDestinations.acknowledgmentPending)
                 }.transition(.opacity)
-            }
-        }
-        .overlay {
-            if !state.showCommsAnimation, state.showSyncingAnimation {
-                trioBackgroundColor.ignoresSafeArea()
-
-                VStack {
-                    ProgressView("Syncing...")
-                    Spacer()
-                }
             }
         }
     }

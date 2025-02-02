@@ -140,18 +140,32 @@ import WatchConnectivity
             }
 
             // the order here is probably not perfect and needs to be re-arranged
-            if activationState == .activated,
-               self.lastWatchStateUpdate == nil || self.lastWatchStateUpdate! < Date().timeIntervalSince1970 - 15
-            {
-                self.showSyncingAnimation = true
-                self.requestWatchStateUpdate()
+            if activationState == .activated {
+                guard let lastUpdateTimestamp = self.lastWatchStateUpdate else {
+                    // nil => force update
+                    self.showSyncingAnimation = true
+                    self.requestWatchStateUpdate()
+                    return
+                }
+
+                let now = Date().timeIntervalSince1970
+                let secondsSinceUpdate = now - lastUpdateTimestamp
+
+                // If more than 15 minutes in seconds
+                if secondsSinceUpdate > 15 * 60 {
+                    self.showSyncingAnimation = true
+                    self.requestWatchStateUpdate()
+                    return
+                }
+
+                // Otherwise do the rest...
+
+                print("⌚️ Watch session activated with state: \(activationState.rawValue)")
+
+                self.isReachable = session.isReachable
+
+                print("⌚️ Watch isReachable after activation: \(session.isReachable)")
             }
-
-            print("⌚️ Watch session activated with state: \(activationState.rawValue)")
-
-            self.isReachable = session.isReachable
-
-            print("⌚️ Watch isReachable after activation: \(session.isReachable)")
         }
     }
 
