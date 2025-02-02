@@ -79,6 +79,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private var lastEnactedDetermination: Determination?
     private var lastSuggestedDetermination: Determination?
 
+    // Queue for handling Core Data change notifications
+    private let queue = DispatchQueue(label: "BaseNightscoutManager.queue")
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
@@ -88,7 +90,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         coreDataPublisher =
             changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
 

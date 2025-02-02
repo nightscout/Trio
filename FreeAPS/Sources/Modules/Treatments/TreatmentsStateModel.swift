@@ -121,6 +121,8 @@ extension Treatments {
 
         var isActive: Bool = false
 
+        // Queue for handling Core Data change notifications
+        private let queue = DispatchQueue(label: "TreatmentsStateModel.queue")
         private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
         private var subscriptions = Set<AnyCancellable>()
 
@@ -142,7 +144,7 @@ extension Treatments {
             debug(.bolusState, "subscribe fired")
             coreDataPublisher =
                 changedObjectsOnManagedObjectContextDidSavePublisher()
-                    .receive(on: DispatchQueue.global(qos: .background))
+                    .receive(on: queue)
                     .share()
                     .eraseToAnyPublisher()
             registerHandlers()
