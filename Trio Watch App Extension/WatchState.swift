@@ -31,11 +31,12 @@ import WatchConnectivity
     var carbsAmount: Int = 0
     var fatAmount: Int = 0
     var proteinAmount: Int = 0
-    var bolusAmount = 0.0
-    var activeBolusAmount = 0.0
-    var confirmationProgress = 0.0
+    var bolusAmount: Double = 0.0
+    var confirmationProgress: Double = 0.0
 
     var bolusProgress: Double = 0.0
+    var activeBolusAmount: Double = 0.0
+    var deliveredAmount: Double = 0.0
     var isBolusCanceled = false
 
     // Safety limits
@@ -65,8 +66,7 @@ import WatchConnectivity
     var isMealBolusCombo: Bool = false
 
     var showBolusProgressOverlay: Bool {
-        (!showAcknowledgmentBanner || !showCommsAnimation || !showCommsAnimation) && bolusProgress > 0 && bolusProgress < 1.0 &&
-            !isBolusCanceled
+        (!showAcknowledgmentBanner || !showCommsAnimation) && bolusProgress > 0 && bolusProgress < 1.0 && !isBolusCanceled
     }
 
     var recommendedBolus: Decimal = 0
@@ -140,9 +140,9 @@ import WatchConnectivity
             }
 
             if activationState == .activated {
-                self.forceConditionalWatchStateUpdate()
-
                 print("⌚️ Watch session activated with state: \(activationState.rawValue)")
+
+                self.forceConditionalWatchStateUpdate()
 
                 self.isReachable = session.isReachable
 
@@ -204,7 +204,8 @@ import WatchConnectivity
                     // Handle bolus progress updates
         } else if
             let progress = message[WatchMessageKeys.bolusProgress] as? Double,
-            let activeBolusAmount = message[WatchMessageKeys.activeBolusAmount] as? Double
+            let activeBolusAmount = message[WatchMessageKeys.activeBolusAmount] as? Double,
+            let deliveredAmount = message[WatchMessageKeys.deliveredAmount] as? Double
         {
             DispatchQueue.main.async {
                 if !self.isBolusCanceled {
@@ -215,6 +216,8 @@ import WatchConnectivity
                     if self.activeBolusAmount == 0 {
                         self.activeBolusAmount = activeBolusAmount
                     }
+
+                    self.deliveredAmount = deliveredAmount
                 }
             }
             return
@@ -334,7 +337,7 @@ import WatchConnectivity
             }
         }
     }
-    
+
     /// Conditionally triggers a watch state update if the last known update was too long ago or has never occurred.
     ///
     /// This method checks the `lastWatchStateUpdate` timestamp to determine how many seconds
@@ -344,10 +347,10 @@ import WatchConnectivity
     ///
     /// it will show a syncing animation and request a new watch state update from the iPhone app.
     private func forceConditionalWatchStateUpdate() {
-        guard let lastUpdateTimestamp = self.lastWatchStateUpdate else {
+        guard let lastUpdateTimestamp = lastWatchStateUpdate else {
             // If there's no recorded timestamp, we must force a fresh update immediately.
-            self.showSyncingAnimation = true
-            self.requestWatchStateUpdate()
+            showSyncingAnimation = true
+            requestWatchStateUpdate()
             return
         }
 
@@ -356,12 +359,11 @@ import WatchConnectivity
 
         // If more than 15 seconds have elapsed since the last update, force an(other) update.
         if secondsSinceUpdate > 15 {
-            self.showSyncingAnimation = true
-            self.requestWatchStateUpdate()
+            showSyncingAnimation = true
+            requestWatchStateUpdate()
             return
         }
     }
-
 
     /// Handles incoming messages that either contain an acknowledgement or fresh watchState data  (<15 min)
     private func processWatchMessage(_ message: [String: Any]) {
