@@ -64,10 +64,19 @@ import WatchConnectivity
     var mealBolusStep: MealBolusStep = .savingCarbs
     var isMealBolusCombo: Bool = false
 
+    private var _showBolusProgressOverlay: Bool = false
     var showBolusProgressOverlay: Bool {
-        (!showAcknowledgmentBanner || !showCommsAnimation || !showCommsAnimation) && bolusProgress > 0 && bolusProgress < 1.0 &&
-            !isBolusCanceled
+        get {
+            return (!showAcknowledgmentBanner || !showCommsAnimation || !showCommsAnimation) &&
+                   bolusProgress > 0 && bolusProgress < 1.0 &&
+                   !isBolusCanceled
+        }
+        set {
+            _showBolusProgressOverlay = newValue
+        }
     }
+
+    
 
     var recommendedBolus: Decimal = 0
 
@@ -141,7 +150,9 @@ import WatchConnectivity
 
             if activationState == .activated {
                 self.forceConditionalWatchStateUpdate()
-
+                // reset bolus progress visibility
+                self.showBolusProgressOverlay = false
+                
                 print("⌚️ Watch session activated with state: \(activationState.rawValue)")
 
                 self.isReachable = session.isReachable
@@ -325,10 +336,14 @@ import WatchConnectivity
 
             if session.isReachable {
                 self.forceConditionalWatchStateUpdate()
+                
+                // reset bolus progress visibility
+                self.showBolusProgressOverlay = false
 
                 // reset input amounts
                 self.bolusAmount = 0
                 self.carbsAmount = 0
+                
                 // reset auth progress
                 self.confirmationProgress = 0
             }
