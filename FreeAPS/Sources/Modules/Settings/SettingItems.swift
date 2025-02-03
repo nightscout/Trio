@@ -24,7 +24,7 @@ struct SettingItem: Identifiable {
 
 struct FilteredSettingItem: Identifiable {
     let id = UUID()
-    let settingItem: SettingItemx
+    let settingItem: SettingItem
     let matchedContent: LocalizedStringKey
 }
 
