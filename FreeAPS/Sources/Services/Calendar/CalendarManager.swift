@@ -297,7 +297,6 @@ final class BaseCalendarManager: CalendarManager, Injectable {
 
             try eventStore.save(event, span: .thisEvent)
 
-            // Save the determination ID so we can avoid updating calendar if this determination comes back
             previousDeterminationId = determinationId
 
         } catch {
