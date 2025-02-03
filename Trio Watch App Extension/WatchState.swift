@@ -330,9 +330,6 @@ import WatchConnectivity
 
             if session.isReachable {
                 self.forceConditionalWatchStateUpdate()
-                
-                // reset bolus progress visibility
-                self.showBolusProgressOverlay = false
 
                 // reset input amounts
                 self.bolusAmount = 0
