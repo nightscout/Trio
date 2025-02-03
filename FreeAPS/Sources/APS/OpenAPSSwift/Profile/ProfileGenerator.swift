@@ -74,7 +74,6 @@ enum ProfileGenerator {
         carbRatios: CarbRatios,
         tempTargets: [TempTarget],
         model: String,
-        autotune _: Autotune?,
         freeaps _: FreeAPSSettings
     ) throws -> Profile {
         let model = model.replacingOccurrences(of: "\"", with: "").trimmingCharacters(in: .whitespacesAndNewlines)

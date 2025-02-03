@@ -761,7 +761,6 @@ final class OpenAPS {
             carbRatio: carbRatio,
             tempTargets: tempTargets,
             model: model,
-            autotune: autotune,
             freeaps: freeaps
         )
         let nativeDuration = Date().timeIntervalSince(startNativeAt)

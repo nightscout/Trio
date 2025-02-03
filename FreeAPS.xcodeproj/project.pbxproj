@@ -244,7 +244,6 @@
 		3B5CD2A12D4AEA5100CE213C /* JavascriptOptional.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD29E2D4AEA5100CE213C /* JavascriptOptional.swift */; };
 		3B5CD2A22D4AEA5100CE213C /* JSONCompare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD29F2D4AEA5100CE213C /* JSONCompare.swift */; };
 		3B5CD2A52D4AEA5D00CE213C /* Date+MinutesFromMidnight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2A32D4AEA5D00CE213C /* Date+MinutesFromMidnight.swift */; };
-		3B5CD2B32D4AEA6600CE213C /* Autotune.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2A82D4AEA6600CE213C /* Autotune.swift */; };
 		3B5CD2B72D4AEA6600CE213C /* ComputedBGTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2A72D4AEA6600CE213C /* ComputedBGTargets.swift */; };
 		3B5CD2B82D4AEA6600CE213C /* ComputedInsulinSensitivities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2AD2D4AEA6600CE213C /* ComputedInsulinSensitivities.swift */; };
 		3B5CD2BE2D4AEA6600CE213C /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2AF2D4AEA6600CE213C /* Profile.swift */; };
@@ -970,7 +969,6 @@
 		3B5CD29F2D4AEA5100CE213C /* JSONCompare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONCompare.swift; sourceTree = "<group>"; };
 		3B5CD2A32D4AEA5D00CE213C /* Date+MinutesFromMidnight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+MinutesFromMidnight.swift"; sourceTree = "<group>"; };
 		3B5CD2A72D4AEA6600CE213C /* ComputedBGTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputedBGTargets.swift; sourceTree = "<group>"; };
-		3B5CD2A82D4AEA6600CE213C /* Autotune.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Autotune.swift; sourceTree = "<group>"; };
 		3B5CD2AD2D4AEA6600CE213C /* ComputedInsulinSensitivities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputedInsulinSensitivities.swift; sourceTree = "<group>"; };
 		3B5CD2AF2D4AEA6600CE213C /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		3B5CD2C12D4AECD500CE213C /* ProfileBasalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileBasalTests.swift; sourceTree = "<group>"; };
@@ -2382,7 +2380,6 @@
 		3B5CD2B22D4AEA6600CE213C /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				3B5CD2A82D4AEA6600CE213C /* Autotune.swift */,
 				3B5CD2A72D4AEA6600CE213C /* ComputedBGTargets.swift */,
 				3B5CD2AD2D4AEA6600CE213C /* ComputedInsulinSensitivities.swift */,
 				3B5CD2AF2D4AEA6600CE213C /* Profile.swift */,
@@ -3621,7 +3618,6 @@
 				BDC2EA452C3043B000E5BBD0 /* OverrideStorage.swift in Sources */,
 				3811DE4225C9D4A100A708ED /* SettingsDataFlow.swift in Sources */,
 				CEE9A6562BBB418300EB5194 /* CalibrationsRootView.swift in Sources */,
-				3B5CD2B32D4AEA6600CE213C /* Autotune.swift in Sources */,
 				3B5CD2B72D4AEA6600CE213C /* ComputedBGTargets.swift in Sources */,
 				3B5CD2B82D4AEA6600CE213C /* ComputedInsulinSensitivities.swift in Sources */,
 				3B5CD2BE2D4AEA6600CE213C /* Profile.swift in Sources */,

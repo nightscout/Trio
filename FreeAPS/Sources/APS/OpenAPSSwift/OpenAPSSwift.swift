@@ -10,7 +10,6 @@ struct OpenAPSSwift {
         carbRatio: JSON,
         tempTargets: JSON,
         model: JSON,
-        autotune: JSON,
         freeaps: JSON
     ) -> RawJSON {
         do {
@@ -22,7 +21,6 @@ struct OpenAPSSwift {
             let carbRatio = try JSONBridge.carbRatios(from: carbRatio)
             let tempTargets = try JSONBridge.tempTargets(from: tempTargets)
             let model = JSONBridge.model(from: model)
-            let autotune = try JSONBridge.autotune(from: autotune)
             let freeaps = try JSONBridge.freeapsSettings(from: freeaps)
 
             let profile = try ProfileGenerator.generate(
@@ -34,7 +32,6 @@ struct OpenAPSSwift {
                 carbRatios: carbRatio,
                 tempTargets: tempTargets,
                 model: model,
-                autotune: autotune,
                 freeaps: freeaps
             )
 

@@ -39,11 +39,6 @@ enum JSONBridge {
         from.rawJSON
     }
 
-    static func autotune(from: JSON) throws -> Autotune? {
-        guard from.rawJSON != RawJSON.null else { return nil }
-        return try JSONBridge.from(string: from.rawJSON)
-    }
-
     static func freeapsSettings(from: JSON) throws -> FreeAPSSettings {
         try JSONBridge.from(string: from.rawJSON)
     }

@@ -13,7 +13,6 @@ struct ProfileGeneratorTests {
         CarbRatios,
         [TempTarget],
         String,
-        Autotune?,
         FreeAPSSettings
     ) {
         let pumpSettings = PumpSettings(
@@ -53,10 +52,9 @@ struct ProfileGeneratorTests {
 
         let tempTargets: [TempTarget] = []
         let model = "523"
-        let autotune: Autotune? = nil
         let freeaps = FreeAPSSettings()
 
-        return (pumpSettings, bgTargets, basalProfile, isf, preferences, carbRatios, tempTargets, model, autotune, freeaps)
+        return (pumpSettings, bgTargets, basalProfile, isf, preferences, carbRatios, tempTargets, model, freeaps)
     }
 
     @Test("Basic profile generation should create profile with correct values") func testBasicProfileGeneration() throws {
@@ -71,8 +69,7 @@ struct ProfileGeneratorTests {
             carbRatios: inputs.5,
             tempTargets: inputs.6,
             model: inputs.7,
-            autotune: inputs.8,
-            freeaps: inputs.9
+            freeaps: inputs.8
         )
 
         #expect(profile.maxIob == 0)
@@ -115,8 +112,7 @@ struct ProfileGeneratorTests {
             carbRatios: inputs.5,
             tempTargets: inputs.6,
             model: inputs.7,
-            autotune: inputs.8,
-            freeaps: inputs.9
+            freeaps: inputs.8
         )
 
         #expect(profile.maxIob == 0)
@@ -160,8 +156,7 @@ struct ProfileGeneratorTests {
             carbRatios: inputs.5,
             tempTargets: inputs.6,
             model: inputs.7,
-            autotune: inputs.8,
-            freeaps: inputs.9
+            freeaps: inputs.8
         )
 
         #expect(profile.maxIob == 0)
@@ -204,8 +199,7 @@ struct ProfileGeneratorTests {
             carbRatios: inputs.5,
             tempTargets: inputs.6,
             model: inputs.7,
-            autotune: inputs.8,
-            freeaps: inputs.9
+            freeaps: inputs.8
         )
 
         #expect(profile.maxIob == 0)
@@ -235,8 +229,7 @@ struct ProfileGeneratorTests {
                 carbRatios: inputs.5,
                 tempTargets: inputs.6,
                 model: inputs.7,
-                autotune: inputs.8,
-                freeaps: inputs.9
+                freeaps: inputs.8
             )
         }
     }
@@ -257,8 +250,7 @@ struct ProfileGeneratorTests {
                 carbRatios: inputs.5,
                 tempTargets: inputs.6,
                 model: inputs.7,
-                autotune: inputs.8,
-                freeaps: inputs.9
+                freeaps: inputs.8
             )
         }
     }
@@ -276,8 +268,7 @@ struct ProfileGeneratorTests {
             carbRatios: inputs.5,
             tempTargets: inputs.6,
             model: inputs.7,
-            autotune: inputs.8,
-            freeaps: inputs.9
+            freeaps: inputs.8
         )
 
         #expect(profile.model == "554")
