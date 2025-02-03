@@ -459,7 +459,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
         DispatchQueue.main.async { [weak self] in
-            // Prüfe zuerst auf Watch State Update Request
+            // Check Watch State Update Request first
             if let requestWatchUpdate = message[WatchMessageKeys.requestWatchUpdate] as? String,
                requestWatchUpdate == WatchMessageKeys.watchState
             {
@@ -529,7 +529,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     }
                     debug(.watchManager, "📱 Bolus cancelled from watch")
 
-                    // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
+                    // perform determine basal sync, otherwise you could end up with too much IOB when opening the calculator again
                     await self?.apsManager.determineBasalSync()
                 }
             }
@@ -907,16 +907,44 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     /// Sends bolus progress updates to the Watch
     /// - Parameter progress: The current bolus progress as a Decimal
+//    private func sendBolusProgressToWatch(progress: Decimal?) async {
+//        guard let session = session, session.isReachable, let progress = progress else { return }
+//
+//        let message: [String: Any] = [
+//            WatchMessageKeys.bolusProgress: Double(truncating: progress as NSNumber),
+//            WatchMessageKeys.activeBolusAmount: activeBolusAmount
+//        ]
+//
+//        session.sendMessage(message, replyHandler: nil) { error in
+//            debug(.watchManager, "❌ Error sending bolus progress: \(error.localizedDescription)")
+//        }
+//    }
     private func sendBolusProgressToWatch(progress: Decimal?) async {
-        guard let session = session, session.isReachable, let progress = progress else { return }
+        guard let session = session, let progress = progress, let pumpManager = apsManager.pumpManager else { return }
 
         let message: [String: Any] = [
             WatchMessageKeys.bolusProgress: Double(truncating: progress as NSNumber),
-            WatchMessageKeys.activeBolusAmount: activeBolusAmount
+            WatchMessageKeys.activeBolusAmount: activeBolusAmount,
+            WatchMessageKeys.deliveredAmount: pumpManager
+                .roundToSupportedBolusVolume(units: activeBolusAmount * Double(truncating: progress as NSNumber))
         ]
+        // If the session is not yet activated, try to activate
+        if session.activationState != .activated {
+            session.activate()
+            // Then, queue data for eventual delivery in the background
+            session.transferUserInfo(message)
+            return
+        }
 
-        session.sendMessage(message, replyHandler: nil) { error in
-            debug(.watchManager, "❌ Error sending bolus progress: \(error.localizedDescription)")
+        // If we reach here, session should be .activated
+        if session.isReachable {
+            // Real-time ephemeral
+            session.sendMessage(message, replyHandler: nil) { error in
+                debug(.watchManager, "❌ Error sending bolus progress: \(error.localizedDescription)")
+            }
+        } else {
+            // Fallback to be double safe: queue userInfo for eventual delivery
+            session.transferUserInfo(message)
         }
     }
 

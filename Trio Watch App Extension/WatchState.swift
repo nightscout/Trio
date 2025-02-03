@@ -31,11 +31,12 @@ import WatchConnectivity
     var carbsAmount: Int = 0
     var fatAmount: Int = 0
     var proteinAmount: Int = 0
-    var bolusAmount = 0.0
-    var activeBolusAmount = 0.0
-    var confirmationProgress = 0.0
+    var bolusAmount: Double = 0.0
+    var confirmationProgress: Double = 0.0
 
     var bolusProgress: Double = 0.0
+    var activeBolusAmount: Double = 0.0
+    var deliveredAmount: Double = 0.0
     var isBolusCanceled = false
 
     // Safety limits
@@ -64,16 +65,8 @@ import WatchConnectivity
     var mealBolusStep: MealBolusStep = .savingCarbs
     var isMealBolusCombo: Bool = false
 
-    private var _showBolusProgressOverlay: Bool = false
     var showBolusProgressOverlay: Bool {
-        get {
-            return (!showAcknowledgmentBanner || !showCommsAnimation || !showCommsAnimation) &&
-                   bolusProgress > 0 && bolusProgress < 1.0 &&
-                   !isBolusCanceled
-        }
-        set {
-            _showBolusProgressOverlay = newValue
-        }
+        (!showAcknowledgmentBanner || !showCommsAnimation) && bolusProgress > 0 && bolusProgress < 1.0 && !isBolusCanceled
     }
 
     
@@ -149,11 +142,9 @@ import WatchConnectivity
             }
 
             if activationState == .activated {
-                self.forceConditionalWatchStateUpdate()
-                // reset bolus progress visibility
-                self.showBolusProgressOverlay = false
-                
                 print("⌚️ Watch session activated with state: \(activationState.rawValue)")
+
+                self.forceConditionalWatchStateUpdate()
 
                 self.isReachable = session.isReachable
 
@@ -215,7 +206,8 @@ import WatchConnectivity
                     // Handle bolus progress updates
         } else if
             let progress = message[WatchMessageKeys.bolusProgress] as? Double,
-            let activeBolusAmount = message[WatchMessageKeys.activeBolusAmount] as? Double
+            let activeBolusAmount = message[WatchMessageKeys.activeBolusAmount] as? Double,
+            let deliveredAmount = message[WatchMessageKeys.deliveredAmount] as? Double
         {
             DispatchQueue.main.async {
                 if !self.isBolusCanceled {
@@ -226,6 +218,8 @@ import WatchConnectivity
                     if self.activeBolusAmount == 0 {
                         self.activeBolusAmount = activeBolusAmount
                     }
+
+                    self.deliveredAmount = deliveredAmount
                 }
             }
             return

@@ -91,6 +91,10 @@ struct TrioMainWatchView: View {
                 GlucoseChartView(glucoseValues: state.glucoseValues)
                     .tag(1)
             }
+            .onAppear {
+                state.bolusProgress = 0
+                state.activeBolusAmount = 0
+            }
             .background(trioBackgroundColor)
             .tabViewStyle(.verticalPage)
             .digitalCrownRotation($currentPage.doubleBinding(), from: 0, through: 1, by: 1)

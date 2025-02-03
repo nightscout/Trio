@@ -17,9 +17,6 @@ struct BolusProgressOverlay: View {
     )
 
     var body: some View {
-        let bolusIncrement = Double(truncating: state.bolusIncrement as NSNumber)
-        let adjustedBolusAmount = floor(state.activeBolusAmount / bolusIncrement) * bolusIncrement
-
         VStack(spacing: 10) {
             VStack {
                 Text("Bolusing")
@@ -32,8 +29,8 @@ struct BolusProgressOverlay: View {
 
                 Text(String(
                     format: "%.2f U of %.2f U",
-                    state.bolusProgress * adjustedBolusAmount,
-                    adjustedBolusAmount
+                    state.deliveredAmount,
+                    state.activeBolusAmount
                 ))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
