@@ -216,7 +216,6 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         if determinationId == previousDeterminationId {
             return
         }
-        previousDeterminationId = determinationId
 
         let glucoseIds = await fetchGlucose()
 
@@ -297,6 +296,9 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             event.calendar = calendar
 
             try eventStore.save(event, span: .thisEvent)
+
+            // Save the determination ID so we can avoid updating calendar if this determination comes back
+            previousDeterminationId = determinationId
 
         } catch {
             debugPrint(
