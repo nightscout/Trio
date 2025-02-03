@@ -115,7 +115,7 @@ struct BolusInputView: View {
                             .foregroundColor(.loopRed)
                     }
 
-                    Button("Log Bolus") {
+                    Button("Enact Bolus") {
                         state.bolusAmount = min(bolusAmount, effectiveBolusLimit)
                         navigationPath.append(NavigationDestinations.bolusConfirm)
                     }
