@@ -256,7 +256,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             isf: (mostRecentDetermination.insulinSensitivity ?? NSDecimalNumber(decimal: currentISF)) as Decimal,
             cob: mostRecentDetermination.cob as Int16,
             iob: (mostRecentDetermination.iob ?? 0) as Decimal,
-            basal: (mostRecentDetermination.tempBasal ?? currentBasal as NSDecimalNumber) as Decimal,
+            basal: currentBasal,
             carbRatio: (mostRecentDetermination.carbRatio ?? NSDecimalNumber(decimal: currentCarbRatio)) as Decimal,
             insulinCalculated: 0
         )
