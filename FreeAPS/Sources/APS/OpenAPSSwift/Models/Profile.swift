@@ -20,7 +20,6 @@ struct Profile: Codable {
     var lowTemptargetLowersSensitivity: Bool = false // lower sensitivity for temptargets <= 99
     var sensitivityRaisesTarget: Bool = false // raise BG target when autosens detects sensitivity
     var resistanceLowersTarget: Bool = false // lower BG target when autosens detects resistance
-    var exerciseMode: Bool = false // when true, > 100 mg/dL high temp target adjusts sensitivityRatio
     var halfBasalExerciseTarget: Decimal = 160 // when temptarget is 160 mg/dL *and* exercise_mode=true, run 50% basal
     var maxCOB: Decimal = 120 // maximum carbs a typical body can absorb over 4 hours
     var skipNeutralTemps: Bool = false
@@ -54,10 +53,8 @@ struct Profile: Codable {
     var curve: InsulinCurve = .rapidActing
     var useCustomPeakTime: Bool = false
     var insulinPeakTime: Decimal = 75
-    var offlineHotspot: Bool = false
     var noisyCGMTargetMultiplier: Decimal = 1.3
     var suspendZerosIob: Bool = true
-    var enableEnliteBgproxy: Bool = false
     var calcGlucoseNoise: Bool = false
     var adjustmentFactor: Decimal = 0.8
     var adjustmentFactorSigmoid: Decimal = 0.5
@@ -91,7 +88,6 @@ struct Profile: Codable {
         case lowTemptargetLowersSensitivity = "low_temptarget_lowers_sensitivity"
         case sensitivityRaisesTarget = "sensitivity_raises_target"
         case resistanceLowersTarget = "resistance_lowers_target"
-        case exerciseMode = "exercise_mode"
         case halfBasalExerciseTarget = "half_basal_exercise_target"
         case maxCOB
         case skipNeutralTemps = "skip_neutral_temps"
@@ -123,11 +119,8 @@ struct Profile: Codable {
         case curve
         case useCustomPeakTime
         case insulinPeakTime
-        case offlineHotspot = "offline_hotspot"
         case noisyCGMTargetMultiplier
         case suspendZerosIob = "suspend_zeros_iob"
-        case enableEnliteBgproxy
-        case calcGlucoseNoise = "calc_glucose_noise"
         case adjustmentFactor
         case adjustmentFactorSigmoid
         case useNewFormula

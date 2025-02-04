@@ -8,7 +8,7 @@ enum JSONValue: Codable {
     case object([String: JSONValue])
     case null
 
-    public init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
 
         if container.decodeNil() {
@@ -34,7 +34,7 @@ enum JSONValue: Codable {
         }
     }
 
-    public func encode(to encoder: Encoder) throws {
+    func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
         case let .string(value): try container.encode(value)
@@ -47,32 +47,46 @@ enum JSONValue: Codable {
     }
 }
 
-public struct ValueDifference: Codable {
+struct ValueDifference: Codable {
     let js: JSONValue
     let native: JSONValue
     let jsKeyMissing: Bool
     let nativeKeyMissing: Bool
 }
 
-public enum JSONCompare {
-    public static func logDifferences(
-        label: String,
+enum JSONCompare {
+    enum Function {
+        case makeProfile
+
+        // since we're removing some keys from our Profile that exist in Javascript
+        // we need to let the difference function know which keys to ignore when
+        // calculating differences
+        func keysToIgnore() -> Set<String> {
+            switch self {
+            case .makeProfile:
+                return Set(["calc_glucose_noise", "enableEnliteBgproxy", "exercise_mode", "offline_hotspot"])
+            }
+        }
+    }
+
+    static func logDifferences(
+        function: Function,
         native: String,
         nativeRuntime: TimeInterval,
         javascript: String,
         javascriptRuntime: TimeInterval
     ) {
-        guard let differences = try? differences(native: native, javascript: javascript) else {
+        guard let differences = try? differences(function: function, native: native, javascript: javascript) else {
             warning(.openAPS, "Exception calculating differences")
             return
         }
 
         // TODO: For now we'll just print this out to the console but we'll add proper logging next
-        debug(.openAPS, "\(label) -> n: \(nativeRuntime)s, js: \(javascriptRuntime)s")
+        debug(.openAPS, "\(function) -> n: \(nativeRuntime)s, js: \(javascriptRuntime)s")
         prettyPrint(differences)
     }
 
-    public static func prettyPrint(_ differences: [String: ValueDifference]) {
+    static func prettyPrint(_ differences: [String: ValueDifference]) {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
 
@@ -83,7 +97,7 @@ public enum JSONCompare {
         }
     }
 
-    public static func differences(native: String, javascript: String) throws -> [String: ValueDifference] {
+    static func differences(function: Function, native: String, javascript: String) throws -> [String: ValueDifference] {
         guard let jsData = javascript.data(using: .utf8),
               let nativeData = native.data(using: .utf8),
               let jsDict = try JSONSerialization.jsonObject(with: jsData) as? [String: Any],
@@ -109,7 +123,8 @@ public enum JSONCompare {
             }
         }
 
-        return differences
+        let keysToIgnore = function.keysToIgnore()
+        return differences.filter { !keysToIgnore.contains($0.key) }
     }
 
     private static func convertToJSONValue(_ value: Any) -> JSONValue {

@@ -681,7 +681,8 @@ final class OpenAPS {
         }
     }
 
-    private func makeProfileJavascript(
+    // use `internal` protection to expose to unit tests
+    func makeProfileJavascript(
         preferences: JSON,
         pumpSettings: JSON,
         bgTargets: JSON,
@@ -766,7 +767,7 @@ final class OpenAPS {
         let nativeDuration = Date().timeIntervalSince(startNativeAt)
 
         JSONCompare.logDifferences(
-            label: "makeProfile",
+            function: .makeProfile,
             native: nativeJson,
             nativeRuntime: nativeDuration,
             javascript: jsJson,

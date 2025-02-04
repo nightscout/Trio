@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ProfileError: LocalizedError, Equatable {
+enum ProfileError: LocalizedError, Equatable {
     case invalidDIA(value: Decimal)
     case invalidCurrentBasal(value: Decimal?)
     case invalidMaxDailyBasal(value: Decimal?)
@@ -10,7 +10,7 @@ public enum ProfileError: LocalizedError, Equatable {
     case invalidBgTargets
     case invalidCalendar
 
-    public var errorDescription: String? {
+    var errorDescription: String? {
         switch self {
         case let .invalidDIA(value):
             return "DIA of \(String(describing: value)) is not supported (must be > 1)"

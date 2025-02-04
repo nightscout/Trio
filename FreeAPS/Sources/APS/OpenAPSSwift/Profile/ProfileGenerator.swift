@@ -39,7 +39,6 @@ extension Profile {
         lowTemptargetLowersSensitivity = preferences.lowTemptargetLowersSensitivity
         sensitivityRaisesTarget = preferences.sensitivityRaisesTarget
         resistanceLowersTarget = preferences.resistanceLowersTarget
-        exerciseMode = preferences.exerciseMode
         skipNeutralTemps = preferences.skipNeutralTemps
         enableUAM = preferences.enableUAM
         a52RiskEnable = preferences.a52RiskEnable

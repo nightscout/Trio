@@ -1,9 +1,9 @@
 import Foundation
 
-public enum MinutesFromMidnightError: LocalizedError, Equatable {
+enum MinutesFromMidnightError: LocalizedError, Equatable {
     case invalidCalendar
 
-    public var errorDescription: String? {
+    var errorDescription: String? {
         switch self {
         case .invalidCalendar:
             return "Unable to extract hours and minutes from the current calendar"
