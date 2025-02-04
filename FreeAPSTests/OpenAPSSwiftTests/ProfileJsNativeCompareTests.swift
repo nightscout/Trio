@@ -16,7 +16,7 @@ import Testing
         FreeAPSSettings
     ) {
         let pumpSettings = PumpSettings(
-            insulinActionCurve: 3,
+            insulinActionCurve: 10,
             maxBolus: 10,
             maxBasal: 2
         )

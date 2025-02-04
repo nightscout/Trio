@@ -16,7 +16,7 @@ struct ProfileGeneratorTests {
         FreeAPSSettings
     ) {
         let pumpSettings = PumpSettings(
-            insulinActionCurve: 3,
+            insulinActionCurve: 10,
             maxBolus: 10,
             maxBasal: 2
         )
@@ -73,7 +73,7 @@ struct ProfileGeneratorTests {
         )
 
         #expect(profile.maxIob == 0)
-        #expect(profile.dia == 3)
+        #expect(profile.dia == 10)
         #expect(profile.sens == 100)
         #expect(profile.currentBasal == 1)
         #expect(profile.maxBg == 100)
@@ -116,7 +116,7 @@ struct ProfileGeneratorTests {
         )
 
         #expect(profile.maxIob == 0)
-        #expect(profile.dia == 3)
+        #expect(profile.dia == 10)
         #expect(profile.sens == 100)
         #expect(profile.currentBasal == 1)
         #expect(profile.maxBg == 80)
@@ -160,7 +160,7 @@ struct ProfileGeneratorTests {
         )
 
         #expect(profile.maxIob == 0)
-        #expect(profile.dia == 3)
+        #expect(profile.dia == 10)
         #expect(profile.sens == 100)
         #expect(profile.currentBasal == 1)
         #expect(profile.maxBg == 100)
@@ -203,7 +203,7 @@ struct ProfileGeneratorTests {
         )
 
         #expect(profile.maxIob == 0)
-        #expect(profile.dia == 3)
+        #expect(profile.dia == 10)
         #expect(profile.sens == 100)
         #expect(profile.currentBasal == 1)
         #expect(profile.maxBg == 100)

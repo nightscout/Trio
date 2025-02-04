@@ -127,11 +127,12 @@ enum ProfileGenerator {
         // where it checks the input for properties that match the defaults
         profile.update(from: preferences)
 
-        if pumpSettings.insulinActionCurve > 1 {
-            profile.dia = pumpSettings.insulinActionCurve
-        } else {
+        // in the Javascript version this check is for 1, but in Trio
+        // the minimum dia you can set with the UI is 5
+        guard pumpSettings.insulinActionCurve >= 5 else {
             throw ProfileError.invalidDIA(value: pumpSettings.insulinActionCurve)
         }
+        profile.dia = pumpSettings.insulinActionCurve
 
         profile.model = model
         profile.skipNeutralTemps = preferences.skipNeutralTemps
