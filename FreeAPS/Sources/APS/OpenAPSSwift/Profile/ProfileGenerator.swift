@@ -146,17 +146,25 @@ enum ProfileGenerator {
         profile.maxDailyBasal = Basal.maxDailyBasal(basalProfile)
         profile.maxBasal = pumpSettings.maxBasal
 
-        // this check is an error check profile.currentBasal === 0 in Javascript
-        guard let currentBasal = profile.currentBasal, abs(currentBasal) > 0 else {
-            throw ProfileError.invalidCurrentBasal(value: profile.currentBasal)
+        // Error check: profile.currentBasal === 0 in Javascript
+        if let currentBasal = profile.currentBasal {
+            guard currentBasal != 0 else {
+                throw ProfileError.invalidCurrentBasal(value: profile.currentBasal)
+            }
         }
 
-        guard let maxDailyBasal = profile.maxDailyBasal, abs(maxDailyBasal) > 0 else {
-            throw ProfileError.invalidMaxDailyBasal(value: profile.maxDailyBasal)
+        // Error check: profile.max_daily_basal === 0 in Javascript
+        if let maxDailyBasal = profile.maxDailyBasal {
+            guard maxDailyBasal != 0 else {
+                throw ProfileError.invalidMaxDailyBasal(value: profile.maxDailyBasal)
+            }
         }
 
-        guard let maxBasal = profile.maxBasal, maxBasal >= 0.1 else {
-            throw ProfileError.invalidMaxBasal(value: profile.maxBasal)
+        // Error check: profile.max_basal < 0.1 in Javascript
+        if let maxBasal = profile.maxBasal {
+            guard maxBasal >= 0.1 else {
+                throw ProfileError.invalidMaxBasal(value: profile.maxBasal)
+            }
         }
 
         profile.outUnits = bgTargets.userPreferredUnits.rawValue
@@ -190,9 +198,12 @@ enum ProfileGenerator {
         profile.sens = sens
         profile.isfProfile = isfUpdated
 
-        guard let sens = profile.sens, sens >= 5 else {
-            debug(.openAPS, "ISF of \(String(describing: profile.sens)) is not supported")
-            throw ProfileError.invalidISF(value: profile.sens)
+        // Error check: profile.sens < 5 in Javascript
+        if let sens = profile.sens {
+            guard sens >= 5 else {
+                debug(.openAPS, "ISF of \(String(describing: profile.sens)) is not supported")
+                throw ProfileError.invalidISF(value: profile.sens)
+            }
         }
 
         // Handle carb ratio data

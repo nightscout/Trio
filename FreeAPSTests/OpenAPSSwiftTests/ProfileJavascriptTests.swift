@@ -240,7 +240,9 @@ struct ProfileGeneratorTests {
             BasalProfileEntry(start: "00:00", minutes: 0, rate: 0.0)
         ]
 
-        #expect(throws: ProfileError.invalidCurrentBasal(value: nil)) {
+        // the reason it throws this error is due to some complex logic
+        // in Javascript around the handling of nil and 0 basal rate entries
+        #expect(throws: ProfileError.invalidMaxDailyBasal(value: 0)) {
             _ = try ProfileGenerator.generate(
                 pumpSettings: inputs.0,
                 bgTargets: inputs.1,
