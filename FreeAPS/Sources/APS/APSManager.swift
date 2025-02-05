@@ -130,7 +130,7 @@ final class BaseAPSManager: APSManager, Injectable {
             let wasParsed = storage.parseOnFileSettingsToMgdL()
             if wasParsed {
                 Task {
-                    await openAPS.createProfiles()
+                    await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
                 }
             }
         }
@@ -390,7 +390,7 @@ final class BaseAPSManager: APSManager, Injectable {
             async let autosenseResult = autosense()
 
             _ = try await autosenseResult
-            await openAPS.createProfiles()
+            await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
             let determination = try await openAPS.determineBasal(currentTemp: await currentTemp, clock: now)
 
             if let determination = determination {

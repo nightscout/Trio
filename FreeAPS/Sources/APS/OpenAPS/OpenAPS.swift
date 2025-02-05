@@ -462,7 +462,7 @@ final class OpenAPS {
         }
     }
 
-    func createProfiles() async {
+    func createProfiles(useSwiftOref: Bool) async {
         debug(.openAPS, "Start creating pump profile and user profile")
 
         // Load required settings and profiles asynchronously
@@ -516,7 +516,8 @@ final class OpenAPS {
                 tempTargets: tempTargets,
                 model: model,
                 autotune: RawJSON.null,
-                freeaps: freeaps
+                freeaps: freeaps,
+                useSwiftOref: useSwiftOref
             )
 
             let profile = try await makeProfile(
@@ -529,7 +530,8 @@ final class OpenAPS {
                 tempTargets: tempTargets,
                 model: model,
                 autotune: RawJSON.null,
-                freeaps: freeaps
+                freeaps: freeaps,
+                useSwiftOref: useSwiftOref
             )
 
             // Save the profiles
@@ -726,7 +728,8 @@ final class OpenAPS {
         tempTargets: JSON,
         model: JSON,
         autotune: JSON,
-        freeaps: JSON
+        freeaps: JSON,
+        useSwiftOref: Bool
     ) async throws -> RawJSON {
         // TODO: Compare exceptions as well
         let startJavascriptAt = Date()
@@ -746,7 +749,7 @@ final class OpenAPS {
 
         // Important: we want to make sure that this flag ensures that none
         // of the native code runs
-        guard let settings = try? JSONBridge.freeapsSettings(from: freeaps), settings.useSwiftOref else {
+        guard useSwiftOref else {
             return jsJson
         }
 
