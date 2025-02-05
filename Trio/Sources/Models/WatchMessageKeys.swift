@@ -14,6 +14,7 @@ enum WatchMessageKeys {
     static let bolusProgress = "bolusProgress"
     static let activeBolusAmount = "activeBolusAmount"
     static let deliveredAmount = "deliveredAmount"
+    static let bolusProgressTimestamp = "bolusProgressTimestamp"
 
     // Recommendation Keys
     static let requestBolusRecommendation = "requestBolusRecommendation"

@@ -923,6 +923,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         guard let session = session, let progress = progress, let pumpManager = apsManager.pumpManager else { return }
 
         let message: [String: Any] = [
+            WatchMessageKeys.bolusProgressTimestamp: Date().timeIntervalSince1970,
             WatchMessageKeys.bolusProgress: Double(truncating: progress as NSNumber),
             WatchMessageKeys.activeBolusAmount: activeBolusAmount,
             WatchMessageKeys.deliveredAmount: pumpManager
