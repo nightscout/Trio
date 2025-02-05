@@ -13,6 +13,8 @@ final class OpenAPS {
 
     let jsonConverter = JSONConverter()
 
+    private let enableNativeOref = false // TODO: Replace with a default-on setting
+
     init(storage: FileStorage) {
         self.storage = storage
     }
@@ -679,7 +681,8 @@ final class OpenAPS {
         }
     }
 
-    private func makeProfile(
+    // use `internal` protection to expose to unit tests
+    func makeProfileJavascript(
         preferences: JSON,
         pumpSettings: JSON,
         bgTargets: JSON,
@@ -713,6 +716,65 @@ final class OpenAPS {
                 continuation.resume(returning: result)
             }
         }
+    }
+
+    private func makeProfile(
+        preferences: JSON,
+        pumpSettings: JSON,
+        bgTargets: JSON,
+        basalProfile: JSON,
+        isf: JSON,
+        carbRatio: JSON,
+        tempTargets: JSON,
+        model: JSON,
+        autotune: JSON,
+        freeaps: JSON
+    ) async throws -> RawJSON {
+        // TODO: Compare exceptions as well
+        let startJavascriptAt = Date()
+        let jsJson = try await makeProfileJavascript(
+            preferences: preferences,
+            pumpSettings: pumpSettings,
+            bgTargets: bgTargets,
+            basalProfile: basalProfile,
+            isf: isf,
+            carbRatio: carbRatio,
+            tempTargets: tempTargets,
+            model: model,
+            autotune: autotune,
+            freeaps: freeaps
+        )
+        let javascriptDuration = Date().timeIntervalSince(startJavascriptAt)
+
+        // Important: we want to make sure that this flag ensures that none
+        // of the native code runs
+        guard enableNativeOref else {
+            return jsJson
+        }
+
+        let startNativeAt = Date()
+        let nativeJson = OpenAPSSwift.makeProfile(
+            preferences: preferences,
+            pumpSettings: pumpSettings,
+            bgTargets: bgTargets,
+            basalProfile: basalProfile,
+            isf: isf,
+            carbRatio: carbRatio,
+            tempTargets: tempTargets,
+            model: model,
+            freeaps: freeaps
+        )
+        let nativeDuration = Date().timeIntervalSince(startNativeAt)
+
+        JSONCompare.logDifferences(
+            function: .makeProfile,
+            native: nativeJson,
+            nativeRuntime: nativeDuration,
+            javascript: jsJson,
+            javascriptRuntime: javascriptDuration
+        )
+
+        return jsJson
     }
 
     private func loadJSON(name: String) -> String {
