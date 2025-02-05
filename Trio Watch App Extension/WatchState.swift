@@ -203,21 +203,34 @@ import WatchConnectivity
 
                     // Handle bolus progress updates
         } else if
+            let timestamp = message[WatchMessageKeys.bolusProgressTimestamp] as? TimeInterval,
             let progress = message[WatchMessageKeys.bolusProgress] as? Double,
             let activeBolusAmount = message[WatchMessageKeys.activeBolusAmount] as? Double,
             let deliveredAmount = message[WatchMessageKeys.deliveredAmount] as? Double
         {
-            DispatchQueue.main.async {
-                if !self.isBolusCanceled {
-                    self.bolusProgress = progress
+            let date = Date(timeIntervalSince1970: timestamp)
 
-                    // we only need to grab the active bolus amount from the phone if it is a phone-invoked bolus
-                    // when it comes from the watch, we already have it stored and available
-                    if self.activeBolusAmount == 0 {
-                        self.activeBolusAmount = activeBolusAmount
+            // Check if it's not older than 5 min
+            if date >= Date().addingTimeInterval(-5 * 60) {
+                print("⌚️ Handling bolusProgress (sent at \(date))")
+                DispatchQueue.main.async {
+                    if !self.isBolusCanceled {
+                        self.bolusProgress = progress
+
+                        // we only need to grab the active bolus amount from the phone if it is a phone-invoked bolus
+                        // when it comes from the watch, we already have it stored and available
+                        if self.activeBolusAmount == 0 {
+                            self.activeBolusAmount = activeBolusAmount
+                        }
+
+                        self.deliveredAmount = deliveredAmount
                     }
-
-                    self.deliveredAmount = deliveredAmount
+                }
+            } else {
+                print("⌚️ Received outdated bolus progress (sent at \(date))")
+                DispatchQueue.main.async {
+                    self.bolusProgress = 0
+                    self.activeBolusAmount = 0
                 }
             }
             return
@@ -287,18 +300,34 @@ import WatchConnectivity
 
                     // Handle bolus progress updates
         } else if
+            let timestamp = userInfo[WatchMessageKeys.bolusProgressTimestamp] as? TimeInterval,
             let progress = userInfo[WatchMessageKeys.bolusProgress] as? Double,
-            let activeBolusAmount = userInfo[WatchMessageKeys.activeBolusAmount] as? Double
+            let activeBolusAmount = userInfo[WatchMessageKeys.activeBolusAmount] as? Double,
+            let deliveredAmount = userInfo[WatchMessageKeys.deliveredAmount] as? Double
         {
-            DispatchQueue.main.async {
-                if !self.isBolusCanceled {
-                    self.bolusProgress = progress
+            let date = Date(timeIntervalSince1970: timestamp)
 
-                    // we only need to grab the active bolus amount from the phone if it is a phone-invoked bolus
-                    // when it comes from the watch, we already have it stored and available
-                    if self.activeBolusAmount == 0 {
-                        self.activeBolusAmount = activeBolusAmount
+            // Check if it's not older than 5 min
+            if date >= Date().addingTimeInterval(-5 * 60) {
+                print("⌚️ Handling bolusProgress (sent at \(date))")
+                DispatchQueue.main.async {
+                    if !self.isBolusCanceled {
+                        self.bolusProgress = progress
+
+                        // we only need to grab the active bolus amount from the phone if it is a phone-invoked bolus
+                        // when it comes from the watch, we already have it stored and available
+                        if self.activeBolusAmount == 0 {
+                            self.activeBolusAmount = activeBolusAmount
+                        }
+
+                        self.deliveredAmount = deliveredAmount
                     }
+                }
+            } else {
+                print("⌚️ Received outdated bolus progress (sent at \(date))")
+                DispatchQueue.main.async {
+                    self.bolusProgress = 0
+                    self.activeBolusAmount = 0
                 }
             }
             return
