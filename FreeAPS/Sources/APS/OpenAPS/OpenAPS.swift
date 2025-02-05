@@ -13,8 +13,6 @@ final class OpenAPS {
 
     let jsonConverter = JSONConverter()
 
-    private let enableNativeOref = false // TODO: Replace with a default-on setting
-
     init(storage: FileStorage) {
         self.storage = storage
     }
@@ -748,7 +746,7 @@ final class OpenAPS {
 
         // Important: we want to make sure that this flag ensures that none
         // of the native code runs
-        guard enableNativeOref else {
+        guard let settings = try? JSONBridge.freeapsSettings(from: freeaps), settings.useSwiftOref else {
             return jsJson
         }
 
