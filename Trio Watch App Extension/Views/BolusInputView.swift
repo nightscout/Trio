@@ -160,8 +160,9 @@ struct BolusInputView: View {
             }
         }
         // Add onChange to update bolus amount when recommendation changes
-        .onChange(of: state.recommendedBolus) { _, newValue in
-            if bolusAmount == 0 { // Only update if user hasn't modified the value
+        .onChange(of: state.recommendedBolus) { oldValue, newValue in
+            // Only update if user hasn't modified the value OR if recommendation hasn't changed
+            if bolusAmount == 0 || oldValue != newValue {
                 bolusAmount = Double(truncating: NSDecimalNumber(decimal: newValue))
             }
         }

@@ -145,9 +145,7 @@ extension WatchState {
             print("Error requesting bolus recommendation: \(error.localizedDescription)")
         }
 
-        if bolusAmount == 0 {
-            showBolusCalculationProgress = true
-        }
+        showBolusCalculationProgress = true
     }
 
     func requestWatchStateUpdate() {

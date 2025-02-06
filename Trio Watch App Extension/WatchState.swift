@@ -216,13 +216,7 @@ import WatchConnectivity
                 DispatchQueue.main.async {
                     if !self.isBolusCanceled {
                         self.bolusProgress = progress
-
-                        // we only need to grab the active bolus amount from the phone if it is a phone-invoked bolus
-                        // when it comes from the watch, we already have it stored and available
-                        if self.activeBolusAmount == 0 {
-                            self.activeBolusAmount = activeBolusAmount
-                        }
-
+                        self.activeBolusAmount = activeBolusAmount
                         self.deliveredAmount = deliveredAmount
                     }
                 }
@@ -313,13 +307,7 @@ import WatchConnectivity
                 DispatchQueue.main.async {
                     if !self.isBolusCanceled {
                         self.bolusProgress = progress
-
-                        // we only need to grab the active bolus amount from the phone if it is a phone-invoked bolus
-                        // when it comes from the watch, we already have it stored and available
-                        if self.activeBolusAmount == 0 {
-                            self.activeBolusAmount = activeBolusAmount
-                        }
-
+                        self.activeBolusAmount = activeBolusAmount
                         self.deliveredAmount = deliveredAmount
                     }
                 }

@@ -92,8 +92,13 @@ struct TrioMainWatchView: View {
                     .tag(1)
             }
             .onAppear {
+                // Hard reset variables when main view appears
+                /// Reset `bolusProgress` and `activeBolusAmount` to ensure no stale bolus progressbar is stuck on home view
                 state.bolusProgress = 0
                 state.activeBolusAmount = 0
+                /// Reset `bolusAmount` and `recommendedBolus` to ensure no stale / old value is set when user opens bolus input or meal combo the next time.
+                state.bolusAmount = 0
+                state.recommendedBolus = 0
             }
             .background(trioBackgroundColor)
             .tabViewStyle(.verticalPage)

@@ -47,7 +47,7 @@ struct BolusProgressOverlay: View {
                 .padding()
             }
             .padding()
-            .background(Color.black.opacity(0.8))
+            .background(Color.black.opacity(0.9))
             .cornerRadius(10)
         }
         .scenePadding()
