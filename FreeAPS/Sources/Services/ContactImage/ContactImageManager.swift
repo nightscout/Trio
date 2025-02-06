@@ -234,9 +234,11 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
         let hardCodedLow = Decimal(55)
         let hardCodedHigh = Decimal(220)
         let isDynamicColorScheme = settingsManager.settings.glucoseColorScheme == .dynamicColor
+        let highGlucoseColorValue = isDynamicColorScheme ? hardCodedHigh : settingsManager.settings.highGlucose
+        let lowGlucoseColorValue = isDynamicColorScheme ? hardCodedLow : settingsManager.settings.lowGlucose
 
-        state.highGlucoseColorValue = isDynamicColorScheme ? hardCodedHigh : settingsManager.settings.highGlucose
-        state.lowGlucoseColorValue = isDynamicColorScheme ? hardCodedLow : settingsManager.settings.lowGlucose
+        state.highGlucoseColorValue = units == .mgdL ? highGlucoseColorValue : highGlucoseColorValue.asMmolL
+        state.lowGlucoseColorValue = units == .mgdL ? lowGlucoseColorValue : lowGlucoseColorValue.asMmolL
         state
             .targetGlucose = await getCurrentGlucoseTarget() ??
             (settingsManager.settings.units == .mgdL ? Decimal(100) : 100.asMmolL)

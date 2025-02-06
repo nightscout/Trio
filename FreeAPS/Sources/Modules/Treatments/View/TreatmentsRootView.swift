@@ -252,18 +252,26 @@ extension Treatments {
                                         .buttonStyle(PlainButtonStyle())
                                 }
                                 Spacer()
-                                Text(
-                                    formatter
-                                        .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
-                                )
-                                Text(
-                                    NSLocalizedString(
-                                        " U",
-                                        comment: "Unit in number of units delivered (keep the space character!)"
-                                    )
-                                ).foregroundColor(.secondary)
-                            }.contentShape(Rectangle())
-                                .onTapGesture { state.amount = state.insulinCalculated }
+                                Button {
+                                    state.amount = state.insulinCalculated
+                                } label: {
+                                    HStack {
+                                        Text(
+                                            formatter
+                                                .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
+                                        )
+
+                                        Text(
+                                            NSLocalizedString(
+                                                " U",
+                                                comment: "Unit in number of units delivered (keep the space character!)"
+                                            )
+                                        ).foregroundColor(.secondary)
+                                    }
+                                }
+                                .disabled(state.insulinCalculated == 0 || state.amount == state.insulinCalculated)
+                                .buttonStyle(.bordered).padding(.trailing, -10)
+                            }
 
                             HStack {
                                 Text("Bolus")

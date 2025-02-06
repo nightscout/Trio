@@ -115,6 +115,15 @@ struct MealPresetView: View {
                         Text(preset.dish ?? "").tag(preset as MealPresetStored?)
                     }
                 }
+                .onChange(of: state.selection) {
+                    carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
+                    if state.useFPUconversion {
+                        fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
+                        protein += ((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal
+                    }
+
+                    state.addPresetToNewMeal()
+                }
                 .labelsHidden()
                 .frame(maxWidth: .infinity, alignment: .center)
                 if state.selection != nil {
@@ -207,11 +216,11 @@ struct MealPresetView: View {
 
                     if state.useFPUconversion {
                         Group {
-                            Text("Fat: ")
+                            Text("Protein: ")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                             HStack(spacing: 2) {
-                                Text("\(fat as NSNumber, formatter: mealFormatter)")
+                                Text("\(protein as NSNumber, formatter: mealFormatter)")
                                     .font(.footnote)
                                 Text(" g")
                                     .font(.footnote)
@@ -220,11 +229,11 @@ struct MealPresetView: View {
                         }
 
                         Group {
-                            Text("Protein: ")
+                            Text("Fat: ")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                             HStack(spacing: 2) {
-                                Text("\(protein as NSNumber, formatter: mealFormatter)")
+                                Text("\(fat as NSNumber, formatter: mealFormatter)")
                                     .font(.footnote)
                                 Text(" g")
                                     .font(.footnote)

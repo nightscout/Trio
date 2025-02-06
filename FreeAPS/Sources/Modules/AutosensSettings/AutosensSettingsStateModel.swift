@@ -12,7 +12,7 @@ extension AutosensSettings {
 
         private(set) var autosensISF: Decimal?
         private(set) var autosensRatio: Decimal = 0
-        var determinationsFromPersistence: [OrefDetermination] = []
+        @Published var determinationsFromPersistence: [OrefDetermination] = []
 
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 

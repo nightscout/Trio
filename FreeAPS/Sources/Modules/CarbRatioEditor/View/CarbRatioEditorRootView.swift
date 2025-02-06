@@ -83,6 +83,20 @@ extension CarbRatioEditor {
                 Section(header: Text("Schedule")) {
                     list
                 }.listRowBackground(Color.chart)
+
+                Section {} header: {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Image(systemName: "note.text.badge.plus").foregroundStyle(.primary)
+                            Text("Add an entry by tapping 'Add Ratio +' in the top right-hand corner of the screen.")
+                        }
+                        HStack {
+                            Image(systemName: "hand.draw.fill").foregroundStyle(.primary)
+                            Text("Swipe to delete a single entry. Tap on it, to edit its time or rate.")
+                        }
+                    }
+                    .textCase(nil)
+                }
             }
             .safeAreaInset(edge: .bottom, spacing: 30) { saveButton }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
@@ -96,7 +110,12 @@ extension CarbRatioEditor {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: { state.add() }) { Image(systemName: "plus") }.disabled(!state.canAdd)
+                    Button(action: { state.add() }) {
+                        HStack {
+                            Text("Add Ratio")
+                            Image(systemName: "plus")
+                        }
+                    }.disabled(!state.canAdd)
                 }
             })
             .environment(\.editMode, $editMode)

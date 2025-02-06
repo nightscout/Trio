@@ -88,6 +88,13 @@ enum SettingItems {
             view: .smbSettings,
             searchContents: [
                 "Enable SMB Always",
+                "Enable SMB With COB",
+                "Enable SMB With Temporary Target",
+                "Enable SMB After Carbs",
+                "Enable SMB With High BG",
+                "High BG Target",
+                "Allow SMB With High Temporary Target",
+                "Enable UAM",
                 "Max SMB Basal Minutes",
                 "Max UAM SMB Basal Minutes",
                 "Max Delta-BG Threshold SMB",
@@ -104,6 +111,7 @@ enum SettingItems {
                 "Activate Dynamic Carb Ratio (CR)",
                 "Use Sigmoid Formula",
                 "Adjustment Factor",
+                "AF",
                 "Sigmoid Adjustment Factor",
                 "Weighted Average of TDD",
                 "Adjust Basal",
@@ -169,7 +177,8 @@ enum SettingItems {
                 "Fat and Protein Delay",
                 "Maximum Duration (hours)",
                 "Spread Interval (minutes)",
-                "Fat and Protein Factor"
+                "Fat and Protein Factor",
+                "FPU"
             ],
             path: ["Features", "Meal Settings"]
         ),
@@ -205,7 +214,11 @@ enum SettingItems {
                 "Forecast Display Type",
                 "Cone",
                 "Lines",
-                "Trio Color Scheme",
+                "Dark Mode",
+                "Light Mode",
+                "Appearance",
+                "Dark Scheme",
+                "Light Scheme",
                 "Glucose Color Scheme"
             ],
             path: ["Features", "User Interface"]
