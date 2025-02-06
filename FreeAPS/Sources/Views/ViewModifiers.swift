@@ -169,28 +169,3 @@ extension View {
 struct Backport<Content: View> {
     let content: Content
 }
-
-extension Backport {
-    @ViewBuilder func chartForegroundStyleScale(state: any StateModel) -> some View {
-        if (state as? Treatments.StateModel)?.forecastDisplayType == ForecastDisplayType.lines ||
-            (state as? Home.StateModel)?.forecastDisplayType == ForecastDisplayType.lines
-        {
-            let modifiedContent = content
-                .chartForegroundStyleScale([
-                    "iob": .blue,
-                    "uam": Color.uam,
-                    "zt": Color.zt,
-                    "cob": .orange
-                ])
-
-            if state is Home.StateModel {
-                modifiedContent
-                    .chartLegend(.hidden)
-            } else {
-                modifiedContent
-            }
-        } else {
-            content
-        }
-    }
-}
