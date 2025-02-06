@@ -44,8 +44,6 @@ import WatchConnectivity
     var maxCarbs: Decimal = 250
     var maxFat: Decimal = 250
     var maxProtein: Decimal = 250
-    var maxIOB: Decimal = 0
-    var maxCOB: Decimal = 120
 
     // Pump specific dosing increment
     var bolusIncrement: Decimal = 0.05
@@ -569,18 +567,6 @@ import WatchConnectivity
         if let maxProteinValue = message[WatchMessageKeys.maxProtein] {
             if let decimalValue = (maxProteinValue as? NSNumber)?.decimalValue {
                 maxProtein = decimalValue
-            }
-        }
-
-        if let maxIOBValue = message[WatchMessageKeys.maxIOB] {
-            if let decimalValue = (maxIOBValue as? NSNumber)?.decimalValue {
-                maxIOB = decimalValue
-            }
-        }
-
-        if let maxCOBValue = message[WatchMessageKeys.maxCOB] {
-            if let decimalValue = (maxCOBValue as? NSNumber)?.decimalValue {
-                maxCOB = decimalValue
             }
         }
 
