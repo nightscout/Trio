@@ -85,17 +85,15 @@ import Testing
             trioSettings: inputs.8
         )
 
-        switch (profileSwift, profileJs) {
-        case let (.success(swiftJson), .success(jsJson)):
-            let differences = try! JSONCompare.differences(function: .makeProfile, swift: swiftJson, javascript: jsJson)
+        let comparison = JSONCompare.createComparison(
+            function: .makeProfile,
+            swift: profileSwift,
+            swiftDuration: 0.1,
+            javascript: profileJs,
+            javascriptDuration: 0.1
+        )
 
-            if !differences.isEmpty {
-                JSONCompare.prettyPrint(differences)
-            }
-            #expect(differences.isEmpty)
-        default:
-            #expect(Bool(false))
-        }
+        #expect(comparison.resultType == .matching)
     }
 }
 
