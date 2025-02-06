@@ -165,20 +165,20 @@ struct ForecastChart: View {
         .chartYScale(domain: state.units == .mgdL ? 0 ... 300 : 0.asMmolL ... 300.asMmolL)
         .chartLegend {
             if state.forecastDisplayType == ForecastDisplayType.lines {
-                HStack {
-                    HStack {
+                HStack(spacing: 10) {
+                    HStack(spacing: 4) {
                         Image(systemName: "circle.fill").foregroundStyle(Color.insulin)
                         Text("IOB").foregroundStyle(Color.secondary)
                     }
-                    HStack {
+                    HStack(spacing: 4) {
                         Image(systemName: "circle.fill").foregroundStyle(Color.uam)
                         Text("UAM").foregroundStyle(Color.secondary)
                     }
-                    HStack {
+                    HStack(spacing: 4) {
                         Image(systemName: "circle.fill").foregroundStyle(Color.zt)
                         Text("ZT").foregroundStyle(Color.secondary)
                     }
-                    HStack {
+                    HStack(spacing: 4) {
                         Image(systemName: "circle.fill").foregroundStyle(Color.orange)
                         Text("COB").foregroundStyle(Color.secondary)
                     }
