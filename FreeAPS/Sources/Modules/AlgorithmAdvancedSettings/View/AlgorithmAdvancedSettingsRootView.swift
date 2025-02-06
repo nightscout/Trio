@@ -338,6 +338,32 @@ extension AlgorithmAdvancedSettings {
                         Text("Note: A CGM is considered noisy when it provides inconsistent readings.")
                     }
                 )
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.useSwiftOref,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = NSLocalizedString("Use Swift Oref", comment: "Use Swift Oref")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: NSLocalizedString("Use Swift Oref", comment: "Use Swift Oref"),
+                    miniHint: "Use new Swift OpenAPS Oref algorithm",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: OFF").bold()
+                        Text(
+                            "This experimental option uses a new version of the OpenAPS Oref algorithm written directly in Swift programming language, replacing the current JavaScript version."
+                        )
+                        Text(
+                            "When enabled, we'll securely log anonymous technical data comparing the Swift and existing JavaScript algorithms to improve calculation accuracy."
+                        )
+                    }
+                )
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {

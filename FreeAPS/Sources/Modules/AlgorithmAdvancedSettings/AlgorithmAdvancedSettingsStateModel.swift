@@ -21,6 +21,7 @@ extension AlgorithmAdvancedSettings {
         @Published var remainingCarbsFraction: Decimal = 1.0
         @Published var remainingCarbsCap: Decimal = 90
         @Published var noisyCGMTargetMultiplier: Decimal = 1.3
+        @Published var useSwiftOref: Bool = false
 
         var insulinActionCurve: Decimal = 10
 
@@ -45,6 +46,8 @@ extension AlgorithmAdvancedSettings {
             subscribePreferencesSetting(\.remainingCarbsCap, on: $remainingCarbsCap) { remainingCarbsCap = $0 }
             subscribePreferencesSetting(\.noisyCGMTargetMultiplier, on: $noisyCGMTargetMultiplier) {
                 noisyCGMTargetMultiplier = $0 }
+            subscribeSetting(\.useSwiftOref, on: $useSwiftOref) {
+                useSwiftOref = $0 }
 
             insulinActionCurve = pumpSettings.insulinActionCurve
         }

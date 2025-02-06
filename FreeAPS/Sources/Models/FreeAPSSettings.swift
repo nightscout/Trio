@@ -75,6 +75,7 @@ struct FreeAPSSettings: JSON, Equatable {
     var useLiveActivity: Bool = false
     var lockScreenView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
+    var useSwiftOref: Bool = false
 }
 
 extension FreeAPSSettings: Decodable {
@@ -325,6 +326,10 @@ extension FreeAPSSettings: Decodable {
 
         if let bolusShortcut = try? container.decode(BolusShortcutLimit.self, forKey: .bolusShortcut) {
             settings.bolusShortcut = bolusShortcut
+        }
+
+        if let useSwiftOref = try? container.decode(Bool.self, forKey: .useSwiftOref) {
+            settings.useSwiftOref = useSwiftOref
         }
 
         self = settings
