@@ -1,3 +1,6 @@
+/// After the port from Javascript to Swift is complete, we should remove the logging module:
+/// https://github.com/nightscout/Trio-dev/issues/293
+
 enum OrefFunctionResult {
     case success(RawJSON)
     case failure(Error)

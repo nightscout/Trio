@@ -1,5 +1,8 @@
 import Foundation
 
+/// After the port from Javascript to Swift is complete, we should remove the logging module:
+/// https://github.com/nightscout/Trio-dev/issues/293
+
 /// Represents an exception that occurred during algorithm execution
 struct AlgorithmException: Codable {
     let message: String

@@ -13,7 +13,10 @@ import UIKit
 ///
 /// To keep the overhead of this library small we batch results and store them in a local
 /// file system file, and we do all operations async by having the caller log new results
-/// using a `Task`
+/// using a `Task`, and since this is an Actor it runs in a background thread.
+///
+/// Note: This Actor is temporary -- once the port is complete we will remove it
+/// https://github.com/nightscout/Trio-dev/issues/293
 
 actor JsSwiftOrefComparisonLogger {
     // MARK: - API Models for getting signed URLs
@@ -31,14 +34,22 @@ actor JsSwiftOrefComparisonLogger {
         let expiresAt: Double
     }
 
+    // MARK: - Exceptions from the logger
+
     enum LoggerError: Error {
         case fileOperationFailed
         case encodingFailed
         case decodingFailed
-        case invalidSignedURLResponse
-        case urlGenerationFailed
         case timezoneError
+
+        case invalidSignedUrlResponse
+        case signedUrlGenerationFailed
+        case signedUrlNetworkError(statusCode: Int)
+
+        case uploadNetworkError(statusCode: Int)
     }
+
+    // MARK: - Logger implementation
 
     private let minBatchSize = 8
     private let maxStoredEntries = 256
@@ -46,7 +57,8 @@ actor JsSwiftOrefComparisonLogger {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
-    // server settings for getting a signed URL that we can PUT to
+    // server settings for getting a signed Google Cloud Storage URL
+    // that we can PUT to
     private let baseUrlString = "https://event-log-server.uc.r.appspot.com"
     private let project = "trio-oref-validation"
 
@@ -104,7 +116,7 @@ actor JsSwiftOrefComparisonLogger {
         )
 
         guard let baseURL = URL(string: baseUrlString) else {
-            throw LoggerError.urlGenerationFailed
+            throw LoggerError.signedUrlGenerationFailed
         }
 
         let signedURLEndpoint = baseURL.appendingPathComponent("v1/signed-url")
@@ -118,12 +130,12 @@ actor JsSwiftOrefComparisonLogger {
         guard let httpResponse = response as? HTTPURLResponse,
               (200 ... 299).contains(httpResponse.statusCode)
         else {
-            throw LoggerError.urlGenerationFailed
+            throw LoggerError.signedUrlNetworkError(statusCode: (response as? HTTPURLResponse)?.statusCode ?? -1)
         }
 
         let signedURLResponse = try decoder.decode(SignedURLResponse.self, from: data)
         guard let uploadURL = URL(string: signedURLResponse.url) else {
-            throw LoggerError.invalidSignedURLResponse
+            throw LoggerError.invalidSignedUrlResponse
         }
 
         return uploadURL
@@ -180,7 +192,7 @@ actor JsSwiftOrefComparisonLogger {
         guard let httpResponse = response as? HTTPURLResponse,
               (200 ... 299).contains(httpResponse.statusCode)
         else {
-            throw URLError(.badServerResponse)
+            throw LoggerError.uploadNetworkError(statusCode: (response as? HTTPURLResponse)?.statusCode ?? -1)
         }
     }
 }
