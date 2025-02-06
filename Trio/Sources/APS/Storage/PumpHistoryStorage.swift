@@ -290,8 +290,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToNightscout,
             key: "timestamp",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         return await context.perform { [self] in
@@ -450,8 +449,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToHealth,
             key: "timestamp",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
@@ -493,8 +491,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToTidepool,
             key: "timestamp",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }

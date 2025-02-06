@@ -6,7 +6,6 @@ import UIKit
 import WatchConnectivity
 
 /// Protocol defining the base functionality for Watch communication
-// TODO: Complete this
 protocol WatchManager {
     func setupWatchState() async -> WatchState
 }
@@ -33,7 +32,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     private var currentGlucoseTarget: Decimal = 100.0
     private var activeBolusAmount: Double = 0.0
 
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    // Queue for handling Core Data change notifications
+    private let queue = DispatchQueue(label: "BaseWatchManagerManager.queue", qos: .utility)
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
     typealias PumpEvent = PumpEventStored.EventType
@@ -905,18 +906,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     /// Sends bolus progress updates to the Watch
     /// - Parameter progress: The current bolus progress as a Decimal
-//    private func sendBolusProgressToWatch(progress: Decimal?) async {
-//        guard let session = session, session.isReachable, let progress = progress else { return }
-//
-//        let message: [String: Any] = [
-//            WatchMessageKeys.bolusProgress: Double(truncating: progress as NSNumber),
-//            WatchMessageKeys.activeBolusAmount: activeBolusAmount
-//        ]
-//
-//        session.sendMessage(message, replyHandler: nil) { error in
-//            debug(.watchManager, "❌ Error sending bolus progress: \(error.localizedDescription)")
-//        }
-//    }
     private func sendBolusProgressToWatch(progress: Decimal?) async {
         guard let session = session, let progress = progress, let pumpManager = apsManager.pumpManager else { return }
 

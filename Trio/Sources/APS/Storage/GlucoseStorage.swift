@@ -282,8 +282,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             onContext: coredataContext,
             predicate: NSPredicate.glucoseNotYetUploadedToNightscout,
             key: "date",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         return await coredataContext.perform {
@@ -314,8 +313,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             onContext: coredataContext,
             predicate: NSPredicate.manualGlucoseNotYetUploadedToNightscout,
             key: "date",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         guard let fetchedResults = results as? [GlucoseStored] else { return [] }
@@ -369,8 +367,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             onContext: coredataContext,
             predicate: NSPredicate.glucoseNotYetUploadedToHealth,
             key: "date",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         guard let fetchedResults = results as? [GlucoseStored] else { return [] }
@@ -400,8 +397,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             onContext: coredataContext,
             predicate: NSPredicate.manualGlucoseNotYetUploadedToHealth,
             key: "date",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         guard let fetchedResults = results as? [GlucoseStored] else { return [] }
@@ -431,8 +427,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             onContext: coredataContext,
             predicate: NSPredicate.glucoseNotYetUploadedToTidepool,
             key: "date",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         guard let fetchedResults = results as? [GlucoseStored] else { return [] }
@@ -463,8 +458,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             onContext: coredataContext,
             predicate: NSPredicate.manualGlucoseNotYetUploadedToTidepool,
             key: "date",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         guard let fetchedResults = results as? [GlucoseStored] else { return [] }

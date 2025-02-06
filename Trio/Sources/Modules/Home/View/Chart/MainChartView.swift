@@ -201,7 +201,7 @@ extension MainChartView {
                 domain: units == .mgdL ? state.minYAxisValue ... state.maxYAxisValue : state.minYAxisValue
                     .asMmolL ... state.maxYAxisValue.asMmolL
             )
-            .backport.chartForegroundStyleScale(state: state)
+            .chartLegend(.hidden)
         }
     }
 }

@@ -122,7 +122,9 @@ extension Treatments {
 
         var isActive: Bool = false
 
-        private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+        // Queue for handling Core Data change notifications
+        private let queue = DispatchQueue(label: "TreatmentsStateModel.queue", qos: .userInitiated)
+        private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
         private var subscriptions = Set<AnyCancellable>()
 
         typealias PumpEvent = PumpEventStored.EventType
@@ -143,7 +145,7 @@ extension Treatments {
             debug(.bolusState, "subscribe fired")
             coreDataPublisher =
                 changedObjectsOnManagedObjectContextDidSavePublisher()
-                    .receive(on: DispatchQueue.global(qos: .background))
+                    .receive(on: queue)
                     .share()
                     .eraseToAnyPublisher()
             registerHandlers()
@@ -683,8 +685,7 @@ extension Treatments.StateModel {
             onContext: glucoseFetchContext,
             predicate: NSPredicate.glucose,
             key: "date",
-            ascending: false,
-            fetchLimit: 288
+            ascending: false
         )
 
         return await glucoseFetchContext.perform {

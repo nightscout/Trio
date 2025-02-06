@@ -35,7 +35,7 @@ extension NSPredicate {
     static var enactedDeterminationsNotYetUploadedToNightscout: NSPredicate {
         NSPredicate(
             format: "deliverAt >= %@ AND isUploadedToNS == %@ AND enacted == %@",
-            Date.sixHoursAgo as NSDate,
+            Date.oneDayAgo as NSDate,
             false as NSNumber,
             true as NSNumber
         )
@@ -44,7 +44,7 @@ extension NSPredicate {
     static var suggestedDeterminationsNotYetUploadedToNightscout: NSPredicate {
         NSPredicate(
             format: "deliverAt >= %@ AND isUploadedToNS == %@ AND (enacted == %@ OR enacted == nil OR enacted != %@)",
-            Date.sixHoursAgo as NSDate,
+            Date.oneDayAgo as NSDate,
             false as NSNumber,
             true as NSNumber,
             true as NSNumber
