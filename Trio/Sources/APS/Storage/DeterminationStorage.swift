@@ -169,7 +169,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                         rate: self.decimal(from: orefDetermination.rate),
                         duration: self.decimal(from: orefDetermination.duration),
                         iob: self.decimal(from: orefDetermination.iob),
-                        cob: orefDetermination.cob != 0 ? Decimal(orefDetermination.cob) : nil,
+                        cob: Decimal(orefDetermination.cob),
                         predictions: predictions,
                         deliverAt: orefDetermination.deliverAt,
                         carbsReq: orefDetermination.carbsRequired != 0 ? Decimal(orefDetermination.carbsRequired) : nil,

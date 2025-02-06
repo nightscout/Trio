@@ -74,16 +74,21 @@ struct AddMealPresetView: View {
 
     @ViewBuilder private func proteinAndFat() -> some View {
         HStack {
-            Text("Fat").foregroundColor(.orange)
-            Spacer()
-            TextFieldWithToolBar(text: $presetFat, placeholder: "0", keyboardType: .numberPad, numberFormatter: mealFormatter)
-            Text("g").foregroundColor(.secondary)
-        }
-        HStack {
             Text("Protein").foregroundColor(.red)
             Spacer()
             TextFieldWithToolBar(
                 text: $presetProtein,
+                placeholder: "0",
+                keyboardType: .numberPad,
+                numberFormatter: mealFormatter
+            )
+            Text("g").foregroundColor(.secondary)
+        }
+        HStack {
+            Text("Fat").foregroundColor(.orange)
+            Spacer()
+            TextFieldWithToolBar(
+                text: $presetFat,
                 placeholder: "0",
                 keyboardType: .numberPad,
                 numberFormatter: mealFormatter

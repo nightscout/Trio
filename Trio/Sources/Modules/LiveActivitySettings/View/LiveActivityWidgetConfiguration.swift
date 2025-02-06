@@ -199,6 +199,8 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     private func getItemPreview(for item: LiveActivityItem) -> some View {
         switch item {
+        case .currentGlucoseLarge:
+            return AnyView(currentGlucoseLargePreview)
         case .currentGlucose:
             return AnyView(currentGlucosePreview)
         case .cob:
@@ -207,6 +209,8 @@ struct LiveActivityWidgetConfiguration: BaseView {
             return AnyView(iobPreview)
         case .updatedLabel:
             return AnyView(updatedLabelPreview)
+        case .totalDailyDose:
+            return AnyView(totalDailyDosePreview)
         }
     }
 
@@ -253,6 +257,16 @@ struct LiveActivityWidgetConfiguration: BaseView {
         .frame(height: 100)
     }
 
+    private var currentGlucoseLargePreview: some View {
+        HStack(alignment: .center) {
+            Text("123")
+                + Text("\u{2192}")
+        }
+        .foregroundStyle(Color.loopGreen)
+        .fontWeight(.bold)
+        .font(.subheadline)
+    }
+
     private var currentGlucosePreview: some View {
         VStack {
             HStack(alignment: .center) {
@@ -291,6 +305,17 @@ struct LiveActivityWidgetConfiguration: BaseView {
                 .foregroundStyle(.primary)
 
             Text("Updated").font(.caption2).foregroundStyle(.primary)
+        }
+    }
+
+    private var totalDailyDosePreview: some View {
+        VStack {
+            Text("43.21 U")
+                .fontWeight(.bold)
+                .font(.caption)
+                .foregroundStyle(.primary)
+
+            Text("TDD").font(.caption2).foregroundStyle(.primary)
         }
     }
 
@@ -342,27 +367,33 @@ extension UserDefaults {
 
 // Enum to represent each live activity item
 enum LiveActivityItem: String, CaseIterable, Identifiable {
+    case currentGlucoseLarge
     case currentGlucose
     case iob
     case cob
     case updatedLabel
+    case totalDailyDose
 
     var id: String { rawValue }
 
     static var defaultItems: [LiveActivityItem] {
-        [.currentGlucose, .iob, .cob, .updatedLabel]
+        [.currentGlucoseLarge, .iob, .cob, .updatedLabel]
     }
 
     var displayName: String {
         switch self {
+        case .currentGlucoseLarge:
+            return "Glucose and Trend, no Delta"
         case .currentGlucose:
-            return "Current Glucose"
+            return "Glucose, Trend, Delta"
         case .iob:
-            return "IOB"
+            return "Insulin on Board (IOB)"
         case .cob:
-            return "COB"
+            return "Carbs on Board (IOB)"
         case .updatedLabel:
             return "Last Updated"
+        case .totalDailyDose:
+            return "Total Daily Dose"
         }
     }
 }

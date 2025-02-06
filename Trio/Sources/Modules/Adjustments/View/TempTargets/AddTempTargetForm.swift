@@ -107,8 +107,6 @@ struct AddTempTargetForm: View {
             .listRowBackground(Color.chart)
 
             if state.tempTargetTarget != state.normalTarget {
-                let computedHalfBasalTarget = Decimal(state.computeHalfBasalTarget())
-
                 if state.isAdjustSensEnabled() {
                     Section(
                         footer: state.percentageDescription(state.percentage),

@@ -23,6 +23,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     private let queue = DispatchQueue(label: "BaseCalendarManager.queue", qos: .background)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
+    private var previousDeterminationId: NSManagedObjectID?
 
     private var glucoseFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -213,6 +214,11 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         guard settingsManager.settings.useCalendar, let calendar = currentCalendar,
               let determinationId = await getLastDetermination() else { return }
 
+        // Ignore the update if the determinationId is the same as it was at last update
+        if determinationId == previousDeterminationId {
+            return
+        }
+
         let glucoseIds = await fetchGlucose()
 
         deleteAllEvents(in: calendar)
@@ -292,6 +298,8 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             event.calendar = calendar
 
             try eventStore.save(event, span: .thisEvent)
+
+            previousDeterminationId = determinationId
 
         } catch {
             debugPrint(

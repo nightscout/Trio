@@ -154,7 +154,7 @@ extension UnitsLimitsSettings {
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
-            .navigationTitle("General")
+            .navigationTitle("Units and Limits")
             .navigationBarTitleDisplayMode(.automatic)
             .onDisappear {
                 state.saveIfChanged()
