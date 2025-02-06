@@ -363,7 +363,7 @@ extension NightscoutAPI {
 //        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
     }
 
-    func uploadStatus(_ status: NightscoutStatus) async throws {
+    func uploadDeviceStatus(_ status: NightscoutStatus) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host

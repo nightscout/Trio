@@ -47,13 +47,16 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
 
     let context = CoreDataStack.shared.newTaskContext()
 
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    // Queue for handling Core Data change notifications
+    private let queue = DispatchQueue(label: "LiveActivityBridge.queue", qos: .userInitiated)
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
+    private let orefDeterminationSubject = PassthroughSubject<Void, Never>()
 
     init(resolver: Resolver) {
         coreDataPublisher =
             changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
 
@@ -103,7 +106,7 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
 
         coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
-            self.cobOrIobDidUpdate()
+            self.orefDeterminationSubject.send()
         }.store(in: &subscriptions)
     }
 
@@ -113,6 +116,14 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupGlucoseArray()
+            }
+            .store(in: &subscriptions)
+
+        orefDeterminationSubject
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] in
+                guard let self = self else { return }
+                self.cobOrIobDidUpdate()
             }
             .store(in: &subscriptions)
     }

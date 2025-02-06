@@ -65,7 +65,9 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
     private let backgroundContext = CoreDataStack.shared.newTaskContext()
 
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    // Queue for handling Core Data change notifications
+    private let queue = DispatchQueue(label: "BaseUserNotificationsManager.queue", qos: .userInitiated)
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
     let firstInterval = 20 // min
@@ -78,7 +80,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
         coreDataPublisher =
             changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
 

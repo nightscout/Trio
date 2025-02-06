@@ -32,7 +32,9 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
     private let backgroundContext = CoreDataStack.shared.newTaskContext()
 
-    private var coreDataPublisher: AnyPublisher<Set<NSManagedObject>, Never>?
+    // Queue for handling Core Data change notifications
+    private let queue = DispatchQueue(label: "BaseContactImageManager.queue", qos: .background)
+    private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
     private var units: GlucoseUnits = .mgdL
@@ -54,7 +56,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
         units = settingsManager.settings.units
         coreDataPublisher =
             changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
 
