@@ -45,8 +45,6 @@ enum WatchMessageKeys {
     static let maxCarbs = "maxCarbs"
     static let maxFat = "maxFat"
     static let maxProtein = "maxProtein"
-    static let maxIOB = "maxIOB"
-    static let maxCOB = "maxCOB"
     static let bolusIncrement = "bolusIncrement"
     static let confirmBolusFaster = "confirmBolusFaster"
 }

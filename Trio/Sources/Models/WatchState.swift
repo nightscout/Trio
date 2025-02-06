@@ -20,8 +20,6 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable {
     var maxCarbs: Decimal = 250
     var maxFat: Decimal = 250
     var maxProtein: Decimal = 250
-    var maxIOB: Decimal = 0
-    var maxCOB: Decimal = 120
 
     // Pump specific dosing increment
     var bolusIncrement: Decimal = 0.05
@@ -46,8 +44,6 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable {
             lhs.maxCarbs == rhs.maxCarbs &&
             lhs.maxFat == rhs.maxFat &&
             lhs.maxProtein == rhs.maxProtein &&
-            lhs.maxIOB == rhs.maxIOB &&
-            lhs.maxCOB == rhs.maxCOB &&
             lhs.bolusIncrement == rhs.bolusIncrement &&
             lhs.confirmBolusFaster == rhs.confirmBolusFaster
     }
@@ -72,8 +68,6 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable {
         hasher.combine(maxCarbs)
         hasher.combine(maxFat)
         hasher.combine(maxProtein)
-        hasher.combine(maxIOB)
-        hasher.combine(maxCOB)
         hasher.combine(bolusIncrement)
         hasher.combine(confirmBolusFaster)
     }

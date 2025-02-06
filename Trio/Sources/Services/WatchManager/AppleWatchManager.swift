@@ -56,7 +56,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
         broadcaster.register(SettingsObserver.self, observer: self)
         broadcaster.register(PumpSettingsObserver.self, observer: self)
-        broadcaster.register(PreferencesObserver.self, observer: self)
 
         // Observer for OrefDetermination and adjustments
         coreDataPublisher =
@@ -286,8 +285,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             watchState.maxCarbs = self.settingsManager.settings.maxCarbs
             watchState.maxFat = self.settingsManager.settings.maxFat
             watchState.maxProtein = self.settingsManager.settings.maxProtein
-            watchState.maxIOB = self.settingsManager.preferences.maxIOB
-            watchState.maxCOB = self.settingsManager.preferences.maxCOB
             watchState.bolusIncrement = self.settingsManager.preferences.bolusIncrement
             watchState.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
 
@@ -405,8 +402,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.maxCarbs: state.maxCarbs,
             WatchMessageKeys.maxFat: state.maxFat,
             WatchMessageKeys.maxProtein: state.maxProtein,
-            WatchMessageKeys.maxIOB: state.maxIOB,
-            WatchMessageKeys.maxCOB: state.maxCOB,
             WatchMessageKeys.bolusIncrement: state.bolusIncrement,
             WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster
         ]
@@ -947,15 +942,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 }
 
 // TODO: - is there a better approach than setting up the watch state every time a setting has changed?
-extension BaseWatchManager: SettingsObserver, PumpSettingsObserver, PreferencesObserver {
-    // to update maxCOB, maxIOB
-    func preferencesDidChange(_: Preferences) {
-        Task {
-            let state = await self.setupWatchState()
-            await self.sendDataToWatch(state)
-        }
-    }
-
+extension BaseWatchManager: SettingsObserver, PumpSettingsObserver {
     // to update maxBolus
     func pumpSettingsDidChange(_: PumpSettings) {
         Task {
