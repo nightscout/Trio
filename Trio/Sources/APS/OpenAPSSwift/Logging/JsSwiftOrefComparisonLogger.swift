@@ -1,8 +1,22 @@
 import Foundation
 import UIKit
 
+/// At a high level, this module stores arrays of `AlgorithmComparison` objects in a
+/// Google Cloud Storage (GCS) bucket. We use these arrays to confirm that the swift and js
+/// implementations of oref produce the same results.
+///
+/// The basic flow is that the GCS bucket is private, so there is a server that we use to
+/// get a signed URL to PUT this data in the bucket.
+///
+/// To analyze this data, we have some scripts that load this data into a sqlite3 database
+/// where we run some basic statistics.
+///
+/// To keep the overhead of this library small we batch results and store them in a local
+/// file system file, and we do all operations async by having the caller log new results
+/// using a `Task`
+
 actor JsSwiftOrefComparisonLogger {
-    // MARK: - API Models
+    // MARK: - API Models for getting signed URLs
 
     struct SignedURLRequest: Codable {
         let project: String
@@ -77,6 +91,9 @@ actor JsSwiftOrefComparisonLogger {
         }
     }
 
+    // We use the vendor ID to identify devices because it is something
+    // that people can reset if they want to, thus is Apple's recommended
+    // privacy-friendly way to group results by a device.
     private func getSignedURL(for function: OrefFunction, createdAt: Date) async throws -> URL {
         let request = await SignedURLRequest(
             project: project,
