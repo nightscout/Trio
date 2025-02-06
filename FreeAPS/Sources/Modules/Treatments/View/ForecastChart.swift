@@ -163,7 +163,28 @@ struct ForecastChart: View {
         .chartXScale(domain: startMarker ... endMarker)
         .chartYAxis { forecastChartYAxis }
         .chartYScale(domain: state.units == .mgdL ? 0 ... 300 : 0.asMmolL ... 300.asMmolL)
-        .backport.chartForegroundStyleScale(state: state)
+        .chartLegend {
+            if state.forecastDisplayType == ForecastDisplayType.lines {
+                HStack {
+                    HStack {
+                        Image(systemName: "circle.fill").foregroundStyle(Color.insulin)
+                        Text("IOB").foregroundStyle(Color.secondary)
+                    }
+                    HStack {
+                        Image(systemName: "circle.fill").foregroundStyle(Color.uam)
+                        Text("UAM").foregroundStyle(Color.secondary)
+                    }
+                    HStack {
+                        Image(systemName: "circle.fill").foregroundStyle(Color.zt)
+                        Text("ZT").foregroundStyle(Color.secondary)
+                    }
+                    HStack {
+                        Image(systemName: "circle.fill").foregroundStyle(Color.orange)
+                        Text("COB").foregroundStyle(Color.secondary)
+                    }
+                }.font(.caption2)
+            }
+        }
     }
 
     @ViewBuilder var selectionPopover: some View {
