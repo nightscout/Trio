@@ -196,15 +196,18 @@ extension MealSettings {
                     units: state.units,
                     type: .decimal("maxMealAbsorptionTime"),
                     label: "Max Meal Absorption Time",
-                    miniHint: "Limits the duration the algorithm will track carb entries in estimating Carbs on Board (COB).",
+                    miniHint: "The maximum duration for tracking carb entries in estimating Carbs on Board (COB)",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 6 hours").bold()
                         Text(
-                            "Meals that are high in fat and/or protein can slow digestion. This can cause the calculation of Carbs on Board (COB)  to ignore carbs that are still being absorbed after the default 6 hour meal absorption time frame."
+                            "Carb entries will be fully decayed by the number of hours specified as Max Meal Absorption Time. Meals that are high in fat and/or protein can have long lasting effects on BG levels. To allow such late meal effects to be considered by the carb decay model, a longer Max Meal Absorption Time than the default 6 hours can be set."
                         )
                         Text(
-                            "If you increase this setting, carbs will be tracked for a longer time, which will extend the time frame that entered carbs are available for calculating COB."
+                            "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be adressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay."
+                        )
+                        Text(
+                            "Min 4 hours, max 10 hours."
                         )
                     }
                 )
