@@ -202,6 +202,12 @@ extension MainChartView {
                     .asMmolL ... state.maxYAxisValue.asMmolL
             )
             .chartLegend(.hidden)
+            .chartForegroundStyleScale([
+                "iob": Color.insulin,
+                "uam": Color.uam,
+                "zt": Color.zt,
+                "cob": Color.orange
+            ])
         }
     }
 }

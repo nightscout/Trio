@@ -185,6 +185,12 @@ struct ForecastChart: View {
                 }.font(.caption2)
             }
         }
+        .chartForegroundStyleScale([
+            "iob": Color.insulin,
+            "uam": Color.uam,
+            "zt": Color.zt,
+            "cob": Color.orange
+        ])
     }
 
     @ViewBuilder var selectionPopover: some View {
