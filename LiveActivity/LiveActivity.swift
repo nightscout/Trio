@@ -84,6 +84,7 @@ private extension LiveActivityAttributes.ContentState {
         rotationDegrees: 0,
         cob: 20,
         iob: 1.5,
+        tdd: 43.21,
         isOverrideActive: false,
         overrideName: "Exercise",
         overrideDate: Date().addingTimeInterval(-3600),

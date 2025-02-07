@@ -1,6 +1,12 @@
-oref0 branch: tdd-pumpdataCheck - git version: 46deecb
+oref0 branch: maxAbsorptionTime - git version: a542ed3
 
 Last commits:
+a542ed3 use guarded maxAbsorptionTime
+4c77757 Revert "reduce dynISF logging"
+1567c76 use variable name maxMealAbsorptionTime
+61b4f85 reduce dynISF logging
+0fe81c1 introduce maxAbsorptionTime to orefmaxAbsorptionTime
+ade267d Merge pull request #37 from mountrcg/tdd-pumpdataCheck
 46deecb remove dynisf check on pumpdata calc
 2f258b2 Merge pull request #36 from mountrcg/fixTDDcheck
 4998a09 fix condition  to use weightedAverage as TDD
