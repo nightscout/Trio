@@ -7,6 +7,7 @@ extension Notification.Name {
     static let willUpdateTempTargetConfiguration = Notification.Name("willUpdateTempTargetConfiguration")
     static let didUpdateTempTargetConfiguration = Notification.Name("didUpdateTempTargetConfiguration")
     static let liveActivityOrderDidChange = Notification.Name("liveActivityOrderDidChange")
+    static let openFromGarminConnect = Notification.Name("Notification.Name.openFromGarminConnect")
 }
 
 func awaitNotification(_ name: Notification.Name) async {
