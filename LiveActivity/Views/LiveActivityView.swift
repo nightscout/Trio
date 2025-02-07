@@ -1,6 +1,6 @@
 //
 //  LiveActivityView.swift
-//  FreeAPS
+//  Trio
 //
 //  Created by Cengiz Deniz on 17.10.24.
 //
