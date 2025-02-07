@@ -234,6 +234,9 @@ import WatchConnectivity
             DispatchQueue.main.async {
                 self.bolusProgress = 0
                 self.activeBolusAmount = 0
+                self
+                    .isBolusCanceled =
+                    false /// Reset flag to ensure a bolus progress is also shown after canceling bolus from watch
             }
             return
         } else {
