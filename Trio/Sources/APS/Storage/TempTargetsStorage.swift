@@ -14,7 +14,7 @@ protocol TempTargetsStorage {
     func fetchScheduledTempTargets() async -> [NSManagedObjectID]
     func fetchScheduledTempTarget(for targetDate: Date) async -> [NSManagedObjectID]
     func copyRunningTempTarget(_ tempTarget: TempTargetStored) async -> NSManagedObjectID
-    func deleteOverridePreset(_ objectID: NSManagedObjectID) async
+    func deleteTempTargetPreset(_ objectID: NSManagedObjectID) async
     func loadLatestTempTargetConfigurations(fetchLimit: Int) async -> [NSManagedObjectID]
     func syncDate() -> Date
     func recent() -> [TempTarget]
@@ -216,8 +216,8 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         return newTempTarget.objectID
     }
 
-    @MainActor func deleteOverridePreset(_ objectID: NSManagedObjectID) async {
-        await CoreDataStack.shared.deleteObject(identifiedBy: objectID)
+    @MainActor func deleteTempTargetPreset(_ objectID: NSManagedObjectID) async {
+        await CoreDataStack.shared.deleteObject(identifiedBy: objectID) /// To-Do:add  json handling
     }
 
     func syncDate() -> Date {
@@ -246,7 +246,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
-            predicate: NSPredicate.lastActiveOverrideNotYetUploadedToNightscout, // TODO: create adjustment predicate (OR+TT)
+            predicate: NSPredicate.lastActiveAdjustmentNotYetUploadedToNightscout, // TODO: create adjustment predicate (OR+TT)
             key: "date",
             ascending: false
         )
