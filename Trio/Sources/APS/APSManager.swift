@@ -24,6 +24,7 @@ protocol APSManager {
     func determineBasalSync() async
     func simulateDetermineBasal(carbs: Decimal, iob: Decimal) async -> Determination?
     func roundBolus(amount: Decimal) -> Decimal
+    func roundBolusNoCap(amount: Decimal) -> Decimal
     var lastError: CurrentValueSubject<Error?, Never> { get }
     func cancelBolus(_ callback: ((Bool, String) -> Void)?) async
 }
@@ -430,6 +431,11 @@ final class BaseAPSManager: APSManager, Injectable {
         let rounded = Decimal(pump.roundToSupportedBolusVolume(units: Double(amount)))
         let maxBolus = Decimal(pump.roundToSupportedBolusVolume(units: Double(settingsManager.pumpSettings.maxBolus)))
         return min(rounded, maxBolus)
+    }
+
+    func roundBolusNoCap(amount: Decimal) -> Decimal {
+        guard let pump = pumpManager else { return amount }
+        return Decimal(pump.roundToSupportedBolusVolume(units: Double(amount)))
     }
 
     private var bolusReporter: DoseProgressReporter?

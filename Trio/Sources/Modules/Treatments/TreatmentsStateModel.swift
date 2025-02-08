@@ -31,6 +31,8 @@ extension Treatments {
         var threshold: Decimal = 0
         var maxBolus: Decimal = 0
         var maxExternal: Decimal { maxBolus * 3 }
+        var maxIOB: Decimal = 0
+        var maxCOB: Decimal = 0
         var errorString: Decimal = 0
         var evBG: Decimal = 0
         var insulin: Decimal = 0
@@ -245,6 +247,18 @@ extension Treatments {
                     let getMaxBolus = await self.provider.getPumpSettings().maxBolus
                     await MainActor.run {
                         self.maxBolus = getMaxBolus
+                    }
+                }
+                group.addTask {
+                    let getMaxIOB = await self.provider.getPreferences().maxIOB
+                    await MainActor.run {
+                        self.maxIOB = getMaxIOB
+                    }
+                }
+                group.addTask {
+                    let getMaxCOB = await self.provider.getPreferences().maxCOB
+                    await MainActor.run {
+                        self.maxCOB = getMaxCOB
                     }
                 }
             }

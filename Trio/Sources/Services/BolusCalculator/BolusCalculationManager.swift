@@ -189,6 +189,14 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             )
     }
 
+    /// Returns maxIOB and maxCOB from storage
+    /// - Returns:  object containing maxIOB and maxCOB limits
+    private func getPreferences() async -> Preferences {
+        await fileStorage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self)
+            ?? Preferences(from: OpenAPS.defaults(for: OpenAPS.Settings.preferences))
+            ?? Preferences(maxIOB: 0, maxCOB: 0)
+    }
+
     /// Fetches recent glucose readings from CoreData
     /// - Returns: Array of NSManagedObjectIDs for glucose readings
     private func fetchGlucose() async -> [NSManagedObjectID] {
@@ -279,6 +287,10 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         let currentBGTarget = await getCurrentSettingValue(for: .bgTarget)
         let currentISF = await getCurrentSettingValue(for: .isf)
 
+        // Get max IOB and max COB
+        let maxIOB = await getPreferences().maxIOB
+        let maxCOB = await getPreferences().maxCOB
+
         // Fetch glucose data
         let glucoseIds = await fetchGlucose()
         let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared.getNSManagedObject(
@@ -322,7 +334,9 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             sweetMealFactor: settings.sweetMealFactor,
             basal: bolusVars.basal,
             fraction: settings.fraction,
-            maxBolus: maxBolus
+            maxBolus: maxBolus,
+            maxIOB: maxIOB,
+            maxCOB: maxCOB
         )
     }
 
@@ -332,14 +346,14 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     func calculateInsulin(input: CalculationInput) async -> CalculationResult {
         // insulin needed for the current blood glucose
         let targetDifference = input.currentBG - input.target
-        let targetDifferenceInsulin = apsManager.roundBolus(amount: targetDifference / input.isf)
+        let targetDifferenceInsulin = apsManager.roundBolusNoCap(amount: targetDifference / input.isf)
 
         // more or less insulin because of bg trend in the last 15 minutes
-        let fifteenMinutesInsulin = apsManager.roundBolus(amount: input.deltaBG / input.isf)
+        let fifteenMinutesInsulin = apsManager.roundBolusNoCap(amount: input.deltaBG / input.isf)
 
         // determine whole COB for which we want to dose insulin for and then determine insulin for wholeCOB
-        let wholeCob = Decimal(input.cob) + input.carbs
-        let wholeCobInsulin = apsManager.roundBolus(amount: wholeCob / input.carbRatio)
+        let wholeCob = min(Decimal(input.cob) + input.carbs, input.maxCOB)
+        let wholeCobInsulin = apsManager.roundBolusNoCap(amount: wholeCob / input.carbRatio)
 
         // determine how much the calculator reduces/ increases the bolus because of IOB
         let iobInsulinReduction = (-1) * input.iob
@@ -377,6 +391,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         // display no negative insulinCalculated
         insulinCalculated = max(insulinCalculated, 0)
         insulinCalculated = min(insulinCalculated, input.maxBolus)
+        insulinCalculated = min(insulinCalculated, input.maxIOB - input.iob)
 
         // round calculated recommendation to allowed bolus increment
         insulinCalculated = apsManager.roundBolus(amount: insulinCalculated)
@@ -429,6 +444,8 @@ struct CalculationInput: Sendable {
     let basal: Decimal // Current basal rate
     let fraction: Decimal // General correction factor
     let maxBolus: Decimal // Maximum allowed bolus
+    let maxIOB: Decimal // Maximum allowed IOB to be used for rec. bolus calculation
+    let maxCOB: Decimal // Maximum allowed COB to be used for rec. bolus calculation
 }
 
 /// Results of the bolus calculation

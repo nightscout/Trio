@@ -230,15 +230,29 @@ struct PopupView: View {
 
     var calcCOBRow: some View {
         GridRow(alignment: .center) {
-            HStack {
-                Text("COB:").foregroundColor(.secondary)
-                Text(
-                    state.wholeCob
-                        .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits))) +
-                        NSLocalizedString(" g", comment: "grams")
-                )
-            }
+            // Left column using ZStack to overlay Max COB
+            ZStack(alignment: .leading) {
+                // Main COB content
+                HStack {
+                    Text("COB:").foregroundColor(.secondary)
+                    Text(
+                        state.wholeCob
+                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits))) +
+                            NSLocalizedString(" g", comment: "grams")
+                    )
+                }
 
+                // Max COB overlay positioned below
+                if state.wholeCob >= state.maxCOB {
+                    Text("Max COB")
+                        .foregroundColor(Color.loopRed)
+                        .font(.caption)
+                        .offset(y: 16) // Adjust this value to position the text correctly
+                }
+            }
+            .frame(height: 20) // Fixed height for main content only
+
+            // Middle column
             Text(
                 state.wholeCob
                     .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
@@ -250,13 +264,15 @@ struct PopupView: View {
             .foregroundColor(.secondary)
             .gridColumnAlignment(.leading)
 
+            // Right column
             HStack {
                 Text(
                     self.insulinFormatter(state.wholeCobInsulin)
                 )
                 Text("U").foregroundColor(.secondary)
-            }.fontWeight(.bold)
-                .gridColumnAlignment(.trailing)
+            }
+            .fontWeight(.bold)
+            .gridColumnAlignment(.trailing)
         }
     }
 
@@ -396,20 +412,26 @@ struct PopupView: View {
         GridRow(alignment: .bottom) {
             if state.useFattyMealCorrectionFactor {
                 Group {
-                    Text("Factor x Fatty Meal Factor x Full Bolus")
-                        .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
-                        +
-                        Text(state.wholeCalc > state.maxBolus ? " ≈ Max Bolus" : "").foregroundColor(Color.loopRed)
+                    getFormulaText("Factor x Fatty Meal Factor x Full Bolus", colorScheme: colorScheme) +
+                        getCappedText(
+                            wholeCalc: state.wholeCalc,
+                            maxBolus: state.maxBolus,
+                            maxIOB: state.maxIOB,
+                            iob: state.iob
+                        )
                 }
                 .font(.caption)
                 .gridCellAnchor(.center)
                 .gridCellColumns(3)
             } else if state.useSuperBolus {
                 Group {
-                    Text("(Factor x Full Bolus) + Super Bolus")
-                        .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
-                        +
-                        Text(state.wholeCalc > state.maxBolus ? " ≈ Max Bolus" : "").foregroundColor(Color.loopRed)
+                    getFormulaText("(Factor x Full Bolus) + Super Bolus", colorScheme: colorScheme) +
+                        getCappedText(
+                            wholeCalc: state.wholeCalc,
+                            maxBolus: state.maxBolus,
+                            maxIOB: state.maxIOB,
+                            iob: state.iob
+                        )
                 }
                 .font(.caption)
                 .gridCellAnchor(.center)
@@ -417,10 +439,13 @@ struct PopupView: View {
             } else {
                 Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
                 Group {
-                    Text("Factor x Full Bolus")
-                        .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
-                        +
-                        Text(state.wholeCalc > state.maxBolus ? " ≈ Max Bolus" : "").foregroundColor(Color.loopRed)
+                    getFormulaText("Factor x Full Bolus", colorScheme: colorScheme) +
+                        getCappedText(
+                            wholeCalc: state.wholeCalc,
+                            maxBolus: state.maxBolus,
+                            maxIOB: state.maxIOB,
+                            iob: state.iob
+                        )
                 }
                 .font(.caption)
                 .padding(.top, 5)
@@ -465,5 +490,23 @@ struct PopupView: View {
                 .foregroundColor(.gray.opacity(0.65))
                 .padding(.vertical)
         }
+    }
+}
+
+extension View {
+    // Function to generate the warning text for max bolus/IOB
+    func getCappedText(wholeCalc: Decimal, maxBolus: Decimal, maxIOB: Decimal, iob: Decimal) -> Text {
+        let limitedByMaxBolus = wholeCalc >= maxBolus && maxBolus < maxIOB - iob
+        let limitedByMaxIOB = wholeCalc >= maxIOB - iob
+        return Text(
+            limitedByMaxBolus ? " ≈ Max Bolus" :
+                limitedByMaxIOB ? " ≈ Max IOB" : ""
+        ).foregroundColor(Color.loopRed)
+    }
+
+    // Function to generate the formula text with opacity
+    func getFormulaText(_ text: String, colorScheme: ColorScheme) -> Text {
+        Text(text)
+            .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
     }
 }
