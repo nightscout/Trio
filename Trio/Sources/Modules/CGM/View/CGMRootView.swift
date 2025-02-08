@@ -19,6 +19,32 @@ extension CGM {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
+        private let cgmOptions: [CGMOption] = [
+            CGMOption(name: "Dexcom G5", predicate: { $0.type == .plugin && $0.displayName.contains("G5") }),
+            CGMOption(name: "Dexcom G6 / ONE", predicate: { $0.type == .plugin && $0.displayName.contains("G6") }),
+            CGMOption(name: "Dexcom G7 / ONE+", predicate: { $0.type == .plugin && $0.displayName.contains("G7") }),
+            CGMOption(name: "Dexcom Share", predicate: { $0.type == .plugin && $0.displayName.contains("Dexcom Share") }),
+            CGMOption(name: "FreeStyle Libre", predicate: { $0.type == .plugin && $0.displayName == "FreeStyle Libre" }),
+            CGMOption(
+                name: "FreeStyle Libre Demo",
+                predicate: { $0.type == .plugin && $0.displayName == "FreeStyle Libre Demo" }
+            ),
+            CGMOption(name: "Glucose Simulator", predicate: { $0.type == .simulator }),
+            CGMOption(name: "Medtronic Enlite", predicate: { $0.type == .enlite }),
+            CGMOption(name: "Nightscout", predicate: { $0.type == .nightscout }),
+            CGMOption(name: "xDrip4iOS", predicate: { $0.type == .xdrip })
+        ]
+
+        @ViewBuilder var cgmSelectionButtons: some View {
+            ForEach(cgmOptions, id: \.name) { option in
+                if let cgm = state.listOfCGM.first(where: option.predicate) {
+                    Button(option.name) {
+                        state.addCGM(cgm: cgm)
+                    }
+                }
+            }
+        }
+
         var body: some View {
             NavigationView {
                 Form {
@@ -28,7 +54,7 @@ extension CGM {
                             let cgmState = state.cgmCurrent
                             if cgmState.type != .none {
                                 Button {
-                                    state.setupCGM = true
+                                    state.shouldDisplayCGMSetupSheet = true
                                 } label: {
                                     HStack {
                                         Image(systemName: "sensor.tag.radiowaves.forward.fill")
@@ -116,7 +142,7 @@ extension CGM {
                 .navigationTitle("CGM")
                 .navigationBarTitleDisplayMode(.automatic)
                 .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
-                .sheet(isPresented: $state.setupCGM) {
+                .sheet(isPresented: $state.shouldDisplayCGMSetupSheet) {
                     switch state.cgmCurrent.type {
                     case .enlite,
                          .nightscout,
@@ -181,52 +207,10 @@ extension CGM {
                     )
                 }
                 .confirmationDialog("CGM Model", isPresented: $showCGMSelection) {
-                    Button("Nightscout") { state.addCGM(cgm: state.listOfCGM.first(where: { $0.type == .nightscout })!) }
-                    Button("Dexcom G5") {
-                        state.addCGM(cgm: state.listOfCGM.first(where: { $0.type == .plugin && $0.displayName.contains("G5") })!)
-                    }
-                    Button("Dexcom G6 / ONE") {
-                        state
-                            .addCGM(
-                                cgm: state.listOfCGM
-                                    .first(where: { $0.type == .plugin && $0.displayName.contains("G6") })!
-                            )
-                    }
-                    Button("Dexcom G7 / ONE+") {
-                        state
-                            .addCGM(
-                                cgm: state.listOfCGM
-                                    .first(where: { $0.type == .plugin && $0.displayName.contains("G7") })!
-                            )
-                    }
-                    Button("Dexcom Share") {
-                        state.addCGM(
-                            cgm: state.listOfCGM
-                                .first(where: { $0.type == .plugin && $0.displayName.contains("Dexcom Share") })!
-                        ) }
-                    Button("FreeStyle Libre") {
-                        state.addCGM(
-                            cgm: state.listOfCGM
-                                .first(
-                                    where: { $0.type == .plugin && $0.displayName == "FreeStyle Libre" }
-                                )!
-                        ) }
-                    Button("FreeStyle Libre Demo") {
-                        state.addCGM(
-                            cgm: state.listOfCGM
-                                .first(where: { $0.type == .plugin && $0.displayName == "FreeStyle Libre Demo" })!
-                        ) }
-                    Button("Medtronic Enlite") {
-                        state.addCGM(cgm: state.listOfCGM.first(where: { $0.type == .enlite })!) }
-                    Button("xDrip4iOS") {
-                        state.addCGM(cgm: state.listOfCGM.first(where: { $0.type == .xdrip })!) }
-                    Button("Glucose Simulator") {
-                        state
-                            .addCGM(
-                                cgm: state.listOfCGM
-                                    .first(where: { $0.type == .simulator })!
-                            ) }
-                } message: { Text("Select CGM Model") }
+                    cgmSelectionButtons
+                } message: {
+                    Text("Select CGM Model")
+                }
             }
         }
     }

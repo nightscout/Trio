@@ -22,7 +22,7 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
         case .enlite:
             return "Medtronic Enlite"
         case .plugin:
-            return "plugin CGM"
+            return "Plugin CGM"
         }
     }
 

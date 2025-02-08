@@ -4,14 +4,19 @@ import G7SensorKit
 import LoopKitUI
 import SwiftUI
 
-struct cgmName: Identifiable, Hashable {
+struct CGMModel: Identifiable, Hashable {
     var id: String
     var type: CGMType
     var displayName: String
     var subtitle: String
 }
 
-let cgmDefaultName = cgmName(
+struct CGMOption {
+    let name: String
+    let predicate: (CGMModel) -> Bool
+}
+
+let cgmDefaultModel = CGMModel(
     id: CGMType.none.id,
     type: .none,
     displayName: CGMType.none.displayName,
@@ -30,11 +35,11 @@ extension CGM {
         @Injected() var nightscoutManager: NightscoutManager!
 
         @Published var units: GlucoseUnits = .mgdL
-        @Published var setupCGM: Bool = false
-        @Published var cgmCurrent = cgmDefaultName
+        @Published var shouldDisplayCGMSetupSheet: Bool = false
+        @Published var cgmCurrent = cgmDefaultModel
         @Published var smoothGlucose = false
         @Published var cgmTransmitterDeviceAddress: String? = nil
-        @Published var listOfCGM: [cgmName] = []
+        @Published var listOfCGM: [CGMModel] = []
         @Published var url: URL?
 
         override func subscribe() {
@@ -43,10 +48,10 @@ extension CGM {
             // collect the list of CGM available with plugins and CGMType defined manually
             listOfCGM = (
                 CGMType.allCases.filter { $0 != CGMType.plugin }.map {
-                    cgmName(id: $0.id, type: $0, displayName: $0.displayName, subtitle: $0.subtitle)
+                    CGMModel(id: $0.id, type: $0, displayName: $0.displayName, subtitle: $0.subtitle)
                 } +
                     pluginCGMManager.availableCGMManagers.map {
-                        cgmName(
+                        CGMModel(
                             id: $0.identifier,
                             type: CGMType.plugin,
                             displayName: $0.localizedTitle,
@@ -66,7 +71,7 @@ extension CGM {
             switch settingsManager.settings.cgm {
             case .plugin:
                 if let cgmPluginInfo = listOfCGM.first(where: { $0.id == settingsManager.settings.cgmPluginIdentifier }) {
-                    cgmCurrent = cgmName(
+                    cgmCurrent = CGMModel(
                         id: settingsManager.settings.cgmPluginIdentifier,
                         type: .plugin,
                         displayName: cgmPluginInfo.displayName,
@@ -74,10 +79,10 @@ extension CGM {
                     )
                 } else {
                     // no more type of plugin available - restart to defaut
-                    cgmCurrent = cgmDefaultName
+                    cgmCurrent = cgmDefaultModel
                 }
             default:
-                cgmCurrent = cgmName(
+                cgmCurrent = CGMModel(
                     id: settingsManager.settings.cgm.id,
                     type: settingsManager.settings.cgm,
                     displayName: settingsManager.settings.cgm.displayName,
@@ -123,11 +128,11 @@ extension CGM {
             }
         }
 
-        func addCGM(cgm: cgmName) {
+        func addCGM(cgm: CGMModel) {
             cgmCurrent = cgm
             switch cgmCurrent.type {
             case .plugin:
-                setupCGM.toggle()
+                shouldDisplayCGMSetupSheet.toggle()
             default:
                 cgmManager.cgmGlucoseSourceType = cgmCurrent.type
                 completionNotifyingDidComplete(EmptyCompletionNotifying())
@@ -135,21 +140,25 @@ extension CGM {
         }
 
         func deleteCGM() {
-            cgmManager.deleteGlucoseSource()
-            completionNotifyingDidComplete(EmptyCompletionNotifying())
+            shouldDisplayCGMSetupSheet = false
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+                self.cgmManager.deleteGlucoseSource()
+                self.completionNotifyingDidComplete(EmptyCompletionNotifying())
+            })
         }
     }
 }
 
 extension CGM.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
-        setupCGM = false
+        shouldDisplayCGMSetupSheet = false
 
         // if CGM was deleted
         if cgmManager.cgmGlucoseSourceType == .none {
-            cgmCurrent = cgmDefaultName
-            settingsManager.settings.cgm = cgmDefaultName.type
-            settingsManager.settings.cgmPluginIdentifier = cgmDefaultName.id
+            cgmCurrent = cgmDefaultModel
+            settingsManager.settings.cgm = cgmDefaultModel.type
+            settingsManager.settings.cgmPluginIdentifier = cgmDefaultModel.id
             cgmManager.deleteGlucoseSource()
         } else {
             settingsManager.settings.cgm = cgmCurrent.type
@@ -157,7 +166,7 @@ extension CGM.StateModel: CompletionDelegate {
             cgmManager.updateGlucoseSource(cgmGlucoseSourceType: cgmCurrent.type, cgmGlucosePluginId: cgmCurrent.id)
         }
 
-        // update if required the Glucose source
+        // update glucose source if required
         DispatchQueue.main.async {
             self.broadcaster.notify(GlucoseObserver.self, on: .main) {
                 $0.glucoseDidUpdate([])
