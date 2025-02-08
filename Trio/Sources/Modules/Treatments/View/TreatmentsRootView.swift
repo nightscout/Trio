@@ -378,20 +378,19 @@ extension Treatments {
             }
         }
 
-        var treatmentButton: some View {
-            var treatmentButtonBackground = Color(.systemBlue)
-            if limitExceeded {
-                treatmentButtonBackground = Color(.systemRed)
-            } else if disableTaskButton {
-                treatmentButtonBackground = Color(.systemGray)
-            }
+        @State private var showDangerousLowAlert = false
 
-            return Button {
-                state.invokeTreatmentsTask()
+        var treatmentButton: some View {
+            Button {
+                if state.currentBG <= 54 {
+                    showDangerousLowAlert = true
+                } else {
+                    state.invokeTreatmentsTask()
+                }
             } label: {
                 HStack {
-                    if state.isBolusInProgress && state
-                        .amount > 0 && !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
+                    if state.isBolusInProgress && state.amount > 0 && !state.externalInsulin
+                        && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
                     {
                         ProgressView()
                     }
@@ -403,9 +402,22 @@ extension Treatments {
                 .frame(height: 35)
             }
             .disabled(disableTaskButton)
-            .listRowBackground(treatmentButtonBackground)
+            .listRowBackground(
+                limitExceeded || (state.amount > 0 && state.currentBG <= 54) ? Color(.systemRed) :
+                    disableTaskButton ? Color(.systemGray) : Color(.systemBlue)
+            )
             .shadow(radius: 3)
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .alert("⚠️ DANGEROUSLY LOW GLUCOSE", isPresented: $showDangerousLowAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Yes, Deliver Insulin", role: .destructive) {
+                    state.invokeTreatmentsTask()
+                }
+            } message: {
+                Text(
+                    "Your glucose is \(state.units == .mgdL ? String(describing: state.currentBG) : String(describing: state.currentBG.asMmolL)) \(state.units.rawValue), which is dangerously low!\n\nAre you sure you want to deliver insulin? This could be extremely dangerous."
+                )
+            }
         }
 
         private var taskButtonLabel: some View {
