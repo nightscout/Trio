@@ -13,13 +13,35 @@ enum MinutesFromMidnightError: LocalizedError, Equatable {
 
 extension Date {
     /// Returns the total minutes elapsed since midnight for the current date
-    private var minutesSinceMidnight: Int? {
+    var minutesSinceMidnight: Int? {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.hour, .minute], from: self)
         guard let hour = components.hour, let minute = components.minute else {
             return nil
         }
         return hour * 60 + minute
+    }
+
+    var minutesSinceMidnightWithPrecision: Decimal? {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.hour, .minute, .second, .nanosecond], from: self)
+
+        guard let hour = components.hour,
+              let minute = components.minute,
+              let second = components.second,
+              let nanosecond = components.nanosecond
+        else {
+            return nil
+        }
+
+        // Convert nanoseconds to milliseconds and round
+        let milliseconds = (Decimal(nanosecond) / 1_000_000).rounded()
+
+        let baseMinutes = Decimal(hour * 60 + minute)
+        let secondsAsMinutes = Decimal(second) / Decimal(60)
+        let millisecondsAsMinutes = milliseconds / Decimal(60000)
+
+        return baseMinutes + secondsAsMinutes + millisecondsAsMinutes
     }
 
     /// Checks if the current time falls within the specified range of minutes

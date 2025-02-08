@@ -1,0 +1,3439 @@
+[
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "AE36F1DA-3A85-48A8-A9C7-2B8BDB3EE968",
+        "isExternal": false,
+        "isSMB": false,
+        "timestamp": "2025-02-18T23:19:31.036Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "EE2F8FC1-E97D-4806-BF0B-0BBFE5B19BAF",
+        "timestamp": "2025-02-18T23:12:39.306Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_EE2F8FC1-E97D-4806-BF0B-0BBFE5B19BAF",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T23:12:39.306Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "F3A1D451-B748-4FEB-8B8B-05FA7A184467",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T23:07:30.585Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "4C5FE8B3-C4EE-4F8B-B560-CDB84D8F4E3F",
+        "timestamp": "2025-02-18T23:07:29.555Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_4C5FE8B3-C4EE-4F8B-B560-CDB84D8F4E3F",
+        "rate": 0.9,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T23:07:29.555Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "F54B4CEE-F466-4A5B-B040-6C591F08DDC9",
+        "timestamp": "2025-02-18T23:02:29.201Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_F54B4CEE-F466-4A5B-B040-6C591F08DDC9",
+        "rate": 0.3,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T23:02:29.201Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "C5864430-B5E1-4FCF-B8CD-0DD6D227117D",
+        "timestamp": "2025-02-18T22:57:30.959Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C5864430-B5E1-4FCF-B8CD-0DD6D227117D",
+        "rate": 0.75,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T22:57:30.959Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "B12E1E1D-5CB8-4D77-A9B4-944A0DCAE9ED",
+        "timestamp": "2025-02-18T22:52:29.172Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_B12E1E1D-5CB8-4D77-A9B4-944A0DCAE9ED",
+        "rate": 0.35,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T22:52:29.172Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "51B3D77F-00FB-4558-B265-D367EB984F74",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T22:47:43.655Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "301DAD5F-D626-4EDF-AA9A-7EAD45AE4008",
+        "timestamp": "2025-02-18T22:47:40.856Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_301DAD5F-D626-4EDF-AA9A-7EAD45AE4008",
+        "rate": 0.8,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T22:47:40.856Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "F0FF177A-B437-43B9-8569-C2249612C8F7",
+        "timestamp": "2025-02-18T22:42:41.022Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_F0FF177A-B437-43B9-8569-C2249612C8F7",
+        "rate": 0.45,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T22:42:41.022Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "6F1580A7-E4DF-40A1-827C-E2B63ED913E0",
+        "timestamp": "2025-02-18T22:37:30.429Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_6F1580A7-E4DF-40A1-827C-E2B63ED913E0",
+        "rate": 0.75,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T22:37:30.429Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "D922D8E8-88D9-4C59-9A42-7FC0B18872A4",
+        "timestamp": "2025-02-18T22:32:29.201Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_D922D8E8-88D9-4C59-9A42-7FC0B18872A4",
+        "rate": 0.35,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T22:32:29.201Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "CA306291-84D3-46C4-90A1-5C7AE1811181",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T22:27:32.106Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "07F56BCA-5B12-488E-89A2-A9631057091A",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T22:22:38.873Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "CA2F23FD-C867-4529-85B1-E6436E9497D3",
+        "timestamp": "2025-02-18T22:22:37.621Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_CA2F23FD-C867-4529-85B1-E6436E9497D3",
+        "rate": 1.2,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T22:22:37.621Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "9E337776-F57D-4F20-8598-81E771538352",
+        "timestamp": "2025-02-18T22:17:31.634Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_9E337776-F57D-4F20-8598-81E771538352",
+        "rate": 0.7,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T22:17:31.634Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "4233073C-4EDF-4B07-9852-CAB8658FDEFF",
+        "timestamp": "2025-02-18T22:12:29.486Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_4233073C-4EDF-4B07-9852-CAB8658FDEFF",
+        "rate": 0.05,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T22:12:29.486Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "43BC544F-2C24-40A4-9ED8-89E9389AB9C3",
+        "timestamp": "2025-02-18T22:02:31.873Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_43BC544F-2C24-40A4-9ED8-89E9389AB9C3",
+        "rate": 0.65,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T22:02:31.873Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "7D4FEBB3-6207-429C-BD4B-5B9EC60C7CB4",
+        "timestamp": "2025-02-18T21:57:32.500Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_7D4FEBB3-6207-429C-BD4B-5B9EC60C7CB4",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T21:57:32.500Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "DD914696-884A-4837-AA25-6F5F3FC43DB3",
+        "timestamp": "2025-02-18T21:52:29.582Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_DD914696-884A-4837-AA25-6F5F3FC43DB3",
+        "rate": 0.7,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T21:52:29.582Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "FD0B175F-FF08-462D-90B4-687208B52D5F",
+        "timestamp": "2025-02-18T21:47:30.777Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_FD0B175F-FF08-462D-90B4-687208B52D5F",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T21:47:30.777Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "BB03C610-0AFB-458B-B029-8152FA76E4F4",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T21:42:36.622Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "92523B13-21AF-4096-AB86-D68039A1065F",
+        "timestamp": "2025-02-18T21:42:34.784Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_92523B13-21AF-4096-AB86-D68039A1065F",
+        "rate": 1.25,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T21:42:34.784Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "88B0FCB4-51BB-4427-BE08-47968062618F",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T21:32:31.252Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "47469741-6347-45F9-96D1-3536FA71A84D",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T21:27:32.368Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "A18D3EB2-7A52-4E62-8438-0328E85F640E",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T21:22:33.642Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "251C4575-2F11-4121-9EE4-A33FCABBBDAE",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T21:17:32.135Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "26154FFF-9440-44D5-AE00-3908180EDDF2",
+        "timestamp": "2025-02-18T21:17:30.597Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_26154FFF-9440-44D5-AE00-3908180EDDF2",
+        "rate": 1,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T21:17:30.597Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "2CB28884-D1C6-420C-9A89-92A8EDF24D0C",
+        "timestamp": "2025-02-18T21:12:30.982Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_2CB28884-D1C6-420C-9A89-92A8EDF24D0C",
+        "rate": 0.65,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T21:12:30.982Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.2,
+        "duration": 0,
+        "id": "A03A1E1D-556B-47CA-A85B-BB7FB62A2021",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T21:07:36.856Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "B0732781-6056-4BE3-A20D-F3F114F8B994",
+        "timestamp": "2025-02-18T21:07:35.211Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_B0732781-6056-4BE3-A20D-F3F114F8B994",
+        "rate": 1.5,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T21:07:35.211Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "2E9A1B95-87F4-47B5-8794-C35E024CC67D",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T21:02:45.479Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "D80A96D3-B3A2-49EA-A3F5-F0054A13D8F6",
+        "timestamp": "2025-02-18T21:02:43.654Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_D80A96D3-B3A2-49EA-A3F5-F0054A13D8F6",
+        "rate": 0.85,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T21:02:43.654Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "47B300A0-48F0-440E-9B91-554C92CC0511",
+        "timestamp": "2025-02-18T20:58:33.135Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_47B300A0-48F0-440E-9B91-554C92CC0511",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T20:58:33.135Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "D0CD12DE-23FF-4460-9029-FB413498FD94",
+        "timestamp": "2025-02-18T20:47:41.217Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_D0CD12DE-23FF-4460-9029-FB413498FD94",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T20:47:41.217Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "660BB8F6-4646-4D04-9414-40F28AE0CC93",
+        "timestamp": "2025-02-18T20:42:33.777Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_660BB8F6-4646-4D04-9414-40F28AE0CC93",
+        "rate": 0.35,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T20:42:33.777Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "3CA4442B-72C1-4102-9A34-9B85C498324B",
+        "timestamp": "2025-02-18T20:32:31.805Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_3CA4442B-72C1-4102-9A34-9B85C498324B",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T20:32:31.805Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "B3E858BD-59A1-47D1-A18B-2480AEC8A2F4",
+        "timestamp": "2025-02-18T20:27:36.645Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_B3E858BD-59A1-47D1-A18B-2480AEC8A2F4",
+        "rate": 0.5,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T20:27:36.645Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "867892A9-981B-484E-BE5F-D5B55EA0F8FE",
+        "timestamp": "2025-02-18T20:17:30.164Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_867892A9-981B-484E-BE5F-D5B55EA0F8FE",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T20:17:30.164Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "52DB1A19-1A68-45C9-82AE-C7341E5FC4E3",
+        "timestamp": "2025-02-18T20:12:32.395Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_52DB1A19-1A68-45C9-82AE-C7341E5FC4E3",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T20:12:32.395Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "A24C16F3-2DD0-4574-80C3-0B897C7B1C20",
+        "timestamp": "2025-02-18T20:02:30.619Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_A24C16F3-2DD0-4574-80C3-0B897C7B1C20",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T20:02:30.619Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "89F0B522-3B92-4E4D-880C-B52A3C4D8360",
+        "timestamp": "2025-02-18T19:57:34.453Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_89F0B522-3B92-4E4D-880C-B52A3C4D8360",
+        "rate": 0.45,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T19:57:34.453Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "EF4F4FB8-501C-40B6-B1A8-BEB17E237EA4",
+        "timestamp": "2025-02-18T19:52:35.755Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_EF4F4FB8-501C-40B6-B1A8-BEB17E237EA4",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T19:52:35.755Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "8F6D603C-F7CA-4940-B979-1C1AB7A64C48",
+        "timestamp": "2025-02-18T19:47:30.875Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_8F6D603C-F7CA-4940-B979-1C1AB7A64C48",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T19:47:30.875Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "E3148B1F-9CAE-4516-A975-15C7A798E5AC",
+        "timestamp": "2025-02-18T18:37:35.329Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_E3148B1F-9CAE-4516-A975-15C7A798E5AC",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T18:37:35.329Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "426EEE4C-882D-44E5-8676-65627B740232",
+        "timestamp": "2025-02-18T18:37:35.329Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_426EEE4C-882D-44E5-8676-65627B740232",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T18:37:35.329Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "120C78B2-3089-4641-B354-65B6EBFE4BD0",
+        "timestamp": "2025-02-18T18:37:35.329Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_120C78B2-3089-4641-B354-65B6EBFE4BD0",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T18:37:35.329Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "7B833562-EE90-477A-938C-9C95F2F9C48A",
+        "timestamp": "2025-02-18T18:37:35.329Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_7B833562-EE90-477A-938C-9C95F2F9C48A",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T18:37:35.329Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "66A28A9F-BF41-4AAF-92E3-22A6E0FD93BC",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T18:32:45.626Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "50CC578E-D243-43F1-9C77-8282644D61F1",
+        "timestamp": "2025-02-18T18:32:34.904Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_50CC578E-D243-43F1-9C77-8282644D61F1",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T18:32:34.904Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "0BF72307-A845-4ECD-9687-3488EB738961",
+        "timestamp": "2025-02-18T18:27:33.884Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_0BF72307-A845-4ECD-9687-3488EB738961",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T18:27:33.884Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "F769A6A4-70F5-4954-846D-687296ADB510",
+        "timestamp": "2025-02-18T18:22:29.438Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_F769A6A4-70F5-4954-846D-687296ADB510",
+        "rate": 0.65,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T18:22:29.438Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "22AE3677-5F10-48FD-98DF-BDB558210208",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T18:17:31.918Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "EC6B0714-6E0C-4FAA-A625-90F09856EF40",
+        "timestamp": "2025-02-18T18:17:30.781Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_EC6B0714-6E0C-4FAA-A625-90F09856EF40",
+        "rate": 0.95,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T18:17:30.781Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 120,
+        "id": "FD0B9C09-D8B0-47FC-86E8-9D6181B7C1B8",
+        "timestamp": "2025-02-18T18:07:35.533Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_FD0B9C09-D8B0-47FC-86E8-9D6181B7C1B8",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T18:07:35.533Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "3DCAB07A-3815-40D7-BFB6-A2EE5B3246EE",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T18:02:29.870Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "F030ABAB-BA8D-41E1-ACA2-6A20FFBE1D90",
+        "timestamp": "2025-02-18T18:02:28.764Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_F030ABAB-BA8D-41E1-ACA2-6A20FFBE1D90",
+        "rate": 1.15,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T18:02:28.764Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "3711388B-0B37-49A4-A8C3-60DA910061E7",
+        "timestamp": "2025-02-18T17:57:30.354Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_3711388B-0B37-49A4-A8C3-60DA910061E7",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T17:57:30.354Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.4,
+        "duration": 0,
+        "id": "6B89E83E-1B9A-4510-8609-8EF48B3D6A1B",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T17:47:35.580Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "335B9090-F805-43ED-8C87-2C75D5A2B345",
+        "timestamp": "2025-02-18T17:47:34.428Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_335B9090-F805-43ED-8C87-2C75D5A2B345",
+        "rate": 1.95,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T17:47:34.428Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "8032E774-0AC0-4008-926A-570DA2DA0540",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T17:42:32.254Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "9B278C84-0795-4D45-BFDA-24FA087FC5BE",
+        "timestamp": "2025-02-18T17:42:31.207Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_9B278C84-0795-4D45-BFDA-24FA087FC5BE",
+        "rate": 0.05,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T17:42:31.207Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.25,
+        "duration": 0,
+        "id": "D1E17036-1363-4AC2-91A3-966DB042FD41",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T17:37:35.318Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "5EC7E59B-6830-46DD-A98A-96A7F0FEE43D",
+        "timestamp": "2025-02-18T17:37:34.167Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_5EC7E59B-6830-46DD-A98A-96A7F0FEE43D",
+        "rate": 1.6,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T17:37:34.167Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "A344AD1A-B533-4683-B671-E5DE146D89CD",
+        "timestamp": "2025-02-18T17:32:34.891Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_A344AD1A-B533-4683-B671-E5DE146D89CD",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T17:32:34.891Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.6,
+        "duration": 0,
+        "id": "B8C8BE25-8F9F-400F-B79A-001702606B64",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T17:27:30.992Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "3ED6A0AE-DD9D-478A-9AC4-27BA3186FB88",
+        "timestamp": "2025-02-18T17:27:29.734Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_3ED6A0AE-DD9D-478A-9AC4-27BA3186FB88",
+        "rate": 1.95,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T17:27:29.734Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "EA262258-A2EF-4A3D-802C-8AB4B1D58DEC",
+        "timestamp": "2025-02-18T17:22:43.204Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_EA262258-A2EF-4A3D-802C-8AB4B1D58DEC",
+        "rate": 0.7,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T17:22:43.204Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.25,
+        "duration": 0,
+        "id": "407C1EA5-BC0C-4707-B53A-F0E0B12487DB",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T17:17:42.877Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "150C0CE9-FD87-4DA0-A3A5-1EAAA6BB4DA9",
+        "timestamp": "2025-02-18T17:17:41.753Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_150C0CE9-FD87-4DA0-A3A5-1EAAA6BB4DA9",
+        "rate": 0.15,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T17:17:41.753Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "0F3DC33D-F3FE-4E36-8881-68FC89E915DB",
+        "timestamp": "2025-02-18T17:12:47.499Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_0F3DC33D-F3FE-4E36-8881-68FC89E915DB",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T17:12:47.499Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 120,
+        "id": "F89C9CF9-3E5D-44ED-A073-769D4CE3005A",
+        "timestamp": "2025-02-18T16:57:46.896Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_F89C9CF9-3E5D-44ED-A073-769D4CE3005A",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T16:57:46.896Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 120,
+        "id": "29D77E49-957B-4837-ABA2-E4E181DCAFFF",
+        "timestamp": "2025-02-18T16:42:30.236Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_29D77E49-957B-4837-ABA2-E4E181DCAFFF",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T16:42:30.236Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 120,
+        "id": "BB9FF635-1C76-460D-83FF-A8D399C98642",
+        "timestamp": "2025-02-18T16:32:44.144Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_BB9FF635-1C76-460D-83FF-A8D399C98642",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T16:32:44.144Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 120,
+        "id": "10396439-8346-49E8-A659-7F1863DDBDB0",
+        "timestamp": "2025-02-18T16:22:41.382Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_10396439-8346-49E8-A659-7F1863DDBDB0",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T16:22:41.382Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 120,
+        "id": "07C5B184-6715-4940-B228-7A76C35A5CA7",
+        "timestamp": "2025-02-18T16:12:31.932Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_07C5B184-6715-4940-B228-7A76C35A5CA7",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T16:12:31.932Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.2,
+        "duration": 0,
+        "id": "79A3F284-A5B3-49A9-B897-B9F017A0CE0F",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T16:02:34.843Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "AA0831DE-1317-44F6-8FB2-E3FEE230848D",
+        "timestamp": "2025-02-18T16:02:33.855Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_AA0831DE-1317-44F6-8FB2-E3FEE230848D",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T16:02:33.855Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.25,
+        "duration": 0,
+        "id": "068E0471-A982-4022-A695-B1C61D083A49",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T15:57:36.939Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "81E64C63-31AE-4820-8DDB-985E9D31A6D8",
+        "timestamp": "2025-02-18T15:57:35.980Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_81E64C63-31AE-4820-8DDB-985E9D31A6D8",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T15:57:35.980Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.5,
+        "duration": 0,
+        "id": "557319D0-A24C-4FB8-862A-4B568BA62B15",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T15:52:36.846Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "BCA7FFA4-976D-4AB5-837F-A46DDE448F93",
+        "timestamp": "2025-02-18T15:52:35.829Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_BCA7FFA4-976D-4AB5-837F-A46DDE448F93",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T15:52:35.829Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.6,
+        "duration": 0,
+        "id": "4E703A83-25D7-48DA-BD51-819FA82C8440",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T15:47:31.864Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "C9FF1FA4-712F-482B-9C7C-C1932365C084",
+        "timestamp": "2025-02-18T15:47:30.683Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C9FF1FA4-712F-482B-9C7C-C1932365C084",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T15:47:30.683Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.45,
+        "duration": 0,
+        "id": "FE5CC7B5-CCB9-4636-A8F0-E090AD84F95E",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T15:42:33.451Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "AEA0C102-E106-4280-B733-181FAAF25470",
+        "timestamp": "2025-02-18T15:42:32.420Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_AEA0C102-E106-4280-B733-181FAAF25470",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T15:42:32.420Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.45,
+        "duration": 0,
+        "id": "5A56075C-B9A2-4D94-8CC7-8050EAA3321D",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T15:37:26.141Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "193F19EF-6CE2-4716-B4F4-4D9A6FC59355",
+        "timestamp": "2025-02-18T15:37:25.078Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_193F19EF-6CE2-4716-B4F4-4D9A6FC59355",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T15:37:25.078Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.5,
+        "duration": 0,
+        "id": "C69E8EAF-1199-4D49-85D8-30F74A61847C",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T15:32:26.325Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "D107EDB2-BC11-4968-A76A-E9B7A0001D37",
+        "timestamp": "2025-02-18T15:32:25.279Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_D107EDB2-BC11-4968-A76A-E9B7A0001D37",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T15:32:25.279Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.4,
+        "duration": 0,
+        "id": "5824C69D-7294-4E9E-984E-F62FE5CDBA8A",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T15:27:31.979Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "9CC0F324-79A3-4AF0-AD8C-948FFF4B3626",
+        "timestamp": "2025-02-18T15:27:30.961Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_9CC0F324-79A3-4AF0-AD8C-948FFF4B3626",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T15:27:30.961Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.6,
+        "duration": 0,
+        "id": "1C505C5C-2AAE-49F6-A91B-880F80F032F1",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T15:22:25.736Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "284E3523-D330-4F26-9296-C8B484ADA613",
+        "timestamp": "2025-02-18T15:22:24.792Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_284E3523-D330-4F26-9296-C8B484ADA613",
+        "rate": 0.55,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T15:22:24.792Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "0AF5ADE7-84F1-40B8-B28B-58B791CEB496",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T15:17:32.275Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "D6BCDAF3-8FCA-4C2F-B6D7-57515AC733E7",
+        "timestamp": "2025-02-18T15:17:30.897Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_D6BCDAF3-8FCA-4C2F-B6D7-57515AC733E7",
+        "rate": 0.2,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T15:17:30.897Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "7C9509AB-2C00-473C-95C7-E6D02396195D",
+        "timestamp": "2025-02-18T15:12:38.372Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_7C9509AB-2C00-473C-95C7-E6D02396195D",
+        "rate": 1.15,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T15:12:38.372Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "8DB76229-970B-4430-BF04-6EFE2BCE4609",
+        "timestamp": "2025-02-18T15:07:29.388Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_8DB76229-970B-4430-BF04-6EFE2BCE4609",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T15:07:29.388Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.4,
+        "duration": 0,
+        "id": "1D567FE7-6A80-4E1F-AC0B-CC11CF072C80",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T15:02:30.956Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.6,
+        "duration": 0,
+        "id": "18AA3307-57A4-4D79-A1AF-4E3598631206",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T14:57:32.485Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "C12013ED-1765-49B7-8EE8-99333861319B",
+        "timestamp": "2025-02-18T14:57:31.376Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C12013ED-1765-49B7-8EE8-99333861319B",
+        "rate": 1.95,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T14:57:31.376Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "44B59916-A30D-491D-90D2-D10670624C88",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_44B59916-A30D-491D-90D2-D10670624C88",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "AD6FB458-EBC0-4B27-A3AD-074DC4E5BDCF",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_AD6FB458-EBC0-4B27-A3AD-074DC4E5BDCF",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "172F7A7C-D1B1-439F-8D7B-05A68AE46CC6",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_172F7A7C-D1B1-439F-8D7B-05A68AE46CC6",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "590DD776-D81F-457F-AEC2-43AF5965EA81",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_590DD776-D81F-457F-AEC2-43AF5965EA81",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "CA634DAB-8939-4C35-9EB0-840AC696CF03",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_CA634DAB-8939-4C35-9EB0-840AC696CF03",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "C5201C00-64C4-4FB8-931C-5286977E8A73",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C5201C00-64C4-4FB8-931C-5286977E8A73",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "D9AA5ED7-4066-4FDB-80FB-018DD4046D0E",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_D9AA5ED7-4066-4FDB-80FB-018DD4046D0E",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "193F705D-7F34-4476-8C3C-1571F765088D",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_193F705D-7F34-4476-8C3C-1571F765088D",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T13:42:34.343Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "2234F6C3-7D33-4CBE-BFEB-F4BBB26A8367",
+        "timestamp": "2025-02-18T13:37:31.156Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_2234F6C3-7D33-4CBE-BFEB-F4BBB26A8367",
+        "rate": 0.25,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T13:37:31.156Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 120,
+        "id": "36BE6C36-21BE-440E-BE3F-5E0597BED144",
+        "timestamp": "2025-02-18T13:17:29.002Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_36BE6C36-21BE-440E-BE3F-5E0597BED144",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T13:17:29.002Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 120,
+        "id": "38C0A681-094D-40BB-A417-FF847B69E613",
+        "timestamp": "2025-02-18T13:07:43.428Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_38C0A681-094D-40BB-A417-FF847B69E613",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T13:07:43.428Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 120,
+        "id": "3B3F9986-1F5D-4A56-A99A-1719913535F3",
+        "timestamp": "2025-02-18T12:57:31.750Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_3B3F9986-1F5D-4A56-A99A-1719913535F3",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T12:57:31.750Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 120,
+        "id": "49DC7DA5-CDCA-482D-85B4-68D20545EE48",
+        "timestamp": "2025-02-18T12:42:28.548Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_49DC7DA5-CDCA-482D-85B4-68D20545EE48",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T12:42:28.548Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "C519D6A1-5301-449D-BB74-50E43EAD4FD7",
+        "timestamp": "2025-02-18T12:37:34.696Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C519D6A1-5301-449D-BB74-50E43EAD4FD7",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T12:37:34.696Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.6,
+        "duration": 0,
+        "id": "864381DA-010D-4FC9-8993-98D7E11DE83E",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T12:32:32.197Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "E85DC5AF-E19A-40FB-953D-32D10B40ADD1",
+        "timestamp": "2025-02-18T12:32:31.074Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_E85DC5AF-E19A-40FB-953D-32D10B40ADD1",
+        "rate": 0.35,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T12:32:31.074Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.6,
+        "duration": 0,
+        "id": "9F4BEE74-FEAB-468A-B2AD-778353464381",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T12:27:31.453Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "E81DD03D-C7C1-46CF-850D-39F0CDA7C5F9",
+        "timestamp": "2025-02-18T12:27:30.422Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_E81DD03D-C7C1-46CF-850D-39F0CDA7C5F9",
+        "rate": 1.95,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T12:27:30.422Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.4,
+        "duration": 0,
+        "id": "8612F057-A6C0-4C7E-BCB8-B9F966B3C9CB",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T12:22:37.210Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "2549BDCA-B620-4D38-BAF6-81591E5013C8",
+        "timestamp": "2025-02-18T12:22:35.815Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_2549BDCA-B620-4D38-BAF6-81591E5013C8",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T12:22:35.815Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.25,
+        "duration": 0,
+        "id": "D6DEAC1E-9E38-4B80-9FAC-BC45E7E92D84",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T12:17:33.471Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "9F99C5D9-816F-45A5-9A6E-2D6300BDD66D",
+        "timestamp": "2025-02-18T12:17:32.453Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_9F99C5D9-816F-45A5-9A6E-2D6300BDD66D",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T12:17:32.453Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "787B4C19-8A1E-42FD-8714-E51E12D62E56",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T12:07:30.509Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "1F9AF768-C51D-48AA-AC77-84C3C65B4196",
+        "timestamp": "2025-02-18T12:07:29.405Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_1F9AF768-C51D-48AA-AC77-84C3C65B4196",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T12:07:29.405Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "FC476E3B-EE9A-45F7-B6E7-51DA79C06DB3",
+        "timestamp": "2025-02-18T12:02:37.452Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_FC476E3B-EE9A-45F7-B6E7-51DA79C06DB3",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T12:02:37.452Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "BF75C0D9-A9E2-46DC-A54D-DFFBD098EAE9",
+        "timestamp": "2025-02-18T11:52:30.664Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_BF75C0D9-A9E2-46DC-A54D-DFFBD098EAE9",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T11:52:30.664Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "F8505612-1274-40CD-BB14-330F0775654D",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T11:47:32.306Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "6CD931A3-241D-4EA7-89CB-0A0CFE321F5F",
+        "timestamp": "2025-02-18T11:47:30.960Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_6CD931A3-241D-4EA7-89CB-0A0CFE321F5F",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T11:47:30.960Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.35,
+        "duration": 0,
+        "id": "BA5438C6-94B1-466B-B818-75DA95D54F33",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T11:42:34.192Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "50B1483B-980B-4E39-BCBD-5EBBC851F7BA",
+        "timestamp": "2025-02-18T11:42:32.105Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_50B1483B-980B-4E39-BCBD-5EBBC851F7BA",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T11:42:32.105Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.5,
+        "duration": 0,
+        "id": "8E35498E-BF7A-43C8-A5E5-A3FEC0A29520",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T11:37:33.632Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "49FB0826-F27E-472A-A854-AEC1E32A302D",
+        "timestamp": "2025-02-18T11:37:32.571Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_49FB0826-F27E-472A-A854-AEC1E32A302D",
+        "rate": 0.25,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T11:37:32.571Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.7,
+        "duration": 0,
+        "id": "F8CE739B-6DEE-4561-A968-92EB8AD3B9F5",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T11:32:25.000Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "3C313D92-510F-4CDA-BD2E-2DFA50C74DC1",
+        "timestamp": "2025-02-18T11:32:23.952Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_3C313D92-510F-4CDA-BD2E-2DFA50C74DC1",
+        "rate": 1.95,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T11:32:23.952Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "6D4DB63F-B53A-4224-AD9F-5CA63F2612EC",
+        "timestamp": "2025-02-18T11:22:33.794Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_6D4DB63F-B53A-4224-AD9F-5CA63F2612EC",
+        "rate": 0.35,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T11:22:33.794Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "D132C2AE-BF57-4A23-BD09-DC49D0506C00",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T11:17:33.478Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "43075779-77C7-431D-A93E-03F48AD7038D",
+        "timestamp": "2025-02-18T11:17:32.402Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_43075779-77C7-431D-A93E-03F48AD7038D",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T11:17:32.402Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "2C192891-68CA-4C5F-95E0-E7EB75785A3F",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T11:12:32.275Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "FDA108AA-9443-4C0E-9C87-4D6B0C102446",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T11:07:32.249Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "39974E88-E34B-4F27-B7E6-C1F0DF2952A1",
+        "timestamp": "2025-02-18T11:07:31.246Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_39974E88-E34B-4F27-B7E6-C1F0DF2952A1",
+        "rate": 1.25,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T11:07:31.246Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "E1EF6E44-05F1-4D2B-AD17-433169FBAA16",
+        "timestamp": "2025-02-18T11:02:32.785Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_E1EF6E44-05F1-4D2B-AD17-433169FBAA16",
+        "rate": 0.55,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T11:02:32.785Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "E0A7F9E7-999C-4316-823F-48A797C4AD94",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T10:57:28.336Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "A68C7AFC-EDA8-4C9A-BBC2-EB3DF9FD1558",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T10:52:33.115Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "C02DF7EA-A500-458C-81ED-F17F0DF97384",
+        "timestamp": "2025-02-18T10:52:32.121Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C02DF7EA-A500-458C-81ED-F17F0DF97384",
+        "rate": 1,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T10:52:32.121Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 120,
+        "id": "CBDE6D84-F35C-453D-8F30-69A0D24C77B5",
+        "timestamp": "2025-02-18T10:42:32.673Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_CBDE6D84-F35C-453D-8F30-69A0D24C77B5",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T10:42:32.673Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "7E285783-1345-40C1-9ECF-81289E178C6D",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T10:37:29.898Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "653F3B2C-BE0E-4701-A0F5-5D8AB2D8517B",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T10:32:36.355Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "7C0093FB-D053-4CB8-B56F-3A39B345E821",
+        "timestamp": "2025-02-18T10:32:33.689Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_7C0093FB-D053-4CB8-B56F-3A39B345E821",
+        "rate": 0.95,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T10:32:33.689Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "5127BCD3-863E-46B3-990D-932107EEDF82",
+        "timestamp": "2025-02-18T10:22:35.780Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_5127BCD3-863E-46B3-990D-932107EEDF82",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T10:22:35.780Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "742F2A6A-D425-4D7A-9738-B14B3CF66D15",
+        "timestamp": "2025-02-18T10:17:41.070Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_742F2A6A-D425-4D7A-9738-B14B3CF66D15",
+        "rate": 0.8,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T10:17:41.070Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "A885948D-58A5-4020-81C9-B7EA4DE1FB88",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T10:12:44.273Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "6CC8BDD2-AAE2-4CB6-9BFD-329450F12685",
+        "timestamp": "2025-02-18T10:12:38.169Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_6CC8BDD2-AAE2-4CB6-9BFD-329450F12685",
+        "rate": 1.35,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T10:12:38.169Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "21E6EE99-CA46-4B6D-B6CA-B2F43D268B1C",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T10:07:43.685Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "77432FF7-C541-467E-A36F-593870D8286D",
+        "timestamp": "2025-02-18T10:07:35.287Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_77432FF7-C541-467E-A36F-593870D8286D",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T10:07:35.287Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "2F220DBC-AB12-48BF-9B9E-2884F78F32AB",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T10:02:32.563Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "753C4C17-155C-46DC-8DCC-E61D739FC61F",
+        "timestamp": "2025-02-18T10:02:31.261Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_753C4C17-155C-46DC-8DCC-E61D739FC61F",
+        "rate": 1.05,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T10:02:31.261Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "02B954AC-1ECD-47E4-ADA6-2FF1F4420851",
+        "timestamp": "2025-02-18T09:52:34.850Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_02B954AC-1ECD-47E4-ADA6-2FF1F4420851",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T09:52:34.850Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "24F2A292-E9E7-41F7-A2DC-0CE05A8C4352",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T09:47:35.623Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "6BCACF30-5F1E-46CA-A0F3-A776881E0CE5",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T09:42:31.745Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "8014CB04-F183-4572-913C-8A056A111F2C",
+        "timestamp": "2025-02-18T09:42:30.502Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_8014CB04-F183-4572-913C-8A056A111F2C",
+        "rate": 1.35,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T09:42:30.502Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "7BD9C95C-B669-4F4C-BEC9-CAD22150D78F",
+        "timestamp": "2025-02-18T09:37:32.658Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_7BD9C95C-B669-4F4C-BEC9-CAD22150D78F",
+        "rate": 0.55,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T09:37:32.658Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "475788E9-0301-4312-AD89-CA6F71A3427E",
+        "timestamp": "2025-02-18T09:32:33.476Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_475788E9-0301-4312-AD89-CA6F71A3427E",
+        "rate": 0.75,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T09:32:33.476Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "F11DE785-7DD0-4209-8A22-AFC54C1CA957",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T09:27:32.733Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "933307D9-1B78-4A4A-9BB5-7499E77C8783",
+        "timestamp": "2025-02-18T09:27:31.429Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_933307D9-1B78-4A4A-9BB5-7499E77C8783",
+        "rate": 0.15,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T09:27:31.429Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "4CF46619-AC51-45C8-A2DB-EF006D0C1766",
+        "timestamp": "2025-02-18T09:22:37.920Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_4CF46619-AC51-45C8-A2DB-EF006D0C1766",
+        "rate": 0.6,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T09:22:37.920Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "C880533E-A855-4300-89A3-A19982C7A720",
+        "timestamp": "2025-02-18T09:17:32.799Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C880533E-A855-4300-89A3-A19982C7A720",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T09:17:32.799Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "EF70D295-B08F-42A4-90E4-68D7007E2243",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T09:12:36.118Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "DE997B06-7B58-4BF8-84DD-9728CAF08166",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T09:07:35.289Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "7F6CBA03-7659-404E-8B7A-9C00268B0085",
+        "timestamp": "2025-02-18T09:07:33.522Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_7F6CBA03-7659-404E-8B7A-9C00268B0085",
+        "rate": 1.05,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T09:07:33.522Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "C7FE0C46-D1E9-4240-9FF5-DE32C931B199",
+        "timestamp": "2025-02-18T08:52:37.318Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C7FE0C46-D1E9-4240-9FF5-DE32C931B199",
+        "rate": 0.15,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T08:52:37.318Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "7E185B07-9957-4EBD-BD5F-0EA64651B9AD",
+        "timestamp": "2025-02-18T08:47:30.470Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_7E185B07-9957-4EBD-BD5F-0EA64651B9AD",
+        "rate": 0.85,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T08:47:30.470Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "C52258FF-2631-499D-9FC5-978FF1CA1562",
+        "timestamp": "2025-02-18T08:42:32.023Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C52258FF-2631-499D-9FC5-978FF1CA1562",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T08:42:32.023Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "2CDD8C23-06A5-4077-AA04-B03A7C7D1DF1",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T08:37:33.529Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "EE160E03-6236-4438-A35A-D18D69F63656",
+        "timestamp": "2025-02-18T08:37:32.032Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_EE160E03-6236-4438-A35A-D18D69F63656",
+        "rate": 1.35,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T08:37:32.032Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "F3001375-8C02-4FFA-8B7B-CAA6F5FC5094",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T08:32:34.240Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "3C2D136F-B6D5-4572-976C-67F9AB9CA604",
+        "timestamp": "2025-02-18T08:32:32.757Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_3C2D136F-B6D5-4572-976C-67F9AB9CA604",
+        "rate": 0.05,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T08:32:32.757Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "D437EB70-2829-42AA-B95E-A13E75323777",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T08:27:36.138Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "56680037-CAA5-4D9B-85B0-78ECFB509FE9",
+        "timestamp": "2025-02-18T08:27:34.644Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_56680037-CAA5-4D9B-85B0-78ECFB509FE9",
+        "rate": 1.3,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T08:27:34.644Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "A21FAAE2-379F-449C-BA2C-C13623A2C283",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T08:22:31.844Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "2EDBDDD2-EC10-4E21-B29C-94AC263EEF93",
+        "timestamp": "2025-02-18T08:17:33.146Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_2EDBDDD2-EC10-4E21-B29C-94AC263EEF93",
+        "rate": 0.8,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T08:17:33.146Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "8911B2D3-C4AB-42A8-8D92-7C683F1994F0",
+        "timestamp": "2025-02-18T08:07:32.219Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_8911B2D3-C4AB-42A8-8D92-7C683F1994F0",
+        "rate": 0.75,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T08:07:32.219Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "D2AB449F-C523-498C-B588-80D8AD35EEEC",
+        "timestamp": "2025-02-18T08:02:31.932Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_D2AB449F-C523-498C-B588-80D8AD35EEEC",
+        "rate": 0.2,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T08:02:31.932Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "1C213789-3CBB-4041-9244-12360A6F6D4B",
+        "timestamp": "2025-02-18T07:57:30.181Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_1C213789-3CBB-4041-9244-12360A6F6D4B",
+        "rate": 0.5,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T07:57:30.181Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "0224A1B9-825C-4B32-A17B-906B81A7943A",
+        "timestamp": "2025-02-18T07:47:36.278Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_0224A1B9-825C-4B32-A17B-906B81A7943A",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T07:47:36.278Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "E58B2EA3-C96E-4A7B-A922-0B2DE2564F23",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T07:42:33.838Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "3C9B6B93-8469-4F02-B108-3A3750FEC1A9",
+        "timestamp": "2025-02-18T07:42:32.717Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_3C9B6B93-8469-4F02-B108-3A3750FEC1A9",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T07:42:32.717Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "866B55B8-DBB1-4BEB-8DFD-E8EA15513741",
+        "timestamp": "2025-02-18T07:37:31.638Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_866B55B8-DBB1-4BEB-8DFD-E8EA15513741",
+        "rate": 0.4,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T07:37:31.638Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "75E10FD9-A626-4050-8F44-9693E575A2B0",
+        "timestamp": "2025-02-18T07:17:36.089Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_75E10FD9-A626-4050-8F44-9693E575A2B0",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T07:17:36.089Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "81E1B17D-BE51-446A-8821-FB975BB7981B",
+        "timestamp": "2025-02-18T07:07:32.129Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_81E1B17D-BE51-446A-8821-FB975BB7981B",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T07:07:32.129Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 90,
+        "id": "C9F8A7AF-BAE3-43EC-AE70-8C57D207C503",
+        "timestamp": "2025-02-18T06:57:30.271Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C9F8A7AF-BAE3-43EC-AE70-8C57D207C503",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T06:57:30.271Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.6,
+        "duration": 0,
+        "id": "BB08B7F2-2EFC-40E9-A73C-BEF4D431C321",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T06:52:34.237Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "05FFBED7-43F2-41E3-BBAC-866B1C6ECA49",
+        "timestamp": "2025-02-18T06:52:33.084Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_05FFBED7-43F2-41E3-BBAC-866B1C6ECA49",
+        "rate": 0.5,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T06:52:33.084Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.6,
+        "duration": 0,
+        "id": "3B0E75C1-7D29-45D9-B056-AE82892AC473",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T06:47:33.856Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "4FF19F15-277B-4EDC-A502-171F5F24A48E",
+        "timestamp": "2025-02-18T06:47:32.733Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_4FF19F15-277B-4EDC-A502-171F5F24A48E",
+        "rate": 1.95,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T06:47:32.733Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "754F5B8E-E77B-4A6A-A881-9B1F57E4C993",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T06:42:36.683Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.25,
+        "duration": 0,
+        "id": "5C430883-345A-4E04-A41E-09FE7A0010C3",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T06:37:32.823Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "95B2050B-9B43-44AA-AC1C-C905038B1292",
+        "timestamp": "2025-02-18T06:37:31.731Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_95B2050B-9B43-44AA-AC1C-C905038B1292",
+        "rate": 1.65,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T06:37:31.731Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "7F0F618A-963B-4D35-B402-E075FCDA99BE",
+        "timestamp": "2025-02-18T06:32:34.514Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_7F0F618A-963B-4D35-B402-E075FCDA99BE",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T06:32:34.514Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.2,
+        "duration": 0,
+        "id": "40916B22-9583-4C67-8720-587D35EDB75F",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T06:27:32.542Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "D2346983-ACB4-49DA-8D53-2FADEFE9CEC9",
+        "timestamp": "2025-02-18T06:27:31.286Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_D2346983-ACB4-49DA-8D53-2FADEFE9CEC9",
+        "rate": 1.5,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T06:27:31.286Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "507ED8CA-1AEC-4523-B627-4C6575460512",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T06:22:40.890Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "AF0FAC9D-E46A-4C17-84F4-43E420A79746",
+        "timestamp": "2025-02-18T06:22:39.050Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_AF0FAC9D-E46A-4C17-84F4-43E420A79746",
+        "rate": 1.1,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T06:22:39.050Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "E8A58496-5111-4635-92A6-3BB1F01E3788",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T06:17:34.076Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "572A81F5-F6A2-4DDC-A560-04264F8CA6F7",
+        "timestamp": "2025-02-18T06:17:32.413Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_572A81F5-F6A2-4DDC-A560-04264F8CA6F7",
+        "rate": 0.9,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T06:17:32.413Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "89FD18C6-B53D-45FD-9502-51B3AC4097C3",
+        "timestamp": "2025-02-18T06:07:42.427Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_89FD18C6-B53D-45FD-9502-51B3AC4097C3",
+        "rate": 0.45,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T06:07:42.427Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "028F319B-5BF9-4E0E-831F-04194162401E",
+        "timestamp": "2025-02-18T05:57:34.095Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_028F319B-5BF9-4E0E-831F-04194162401E",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T05:57:34.095Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.2,
+        "duration": 0,
+        "id": "37BE418E-B84D-4A89-A3D4-765322557EDD",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T05:52:33.156Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "D67D5CC4-21D1-4AB2-BFD2-5E7A14F797B8",
+        "timestamp": "2025-02-18T05:52:32.084Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_D67D5CC4-21D1-4AB2-BFD2-5E7A14F797B8",
+        "rate": 1.5,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T05:52:32.084Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "DA49124A-4DF2-499A-88C6-2856645C821C",
+        "timestamp": "2025-02-18T05:47:35.270Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_DA49124A-4DF2-499A-88C6-2856645C821C",
+        "rate": 0.75,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T05:47:35.270Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "CAF275C5-C03F-4322-B6C2-ADCDC9DAA8D6",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T05:42:33.115Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "E7A1CE58-606D-4694-BE8E-074F56D8B918",
+        "timestamp": "2025-02-18T05:42:32.085Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_E7A1CE58-606D-4694-BE8E-074F56D8B918",
+        "rate": 0.1,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T05:42:32.085Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "3ACA447F-29B2-4734-B1AD-90B01F59F36F",
+        "timestamp": "2025-02-18T05:32:29.598Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_3ACA447F-29B2-4734-B1AD-90B01F59F36F",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T05:32:29.598Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "E25F1391-B837-4953-9741-C614243A2B6E",
+        "timestamp": "2025-02-18T05:27:35.219Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_E25F1391-B837-4953-9741-C614243A2B6E",
+        "rate": 0.75,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T05:27:35.219Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "4DD85495-FE5F-4812-8E0F-3308144CBF4A",
+        "timestamp": "2025-02-18T05:17:30.444Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_4DD85495-FE5F-4812-8E0F-3308144CBF4A",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T05:17:30.444Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "DB15A243-F96C-44C1-9B81-6B44B69BCDDB",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T05:07:32.729Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "AEA27ACF-6282-4DB0-AB1E-35D8B71A2034",
+        "timestamp": "2025-02-18T05:07:31.727Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_AEA27ACF-6282-4DB0-AB1E-35D8B71A2034",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T05:07:31.727Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.35,
+        "duration": 0,
+        "id": "7E122E9C-B62A-41F5-8503-39BB419290C8",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T05:02:33.751Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "AE52F91B-4370-43DF-AB05-84D8BE494CD6",
+        "timestamp": "2025-02-18T05:02:32.640Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_AE52F91B-4370-43DF-AB05-84D8BE494CD6",
+        "rate": 0.2,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T05:02:32.640Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "664C44C4-1E5D-4CEA-8805-0D2E3D9E469F",
+        "timestamp": "2025-02-18T04:52:29.711Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_664C44C4-1E5D-4CEA-8805-0D2E3D9E469F",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T04:52:29.711Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.35,
+        "duration": 0,
+        "id": "7E867099-455D-4D26-A0AF-E02B19E160BC",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T04:42:42.871Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "B7B93BC2-A934-4D2C-9BFD-9880E41ED498",
+        "timestamp": "2025-02-18T04:42:37.730Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_B7B93BC2-A934-4D2C-9BFD-9880E41ED498",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T04:42:37.730Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "C866143F-A523-430C-A9A1-936F239721EC",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T04:37:33.808Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "9F5B382D-AE77-4FEB-8390-D055A2D96945",
+        "timestamp": "2025-02-18T04:37:32.326Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_9F5B382D-AE77-4FEB-8390-D055A2D96945",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T04:37:32.326Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "35F97199-37A7-4716-A87A-04DB457B65DB",
+        "timestamp": "2025-02-18T04:32:32.833Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_35F97199-37A7-4716-A87A-04DB457B65DB",
+        "rate": 0.65,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T04:32:32.833Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "FC898A86-F9A9-4B5B-B152-BA23F17A0F49",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T04:22:39.323Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "128127DF-511D-441F-AD04-7841EEFBB7BB",
+        "timestamp": "2025-02-18T04:22:35.098Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_128127DF-511D-441F-AD04-7841EEFBB7BB",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T04:22:35.098Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "65A834A8-4813-447E-B51E-B3BBDF448E79",
+        "timestamp": "2025-02-18T04:17:30.282Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_65A834A8-4813-447E-B51E-B3BBDF448E79",
+        "rate": 0.65,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T04:17:30.282Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "D1710BAA-2EF7-47AD-96E9-F3FEAA00898F",
+        "timestamp": "2025-02-18T04:07:29.171Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_D1710BAA-2EF7-47AD-96E9-F3FEAA00898F",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T04:07:29.171Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.25,
+        "duration": 0,
+        "id": "4DB08065-D64D-4C98-86DC-03D19C3E7E59",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T03:57:35.957Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "4EA8F7E3-ABE0-43E7-9ABC-362866911385",
+        "timestamp": "2025-02-18T03:57:34.971Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_4EA8F7E3-ABE0-43E7-9ABC-362866911385",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T03:57:34.971Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.35,
+        "duration": 0,
+        "id": "13AF9BFA-CAE7-4C5E-8277-717460363E00",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T03:47:30.019Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "67A5AF5E-838F-4DA3-A373-80EF64632BCB",
+        "timestamp": "2025-02-18T03:47:28.897Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_67A5AF5E-838F-4DA3-A373-80EF64632BCB",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T03:47:28.897Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.25,
+        "duration": 0,
+        "id": "38C593F8-4D6B-4CE9-90B4-6B6FA64ED6B4",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T03:42:31.519Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "8D0716AC-4D92-42C2-BC16-ACABC8CF445E",
+        "timestamp": "2025-02-18T03:42:30.380Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_8D0716AC-4D92-42C2-BC16-ACABC8CF445E",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T03:42:30.380Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.35,
+        "duration": 0,
+        "id": "D0AB44C3-4443-45ED-ABB8-031B51F3C52A",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T03:22:33.367Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "229BC41A-9286-4FAD-AD0C-FF161D746D31",
+        "timestamp": "2025-02-18T03:22:31.059Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_229BC41A-9286-4FAD-AD0C-FF161D746D31",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T03:22:31.059Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "3B9EA602-EF68-4298-85DB-E432C8E3D35F",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T03:17:33.875Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "E8417E09-71F5-4C35-976A-987422722BB3",
+        "timestamp": "2025-02-18T03:17:32.511Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_E8417E09-71F5-4C35-976A-987422722BB3",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T03:17:32.511Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.25,
+        "duration": 0,
+        "id": "7CD9217F-3F55-4B5A-82C6-2A0A2F2B5E63",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T03:12:37.009Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "CAA35FE3-5601-44D4-8A0C-2B4A3A007599",
+        "timestamp": "2025-02-18T03:12:34.902Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_CAA35FE3-5601-44D4-8A0C-2B4A3A007599",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T03:12:34.902Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.5,
+        "duration": 0,
+        "id": "E301D9A2-B27E-42C4-BE62-083DAD4B0147",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T03:07:32.416Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "AA8083D3-3450-4BF1-9A13-4E98CC51247D",
+        "timestamp": "2025-02-18T03:07:31.444Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_AA8083D3-3450-4BF1-9A13-4E98CC51247D",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T03:07:31.444Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.5,
+        "duration": 0,
+        "id": "34B1F343-4076-4531-A792-68139286EAAC",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T03:02:35.894Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "C467145B-1A35-46A7-8CFE-D10040E6E483",
+        "timestamp": "2025-02-18T03:02:33.080Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C467145B-1A35-46A7-8CFE-D10040E6E483",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T03:02:33.080Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.5,
+        "duration": 0,
+        "id": "943EAE8B-5888-4B09-B640-ED45BADCB382",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T02:57:30.339Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "0CCC3E28-138A-4102-B53F-6F14897C842B",
+        "timestamp": "2025-02-18T02:57:29.233Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_0CCC3E28-138A-4102-B53F-6F14897C842B",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T02:57:29.233Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 120,
+        "id": "6A77D298-6E6C-4639-92C7-106CCD2CFF97",
+        "timestamp": "2025-02-18T02:52:31.147Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_6A77D298-6E6C-4639-92C7-106CCD2CFF97",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T02:52:31.147Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 1,
+        "duration": 0,
+        "id": "8E5D950D-176B-4982-AFBB-79D2AC7F56D1",
+        "isExternal": false,
+        "isSMB": false,
+        "timestamp": "2025-02-18T02:48:19.093Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.5,
+        "duration": 0,
+        "id": "E3386D4F-175B-418D-A78D-9CCDF258C5AC",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T02:47:31.695Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "BE45A32F-C84C-4C96-B0FE-6AADB2CA74F9",
+        "timestamp": "2025-02-18T02:47:30.574Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_BE45A32F-C84C-4C96-B0FE-6AADB2CA74F9",
+        "rate": 1.95,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T02:47:30.574Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.2,
+        "duration": 0,
+        "id": "0105E415-913F-4F0E-8388-97CAF1A977DC",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T02:42:44.052Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "0A0BE270-DD14-47F7-A43F-A41F7CE53D15",
+        "timestamp": "2025-02-18T02:42:43.036Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_0A0BE270-DD14-47F7-A43F-A41F7CE53D15",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T02:42:43.036Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "87CDCD90-220C-4494-8196-CE24F96C174F",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T02:37:29.966Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "A080FEF9-4C04-4FD9-B55C-BEE35F8613C9",
+        "timestamp": "2025-02-18T02:37:28.708Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_A080FEF9-4C04-4FD9-B55C-BEE35F8613C9",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T02:37:28.708Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "4711B058-E12C-4672-8D3C-729F31DCAEA5",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T02:32:31.072Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "232A355A-6F19-4A35-8D45-9989202BD240",
+        "timestamp": "2025-02-18T02:32:29.590Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_232A355A-6F19-4A35-8D45-9989202BD240",
+        "rate": 1,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T02:32:29.590Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "51D67507-732E-4649-AF23-4ED3549D6717",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T02:27:34.040Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "838D3FDB-1A1D-4BC4-BCED-B83C2D010B42",
+        "timestamp": "2025-02-18T02:22:29.261Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_838D3FDB-1A1D-4BC4-BCED-B83C2D010B42",
+        "rate": 0.65,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T02:22:29.261Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "A974603F-3D84-47CB-AEB5-BF89DA7954C1",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T02:17:31.220Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "38608F0D-0492-4C62-AFE3-76C172934A49",
+        "timestamp": "2025-02-18T02:17:30.068Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_38608F0D-0492-4C62-AFE3-76C172934A49",
+        "rate": 1.1,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T02:17:30.068Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "66DDEB4C-479B-4232-953F-72DD46AE535C",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T02:12:35.338Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "5E39CD5E-E6EF-4CD0-8BAD-E9813446E9A8",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T02:07:36.890Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "800B2410-5CBC-4035-96D0-74D743F903F8",
+        "timestamp": "2025-02-18T02:07:35.693Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_800B2410-5CBC-4035-96D0-74D743F903F8",
+        "rate": 0.85,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T02:07:35.693Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "2F718FF4-C593-4F97-866E-99FA88F43ECA",
+        "timestamp": "2025-02-18T02:02:38.394Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_2F718FF4-C593-4F97-866E-99FA88F43ECA",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T02:02:38.394Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "C8D75DAB-500E-4D30-925B-945FAB5BDFC1",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T01:57:43.746Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "FD08E874-119C-4661-81A6-ED30337229E6",
+        "timestamp": "2025-02-18T01:57:31.765Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_FD08E874-119C-4661-81A6-ED30337229E6",
+        "rate": 0.9,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T01:57:31.765Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "A9ACFDE3-3884-4433-BE0E-EDEA01C3B512",
+        "timestamp": "2025-02-18T01:52:30.425Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_A9ACFDE3-3884-4433-BE0E-EDEA01C3B512",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T01:52:30.425Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.1,
+        "duration": 0,
+        "id": "2E9006AE-724F-46D0-98DE-11E63DAA3290",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T01:47:32.444Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "0B3558E4-70A1-459A-A057-1271A3C0386A",
+        "timestamp": "2025-02-18T01:47:30.541Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_0B3558E4-70A1-459A-A057-1271A3C0386A",
+        "rate": 1,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T01:47:30.541Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "C1465828-76C6-4D45-97DB-96EE3322E4CC",
+        "timestamp": "2025-02-18T01:32:30.840Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C1465828-76C6-4D45-97DB-96EE3322E4CC",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T01:32:30.840Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "580DEF44-9606-4D1A-8FA3-5A07C7404E34",
+        "timestamp": "2025-02-18T01:22:30.980Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_580DEF44-9606-4D1A-8FA3-5A07C7404E34",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T01:22:30.980Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "63C8CB35-0068-4398-9C20-4C32591ECABE",
+        "timestamp": "2025-02-18T01:12:28.501Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_63C8CB35-0068-4398-9C20-4C32591ECABE",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T01:12:28.501Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "C9586CFB-F590-478A-BAC6-B9B4AA4E1264",
+        "timestamp": "2025-02-18T01:07:28.365Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C9586CFB-F590-478A-BAC6-B9B4AA4E1264",
+        "rate": 0.6,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T01:07:28.365Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.3,
+        "duration": 0,
+        "id": "CAAFC019-5064-4E87-A1E0-5CD7AC29A841",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T01:02:31.901Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "5F5F7A94-17C4-40B6-ABCB-FC197DEAD8BD",
+        "timestamp": "2025-02-18T01:02:30.781Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_5F5F7A94-17C4-40B6-ABCB-FC197DEAD8BD",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T01:02:30.781Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "7F1833F8-F819-46FD-B3ED-2BCB8C5B1631",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T00:57:28.780Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "329E76DF-FA89-422F-AD9D-2C85838A884D",
+        "timestamp": "2025-02-18T00:57:27.782Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_329E76DF-FA89-422F-AD9D-2C85838A884D",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T00:57:27.782Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.25,
+        "duration": 0,
+        "id": "070894AD-85FB-4FD3-AFE7-FBEBEC4E6B36",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T00:47:43.218Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "82F5EF05-4536-43D7-BC0F-FF8484EA1CE4",
+        "timestamp": "2025-02-18T00:47:41.811Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_82F5EF05-4536-43D7-BC0F-FF8484EA1CE4",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T00:47:41.811Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.25,
+        "duration": 0,
+        "id": "97958714-D2E7-448E-8331-922AE4516173",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T00:42:31.019Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "F100DAC6-1A0A-4570-9DD0-F116A435E600",
+        "timestamp": "2025-02-18T00:42:30.022Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_F100DAC6-1A0A-4570-9DD0-F116A435E600",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T00:42:30.022Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.3,
+        "duration": 0,
+        "id": "C6B23F93-B65F-47E2-B8D9-C53663411742",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T00:37:33.172Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "5E46BF23-E6F2-44A3-886D-71AB20B9536D",
+        "timestamp": "2025-02-18T00:37:32.126Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_5E46BF23-E6F2-44A3-886D-71AB20B9536D",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T00:37:32.126Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.15,
+        "duration": 0,
+        "id": "3293EE28-F015-4F79-9D1B-DA3F656A1F92",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T00:32:32.765Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "D24467FF-3B56-4F9B-BF53-5F6768EAFBEF",
+        "timestamp": "2025-02-18T00:32:31.507Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_D24467FF-3B56-4F9B-BF53-5F6768EAFBEF",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T00:32:31.507Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.5,
+        "duration": 0,
+        "id": "6D50F991-0F2E-41A3-B8DC-4730F6D025C0",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T00:27:33.700Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 60,
+        "id": "9AB23A30-F6AE-492B-9719-ABD9BB103492",
+        "timestamp": "2025-02-18T00:27:32.608Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_9AB23A30-F6AE-492B-9719-ABD9BB103492",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T00:27:32.608Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.5,
+        "duration": 0,
+        "id": "8F99A1E7-FD46-40D8-8AA4-C1ADD37ABFC3",
+        "isExternal": false,
+        "isSMB": false,
+        "timestamp": "2025-02-18T00:14:55.968Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.5,
+        "duration": 0,
+        "id": "598B7A7A-74A3-4236-953D-EEC3151869AD",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-18T00:12:42.302Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "C8D66D1D-B515-4276-A5F3-6CD0B607A20D",
+        "timestamp": "2025-02-18T00:12:41.330Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_C8D66D1D-B515-4276-A5F3-6CD0B607A20D",
+        "rate": 0,
+        "temp": "absolute",
+        "timestamp": "2025-02-18T00:12:41.330Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "50135429-CD44-4445-B9B2-9D3115A64EFD",
+        "timestamp": "2025-02-17T23:57:34.851Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_50135429-CD44-4445-B9B2-9D3115A64EFD",
+        "rate": 0.5,
+        "temp": "absolute",
+        "timestamp": "2025-02-17T23:57:34.851Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "1405EA11-D09D-4280-90C3-67FA109AA225",
+        "timestamp": "2025-02-17T23:52:34.693Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_1405EA11-D09D-4280-90C3-67FA109AA225",
+        "rate": 0.65,
+        "temp": "absolute",
+        "timestamp": "2025-02-17T23:52:34.693Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.2,
+        "duration": 0,
+        "id": "D6774A96-C864-4F24-A73E-C278C37C08B5",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-17T23:47:32.687Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "5A0B6F87-079F-4F53-A15B-F74CD4EC07BB",
+        "timestamp": "2025-02-17T23:47:31.689Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_5A0B6F87-079F-4F53-A15B-F74CD4EC07BB",
+        "rate": 1.5,
+        "temp": "absolute",
+        "timestamp": "2025-02-17T23:47:31.689Z"
+    },
+    {
+        "_type": "Bolus",
+        "amount": 0.05,
+        "duration": 0,
+        "id": "89AC8F48-6B37-4F4B-9024-BA41F1DF5020",
+        "isExternal": false,
+        "isSMB": true,
+        "timestamp": "2025-02-17T23:42:33.876Z"
+    },
+    {
+        "_type": "TempBasalDuration",
+        "duration (min)": 30,
+        "id": "7C13A550-45D2-47FF-BA05-5552823395EE",
+        "timestamp": "2025-02-17T23:37:30.993Z"
+    },
+    {
+        "_type": "TempBasal",
+        "id": "_7C13A550-45D2-47FF-BA05-5552823395EE",
+        "rate": 0.8,
+        "temp": "absolute",
+        "timestamp": "2025-02-17T23:37:30.993Z"
+    }
+]
