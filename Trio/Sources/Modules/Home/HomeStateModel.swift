@@ -572,7 +572,6 @@ extension Home.StateModel:
     BasalProfileObserver,
     BGTargetsObserver,
     PumpReservoirObserver,
-    PumpTimeZoneObserver,
     PumpDeactivatedObserver
 {
     func determinationDidUpdate(_: Determination) {
@@ -643,8 +642,6 @@ extension Home.StateModel:
         displayPumpStatusBadge(true)
         batteryFromPersistence = []
     }
-
-    func pumpTimeZoneDidChange(_: TimeZone) {}
 }
 
 extension Home.StateModel: CompletionDelegate {
