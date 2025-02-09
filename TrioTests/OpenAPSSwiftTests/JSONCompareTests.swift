@@ -1,6 +1,6 @@
 import Foundation
-@testable import FreeAPS
 import Testing
+@testable import Trio
 
 @Suite("JSON Compare") struct JSONCompareTests {
     // Test fixtures
@@ -44,7 +44,7 @@ import Testing
 
         let differences = try JSONCompare.differences(
             function: .makeProfile,
-            native: swiftJSON,
+            swift: swiftJSON,
             javascript: jsJSON
         )
 

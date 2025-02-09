@@ -110,7 +110,7 @@ enum ProfileGenerator {
     }
 
     /// Direct port of the OpenAPS profile generate function
-    static func generate(
+    private static func generate(
         pumpSettings: PumpSettings,
         bgTargets: BGTargets,
         basalProfile: [BasalProfileEntry],
