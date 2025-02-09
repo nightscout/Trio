@@ -88,8 +88,12 @@ struct TrioMainWatchView: View {
                 }.tag(0)
 
                 // Page 2: Glucose chart
-                GlucoseChartView(glucoseValues: state.glucoseValues)
-                    .tag(1)
+                GlucoseChartView(
+                    glucoseValues: state.glucoseValues,
+                    minYAxisValue: $state.minYAxisValue,
+                    maxYAxisValue: $state.maxYAxisValue
+                )
+                .tag(1)
             }
             .onAppear {
                 // Hard reset variables when main view appears
