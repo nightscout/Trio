@@ -607,6 +607,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 carbEntry.date = date
                 carbEntry.note = "Via Watch"
                 carbEntry.isFPU = false // set this to false to ensure watch-entered carbs are displayed in main chart
+                carbEntry.isUploadedToNS = false
 
                 do {
                     guard context.hasChanges else { return }
@@ -646,6 +647,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     carbEntry.date = date
                     carbEntry.note = "Via Watch"
                     carbEntry.isFPU = false // set this to false to ensure watch-entered carbs are displayed in main chart
+                    carbEntry.isUploadedToNS = false
 
                     guard context.hasChanges else { return }
                     try context.save()

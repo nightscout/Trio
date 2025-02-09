@@ -171,6 +171,7 @@ enum SettingItems {
             view: .mealSettings,
             searchContents: [
                 "Max Carbs",
+                "Max Meal Absorption Time",
                 "Max Fat",
                 "Max Protein",
                 "Display and Allow Fat and Protein Entries",
