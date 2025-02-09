@@ -14,7 +14,7 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
         case .none:
             return "None"
         case .nightscout:
-            return "Nightscout"
+            return "Nightscout-as-CGM"
         case .xdrip:
             return "xDrip4iOS"
         case .simulator:
@@ -52,16 +52,16 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
     var subtitle: String {
         switch self {
         case .none:
-            return NSLocalizedString("None", comment: "No CGM choiced")
+            return NSLocalizedString("None", comment: "No CGM selected")
         case .nightscout:
-            return NSLocalizedString("Online or internal server", comment: "Online or internal server")
+            return NSLocalizedString("Uses your Nightscout as CGM", comment: "Online or internal server")
         case .xdrip:
             return NSLocalizedString(
                 "Using shared app group with external CGM app xDrip4iOS",
                 comment: "Shared app group xDrip4iOS"
             )
         case .simulator:
-            return NSLocalizedString("Simple simulator", comment: "Simple simulator")
+            return NSLocalizedString("Glucose Simulator for Demo Only", comment: "Simple simulator")
         case .enlite:
             return NSLocalizedString("Minilink transmitter", comment: "Minilink transmitter")
         case .plugin:

@@ -13,6 +13,8 @@ extension CGM {
         @Environment(AppState.self) var appState
         @Environment(\.presentationMode) var presentationMode
 
+        @State private var shouldDisplayDeletionConfirmation: Bool = false
+
         var body: some View {
             NavigationView {
                 Form {
@@ -84,18 +86,6 @@ extension CGM {
                             }
                         ).listRowBackground(Color.chart)
                     }
-
-                    Button {
-                        deleteCGM()
-                    } label: {
-                        Text("Delete CGM")
-                            .font(.headline)
-                            .foregroundStyle(Color.white)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .frame(height: 35)
-                    }
-                    .listRowBackground(Color(.systemRed))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 .navigationTitle(cgmCurrent.displayName)
                 .navigationBarTitleDisplayMode(.inline)
@@ -108,8 +98,47 @@ extension CGM {
                         }
                     }
                 }
+                .safeAreaInset(
+                    edge: .bottom,
+                    spacing: 30
+                ) {
+                    stickyDeleteButton
+                }
                 .scrollContentBackground(.hidden)
                 .background(appState.trioBackgroundColor(for: colorScheme))
+                .confirmationDialog("Delete CGM", isPresented: $shouldDisplayDeletionConfirmation) {
+                    Button(role: .destructive) {
+                        deleteCGM()
+                    } label: {
+                        Text("Delete \(cgmCurrent.displayName)")
+                            .font(.headline)
+                            .tint(.red)
+                    }
+                } message: { Text("Are you sure you want to delete \(cgmCurrent.displayName)?") }
+            }
+        }
+
+        var stickyDeleteButton: some View {
+            ZStack {
+                Rectangle()
+                    .frame(width: UIScreen.main.bounds.width, height: 65)
+                    .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
+                    .background(.thinMaterial)
+                    .opacity(0.8)
+                    .clipShape(Rectangle())
+
+                Button(action: {
+                    shouldDisplayDeletionConfirmation.toggle()
+                }, label: {
+                    Text("Delete CGM")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(10)
+                })
+                    .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                    .background(Color(.systemRed))
+                    .tint(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .padding(5)
             }
         }
     }
