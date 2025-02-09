@@ -90,6 +90,7 @@ struct PopupView: View {
                     if state.useSuperBolus {
                         DividerCustom()
                         calcSuperBolusRow
+                        calcSuperBolusFormulaRow
                     }
 
                     DividerDouble()
@@ -187,7 +188,7 @@ struct PopupView: View {
 
             let targetDifference = state.units == .mmolL ? state.targetDifference.formattedAsMmolL : state.targetDifference
                 .description
-            let secondRow = targetDifference + " / " +
+            let secondRow = targetDifference + " ÷ " +
                 (state.units == .mmolL ? state.isf.formattedAsMmolL : state.isf.description)
                 .description + " ≈ " + self.insulinFormatter(state.targetDifferenceInsulin)
 
@@ -201,7 +202,7 @@ struct PopupView: View {
         GridRow(alignment: .top) {
             Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
 
-            Text("(Current - Target) / ISF").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+            Text("(Current - Target) ÷ ISF").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
                 .gridColumnAlignment(.leading)
                 .gridCellColumns(2)
         }
@@ -256,7 +257,7 @@ struct PopupView: View {
             Text(
                 state.wholeCob
                     .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
-                    + " / " +
+                    + " ÷ " +
                     state.carbRatio.formatted()
                     + " ≈ " +
                     self.insulinFormatter(state.wholeCobInsulin)
@@ -280,7 +281,7 @@ struct PopupView: View {
         GridRow(alignment: .center) {
             Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
 
-            Text("COB / Carb Ratio").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+            Text("COB ÷ Carb Ratio").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
                 .gridColumnAlignment(.leading)
                 .gridCellColumns(2)
         }
@@ -297,7 +298,7 @@ struct PopupView: View {
             let fifteenMinInsulinFormatted = self.insulinFormatter(state.fifteenMinInsulin)
 
             Text(
-                deltaBG + " / " + isf + " ≈ " + fifteenMinInsulinFormatted
+                deltaBG + " ÷ " + isf + " ≈ " + fifteenMinInsulinFormatted
             )
             .foregroundColor(.secondary)
             .gridColumnAlignment(.leading)
@@ -319,7 +320,7 @@ struct PopupView: View {
                     state.units.rawValue
             )
 
-            Text("15 min Delta / ISF").font(.caption).foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+            Text("15 min Delta ÷ ISF").font(.caption).foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
                 .gridColumnAlignment(.leading)
                 .gridCellColumns(2).padding(.top, 5)
         }
@@ -346,7 +347,11 @@ struct PopupView: View {
             Text("Super Bolus")
                 .foregroundColor(.secondary)
 
-            Text("Added to Result").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8)).font(.footnote)
+            Text(
+                "\(state.currentBasal) × \(100 * state.sweetMealFactor)% ≈ \(state.superBolusInsulin) "
+            )
+            .foregroundColor(.secondary)
+            .gridColumnAlignment(.leading)
 
             HStack {
                 Text("+" + self.insulinFormatter(state.superBolusInsulin))
@@ -354,6 +359,17 @@ struct PopupView: View {
                 Text("U").foregroundColor(.secondary)
             }.gridColumnAlignment(.trailing)
                 .fontWeight(.bold)
+        }
+    }
+
+    var calcSuperBolusFormulaRow: some View {
+        GridRow(alignment: .center) {
+            Text("\(state.currentBasal) U/hr")
+
+            Text("Basal Rate × Super Bolus %").font(.caption)
+                .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+                .gridColumnAlignment(.leading)
+                .gridCellColumns(2).padding(.top, 5)
         }
     }
 
@@ -365,21 +381,21 @@ struct PopupView: View {
                 Text(state.useSuperBolus ? "(" : "")
                     .foregroundColor(.loopRed)
 
-                    + Text(state.fraction.formatted())
-
-                    + Text(" x ")
-                    .foregroundColor(.secondary)
-
-                    // if fatty meal is chosen
-                    + Text(state.useFattyMealCorrectionFactor ? state.fattyMealFactor.formatted() : "")
-                    .foregroundColor(.orange)
-
-                    + Text(state.useFattyMealCorrectionFactor ? " x " : "")
-                    .foregroundColor(.secondary)
-                    // endif fatty meal is chosen
-
                     + Text(self.insulinFormatter(state.wholeCalc))
                     .foregroundColor(state.wholeCalc < 0 ? Color.loopRed : Color.primary)
+
+                    + Text(" × ")
+                    .foregroundColor(.secondary)
+
+                    + Text((100 * state.fraction).formatted() + "%")
+
+                    // if fatty meal is chosen
+                    + Text(state.useFattyMealCorrectionFactor ? " × " : "")
+                    .foregroundColor(.secondary)
+
+                    + Text(state.useFattyMealCorrectionFactor ? (100 * state.fattyMealFactor).formatted() + "%" : "")
+                    .foregroundColor(.orange)
+                    // endif fatty meal is chosen
 
                     // if superbolus is chosen
                     + Text(state.useSuperBolus ? ")" : "")
@@ -412,7 +428,7 @@ struct PopupView: View {
         GridRow(alignment: .bottom) {
             if state.useFattyMealCorrectionFactor {
                 Group {
-                    getFormulaText("Factor x Fatty Meal Factor x Full Bolus", colorScheme: colorScheme) +
+                    getFormulaText("Full Bolus x Fatty Meal % x Percentage", colorScheme: colorScheme) +
                         getCappedText(
                             wholeCalc: state.wholeCalc,
                             maxBolus: state.maxBolus,
@@ -425,7 +441,7 @@ struct PopupView: View {
                 .gridCellColumns(3)
             } else if state.useSuperBolus {
                 Group {
-                    getFormulaText("(Factor x Full Bolus) + Super Bolus", colorScheme: colorScheme) +
+                    getFormulaText("(Full Bolus x Percentage) + Super Bolus", colorScheme: colorScheme) +
                         getCappedText(
                             wholeCalc: state.wholeCalc,
                             maxBolus: state.maxBolus,
@@ -439,7 +455,7 @@ struct PopupView: View {
             } else {
                 Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
                 Group {
-                    getFormulaText("Factor x Full Bolus", colorScheme: colorScheme) +
+                    getFormulaText("Full Bolus x Percentage", colorScheme: colorScheme) +
                         getCappedText(
                             wholeCalc: state.wholeCalc,
                             maxBolus: state.maxBolus,

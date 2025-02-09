@@ -389,8 +389,8 @@ extension Treatments {
                 }
             } label: {
                 HStack {
-                    if state.isBolusInProgress && state.amount > 0 && !state.externalInsulin
-                        && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
+                    if state.isBolusInProgress && state.amount > 0 &&
+                        !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
                     {
                         ProgressView()
                     }
@@ -408,14 +408,14 @@ extension Treatments {
             )
             .shadow(radius: 3)
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            .alert("⚠️ DANGEROUSLY LOW GLUCOSE", isPresented: $showDangerousLowAlert) {
+            .alert("⚠️ DANGEROUSLY LOW GLUCOSE ⚠️", isPresented: $showDangerousLowAlert) {
                 Button("Cancel", role: .cancel) {}
                 Button("Yes, Deliver Insulin", role: .destructive) {
                     state.invokeTreatmentsTask()
                 }
             } message: {
                 Text(
-                    "Your glucose is \(state.units == .mgdL ? String(describing: state.currentBG) : String(describing: state.currentBG.asMmolL)) \(state.units.rawValue), which is dangerously low!\n\nAre you sure you want to deliver insulin? This could be extremely dangerous."
+                    "Your glucose is \(state.units == .mgdL ? String(describing: state.currentBG) : String(describing: state.currentBG.asMmolL)) \(state.units.rawValue), which is dangerously low!\n\nAre you sure you want to deliver insulin? This could be EXTREMELY DANGEROUS."
                 )
             }
         }
