@@ -162,7 +162,7 @@ extension MealSettings {
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 5) {
                                                     Text("Max Carbs:").bold()
-                                                    Text("Enter the largest carbohydrate value allowed per meal entry")
+                                                    Text("Enter the largest carb value allowed per meal entry")
                                                     Text("Max Fat:").bold()
                                                     Text("Enter the largest fat value allowed per meal entry")
                                                     Text("Max Protein:").bold()
@@ -181,6 +181,36 @@ extension MealSettings {
                         }.padding(.bottom)
                     }
                 ).listRowBackground(Color.chart)
+
+                SettingInputSection(
+                    decimalValue: $state.maxMealAbsorptionTime,
+                    booleanValue: $booleanPlaceholder,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = "Maximum Meal Absorption Time"
+                        }
+                    ),
+                    units: state.units,
+                    type: .decimal("maxMealAbsorptionTime"),
+                    label: "Max Meal Absorption Time",
+                    miniHint: "The maximum duration for tracking carb entries in estimating Carbs on Board (COB)",
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: 6 hours").bold()
+                        Text(
+                            "Carb entries will be fully decayed by the number of hours specified as Max Meal Absorption Time. Meals that are high in fat and/or protein can have long lasting effects on BG levels. To allow such late meal effects to be considered by the carb decay model, a longer Max Meal Absorption Time than the default 6 hours can be set."
+                        )
+                        Text(
+                            "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be adressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay."
+                        )
+                        Text(
+                            "Min 4 hours, max 10 hours."
+                        )
+                    }
+                )
 
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
