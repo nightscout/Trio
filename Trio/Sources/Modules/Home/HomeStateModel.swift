@@ -1,3 +1,4 @@
+import CGMBLEKitUI
 import Combine
 import CoreData
 import Foundation
@@ -10,6 +11,7 @@ extension Home {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var broadcaster: Broadcaster!
         @ObservationIgnored @Injected() var apsManager: APSManager!
+        @ObservationIgnored @Injected() var pluginCGMManager: PluginManager!
         @ObservationIgnored @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
@@ -17,6 +19,9 @@ extension Home {
         @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
         @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
+
+        var cgmStateModel: CGM.StateModel?
+
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         var startMarker = Date(timeIntervalSinceNow: TimeInterval(hours: -24))
@@ -44,7 +49,8 @@ extension Home {
         var isExerciseModeActive: Bool = false
         var settingHalfBasalTarget: Decimal = 160
         var percentage: Int = 100
-        var setupPump = false
+        var shouldDisplayPumpSetupSheet = false
+        var shouldDisplayCGMSetupSheet = false
         var errorMessage: String?
         var errorDate: Date?
         var bolusProgress: Decimal?
@@ -92,6 +98,9 @@ extension Home {
         var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         var pumpStatusHighlightMessage: String?
         var cgmAvailable: Bool = false
+        var listOfCGM: [CGMModel] = []
+        var cgmCurrent = cgmDefaultModel
+
         var showCarbsRequiredBadge: Bool = true
         private(set) var setupPumpType: PumpConfig.PumpType = .minimed
         var minForecast: [Int] = []
@@ -126,6 +135,11 @@ extension Home {
 
         typealias PumpEvent = PumpEventStored.EventType
 
+        override init() {
+            super.init()
+            cgmStateModel = CGM.StateModel()
+        }
+
         override func subscribe() {
             coreDataPublisher =
                 changedObjectsOnManagedObjectContextDidSavePublisher()
@@ -145,6 +159,7 @@ extension Home {
                 // We need to initialize settings and observers first
                 await self.setupSettings()
                 await self.setupPumpSettings()
+                await self.setupCGMSettings()
                 self.registerObservers()
 
                 // The rest can be initialized concurrently
@@ -330,7 +345,7 @@ extension Home {
                         self.battery = nil
                         self.pumpName = ""
                         self.pumpExpiresAtDate = nil
-                        self.setupPump = false
+                        self.shouldDisplayPumpSetupSheet = false
                     } else {
                         self.setupReservoir()
                         self.displayPumpStatusHighlightMessage()
@@ -364,7 +379,6 @@ extension Home {
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
             totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
-            cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
             showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
             forecastDisplayType = settingsManager.settings.forecastDisplayType
             isExerciseModeActive = settingsManager.preferences.exerciseMode
@@ -374,9 +388,77 @@ extension Home {
             maxValue = settingsManager.preferences.autosensMax
         }
 
+        @MainActor private func setupCGMSettings() async {
+            cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
+
+            listOfCGM = (
+                CGMType.allCases.filter { $0 != CGMType.plugin }.map {
+                    CGMModel(id: $0.id, type: $0, displayName: $0.displayName, subtitle: $0.subtitle)
+                } +
+                    pluginCGMManager.availableCGMManagers.map {
+                        CGMModel(
+                            id: $0.identifier,
+                            type: CGMType.plugin,
+                            displayName: $0.localizedTitle,
+                            subtitle: $0.localizedTitle
+                        )
+                    }
+            ).sorted(by: { lhs, rhs in
+                if lhs.displayName == "None" {
+                    return true
+                } else if rhs.displayName == "None" {
+                    return false
+                } else {
+                    return lhs.displayName < rhs.displayName
+                }
+            })
+
+            switch settingsManager.settings.cgm {
+            case .plugin:
+                if let cgmPluginInfo = listOfCGM.first(where: { $0.id == settingsManager.settings.cgmPluginIdentifier }) {
+                    cgmCurrent = CGMModel(
+                        id: settingsManager.settings.cgmPluginIdentifier,
+                        type: .plugin,
+                        displayName: cgmPluginInfo.displayName,
+                        subtitle: cgmPluginInfo.subtitle
+                    )
+                } else {
+                    // no more type of plugin available - fallback to default
+                    cgmCurrent = cgmDefaultModel
+                }
+            default:
+                cgmCurrent = CGMModel(
+                    id: settingsManager.settings.cgm.id,
+                    type: settingsManager.settings.cgm,
+                    displayName: settingsManager.settings.cgm.displayName,
+                    subtitle: settingsManager.settings.cgm.subtitle
+                )
+            }
+        }
+
         func addPump(_ type: PumpConfig.PumpType) {
             setupPumpType = type
-            setupPump = true
+            shouldDisplayPumpSetupSheet = true
+        }
+
+        func addCGM(cgm: CGMModel) {
+            cgmCurrent = cgm
+            switch cgmCurrent.type {
+            case .plugin:
+                shouldDisplayCGMSetupSheet = true
+            default:
+                fetchGlucoseManager.cgmGlucoseSourceType = cgmCurrent.type
+                completionNotifyingDidComplete(CGMSetupCompletionNotifying())
+            }
+        }
+
+        func deleteCGM() {
+            shouldDisplayCGMSetupSheet = false
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+                self.fetchGlucoseManager?.deleteGlucoseSource()
+                self.completionNotifyingDidComplete(CGMDeletionCompletionNotifying())
+            })
         }
 
         /// Display the eventual status message provided by the manager of the pump
@@ -547,10 +629,6 @@ extension Home {
                 }
             }
         }
-
-        func openCGM() {
-            router.mainSecondaryModalView.send(router.view(for: .cgmDirect))
-        }
     }
 }
 
@@ -592,6 +670,9 @@ extension Home.StateModel:
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
         setupBatteryArray()
+        Task {
+            await setupCGMSettings()
+        }
     }
 
     func preferencesDidChange(_: Preferences) {
@@ -637,8 +718,41 @@ extension Home.StateModel:
 }
 
 extension Home.StateModel: CompletionDelegate {
-    func completionNotifyingDidComplete(_: CompletionNotifying) {
-        setupPump = false
+    func completionNotifyingDidComplete(_ notifying: CompletionNotifying) {
+        debug(.service, "Completion fired by: \(type(of: notifying))")
+        shouldDisplayCGMSetupSheet = false
+
+        if notifying is CGMSetupCompletionNotifying || notifying is CGMDeletionCompletionNotifying ||
+            notifying is CGMManagerSettingsNavigationViewController || notifying is any SetupTableViewControllerDelegate
+        {
+            if fetchGlucoseManager.cgmGlucoseSourceType == .none {
+                debug(.service, "CGMDeletionCompletionNotifying: CGM Deletion Completed")
+
+                cgmCurrent = cgmDefaultModel
+                settingsManager.settings.cgm = cgmDefaultModel.type
+                settingsManager.settings.cgmPluginIdentifier = cgmDefaultModel.id
+                fetchGlucoseManager.deleteGlucoseSource()
+            } else {
+                debug(.service, "CGMSetupCompletionNotifying: CGM Setup Completed")
+
+                settingsManager.settings.cgm = cgmCurrent.type
+                settingsManager.settings.cgmPluginIdentifier = cgmCurrent.id
+                fetchGlucoseManager.updateGlucoseSource(cgmGlucoseSourceType: cgmCurrent.type, cgmGlucosePluginId: cgmCurrent.id)
+
+                shouldDisplayCGMSetupSheet = cgmCurrent.type == .simulator || cgmCurrent.type == .nightscout || cgmCurrent
+                    .type == .xdrip || cgmCurrent.type == .enlite
+            }
+
+            // update glucose source if required
+            DispatchQueue.main.async {
+                self.broadcaster.notify(GlucoseObserver.self, on: .main) {
+                    $0.glucoseDidUpdate([])
+                }
+            }
+        } else {
+            // pump related handling
+            shouldDisplayPumpSetupSheet = false // hides sheet
+        }
     }
 }
 
@@ -656,5 +770,20 @@ extension Home.StateModel: PumpManagerOnboardingDelegate {
 
     func pumpManagerOnboarding(didPauseOnboarding _: PumpManagerUI) {
         // TODO:
+    }
+}
+
+extension Home.StateModel: CGMManagerOnboardingDelegate {
+    func cgmManagerOnboarding(didCreateCGMManager manager: LoopKitUI.CGMManagerUI) {
+        // update the glucose source
+        fetchGlucoseManager.updateGlucoseSource(
+            cgmGlucoseSourceType: cgmCurrent.type,
+            cgmGlucosePluginId: cgmCurrent.id,
+            newManager: manager
+        )
+    }
+
+    func cgmManagerOnboarding(didOnboardCGMManager _: LoopKitUI.CGMManagerUI) {
+        // nothing to do
     }
 }

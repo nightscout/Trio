@@ -19,7 +19,7 @@ extension CGM {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        private let cgmOptions: [CGMOption] = [
+        let cgmOptions: [CGMOption] = [
             CGMOption(name: "Dexcom G5", predicate: { $0.type == .plugin && $0.displayName.contains("G5") }),
             CGMOption(name: "Dexcom G6 / ONE", predicate: { $0.type == .plugin && $0.displayName.contains("G6") }),
             CGMOption(name: "Dexcom G7 / ONE+", predicate: { $0.type == .plugin && $0.displayName.contains("G7") }),
@@ -35,7 +35,7 @@ extension CGM {
             CGMOption(name: "xDrip4iOS", predicate: { $0.type == .xdrip })
         ]
 
-        @ViewBuilder var cgmSelectionButtons: some View {
+        var cgmSelectionButtons: some View {
             ForEach(cgmOptions, id: \.name) { option in
                 if let cgm = state.listOfCGM.first(where: option.predicate) {
                     Button(option.name) {
@@ -150,13 +150,18 @@ extension CGM {
                          .simulator,
                          .xdrip:
 
-                        OtherCGMView(resolver: self.resolver, state: state)
+                        OtherCGMView(
+                            resolver: self.resolver,
+                            state: state,
+                            cgmCurrent: state.cgmCurrent,
+                            deleteCGM: state.deleteCGM
+                        )
 
                     case .plugin:
-                        if let cgmFetchManager = state.cgmManager,
-                           let cgmManager = cgmFetchManager.cgmManager,
-                           state.cgmCurrent.type == cgmFetchManager.cgmGlucoseSourceType,
-                           state.cgmCurrent.id == cgmFetchManager.cgmGlucosePluginId
+                        if let fetchGlucoseManager = state.fetchGlucoseManager,
+                           let cgmManager = fetchGlucoseManager.cgmManager,
+                           state.cgmCurrent.type == fetchGlucoseManager.cgmGlucoseSourceType,
+                           state.cgmCurrent.id == fetchGlucoseManager.cgmGlucosePluginId
                         {
                             CGMSettingsView(
                                 cgmManager: cgmManager,

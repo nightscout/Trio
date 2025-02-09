@@ -23,13 +23,21 @@ let cgmDefaultModel = CGMModel(
     subtitle: CGMType.none.subtitle
 )
 
-struct EmptyCompletionNotifying: CompletionNotifying {
+struct OtherCGMSourceCompletionNotifying: CompletionNotifying {
+    var completionDelegate: (any LoopKitUI.CompletionDelegate)?
+}
+
+class CGMSetupCompletionNotifying: CompletionNotifying {
+    var completionDelegate: (any LoopKitUI.CompletionDelegate)?
+}
+
+class CGMDeletionCompletionNotifying: CompletionNotifying {
     var completionDelegate: (any LoopKitUI.CompletionDelegate)?
 }
 
 extension CGM {
     final class StateModel: BaseStateModel<Provider> {
-        @Injected() var cgmManager: FetchGlucoseManager!
+        @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         @Injected() var pluginCGMManager: PluginManager!
         @Injected() private var broadcaster: Broadcaster!
         @Injected() var nightscoutManager: NightscoutManager!
@@ -78,7 +86,7 @@ extension CGM {
                         subtitle: cgmPluginInfo.subtitle
                     )
                 } else {
-                    // no more type of plugin available - restart to defaut
+                    // no more type of plugin available - fallback to default model
                     cgmCurrent = cgmDefaultModel
                 }
             default:
@@ -96,8 +104,6 @@ extension CGM {
                 url = URL(string: "spikeapp://")!
             case "http://127.0.0.1:17580":
                 url = URL(string: "diabox://")!
-            //            case CGMType.libreTransmitter.appURL?.absoluteString:
-            //                showModal(for: .libreConfig)
             default: break
             }
 
@@ -107,24 +113,24 @@ extension CGM {
         }
 
         func displayNameOfApp() -> String? {
-            guard cgmManager != nil else { return nil }
+            guard fetchGlucoseManager != nil else { return nil }
             var nameOfApp = "Open Application"
-            switch cgmManager.cgmGlucoseSourceType {
+            switch fetchGlucoseManager.cgmGlucoseSourceType {
             case .plugin:
-                nameOfApp = "Open " + (cgmManager.cgmManager?.localizedTitle ?? "Application")
+                nameOfApp = "Open " + (fetchGlucoseManager.cgmManager?.localizedTitle ?? "Application")
             default:
-                nameOfApp = "Open " + cgmManager.cgmGlucoseSourceType.displayName
+                nameOfApp = "Open " + fetchGlucoseManager.cgmGlucoseSourceType.displayName
             }
             return nameOfApp
         }
 
         func urlOfApp() -> URL? {
-            guard cgmManager != nil else { return nil }
-            switch cgmManager.cgmGlucoseSourceType {
+            guard fetchGlucoseManager != nil else { return nil }
+            switch fetchGlucoseManager.cgmGlucoseSourceType {
             case .plugin:
-                return cgmManager.cgmManager?.appURL
+                return fetchGlucoseManager.cgmManager?.appURL
             default:
-                return cgmManager.cgmGlucoseSourceType.appURL
+                return fetchGlucoseManager.cgmGlucoseSourceType.appURL
             }
         }
 
@@ -134,8 +140,8 @@ extension CGM {
             case .plugin:
                 shouldDisplayCGMSetupSheet.toggle()
             default:
-                cgmManager.cgmGlucoseSourceType = cgmCurrent.type
-                completionNotifyingDidComplete(EmptyCompletionNotifying())
+                fetchGlucoseManager.cgmGlucoseSourceType = cgmCurrent.type
+                completionNotifyingDidComplete(OtherCGMSourceCompletionNotifying())
             }
         }
 
@@ -143,8 +149,8 @@ extension CGM {
             shouldDisplayCGMSetupSheet = false
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
-                self.cgmManager.deleteGlucoseSource()
-                self.completionNotifyingDidComplete(EmptyCompletionNotifying())
+                self.fetchGlucoseManager.deleteGlucoseSource()
+                self.completionNotifyingDidComplete(OtherCGMSourceCompletionNotifying())
             })
         }
     }
@@ -152,18 +158,19 @@ extension CGM {
 
 extension CGM.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
-        shouldDisplayCGMSetupSheet = false
-
         // if CGM was deleted
-        if cgmManager.cgmGlucoseSourceType == .none {
+        if fetchGlucoseManager.cgmGlucoseSourceType == .none {
             cgmCurrent = cgmDefaultModel
             settingsManager.settings.cgm = cgmDefaultModel.type
             settingsManager.settings.cgmPluginIdentifier = cgmDefaultModel.id
-            cgmManager.deleteGlucoseSource()
+            fetchGlucoseManager.deleteGlucoseSource()
+            shouldDisplayCGMSetupSheet = false
         } else {
             settingsManager.settings.cgm = cgmCurrent.type
             settingsManager.settings.cgmPluginIdentifier = cgmCurrent.id
-            cgmManager.updateGlucoseSource(cgmGlucoseSourceType: cgmCurrent.type, cgmGlucosePluginId: cgmCurrent.id)
+            fetchGlucoseManager.updateGlucoseSource(cgmGlucoseSourceType: cgmCurrent.type, cgmGlucosePluginId: cgmCurrent.id)
+            shouldDisplayCGMSetupSheet = cgmCurrent.type == .simulator || cgmCurrent.type == .nightscout || cgmCurrent
+                .type == .xdrip || cgmCurrent.type == .enlite
         }
 
         // update glucose source if required
@@ -178,7 +185,7 @@ extension CGM.StateModel: CompletionDelegate {
 extension CGM.StateModel: CGMManagerOnboardingDelegate {
     func cgmManagerOnboarding(didCreateCGMManager manager: LoopKitUI.CGMManagerUI) {
         // update the glucose source
-        cgmManager.updateGlucoseSource(
+        fetchGlucoseManager.updateGlucoseSource(
             cgmGlucoseSourceType: cgmCurrent.type,
             cgmGlucosePluginId: cgmCurrent.id,
             newManager: manager

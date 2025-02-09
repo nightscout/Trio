@@ -32,6 +32,7 @@ extension Home {
         @State var showTreatments = false
         @State var selectedTab: Int = 0
         @State var showPumpSelection: Bool = false
+        @State var showCGMSelection: Bool = false
         @State var notificationsDisabled = false
         @State var timeButtons: [TimePicker] = [
             TimePicker(active: false, hours: 4),
@@ -80,6 +81,32 @@ extension Home {
             }
         }
 
+        let cgmOptions: [CGMOption] = [
+            CGMOption(name: "Dexcom G5", predicate: { $0.type == .plugin && $0.displayName.contains("G5") }),
+            CGMOption(name: "Dexcom G6 / ONE", predicate: { $0.type == .plugin && $0.displayName.contains("G6") }),
+            CGMOption(name: "Dexcom G7 / ONE+", predicate: { $0.type == .plugin && $0.displayName.contains("G7") }),
+            CGMOption(name: "Dexcom Share", predicate: { $0.type == .plugin && $0.displayName.contains("Dexcom Share") }),
+            CGMOption(name: "FreeStyle Libre", predicate: { $0.type == .plugin && $0.displayName == "FreeStyle Libre" }),
+            CGMOption(
+                name: "FreeStyle Libre Demo",
+                predicate: { $0.type == .plugin && $0.displayName == "FreeStyle Libre Demo" }
+            ),
+            CGMOption(name: "Glucose Simulator", predicate: { $0.type == .simulator }),
+            CGMOption(name: "Medtronic Enlite", predicate: { $0.type == .enlite }),
+            CGMOption(name: "Nightscout", predicate: { $0.type == .nightscout }),
+            CGMOption(name: "xDrip4iOS", predicate: { $0.type == .xdrip })
+        ]
+
+        var cgmSelectionButtons: some View {
+            ForEach(cgmOptions, id: \.name) { option in
+                if let cgm = state.listOfCGM.first(where: option.predicate) {
+                    Button(option.name) {
+                        state.addCGM(cgm: cgm)
+                    }
+                }
+            }
+        }
+
         var glucoseView: some View {
             CurrentGlucoseView(
                 timerDate: state.timerDate,
@@ -93,7 +120,11 @@ extension Home {
                 glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
-                    state.openCGM()
+                    if !state.cgmAvailable {
+                        showCGMSelection.toggle()
+                    } else {
+                        state.shouldDisplayCGMSetupSheet.toggle()
+                    }
                 }
                 .onLongPressGesture {
                     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
@@ -118,7 +149,7 @@ extension Home {
                     showPumpSelection.toggle()
                 } else {
                     // sends user to pump settings
-                    state.setupPump.toggle()
+                    state.shouldDisplayPumpSetupSheet.toggle()
                 }
             }
         }
@@ -914,6 +945,10 @@ extension Home {
             .sheet(isPresented: $state.isLoopStatusPresented) {
                 LoopStatusView(state: state)
             }
+            .sheet(isPresented: $state.isLegendPresented) {
+                ChartLegendView(state: state)
+            }
+            // PUMP RELATED
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
                 Button("Medtronic") { state.addPump(.minimed) }
                 Button("Omnipod Eros") { state.addPump(.omnipod) }
@@ -921,7 +956,7 @@ extension Home {
                 Button("Dana(RS/-i)") { state.addPump(.dana) }
                 Button("Pump Simulator") { state.addPump(.simulator) }
             } message: { Text("Select Pump Model") }
-            .sheet(isPresented: $state.setupPump) {
+            .sheet(isPresented: $state.shouldDisplayPumpSetupSheet) {
                 if let pumpManager = state.provider.apsManager.pumpManager {
                     PumpConfig.PumpSettingsView(
                         pumpManager: pumpManager,
@@ -939,8 +974,55 @@ extension Home {
                     )
                 }
             }
-            .sheet(isPresented: $state.isLegendPresented) {
-                ChartLegendView(state: state)
+            // CGM RELATED
+            .confirmationDialog("CGM Model", isPresented: $showCGMSelection) {
+                cgmSelectionButtons
+            } message: {
+                Text("Select CGM Model")
+            }
+            .sheet(isPresented: $state.shouldDisplayCGMSetupSheet) {
+                switch state.cgmCurrent.type {
+                case .enlite,
+                     .nightscout,
+                     .none,
+                     .simulator,
+                     .xdrip:
+
+                    // TODO: clean this up
+                    if let cgmState = state.cgmStateModel {
+                        CGM.OtherCGMView(
+                            resolver: self.resolver,
+                            state: cgmState,
+                            cgmCurrent: state.cgmCurrent,
+                            deleteCGM: state.deleteCGM
+                        )
+                    } else {
+                        Text("Error: No CGM State Model Available")
+                    }
+
+                case .plugin:
+                    if let fetchGlucoseManager = state.fetchGlucoseManager,
+                       let cgmManager = fetchGlucoseManager.cgmManager,
+                       state.cgmCurrent.type == fetchGlucoseManager.cgmGlucoseSourceType,
+                       state.cgmCurrent.id == fetchGlucoseManager.cgmGlucosePluginId
+                    {
+                        CGM.CGMSettingsView(
+                            cgmManager: cgmManager,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            unit: state.settingsManager.settings.units,
+                            completionDelegate: state
+                        )
+                    } else {
+                        CGM.CGMSetupView(
+                            CGMType: state.cgmCurrent,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            unit: state.settingsManager.settings.units,
+                            completionDelegate: state,
+                            setupDelegate: state,
+                            pluginCGMManager: self.state.pluginCGMManager
+                        )
+                    }
+                }
             }
         }
 
