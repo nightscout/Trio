@@ -723,7 +723,8 @@ extension Home.StateModel: CompletionDelegate {
         shouldDisplayCGMSetupSheet = false
 
         if notifying is CGMSetupCompletionNotifying || notifying is CGMDeletionCompletionNotifying ||
-            notifying is CGMManagerSettingsNavigationViewController || notifying is any SetupTableViewControllerDelegate
+            notifying is CGMManagerSettingsNavigationViewController || notifying is any SetupTableViewControllerDelegate ||
+            notifying is any CGMManagerOnboarding
         {
             if fetchGlucoseManager.cgmGlucoseSourceType == .none {
                 debug(.service, "CGMDeletionCompletionNotifying: CGM Deletion Completed")
