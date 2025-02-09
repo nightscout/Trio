@@ -1,6 +1,6 @@
 //
 //  LiveActivityGlucoseDeltaLabelView.swift
-//  FreeAPS
+//  Trio
 //
 //  Created by Cengiz Deniz on 17.10.24.
 //
@@ -11,7 +11,6 @@ import WidgetKit
 struct LiveActivityGlucoseDeltaLabelView: View {
     var context: ActivityViewContext<LiveActivityAttributes>
     var glucoseColor: Color
-    var isDetailed: Bool = false
 
     var body: some View {
         if !context.state.change.isEmpty {
