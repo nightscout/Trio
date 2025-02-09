@@ -178,9 +178,10 @@ extension DataTable {
                         treatmentView(item)
                     }
                 } else {
-                    HStack {
-                        Text("No data.")
-                    }
+                    ContentUnavailableView(
+                        "No data.",
+                        systemImage: "injection.needle"
+                    )
                 }
             }.listRowBackground(Color.chart)
         }
@@ -197,9 +198,10 @@ extension DataTable {
                         mealView(item)
                     }
                 } else {
-                    HStack {
-                        Text("No data.")
-                    }
+                    ContentUnavailableView(
+                        "No data.",
+                        systemImage: "fork.knife"
+                    )
                 }
             }.listRowBackground(Color.chart)
         }
@@ -215,9 +217,10 @@ extension DataTable {
                         adjustmentView(for: item)
                     }
                 } else {
-                    HStack {
-                        Text("No data.")
-                    }
+                    ContentUnavailableView(
+                        "No data.",
+                        systemImage: "clock.arrow.2.circlepath"
+                    )
                 }
             }
             .listRowBackground(Color.chart)
@@ -384,9 +387,10 @@ extension DataTable {
                         }
                     }
                 } else {
-                    HStack {
-                        Text("No data.")
-                    }
+                    ContentUnavailableView(
+                        "No data.",
+                        systemImage: "drop.fill"
+                    )
                 }
             }.listRowBackground(Color.chart)
                 .alert(isPresented: $showAlert) {
