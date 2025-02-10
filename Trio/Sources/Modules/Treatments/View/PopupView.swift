@@ -213,9 +213,7 @@ struct PopupView: View {
         GridRow(alignment: .center) {
             HStack {
                 Text("IOB:").foregroundColor(.secondary)
-                Text(
-                    self.insulinFormatter(state.iob)
-                )
+                Text(self.insulinFormatter(state.iob) + " U")
             }
 
             Text("Subtract IOB").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8)).font(.footnote)
@@ -240,7 +238,7 @@ struct PopupView: View {
                         state.wholeCob
                             .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits))) +
                             NSLocalizedString(" g", comment: "grams")
-                    )
+                    ).foregroundColor(state.wholeCob >= state.maxCOB ? Color.loopRed : .primary)
                 }
 
                 // Max COB overlay positioned below
@@ -416,7 +414,7 @@ struct PopupView: View {
             HStack {
                 Text(self.insulinFormatter(state.insulinCalculated))
                     .fontWeight(.bold)
-                    .foregroundColor(state.wholeCalc >= state.maxBolus ? Color.loopRed : Color.blue)
+                    .foregroundColor(state.insulinCalculated >= state.maxBolus ? Color.loopRed : Color.blue)
                 Text("U").foregroundColor(.secondary)
             }
             .gridColumnAlignment(.trailing)
@@ -430,7 +428,7 @@ struct PopupView: View {
                 Group {
                     getFormulaText("Full Bolus x Fatty Meal % x Percentage", colorScheme: colorScheme) +
                         getCappedText(
-                            wholeCalc: state.wholeCalc,
+                            insulinCalculated: state.insulinCalculated,
                             maxBolus: state.maxBolus,
                             maxIOB: state.maxIOB,
                             iob: state.iob
@@ -443,7 +441,7 @@ struct PopupView: View {
                 Group {
                     getFormulaText("(Full Bolus x Percentage) + Super Bolus", colorScheme: colorScheme) +
                         getCappedText(
-                            wholeCalc: state.wholeCalc,
+                            insulinCalculated: state.insulinCalculated,
                             maxBolus: state.maxBolus,
                             maxIOB: state.maxIOB,
                             iob: state.iob
@@ -457,7 +455,7 @@ struct PopupView: View {
                 Group {
                     getFormulaText("Full Bolus x Percentage", colorScheme: colorScheme) +
                         getCappedText(
-                            wholeCalc: state.wholeCalc,
+                            insulinCalculated: state.insulinCalculated,
                             maxBolus: state.maxBolus,
                             maxIOB: state.maxIOB,
                             iob: state.iob
@@ -511,9 +509,9 @@ struct PopupView: View {
 
 extension View {
     // Function to generate the warning text for max bolus/IOB
-    func getCappedText(wholeCalc: Decimal, maxBolus: Decimal, maxIOB: Decimal, iob: Decimal) -> Text {
-        let limitedByMaxBolus = wholeCalc >= maxBolus && maxBolus < maxIOB - iob
-        let limitedByMaxIOB = wholeCalc >= maxIOB - iob
+    func getCappedText(insulinCalculated: Decimal, maxBolus: Decimal, maxIOB: Decimal, iob: Decimal) -> Text {
+        let limitedByMaxBolus = insulinCalculated >= maxBolus && maxBolus < maxIOB - iob
+        let limitedByMaxIOB = insulinCalculated >= maxIOB - iob
         return Text(
             limitedByMaxBolus ? " ≈ Max Bolus" :
                 limitedByMaxIOB ? " ≈ Max IOB" : ""
