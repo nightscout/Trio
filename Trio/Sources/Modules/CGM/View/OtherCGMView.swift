@@ -19,72 +19,127 @@ extension CGM {
             NavigationView {
                 Form {
                     if cgmCurrent.type != .none {
-                        Section(
-                            header: Text("Configuration"),
-                            content: {
-                                if cgmCurrent.type == .nightscout {
-                                    NavigationLink(
-                                        destination: NightscoutConfig.RootView(resolver: resolver, displayClose: false),
-                                        label: { Text("Config Nightscout") }
-                                    )
-                                } else if cgmCurrent.type == .xdrip {
-                                    VStack(alignment: .leading) {
-                                        if let cgmTransmitterDeviceAddress = UserDefaults.standard.cgmTransmitterDeviceAddress {
-                                            Text("CGM address :").padding(.top)
-                                            Text(cgmTransmitterDeviceAddress)
-                                        } else {
-                                            Text("CGM is not used as heartbeat.").padding(.top)
-                                        }
+                        if cgmCurrent.type == .nightscout {
+                            Section(
+                                header: Text("Configuration"),
+                                content: {
+                                    VStack(alignment: .leading, spacing: 10) {
+                                        Text("CGM is not used as heartbeat.").padding(.top)
 
-                                        HStack(alignment: .center) {
-                                            Text(
-                                                "A heartbeat tells Trio to start a loop cycle. This is required for closed loop."
-                                            )
-                                            .font(.footnote)
+                                        Text(
+                                            state.url == nil ?
+                                                "To configure your CGM, tap the button below. In the form that opens, enter your Nightscout credentials to connect to your instance." :
+                                                "Tap the button below to open your Nightscout instance in your iPhone's default browser."
+                                        ).font(.footnote)
                                             .foregroundColor(.secondary)
                                             .lineLimit(nil)
-                                            Spacer()
-                                        }.padding(.vertical)
+                                            .padding(.vertical)
                                     }
-                                } else if cgmCurrent.type == .simulator {
-                                    Text(
-                                        "Trio's glucose simulator does not offer any configuration. Its use is strictly for demonstration purposes only."
-                                    )
-                                }
 
-                                if let link = cgmCurrent.type.externalLink {
-                                    Button {
-                                        UIApplication.shared.open(link, options: [:], completionHandler: nil)
-                                    } label: {
-                                        HStack {
-                                            Text("About this source")
-                                            Spacer()
-                                            Image(systemName: "chevron.right")
-                                        }
+                                    if state.url == nil {
+                                        NavigationLink(
+                                            destination: NightscoutConfig.RootView(resolver: resolver, displayClose: false),
+                                            label: { Text("Configure Nightscout").foregroundStyle(Color.accentColor) }
+                                        )
                                     }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
                                 }
+                            ).listRowBackground(Color.chart)
 
-                                if let appURL = cgmCurrent.type.appURL {
+                            if let url = state.url {
+                                Section {
                                     Button {
-                                        UIApplication.shared.open(appURL, options: [:]) { success in
+                                        UIApplication.shared.open(url, options: [:]) { success in
                                             if !success {
                                                 self.router.alertMessage
-                                                    .send(MessageContent(content: "Unable to open the app", type: .warning))
+                                                    .send(MessageContent(
+                                                        content: "No URL available",
+                                                        type: .warning
+                                                    ))
                                             }
                                         }
                                     }
                                     label: {
-                                        HStack {
-                                            Text(cgmCurrent.displayName)
-                                            Spacer()
-                                            Image(systemName: "chevron.right")
+                                        Label(
+                                            "Open Nightscout",
+                                            systemImage: "waveform.path.ecg.rectangle"
+                                        ).font(.title3)
+                                            .padding() }
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                        .buttonStyle(.bordered)
+                                }
+                                .listRowBackground(Color.clear)
+                            }
+                        } else {
+                            Section(
+                                header: Text("Configuration"),
+                                content: {
+                                    if cgmCurrent.type == .xdrip {
+                                        VStack(alignment: .leading) {
+                                            if let cgmTransmitterDeviceAddress = UserDefaults.standard
+                                                .cgmTransmitterDeviceAddress
+                                            {
+                                                Text("CGM address :").padding(.top)
+                                                Text(cgmTransmitterDeviceAddress)
+                                            } else {
+                                                Text("CGM is not used as heartbeat.").padding(.top)
+                                            }
+
+                                            HStack(alignment: .center) {
+                                                Text(
+                                                    "A heartbeat tells Trio to start a loop cycle. This is required for closed loop."
+                                                )
+                                                .font(.footnote)
+                                                .foregroundColor(.secondary)
+                                                .lineLimit(nil)
+                                                Spacer()
+                                            }.padding(.vertical)
+                                        }
+                                    } else if cgmCurrent.type == .simulator {
+                                        Text(
+                                            "Trio's glucose simulator does not offer any configuration. Its use is strictly for demonstration purposes only."
+                                        )
+                                    }
+
+                                    if let link = cgmCurrent.type.externalLink {
+                                        Button {
+                                            UIApplication.shared.open(link, options: [:], completionHandler: nil)
+                                        } label: {
+                                            HStack {
+                                                Text("About this source")
+                                                Spacer()
+                                                Image(systemName: "chevron.right")
+                                            }
+                                        }
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                }
+                            ).listRowBackground(Color.chart)
+                        }
+
+                        if let appURL = cgmCurrent.type.appURL {
+                            Section {
+                                Button {
+                                    UIApplication.shared.open(appURL, options: [:]) { success in
+                                        if !success {
+                                            self.router.alertMessage
+                                                .send(MessageContent(
+                                                    content: "Unable to open the app",
+                                                    type: .warning
+                                                ))
                                         }
                                     }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
                                 }
-                            }
-                        ).listRowBackground(Color.chart)
+
+                                label: {
+                                    Label(
+                                        "Open \(cgmCurrent.displayName)",
+                                        systemImage: "waveform.path.ecg.rectangle"
+                                    ).font(.title3)
+                                        .padding() }
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .buttonStyle(.bordered)
+                            }.listRowBackground(Color.clear)
+                        }
                     }
                 }
                 .navigationTitle(cgmCurrent.displayName)

@@ -10,6 +10,6 @@ let cgmOptions: [CGMOption] = [
     ),
     CGMOption(name: "Glucose Simulator", predicate: { $0.type == .simulator }),
     CGMOption(name: "Medtronic Enlite", predicate: { $0.type == .enlite }),
-    CGMOption(name: "Nightscout", predicate: { $0.type == .nightscout }),
+    CGMOption(name: "Nightscout as CGM", predicate: { $0.type == .nightscout }),
     CGMOption(name: "xDrip4iOS", predicate: { $0.type == .xdrip })
 ]

@@ -14,7 +14,7 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
         case .none:
             return "None"
         case .nightscout:
-            return "Nightscout-as-CGM"
+            return "Nightscout as CGM"
         case .xdrip:
             return "xDrip4iOS"
         case .simulator:
