@@ -112,28 +112,6 @@ extension CGM {
             subscribeSetting(\.smoothGlucose, on: $smoothGlucose, initial: { smoothGlucose = $0 })
         }
 
-        func displayNameOfApp() -> String? {
-            guard fetchGlucoseManager != nil else { return nil }
-            var nameOfApp = "Open Application"
-            switch fetchGlucoseManager.cgmGlucoseSourceType {
-            case .plugin:
-                nameOfApp = "Open " + (fetchGlucoseManager.cgmManager?.localizedTitle ?? "Application")
-            default:
-                nameOfApp = "Open " + fetchGlucoseManager.cgmGlucoseSourceType.displayName
-            }
-            return nameOfApp
-        }
-
-        func urlOfApp() -> URL? {
-            guard fetchGlucoseManager != nil else { return nil }
-            switch fetchGlucoseManager.cgmGlucoseSourceType {
-            case .plugin:
-                return fetchGlucoseManager.cgmManager?.appURL
-            default:
-                return fetchGlucoseManager.cgmGlucoseSourceType.appURL
-            }
-        }
-
         func addCGM(cgm: CGMModel) {
             cgmCurrent = cgm
             switch cgmCurrent.type {
