@@ -88,7 +88,7 @@ class CoreDataStack: ObservableObject {
         let taskContext = persistentContainer.newBackgroundContext()
 
         /// ensure that the background contexts stay in sync with the main context
-        taskContext.automaticallyMergesChangesFromParent = true
+        taskContext.automaticallyMergesChangesFromParent = false
         taskContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         taskContext.undoManager = nil
         return taskContext
