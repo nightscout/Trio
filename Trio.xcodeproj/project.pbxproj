@@ -323,6 +323,12 @@
 		BDA25F1E2D26D5DD00035F34 /* GlucoseChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25F1D2D26D5D800035F34 /* GlucoseChartView.swift */; };
 		BDA25F202D26D5FE00035F34 /* CarbsInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */; };
 		BDA25F222D26D62800035F34 /* BolusInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA25F212D26D62200035F34 /* BolusInputView.swift */; };
+		BDA28BD72D5D5C5500549AFB /* TestError.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA28BD62D5D5C5500549AFB /* TestError.swift */; };
+		BDA28BD92D5D5C5600549AFB /* TestError 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA28BD82D5D5C5600549AFB /* TestError 2.swift */; };
+		BDA28BDC2D5D5C7500549AFB /* BolusCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA28BDB2D5D5C7500549AFB /* BolusCalculatorTests.swift */; };
+		BDA28BDF2D5D5C9600549AFB /* TestAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA28BDE2D5D5C9600549AFB /* TestAssembly.swift */; };
+		BDA28BE12D5D5CB300549AFB /* DeterminationStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA28BE02D5D5CB300549AFB /* DeterminationStorageTests.swift */; };
+		BDA28BE32D5D5CCB00549AFB /* PumpHistoryStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA28BE22D5D5CCB00549AFB /* PumpHistoryStorageTests.swift */; };
 		BDA6CC882CAF219B00F942F9 /* TempTargetSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */; };
 		BDA7593E2D37CFC400E649A4 /* CarbEntryEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA7593D2D37CFC000E649A4 /* CarbEntryEditorView.swift */; };
 		BDAE40002D372BAD009C12B1 /* WatchState+Requests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDAE3FFF2D372BA8009C12B1 /* WatchState+Requests.swift */; };
@@ -1046,6 +1052,12 @@
 		BDA25F1D2D26D5D800035F34 /* GlucoseChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseChartView.swift; sourceTree = "<group>"; };
 		BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbsInputView.swift; sourceTree = "<group>"; };
 		BDA25F212D26D62200035F34 /* BolusInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusInputView.swift; sourceTree = "<group>"; };
+		BDA28BD62D5D5C5500549AFB /* TestError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestError.swift; sourceTree = "<group>"; };
+		BDA28BD82D5D5C5600549AFB /* TestError 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TestError 2.swift"; sourceTree = "<group>"; };
+		BDA28BDB2D5D5C7500549AFB /* BolusCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorTests.swift; sourceTree = "<group>"; };
+		BDA28BDE2D5D5C9600549AFB /* TestAssembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestAssembly.swift; sourceTree = "<group>"; };
+		BDA28BE02D5D5CB300549AFB /* DeterminationStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterminationStorageTests.swift; sourceTree = "<group>"; };
+		BDA28BE22D5D5CCB00549AFB /* PumpHistoryStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpHistoryStorageTests.swift; sourceTree = "<group>"; };
 		BDA6CC872CAF219800F942F9 /* TempTargetSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetSetup.swift; sourceTree = "<group>"; };
 		BDA7593D2D37CFC000E649A4 /* CarbEntryEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbEntryEditorView.swift; sourceTree = "<group>"; };
 		BDAE3FFF2D372BA8009C12B1 /* WatchState+Requests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WatchState+Requests.swift"; sourceTree = "<group>"; };
@@ -2288,10 +2300,14 @@
 		38FCF3EE25E9028E0078B0D1 /* TrioTests */ = {
 			isa = PBXGroup;
 			children = (
+				BDA28BDD2D5D5C8100549AFB /* CoreDataTests */,
+				BDA28BDA2D5D5C6900549AFB /* BolusCalculatorTests */,
 				38FCF3F125E9028E0078B0D1 /* Info.plist */,
 				38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */,
 				CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */,
 				CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */,
+				BDA28BD62D5D5C5500549AFB /* TestError.swift */,
+				BDA28BD82D5D5C5600549AFB /* TestError 2.swift */,
 			);
 			path = TrioTests;
 			sourceTree = "<group>";
@@ -2551,6 +2567,24 @@
 				BDFF7A842D25F97D0016C40C /* TrioMainWatchView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		BDA28BDA2D5D5C6900549AFB /* BolusCalculatorTests */ = {
+			isa = PBXGroup;
+			children = (
+				BDA28BDB2D5D5C7500549AFB /* BolusCalculatorTests.swift */,
+			);
+			path = BolusCalculatorTests;
+			sourceTree = "<group>";
+		};
+		BDA28BDD2D5D5C8100549AFB /* CoreDataTests */ = {
+			isa = PBXGroup;
+			children = (
+				BDA28BDE2D5D5C9600549AFB /* TestAssembly.swift */,
+				BDA28BE02D5D5CB300549AFB /* DeterminationStorageTests.swift */,
+				BDA28BE22D5D5CCB00549AFB /* PumpHistoryStorageTests.swift */,
+			);
+			path = CoreDataTests;
 			sourceTree = "<group>";
 		};
 		BDDAF9F12D0055CC00B34E7A /* ChartElements */ = {
@@ -4046,9 +4080,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BDA28BD72D5D5C5500549AFB /* TestError.swift in Sources */,
 				CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */,
+				BDA28BE32D5D5CCB00549AFB /* PumpHistoryStorageTests.swift in Sources */,
+				BDA28BD92D5D5C5600549AFB /* TestError 2.swift in Sources */,
+				BDA28BDC2D5D5C7500549AFB /* BolusCalculatorTests.swift in Sources */,
 				CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */,
+				BDA28BE12D5D5CB300549AFB /* DeterminationStorageTests.swift in Sources */,
 				38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */,
+				BDA28BDF2D5D5C9600549AFB /* TestAssembly.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

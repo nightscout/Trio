@@ -516,15 +516,17 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     ) {
         dispatchPrecondition(condition: .onQueue(processQueue))
 
-        // filter buggy TBRs > maxBasal from MDT
-        let events = events.filter {
-            // type is optional...
-            guard let type = $0.type, type == .tempBasal else { return true }
-            return $0.dose?.unitsPerHour ?? 0 <= Double(settingsManager.pumpSettings.maxBasal)
+        Task {
+            // filter buggy TBRs > maxBasal from MDT
+            let events = events.filter {
+                // type is optional...
+                guard let type = $0.type, type == .tempBasal else { return true }
+                return $0.dose?.unitsPerHour ?? 0 <= Double(settingsManager.pumpSettings.maxBasal)
+            }
+            await pumpHistoryStorage.storePumpEvents(events)
+            lastEventDate = events.last?.date
+            completion(nil)
         }
-        pumpHistoryStorage.storePumpEvents(events)
-        lastEventDate = events.last?.date
-        completion(nil)
     }
 
     func pumpManager(

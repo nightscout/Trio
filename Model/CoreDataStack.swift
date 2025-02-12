@@ -41,6 +41,11 @@ class CoreDataStack: ObservableObject {
         }
     }
 
+    // Factory method for tests
+    static func createForTests() -> CoreDataStack {
+        CoreDataStack(inMemory: true)
+    }
+
     /// A persistent container to set up the Core Data Stack
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "TrioCoreDataPersistentContainer")

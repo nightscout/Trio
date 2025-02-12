@@ -16,23 +16,24 @@ protocol DeterminationStorage {
 
 final class BaseDeterminationStorage: DeterminationStorage, Injectable {
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-    private let backgroundContext = CoreDataStack.shared.newTaskContext()
+    private let context: NSManagedObjectContext
 
-    init(resolver: Resolver) {
+    init(resolver: Resolver, context: NSManagedObjectContext? = nil) {
+        self.context = context ?? CoreDataStack.shared.newTaskContext()
         injectServices(resolver)
     }
 
     func fetchLastDeterminationObjectID(predicate: NSPredicate) async -> [NSManagedObjectID] {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: predicate,
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1
         )
 
-        return await backgroundContext.perform {
+        return await context.perform {
             guard let fetchedResults = results as? [OrefDetermination] else { return [] }
 
             return fetchedResults.map(\.objectID)
@@ -112,19 +113,19 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
 
     // Convert NSSet to array of Ints for Predictions
     func parseForecastValues(ofType type: String, from determinationID: NSManagedObjectID) async -> [Int]? {
-        let forecastIDs = await getForecastIDs(for: determinationID, in: backgroundContext)
+        let forecastIDs = await getForecastIDs(for: determinationID, in: context)
 
         var forecastValuesList: [Int] = []
 
         for forecastID in forecastIDs {
-            await backgroundContext.perform {
-                if let forecast = try? self.backgroundContext.existingObject(with: forecastID) as? Forecast {
+            await context.perform {
+                if let forecast = try? self.context.existingObject(with: forecastID) as? Forecast {
                     // Filter the forecast based on the type
                     if forecast.type == type {
                         let forecastValueIDs = forecast.forecastValues?.sorted(by: { $0.index < $1.index }).map(\.objectID) ?? []
 
                         for forecastValueID in forecastValueIDs {
-                            if let forecastValue = try? self.backgroundContext
+                            if let forecastValue = try? self.context
                                 .existingObject(with: forecastValueID) as? ForecastValue
                             {
                                 let forecastValueInt = Int(forecastValue.value)
@@ -153,9 +154,9 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
             uam: await parseForecastValues(ofType: "uam", from: determinationId)
         )
 
-        return await backgroundContext.perform {
+        return await context.perform {
             do {
-                let orefDetermination = try self.backgroundContext.existingObject(with: determinationId) as? OrefDetermination
+                let orefDetermination = try self.context.existingObject(with: determinationId) as? OrefDetermination
 
                 // Check if the fetched object is of the expected type
                 if let orefDetermination = orefDetermination {
