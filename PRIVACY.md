@@ -23,7 +23,7 @@ This privacy policy outlines the principles and practices for collecting, using,
 - No personal user information is collected
 
 ### 3. Transparency
-- All data collection code is open source and available for community review
+- All data collection code is [open source](https://github.com/kingst/trio-oref-logs) and available for community review
 - The specific data points being collected are documented in the source code
 - Any changes to data collection must go through public code review
 - Regular reports on data usage will be published to the community
@@ -41,6 +41,10 @@ This privacy policy outlines the principles and practices for collecting, using,
 - No attempt to re-identify or correlate data points
 - No use for marketing, analytics, or user behavior analysis
 - No combination with other data sources
+
+### Use in research publications
+- We will maintain aggregate statistics, like invocation rates and average timing differences between Javascript and Swift for use in research publications
+- We will not use individual records
 
 ## Data Protection
 

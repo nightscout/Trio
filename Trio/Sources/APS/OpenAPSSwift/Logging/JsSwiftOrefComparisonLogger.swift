@@ -59,7 +59,7 @@ actor JsSwiftOrefComparisonLogger {
 
     // server settings for getting a signed Google Cloud Storage URL
     // that we can PUT to
-    private let baseUrlString = "https://event-log-server.uc.r.appspot.com"
+    private let baseUrlString = "https://trio-oref-logs.uc.r.appspot.com"
     private let project = "trio-oref-validation"
 
     private let storageUrl: URL
