@@ -201,7 +201,7 @@ extension Home {
         // These combine subscribers are only necessary due to the batch inserts of glucose/FPUs which do not trigger a ManagedObjectContext change notification
         private func registerSubscribers() {
             glucoseStorage.updatePublisher
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .sink { [weak self] _ in
                     guard let self = self else { return }
                     self.setupGlucoseArray()
@@ -209,7 +209,7 @@ extension Home {
                 .store(in: &subscriptions)
 
             carbsStorage.updatePublisher
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .sink { [weak self] _ in
                     guard let self = self else { return }
                     self.setupFPUsArray()

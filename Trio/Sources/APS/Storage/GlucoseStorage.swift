@@ -62,114 +62,158 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     func storeGlucose(_ glucose: [BloodGlucose]) {
         coredataContext.perform {
-            let datesToCheck: Set<Date?> = Set(glucose.compactMap { $0.dateString as Date? })
-            let fetchRequest: NSFetchRequest<NSFetchRequestResult> = GlucoseStored.fetchRequest()
-            fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-                NSPredicate(format: "date IN %@", datesToCheck),
-                NSPredicate.predicateForOneDayAgo
-            ])
-            fetchRequest.propertiesToFetch = ["date"]
-            fetchRequest.resultType = .dictionaryResultType
+            // Get new glucose values that don't exist yet
+            let newGlucose = self.filterNewGlucoseValues(glucose)
+            guard !newGlucose.isEmpty else { return }
 
-            var existingDates = Set<Date>()
             do {
-                let results = try self.coredataContext.fetch(fetchRequest) as? [NSDictionary]
-                existingDates = Set(results?.compactMap({ $0["date"] as? Date }) ?? [])
-            } catch {
-                debugPrint("Failed to fetch existing glucose dates: \(error)")
-            }
-
-            var filteredGlucose = glucose.filter { !existingDates.contains($0.dateString) }
-
-            // prepare batch insert
-            let batchInsert = NSBatchInsertRequest(
-                entity: GlucoseStored.entity(),
-                managedObjectHandler: { (managedObject: NSManagedObject) -> Bool in
-                    guard let glucoseEntry = managedObject as? GlucoseStored, !filteredGlucose.isEmpty else {
-                        return true // Stop if there are no more items
-                    }
-                    let entry = filteredGlucose.removeFirst()
-                    glucoseEntry.id = UUID()
-                    glucoseEntry.glucose = Int16(entry.glucose ?? 0)
-                    glucoseEntry.date = entry.dateString
-                    glucoseEntry.direction = entry.direction?.rawValue
-                    glucoseEntry.isUploadedToNS = false /// the value is not uploaded to NS (yet)
-                    glucoseEntry.isUploadedToHealth = false /// the value is not uploaded to Health (yet)
-                    glucoseEntry.isUploadedToTidepool = false /// the value is not uploaded to Tidepool (yet)
-                    return false // Continue processing
-                }
-            )
-
-            // process batch insert
-            do {
-                try self.coredataContext.execute(batchInsert)
-
-                // Notify subscribers that there is a new glucose value
-                // We need to do this because the due to the batch insert there is no ManagedObjectContext notification
-                self.updateSubject.send(())
+                // Store glucose values in Core Data
+                try self.storeGlucoseInCoreData(newGlucose)
             } catch {
                 debugPrint(
-                    "Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to execute batch insert: \(error)"
+                    "Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to store glucose: \(error)"
                 )
             }
 
-            debug(.deviceManager, "start storage cgmState")
-            self.storage.transaction { storage in
-                let file = OpenAPS.Monitor.cgmState
-                var treatments = storage.retrieve(file, as: [NightscoutTreatment].self) ?? []
-                var updated = false
-                for x in glucose {
-                    debug(.deviceManager, "storeGlucose \(x)")
-                    guard let sessionStartDate = x.sessionStartDate else {
-                        continue
-                    }
-                    if let lastTreatment = treatments.last,
-                       let createdAt = lastTreatment.createdAt,
-                       // When a new Dexcom sensor is started, it produces multiple consecutive
-                       // startDates. Disambiguate them by only allowing a session start per minute.
-                       abs(createdAt.timeIntervalSince(sessionStartDate)) < TimeInterval(60)
-                    {
-                        continue
-                    }
-                    var notes = ""
-                    if let t = x.transmitterID {
-                        notes = t
-                    }
-                    if let a = x.activationDate {
-                        notes = "\(notes) activated on \(a)"
-                    }
-                    let treatment = NightscoutTreatment(
-                        duration: nil,
-                        rawDuration: nil,
-                        rawRate: nil,
-                        absolute: nil,
-                        rate: nil,
-                        eventType: .nsSensorChange,
-                        createdAt: sessionStartDate,
-                        enteredBy: NightscoutTreatment.local,
-                        bolus: nil,
-                        insulin: nil,
-                        notes: notes,
-                        carbs: nil,
-                        fat: nil,
-                        protein: nil,
-                        targetTop: nil,
-                        targetBottom: nil
-                    )
-                    debug(.deviceManager, "CGM sensor change \(treatment)")
-                    treatments.append(treatment)
-                    updated = true
+            // Store CGM state if needed
+            self.storeCGMState(glucose)
+        }
+    }
+
+    private func filterNewGlucoseValues(_ glucose: [BloodGlucose]) -> [BloodGlucose] {
+        let datesToCheck: Set<Date?> = Set(glucose.compactMap { $0.dateString as Date? })
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = GlucoseStored.fetchRequest()
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "date IN %@", datesToCheck),
+            NSPredicate.predicateForOneDayAgo
+        ])
+        fetchRequest.propertiesToFetch = ["date"]
+        fetchRequest.resultType = .dictionaryResultType
+
+        var existingDates = Set<Date>()
+        do {
+            let results = try coredataContext.fetch(fetchRequest) as? [NSDictionary]
+            existingDates = Set(results?.compactMap({ $0["date"] as? Date }) ?? [])
+        } catch {
+            debugPrint("Failed to fetch existing glucose dates: \(error)")
+        }
+
+        return glucose.filter { !existingDates.contains($0.dateString) }
+    }
+
+    private func storeGlucoseInCoreData(_ glucose: [BloodGlucose]) throws {
+        if glucose.count <= 3 {
+            try storeGlucoseRegular(glucose)
+        } else {
+            try storeGlucoseBatch(glucose)
+        }
+    }
+
+    private func storeGlucoseRegular(_ glucose: [BloodGlucose]) throws {
+        for entry in glucose {
+            let glucoseEntry = GlucoseStored(context: coredataContext)
+            configureGlucoseEntry(glucoseEntry, with: entry)
+        }
+
+        guard coredataContext.hasChanges else { return }
+        try coredataContext.save()
+    }
+
+    private func storeGlucoseBatch(_ glucose: [BloodGlucose]) throws {
+        var remainingGlucose = glucose
+        let batchInsert = NSBatchInsertRequest(
+            entity: GlucoseStored.entity(),
+            managedObjectHandler: { (managedObject: NSManagedObject) -> Bool in
+                guard let glucoseEntry = managedObject as? GlucoseStored,
+                      !remainingGlucose.isEmpty
+                else {
+                    return true
                 }
-                if updated {
-                    // We have to keep quite a bit of history as sensors start only every 10 days.
-                    storage.save(
-                        treatments.filter
-                            { $0.createdAt != nil && $0.createdAt!.addingTimeInterval(30.days.timeInterval) > Date() },
-                        as: file
-                    )
+                let entry = remainingGlucose.removeFirst()
+                self.configureGlucoseEntry(glucoseEntry, with: entry)
+                return false
+            }
+        )
+        try coredataContext.execute(batchInsert)
+        // Only send update for batch insert since regular save triggers CoreData notifications
+        updateSubject.send()
+    }
+
+    private func configureGlucoseEntry(_ entry: GlucoseStored, with glucose: BloodGlucose) {
+        entry.id = UUID()
+        entry.glucose = Int16(glucose.glucose ?? 0)
+        entry.date = glucose.dateString
+        entry.direction = glucose.direction?.rawValue
+        entry.isUploadedToNS = false
+        entry.isUploadedToHealth = false
+        entry.isUploadedToTidepool = false
+    }
+
+    private func storeCGMState(_ glucose: [BloodGlucose]) {
+        debug(.deviceManager, "start storage cgmState")
+        storage.transaction { storage in
+            let file = OpenAPS.Monitor.cgmState
+            var treatments = storage.retrieve(file, as: [NightscoutTreatment].self) ?? []
+            var updated = false
+
+            for x in glucose {
+                guard let sessionStartDate = x.sessionStartDate else { continue }
+
+                // Skip if we already have a recent treatment
+                if let lastTreatment = treatments.last,
+                   let createdAt = lastTreatment.createdAt,
+                   abs(createdAt.timeIntervalSince(sessionStartDate)) < TimeInterval(60)
+                {
+                    continue
                 }
+
+                let notes = createCGMStateNotes(transmitterID: x.transmitterID, activationDate: x.activationDate)
+                let treatment = createCGMStateTreatment(sessionStartDate: sessionStartDate, notes: notes)
+
+                debug(.deviceManager, "CGM sensor change \(treatment)")
+                treatments.append(treatment)
+                updated = true
+            }
+
+            if updated {
+                storage.save(
+                    treatments.filter { $0.createdAt?.addingTimeInterval(30.days.timeInterval) ?? .distantPast > Date() },
+                    as: file
+                )
             }
         }
+    }
+
+    private func createCGMStateNotes(transmitterID: String?, activationDate: Date?) -> String {
+        var notes = ""
+        if let t = transmitterID {
+            notes = t
+        }
+        if let a = activationDate {
+            notes = "\(notes) activated on \(a)"
+        }
+        return notes
+    }
+
+    private func createCGMStateTreatment(sessionStartDate: Date, notes: String) -> NightscoutTreatment {
+        NightscoutTreatment(
+            duration: nil,
+            rawDuration: nil,
+            rawRate: nil,
+            absolute: nil,
+            rate: nil,
+            eventType: .nsSensorChange,
+            createdAt: sessionStartDate,
+            enteredBy: NightscoutTreatment.local,
+            bolus: nil,
+            insulin: nil,
+            notes: notes,
+            carbs: nil,
+            fat: nil,
+            protein: nil,
+            targetTop: nil,
+            targetBottom: nil
+        )
     }
 
     func addManualGlucose(glucose: Int) {
@@ -188,7 +232,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 try self.coredataContext.save()
 
                 // Glucose subscribers already listen to the update publisher, so call here to update glucose-related data.
-                self.updateSubject.send(())
+                self.updateSubject.send()
             } catch let error as NSError {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save manual glucose to Core Data with error: \(error)"
