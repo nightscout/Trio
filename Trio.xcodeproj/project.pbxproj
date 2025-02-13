@@ -3358,8 +3358,9 @@
 		388E595025AD948C0019842D /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1620;
-				LastUpgradeCheck = 1240;
+				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					388E595725AD948C0019842D = {
 						CreatedOnToolsVersion = 12.3;
@@ -4008,7 +4009,6 @@
 				195D80B92AF697F700D25097 /* DynamicSettingsProvider.swift in Sources */,
 				DD09D47D2C5986DA003FEA5D /* CalendarEventSettingsProvider.swift in Sources */,
 				DD09D47B2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift in Sources */,
-				6BCF84DD2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
 				DD1745202C55523E00211FAC /* SMBSettingsDataFlow.swift in Sources */,
 				D6D02515BBFBE64FEBE89856 /* DataTableRootView.swift in Sources */,
 				DD1745292C55642100211FAC /* SettingInputSection.swift in Sources */,
@@ -4025,7 +4025,6 @@
 				B7C465E9472624D8A2BE2A6A /* (null) in Sources */,
 				71D44AAB2CA5F5EA0036EE9E /* AlertPermissionsChecker.swift in Sources */,
 				320D030F724170A637F06D50 /* (null) in Sources */,
-				CE94598729E9E4110047C9C6 /* WatchConfigRootView.swift in Sources */,
 				19E1F7E829D082D0005C8D20 /* IconConfigDataFlow.swift in Sources */,
 				5A2325522BFCBF55003518CA /* NightscoutUploadView.swift in Sources */,
 				E3A08AAE59538BC8A8ABE477 /* GlucoseNotificationSettingsDataFlow.swift in Sources */,
@@ -4096,7 +4095,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6BCF84DE2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
 				6BCF84DE2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
 				DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */,
 				6B1A8D1E2B14D91600E76752 /* LiveActivityBundle.swift in Sources */,
