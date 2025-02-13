@@ -2018,18 +2018,18 @@
 				CE1F6DE62BAF1A180064EB8D /* BuildDetails.plist */,
 				38F3783A2613555C009DB701 /* Config.xcconfig */,
 				BD1CF8B72C1A4A8400CB930A /* ConfigOverride.xcconfig */,
-				3818AA48274C267000843DB3 /* Frameworks */,
-				6B1A8D1C2B14D91600E76752 /* LiveActivity */,
-				587A54C82BCDCE0F009D38E2 /* Model */,
-				3818AA44274C229000843DB3 /* Packages */,
-				388E595925AD948C0019842D /* Products */,
-				192F0FF5276AC36D0085BE4D /* Recovered References */,
 				388E595A25AD948C0019842D /* Trio */,
+				587A54C82BCDCE0F009D38E2 /* Model */,
 				38FCF3EE25E9028E0078B0D1 /* TrioTests */,
+				6B1A8D1C2B14D91600E76752 /* LiveActivity */,
 				BDFF7AA12D25FAC70016C40C /* Trio Watch App */,
 				BDFF7A9C2D25FA730016C40C /* Trio Watch App Extension */,
 				BDFF7AA02D25FAA80016C40C /* Trio Watch App Tests */,
 				DD09D6492D2B6253000D82C9 /* Trio Watch Complication */,
+				3818AA48274C267000843DB3 /* Frameworks */,
+				3818AA44274C229000843DB3 /* Packages */,
+				388E595925AD948C0019842D /* Products */,
+				192F0FF5276AC36D0085BE4D /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -2405,11 +2405,11 @@
 		587A54C82BCDCE0F009D38E2 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				DDE179112C9100FA003CDDB7 /* Classes+Properties */,
 				BDF34F8F2C10CF8C00D51995 /* CoreDataStack.swift */,
-				5825D1622BD405AE00F36E9B /* Helper */,
-				DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */,
 				BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */,
+				DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */,
+				DDE179112C9100FA003CDDB7 /* Classes+Properties */,
+				5825D1622BD405AE00F36E9B /* Helper */,
 			);
 			path = Model;
 			sourceTree = "<group>";
