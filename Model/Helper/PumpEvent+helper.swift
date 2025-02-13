@@ -12,6 +12,22 @@ extension PumpEventStored {
         }
         return request
     }
+
+    // Preview
+    @discardableResult static func makePreviewEvents(count: Int, provider: CoreDataStack) -> [PumpEventStored] {
+        let context = provider.persistentContainer.viewContext
+        let events = (0 ..< count).map { index -> PumpEventStored in
+            let event = PumpEventStored(context: context)
+            event.timestamp = Date.now.addingTimeInterval(Double(index) * 60)
+            event.type = "Mock Data"
+//            event.amount = 1.0
+//            event.isExternal = false
+//            event.isSMB = false
+//            event.duration = 0
+            return event
+        }
+        return events
+    }
 }
 
 public extension PumpEventStored {

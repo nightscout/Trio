@@ -46,6 +46,16 @@ class CoreDataStack: ObservableObject {
         CoreDataStack(inMemory: true)
     }
 
+    // Used for Canvas Preview
+    static var preview: CoreDataStack = {
+        let stack = CoreDataStack(inMemory: true)
+        let context = stack.persistentContainer.viewContext
+
+        let pumpHistory = PumpEventStored.makePreviewEvents(count: 10, provider: stack)
+
+        return stack
+    }()
+
     /// A persistent container to set up the Core Data Stack
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "TrioCoreDataPersistentContainer")
