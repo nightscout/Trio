@@ -129,14 +129,14 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     do {
                         // Fetch only those determination objects
                         let request: NSFetchRequest<OrefDetermination> = OrefDetermination.fetchRequest()
-                        request.predicate = NSPredicate(format: "SELF IN %@", objectIDs)
+                        request.predicate = NSPredicate(
+                            format: "SELF IN %@ AND isUploadedToNS == NO",
+                            objectIDs
+                        )
                         let results = try self.backgroundContext.fetch(request)
 
-                        // Safely filter out anything that's deleted or already uploaded
-                        let unuploaded = results.filter { !$0.isDeleted && !$0.isUploadedToNS }
-
                         // If valid, proceed to send to subject for further processing
-                        if !unuploaded.isEmpty {
+                        if !results.isEmpty {
                             self.orefDeterminationSubject.send()
                         }
                     } catch {
@@ -172,18 +172,16 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             .sink { [weak self] objectIDs in
                 guard let self = self else { return }
 
-                // Now hop onto the background context’s queue
                 self.backgroundContext.perform {
                     do {
                         let request: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
-                        request.predicate = NSPredicate(format: "SELF IN %@", objectIDs)
+                        request.predicate = NSPredicate(
+                            format: "SELF IN %@ AND isUploadedToNS == NO",
+                            objectIDs
+                        )
                         let results = try self.backgroundContext.fetch(request)
 
-                        // Safely filter out anything that’s deleted or already uploaded
-                        let unuploaded = results.filter { !$0.isDeleted && !$0.isUploadedToNS }
-
-                        // If valid, proceed to send to subject for further processing
-                        if !unuploaded.isEmpty {
+                        if !results.isEmpty {
                             self.uploadPumpHistorySubject.send()
                         }
                     } catch {
@@ -201,14 +199,14 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 self.backgroundContext.perform {
                     do {
                         let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
-                        request.predicate = NSPredicate(format: "SELF IN %@", objectIDs)
+                        request.predicate = NSPredicate(
+                            format: "SELF IN %@ AND isUploadedToNS == NO",
+                            objectIDs
+                        )
                         let results = try self.backgroundContext.fetch(request)
 
-                        // Safely filter out anything that’s deleted or already uploaded
-                        let unuploaded = results.filter { !$0.isDeleted && !$0.isUploadedToNS }
-
                         // If valid, proceed to send to subject for further processing
-                        if !unuploaded.isEmpty {
+                        if !results.isEmpty {
                             self.uploadCarbsSubject.send()
                         }
                     } catch {
