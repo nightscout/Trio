@@ -93,14 +93,17 @@ extension Publisher where Output == Set<NSManagedObjectID> {
 
 extension Notification {
     var insertedObjectIDs: Set<NSManagedObjectID> {
-        userInfo?[NSInsertedObjectIDsKey] as? Set<NSManagedObjectID> ?? []
+        guard let objects = userInfo?[NSInsertedObjectsKey] as? Set<NSManagedObject> else { return [] }
+        return Set(objects.lazy.map(\.objectID))
     }
 
     var updatedObjectIDs: Set<NSManagedObjectID> {
-        userInfo?[NSUpdatedObjectIDsKey] as? Set<NSManagedObjectID> ?? []
+        guard let objects = userInfo?[NSUpdatedObjectsKey] as? Set<NSManagedObject> else { return [] }
+        return Set(objects.lazy.map(\.objectID))
     }
 
     var deletedObjectIDs: Set<NSManagedObjectID> {
-        userInfo?[NSDeletedObjectIDsKey] as? Set<NSManagedObjectID> ?? []
+        guard let objects = userInfo?[NSDeletedObjectsKey] as? Set<NSManagedObject> else { return [] }
+        return Set(objects.lazy.map(\.objectID))
     }
 }
