@@ -18,14 +18,24 @@ extension PumpEventStored {
         let context = provider.persistentContainer.viewContext
         let events = (0 ..< count).map { index -> PumpEventStored in
             let event = PumpEventStored(context: context)
-            event.timestamp = Date.now.addingTimeInterval(Double(index) * 60)
-            event.type = "Mock Data"
-//            event.amount = 1.0
-//            event.isExternal = false
-//            event.isSMB = false
-//            event.duration = 0
+            event.id = UUID().uuidString
+            event.timestamp = Date.now.addingTimeInterval(Double(index) * -300) // Every 5 minutes
+            event.type = EventType.bolus.rawValue
+            event.isUploadedToNS = false
+            event.isUploadedToHealth = false
+            event.isUploadedToTidepool = false
+
+            // Add a bolus
+            let bolus = BolusStored(context: context)
+            bolus.amount = 2.5 as NSDecimalNumber
+            bolus.isExternal = false
+            bolus.isSMB = false
+            bolus.pumpEvent = event
+
             return event
         }
+
+        try? context.save()
         return events
     }
 }

@@ -348,7 +348,7 @@ extension NightscoutConfig {
                     self.backfilling = false
                 }
 
-                glucoseStorage.storeGlucose(glucose)
+                await glucoseStorage.storeGlucose(glucose)
 
                 Task.detached {
                     await self.healthKitManager.uploadGlucose()

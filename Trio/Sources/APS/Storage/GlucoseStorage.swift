@@ -9,7 +9,7 @@ import Swinject
 
 protocol GlucoseStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
-    func storeGlucose(_ glucose: [BloodGlucose])
+    func storeGlucose(_ glucose: [BloodGlucose]) async
     func addManualGlucose(glucose: Int)
     func isGlucoseDataFresh(_ glucoseDate: Date?) -> Bool
     func syncDate() -> Date
@@ -60,8 +60,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         return formatter
     }
 
-    func storeGlucose(_ glucose: [BloodGlucose]) {
-        coredataContext.perform {
+    func storeGlucose(_ glucose: [BloodGlucose]) async {
+        await coredataContext.perform {
             // Get new glucose values that don't exist yet
             let newGlucose = self.filterNewGlucoseValues(glucose)
             guard !newGlucose.isEmpty else { return }
