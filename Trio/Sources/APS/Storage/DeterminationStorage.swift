@@ -12,6 +12,8 @@ protocol DeterminationStorage {
         in context: NSManagedObjectContext
     ) async -> (UUID, Forecast?, [ForecastValue])
     func getOrefDeterminationNotYetUploadedToNightscout(_ determinationIds: [NSManagedObjectID]) async -> Determination?
+    func fetchForecastHierarchy(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext)
+    async -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
 }
 
 final class BaseDeterminationStorage: DeterminationStorage, Injectable {
@@ -201,5 +203,37 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
 
             return result
         }
+    }
+
+    func fetchForecastHierarchy(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext)
+    async -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
+    {
+        // Fetch forecasts with prefetched values for the given determination
+        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: Forecast.self,
+            onContext: context,
+            predicate: NSPredicate(format: "orefDetermination = %@", determinationID),
+            key: "type",
+            ascending: true,
+            relationshipKeyPathsForPrefetching: ["forecastValues"]
+        )
+
+        var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
+
+        await context.perform {
+            if let forecasts = results as? [Forecast] {
+                for forecast in forecasts {
+                    // Use the helper property that already sorts by index
+                    let sortedValues = forecast.forecastValuesArray
+                    result.append((
+                        id: UUID(),
+                        forecastID: forecast.objectID,
+                        forecastValueIDs: sortedValues.map(\.objectID)
+                    ))
+                }
+            }
+        }
+
+        return result
     }
 }

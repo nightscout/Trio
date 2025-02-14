@@ -376,6 +376,7 @@ extension CoreDataStack {
         fetchLimit: Int? = nil,
         batchSize: Int? = nil,
         propertiesToFetch: [String]? = nil,
+        relationshipKeyPathsForPrefetching: [String]? = nil,
         callingFunction: String = #function,
         callingClass: String = #fileID
     ) async -> Any {
@@ -393,6 +394,9 @@ extension CoreDataStack {
             request.resultType = .dictionaryResultType
         } else {
             request.resultType = .managedObjectResultType
+        }
+        if let prefetchKeyPaths = relationshipKeyPathsForPrefetching {
+            request.relationshipKeyPathsForPrefetching = prefetchKeyPaths
         }
 
         context.name = "fetchContext"
