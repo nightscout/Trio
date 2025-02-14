@@ -220,6 +220,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task.detached {
+                    await self.uploadGlucose()
                     await self.uploadManualGlucose()
                 }
             }

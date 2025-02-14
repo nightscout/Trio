@@ -104,6 +104,11 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
             self.overridesDidUpdate()
         }.store(in: &subscriptions)
 
+        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+            guard let self = self else { return }
+            self.setupGlucoseArray()
+        }.store(in: &subscriptions)
+
         coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
             self.orefDeterminationSubject.send()
