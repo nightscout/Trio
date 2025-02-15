@@ -971,19 +971,12 @@ extension Home {
                      .none,
                      .simulator,
                      .xdrip:
-
-                    // TODO: clean this up
-                    if let cgmState = state.cgmStateModel {
-                        CGM.OtherCGMView(
-                            resolver: self.resolver,
-                            state: cgmState,
-                            cgmCurrent: state.cgmCurrent,
-                            deleteCGM: state.deleteCGM
-                        )
-                    } else {
-                        Text("Error: No CGM State Model Available")
-                    }
-
+                    CGM.OtherCGMView(
+                        resolver: self.resolver,
+                        state: state.cgmStateModel,
+                        cgmCurrent: state.cgmCurrent,
+                        deleteCGM: state.deleteCGM
+                    )
                 case .plugin:
                     if let fetchGlucoseManager = state.fetchGlucoseManager,
                        let cgmManager = fetchGlucoseManager.cgmManager,

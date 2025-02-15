@@ -37,6 +37,16 @@ class CGMDeletionCompletionNotifying: CompletionNotifying {
 
 extension CGM {
     final class StateModel: BaseStateModel<Provider> {
+        // Singleton implementation
+        private static var _shared: StateModel?
+        static var shared: StateModel {
+            if _shared == nil {
+                _shared = StateModel()
+                _shared?.resolver = TrioApp().resolver
+            }
+            return _shared!
+        }
+
         @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         @Injected() var pluginCGMManager: PluginManager!
         @Injected() private var broadcaster: Broadcaster!

@@ -20,7 +20,9 @@ extension Home {
         @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
 
-        var cgmStateModel: CGM.StateModel?
+        var cgmStateModel: CGM.StateModel {
+            CGM.StateModel.shared
+        }
 
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
@@ -137,7 +139,6 @@ extension Home {
 
         override init() {
             super.init()
-            cgmStateModel = CGM.StateModel()
         }
 
         override func subscribe() {
