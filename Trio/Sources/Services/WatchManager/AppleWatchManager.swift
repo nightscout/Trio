@@ -45,7 +45,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     init(resolver: Resolver) {
         super.init()
         injectServices(resolver)
-        setupWatchSession()
+        guard setupWatchSession() else {
+            return
+        }
 
         units = settingsManager.settings.units
         glucoseColorScheme = settingsManager.settings.glucoseColorScheme
@@ -123,16 +125,24 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     /// Sets up the WatchConnectivity session if the device supports it
-    private func setupWatchSession() {
+    private func setupWatchSession() -> Bool {
         if WCSession.isSupported() {
             let session = WCSession.default
             session.delegate = self
             session.activate()
             self.session = session
-
             debug(.watchManager, "📱 Phone session setup - isPaired: \(session.isPaired)")
+
+            guard session.isPaired else {
+                debug(.watchManager, "⌚️❌ No Watch is paired")
+                // return here to end any further initialization of Apple Watch Manager
+                return false
+            }
+            return true
         } else {
             debug(.watchManager, "📱 WCSession is not supported on this device")
+            // return here to end any further initialization of Apple Watch Manager
+            return false
         }
     }
 
