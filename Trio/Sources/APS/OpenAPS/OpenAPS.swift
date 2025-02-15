@@ -313,8 +313,6 @@ final class OpenAPS {
             preferencesAsync
         )
 
-        debug(.openAPS, "PUMP HISTORY: \(pumpHistoryJSON)")
-
         // Meal calculation
         let meal = try await self.meal(
             pumphistory: pumpHistoryJSON,
