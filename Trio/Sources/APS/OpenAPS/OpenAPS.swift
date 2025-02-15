@@ -732,13 +732,29 @@ final class OpenAPS {
         }
     }
 
+//    private func middlewareScript(name: String) -> Script? {
+//        if let body = storage.retrieveRaw(name) {
+//            return Script(name: name, body: body)
+//        }
+//
+//        if let url = Foundation.Bundle.main.url(forResource: "javascript/\(name)", withExtension: "") {
+//            return Script(name: name, body: try! String(contentsOf: url))
+//        }
+//
+//        return nil
+//    }
     private func middlewareScript(name: String) -> Script? {
         if let body = storage.retrieveRaw(name) {
             return Script(name: name, body: body)
         }
 
         if let url = Foundation.Bundle.main.url(forResource: "javascript/\(name)", withExtension: "") {
-            return Script(name: name, body: try! String(contentsOf: url))
+            do {
+                let body = try String(contentsOf: url)
+                return Script(name: name, body: body)
+            } catch {
+                print("Failed to load script \(name): \(error)")
+            }
         }
 
         return nil
