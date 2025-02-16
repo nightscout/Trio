@@ -23,7 +23,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
             let pushMessage = try JSONDecoder().decode(PushMessage.self, from: jsonData)
 
             Task {
-                await TrioRemoteControl.shared.handleRemoteNotification(pushMessage: pushMessage)
+                try await TrioRemoteControl.shared.handleRemoteNotification(pushMessage: pushMessage)
                 completionHandler(.newData)
             }
         } catch {
@@ -40,7 +40,14 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
         let token = tokenParts.joined()
 
         Task {
-            await TrioRemoteControl.shared.handleAPNSChanges(deviceToken: token)
+            do {
+                try await TrioRemoteControl.shared.handleAPNSChanges(deviceToken: token)
+            } catch {
+                debug(
+                    .remoteControl,
+                    "\(DebuggingIdentifiers.failed) failed to register for remote notifications: \(error.localizedDescription)"
+                )
+            }
         }
     }
 

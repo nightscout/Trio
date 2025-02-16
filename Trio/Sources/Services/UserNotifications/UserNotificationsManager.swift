@@ -241,8 +241,8 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         )
     }
 
-    private func fetchGlucoseIDs() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchGlucoseIDs() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.predicateFor20MinAgo,
@@ -261,7 +261,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     @MainActor private func sendGlucoseNotification() async {
         do {
             addAppBadge(glucose: nil)
-            let glucoseIDs = await fetchGlucoseIDs()
+            let glucoseIDs = try await fetchGlucoseIDs()
             let glucoseObjects = try glucoseIDs.compactMap { id in
                 try viewContext.existingObject(with: id) as? GlucoseStored
             }

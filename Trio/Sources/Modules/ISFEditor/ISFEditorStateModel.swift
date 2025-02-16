@@ -86,7 +86,7 @@ extension ISFEditor {
 
             Task.detached(priority: .low) {
                 debug(.nightscout, "Attempting to upload ISF to Nightscout")
-                await self.nightscout.uploadProfiles()
+                try await self.nightscout.uploadProfiles()
             }
         }
 

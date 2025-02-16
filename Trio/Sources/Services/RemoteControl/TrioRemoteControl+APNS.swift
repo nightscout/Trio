@@ -1,7 +1,7 @@
 import Foundation
 
 extension TrioRemoteControl {
-    internal func handleAPNSChanges(deviceToken: String?) async {
+    internal func handleAPNSChanges(deviceToken: String?) async throws {
         let previousDeviceToken = UserDefaults.standard.string(forKey: "deviceToken")
         let previousIsAPNSProduction = UserDefaults.standard.bool(forKey: "isAPNSProduction")
 
@@ -21,7 +21,7 @@ extension TrioRemoteControl {
         }
 
         if shouldUploadProfiles {
-            await nightscoutManager.uploadProfiles()
+            try await nightscoutManager.uploadProfiles()
         } else {
             debug(.remoteControl, "No changes detected in device token or APNS environment.")
         }

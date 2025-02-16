@@ -75,7 +75,7 @@ extension NightscoutConfig {
                     if enabled {
                         debug(.nightscout, "Upload has been enabled by the user.")
                         Task {
-                            await self.nightscoutManager.uploadProfiles()
+                            try await self.nightscoutManager.uploadProfiles()
                         }
                     } else {
                         debug(.nightscout, "Upload has been disabled by the user.")
@@ -344,20 +344,25 @@ extension NightscoutConfig {
             let glucose = await nightscoutManager.fetchGlucose(since: Date().addingTimeInterval(-1.days.timeInterval))
 
             if glucose.isNotEmpty {
-                await MainActor.run {
-                    self.backfilling = false
-                }
+                do {
+                    try await glucoseStorage.storeGlucose(glucose)
 
-                await glucoseStorage.storeGlucose(glucose)
-
-                Task.detached {
-                    await self.healthKitManager.uploadGlucose()
+                    Task.detached {
+                        await self.healthKitManager.uploadGlucose()
+                    }
+                } catch let error as CoreDataError {
+                    debug(.nightscout, "Core Data error while storing backfilled glucose: \(error.localizedDescription)")
+                    message = "Error: \(error.localizedDescription)"
+                } catch {
+                    debug(.nightscout, "Unexpected error while storing backfilled glucose: \(error.localizedDescription)")
+                    message = "Error: \(error.localizedDescription)"
                 }
             } else {
-                await MainActor.run {
-                    self.backfilling = false
-                    debug(.nightscout, "No glucose values found or fetched to backfill.")
-                }
+                debug(.nightscout, "No glucose values found or fetched to backfill.")
+            }
+
+            await MainActor.run {
+                self.backfilling = false
             }
         }
 
@@ -384,7 +389,7 @@ extension NightscoutConfig {
 
                         Task.detached(priority: .low) {
                             debug(.nightscout, "Attempting to upload DIA to Nightscout after import review")
-                            await self.nightscoutManager.uploadProfiles()
+                            try await self.nightscoutManager.uploadProfiles()
                         }
                     } receiveValue: {}
                     .store(in: &lifetime)

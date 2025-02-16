@@ -4,14 +4,19 @@ import Foundation
 extension Home.StateModel {
     func setupCarbsArray() {
         Task {
-            let ids = await self.fetchCarbs()
-            let carbObjects: [CarbEntryStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
-            await updateCarbsArray(with: carbObjects)
+            do {
+                let ids = try await self.fetchCarbs()
+                let carbObjects: [CarbEntryStored] = try await CoreDataStack.shared
+                    .getNSManagedObject(with: ids, context: viewContext)
+                await updateCarbsArray(with: carbObjects)
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) Error fetching carb objects: \(error) in \(#file):\(#line)")
+            }
         }
     }
 
-    private func fetchCarbs() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchCarbs() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: carbsFetchContext,
             predicate: NSPredicate.carbsForChart,
@@ -33,14 +38,19 @@ extension Home.StateModel {
 
     func setupFPUsArray() {
         Task {
-            let ids = await self.fetchFPUs()
-            let fpuObjects: [CarbEntryStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
-            await updateFPUsArray(with: fpuObjects)
+            do {
+                let ids = try await self.fetchFPUs()
+                let fpuObjects: [CarbEntryStored] = try await CoreDataStack.shared
+                    .getNSManagedObject(with: ids, context: viewContext)
+                await updateFPUsArray(with: fpuObjects)
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) Error fetching FPU objects: \(error) in \(#file):\(#line)")
+            }
         }
     }
 
-    private func fetchFPUs() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchFPUs() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: fpuFetchContext,
             predicate: NSPredicate.fpusForChart,

@@ -10,14 +10,14 @@ protocol CarbsObserver {
 
 protocol CarbsStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
-    func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async
+    func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async throws
     func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async
     func syncDate() -> Date
     func recent() -> [CarbsEntry]
-    func getCarbsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
-    func getFPUsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
-    func getCarbsNotYetUploadedToHealth() async -> [CarbsEntry]
-    func getCarbsNotYetUploadedToTidepool() async -> [CarbsEntry]
+    func getCarbsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
+    func getFPUsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
+    func getCarbsNotYetUploadedToHealth() async throws -> [CarbsEntry]
+    func getCarbsNotYetUploadedToTidepool() async throws -> [CarbsEntry]
 }
 
 final class BaseCarbsStorage: CarbsStorage, Injectable {
@@ -38,11 +38,11 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         injectServices(resolver)
     }
 
-    func storeCarbs(_ entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
+    func storeCarbs(_ entries: [CarbsEntry], areFetchedFromRemote: Bool) async throws {
         var entriesToStore = entries
 
         if areFetchedFromRemote {
-            entriesToStore = await filterRemoteEntries(entries: entriesToStore)
+            entriesToStore = try await filterRemoteEntries(entries: entriesToStore)
         }
 
         // Check for FPU-only entries (fat/protein without carbs)
@@ -71,9 +71,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         await saveCarbEquivalents(entries: entriesToStore, areFetchedFromRemote: areFetchedFromRemote)
     }
 
-    private func filterRemoteEntries(entries: [CarbsEntry]) async -> [CarbsEntry] {
+    private func filterRemoteEntries(entries: [CarbsEntry]) async throws -> [CarbsEntry] {
         // Fetch only the date property from Core Data
-        guard let existing24hCarbEntries = await CoreDataStack.shared.fetchEntitiesAsync(
+        guard let existing24hCarbEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: coredataContext,
             predicate: NSPredicate.predicateForOneDayAgo,
@@ -339,8 +339,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
     }
 
-    func getCarbsNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getCarbsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: coredataContext,
             predicate: NSPredicate.carbsNotYetUploadedToNightscout,
@@ -378,8 +378,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
     }
 
-    func getFPUsNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getFPUsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: coredataContext,
             predicate: NSPredicate.fpusNotYetUploadedToNightscout,
@@ -415,8 +415,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
     }
 
-    func getCarbsNotYetUploadedToHealth() async -> [CarbsEntry] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getCarbsNotYetUploadedToHealth() async throws -> [CarbsEntry] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: coredataContext,
             predicate: NSPredicate.carbsNotYetUploadedToHealth,
@@ -446,8 +446,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         }
     }
 
-    func getCarbsNotYetUploadedToTidepool() async -> [CarbsEntry] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getCarbsNotYetUploadedToTidepool() async throws -> [CarbsEntry] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: coredataContext,
             predicate: NSPredicate.carbsNotYetUploadedToTidepool,

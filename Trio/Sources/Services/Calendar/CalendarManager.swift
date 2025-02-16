@@ -175,8 +175,8 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         EKEventStore().calendars(for: .event).map(\.title)
     }
 
-    private func getLastDetermination() async -> NSManagedObjectID? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func getLastDetermination() async throws -> NSManagedObjectID? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: backgroundContext,
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
@@ -193,8 +193,8 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         }
     }
 
-    private func fetchGlucose() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchGlucose() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.predicateFor30MinAgo,
@@ -211,19 +211,19 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     }
 
     @MainActor func createEvent() async {
-        guard settingsManager.settings.useCalendar, let calendar = currentCalendar,
-              let determinationId = await getLastDetermination() else { return }
-
-        // Ignore the update if the determinationId is the same as it was at last update
-        if determinationId == previousDeterminationId {
-            return
-        }
-
-        let glucoseIds = await fetchGlucose()
-
-        deleteAllEvents(in: calendar)
-
         do {
+            guard settingsManager.settings.useCalendar, let calendar = currentCalendar,
+                  let determinationId = try await getLastDetermination() else { return }
+
+            // Ignore the update if the determinationId is the same as it was at last update
+            if determinationId == previousDeterminationId {
+                return
+            }
+
+            let glucoseIds = try await fetchGlucose()
+
+            deleteAllEvents(in: calendar)
+
             guard let determinationObject = try viewContext.existingObject(with: determinationId) as? OrefDetermination
             else { return }
 

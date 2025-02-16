@@ -4,7 +4,7 @@ import Foundation
 import Swinject
 
 protocol DeterminationStorage {
-    func fetchLastDeterminationObjectID(predicate: NSPredicate) async -> [NSManagedObjectID]
+    func fetchLastDeterminationObjectID(predicate: NSPredicate) async throws -> [NSManagedObjectID]
     func getForecastIDs(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext) async -> [NSManagedObjectID]
     func getForecastValueIDs(for forecastID: NSManagedObjectID, in context: NSManagedObjectContext) async -> [NSManagedObjectID]
     func fetchForecastObjects(
@@ -13,7 +13,7 @@ protocol DeterminationStorage {
     ) async -> (UUID, Forecast?, [ForecastValue])
     func getOrefDeterminationNotYetUploadedToNightscout(_ determinationIds: [NSManagedObjectID]) async -> Determination?
     func fetchForecastHierarchy(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext)
-    async -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
+    async throws -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
 }
 
 final class BaseDeterminationStorage: DeterminationStorage, Injectable {
@@ -25,8 +25,8 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
         injectServices(resolver)
     }
 
-    func fetchLastDeterminationObjectID(predicate: NSPredicate) async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchLastDeterminationObjectID(predicate: NSPredicate) async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
             predicate: predicate,
@@ -37,7 +37,6 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
 
         return await context.perform {
             guard let fetchedResults = results as? [OrefDetermination] else { return [] }
-
             return fetchedResults.map(\.objectID)
         }
     }
@@ -206,10 +205,9 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
     }
 
     func fetchForecastHierarchy(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext)
-    async -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
+    async throws -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
     {
-        // Fetch forecasts with prefetched values for the given determination
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: Forecast.self,
             onContext: context,
             predicate: NSPredicate(format: "orefDetermination = %@", determinationID),

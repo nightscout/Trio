@@ -12,14 +12,14 @@ protocol NightscoutManager: GlucoseSource {
     func deleteCarbs(withID id: String) async
     func deleteInsulin(withID id: String) async
     func deleteManualGlucose(withID id: String) async
-    func uploadDeviceStatus() async
+    func uploadDeviceStatus() async throws
     func uploadGlucose() async
     func uploadCarbs() async
     func uploadPumpHistory() async
     func uploadOverrides() async
     func uploadTempTargets() async
     func uploadManualGlucose() async
-    func uploadProfiles() async
+    func uploadProfiles() async throws
     func uploadNoteTreatment(note: String) async
     func importSettings() async -> ScheduledNightscoutProfile?
     var cgmURL: URL? { get }
@@ -107,7 +107,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             async let lastEnactedDeterminationID = determinationStorage
                 .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
 
-            self.lastEnactedDetermination = await determinationStorage
+            self.lastEnactedDetermination = try await determinationStorage
                 .getOrefDeterminationNotYetUploadedToNightscout(lastEnactedDeterminationID)
         }
     }
@@ -246,7 +246,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             .sink { [weak self] in
                 guard let self = self else { return }
                 Task {
-                    await self.uploadDeviceStatus()
+                    do {
+                        try await self.uploadDeviceStatus()
+                    } catch {
+                        debug(.nightscout, "\(DebuggingIdentifiers.failed) failed to upload device status")
+                    }
                 }
             }
             .store(in: &subscriptions)
@@ -504,7 +508,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     ///
     /// - Note: Ensure `nightscoutAPI` is initialized and `isUploadEnabled` is set to `true` before invoking this function.
     /// - Returns: Nothing.
-    func uploadDeviceStatus() async {
+    func uploadDeviceStatus() async throws {
         guard let nightscout = nightscoutAPI, isUploadEnabled else {
             debug(.nightscout, "NS API not available or upload disabled. Aborting NS Status upload.")
             return
@@ -522,7 +526,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         async let fetchedIOBEntry = storage.retrieveAsync(OpenAPS.Monitor.iob, as: [IOBEntry].self)
         async let fetchedPumpStatus = storage.retrieveAsync(OpenAPS.Monitor.status, as: PumpStatus.self)
 
-        var (fetchedEnactedDetermination, fetchedSuggestedDetermination) = await (
+        var (fetchedEnactedDetermination, fetchedSuggestedDetermination) = try await (
             determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(enactedDeterminationID),
             determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(suggestedDeterminationID)
         )
@@ -691,7 +695,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    func uploadProfiles() async {
+    func uploadProfiles() async throws {
         if isUploadEnabled {
             do {
                 guard let sensitivities = await storage.retrieveAsync(
@@ -793,7 +797,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
                 let deviceToken = UserDefaults.standard.string(forKey: "deviceToken") ?? ""
                 let isAPNSProduction = UserDefaults.standard.bool(forKey: "isAPNSProduction")
-                let presetOverrides = await overridesStorage.getPresetOverridesForNightscout()
+                let presetOverrides = try await overridesStorage.getPresetOverridesForNightscout()
                 let teamID = Bundle.main.object(forInfoDictionaryKey: "TeamID") as? String ?? ""
 
                 let profileStore = NightscoutProfileStore(
@@ -845,31 +849,73 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     func uploadGlucose() async {
-        await uploadGlucose(glucoseStorage.getGlucoseNotYetUploadedToNightscout())
-        await uploadNonCoreDataTreatments(glucoseStorage.getCGMStateNotYetUploadedToNightscout())
+        do {
+            try await uploadGlucose(glucoseStorage.getGlucoseNotYetUploadedToNightscout())
+            try await uploadNonCoreDataTreatments(glucoseStorage.getCGMStateNotYetUploadedToNightscout())
+        } catch {
+            debug(
+                .nightscout,
+                "\(DebuggingIdentifiers.failed) failed to upload glucose with error: \(error.localizedDescription)"
+            )
+        }
     }
 
     func uploadManualGlucose() async {
-        await uploadManualGlucose(glucoseStorage.getManualGlucoseNotYetUploadedToNightscout())
+        do {
+            try await uploadManualGlucose(glucoseStorage.getManualGlucoseNotYetUploadedToNightscout())
+        } catch {
+            debug(
+                .nightscout,
+                "\(DebuggingIdentifiers.failed) failed to upload manual glucose with error: \(error.localizedDescription)"
+            )
+        }
     }
 
     func uploadPumpHistory() async {
-        await uploadPumpHistory(pumpHistoryStorage.getPumpHistoryNotYetUploadedToNightscout())
+        do {
+            try await uploadPumpHistory(pumpHistoryStorage.getPumpHistoryNotYetUploadedToNightscout())
+        } catch {
+            debug(
+                .nightscout,
+                "\(DebuggingIdentifiers.failed) failed to upload pump history with error: \(error.localizedDescription)"
+            )
+        }
     }
 
     func uploadCarbs() async {
-        await uploadCarbs(carbsStorage.getCarbsNotYetUploadedToNightscout())
-        await uploadCarbs(carbsStorage.getFPUsNotYetUploadedToNightscout())
+        do {
+            try await uploadCarbs(carbsStorage.getCarbsNotYetUploadedToNightscout())
+            try await uploadCarbs(carbsStorage.getFPUsNotYetUploadedToNightscout())
+        } catch {
+            debug(
+                .nightscout,
+                "\(DebuggingIdentifiers.failed) failed to upload carbs with error: \(error.localizedDescription)"
+            )
+        }
     }
 
     func uploadOverrides() async {
-        await uploadOverrides(overridesStorage.getOverridesNotYetUploadedToNightscout())
-        await uploadOverrideRuns(overridesStorage.getOverrideRunsNotYetUploadedToNightscout())
+        do {
+            try await uploadOverrides(overridesStorage.getOverridesNotYetUploadedToNightscout())
+            try await uploadOverrideRuns(overridesStorage.getOverrideRunsNotYetUploadedToNightscout())
+        } catch {
+            debug(
+                .nightscout,
+                "\(DebuggingIdentifiers.failed) failed to upload overrides with error: \(error.localizedDescription)"
+            )
+        }
     }
 
     func uploadTempTargets() async {
-        await uploadTempTargets(await tempTargetsStorage.getTempTargetsNotYetUploadedToNightscout())
-        await uploadTempTargetRuns(await tempTargetsStorage.getTempTargetRunsNotYetUploadedToNightscout())
+        do {
+            try await uploadTempTargets(await tempTargetsStorage.getTempTargetsNotYetUploadedToNightscout())
+            try await uploadTempTargetRuns(await tempTargetsStorage.getTempTargetRunsNotYetUploadedToNightscout())
+        } catch {
+            debug(
+                .nightscout,
+                "\(DebuggingIdentifiers.failed) failed to upload temp targets with error: \(error.localizedDescription)"
+            )
+        }
     }
 
     private func uploadGlucose(_ glucose: [BloodGlucose]) async {

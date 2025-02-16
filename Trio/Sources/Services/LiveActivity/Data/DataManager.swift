@@ -4,8 +4,8 @@ import Foundation
 
 @available(iOS 16.2, *)
 extension LiveActivityBridge {
-    func fetchAndMapGlucose() async -> [GlucoseData] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchAndMapGlucose() async throws -> [GlucoseData] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForSixHoursAgo,
@@ -25,8 +25,8 @@ extension LiveActivityBridge {
         }
     }
 
-    func fetchAndMapDetermination() async -> DeterminationData? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchAndMapDetermination() async throws -> DeterminationData? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
@@ -53,8 +53,8 @@ extension LiveActivityBridge {
         }
     }
 
-    func fetchAndMapOverride() async -> OverrideData? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchAndMapOverride() async throws -> OverrideData? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgo,

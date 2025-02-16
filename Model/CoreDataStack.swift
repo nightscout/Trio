@@ -214,7 +214,9 @@ extension CoreDataStack {
         _ objectType: T.Type,
         dateKey: String,
         days: Int,
-        isPresetKey: String? = nil
+        isPresetKey: String? = nil,
+        callingFunction: String = #function,
+        callingClass: String = #fileID
     ) async throws {
         let taskContext = newTaskContext()
         taskContext.name = "deleteContext"
@@ -254,14 +256,14 @@ extension CoreDataStack {
                       let success = batchDeleteResult.result as? Bool, success
                 else {
                     debugPrint("Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
-                    throw CoreDataError.batchDeleteError
+                    throw CoreDataError.batchDeleteError(function: callingFunction, file: callingClass)
                 }
             }
 
             debugPrint("Successfully deleted data older than \(days) days. \(DebuggingIdentifiers.succeeded)")
         } catch {
             debugPrint("Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
-            throw CoreDataError.batchDeleteError
+            throw CoreDataError.unexpectedError(error: error, function: callingFunction, file: callingClass)
         }
     }
 
@@ -270,7 +272,9 @@ extension CoreDataStack {
         childType: Child.Type,
         dateKey: String,
         days: Int,
-        relationshipKey: String // The key of the Child Entity that links to the parent Entity
+        relationshipKey: String, // The key of the Child Entity that links to the parent Entity
+        callingFunction: String = #function,
+        callingClass: String = #fileID
     ) async throws {
         let taskContext = newTaskContext()
         taskContext.name = "deleteContext"
@@ -316,7 +320,7 @@ extension CoreDataStack {
                       let success = batchDeleteResult.result as? Bool, success
                 else {
                     debugPrint("Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
-                    throw CoreDataError.batchDeleteError
+                    throw CoreDataError.batchDeleteError(function: callingFunction, file: callingClass)
                 }
             }
 
@@ -325,7 +329,7 @@ extension CoreDataStack {
             )
         } catch {
             debugPrint("Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
-            throw CoreDataError.batchDeleteError
+            throw CoreDataError.unexpectedError(error: error, function: callingFunction, file: callingClass)
         }
     }
 }
@@ -346,7 +350,7 @@ extension CoreDataStack {
         propertiesToFetch: [String]? = nil,
         callingFunction: String = #function,
         callingClass: String = #fileID
-    ) -> [Any] {
+    ) throws -> [Any] {
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: type))
         request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
         request.predicate = predicate
@@ -367,7 +371,7 @@ extension CoreDataStack {
         context.transactionAuthor = "fetchEntities"
 
         /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
-        return context.performAndWait {
+        return try context.performAndWait {
             do {
                 if propertiesToFetch != nil {
                     return try context.fetch(request) as? [[String: Any]] ?? []
@@ -375,11 +379,10 @@ extension CoreDataStack {
                     return try context.fetch(request) as? [T] ?? []
                 }
             } catch let error as NSError {
-                debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on Thread: \(Thread.current)"
+                throw CoreDataError.fetchError(
+                    function: callingFunction,
+                    file: callingClass
                 )
-
-                return []
             }
         }
     }
@@ -397,10 +400,11 @@ extension CoreDataStack {
         relationshipKeyPathsForPrefetching: [String]? = nil,
         callingFunction: String = #function,
         callingClass: String = #fileID
-    ) async -> Any {
+    ) async throws -> Any {
         let request: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: String(describing: type))
         request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
         request.predicate = predicate
+
         if let limit = fetchLimit {
             request.fetchLimit = limit
         }
@@ -420,7 +424,7 @@ extension CoreDataStack {
         context.name = "fetchContext"
         context.transactionAuthor = "fetchEntities"
 
-        return await context.perform {
+        return try await context.perform {
             do {
                 if propertiesToFetch != nil {
                     return try context.fetch(request) as? [[String: Any]] ?? []
@@ -428,10 +432,11 @@ extension CoreDataStack {
                     return try context.fetch(request) as? [T] ?? []
                 }
             } catch let error as NSError {
-                debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on Thread: \(Thread.current)"
+                throw CoreDataError.unexpectedError(
+                    error: error,
+                    function: callingFunction,
+                    file: callingClass
                 )
-                return []
             }
         }
     }
@@ -439,9 +444,11 @@ extension CoreDataStack {
     // Get NSManagedObject
     func getNSManagedObject<T: NSManagedObject>(
         with ids: [NSManagedObjectID],
-        context: NSManagedObjectContext
-    ) async -> [T] {
-        await context.perform {
+        context: NSManagedObjectContext,
+        callingFunction: String = #function,
+        callingClass: String = #fileID
+    ) async throws -> [T] {
+        try await context.perform {
             var objects = [T]()
             do {
                 for id in ids {
@@ -449,10 +456,13 @@ extension CoreDataStack {
                         objects.append(object)
                     }
                 }
+                return objects
             } catch {
-                debugPrint("Failed to fetch objects: \(error.localizedDescription)")
+                throw CoreDataError.fetchError(
+                    function: callingFunction,
+                    file: callingClass
+                )
             }
-            return objects
         }
     }
 }

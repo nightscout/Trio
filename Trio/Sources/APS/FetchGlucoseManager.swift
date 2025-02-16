@@ -8,6 +8,7 @@ import Swinject
 import UIKit
 
 protocol FetchGlucoseManager: SourceInfoProvider {
+    func updateGlucoseStore(newBloodGlucose: [BloodGlucose])
     func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?)
     func deleteGlucoseSource()
     func removeCalibrations()
@@ -73,6 +74,44 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             cgmGlucosePluginId: settingsManager.settings.cgmPluginIdentifier
         )
         subscribe()
+    }
+
+    /// The function used to start the timer sync - Function of the variable defined in config
+    private func subscribe() {
+        timer.publisher
+            .receive(on: processQueue)
+            .flatMap { [self] _ -> AnyPublisher<[BloodGlucose], Never> in
+                debug(.nightscout, "FetchGlucoseManager timer heartbeat")
+                if let glucoseSource = self.glucoseSource {
+                    return glucoseSource.fetch(self.timer).eraseToAnyPublisher()
+                } else {
+                    return Empty(completeImmediately: false).eraseToAnyPublisher()
+                }
+            }
+            .sink { glucose in
+                debug(.nightscout, "FetchGlucoseManager callback sensor")
+                Publishers.CombineLatest(
+                    Just(glucose),
+                    Just(self.glucoseStorage.syncDate())
+                )
+                .eraseToAnyPublisher()
+                .sink { newGlucose, syncDate in
+                    Task {
+                        do {
+                            try await self.glucoseStoreAndHeartDecision(
+                                syncDate: syncDate,
+                                glucose: newGlucose
+                            )
+                        } catch {
+                            debug(.deviceManager, "Failed to store glucose: \(error.localizedDescription)")
+                        }
+                    }
+                }
+                .store(in: &self.lifetime)
+            }
+            .store(in: &lifetime)
+        timer.fire()
+        timer.resume()
     }
 
     var glucoseSource: GlucoseSource!
@@ -164,8 +203,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         return Manager.init(rawState: rawState)
     }
 
-    private func fetchGlucose() async -> [GlucoseStored]? {
-        await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchGlucose() async throws -> [GlucoseStored]? {
+        try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.predicateFor30MinAgo,
@@ -175,10 +214,12 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         ) as? [GlucoseStored]
     }
 
-    private func processGlucose() async -> [BloodGlucose] {
-        guard let results = await fetchGlucose() else { return [] }
+    private func processGlucose() async throws -> [BloodGlucose] {
+        let results = try await fetchGlucose()
+        guard let results else { return [] }
+
         return await context.perform {
-            return results.map { result in
+            results.map { result in
                 BloodGlucose(
                     sgv: Int(result.glucose),
                     direction: BloodGlucose.Direction(from: result.direction ?? ""),
@@ -194,7 +235,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         }
     }
 
-    private func glucoseStoreAndHeartDecision(syncDate: Date, glucose: [BloodGlucose]) async {
+    private func glucoseStoreAndHeartDecision(syncDate: Date, glucose: [BloodGlucose]) async throws {
         // calibration add if required only for sensor
         let newGlucose = overcalibrate(entries: glucose)
 
@@ -209,31 +250,27 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             backGroundFetchBGTaskID = .invalid
         }
 
-        guard newGlucose.isNotEmpty else {
+        defer {
             if let backgroundTask = backGroundFetchBGTaskID {
-                await UIApplication.shared.endBackgroundTask(backgroundTask)
+                Task {
+                    await UIApplication.shared.endBackgroundTask(backgroundTask)
+                }
                 backGroundFetchBGTaskID = .invalid
             }
-            return
         }
+
+        guard newGlucose.isNotEmpty else { return }
 
         filteredByDate = newGlucose.filter { $0.dateString > syncDate }
         filtered = glucoseStorage.filterTooFrequentGlucose(filteredByDate, at: syncDate)
 
-        guard filtered.isNotEmpty else {
-            // end of the Background tasks
-            if let backgroundTask = backGroundFetchBGTaskID {
-                await UIApplication.shared.endBackgroundTask(backgroundTask)
-                backGroundFetchBGTaskID = .invalid
-            }
-            return
-        }
+        guard filtered.isNotEmpty else { return }
         debug(.deviceManager, "New glucose found")
 
         // filter the data if it is the case
         if settingsManager.settings.smoothGlucose {
             // limited to 30 min of old glucose data
-            let oldGlucoseValues = await processGlucose()
+            let oldGlucoseValues = try await processGlucose()
 
             var smoothedValues = oldGlucoseValues + filtered
             // smooth with 3 repeats
@@ -244,49 +281,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             filtered = smoothedValues.filter { $0.dateString > syncDate }
         }
 
-        await glucoseStorage.storeGlucose(filtered)
-
+        try await glucoseStorage.storeGlucose(filtered)
         deviceDataManager.heartbeat(date: Date())
-
-        // End of the Background tasks
-        if let backgroundTask = backGroundFetchBGTaskID {
-            await UIApplication.shared.endBackgroundTask(backgroundTask)
-            backGroundFetchBGTaskID = .invalid
-        }
-    }
-
-    /// The function used to start the timer sync - Function of the variable defined in config
-    private func subscribe() {
-        timer.publisher
-            .receive(on: processQueue)
-            .flatMap { [self] _ -> AnyPublisher<[BloodGlucose], Never> in
-                debug(.nightscout, "FetchGlucoseManager timer heartbeat")
-                if let glucoseSource = self.glucoseSource {
-                    return glucoseSource.fetch(self.timer).eraseToAnyPublisher()
-                } else {
-                    return Empty(completeImmediately: false).eraseToAnyPublisher()
-                }
-            }
-            .sink { glucose in
-                debug(.nightscout, "FetchGlucoseManager callback sensor")
-                Publishers.CombineLatest(
-                    Just(glucose),
-                    Just(self.glucoseStorage.syncDate())
-                )
-                .eraseToAnyPublisher()
-                .sink { newGlucose, syncDate in
-                    Task {
-                        await self.glucoseStoreAndHeartDecision(
-                            syncDate: syncDate,
-                            glucose: newGlucose
-                        )
-                    }
-                }
-                .store(in: &self.lifetime)
-            }
-            .store(in: &lifetime)
-        timer.fire()
-        timer.resume()
     }
 
     func sourceInfo() -> [String: Any]? {
@@ -310,6 +306,19 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             }
         } else {
             return entries
+        }
+    }
+
+    /// function called when a callback is fired by CGM BLE
+    public func updateGlucoseStore(newBloodGlucose: [BloodGlucose]) {
+        Task {
+            let syncDate = glucoseStorage.syncDate()
+            debug(.deviceManager, "CGM BLE FETCHGLUCOSE  : SyncDate is \(syncDate)")
+            do {
+                try await glucoseStoreAndHeartDecision(syncDate: syncDate, glucose: newBloodGlucose)
+            } catch {
+                debug(.deviceManager, "Failed to store glucose: \(error.localizedDescription)")
+            }
         }
     }
 }

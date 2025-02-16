@@ -6,18 +6,27 @@ extension Home.StateModel {
     func preprocessForecastData() async -> [(
         id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]
     )] {
-        // Get the Determination ID on the main context
-        guard let determination = await viewContext.perform({
-            self.enactedAndNonEnactedDeterminations.first
-        }) else {
+        do {
+            // Get the Determination ID on the main context
+            guard let determination = await viewContext.perform({
+                self.enactedAndNonEnactedDeterminations.first
+            }) else {
+                debug(.default, "No determination found for forecast preprocessing")
+                return []
+            }
+
+            // Fetch complete forecast hierarchy with prefetched values
+            return try await determinationStorage.fetchForecastHierarchy(
+                for: determination.objectID,
+                in: taskContext
+            )
+        } catch {
+            debug(
+                .default,
+                "\(DebuggingIdentifiers.failed) Failed to preprocess forecast data: \(error.localizedDescription)"
+            )
             return []
         }
-
-        // Fetch complete forecast hierarchy with prefetched values
-        return await determinationStorage.fetchForecastHierarchy(
-            for: determination.objectID,
-            in: taskContext
-        )
     }
 
     // Update forecast data and UI on the main thread

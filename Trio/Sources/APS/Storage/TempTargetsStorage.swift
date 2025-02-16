@@ -10,16 +10,16 @@ protocol TempTargetsObserver {
 protocol TempTargetsStorage {
     func storeTempTarget(tempTarget: TempTarget) async
     func saveTempTargetsToStorage(_ targets: [TempTarget])
-    func fetchForTempTargetPresets() async -> [NSManagedObjectID]
-    func fetchScheduledTempTargets() async -> [NSManagedObjectID]
-    func fetchScheduledTempTarget(for targetDate: Date) async -> [NSManagedObjectID]
+    func fetchForTempTargetPresets() async throws -> [NSManagedObjectID]
+    func fetchScheduledTempTargets() async throws -> [NSManagedObjectID]
+    func fetchScheduledTempTarget(for targetDate: Date) async throws -> [NSManagedObjectID]
     func copyRunningTempTarget(_ tempTarget: TempTargetStored) async -> NSManagedObjectID
     func deleteOverridePreset(_ objectID: NSManagedObjectID) async
-    func loadLatestTempTargetConfigurations(fetchLimit: Int) async -> [NSManagedObjectID]
+    func loadLatestTempTargetConfigurations(fetchLimit: Int) async throws -> [NSManagedObjectID]
     func syncDate() -> Date
     func recent() -> [TempTarget]
-    func getTempTargetsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
-    func getTempTargetRunsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
+    func getTempTargetsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
+    func getTempTargetRunsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func presets() -> [TempTarget]
     func current() -> TempTarget?
     func existsTempTarget(with date: Date) async -> Bool
@@ -38,8 +38,8 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         injectServices(resolver)
     }
 
-    func loadLatestTempTargetConfigurations(fetchLimit: Int) async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func loadLatestTempTargetConfigurations(fetchLimit: Int) async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.lastActiveTempTarget,
@@ -56,8 +56,8 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
     }
 
     /// Returns the NSManagedObjectID of the Temp Target Presets
-    func fetchForTempTargetPresets() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchForTempTargetPresets() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.allTempTargetPresets,
@@ -72,10 +72,10 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         }
     }
 
-    func fetchScheduledTempTargets() async -> [NSManagedObjectID] {
+    func fetchScheduledTempTargets() async throws -> [NSManagedObjectID] {
         let scheduledTempTargets = NSPredicate(format: "date > %@", Date() as NSDate)
 
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
             predicate: scheduledTempTargets,
@@ -90,10 +90,10 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         }
     }
 
-    func fetchScheduledTempTarget(for targetDate: Date) async -> [NSManagedObjectID] {
+    func fetchScheduledTempTarget(for targetDate: Date) async throws -> [NSManagedObjectID] {
         let predicate = NSPredicate(format: "date == %@", targetDate as NSDate)
 
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
             predicate: predicate,
@@ -110,44 +110,45 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
     }
 
     func storeTempTarget(tempTarget: TempTarget) async {
-        var presetCount = -1
-        if tempTarget.isPreset == true {
-            let presets = await fetchForTempTargetPresets()
-            presetCount = presets.count
-        }
-
-        await backgroundContext.perform {
-            let newTempTarget = TempTargetStored(context: self.backgroundContext)
-            newTempTarget.date = tempTarget.createdAt
-            newTempTarget.id = UUID()
-            newTempTarget.enabled = tempTarget.enabled ?? false
-            newTempTarget.duration = tempTarget.duration as NSDecimalNumber
-            newTempTarget.isUploadedToNS = false
-            newTempTarget.name = tempTarget.name
-            newTempTarget.target = NSDecimalNumber(decimal: tempTarget.targetTop ?? 0)
-            newTempTarget.isPreset = tempTarget.isPreset ?? false
-
-            // Nullify half basal target to ensure the latest HBT is used via OpenAPS Manager when sending TT data to oref
-            newTempTarget.halfBasalTarget = nil
-
-            if let halfBasalTarget = tempTarget.halfBasalTarget,
-               halfBasalTarget != self.settingsManager.preferences.halfBasalExerciseTarget
-            {
-                newTempTarget.halfBasalTarget = NSDecimalNumber(decimal: halfBasalTarget)
+        do {
+            var presetCount = -1
+            if tempTarget.isPreset == true {
+                let presets = try await fetchForTempTargetPresets()
+                presetCount = presets.count
             }
 
-            if tempTarget.isPreset == true, presetCount > -1 {
-                newTempTarget.orderPosition = Int16(presetCount + 1)
-            }
+            try await backgroundContext.perform {
+                let newTempTarget = TempTargetStored(context: self.backgroundContext)
+                newTempTarget.date = tempTarget.createdAt
+                newTempTarget.id = UUID()
+                newTempTarget.enabled = tempTarget.enabled ?? false
+                newTempTarget.duration = tempTarget.duration as NSDecimalNumber
+                newTempTarget.isUploadedToNS = false
+                newTempTarget.name = tempTarget.name
+                newTempTarget.target = NSDecimalNumber(decimal: tempTarget.targetTop ?? 0)
+                newTempTarget.isPreset = tempTarget.isPreset ?? false
 
-            do {
+                // Nullify half basal target to ensure the latest HBT is used via OpenAPS Manager when sending TT data to oref
+                newTempTarget.halfBasalTarget = nil
+
+                if let halfBasalTarget = tempTarget.halfBasalTarget,
+                   halfBasalTarget != self.settingsManager.preferences.halfBasalExerciseTarget
+                {
+                    newTempTarget.halfBasalTarget = NSDecimalNumber(decimal: halfBasalTarget)
+                }
+
+                if tempTarget.isPreset == true, presetCount > -1 {
+                    newTempTarget.orderPosition = Int16(presetCount + 1)
+                }
+
                 guard self.backgroundContext.hasChanges else { return }
                 try self.backgroundContext.save()
-            } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Temp Target to Core Data with error: \(error.userInfo)"
-                )
             }
+        } catch {
+            debug(
+                .default,
+                "\(DebuggingIdentifiers.failed) Failed to store temp target: \(error.localizedDescription)"
+            )
         }
     }
 
@@ -242,8 +243,8 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         return last
     }
 
-    func getTempTargetsNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getTempTargetsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.lastActiveOverrideNotYetUploadedToNightscout, // TODO: create adjustment predicate (OR+TT)
@@ -277,8 +278,8 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         }
     }
 
-    func getTempTargetRunsNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getTempTargetRunsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetRunStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate(

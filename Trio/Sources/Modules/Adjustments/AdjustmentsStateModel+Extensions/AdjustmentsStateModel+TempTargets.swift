@@ -11,7 +11,7 @@ extension Adjustments.StateModel {
     /// This also needs to be called when we cancel an Temp Target via the Home View to update the State of the Button for this case
     func updateLatestTempTargetConfiguration() {
         Task {
-            let id = await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1)
+            let id = try await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1)
             async let updateState: () = updateLatestTempTargetConfigurationOfState(from: id)
             async let setTempTarget: () = setCurrentTempTarget(from: id)
             _ = await (updateState, setTempTarget)
@@ -58,13 +58,20 @@ extension Adjustments.StateModel {
 
     /// Sets up Temp Targets using fetch and update functions.
     func setupTempTargets(
-        fetchFunction: @escaping () async -> [NSManagedObjectID],
+        fetchFunction: @escaping () async throws -> [NSManagedObjectID],
         updateFunction: @escaping @MainActor([TempTargetStored]) -> Void
     ) {
         Task {
-            let ids = await fetchFunction()
-            let tempTargetObjects = await fetchTempTargetObjects(for: ids)
-            await updateFunction(tempTargetObjects)
+            do {
+                let ids = try await fetchFunction()
+                let tempTargetObjects = await fetchTempTargetObjects(for: ids)
+                await updateFunction(tempTargetObjects)
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) Failed to setup temp targets: \(error.localizedDescription)"
+                )
+            }
         }
     }
 
@@ -83,7 +90,7 @@ extension Adjustments.StateModel {
     /// Sets up the Temp Target presets array for the view.
     func setupTempTargetPresetsArray() {
         setupTempTargets(
-            fetchFunction: tempTargetStorage.fetchForTempTargetPresets,
+            fetchFunction: { try await self.tempTargetStorage.fetchForTempTargetPresets() },
             updateFunction: { tempTargets in
                 self.tempTargetPresets = tempTargets
             }
@@ -93,7 +100,7 @@ extension Adjustments.StateModel {
     /// Sets up the scheduled Temp Targets array for the view.
     func setupScheduledTempTargetsArray() {
         setupTempTargets(
-            fetchFunction: tempTargetStorage.fetchScheduledTempTargets,
+            fetchFunction: { try await self.tempTargetStorage.fetchScheduledTempTargets() },
             updateFunction: { tempTargets in
                 self.scheduledTempTargets = tempTargets
             }
@@ -146,25 +153,35 @@ extension Adjustments.StateModel {
 
     /// Enables a scheduled Temp Target for a specific date.
     func enableScheduledTempTarget(for date: Date) async {
-        let ids = await tempTargetStorage.fetchScheduledTempTarget(for: date)
-        guard let firstID = ids.first else {
-            debugPrint("No Temp Target found for the specified date.")
-            return
-        }
-        await setCurrentTempTarget(from: ids)
-
-        await MainActor.run {
-            do {
-                if let tempTarget = try viewContext.existingObject(with: firstID) as? TempTargetStored {
-                    tempTarget.enabled = true
-                    try viewContext.save()
-                    isTempTargetEnabled = true
-                }
-            } catch {
-                debugPrint("Failed to enable the Temp Target: \(error.localizedDescription)")
+        do {
+            let ids = try await tempTargetStorage.fetchScheduledTempTarget(for: date)
+            guard let firstID = ids.first else {
+                debug(.default, "No Temp Target found for the specified date.")
+                return
             }
+            await setCurrentTempTarget(from: ids)
+
+            try await MainActor.run {
+                guard let tempTarget = try viewContext.existingObject(with: firstID) as? TempTargetStored else {
+                    throw NSError(
+                        domain: "TempTarget",
+                        code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "Failed to find temp target"]
+                    )
+                }
+
+                tempTarget.enabled = true
+                try viewContext.save()
+                isTempTargetEnabled = true
+            }
+
+            setupScheduledTempTargetsArray()
+        } catch {
+            debug(
+                .default,
+                "\(DebuggingIdentifiers.failed) Failed to enable scheduled temp target: \(error.localizedDescription)"
+            )
         }
-        setupScheduledTempTargetsArray()
     }
 
     /// Waits until a target date before proceeding.
@@ -259,12 +276,15 @@ extension Adjustments.StateModel {
     }
 
     /// Disables all active Temp Targets.
-    @MainActor func disableAllActiveTempTargets(except id: NSManagedObjectID? = nil, createTempTargetRunEntry: Bool) async {
-        // Get ALL NSManagedObject IDs of ALL active Temp Targets to cancel every single Temp Target
-        let ids = await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 0) // 0 = no fetch limit
+    @MainActor func disableAllActiveTempTargets(
+        except id: NSManagedObjectID? = nil,
+        createTempTargetRunEntry: Bool
+    ) async {
+        do {
+            // Get ALL NSManagedObject IDs of ALL active Temp Targets to cancel every single Temp Target
+            let ids = try await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 0) // 0 = no fetch limit
 
-        await viewContext.perform {
-            do {
+            try await viewContext.perform {
                 // Fetch the existing TempTargetStored objects from the context
                 let results = try ids.compactMap { id in
                     try self.viewContext.existingObject(with: id) as? TempTargetStored
@@ -273,7 +293,7 @@ extension Adjustments.StateModel {
                 // If there are no results, return early
                 guard !results.isEmpty else { return }
 
-                // Check if we also need to create a corresponding TempTargetRunStored entry, i.e. when the User uses the Cancel Button in Temp Target View
+                // Check if we also need to create a corresponding TempTargetRunStored entry
                 if createTempTargetRunEntry {
                     // Use the first temp target to create a new TempTargetRunStored entry
                     if let canceledTempTarget = results.first {
@@ -282,8 +302,7 @@ extension Adjustments.StateModel {
                         newTempTargetRunStored.name = canceledTempTarget.name
                         newTempTargetRunStored.startDate = canceledTempTarget.date ?? .distantPast
                         newTempTargetRunStored.endDate = Date()
-                        newTempTargetRunStored
-                            .target = canceledTempTarget.target ?? 0
+                        newTempTargetRunStored.target = canceledTempTarget.target ?? 0
                         newTempTargetRunStored.tempTarget = canceledTempTarget
                         newTempTargetRunStored.isUploadedToNS = false
                     }
@@ -303,11 +322,12 @@ extension Adjustments.StateModel {
                     // Update the storage
                     self.tempTargetStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date().addingTimeInterval(-1))])
                 }
-            } catch {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active TempTargets with error: \(error.localizedDescription)"
-                )
             }
+        } catch {
+            debug(
+                .default,
+                "\(DebuggingIdentifiers.failed) Failed to disable active temp targets: \(error.localizedDescription)"
+            )
         }
     }
 

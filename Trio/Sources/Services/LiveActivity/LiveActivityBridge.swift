@@ -135,7 +135,7 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
 
     private func cobOrIobDidUpdate() {
         Task { @MainActor in
-            self.determination = await fetchAndMapDetermination()
+            self.determination = try await fetchAndMapDetermination()
             if let determination = determination {
                 await self.updateContentState(determination)
             }
@@ -144,7 +144,7 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
 
     private func overridesDidUpdate() {
         Task { @MainActor in
-            self.override = await fetchAndMapOverride()
+            self.override = try await fetchAndMapOverride()
             if let determination = determination {
                 await self.updateContentState(determination)
             }
@@ -205,7 +205,7 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
 
     private func setupGlucoseArray() {
         Task { @MainActor in
-            self.glucoseFromPersistence = await fetchAndMapGlucose()
+            self.glucoseFromPersistence = try await fetchAndMapGlucose()
             glucoseDidUpdate(glucoseFromPersistence ?? [])
         }
     }

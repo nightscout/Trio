@@ -37,7 +37,7 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
                     // Filter and store if not from "Trio"
                     let filteredCarbs = await carbs.filter { $0.enteredBy != CarbsEntry.local }
                     if filteredCarbs.isNotEmpty {
-                        await self.carbsStorage.storeCarbs(filteredCarbs, areFetchedFromRemote: true)
+                        try await self.carbsStorage.storeCarbs(filteredCarbs, areFetchedFromRemote: true)
                     }
 
                     // Filter and store if not from Trio

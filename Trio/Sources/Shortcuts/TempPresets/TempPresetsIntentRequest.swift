@@ -8,9 +8,9 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
         case noDurationDefined
     }
 
-    func fetchAndProcessTempTargets() async -> [TempPreset] {
+    func fetchAndProcessTempTargets() async throws -> [TempPreset] {
         // Fetch all Temp Target Presets via TempTargetStorage
-        let allTempTargetPresetsIDs = await tempTargetsStorage.fetchForTempTargetPresets()
+        let allTempTargetPresetsIDs = try await tempTargetsStorage.fetchForTempTargetPresets()
 
         // Perform the fetch and process on the Core Data context's thread
         return await coredataContext.perform {
@@ -198,10 +198,9 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             }
         }
 
-        // Get NSManagedObjectID of all active temp Targets
-        let ids = await tempTargetsStorage.loadLatestTempTargetConfigurations(fetchLimit: 0)
-
         do {
+            // Get NSManagedObjectID of all active temp Targets
+            let ids = try await tempTargetsStorage.loadLatestTempTargetConfigurations(fetchLimit: 0)
             // Fetch existing OverrideStored objects
             let results = try ids.compactMap { id in
                 try self.viewContext.existingObject(with: id) as? TempTargetStored

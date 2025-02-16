@@ -67,7 +67,7 @@ extension AlgorithmAdvancedSettings {
 
                         Task.detached(priority: .low) {
                             debug(.nightscout, "Attempting to upload DIA to Nightscout")
-                            await self.nightscout.uploadProfiles()
+                            try await self.nightscout.uploadProfiles()
                         }
                     } receiveValue: {}
                     .store(in: &lifetime)

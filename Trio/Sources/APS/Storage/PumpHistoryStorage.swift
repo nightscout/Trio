@@ -11,11 +11,11 @@ protocol PumpHistoryObserver {
 
 protocol PumpHistoryStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
-    func storePumpEvents(_ events: [NewPumpEvent]) async
+    func storePumpEvents(_ events: [NewPumpEvent]) async throws
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
-    func getPumpHistoryNotYetUploadedToNightscout() async -> [NightscoutTreatment]
-    func getPumpHistoryNotYetUploadedToHealth() async -> [PumpHistoryEvent]
-    func getPumpHistoryNotYetUploadedToTidepool() async -> [PumpHistoryEvent]
+    func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
+    func getPumpHistoryNotYetUploadedToHealth() async throws -> [PumpHistoryEvent]
+    func getPumpHistoryNotYetUploadedToTidepool() async throws -> [PumpHistoryEvent]
 }
 
 final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
@@ -44,10 +44,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         return Decimal(roundedValue)
     }
 
-    func storePumpEvents(_ events: [NewPumpEvent]) async {
-        await context.perform {
+    func storePumpEvents(_ events: [NewPumpEvent]) async throws {
+        try await context.perform {
             for event in events {
-                let existingEvents: [PumpEventStored] = CoreDataStack.shared.fetchEntities(
+                let existingEvents: [PumpEventStored] = try CoreDataStack.shared.fetchEntities(
                     ofType: PumpEventStored.self,
                     onContext: self.context,
                     predicate: NSPredicate.duplicateInLastHour(event.date),
@@ -259,8 +259,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         return PumpEventStored.EventType(rawValue: event.type!) ?? PumpEventStored.EventType.bolus
     }
 
-    func getPumpHistoryNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToNightscout,
@@ -418,8 +418,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         }
     }
 
-    func getPumpHistoryNotYetUploadedToHealth() async -> [PumpHistoryEvent] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getPumpHistoryNotYetUploadedToHealth() async throws -> [PumpHistoryEvent] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToHealth,
@@ -460,8 +460,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         }
     }
 
-    func getPumpHistoryNotYetUploadedToTidepool() async -> [PumpHistoryEvent] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getPumpHistoryNotYetUploadedToTidepool() async throws -> [PumpHistoryEvent] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToTidepool,

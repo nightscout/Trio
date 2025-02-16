@@ -47,10 +47,10 @@ extension TrioRemoteControl {
     }
 
     @MainActor func disableAllActiveTempTargets() async {
-        let ids = await tempTargetsStorage.loadLatestTempTargetConfigurations(fetchLimit: 0)
+        do {
+            let ids = try await tempTargetsStorage.loadLatestTempTargetConfigurations(fetchLimit: 0)
 
-        let didPostNotification = await viewContext.perform { () -> Bool in
-            do {
+            let didPostNotification = try await viewContext.perform { () -> Bool in
                 let results = try ids.compactMap { id in
                     try self.viewContext.existingObject(with: id) as? TempTargetStored
                 }
@@ -68,8 +68,7 @@ extension TrioRemoteControl {
                     newTempTargetRunStored.name = canceledTempTarget.name
                     newTempTargetRunStored.startDate = canceledTempTarget.date ?? .distantPast
                     newTempTargetRunStored.endDate = Date()
-                    newTempTargetRunStored
-                        .target = canceledTempTarget.target ?? 0
+                    newTempTargetRunStored.target = canceledTempTarget.target ?? 0
                     newTempTargetRunStored.tempTarget = canceledTempTarget
                     newTempTargetRunStored.isUploadedToNS = false
 
@@ -87,16 +86,17 @@ extension TrioRemoteControl {
                 } else {
                     return false
                 }
-            } catch {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active TempTargets with error: \(error.localizedDescription)"
-                )
-                return false
             }
-        }
 
-        if didPostNotification {
-            await awaitNotification(.didUpdateTempTargetConfiguration)
+            if didPostNotification {
+                await awaitNotification(.didUpdateTempTargetConfiguration)
+            }
+        } catch {
+            debug(
+                .remoteControl,
+                "\(DebuggingIdentifiers.failed) Failed to disable active temp targets: \(error.localizedDescription)"
+            )
+            await logError("Failed to disable temp targets: \(error.localizedDescription)")
         }
     }
 }

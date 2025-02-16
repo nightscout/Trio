@@ -29,19 +29,22 @@ extension Adjustments.StateModel {
     // MARK: - Disable Overrides
 
     /// Disables all active Overrides, optionally creating a run entry.
-    @MainActor func disableAllActiveOverrides(except overrideID: NSManagedObjectID? = nil, createOverrideRunEntry: Bool) async {
-        // Get ALL NSManagedObject IDs of ALL active Override to cancel every single Override
-        let ids = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 0)
+    @MainActor func disableAllActiveOverrides(
+        except overrideID: NSManagedObjectID? = nil,
+        createOverrideRunEntry: Bool
+    ) async {
+        do {
+            // Get ALL NSManagedObject IDs of ALL active Override to cancel every single Override
+            let ids = try await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 0)
 
-        await viewContext.perform {
-            do {
+            try await viewContext.perform {
                 // Fetch the existing OverrideStored objects from the context
                 let results = try ids.compactMap { id in
                     try self.viewContext.existingObject(with: id) as? OverrideStored
                 }
                 guard !results.isEmpty else { return }
 
-                // Check if we also need to create a corresponding OverrideRunStored entry, i.e. when the User uses the Cancel Button in Override View
+                // Check if we also need to create a corresponding OverrideRunStored entry
                 if createOverrideRunEntry {
                     // Use the first override to create a new OverrideRunStored entry
                     if let canceledOverride = results.first {
@@ -50,8 +53,9 @@ extension Adjustments.StateModel {
                         newOverrideRunStored.name = canceledOverride.name
                         newOverrideRunStored.startDate = canceledOverride.date ?? .distantPast
                         newOverrideRunStored.endDate = Date()
-                        newOverrideRunStored
-                            .target = NSDecimalNumber(decimal: self.overrideStorage.calculateTarget(override: canceledOverride))
+                        newOverrideRunStored.target = NSDecimalNumber(
+                            decimal: self.overrideStorage.calculateTarget(override: canceledOverride)
+                        )
                         newOverrideRunStored.override = canceledOverride
                         newOverrideRunStored.isUploadedToNS = false
                     }
@@ -67,11 +71,12 @@ extension Adjustments.StateModel {
                     try self.viewContext.save()
                     self.updateLatestOverrideConfiguration()
                 }
-            } catch {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Overrides: \(error.localizedDescription)"
-                )
             }
+        } catch {
+            debug(
+                .default,
+                "\(DebuggingIdentifiers.failed) Failed to disable active overrides: \(error.localizedDescription)"
+            )
         }
     }
 
@@ -79,74 +84,89 @@ extension Adjustments.StateModel {
 
     /// Saves a custom Override and activates it.
     func saveCustomOverride() async {
-        let override = Override(
-            name: overrideName,
-            enabled: true,
-            date: Date(),
-            duration: overrideDuration,
-            indefinite: indefinite,
-            percentage: overridePercentage,
-            smbIsOff: smbIsOff,
-            isPreset: isPreset,
-            id: id,
-            overrideTarget: shouldOverrideTarget,
-            target: target,
-            advancedSettings: advancedSettings,
-            isfAndCr: isfAndCr,
-            isf: isf,
-            cr: cr,
-            smbIsScheduledOff: smbIsScheduledOff,
-            start: start,
-            end: end,
-            smbMinutes: smbMinutes,
-            uamMinutes: uamMinutes
-        )
+        do {
+            let override = Override(
+                name: overrideName,
+                enabled: true,
+                date: Date(),
+                duration: overrideDuration,
+                indefinite: indefinite,
+                percentage: overridePercentage,
+                smbIsOff: smbIsOff,
+                isPreset: isPreset,
+                id: id,
+                overrideTarget: shouldOverrideTarget,
+                target: target,
+                advancedSettings: advancedSettings,
+                isfAndCr: isfAndCr,
+                isf: isf,
+                cr: cr,
+                smbIsScheduledOff: smbIsScheduledOff,
+                start: start,
+                end: end,
+                smbMinutes: smbMinutes,
+                uamMinutes: uamMinutes
+            )
 
-        // First disable all Overrides
-        await disableAllActiveOverrides(createOverrideRunEntry: true)
+            // First disable all Overrides
+            await disableAllActiveOverrides(createOverrideRunEntry: true)
 
-        // Then save and activate a new custom Override
-        await overrideStorage.storeOverride(override: override)
+            // Then save and activate a new custom Override
+            try await overrideStorage.storeOverride(override: override)
 
-        // Reset State variables
-        await resetStateVariables()
+            // Reset State variables
+            await resetStateVariables()
 
-        // Update View
-        updateLatestOverrideConfiguration()
+            // Update View
+            updateLatestOverrideConfiguration()
+        } catch {
+            debug(
+                .default,
+                "\(DebuggingIdentifiers.failed) Failed to save custom override: \(error.localizedDescription)"
+            )
+        }
     }
 
     /// Saves an Override Preset without activating it.
     /// `enabled` has to be false
     /// `isPreset` has to be true
     func saveOverridePreset() async {
-        let preset = Override(
-            name: overrideName,
-            enabled: false,
-            date: Date(),
-            duration: overrideDuration,
-            indefinite: indefinite,
-            percentage: overridePercentage,
-            smbIsOff: smbIsOff,
-            isPreset: true,
-            id: id,
-            overrideTarget: shouldOverrideTarget,
-            target: target,
-            advancedSettings: advancedSettings,
-            isfAndCr: isfAndCr,
-            isf: isf,
-            cr: cr,
-            smbIsScheduledOff: smbIsScheduledOff,
-            start: start,
-            end: end,
-            smbMinutes: smbMinutes,
-            uamMinutes: uamMinutes
-        )
+        do {
+            let preset = Override(
+                name: overrideName,
+                enabled: false,
+                date: Date(),
+                duration: overrideDuration,
+                indefinite: indefinite,
+                percentage: overridePercentage,
+                smbIsOff: smbIsOff,
+                isPreset: true,
+                id: id,
+                overrideTarget: shouldOverrideTarget,
+                target: target,
+                advancedSettings: advancedSettings,
+                isfAndCr: isfAndCr,
+                isf: isf,
+                cr: cr,
+                smbIsScheduledOff: smbIsScheduledOff,
+                start: start,
+                end: end,
+                smbMinutes: smbMinutes,
+                uamMinutes: uamMinutes
+            )
 
-        async let storeOverride: () = overrideStorage.storeOverride(override: preset)
-        async let resetState: () = resetStateVariables()
-        _ = await (storeOverride, resetState)
-        setupOverridePresetsArray()
-        await nightscoutManager.uploadProfiles()
+            async let storeOverride: () = overrideStorage.storeOverride(override: preset)
+            async let resetState: () = resetStateVariables()
+            _ = try await (storeOverride, resetState)
+
+            setupOverridePresetsArray()
+            try await nightscoutManager.uploadProfiles()
+        } catch {
+            debug(
+                .default,
+                "\(DebuggingIdentifiers.failed) Failed to save override preset: \(error.localizedDescription)"
+            )
+        }
     }
 
     // MARK: - Override Preset Management
@@ -154,8 +174,15 @@ extension Adjustments.StateModel {
     /// Sets up the array of Override Presets for UI display.
     func setupOverridePresetsArray() {
         Task {
-            let ids = await overrideStorage.fetchForOverridePresets()
-            await updateOverridePresetsArray(with: ids)
+            do {
+                let ids = try await overrideStorage.fetchForOverridePresets()
+                await updateOverridePresetsArray(with: ids)
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) Failed to setup override presets: \(error.localizedDescription)"
+                )
+            }
         }
     }
 
@@ -175,9 +202,16 @@ extension Adjustments.StateModel {
 
     /// Deletes an Override Preset and updates the view.
     func invokeOverridePresetDeletion(_ objectID: NSManagedObjectID) async {
-        await overrideStorage.deleteOverridePreset(objectID)
-        setupOverridePresetsArray()
-        await nightscoutManager.uploadProfiles()
+        do {
+            await overrideStorage.deleteOverridePreset(objectID)
+            setupOverridePresetsArray()
+            try await nightscoutManager.uploadProfiles()
+        } catch {
+            debug(
+                .default,
+                "\(DebuggingIdentifiers.failed) Failed to delete override preset: \(error.localizedDescription)"
+            )
+        }
     }
 
     // MARK: - Update Latest Override Configuration
@@ -188,13 +222,20 @@ extension Adjustments.StateModel {
     /// This also needs to be called when we cancel an Override via the Home View to update the State of the Button for this case
     func updateLatestOverrideConfiguration() {
         Task { [weak self] in
-            guard let self = self else { return }
+            do {
+                guard let self = self else { return }
 
-            let id = await self.overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 1)
+                let id = try await self.overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 1)
 
-            // execute sequentially instead of concurrently
-            await self.updateLatestOverrideConfigurationOfState(from: id)
-            await self.setCurrentOverride(from: id)
+                // execute sequentially instead of concurrently
+                await self.updateLatestOverrideConfigurationOfState(from: id)
+                await self.setCurrentOverride(from: id)
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) Failed to update override configuration: \(error.localizedDescription)"
+                )
+            }
         }
     }
 

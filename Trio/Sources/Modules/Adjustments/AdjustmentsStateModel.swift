@@ -174,7 +174,7 @@ extension Adjustments {
                 guard viewContext.hasChanges else { return }
                 try viewContext.save()
                 setupOverridePresetsArray()
-                Task { await nightscoutManager.uploadProfiles() }
+                Task { try await nightscoutManager.uploadProfiles() }
             } catch {
                 debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Override Presets order")
             }

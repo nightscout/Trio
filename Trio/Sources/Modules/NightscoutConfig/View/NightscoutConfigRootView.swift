@@ -16,6 +16,8 @@ extension NightscoutConfig {
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
+        @State var backfillAlert: Alert?
+        @State var isBackfillAlertPresented = false
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
@@ -132,6 +134,16 @@ extension NightscoutConfig {
                                 Button {
                                     Task {
                                         await state.backfillGlucose()
+                                        if !state.message.isEmpty && state.message.hasPrefix("Error:") {
+                                            DispatchQueue.main.async {
+                                                backfillAlert = Alert(
+                                                    title: Text("Backfill Failed"),
+                                                    message: Text(state.message),
+                                                    dismissButton: .default(Text("OK"))
+                                                )
+                                                isBackfillAlertPresented = true
+                                            }
+                                        }
                                     }
                                 } label: {
                                     Text("Backfill Glucose")
@@ -193,6 +205,9 @@ extension NightscoutConfig {
             .navigationBarTitleDisplayMode(.automatic)
             .alert(isPresented: $isImportAlertPresented) {
                 importAlert ?? Alert(title: Text("Unknown Error"))
+            }
+            .alert(isPresented: $isBackfillAlertPresented) {
+                backfillAlert ?? Alert(title: Text("Unknown Error"))
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)

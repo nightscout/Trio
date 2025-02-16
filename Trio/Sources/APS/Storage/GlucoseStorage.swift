@@ -9,20 +9,20 @@ import Swinject
 
 protocol GlucoseStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
-    func storeGlucose(_ glucose: [BloodGlucose]) async
+    func storeGlucose(_ glucose: [BloodGlucose]) async throws
     func addManualGlucose(glucose: Int)
     func isGlucoseDataFresh(_ glucoseDate: Date?) -> Bool
     func syncDate() -> Date
     func filterTooFrequentGlucose(_ glucose: [BloodGlucose], at: Date) -> [BloodGlucose]
     func lastGlucoseDate() -> Date
     func isGlucoseFresh() -> Bool
-    func getGlucoseNotYetUploadedToNightscout() async -> [BloodGlucose]
-    func getCGMStateNotYetUploadedToNightscout() async -> [NightscoutTreatment]
-    func getManualGlucoseNotYetUploadedToNightscout() async -> [NightscoutTreatment]
-    func getGlucoseNotYetUploadedToHealth() async -> [BloodGlucose]
-    func getManualGlucoseNotYetUploadedToHealth() async -> [BloodGlucose]
-    func getGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample]
-    func getManualGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample]
+    func getGlucoseNotYetUploadedToNightscout() async throws -> [BloodGlucose]
+    func getCGMStateNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
+    func getManualGlucoseNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
+    func getGlucoseNotYetUploadedToHealth() async throws -> [BloodGlucose]
+    func getManualGlucoseNotYetUploadedToHealth() async throws -> [BloodGlucose]
+    func getGlucoseNotYetUploadedToTidepool() async throws -> [StoredGlucoseSample]
+    func getManualGlucoseNotYetUploadedToTidepool() async throws -> [StoredGlucoseSample]
     var alarm: GlucoseAlarm? { get }
     func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async
 }
@@ -60,8 +60,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         return formatter
     }
 
-    func storeGlucose(_ glucose: [BloodGlucose]) async {
-        await coredataContext.perform {
+    func storeGlucose(_ glucose: [BloodGlucose]) async throws {
+        try await coredataContext.perform {
             // Get new glucose values that don't exist yet
             let newGlucose = self.filterNewGlucoseValues(glucose)
             guard !newGlucose.isEmpty else { return }
@@ -70,8 +70,9 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 // Store glucose values in Core Data
                 try self.storeGlucoseInCoreData(newGlucose)
             } catch {
-                debugPrint(
-                    "Glucose Storage: \(#function) \(DebuggingIdentifiers.failed) failed to store glucose: \(error)"
+                throw CoreDataError.creationError(
+                    function: #function,
+                    file: #fileID
                 )
             }
 
@@ -312,9 +313,9 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         return filtered
     }
 
-    func fetchLatestGlucose() -> GlucoseStored? {
+    func fetchLatestGlucose() throws -> GlucoseStored? {
         let predicate = NSPredicate.predicateFor20MinAgo
-        return (CoreDataStack.shared.fetchEntities(
+        return (try CoreDataStack.shared.fetchEntities(
             ofType: GlucoseStored.self,
             onContext: coredataContext,
             predicate: predicate,
@@ -326,8 +327,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     // Fetch glucose that is not uploaded to Nightscout yet
     /// - Returns: Array of BloodGlucose to ensure the correct format for the NS Upload
-    func getGlucoseNotYetUploadedToNightscout() async -> [BloodGlucose] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getGlucoseNotYetUploadedToNightscout() async throws -> [BloodGlucose] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: coredataContext,
             predicate: NSPredicate.glucoseNotYetUploadedToNightscout,
@@ -357,8 +358,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     // Fetch manual glucose that is not uploaded to Nightscout yet
     /// - Returns: Array of NightscoutTreatment to ensure the correct format for the NS Upload
-    func getManualGlucoseNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getManualGlucoseNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: coredataContext,
             predicate: NSPredicate.manualGlucoseNotYetUploadedToNightscout,
@@ -411,8 +412,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     // Fetch glucose that is not uploaded to Nightscout yet
     /// - Returns: Array of BloodGlucose to ensure the correct format for the NS Upload
-    func getGlucoseNotYetUploadedToHealth() async -> [BloodGlucose] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getGlucoseNotYetUploadedToHealth() async throws -> [BloodGlucose] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: coredataContext,
             predicate: NSPredicate.glucoseNotYetUploadedToHealth,
@@ -441,8 +442,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     // Fetch manual glucose that is not uploaded to Nightscout yet
     /// - Returns: Array of NightscoutTreatment to ensure the correct format for the NS Upload
-    func getManualGlucoseNotYetUploadedToHealth() async -> [BloodGlucose] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getManualGlucoseNotYetUploadedToHealth() async throws -> [BloodGlucose] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: coredataContext,
             predicate: NSPredicate.manualGlucoseNotYetUploadedToHealth,
@@ -471,8 +472,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     // Fetch glucose that is not uploaded to Tidepool yet
     /// - Returns: Array of StoredGlucoseSample to ensure the correct format for Tidepool upload
-    func getGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getGlucoseNotYetUploadedToTidepool() async throws -> [StoredGlucoseSample] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: coredataContext,
             predicate: NSPredicate.glucoseNotYetUploadedToTidepool,
@@ -502,8 +503,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     // Fetch manual glucose that is not uploaded to Tidepool yet
     /// - Returns: Array of StoredGlucoseSample to ensure the correct format for the Tidepool upload
-    func getManualGlucoseNotYetUploadedToTidepool() async -> [StoredGlucoseSample] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getManualGlucoseNotYetUploadedToTidepool() async throws -> [StoredGlucoseSample] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: coredataContext,
             predicate: NSPredicate.manualGlucoseNotYetUploadedToTidepool,
@@ -560,19 +561,24 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     var alarm: GlucoseAlarm? {
         /// glucose can not be older than 20 minutes due to the predicate in the fetch request
         coredataContext.performAndWait {
-            guard let glucose = fetchLatestGlucose() else { return nil }
+            do {
+                guard let glucose = try fetchLatestGlucose() else { return nil }
 
-            let glucoseValue = glucose.glucose
+                let glucoseValue = glucose.glucose
 
-            if Decimal(glucoseValue) <= settingsManager.settings.lowGlucose {
-                return .low
+                if Decimal(glucoseValue) <= settingsManager.settings.lowGlucose {
+                    return .low
+                }
+
+                if Decimal(glucoseValue) >= settingsManager.settings.highGlucose {
+                    return .high
+                }
+
+                return nil
+            } catch {
+                debugPrint("Error fetching latest glucose: \(error)")
+                return nil
             }
-
-            if Decimal(glucoseValue) >= settingsManager.settings.highGlucose {
-                return .high
-            }
-
-            return nil
         }
     }
 }

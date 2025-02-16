@@ -84,7 +84,7 @@ extension TargetsEditor {
 
             Task.detached(priority: .low) {
                 debug(.nightscout, "Attempting to upload targets to Nightscout")
-                await self.nightscout.uploadProfiles()
+                try await self.nightscout.uploadProfiles()
             }
         }
 

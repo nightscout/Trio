@@ -187,7 +187,11 @@ extension BaseTidepoolManager: ServiceDelegate {
 /// Carb Upload and Deletion Functionality
 extension BaseTidepoolManager {
     func uploadCarbs() async {
-        uploadCarbs(await carbsStorage.getCarbsNotYetUploadedToTidepool())
+        do {
+            try uploadCarbs(await carbsStorage.getCarbsNotYetUploadedToTidepool())
+        } catch {
+            debug(.service, "\(DebuggingIdentifiers.failed) Failed to upload carbs with error: \(error.localizedDescription)")
+        }
     }
 
     func uploadCarbs(_ carbs: [CarbsEntry]) {
@@ -274,115 +278,127 @@ extension BaseTidepoolManager {
 /// Insulin Upload and Deletion Functionality
 extension BaseTidepoolManager {
     func uploadInsulin() async {
-        await uploadDose(await pumpHistoryStorage.getPumpHistoryNotYetUploadedToTidepool())
+        do {
+            let events = try await pumpHistoryStorage.getPumpHistoryNotYetUploadedToTidepool()
+            await uploadDose(events)
+        } catch {
+            debug(.service, "Error fetching pump history: \(error.localizedDescription)")
+        }
     }
 
     func uploadDose(_ events: [PumpHistoryEvent]) async {
         guard !events.isEmpty, let tidepoolService = self.tidepoolService else { return }
 
-        // Fetch all temp basal entries from Core Data for the last 24 hours
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: PumpEventStored.self,
-            onContext: backgroundContext,
-            predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
-                NSPredicate.pumpHistoryLast24h,
-                NSPredicate(format: "tempBasal != nil")
-            ]),
-            key: "timestamp",
-            ascending: true,
-            batchSize: 50
-        )
+        do {
+            // Fetch all temp basal entries from Core Data for the last 24 hours
+            let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+                ofType: PumpEventStored.self,
+                onContext: backgroundContext,
+                predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
+                    NSPredicate.pumpHistoryLast24h,
+                    NSPredicate(format: "tempBasal != nil")
+                ]),
+                key: "timestamp",
+                ascending: true,
+                batchSize: 50
+            )
 
-        // Ensure that the processing happens within the background context for thread safety
-        await backgroundContext.perform {
-            guard let existingTempBasalEntries = results as? [PumpEventStored] else { return }
+            // Ensure that the processing happens within the background context for thread safety
+            await backgroundContext.perform {
+                guard let existingTempBasalEntries = results as? [PumpEventStored] else { return }
 
-            let insulinDoseEvents: [DoseEntry] = events.reduce([]) { result, event in
-                var result = result
-                switch event.type {
-                case .tempBasal:
-                    result
-                        .append(contentsOf: self.processTempBasalEvent(event, existingTempBasalEntries: existingTempBasalEntries))
-                case .bolus:
-                    let bolusDoseEntry = DoseEntry(
-                        type: .bolus,
-                        startDate: event.timestamp,
-                        endDate: event.timestamp,
-                        value: Double(event.amount!),
-                        unit: .units,
-                        deliveredUnits: nil,
-                        syncIdentifier: event.id,
-                        scheduledBasalRate: nil,
-                        insulinType: self.apsManager.pumpManager?.status.insulinType ?? nil,
-                        automatic: event.isSMB ?? true,
-                        manuallyEntered: event.isExternal ?? false
-                    )
-                    result.append(bolusDoseEntry)
-                default:
-                    break
-                }
-                return result
-            }
-
-            debug(.service, "TIDEPOOL DOSE ENTRIES: \(insulinDoseEvents)")
-
-            let pumpEvents: [PersistedPumpEvent] = events.compactMap { event -> PersistedPumpEvent? in
-                if let pumpEventType = event.type.mapEventTypeToPumpEventType() {
-                    let dose: DoseEntry? = switch pumpEventType {
-                    case .suspend:
-                        DoseEntry(suspendDate: event.timestamp, automatic: true)
-                    case .resume:
-                        DoseEntry(resumeDate: event.timestamp, automatic: true)
+                let insulinDoseEvents: [DoseEntry] = events.reduce([]) { result, event in
+                    var result = result
+                    switch event.type {
+                    case .tempBasal:
+                        result
+                            .append(
+                                contentsOf: self
+                                    .processTempBasalEvent(event, existingTempBasalEntries: existingTempBasalEntries)
+                            )
+                    case .bolus:
+                        let bolusDoseEntry = DoseEntry(
+                            type: .bolus,
+                            startDate: event.timestamp,
+                            endDate: event.timestamp,
+                            value: Double(event.amount!),
+                            unit: .units,
+                            deliveredUnits: nil,
+                            syncIdentifier: event.id,
+                            scheduledBasalRate: nil,
+                            insulinType: self.apsManager.pumpManager?.status.insulinType ?? nil,
+                            automatic: event.isSMB ?? true,
+                            manuallyEntered: event.isExternal ?? false
+                        )
+                        result.append(bolusDoseEntry)
                     default:
-                        nil
+                        break
                     }
-
-                    return PersistedPumpEvent(
-                        date: event.timestamp,
-                        persistedDate: event.timestamp,
-                        dose: dose,
-                        isUploaded: true,
-                        objectIDURL: URL(string: "x-coredata:///PumpEvent/\(event.id)")!,
-                        raw: event.id.data(using: .utf8),
-                        title: event.note,
-                        type: pumpEventType
-                    )
-                } else {
-                    return nil
+                    return result
                 }
-            }
 
-            self.processQueue.async {
-                tidepoolService.uploadDoseData(created: insulinDoseEvents, deleted: []) { result in
-                    switch result {
-                    case let .failure(error):
-                        debug(.nightscout, "Error synchronizing dose data with Tidepool: \(String(describing: error))")
-                    case .success:
-                        debug(.nightscout, "Success synchronizing dose data. Upload to Tidepool complete.")
-                        Task {
-                            let insulinEvents = events.filter {
-                                $0.type == .tempBasal || $0.type == .tempBasalDuration || $0.type == .bolus
+                debug(.service, "TIDEPOOL DOSE ENTRIES: \(insulinDoseEvents)")
+
+                let pumpEvents: [PersistedPumpEvent] = events.compactMap { event -> PersistedPumpEvent? in
+                    if let pumpEventType = event.type.mapEventTypeToPumpEventType() {
+                        let dose: DoseEntry? = switch pumpEventType {
+                        case .suspend:
+                            DoseEntry(suspendDate: event.timestamp, automatic: true)
+                        case .resume:
+                            DoseEntry(resumeDate: event.timestamp, automatic: true)
+                        default:
+                            nil
+                        }
+
+                        return PersistedPumpEvent(
+                            date: event.timestamp,
+                            persistedDate: event.timestamp,
+                            dose: dose,
+                            isUploaded: true,
+                            objectIDURL: URL(string: "x-coredata:///PumpEvent/\(event.id)")!,
+                            raw: event.id.data(using: .utf8),
+                            title: event.note,
+                            type: pumpEventType
+                        )
+                    } else {
+                        return nil
+                    }
+                }
+
+                self.processQueue.async {
+                    tidepoolService.uploadDoseData(created: insulinDoseEvents, deleted: []) { result in
+                        switch result {
+                        case let .failure(error):
+                            debug(.nightscout, "Error synchronizing dose data with Tidepool: \(String(describing: error))")
+                        case .success:
+                            debug(.nightscout, "Success synchronizing dose data. Upload to Tidepool complete.")
+                            Task {
+                                let insulinEvents = events.filter {
+                                    $0.type == .tempBasal || $0.type == .tempBasalDuration || $0.type == .bolus
+                                }
+                                await self.updateInsulinAsUploaded(insulinEvents)
                             }
-                            await self.updateInsulinAsUploaded(insulinEvents)
                         }
                     }
-                }
 
-                tidepoolService.uploadPumpEventData(pumpEvents) { result in
-                    switch result {
-                    case let .failure(error):
-                        debug(.nightscout, "Error synchronizing pump events data: \(String(describing: error))")
-                    case .success:
-                        debug(.nightscout, "Success synchronizing pump events data. Upload to Tidepool complete.")
-                        Task {
-                            let pumpEventType = events.map { $0.type.mapEventTypeToPumpEventType() }
-                            let pumpEvents = events.filter { _ in pumpEventType.contains(pumpEventType) }
+                    tidepoolService.uploadPumpEventData(pumpEvents) { result in
+                        switch result {
+                        case let .failure(error):
+                            debug(.nightscout, "Error synchronizing pump events data: \(String(describing: error))")
+                        case .success:
+                            debug(.nightscout, "Success synchronizing pump events data. Upload to Tidepool complete.")
+                            Task {
+                                let pumpEventType = events.map { $0.type.mapEventTypeToPumpEventType() }
+                                let pumpEvents = events.filter { _ in pumpEventType.contains(pumpEventType) }
 
-                            await self.updateInsulinAsUploaded(pumpEvents)
+                                await self.updateInsulinAsUploaded(pumpEvents)
+                            }
                         }
                     }
                 }
             }
+        } catch {
+            debug(.service, "Error fetching temp basal entries: \(error.localizedDescription)")
         }
     }
 
@@ -573,11 +589,15 @@ extension BaseTidepoolManager {
 /// Glucose Upload Functionality
 extension BaseTidepoolManager {
     func uploadGlucose() async {
-        uploadGlucose(await glucoseStorage.getGlucoseNotYetUploadedToTidepool())
-        uploadGlucose(
-            await glucoseStorage
-                .getManualGlucoseNotYetUploadedToTidepool()
-        )
+        do {
+            let glucose = try await glucoseStorage.getGlucoseNotYetUploadedToTidepool()
+            uploadGlucose(glucose)
+
+            let manualGlucose = try await glucoseStorage.getManualGlucoseNotYetUploadedToTidepool()
+            uploadGlucose(manualGlucose)
+        } catch {
+            debug(.service, "Error fetching glucose data: \(error.localizedDescription)")
+        }
     }
 
     func uploadGlucose(_ glucose: [StoredGlucoseSample]) {

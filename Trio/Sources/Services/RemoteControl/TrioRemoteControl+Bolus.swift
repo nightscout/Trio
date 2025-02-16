@@ -1,7 +1,7 @@
 import Foundation
 
 extension TrioRemoteControl {
-    internal func handleBolusCommand(_ pushMessage: PushMessage) async {
+    internal func handleBolusCommand(_ pushMessage: PushMessage) async throws {
         guard let bolusAmount = pushMessage.bolusAmount else {
             await logError("Command rejected: bolus amount is missing or invalid.", pushMessage: pushMessage)
             return
@@ -18,7 +18,7 @@ extension TrioRemoteControl {
         }
 
         let maxIOB = settings.preferences.maxIOB
-        let currentIOB = await fetchCurrentIOB()
+        let currentIOB = try await fetchCurrentIOB()
         if (currentIOB + bolusAmount) > maxIOB {
             await logError(
                 "Command rejected: bolus amount (\(bolusAmount) units) would exceed max IOB (\(maxIOB) units). Current IOB: \(currentIOB) units.",
@@ -27,7 +27,8 @@ extension TrioRemoteControl {
             return
         }
 
-        let totalRecentBolusAmount = await fetchTotalRecentBolusAmount(since: Date(timeIntervalSince1970: pushMessage.timestamp))
+        let totalRecentBolusAmount =
+            try await fetchTotalRecentBolusAmount(since: Date(timeIntervalSince1970: pushMessage.timestamp))
 
         if totalRecentBolusAmount >= bolusAmount * 0.2 {
             await logError(
@@ -55,10 +56,10 @@ extension TrioRemoteControl {
         )
     }
 
-    private func fetchCurrentIOB() async -> Decimal {
+    private func fetchCurrentIOB() async throws -> Decimal {
         let predicate = NSPredicate.predicateFor30MinAgoForDetermination
 
-        let determinations = await CoreDataStack.shared.fetchEntitiesAsync(
+        let determinations = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: pumpHistoryFetchContext,
             predicate: predicate,
@@ -79,14 +80,14 @@ extension TrioRemoteControl {
         return iob
     }
 
-    private func fetchTotalRecentBolusAmount(since date: Date) async -> Decimal {
+    private func fetchTotalRecentBolusAmount(since date: Date) async throws -> Decimal {
         let predicate = NSPredicate(
             format: "type == %@ AND timestamp > %@",
             PumpEventStored.EventType.bolus.rawValue,
             date as NSDate
         )
 
-        let results: Any = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results: Any = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: pumpHistoryFetchContext,
             predicate: predicate,

@@ -4,14 +4,22 @@ import Foundation
 extension Home.StateModel {
     func setupInsulinArray() {
         Task {
-            let ids = await self.fetchInsulin()
-            let insulinObjects: [PumpEventStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
-            await updateInsulinArray(with: insulinObjects)
+            do {
+                let ids = try await self.fetchInsulin()
+                let insulinObjects: [PumpEventStored] = try await CoreDataStack.shared
+                    .getNSManagedObject(with: ids, context: viewContext)
+                await updateInsulinArray(with: insulinObjects)
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) Error setting up insulin array: \(error.localizedDescription)"
+                )
+            }
         }
     }
 
-    private func fetchInsulin() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchInsulin() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: pumpHistoryFetchContext,
             predicate: NSPredicate.pumpHistoryLast24h,
@@ -48,13 +56,20 @@ extension Home.StateModel {
     // The predicate filters out all external boluses to prevent the progress bar from displaying the amount of an external bolus when an external bolus is added after a pump bolus
     func setupLastBolus() {
         Task {
-            guard let id = await self.fetchLastBolus() else { return }
-            await updateLastBolus(with: id)
+            do {
+                guard let id = try await self.fetchLastBolus() else { return }
+                await updateLastBolus(with: id)
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) Error setting up last bolus: \(error.localizedDescription)"
+                )
+            }
         }
     }
 
-    func fetchLastBolus() async -> NSManagedObjectID? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchLastBolus() async throws -> NSManagedObjectID? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: pumpHistoryFetchContext,
             predicate: NSPredicate.lastPumpBolus,

@@ -25,6 +25,6 @@ struct TempPresetsQuery: EntityQuery {
     }
 
     func suggestedEntities() async throws -> [TempPreset] {
-        await TempPresetsIntentRequest().fetchAndProcessTempTargets()
+        try await TempPresetsIntentRequest().fetchAndProcessTempTargets()
     }
 }

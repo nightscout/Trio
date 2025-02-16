@@ -4,15 +4,22 @@ import Foundation
 extension Home.StateModel {
     func setupTempTargetsStored() {
         Task {
-            let ids = await self.fetchTempTargets()
-            let tempTargetObjects: [TempTargetStored] = await CoreDataStack.shared
-                .getNSManagedObject(with: ids, context: viewContext)
-            await updateTempTargetsArray(with: tempTargetObjects)
+            do {
+                let ids = try await self.fetchTempTargets()
+                let tempTargetObjects: [TempTargetStored] = try await CoreDataStack.shared
+                    .getNSManagedObject(with: ids, context: viewContext)
+                await updateTempTargetsArray(with: tempTargetObjects)
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) Error setting up tempTargetStored: \(error.localizedDescription)"
+                )
+            }
         }
     }
 
-    private func fetchTempTargets() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchTempTargets() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: tempTargetFetchContext,
             predicate: NSPredicate.lastActiveTempTarget,
@@ -33,16 +40,23 @@ extension Home.StateModel {
     // Setup expired TempTargets
     func setupTempTargetsRunStored() {
         Task {
-            let ids = await self.fetchTempTargetRunStored()
-            let tempTargetRunObjects: [TempTargetRunStored] = await CoreDataStack.shared
-                .getNSManagedObject(with: ids, context: viewContext)
-            await updateTempTargetRunStoredArray(with: tempTargetRunObjects)
+            do {
+                let ids = try await self.fetchTempTargetRunStored()
+                let tempTargetRunObjects: [TempTargetRunStored] = try await CoreDataStack.shared
+                    .getNSManagedObject(with: ids, context: viewContext)
+                await updateTempTargetRunStoredArray(with: tempTargetRunObjects)
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) Error setting up temp targetsRunStored: \(error.localizedDescription)"
+                )
+            }
         }
     }
 
-    private func fetchTempTargetRunStored() async -> [NSManagedObjectID] {
+    private func fetchTempTargetRunStored() async throws -> [NSManagedObjectID] {
         let predicate = NSPredicate(format: "startDate >= %@", Date.oneDayAgo as NSDate)
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetRunStored.self,
             onContext: tempTargetFetchContext,
             predicate: predicate,

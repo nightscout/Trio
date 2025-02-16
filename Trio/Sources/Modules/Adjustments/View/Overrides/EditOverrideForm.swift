@@ -518,7 +518,7 @@ struct EditOverrideForm: View {
                         guard moc.hasChanges else { return }
                         try moc.save()
                         Task {
-                            await state.nightscoutManager.uploadProfiles()
+                            try await state.nightscoutManager.uploadProfiles()
                         }
                         // Disable previous active Override
                         if let currentActiveOverride = state.currentActiveOverride {

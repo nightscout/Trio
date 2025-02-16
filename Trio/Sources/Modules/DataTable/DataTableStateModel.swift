@@ -304,7 +304,7 @@ extension DataTable {
                     newNote: newNote
                 )
 
-                await createNewEntries(
+                try await createNewEntries(
                     originalDate: newDate,
                     newCarbs: newCarbs,
                     newFat: newFat,
@@ -322,7 +322,7 @@ extension DataTable {
             newFat: Decimal,
             newProtein: Decimal,
             newNote: String
-        ) async {
+        ) async throws {
             let newEntry = CarbsEntry(
                 id: UUID().uuidString,
                 createdAt: Date(),
@@ -337,7 +337,7 @@ extension DataTable {
             )
 
             // Handles internally whether to create fake carbs or not based on whether fat > 0 or protein > 0
-            await carbsStorage.storeCarbs([newEntry], areFetchedFromRemote: false)
+            try await carbsStorage.storeCarbs([newEntry], areFetchedFromRemote: false)
         }
 
         /// Deletes the old carb/ FPU entries and creates new ones with updated values
