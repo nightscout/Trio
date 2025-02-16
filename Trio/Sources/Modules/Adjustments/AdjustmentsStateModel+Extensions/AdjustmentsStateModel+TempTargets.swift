@@ -222,8 +222,7 @@ extension Adjustments.StateModel {
     @MainActor func enactTempTargetPreset(withID id: NSManagedObjectID) async {
         do {
             guard let tempTargetToEnact = try viewContext.existingObject(with: id) as? TempTargetStored else { return }
-
-            /// wait for diabling current target before storing new temp target
+            /// Wait for currently active temp target to be disabled before storing the new temp target
             await disableAllActiveTempTargets(createTempTargetRunEntry: true)
             await resetTempTargetState()
 
@@ -231,14 +230,13 @@ extension Adjustments.StateModel {
             tempTargetToEnact.date = Date()
             tempTargetToEnact.isUploadedToNS = false
             isTempTargetEnabled = true
-
             if viewContext.hasChanges {
                 try viewContext.save()
             }
 
             updateLatestTempTargetConfiguration()
 
-            let newActiveTempTarget = TempTarget(
+            let tempTarget = TempTarget(
                 name: tempTargetToEnact.name,
                 createdAt: Date(),
                 targetTop: tempTargetToEnact.target?.decimalValue,
@@ -250,9 +248,7 @@ extension Adjustments.StateModel {
                 enabled: true,
                 halfBasalTarget: halfBasalTarget
             )
-
-            tempTargetStorage.saveTempTargetsToStorage([newActiveTempTarget])
-
+            tempTargetStorage.saveTempTargetsToStorage([tempTarget])
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact TempTarget Preset"
