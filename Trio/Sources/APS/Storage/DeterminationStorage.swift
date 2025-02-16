@@ -80,7 +80,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
         }
     }
 
-    // Fetch forecast value IDs for a given data set
+    // Fetch forecast objects for a given data set
     func fetchForecastObjects(
         for data: (id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]),
         in context: NSManagedObjectContext

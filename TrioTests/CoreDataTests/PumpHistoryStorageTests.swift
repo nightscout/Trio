@@ -288,9 +288,87 @@ import Testing
         )
         #expect(fetchedEvent?.bolus?.isSMB == false, "Should not be a SMB")
         // TODO: - check this
-//        #expect(fetchedEvent?.bolus?.isExternal == false, "Should not be external Insulin")
+        #expect(fetchedEvent?.bolus?.isExternal == false, "Should not be external Insulin")
         #expect(fetchedEvent?.isUploadedToNS == false, "Should not be uploaded to NS")
         #expect(fetchedEvent?.isUploadedToHealth == false, "Should not be uploaded to Health")
         #expect(fetchedEvent?.isUploadedToTidepool == false, "Should not be uploaded to Tidepool")
+    }
+
+    @Test("Measure performance of PumpHistory storage operations") func testStoragePerformance() async throws {
+        // STEP 1: Setup test data
+        let date = Date()
+        let amount: Decimal = 4.0
+        let events = [
+            NewPumpEvent(
+                date: date,
+                dose: DoseEntry(
+                    type: .bolus,
+                    startDate: date,
+                    endDate: date.addingTimeInterval(1),
+                    value: Double(amount),
+                    unit: .units,
+                    deliveredUnits: Double(amount),
+                    description: nil,
+                    syncIdentifier: "test_bolus_1",
+                    scheduledBasalRate: nil,
+                    insulinType: .lyumjev,
+                    automatic: false,
+                    manuallyEntered: true,
+                    isMutable: false
+                ),
+                raw: Data(),
+                title: "Test Bolus",
+                type: .bolus
+            )
+        ]
+
+        // STEP 2: Test storePumpEvents performance
+        let storeStartTime = CFAbsoluteTimeGetCurrent()
+
+        await storage.storePumpEvents(events)
+
+        let storeTime = CFAbsoluteTimeGetCurrent() - storeStartTime
+        debug(.default, "storePumpEvents time: \(String(format: "%.4f", storeTime)) seconds")
+
+        // STEP 3: Test Nightscout upload fetch performance
+        let nsStartTime = CFAbsoluteTimeGetCurrent()
+
+        let nsEvents = await storage.getPumpHistoryNotYetUploadedToNightscout()
+
+        let nsTime = CFAbsoluteTimeGetCurrent() - nsStartTime
+        debug(.default, "Nightscout fetch time: \(String(format: "%.4f", nsTime)) seconds")
+
+        // STEP 4: Test HealthKit upload fetch performance
+        let healthStartTime = CFAbsoluteTimeGetCurrent()
+
+        let healthEvents = await storage.getPumpHistoryNotYetUploadedToHealth()
+
+        let healthTime = CFAbsoluteTimeGetCurrent() - healthStartTime
+        debug(.default, "HealthKit fetch time: \(String(format: "%.4f", healthTime)) seconds")
+
+        // STEP 5: Test Tidepool upload fetch performance
+        let tidepoolStartTime = CFAbsoluteTimeGetCurrent()
+
+        let tidepoolEvents = await storage.getPumpHistoryNotYetUploadedToTidepool()
+
+        let tidepoolTime = CFAbsoluteTimeGetCurrent() - tidepoolStartTime
+        debug(.default, "Tidepool fetch time: \(String(format: "%.4f", tidepoolTime)) seconds")
+
+        // Performance expectations
+        #expect(storeTime < 0.1, "Storing events should take less than 0.1 seconds")
+        #expect(nsTime < 0.01, "Fetching Nightscout events should take less than 0.05 seconds")
+        #expect(healthTime < 0.01, "Fetching HealthKit events should take less than 0.05 seconds")
+        #expect(tidepoolTime < 0.01, "Fetching Tidepool events should take less than 0.05 seconds")
+
+        // Log each total time
+        debug(.default, "Total storePumpEvents time: \(String(format: "%.4f", storeTime)) seconds")
+        debug(.default, "Total Nightscout fetch time: \(String(format: "%.4f", nsTime)) seconds")
+        debug(.default, "Total HealthKit fetch time: \(String(format: "%.4f", healthTime)) seconds")
+        debug(.default, "Total Tidepool fetch time: \(String(format: "%.4f", tidepoolTime)) seconds")
+
+        // Verify data integrity
+        #expect(!nsEvents.isEmpty, "Should have found event for Nightscout")
+        #expect(!healthEvents.isEmpty, "Should have found event for HealthKit")
+        #expect(!tidepoolEvents.isEmpty, "Should have found event for Tidepool")
     }
 }

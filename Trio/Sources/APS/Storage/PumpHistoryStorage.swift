@@ -13,7 +13,6 @@ protocol PumpHistoryStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func storePumpEvents(_ events: [NewPumpEvent]) async
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
-    func recent() -> [PumpHistoryEvent]
     func getPumpHistoryNotYetUploadedToNightscout() async -> [NightscoutTreatment]
     func getPumpHistoryNotYetUploadedToHealth() async -> [PumpHistoryEvent]
     func getPumpHistoryNotYetUploadedToTidepool() async -> [PumpHistoryEvent]
@@ -248,10 +247,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 print(error.localizedDescription)
             }
         }
-    }
-
-    func recent() -> [PumpHistoryEvent] {
-        storage.retrieve(OpenAPS.Monitor.pumpHistory, as: [PumpHistoryEvent].self)?.reversed() ?? []
     }
 
     func determineBolusEventType(for event: PumpEventStored) -> PumpEventStored.EventType {

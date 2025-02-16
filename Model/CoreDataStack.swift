@@ -56,9 +56,27 @@ class CoreDataStack: ObservableObject {
         return stack
     }()
 
+    // Shared managed object model
+    static var managedObjectModel: NSManagedObjectModel = {
+        let bundle = Bundle(for: CoreDataStack.self)
+        guard let url = bundle.url(forResource: "TrioCoreDataPersistentContainer", withExtension: "momd") else {
+            fatalError("Failed \(DebuggingIdentifiers.failed) to locate momd file")
+        }
+
+        guard let model = NSManagedObjectModel(contentsOf: url) else {
+            fatalError("Failed \(DebuggingIdentifiers.failed) to load momd file")
+        }
+
+        return model
+    }()
+
     /// A persistent container to set up the Core Data Stack
     lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "TrioCoreDataPersistentContainer")
+        // Use shared model instead of loading a new one
+        let container = NSPersistentContainer(
+            name: "TrioCoreDataPersistentContainer",
+            managedObjectModel: Self.managedObjectModel
+        )
 
         guard let description = container.persistentStoreDescriptions.first else {
             fatalError("Failed \(DebuggingIdentifiers.failed) to retrieve a persistent store description")
