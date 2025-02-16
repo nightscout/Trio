@@ -43,9 +43,7 @@ extension Home.StateModel {
             batchSize: 50,
             propertiesToFetch: ["cob", "iob", "deliverAt", "objectID"]
         )
-
-        debug(.businessLogic, "IOB AND COB FOR CHART: \(results)")
-
+        
         return await determinationFetchContext.perform {
             guard let fetchedResults = results as? [[String: Any]] else {
                 return []
