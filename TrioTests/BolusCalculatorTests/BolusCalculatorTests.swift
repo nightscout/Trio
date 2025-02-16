@@ -3,7 +3,7 @@ import Testing
 
 @testable import Trio
 
-@Suite(.serialized) struct BolusCalculatorTests: Injectable {
+@Suite("Bolus Calculator Tests") struct BolusCalculatorTests: Injectable {
     @Injected() var calculator: BolusCalculationManager!
     @Injected() var settingsManager: SettingsManager!
     @Injected() var fileStorage: FileStorage!

@@ -6,7 +6,7 @@ import Testing
 @testable import LoopKit
 @testable import Trio
 
-@Suite(.serialized) struct PumpHistoryStorageTests: Injectable {
+@Suite("PumpHistoryStorage Tests") struct PumpHistoryStorageTests: Injectable {
     @Injected() var storage: PumpHistoryStorage!
     let resolver: Resolver
     let coreDataStack = CoreDataStack.createForTests()
@@ -15,8 +15,6 @@ import Testing
 
     init() {
         // Create test context
-        // As we are only using this single test context to initialize our in-memory PumpHistoryStorage we need to perform the Unit Tests serialized
-        // TODO: is this really correct or does PersistentHistoryTracking also work in this in memory Coredata stack. This would allow me to use a single test context per test and perform the tests in parallel!
         testContext = coreDataStack.newTaskContext()
 
         // Create assembler with test assembly
@@ -75,9 +73,8 @@ import Testing
             )
         ]
 
-        // Store test event and wait for storage to complete the task
+        // Store test event
         await storage.storePumpEvents(events)
-//        try await Task.sleep(nanoseconds: 1_000_000_000)
 
         // When - Fetch events with our generic fetch function
         let fetchedEvents = await coreDataStack.fetchEntitiesAsync(
@@ -189,9 +186,6 @@ import Testing
         // Store in our in-memory PumphistoryStorage
         await storage.storePumpEvents(events)
 
-        // Wait for the events to be stored
-//        try await Task.sleep(nanoseconds: 1_000_000_000)
-
         // Then
         // Fetch all events after storing
         let finalEntries = try await testContext.perform {
@@ -260,7 +254,6 @@ import Testing
 
         // Store test event and wait for storage to complete the task
         await storage.storePumpEvents(events)
-//        try await Task.sleep(nanoseconds: 1_000_000_000)
 
         // When - Fetch events with our generic fetch function
         let fetchedEvents = await coreDataStack.fetchEntitiesAsync(
