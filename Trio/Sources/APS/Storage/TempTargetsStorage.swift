@@ -217,7 +217,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
     }
 
     @MainActor func deleteTempTargetPreset(_ objectID: NSManagedObjectID) async {
-        await CoreDataStack.shared.deleteObject(identifiedBy: objectID) /// To-Do:add  json handling
+        await CoreDataStack.shared.deleteObject(identifiedBy: objectID)
     }
 
     func syncDate() -> Date {
@@ -246,7 +246,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
-            predicate: NSPredicate.lastActiveAdjustmentNotYetUploadedToNightscout, // TODO: create adjustment predicate (OR+TT)
+            predicate: NSPredicate.lastActiveAdjustmentNotYetUploadedToNightscout,
             key: "date",
             ascending: false
         )
