@@ -191,36 +191,38 @@ final class BaseAPSManager: APSManager, Injectable {
 
     // Loop entry point
     private func loop() {
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
+
             // check the last start of looping is more the loopInterval but the previous loop was completed
-            if lastLoopDate > lastLoopStartDate {
-                guard lastLoopStartDate.addingTimeInterval(Config.loopInterval) < Date() else {
-                    debug(.apsManager, "too close to do a loop : \(lastLoopStartDate)")
+            if self.lastLoopDate > self.lastLoopStartDate {
+                guard self.lastLoopStartDate.addingTimeInterval(Config.loopInterval) < Date() else {
+                    debug(.apsManager, "too close to do a loop : \(self.lastLoopStartDate)")
                     return
                 }
             }
 
-            guard !isLooping.value else {
+            guard !self.isLooping.value else {
                 warning(.apsManager, "Loop already in progress. Skip recommendation.")
                 return
             }
 
             // start background time extension
-            backGroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") {
-                guard let backgroundTask = self.backGroundTaskID else { return }
+            self.backGroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") { [weak self] in
+                guard let self, let backgroundTask = self.backGroundTaskID else { return }
                 Task {
                     UIApplication.shared.endBackgroundTask(backgroundTask)
                 }
                 self.backGroundTaskID = .invalid
             }
 
-            lastLoopStartDate = Date()
+            self.lastLoopStartDate = Date()
 
             var previousLoop = [LoopStatRecord]()
             var interval: Double?
 
             do {
-                try await privateContext.perform {
+                try await self.privateContext.perform {
                     let requestStats = LoopStatRecord.fetchRequest() as NSFetchRequest<LoopStatRecord>
                     let sortStats = NSSortDescriptor(key: "end", ascending: false)
                     requestStats.sortDescriptors = [sortStats]
@@ -241,41 +243,41 @@ final class BaseAPSManager: APSManager, Injectable {
             }
 
             var loopStatRecord = LoopStats(
-                start: lastLoopStartDate,
+                start: self.lastLoopStartDate,
                 loopStatus: "Starting",
                 interval: interval
             )
 
-            isLooping.send(true)
+            self.isLooping.send(true)
 
             do {
-                if try await !determineBasal() {
+                if try await !self.determineBasal() {
                     throw APSError.apsError(message: "Determine basal failed")
                 }
 
                 // Open loop completed
-                guard settings.closedLoop else {
+                guard self.settings.closedLoop else {
                     loopStatRecord.end = Date()
-                    loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
+                    loopStatRecord.duration = self.roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
                     loopStatRecord.loopStatus = "Success"
-                    await loopCompleted(loopStatRecord: loopStatRecord)
+                    await self.loopCompleted(loopStatRecord: loopStatRecord)
                     return
                 }
 
                 // Closed loop - enact Determination
-                try await enactDetermination()
+                try await self.enactDetermination()
                 loopStatRecord.end = Date()
-                loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
+                loopStatRecord.duration = self.roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
                 loopStatRecord.loopStatus = "Success"
-                await loopCompleted(loopStatRecord: loopStatRecord)
+                await self.loopCompleted(loopStatRecord: loopStatRecord)
             } catch {
                 loopStatRecord.end = Date()
-                loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
+                loopStatRecord.duration = self.roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
                 loopStatRecord.loopStatus = error.localizedDescription
-                await loopCompleted(error: error, loopStatRecord: loopStatRecord)
+                await self.loopCompleted(error: error, loopStatRecord: loopStatRecord)
             }
 
-            if let nightscoutManager = nightscout {
+            if let nightscoutManager = self.nightscout {
                 await nightscoutManager.uploadCarbs()
                 await nightscoutManager.uploadPumpHistory()
                 await nightscoutManager.uploadOverrides()
@@ -360,7 +362,9 @@ final class BaseAPSManager: APSManager, Injectable {
         let glucose = try await fetchGlucose(predicate: NSPredicate.predicateForOneHourAgo, fetchLimit: 6)
 
         // Perform the context-related checks and actions
-        let isValidGlucoseData = await privateContext.perform {
+        let isValidGlucoseData = await privateContext.perform { [weak self] in
+            guard let self else { return false }
+
             guard glucose.count > 2 else {
                 debug(.apsManager, "Not enough glucose data")
                 self.processError(APSError.glucoseError(message: "Not enough glucose data"))
@@ -401,7 +405,9 @@ final class BaseAPSManager: APSManager, Injectable {
             let determination = try await openAPS.determineBasal(currentTemp: await currentTemp, clock: now)
 
             if let determination = determination {
-                DispatchQueue.main.async {
+                // Capture weak self in closure
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
                     self.broadcaster.notify(DeterminationObserver.self, on: .main) {
                         $0.determinationDidUpdate(determination)
                     }
@@ -455,9 +461,13 @@ final class BaseAPSManager: APSManager, Injectable {
 
         if let error = verifyStatus() {
             processError(error)
-            processQueue.async {
-                self.broadcaster.notify(BolusFailureObserver.self, on: self.processQueue) {
-                    $0.bolusDidFail()
+            let broadcaster = self.broadcaster
+            let processQueue = self.processQueue
+            Task { @MainActor in
+                if let broadcaster = broadcaster {
+                    broadcaster.notify(BolusFailureObserver.self, on: processQueue) {
+                        $0.bolusDidFail()
+                    }
                 }
             }
             callback?(false, "Error! Failed to enact bolus.")
@@ -482,9 +492,13 @@ final class BaseAPSManager: APSManager, Injectable {
             warning(.apsManager, "Bolus failed with error: \(error.localizedDescription)")
             processError(APSError.pumpError(error))
             if !isSMB {
-                processQueue.async {
-                    self.broadcaster.notify(BolusFailureObserver.self, on: self.processQueue) {
-                        $0.bolusDidFail()
+                let broadcaster = self.broadcaster
+                let processQueue = self.processQueue
+                Task { @MainActor in
+                    if let broadcaster = broadcaster {
+                        broadcaster.notify(BolusFailureObserver.self, on: processQueue) {
+                            $0.bolusDidFail()
+                        }
                     }
                 }
             }
