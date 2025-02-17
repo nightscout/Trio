@@ -80,7 +80,7 @@ import Swinject
 
             // Fix bug in iOS 18 related to the translucent tab bar
             configureTabBarAppearance()
-            
+
             // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
             cleanupOldData()
         } catch {
@@ -140,7 +140,7 @@ import Swinject
         do {
             try BGTaskScheduler.shared.submit(request)
             debug(.coreData, "Task for cleaning database scheduled successfully")
-        } catch let error {
+        } catch {
             debug(.coreData, "Failed to schedule tasks for cleaning database: \(error.localizedDescription)")
         }
     }
