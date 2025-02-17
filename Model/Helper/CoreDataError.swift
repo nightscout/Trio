@@ -8,6 +8,7 @@ enum CoreDataError: Error {
     case persistentHistoryChangeError(function: String, file: String)
     case unexpectedError(error: Error, function: String, file: String)
     case fetchError(function: String, file: String)
+    case storeNotInitializedError(function: String, file: String)
 }
 
 extension CoreDataError: LocalizedError {
@@ -36,6 +37,11 @@ extension CoreDataError: LocalizedError {
             )
         case let .validationError(function, file):
             return NSLocalizedString("Failed to validate object in \(function) from \(file).", comment: "")
+        case let .storeNotInitializedError(function, file):
+            return NSLocalizedString(
+                "Store not initialized in \(function) from \(file).",
+                comment: ""
+            )
         }
     }
 }

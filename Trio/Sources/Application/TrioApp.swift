@@ -13,7 +13,7 @@ import Swinject
     // Read the color scheme preference from UserDefaults; defaults to system default setting
     @AppStorage("colorSchemePreference") private var colorSchemePreference: ColorSchemeOption = .systemDefault
 
-    let coreDataStack = CoreDataStack.shared
+    let coreDataStack: CoreDataStack
 
     @State private var appState = AppState()
 
@@ -68,14 +68,26 @@ import Swinject
             "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.default.buildDate()))] [buildExpires: \(String(describing: BuildDetails.default.calculateExpirationDate()))]"
         )
 
-        // Load services
-        loadServices()
+        // Initialize Core Data Stack
+        coreDataStack = CoreDataStack.shared
 
-        // Fix bug in iOS 18 related to the translucent tab bar
-        configureTabBarAppearance()
+        // Explicitly initialize Core Data Stack
+        do {
+            try coreDataStack.initializeStack()
 
-        // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
-        cleanupOldData()
+            // Only load services after successful Core Data initialization
+            loadServices()
+
+            // Fix bug in iOS 18 related to the translucent tab bar
+            configureTabBarAppearance()
+            
+            // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
+            cleanupOldData()
+        } catch {
+            debug(.coreData, "\(DebuggingIdentifiers.failed) Failed to initialize Core Data Stack: \(error.localizedDescription)")
+
+            fatalError("Core Data Stack initialization failed")
+        }
     }
 
     var body: some Scene {
@@ -127,9 +139,9 @@ import Swinject
         request.earliestBeginDate = .now.addingTimeInterval(7 * 24 * 60 * 60) // 7 days
         do {
             try BGTaskScheduler.shared.submit(request)
-            debugPrint("Task scheduled successfully")
-        } catch {
-            debugPrint("Failed to schedule tasks")
+            debug(.coreData, "Task for cleaning database scheduled successfully")
+        } catch let error {
+            debug(.coreData, "Failed to schedule tasks for cleaning database: \(error.localizedDescription)")
         }
     }
 
