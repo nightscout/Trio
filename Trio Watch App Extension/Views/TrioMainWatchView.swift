@@ -139,7 +139,9 @@ struct TrioMainWatchView: View {
                     } label: {
                         Image(systemName: "clock.arrow.2.circlepath")
                             .foregroundStyle(Color.primary, isOverrideActive ? Color.primary : Color.purple)
-                    }.tint(isOverrideActive ? Color.purple : nil)
+                    }
+                    .tint(isOverrideActive ? Color.purple : nil)
+                    .disabled(!isWatchStateDated || !isSessionUnreachable)
 
                     Button {
                         showingTreatmentMenuSheet = true
@@ -149,13 +151,16 @@ struct TrioMainWatchView: View {
                     }
                     .controlSize(.large)
                     .buttonStyle(WatchOSButtonStyle(deviceType: state.deviceType))
+                    .disabled(!isWatchStateDated || !isSessionUnreachable)
 
                     Button {
                         showingTempTargetSheet = true
                     } label: {
                         Image(systemName: "target")
                             .foregroundStyle(isTempTargetActive ? Color.primary : Color.loopGreen.opacity(0.75))
-                    }.tint(isTempTargetActive ? Color.loopGreen.opacity(0.75) : nil)
+                    }
+                    .tint(isTempTargetActive ? Color.loopGreen.opacity(0.75) : nil)
+                    .disabled(!isWatchStateDated || !isSessionUnreachable)
                 }
             }
             .fullScreenCover(isPresented: $showingTreatmentMenuSheet) {

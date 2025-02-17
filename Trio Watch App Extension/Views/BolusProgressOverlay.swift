@@ -16,6 +16,25 @@ struct BolusProgressOverlay: View {
         endPoint: .trailing
     )
 
+    private var isWatchStateDated: Bool {
+        // If `lastWatchStateUpdate` is nil, treat as "dated"
+        guard let lastUpdateTimestamp = state.lastWatchStateUpdate else {
+            return true
+        }
+        let now = Date().timeIntervalSince1970
+        let secondsSinceUpdate = now - lastUpdateTimestamp
+        // Return true if last update older than 5 min, so 1 loop cycle
+        return secondsSinceUpdate > 5 * 60
+    }
+
+    private var isSessionUnreachable: Bool {
+        guard let session = state.session else {
+            return true // No session at all => unreachable
+        }
+        // Return true if not .activated OR not reachable
+        return session.activationState != .activated
+    }
+
     var body: some View {
         VStack(spacing: 10) {
             VStack {
@@ -45,6 +64,7 @@ struct BolusProgressOverlay: View {
                 }
                 .buttonStyle(.bordered)
                 .padding()
+                .disabled(!isWatchStateDated || !isSessionUnreachable)
             }
             .padding()
             .background(Color.black.opacity(0.9))
