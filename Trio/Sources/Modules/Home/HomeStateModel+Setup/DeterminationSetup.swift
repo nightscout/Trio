@@ -41,9 +41,9 @@ extension Home.StateModel {
             key: "deliverAt",
             ascending: false,
             batchSize: 50,
-            propertiesToFetch: ["cob", "iob", "objectID"]
+            propertiesToFetch: ["cob", "iob", "deliverAt", "objectID"]
         )
-
+        
         return await determinationFetchContext.perform {
             guard let fetchedResults = results as? [[String: Any]] else {
                 return []
