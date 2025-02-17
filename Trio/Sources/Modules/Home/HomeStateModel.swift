@@ -779,7 +779,7 @@ extension Home.StateModel: PumpManagerOnboardingDelegate {
     }
 
     func pumpManagerOnboarding(didPauseOnboarding _: PumpManagerUI) {
-        // TODO:
+        // nothing to do
     }
 }
 

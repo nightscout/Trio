@@ -37,7 +37,6 @@ class CGMDeletionCompletionNotifying: CompletionNotifying {
 
 extension CGM {
     final class StateModel: BaseStateModel<Provider> {
-        // Singleton implementation
         private static var _shared: StateModel?
         static var shared: StateModel {
             if _shared == nil {

@@ -107,7 +107,6 @@ extension PluginSource: CGMManagerDelegate {
     func cgmManagerWantsDeletion(_ manager: CGMManager) {
         dispatchPrecondition(condition: .onQueue(processQueue))
         debug(.deviceManager, " CGM Manager with identifier \(manager.pluginIdentifier) wants deletion")
-        // TODO:
         glucoseManager?.deleteGlucoseSource()
     }
 
