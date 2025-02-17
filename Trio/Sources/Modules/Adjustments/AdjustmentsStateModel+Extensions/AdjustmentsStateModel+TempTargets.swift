@@ -254,7 +254,7 @@ extension Adjustments.StateModel {
             )
             tempTargetStorage.saveTempTargetsToStorage([tempTarget])
         } catch {
-            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Override Preset")
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact TempTarget Preset")
         }
     }
 
@@ -313,7 +313,7 @@ extension Adjustments.StateModel {
 
     /// Duplicates the current preset and cancels the previous one.
     @MainActor func duplicateTempTargetPresetAndCancelPreviousTempTarget() async {
-        // We get the current active Preset by using currentActiveTempTarget which can either be a Preset or a custom Override
+        // We get the current active Preset by using currentActiveTempTarget which can either be a Preset or a custom TempTarget
         guard let tempTargetPresetToDuplicate = currentActiveTempTarget,
               tempTargetPresetToDuplicate.isPreset == true else { return }
 
@@ -344,7 +344,7 @@ extension Adjustments.StateModel {
 
     /// Deletes a Temp Target preset.
     func invokeTempTargetPresetDeletion(_ objectID: NSManagedObjectID) async {
-        await tempTargetStorage.deleteOverridePreset(objectID)
+        await tempTargetStorage.deleteTempTargetPreset(objectID)
         setupTempTargetPresetsArray()
     }
 

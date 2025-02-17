@@ -210,7 +210,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: backgroundContext,
-            predicate: NSPredicate.lastActiveOverrideNotYetUploadedToNightscout,
+            predicate: NSPredicate.lastActiveAdjustmentNotYetUploadedToNightscout,
             key: "date",
             ascending: false
         )
