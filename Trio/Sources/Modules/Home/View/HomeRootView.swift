@@ -80,6 +80,31 @@ extension Home {
             }
         }
 
+        @ViewBuilder func pumpTimezoneView(_ badgeImage: UIImage, _ badgeColor: Color) -> some View {
+            HStack {
+                Image(uiImage: badgeImage.withRenderingMode(.alwaysTemplate))
+                    .font(.system(size: 14))
+                    .colorMultiply(badgeColor)
+                Text(NSLocalizedString("Time Change Detected", comment: ""))
+                    .bold()
+                    .font(.system(size: 14))
+                    .foregroundStyle(badgeColor)
+            }
+            .onTapGesture {
+                if state.pumpDisplayState != nil {
+                    // sends user to pump settings
+                    state.setupPump.toggle()
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.vertical, 5)
+            .padding(.horizontal, 10)
+            .overlay(
+                Capsule()
+                    .stroke(badgeColor.opacity(0.4), lineWidth: 2)
+            )
+        }
+
         var glucoseView: some View {
             CurrentGlucoseView(
                 timerDate: state.timerDate,
@@ -108,7 +133,6 @@ extension Home {
                 name: state.pumpName,
                 expiresAtDate: state.pumpExpiresAtDate,
                 timerDate: state.timerDate,
-                timeZone: state.timeZone,
                 pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
                 battery: state.batteryFromPersistence
             )
@@ -839,12 +863,17 @@ extension Home {
                         pumpView
                         Spacer()
                     }.padding(.leading, 20)
-                }.padding(.top, 10)
-                    .safeAreaInset(edge: .top, spacing: 0) {
-                        if notificationsDisabled {
-                            alertSafetyNotificationsView(geo: geo)
-                        }
+                }
+                .padding(.top, 10)
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    if notificationsDisabled {
+                        alertSafetyNotificationsView(geo: geo)
                     }
+                    if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
+                        pumpTimezoneView(badgeImage, badgeColor)
+                            .padding(.horizontal, 20)
+                    }
+                }
 
                 mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
                     .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
@@ -872,7 +901,7 @@ extension Home {
                         iconString: "info",
                         action: { state.isLegendPresented.toggle() }
                     )
-                }.padding([.horizontal, .top, .bottom])
+                }.padding([.horizontal, .bottom])
 
                 if let progress = state.bolusProgress {
                     bolusView(geo: geo, progress)
