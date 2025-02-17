@@ -90,8 +90,8 @@ struct TrioMainWatchView: View {
                 // Page 2: Glucose chart
                 GlucoseChartView(
                     glucoseValues: state.glucoseValues,
-                    minYAxisValue: $state.minYAxisValue,
-                    maxYAxisValue: $state.maxYAxisValue
+                    minYAxisValue: state.minYAxisValue,
+                    maxYAxisValue: state.maxYAxisValue
                 )
                 .tag(1)
             }
