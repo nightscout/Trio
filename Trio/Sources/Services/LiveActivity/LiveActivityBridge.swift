@@ -51,7 +51,6 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
     private let queue = DispatchQueue(label: "LiveActivityBridge.queue", qos: .userInitiated)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
-    private let orefDeterminationSubject = PassthroughSubject<Void, Never>()
 
     init(resolver: Resolver) {
         coreDataPublisher =
@@ -109,10 +108,12 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
             self.setupGlucoseArray()
         }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
-            guard let self = self else { return }
-            self.orefDeterminationSubject.send()
-        }.store(in: &subscriptions)
+        coreDataPublisher?.filterByEntityName("OrefDetermination")
+            .debounce(for: .seconds(2), scheduler: queue)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.cobOrIobDidUpdate()
+            }.store(in: &subscriptions)
     }
 
     private func registerSubscribers() {
@@ -121,14 +122,6 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupGlucoseArray()
-            }
-            .store(in: &subscriptions)
-
-        orefDeterminationSubject
-            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
-            .sink { [weak self] in
-                guard let self = self else { return }
-                self.cobOrIobDidUpdate()
             }
             .store(in: &subscriptions)
     }
