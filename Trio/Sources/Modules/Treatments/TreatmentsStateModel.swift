@@ -386,27 +386,7 @@ extension Treatments {
         // MARK: CALCULATIONS FOR THE BOLUS CALCULATOR
 
         /// Calculate insulin recommendation
-        @MainActor func calculateInsulin() async -> Decimal {
-//            let input = CalculationInput(
-//                carbs: carbs,
-//                currentBG: currentBG,
-//                deltaBG: deltaBG,
-//                target: target,
-//                isf: isf,
-//                carbRatio: carbRatio,
-//                iob: iob,
-//                cob: cob,
-//                useFattyMealCorrectionFactor: useFattyMealCorrectionFactor,
-//                fattyMealFactor: fattyMealFactor,
-//                useSuperBolus: useSuperBolus,
-//                sweetMealFactor: sweetMealFactor,
-//                basal: basal,
-//                fraction: fraction,
-//                maxBolus: maxBolus
-//            )
-//
-//            let result = await bolusCalculationManager.calculateInsulin(input: input)
-
+        func calculateInsulin() async -> Decimal {
             let result = await bolusCalculationManager.handleBolusCalculation(
                 carbs: carbs,
                 useFattyMealCorrection: useFattyMealCorrectionFactor,
@@ -414,14 +394,16 @@ extension Treatments {
             )
 
             // Update state properties with calculation results on main thread
-            targetDifference = result.targetDifference
-            targetDifferenceInsulin = result.targetDifferenceInsulin
-            wholeCob = result.wholeCob
-            wholeCobInsulin = result.wholeCobInsulin
-            iobInsulinReduction = result.iobInsulinReduction
-            superBolusInsulin = result.superBolusInsulin
-            wholeCalc = result.wholeCalc
-            fifteenMinInsulin = result.fifteenMinutesInsulin
+            await MainActor.run {
+                targetDifference = result.targetDifference
+                targetDifferenceInsulin = result.targetDifferenceInsulin
+                wholeCob = result.wholeCob
+                wholeCobInsulin = result.wholeCobInsulin
+                iobInsulinReduction = result.iobInsulinReduction
+                superBolusInsulin = result.superBolusInsulin
+                wholeCalc = result.wholeCalc
+                fifteenMinInsulin = result.fifteenMinutesInsulin
+            }
 
             return apsManager.roundBolus(amount: result.insulinCalculated)
         }
