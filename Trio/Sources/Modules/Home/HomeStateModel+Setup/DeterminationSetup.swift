@@ -47,7 +47,7 @@ extension Home.StateModel {
             key: "deliverAt",
             ascending: false,
             batchSize: 50,
-            propertiesToFetch: ["cob", "iob", "objectID"]
+            propertiesToFetch: ["cob", "iob", "deliverAt", "objectID"]
         )
 
         return await determinationFetchContext.perform {

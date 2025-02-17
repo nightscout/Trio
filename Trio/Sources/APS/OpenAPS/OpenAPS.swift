@@ -189,7 +189,10 @@ final class OpenAPS {
         }
     }
 
-    private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID], iob: Decimal? = nil) async -> String {
+    private func parsePumpHistory(
+        _ pumpHistoryObjectIDs: [NSManagedObjectID],
+        simulatedBolusAmount: Decimal? = nil
+    ) async -> String {
         // Return an empty JSON object if the list of object IDs is empty
         guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
 
@@ -199,9 +202,9 @@ final class OpenAPS {
             var dtos = self.loadAndMapPumpEvents(pumpHistoryObjectIDs)
 
             // Optionally add the IOB as a DTO
-            if let iob = iob {
-                let iobDTO = self.createIOBDTO(iob: iob)
-                dtos.insert(iobDTO, at: 0)
+            if let simulatedBolusAmount = simulatedBolusAmount {
+                let simulatedBolusDTO = self.createSimulatedBolusDTO(simulatedBolusAmount: simulatedBolusAmount)
+                dtos.insert(simulatedBolusDTO, at: 0)
             }
 
             // Convert the DTOs to JSON
@@ -226,12 +229,24 @@ final class OpenAPS {
             if let tempBasalDTO = event.toTempBasalDTOEnum() {
                 eventDTOs.append(tempBasalDTO)
             }
+            if let pumpSuspendDTO = event.toPumpSuspendDTO() {
+                eventDTOs.append(pumpSuspendDTO)
+            }
+            if let pumpResumeDTO = event.toPumpResumeDTO() {
+                eventDTOs.append(pumpResumeDTO)
+            }
+            if let rewindDTO = event.toRewindDTO() {
+                eventDTOs.append(rewindDTO)
+            }
+            if let primeDTO = event.toPrimeDTO() {
+                eventDTOs.append(primeDTO)
+            }
             return eventDTOs
         }
         return dtos
     }
 
-    private func createIOBDTO(iob: Decimal) -> PumpEventDTO {
+    private func createSimulatedBolusDTO(simulatedBolusAmount: Decimal) -> PumpEventDTO {
         let oneSecondAgo = Calendar.current
             .date(
                 byAdding: .second,
@@ -243,7 +258,7 @@ final class OpenAPS {
         let bolusDTO = BolusDTO(
             id: UUID().uuidString,
             timestamp: dateFormatted,
-            amount: Double(iob),
+            amount: Double(simulatedBolusAmount),
             isExternal: false,
             isSMB: true,
             duration: 0,
@@ -255,8 +270,8 @@ final class OpenAPS {
     func determineBasal(
         currentTemp: TempBasal,
         clock: Date = Date(),
-        carbs: Decimal? = nil,
-        iob: Decimal? = nil,
+        simulatedCarbsAmount: Decimal? = nil,
+        simulatedBolusAmount: Decimal? = nil,
         simulation: Bool = false
     ) async throws -> Determination? {
         debug(.openAPS, "Start determineBasal")
@@ -266,7 +281,7 @@ final class OpenAPS {
 
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
-        async let carbs = fetchAndProcessCarbs(additionalCarbs: carbs ?? 0)
+        async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0)
         async let glucose = fetchAndProcessGlucose()
         async let oref2 = oref2()
         async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
@@ -287,7 +302,7 @@ final class OpenAPS {
             reservoir,
             preferences
         ) = await (
-            try parsePumpHistory(await pumpHistoryObjectIDs, iob: iob),
+            try parsePumpHistory(await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
             try carbs,
             try glucose,
             try oref2,

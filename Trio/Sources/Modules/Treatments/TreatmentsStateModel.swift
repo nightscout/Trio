@@ -421,18 +421,16 @@ extension Treatments {
                 let isFatPresent = fat > 0
                 let isProteinPresent = protein > 0
 
+                if isCarbsPresent || isFatPresent || isProteinPresent {
+                    await saveMeal()
+                }
+
                 if isInsulinGiven {
                     try await handleInsulin(isExternal: externalInsulin)
-                } else if isCarbsPresent || isFatPresent || isProteinPresent {
-                    await MainActor.run {
-                        self.waitForSuggestion = true
-                    }
                 } else {
                     hideModal()
                     return
                 }
-
-                await saveMeal()
 
                 // If glucose data is stale end the custom loading animation by hiding the modal
                 // Get date on Main thread
@@ -548,17 +546,17 @@ extension Treatments {
                     isFPU: false,
                     fpuID: fat > 0 || protein > 0 ? UUID().uuidString : nil
                 )]
-
                 try await carbsStorage.storeCarbs(carbsToStore, areFetchedFromRemote: false)
 
-                if carbs > 0 || fat > 0 || protein > 0 {
-                    // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
-                    if amount <= 0 {
-                        await apsManager.determineBasalSync()
+                // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
+                if amount <= 0 {
+                    await MainActor.run {
+                        self.waitForSuggestion = true
                     }
+                    await apsManager.determineBasalSync()
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Failed to save meal with error: \(error.localizedDescription)")
+                debug(.default, "\(DebuggingIdentifiers.failed) Failed to save carbs: \(error.localizedDescription)")
             }
         }
 
@@ -823,7 +821,7 @@ extension Treatments.StateModel {
         } else {
             simulatedDetermination = await Task { [self] in
                 debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
-                return await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
+                return await apsManager.simulateDetermineBasal(simulatedCarbsAmount: carbs, simulatedBolusAmount: amount)
             }.value
         }
 
