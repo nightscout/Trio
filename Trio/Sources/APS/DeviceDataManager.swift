@@ -415,10 +415,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             settingsManager.updateInsulinCurve(status.insulinType)
         }
 
-        broadcaster.notify(PumpTimeZoneObserver.self, on: processQueue) {
-            $0.pumpTimeZoneDidChange(status.timeZone)
-        }
-
         if let omnipod = pumpManager as? OmnipodPumpManager {
             let reservoirVal = omnipod.state.podState?.lastInsulinMeasurements?.reservoirLevel ?? 0xDEAD_BEEF
             // TODO: find the value Pod.maximumReservoirReading
@@ -700,10 +696,6 @@ protocol PumpReservoirObserver {
 
 protocol PumpBatteryObserver {
     func pumpBatteryDidChange(_ battery: Battery)
-}
-
-protocol PumpTimeZoneObserver {
-    func pumpTimeZoneDidChange(_ timezone: TimeZone)
 }
 
 protocol PumpDeactivatedObserver {
