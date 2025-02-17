@@ -290,13 +290,15 @@ import Testing
             """
         )
 
-        // The difference should be exactly the basal rate * sweetMealFactor
+        // The difference should be the difference of super bolus (= standard dose + the basal rate * sweetMealFactor) limited by max bolus, and the standard dose.
         let actualDifference = (superBolusResult.insulinCalculated - standardResult.insulinCalculated)
+        let expectedDifference = min(superBolusResult.insulinCalculated, maxBolus) - standardResult.insulinCalculated
         #expect(
-            actualDifference == expectedSuperBolusInsulin,
+            actualDifference == expectedDifference,
             """
             Super bolus difference incorrect
-            Expected difference: \(expectedSuperBolusInsulin)U (basal \(basal)U × sweetMealFactor \(sweetMealFactor))
+            Expected difference: min(\(expectedSuperBolusInsulin), \(maxBolus)) U (basal \(basal)U × sweetMealFactor \(sweetMealFactor) + standard dose \(standardResult
+                .insulinCalculated)) - standard dose \(standardResult.insulinCalculated)
             Actual difference: \(actualDifference)U
             Standard result: \(standardResult)
             SuperBolus result: \(superBolusResult)
