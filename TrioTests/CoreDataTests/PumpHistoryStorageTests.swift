@@ -74,10 +74,10 @@ import Testing
         ]
 
         // Store test event
-        await storage.storePumpEvents(events)
+        try await storage.storePumpEvents(events)
 
         // When - Fetch events with our generic fetch function
-        let fetchedEvents = await coreDataStack.fetchEntitiesAsync(
+        let fetchedEvents = try await coreDataStack.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: testContext,
             predicate: NSPredicate(
@@ -107,7 +107,7 @@ import Testing
         }
 
         // Then - Verify deletion
-        let eventsAfterDeletion = await coreDataStack.fetchEntitiesAsync(
+        let eventsAfterDeletion = try await coreDataStack.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: testContext,
             predicate: NSPredicate(
@@ -184,7 +184,7 @@ import Testing
 
         // When
         // Store in our in-memory PumphistoryStorage
-        await storage.storePumpEvents(events)
+        try await storage.storePumpEvents(events)
 
         // Then
         // Fetch all events after storing
@@ -243,7 +243,7 @@ import Testing
                     scheduledBasalRate: nil,
                     insulinType: .lyumjev,
                     automatic: false,
-                    manuallyEntered: true,
+                    manuallyEntered: false,
                     isMutable: false
                 ),
                 raw: Data(),
@@ -253,10 +253,10 @@ import Testing
         ]
 
         // Store test event and wait for storage to complete the task
-        await storage.storePumpEvents(events)
+        try await storage.storePumpEvents(events)
 
         // When - Fetch events with our generic fetch function
-        let fetchedEvents = await coreDataStack.fetchEntitiesAsync(
+        let fetchedEvents = try await coreDataStack.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: testContext,
             predicate: NSPredicate(
@@ -318,7 +318,7 @@ import Testing
         // STEP 2: Test storePumpEvents performance
         let storeStartTime = CFAbsoluteTimeGetCurrent()
 
-        await storage.storePumpEvents(events)
+        try await storage.storePumpEvents(events)
 
         let storeTime = CFAbsoluteTimeGetCurrent() - storeStartTime
         debug(.default, "storePumpEvents time: \(String(format: "%.4f", storeTime)) seconds")
@@ -326,7 +326,7 @@ import Testing
         // STEP 3: Test Nightscout upload fetch performance
         let nsStartTime = CFAbsoluteTimeGetCurrent()
 
-        let nsEvents = await storage.getPumpHistoryNotYetUploadedToNightscout()
+        let nsEvents = try await storage.getPumpHistoryNotYetUploadedToNightscout()
 
         let nsTime = CFAbsoluteTimeGetCurrent() - nsStartTime
         debug(.default, "Nightscout fetch time: \(String(format: "%.4f", nsTime)) seconds")
@@ -334,7 +334,7 @@ import Testing
         // STEP 4: Test HealthKit upload fetch performance
         let healthStartTime = CFAbsoluteTimeGetCurrent()
 
-        let healthEvents = await storage.getPumpHistoryNotYetUploadedToHealth()
+        let healthEvents = try await storage.getPumpHistoryNotYetUploadedToHealth()
 
         let healthTime = CFAbsoluteTimeGetCurrent() - healthStartTime
         debug(.default, "HealthKit fetch time: \(String(format: "%.4f", healthTime)) seconds")
@@ -342,7 +342,7 @@ import Testing
         // STEP 5: Test Tidepool upload fetch performance
         let tidepoolStartTime = CFAbsoluteTimeGetCurrent()
 
-        let tidepoolEvents = await storage.getPumpHistoryNotYetUploadedToTidepool()
+        let tidepoolEvents = try await storage.getPumpHistoryNotYetUploadedToTidepool()
 
         let tidepoolTime = CFAbsoluteTimeGetCurrent() - tidepoolStartTime
         debug(.default, "Tidepool fetch time: \(String(format: "%.4f", tidepoolTime)) seconds")

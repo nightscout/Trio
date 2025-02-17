@@ -57,7 +57,8 @@ import Testing
 
         // Tests with predicates that we use the most for this function
         // 1. Test within 30 minutes
-        let results = await storage.fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination)
+        let results = try await storage
+            .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination)
         #expect(results.count == 1, "Should find 1 determination within 30 minutes")
         // Get NSManagedObjectID from exactDateResults
         try await testContext.perform {
@@ -79,7 +80,7 @@ import Testing
 
         // 2. Test enacted determinations
         let enactedPredicate = NSPredicate.enactedDetermination
-        let enactedResults = await storage.fetchLastDeterminationObjectID(predicate: enactedPredicate)
+        let enactedResults = try await storage.fetchLastDeterminationObjectID(predicate: enactedPredicate)
         #expect(enactedResults.count == 1, "Should find 1 enacted determination")
         // Get NSManagedObjectID from enactedResults
         try await testContext.perform {
@@ -154,7 +155,7 @@ import Testing
         }
 
         // STEP 2: Test hierarchy fetching
-        let hierarchy = await storage.fetchForecastHierarchy(
+        let hierarchy = try await storage.fetchForecastHierarchy(
             for: determinationId,
             in: testContext
         )
@@ -257,7 +258,7 @@ import Testing
         // STEP 2: Test fetchLastDeterminationObjectID
         let lastDeterminationStartTime = CFAbsoluteTimeGetCurrent()
 
-        let lastDetermination = await storage.fetchLastDeterminationObjectID(
+        let lastDetermination = try await storage.fetchLastDeterminationObjectID(
             predicate: NSPredicate(format: "deliverAt == %@", date as NSDate)
         )
 
@@ -267,7 +268,7 @@ import Testing
         // STEP 3: Test fetchForecastHierarchy
         let hierarchyStartTime = CFAbsoluteTimeGetCurrent()
 
-        let hierarchy = await storage.fetchForecastHierarchy(
+        let hierarchy = try await storage.fetchForecastHierarchy(
             for: determinationId,
             in: testContext
         )
