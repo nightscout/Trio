@@ -72,7 +72,6 @@ extension Home {
         var displayXgridLines: Bool = false
         var displayYgridLines: Bool = false
         var thresholdLines: Bool = false
-        var timeZone: TimeZone?
         var hours: Int16 = 6
         var totalBolus: Decimal = 0
         var isLoopStatusPresented: Bool = false
@@ -99,6 +98,8 @@ extension Home {
         var isOverrideCancelled: Bool = false
         var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         var pumpStatusHighlightMessage: String?
+        var pumpStatusBadgeImage: UIImage?
+        var pumpStatusBadgeColor: Color?
         var cgmAvailable: Bool = false
         var listOfCGM: [CGMModel] = []
         var cgmCurrent = cgmDefaultModel
@@ -196,9 +197,6 @@ extension Home {
                         self.setupReservoir()
                     }
                     group.addTask {
-                        self.setupCurrentPumpTimezone()
-                    }
-                    group.addTask {
                         self.setupOverrides()
                     }
                     group.addTask {
@@ -254,6 +252,7 @@ extension Home {
                 self.setupInsulinArray()
                 self.setupLastBolus()
                 self.displayPumpStatusHighlightMessage()
+                self.displayPumpStatusBadge()
             }.store(in: &subscriptions)
 
             coreDataPublisher?.filterByEntityName("OpenAPS_Battery").sink { [weak self] _ in
@@ -350,6 +349,7 @@ extension Home {
                     } else {
                         self.setupReservoir()
                         self.displayPumpStatusHighlightMessage()
+                        self.displayPumpStatusBadge()
                         self.setupBatteryArray()
                     }
                 }
@@ -478,6 +478,23 @@ extension Home {
             }
         }
 
+        private func displayPumpStatusBadge(_ didDeactivate: Bool = false) {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                if let statusBadge = self.provider.deviceManager.pumpManager?.pumpStatusBadge,
+                   let image = statusBadge.image, !didDeactivate
+                {
+                    pumpStatusBadgeImage = image
+                    pumpStatusBadgeColor = statusBadge.state == .critical ? .critical : .warning
+                    let x = 0
+
+                } else {
+                    pumpStatusBadgeImage = nil
+                    pumpStatusBadgeColor = nil
+                }
+            }
+        }
+
         func runLoop() {
             provider.heartbeatNow()
         }
@@ -577,13 +594,6 @@ extension Home {
             }
         }
 
-        private func setupCurrentPumpTimezone() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.timeZone = self.provider.pumpTimeZone()
-            }
-        }
-
         private func getCurrentGlucoseTarget() async {
             let now = Date()
             let calendar = Calendar.current
@@ -641,7 +651,6 @@ extension Home.StateModel:
     BasalProfileObserver,
     BGTargetsObserver,
     PumpReservoirObserver,
-    PumpTimeZoneObserver,
     PumpDeactivatedObserver
 {
     func determinationDidUpdate(_: Determination) {
@@ -670,6 +679,7 @@ extension Home.StateModel:
         forecastDisplayType = settingsManager.settings.forecastDisplayType
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
+        displayPumpStatusBadge()
         setupBatteryArray()
         Task {
             await setupCGMSettings()
@@ -706,15 +716,13 @@ extension Home.StateModel:
     func pumpReservoirDidChange(_: Decimal) {
         setupReservoir()
         displayPumpStatusHighlightMessage()
+        displayPumpStatusBadge()
     }
 
     func pumpDeactivatedDidChange() {
         displayPumpStatusHighlightMessage(true)
+        displayPumpStatusBadge(true)
         batteryFromPersistence = []
-    }
-
-    func pumpTimeZoneDidChange(_: TimeZone) {
-        setupCurrentPumpTimezone()
     }
 }
 
