@@ -3,7 +3,7 @@ import LoopKitUI
 import SwiftUI
 import UIKit
 
-extension CGM {
+extension CGMSettings {
     struct CGMSettingsView: UIViewControllerRepresentable {
         let cgmManager: CGMManagerUI?
         let bluetoothManager: BluetoothStateManager
