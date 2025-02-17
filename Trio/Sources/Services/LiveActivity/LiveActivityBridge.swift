@@ -118,7 +118,7 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
 
     private func registerSubscribers() {
         glucoseStorage.updatePublisher
-            .receive(on: DispatchQueue.global(qos: .background))
+            .receive(on: queue)
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupGlucoseArray()
