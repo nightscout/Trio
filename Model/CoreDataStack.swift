@@ -105,7 +105,7 @@ class CoreDataStack: ObservableObject {
     private func fetchPersistentHistoryTransactionsAndChanges() async throws {
         let taskContext = newTaskContext()
         taskContext.name = "persistentHistoryContext"
-//        debugPrint("Start fetching persistent history changes from the store ... \(DebuggingIdentifiers.inProgress)")
+        //        debugPrint("Start fetching persistent history changes from the store ... \(DebuggingIdentifiers.inProgress)")
 
         try await taskContext.perform {
             // Execute the persistent history change since the last transaction
@@ -120,7 +120,7 @@ class CoreDataStack: ObservableObject {
     }
 
     private func mergePersistentHistoryChanges(from history: [NSPersistentHistoryTransaction]) {
-//        debugPrint("Received \(history.count) persistent history transactions")
+        //        debugPrint("Received \(history.count) persistent history transactions")
         // Update view context with objectIDs from history change request
         /// - Tag: mergeChanges
         let viewContext = persistentContainer.viewContext
@@ -148,6 +148,16 @@ class CoreDataStack: ObservableObject {
                     "\(DebuggingIdentifiers.failed) Failed to delete persistent history before \(date): \(error.localizedDescription)"
                 )
             }
+        }
+    }
+
+    func initializeStack() throws {
+        // Force initialization of persistent container
+        let container = persistentContainer
+
+        // Verify the store is loaded and available
+        guard container.persistentStoreCoordinator.persistentStores.isNotEmpty else {
+            throw CoreDataError.storeNotInitializedError
         }
     }
 }
