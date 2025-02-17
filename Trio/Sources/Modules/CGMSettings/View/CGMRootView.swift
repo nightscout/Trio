@@ -2,7 +2,7 @@ import LoopKitUI
 import SwiftUI
 import Swinject
 
-extension CGM {
+extension CGMSettings {
     struct RootView: BaseView {
         let resolver: Resolver
         let displayClose: Bool
@@ -134,7 +134,7 @@ extension CGM {
                          .simulator,
                          .xdrip:
 
-                        OtherCGMView(
+                        CustomCGMOptionsView(
                             resolver: self.resolver,
                             state: state,
                             cgmCurrent: state.cgmCurrent,

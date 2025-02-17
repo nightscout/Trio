@@ -20,8 +20,8 @@ extension Home {
         @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
 
-        var cgmStateModel: CGM.StateModel {
-            CGM.StateModel.shared
+        var cgmStateModel: CGMSettings.StateModel {
+            CGMSettings.StateModel.shared
         }
 
         private let timer = DispatchTimer(timeInterval: 5)
@@ -486,7 +486,6 @@ extension Home {
                 {
                     pumpStatusBadgeImage = image
                     pumpStatusBadgeColor = statusBadge.state == .critical ? .critical : .warning
-                    let x = 0
 
                 } else {
                     pumpStatusBadgeImage = nil

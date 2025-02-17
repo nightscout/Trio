@@ -1000,7 +1000,7 @@ extension Home {
                      .none,
                      .simulator,
                      .xdrip:
-                    CGM.OtherCGMView(
+                    CGMSettings.CustomCGMOptionsView(
                         resolver: self.resolver,
                         state: state.cgmStateModel,
                         cgmCurrent: state.cgmCurrent,
@@ -1012,14 +1012,14 @@ extension Home {
                        state.cgmCurrent.type == fetchGlucoseManager.cgmGlucoseSourceType,
                        state.cgmCurrent.id == fetchGlucoseManager.cgmGlucosePluginId
                     {
-                        CGM.CGMSettingsView(
+                        CGMSettings.CGMSettingsView(
                             cgmManager: cgmManager,
                             bluetoothManager: state.provider.apsManager.bluetoothManager!,
                             unit: state.settingsManager.settings.units,
                             completionDelegate: state
                         )
                     } else {
-                        CGM.CGMSetupView(
+                        CGMSettings.CGMSetupView(
                             CGMType: state.cgmCurrent,
                             bluetoothManager: state.provider.apsManager.bluetoothManager!,
                             unit: state.settingsManager.settings.units,

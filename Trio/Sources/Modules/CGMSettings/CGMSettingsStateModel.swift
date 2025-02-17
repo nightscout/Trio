@@ -35,8 +35,9 @@ class CGMDeletionCompletionNotifying: CompletionNotifying {
     var completionDelegate: (any LoopKitUI.CompletionDelegate)?
 }
 
-extension CGM {
+extension CGMSettings {
     final class StateModel: BaseStateModel<Provider> {
+        // Singleton implementation
         private static var _shared: StateModel?
         static var shared: StateModel {
             if _shared == nil {
@@ -143,7 +144,7 @@ extension CGM {
     }
 }
 
-extension CGM.StateModel: CompletionDelegate {
+extension CGMSettings.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
         // if CGM was deleted
         if fetchGlucoseManager.cgmGlucoseSourceType == .none {
@@ -169,7 +170,7 @@ extension CGM.StateModel: CompletionDelegate {
     }
 }
 
-extension CGM.StateModel: CGMManagerOnboardingDelegate {
+extension CGMSettings.StateModel: CGMManagerOnboardingDelegate {
     func cgmManagerOnboarding(didCreateCGMManager manager: LoopKitUI.CGMManagerUI) {
         // update the glucose source
         fetchGlucoseManager.updateGlucoseSource(
@@ -184,7 +185,7 @@ extension CGM.StateModel: CGMManagerOnboardingDelegate {
     }
 }
 
-extension CGM.StateModel {
+extension CGMSettings.StateModel {
     func settingsDidChange(_: TrioSettings) {
         units = settingsManager.settings.units
     }

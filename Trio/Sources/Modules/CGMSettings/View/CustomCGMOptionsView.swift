@@ -2,10 +2,10 @@ import LoopKitUI
 import SwiftUI
 import Swinject
 
-extension CGM {
-    struct OtherCGMView: BaseView {
+extension CGMSettings {
+    struct CustomCGMOptionsView: BaseView {
         let resolver: Resolver
-        @ObservedObject var state: CGM.StateModel
+        @ObservedObject var state: CGMSettings.StateModel
         let cgmCurrent: CGMModel
         let deleteCGM: () -> Void
 
