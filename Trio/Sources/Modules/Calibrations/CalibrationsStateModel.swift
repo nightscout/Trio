@@ -1,3 +1,4 @@
+import CoreData
 import Observation
 import SwiftDate
 import SwiftUI
@@ -16,7 +17,8 @@ extension Calibrations {
 
         var units: GlucoseUnits = .mgdL
 
-        private let context = CoreDataStack.shared.newTaskContext()
+        let backgroundContext = CoreDataStack.shared.newTaskContext()
+        private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
         override func subscribe() {
             units = settingsManager.settings.units
@@ -33,21 +35,27 @@ extension Calibrations {
             }
         }
 
-        private func fetchAndProcessGlucose() -> GlucoseStored? {
-            do {
-                debugPrint("Calibrations State Model: \(#function) \(DebuggingIdentifiers.succeeded) fetched glucose")
-                return try context.fetch(GlucoseStored.fetch(
-                    NSPredicate.predicateFor20MinAgo,
-                    ascending: false,
-                    fetchLimit: 1
-                )).first
-            } catch {
-                debugPrint("Calibrations State Model: \(#function) \(DebuggingIdentifiers.failed) failed to fetch glucose")
-                return nil
+        /// - Returns: An array of NSManagedObjectIDs for glucose readings.
+        private func fetchGlucose() async -> [NSManagedObjectID] {
+            let results = await CoreDataStack.shared.fetchEntitiesAsync(
+                ofType: GlucoseStored.self,
+                onContext: backgroundContext,
+                predicate: NSPredicate.predicateFor20MinAgo,
+                key: "date",
+                ascending: false,
+                fetchLimit: 1 /// We only need the last value
+            )
+
+            return await backgroundContext.perform {
+                guard let glucoseResults = results as? [GlucoseStored] else {
+                    return []
+                }
+
+                return glucoseResults.map(\.objectID)
             }
         }
 
-        func addCalibration() {
+        @MainActor func addCalibration() async {
             defer {
                 UIApplication.shared.endEditing()
                 setupCalibrations()
@@ -58,9 +66,12 @@ extension Calibrations {
                 glucose = newCalibration.asMgdL
             }
 
-            if let lastGlucose = fetchAndProcessGlucose() {
-                let unfiltered = lastGlucose.glucose
+            let glucoseValuesIds = await fetchGlucose()
+            let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared
+                .getNSManagedObject(with: glucoseValuesIds, context: viewContext)
 
+            if let lastGlucose = glucoseObjects.first {
+                let unfiltered = lastGlucose.glucose
                 let calibration = Calibration(x: Double(unfiltered), y: Double(glucose))
 
                 calibrationService.addCalibration(calibration)
