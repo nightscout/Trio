@@ -32,6 +32,7 @@ extension Home {
         @State var showTreatments = false
         @State var selectedTab: Int = 0
         @State var showPumpSelection: Bool = false
+        @State var showCGMSelection: Bool = false
         @State var notificationsDisabled = false
         @State var timeButtons: [TimePicker] = [
             TimePicker(active: false, hours: 4),
@@ -93,7 +94,7 @@ extension Home {
             .onTapGesture {
                 if state.pumpDisplayState != nil {
                     // sends user to pump settings
-                    state.setupPump.toggle()
+                    state.shouldDisplayPumpSetupSheet.toggle()
                 }
             }
             .frame(maxWidth: .infinity, alignment: .center)
@@ -103,6 +104,16 @@ extension Home {
                 Capsule()
                     .stroke(badgeColor.opacity(0.4), lineWidth: 2)
             )
+        }
+
+        var cgmSelectionButtons: some View {
+            ForEach(cgmOptions, id: \.name) { option in
+                if let cgm = state.listOfCGM.first(where: option.predicate) {
+                    Button(option.name) {
+                        state.addCGM(cgm: cgm)
+                    }
+                }
+            }
         }
 
         var glucoseView: some View {
@@ -118,7 +129,11 @@ extension Home {
                 glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
-                    state.openCGM()
+                    if !state.cgmAvailable {
+                        showCGMSelection.toggle()
+                    } else {
+                        state.shouldDisplayCGMSetupSheet.toggle()
+                    }
                 }
                 .onLongPressGesture {
                     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
@@ -142,7 +157,7 @@ extension Home {
                     showPumpSelection.toggle()
                 } else {
                     // sends user to pump settings
-                    state.setupPump.toggle()
+                    state.shouldDisplayPumpSetupSheet.toggle()
                 }
             }
         }
@@ -943,6 +958,10 @@ extension Home {
             .sheet(isPresented: $state.isLoopStatusPresented) {
                 LoopStatusView(state: state)
             }
+            .sheet(isPresented: $state.isLegendPresented) {
+                ChartLegendView(state: state)
+            }
+            // PUMP RELATED
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
                 Button("Medtronic") { state.addPump(.minimed) }
                 Button("Omnipod Eros") { state.addPump(.omnipod) }
@@ -950,7 +969,7 @@ extension Home {
                 Button("Dana(RS/-i)") { state.addPump(.dana) }
                 Button("Pump Simulator") { state.addPump(.simulator) }
             } message: { Text("Select Pump Model") }
-            .sheet(isPresented: $state.setupPump) {
+            .sheet(isPresented: $state.shouldDisplayPumpSetupSheet) {
                 if let pumpManager = state.provider.apsManager.pumpManager {
                     PumpConfig.PumpSettingsView(
                         pumpManager: pumpManager,
@@ -968,8 +987,48 @@ extension Home {
                     )
                 }
             }
-            .sheet(isPresented: $state.isLegendPresented) {
-                ChartLegendView(state: state)
+            // CGM RELATED
+            .confirmationDialog("CGM Model", isPresented: $showCGMSelection) {
+                cgmSelectionButtons
+            } message: {
+                Text("Select CGM Model")
+            }
+            .sheet(isPresented: $state.shouldDisplayCGMSetupSheet) {
+                switch state.cgmCurrent.type {
+                case .enlite,
+                     .nightscout,
+                     .none,
+                     .simulator,
+                     .xdrip:
+                    CGMSettings.CustomCGMOptionsView(
+                        resolver: self.resolver,
+                        state: state.cgmStateModel,
+                        cgmCurrent: state.cgmCurrent,
+                        deleteCGM: state.deleteCGM
+                    )
+                case .plugin:
+                    if let fetchGlucoseManager = state.fetchGlucoseManager,
+                       let cgmManager = fetchGlucoseManager.cgmManager,
+                       state.cgmCurrent.type == fetchGlucoseManager.cgmGlucoseSourceType,
+                       state.cgmCurrent.id == fetchGlucoseManager.cgmGlucosePluginId
+                    {
+                        CGMSettings.CGMSettingsView(
+                            cgmManager: cgmManager,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            unit: state.settingsManager.settings.units,
+                            completionDelegate: state
+                        )
+                    } else {
+                        CGMSettings.CGMSetupView(
+                            CGMType: state.cgmCurrent,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            unit: state.settingsManager.settings.units,
+                            completionDelegate: state,
+                            setupDelegate: state,
+                            pluginCGMManager: self.state.pluginCGMManager
+                        )
+                    }
+                }
             }
         }
 
