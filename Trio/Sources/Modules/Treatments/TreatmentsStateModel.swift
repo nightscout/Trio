@@ -120,6 +120,9 @@ extension Treatments {
 
         var isActive: Bool = false
 
+        var showDeterminationFailureAlert = false
+        var determinationFailureMessage = ""
+
         // Queue for handling Core Data change notifications
         private let queue = DispatchQueue(label: "TreatmentsStateModel.queue", qos: .userInitiated)
         private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
@@ -411,7 +414,7 @@ extension Treatments {
                 }
 
                 if isInsulinGiven {
-                    try await handleInsulin(isExternal: externalInsulin)
+                    await handleInsulin(isExternal: externalInsulin)
                 } else {
                     hideModal()
                     return
@@ -426,6 +429,8 @@ extension Treatments {
                 guard glucoseStorage.isGlucoseDataFresh(date) else {
                     await MainActor.run {
                         isAwaitingDeterminationResult = false
+                        showDeterminationFailureAlert = true
+                        determinationFailureMessage = "Glucose data is stale"
                     }
                     return hideModal()
                 }
@@ -434,16 +439,13 @@ extension Treatments {
 
         // MARK: - Insulin
 
-        private func handleInsulin(isExternal: Bool) async throws {
+        private func handleInsulin(isExternal: Bool) async {
             debug(.bolusState, "handleInsulin fired")
+
             if !isExternal {
                 await addPumpInsulin()
             } else {
                 await addExternalInsulin()
-            }
-
-            await MainActor.run {
-                self.isAwaitingDeterminationResult = true
             }
         }
 
@@ -458,6 +460,10 @@ extension Treatments {
             do {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
+                    // show loading animation
+                    await MainActor.run {
+                        self.isAwaitingDeterminationResult = true
+                    }
                     await apsManager.enactBolus(amount: maxAmount, isSMB: false, callback: nil)
                 } else {
                     print("authentication failed")
@@ -466,9 +472,8 @@ extension Treatments {
                 print("authentication error for pump bolus: \(error.localizedDescription)")
                 await MainActor.run {
                     self.isAwaitingDeterminationResult = false
-                    if self.addButtonPressed {
-                        self.hideModal()
-                    }
+                    self.showDeterminationFailureAlert = true
+                    self.determinationFailureMessage = error.localizedDescription
                 }
             }
         }
@@ -488,6 +493,10 @@ extension Treatments {
             do {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
+                    // show loading animation
+                    await MainActor.run {
+                        self.isAwaitingDeterminationResult = true
+                    }
                     // store external dose to pump history
                     await pumpHistoryStorage.storeExternalInsulinEvent(amount: amount, timestamp: date)
                     // perform determine basal sync
@@ -499,9 +508,8 @@ extension Treatments {
                 print("authentication error for external insulin: \(error.localizedDescription)")
                 await MainActor.run {
                     self.isAwaitingDeterminationResult = false
-                    if self.addButtonPressed {
-                        self.hideModal()
-                    }
+                    self.showDeterminationFailureAlert = true
+                    self.determinationFailureMessage = error.localizedDescription
                 }
             }
         }
