@@ -109,7 +109,7 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("OrefDetermination")
-            .debounce(for: .seconds(2), scheduler: queue)
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .utility))
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 self.cobOrIobDidUpdate()

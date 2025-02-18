@@ -119,8 +119,12 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     }
 
     private func registerHandlers() {
+        /// We add debouncing behavior here for two main reasons
+        /// 1. To ensure that any upload flag updates have properly been performed, and in subsequent fetching processes only truly unuploaded data is fetched
+        /// 2. To not spam the user's NS site with a high number of uploads in a very short amount of time (less than 1sec)
         coreDataPublisher?
             .filterByEntityName("OrefDetermination")
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
             .sink { [weak self] objectIDs in
                 guard let self = self else { return }
 
@@ -137,38 +141,59 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
                         // If valid, proceed to send to subject for further processing
                         if !results.isEmpty {
-                            self.orefDeterminationSubject.send()
+                            Task {
+                                do {
+                                    try await self.uploadDeviceStatus()
+                                } catch {
+                                    debug(.nightscout, "\(DebuggingIdentifiers.failed) failed to upload device status")
+                                }
+                            }
                         }
                     } catch {
-                        debugPrint("Failed to fetch OrefDetermination objects: \(error)")
+                        debug(.nightscout, "\(DebuggingIdentifiers.failed) Failed to fetch OrefDetermination objects: \(error)")
                     }
                 }
             }
             .store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
-            self?.uploadOverridesSubject.send()
-        }.store(in: &subscriptions)
+        coreDataPublisher?.filterByEntityName("OverrideStored")
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task.detached {
+                    await self.uploadOverrides()
+                }
+            }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("OverrideRunStored").sink { [weak self] _ in
-            self?.uploadOverridesSubject.send()
-        }.store(in: &subscriptions)
+        coreDataPublisher?.filterByEntityName("OverrideRunStored")
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task.detached {
+                    await self.uploadOverrides()
+                }
+            }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("TempTargetStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task.detached {
-                await self.uploadTempTargets()
-            }
-        }.store(in: &subscriptions)
+        coreDataPublisher?.filterByEntityName("TempTargetStored")
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task.detached {
+                    await self.uploadTempTargets()
+                }
+            }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("TempTargetRunStored").sink { [weak self] _ in
-            guard let self = self else { return }
-            Task.detached {
-                await self.uploadTempTargets()
-            }
-        }.store(in: &subscriptions)
+        coreDataPublisher?.filterByEntityName("TempTargetRunStored")
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Task.detached {
+                    await self.uploadTempTargets()
+                }
+            }.store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("PumpEventStored")
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
             .sink { [weak self] objectIDs in
                 guard let self = self else { return }
 
@@ -182,7 +207,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                         let results = try self.backgroundContext.fetch(request)
 
                         if !results.isEmpty {
-                            self.uploadPumpHistorySubject.send()
+                            Task.detached {
+                                await self.uploadPumpHistory()
+                            }
                         }
                     } catch {
                         debugPrint("Failed to fetch PumpEventStored objects: \(error)")
@@ -192,6 +219,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             .store(in: &subscriptions)
 
         coreDataPublisher?.filterByEntityName("CarbEntryStored")
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
             .sink { [weak self] objectIDs in
                 guard let self = self else { return }
 
@@ -207,7 +235,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
                         // If valid, proceed to send to subject for further processing
                         if !results.isEmpty {
-                            self.uploadCarbsSubject.send()
+                            Task.detached {
+                                await self.uploadCarbs()
+                            }
                         }
                     } catch {
                         debugPrint("Failed to fetch CarbEntryStored objects: \(error)")
@@ -229,58 +259,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
     func registerSubscribers() {
         glucoseStorage.updatePublisher
-            .receive(on: DispatchQueue.global(qos: .background))
+            .receive(on: queue)
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task {
                     await self.uploadGlucose()
-                }
-            }
-            .store(in: &subscriptions)
-
-        /// We add debouncing behavior here for two main reasons
-        /// 1. To ensure that any upload flag updates have properly been performed, and in subsequent fetching processes only truly unuploaded data is fetched
-        /// 2. To not spam the user's NS site with a high number of uploads in a very short amount of time (less than 1sec)
-        orefDeterminationSubject
-            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
-            .sink { [weak self] in
-                guard let self = self else { return }
-                Task {
-                    do {
-                        try await self.uploadDeviceStatus()
-                    } catch {
-                        debug(.nightscout, "\(DebuggingIdentifiers.failed) failed to upload device status")
-                    }
-                }
-            }
-            .store(in: &subscriptions)
-
-        uploadOverridesSubject
-            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
-            .sink { [weak self] in
-                guard let self = self else { return }
-                Task {
-                    await self.uploadOverrides()
-                }
-            }
-            .store(in: &subscriptions)
-
-        uploadPumpHistorySubject
-            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
-            .sink { [weak self] in
-                guard let self = self else { return }
-                Task {
-                    await self.uploadPumpHistory()
-                }
-            }
-            .store(in: &subscriptions)
-
-        uploadCarbsSubject
-            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
-            .sink { [weak self] in
-                guard let self = self else { return }
-                Task {
-                    await self.uploadCarbs()
                 }
             }
             .store(in: &subscriptions)
