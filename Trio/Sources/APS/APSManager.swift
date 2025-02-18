@@ -20,8 +20,8 @@ protocol APSManager {
     var pumpExpiresAtDate: CurrentValueSubject<Date?, Never> { get }
     var isManualTempBasal: Bool { get }
     func enactTempBasal(rate: Double, duration: TimeInterval) async
-    func determineBasal() async throws -> Bool
-    func determineBasalSync() async
+    func determineBasal() async throws
+    func determineBasalSync() async throws
     func simulateDetermineBasal(simulatedCarbsAmount: Decimal, simulatedBolusAmount: Decimal) async -> Determination?
     func roundBolus(amount: Decimal) -> Decimal
     var lastError: CurrentValueSubject<Error?, Never> { get }
@@ -194,105 +194,131 @@ final class BaseAPSManager: APSManager, Injectable {
         Task { [weak self] in
             guard let self else { return }
 
-            // check the last start of looping is more the loopInterval but the previous loop was completed
-            if self.lastLoopDate > self.lastLoopStartDate {
-                guard self.lastLoopStartDate.addingTimeInterval(Config.loopInterval) < Date() else {
-                    debug(.apsManager, "too close to do a loop : \(self.lastLoopStartDate)")
-                    return
-                }
-            }
+            // Check if we can start a new loop
+            guard await self.canStartNewLoop() else { return }
 
-            guard !self.isLooping.value else {
-                warning(.apsManager, "Loop already in progress. Skip recommendation.")
-                return
-            }
-
-            // start background time extension
-            self.backGroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") { [weak self] in
-                guard let self, let backgroundTask = self.backGroundTaskID else { return }
-                Task {
-                    UIApplication.shared.endBackgroundTask(backgroundTask)
-                }
-                self.backGroundTaskID = .invalid
-            }
-
-            self.lastLoopStartDate = Date()
-
-            var previousLoop = [LoopStatRecord]()
-            var interval: Double?
+            // Setup loop and background task
+            var (loopStatRecord, backgroundTask) = await self.setupLoop()
 
             do {
-                try await self.privateContext.perform {
-                    let requestStats = LoopStatRecord.fetchRequest() as NSFetchRequest<LoopStatRecord>
-                    let sortStats = NSSortDescriptor(key: "end", ascending: false)
-                    requestStats.sortDescriptors = [sortStats]
-                    requestStats.fetchLimit = 1
-                    previousLoop = try self.privateContext.fetch(requestStats)
+                // Execute loop logic
+                try await self.executeLoop(loopStatRecord: &loopStatRecord)
 
-                    if (previousLoop.first?.end ?? .distantFuture) < self.lastLoopStartDate {
-                        interval = self.roundDouble(
-                            (self.lastLoopStartDate - (previousLoop.first?.end ?? Date())).timeInterval / 60,
-                            1
-                        )
-                    }
+                // Upload data to Nightscout if available
+                if let nightscoutManager = self.nightscout {
+                    await nightscoutManager.uploadCarbs()
+                    await nightscoutManager.uploadPumpHistory()
+                    await nightscoutManager.uploadOverrides()
+                    await nightscoutManager.uploadTempTargets()
                 }
-            } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch the last loop with error: \(error.userInfo)"
-                )
-            }
-
-            var loopStatRecord = LoopStats(
-                start: self.lastLoopStartDate,
-                loopStatus: "Starting",
-                interval: interval
-            )
-
-            self.isLooping.send(true)
-
-            do {
-                if try await !self.determineBasal() {
-                    throw APSError.apsError(message: "Determine basal failed")
-                }
-
-                // Open loop completed
-                guard self.settings.closedLoop else {
-                    loopStatRecord.end = Date()
-                    loopStatRecord.duration = self.roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
-                    loopStatRecord.loopStatus = "Success"
-                    await self.loopCompleted(loopStatRecord: loopStatRecord)
-                    return
-                }
-
-                // Closed loop - enact Determination
-                try await self.enactDetermination()
-                loopStatRecord.end = Date()
-                loopStatRecord.duration = self.roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
-                loopStatRecord.loopStatus = "Success"
-                await self.loopCompleted(loopStatRecord: loopStatRecord)
             } catch {
-                loopStatRecord.end = Date()
-                loopStatRecord.duration = self.roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
-                loopStatRecord.loopStatus = error.localizedDescription
-                await self.loopCompleted(error: error, loopStatRecord: loopStatRecord)
+                var updatedStats = loopStatRecord
+                updatedStats.end = Date()
+                updatedStats.duration = roundDouble((updatedStats.end! - updatedStats.start).timeInterval / 60, 2)
+                updatedStats.loopStatus = error.localizedDescription
+                await loopCompleted(error: error, loopStatRecord: updatedStats)
+                debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to complete Loop: \(error.localizedDescription)")
             }
 
-            if let nightscoutManager = self.nightscout {
-                await nightscoutManager.uploadCarbs()
-                await nightscoutManager.uploadPumpHistory()
-                await nightscoutManager.uploadOverrides()
-                await nightscoutManager.uploadTempTargets()
-            }
-
-            // End background task after all the operations are completed
-            if let backgroundTask = self.backGroundTaskID {
+            // Cleanup background task
+            if let backgroundTask = backgroundTask {
                 await UIApplication.shared.endBackgroundTask(backgroundTask)
                 self.backGroundTaskID = .invalid
             }
         }
     }
 
-//     Loop exit point
+    private func canStartNewLoop() async -> Bool {
+        // Check if too soon for next loop
+        if lastLoopDate > lastLoopStartDate {
+            guard lastLoopStartDate.addingTimeInterval(Config.loopInterval) < Date() else {
+                debug(.apsManager, "too close to do a loop : \(lastLoopStartDate)")
+                return false
+            }
+        }
+
+        // Check if loop already in progress
+        guard !isLooping.value else {
+            warning(.apsManager, "Loop already in progress. Skip recommendation.")
+            return false
+        }
+
+        return true
+    }
+
+    private func setupLoop() async -> (LoopStats, UIBackgroundTaskIdentifier?) {
+        // Start background task
+        let backgroundTask = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") { [weak self] in
+            guard let self, let backgroundTask = self.backGroundTaskID else { return }
+            Task {
+                UIApplication.shared.endBackgroundTask(backgroundTask)
+            }
+            self.backGroundTaskID = .invalid
+        }
+        backGroundTaskID = backgroundTask
+
+        // Set loop start time
+        lastLoopStartDate = Date()
+
+        // Calculate interval from previous loop
+        let interval = await calculateLoopInterval()
+
+        // Create initial loop stats record
+        let loopStatRecord = LoopStats(
+            start: lastLoopStartDate,
+            loopStatus: "Starting",
+            interval: interval
+        )
+
+        isLooping.send(true)
+
+        return (loopStatRecord, backgroundTask)
+    }
+
+    private func executeLoop(loopStatRecord: inout LoopStats) async throws {
+        try await determineBasal()
+
+        // Handle open loop
+        guard settings.closedLoop else {
+            loopStatRecord.end = Date()
+            loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
+            loopStatRecord.loopStatus = "Success"
+            await loopCompleted(loopStatRecord: loopStatRecord)
+            return
+        }
+
+        // Handle closed loop
+        try await enactDetermination()
+        loopStatRecord.end = Date()
+        loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
+        loopStatRecord.loopStatus = "Success"
+        await loopCompleted(loopStatRecord: loopStatRecord)
+    }
+
+    private func calculateLoopInterval() async -> Double? {
+        do {
+            return try await privateContext.perform {
+                let requestStats = LoopStatRecord.fetchRequest() as NSFetchRequest<LoopStatRecord>
+                let sortStats = NSSortDescriptor(key: "end", ascending: false)
+                requestStats.sortDescriptors = [sortStats]
+                requestStats.fetchLimit = 1
+                let previousLoop = try self.privateContext.fetch(requestStats)
+
+                if (previousLoop.first?.end ?? .distantFuture) < self.lastLoopStartDate {
+                    return self.roundDouble(
+                        (self.lastLoopStartDate - (previousLoop.first?.end ?? Date())).timeInterval / 60,
+                        1
+                    )
+                }
+                return nil
+            }
+        } catch {
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch the last loop with error: \(error)")
+            return nil
+        }
+    }
+
+    // Loop exit point
     private func loopCompleted(error: Error? = nil, loopStatRecord: LoopStats) async {
         isLooping.send(false)
 
@@ -355,7 +381,7 @@ final class BaseAPSManager: APSManager, Injectable {
         return false
     }
 
-    func determineBasal() async throws -> Bool {
+    func determineBasal() async throws {
         debug(.apsManager, "Start determine basal")
 
         // Fetch glucose asynchronously
@@ -390,7 +416,7 @@ final class BaseAPSManager: APSManager, Injectable {
         guard isValidGlucoseData else {
             debug(.apsManager, "Glucose validation failed")
             processError(APSError.glucoseError(message: "Glucose validation failed"))
-            return false
+            return
         }
 
         do {
@@ -412,25 +438,14 @@ final class BaseAPSManager: APSManager, Injectable {
                         $0.determinationDidUpdate(determination)
                     }
                 }
-                return true
-            } else {
-                return false
             }
         } catch {
-            debug(.apsManager, "Error determining basal: \(error)")
-            return false
+            throw APSError.apsError(message: "Error determining basal: \(error.localizedDescription)")
         }
     }
 
-    func determineBasalSync() async {
-        do {
-            _ = try await determineBasal()
-        } catch {
-            debug(
-                .apsManager,
-                "\(DebuggingIdentifiers.failed) Error performing determine basal sync: \(error.localizedDescription)"
-            )
-        }
+    func determineBasalSync() async throws {
+        _ = try await determineBasal()
     }
 
     func simulateDetermineBasal(simulatedCarbsAmount: Decimal, simulatedBolusAmount: Decimal) async -> Determination? {
@@ -467,13 +482,11 @@ final class BaseAPSManager: APSManager, Injectable {
 
         if let error = verifyStatus() {
             processError(error)
+            // Capture broadcaster and queue before async context
             let broadcaster = self.broadcaster
-            let processQueue = self.processQueue
             Task { @MainActor in
-                if let broadcaster = broadcaster {
-                    broadcaster.notify(BolusFailureObserver.self, on: processQueue) {
-                        $0.bolusDidFail()
-                    }
+                broadcaster?.notify(BolusFailureObserver.self, on: .main) {
+                    $0.bolusDidFail()
                 }
             }
             callback?(false, "Error! Failed to enact bolus.")
@@ -490,7 +503,7 @@ final class BaseAPSManager: APSManager, Injectable {
             try await pump.enactBolus(units: roundedAmount, automatic: isSMB)
             debug(.apsManager, "Bolus succeeded")
             if !isSMB {
-                await determineBasalSync()
+                try await determineBasalSync()
             }
             bolusProgress.send(0)
             callback?(true, "Bolus enacted successfully.")
@@ -498,13 +511,11 @@ final class BaseAPSManager: APSManager, Injectable {
             warning(.apsManager, "Bolus failed with error: \(error.localizedDescription)")
             processError(APSError.pumpError(error))
             if !isSMB {
+                // Use MainActor to handle broadcaster notification
                 let broadcaster = self.broadcaster
-                let processQueue = self.processQueue
                 Task { @MainActor in
-                    if let broadcaster = broadcaster {
-                        broadcaster.notify(BolusFailureObserver.self, on: processQueue) {
-                            $0.bolusDidFail()
-                        }
+                    broadcaster?.notify(BolusFailureObserver.self, on: .main) {
+                        $0.bolusDidFail()
                     }
                 }
             }

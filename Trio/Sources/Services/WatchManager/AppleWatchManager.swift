@@ -570,7 +570,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     debug(.watchManager, "📱 Bolus cancelled from watch")
 
                     // perform determine basal sync, otherwise you could end up with too much IOB when opening the calculator again
-                    await self?.apsManager.determineBasalSync()
+                    try await self?.apsManager.determineBasalSync()
                 }
             }
 

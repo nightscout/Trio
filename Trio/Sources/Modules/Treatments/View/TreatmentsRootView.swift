@@ -308,9 +308,9 @@ extension Treatments {
                     }
                     .listSectionSpacing(sectionSpacing)
                 }
-                .blur(radius: state.waitForSuggestion ? 5 : 0)
+                .blur(radius: state.isAwaitingDeterminationResult ? 5 : 0)
 
-                if state.waitForSuggestion {
+                if state.isAwaitingDeterminationResult {
                     CustomProgressView(text: progressText.rawValue)
                 }
             }
@@ -505,19 +505,5 @@ extension Treatments {
                 .foregroundColor(.gray.opacity(0.65))
                 .padding(.vertical)
         }
-    }
-}
-
-// fix iOS 15 bug
-struct ActivityIndicator: UIViewRepresentable {
-    @Binding var isAnimating: Bool
-    let style: UIActivityIndicatorView.Style
-
-    func makeUIView(context _: UIViewRepresentableContext<ActivityIndicator>) -> UIActivityIndicatorView {
-        UIActivityIndicatorView(style: style)
-    }
-
-    func updateUIView(_ uiView: UIActivityIndicatorView, context _: UIViewRepresentableContext<ActivityIndicator>) {
-        isAnimating ? uiView.startAnimating() : uiView.stopAnimating()
     }
 }

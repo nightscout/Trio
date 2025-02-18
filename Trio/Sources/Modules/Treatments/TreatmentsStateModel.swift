@@ -40,12 +40,10 @@ extension Treatments {
         var minDelta: Decimal = 0
         var expectedDelta: Decimal = 0
         var minPredBG: Decimal = 0
-        var waitForSuggestion: Bool = false
+        var isAwaitingDeterminationResult: Bool = false
         var carbRatio: Decimal = 0
 
         var addButtonPressed: Bool = false
-
-        var waitForSuggestionInitial: Bool = false
 
         var target: Decimal = 0
         var cob: Int16 = 0
@@ -183,19 +181,6 @@ extension Treatments {
                         }
                         group.addTask {
                             self.registerObservers()
-                        }
-
-                        if self.waitForSuggestionInitial {
-                            group.addTask {
-                                let isDetermineBasalSuccessful = try await self.apsManager.determineBasal()
-                                if !isDetermineBasalSuccessful {
-                                    await MainActor.run {
-                                        self.waitForSuggestion = false
-                                        self.insulinRequired = 0
-                                        self.insulinRecommended = 0
-                                    }
-                                }
-                            }
                         }
 
                         // Wait for all tasks to complete
@@ -440,7 +425,7 @@ extension Treatments {
 
                 guard glucoseStorage.isGlucoseDataFresh(date) else {
                     await MainActor.run {
-                        waitForSuggestion = false
+                        isAwaitingDeterminationResult = false
                     }
                     return hideModal()
                 }
@@ -458,7 +443,7 @@ extension Treatments {
             }
 
             await MainActor.run {
-                self.waitForSuggestion = true
+                self.isAwaitingDeterminationResult = true
             }
         }
 
@@ -480,7 +465,7 @@ extension Treatments {
             } catch {
                 print("authentication error for pump bolus: \(error.localizedDescription)")
                 await MainActor.run {
-                    self.waitForSuggestion = false
+                    self.isAwaitingDeterminationResult = false
                     if self.addButtonPressed {
                         self.hideModal()
                     }
@@ -506,14 +491,14 @@ extension Treatments {
                     // store external dose to pump history
                     await pumpHistoryStorage.storeExternalInsulinEvent(amount: amount, timestamp: date)
                     // perform determine basal sync
-                    await apsManager.determineBasalSync()
+                    try await apsManager.determineBasalSync()
                 } else {
                     print("authentication failed")
                 }
             } catch {
                 print("authentication error for external insulin: \(error.localizedDescription)")
                 await MainActor.run {
-                    self.waitForSuggestion = false
+                    self.isAwaitingDeterminationResult = false
                     if self.addButtonPressed {
                         self.hideModal()
                     }
@@ -551,9 +536,9 @@ extension Treatments {
                 // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
                 if amount <= 0 {
                     await MainActor.run {
-                        self.waitForSuggestion = true
+                        self.isAwaitingDeterminationResult = true
                     }
-                    await apsManager.determineBasalSync()
+                    try await apsManager.determineBasalSync()
                 }
             } catch {
                 debug(.default, "\(DebuggingIdentifiers.failed) Failed to save carbs: \(error.localizedDescription)")
@@ -612,7 +597,7 @@ extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
 
         DispatchQueue.main.async {
             debug(.bolusState, "determinationDidUpdate fired")
-            self.waitForSuggestion = false
+            self.isAwaitingDeterminationResult = false
             if self.addButtonPressed {
                 self.hideModal()
             }
@@ -622,7 +607,7 @@ extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
     func bolusDidFail() {
         DispatchQueue.main.async {
             debug(.bolusState, "bolusDidFail fired")
-            self.waitForSuggestion = false
+            self.isAwaitingDeterminationResult = false
             if self.addButtonPressed {
                 self.hideModal()
             }

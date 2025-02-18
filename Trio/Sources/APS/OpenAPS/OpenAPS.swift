@@ -366,7 +366,7 @@ final class OpenAPS {
 
             return determination
         } else {
-            return nil
+            throw APSError.apsError(message: "Determination is nil")
         }
     }
 
