@@ -25,8 +25,10 @@ extension Home.StateModel {
             batchSize: 5
         )
 
-        return await carbsFetchContext.perform {
-            guard let fetchedResults = results as? [CarbEntryStored] else { return [] }
+        return try await carbsFetchContext.perform {
+            guard let fetchedResults = results as? [CarbEntryStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID)
         }
@@ -58,8 +60,10 @@ extension Home.StateModel {
             ascending: false
         )
 
-        return await fpuFetchContext.perform {
-            guard let fetchedResults = results as? [CarbEntryStored] else { return [] }
+        return try await fpuFetchContext.perform {
+            guard let fetchedResults = results as? [CarbEntryStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID)
         }

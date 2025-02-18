@@ -66,8 +66,15 @@ extension AlgorithmAdvancedSettings {
                         self.insulinActionCurve = settings.insulinActionCurve
 
                         Task.detached(priority: .low) {
-                            debug(.nightscout, "Attempting to upload DIA to Nightscout")
-                            try await self.nightscout.uploadProfiles()
+                            do {
+                                debug(.nightscout, "Attempting to upload DIA to Nightscout")
+                                try await self.nightscout.uploadProfiles()
+                            } catch {
+                                debug(
+                                    .default,
+                                    "\(DebuggingIdentifiers.failed) failed to upload DIA to Nightscout: \(error.localizedDescription)"
+                                )
+                            }
                         }
                     } receiveValue: {}
                     .store(in: &lifetime)

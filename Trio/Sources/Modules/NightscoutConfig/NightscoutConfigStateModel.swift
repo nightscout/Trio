@@ -75,7 +75,14 @@ extension NightscoutConfig {
                     if enabled {
                         debug(.nightscout, "Upload has been enabled by the user.")
                         Task {
-                            try await self.nightscoutManager.uploadProfiles()
+                            do {
+                                try await self.nightscoutManager.uploadProfiles()
+                            } catch {
+                                debug(
+                                    .default,
+                                    "\(DebuggingIdentifiers.failed) failed to upload profiles: \(error.localizedDescription)"
+                                )
+                            }
                         }
                     } else {
                         debug(.nightscout, "Upload has been disabled by the user.")
@@ -408,8 +415,15 @@ extension NightscoutConfig {
                         self.importedInsulinActionCurve = settings.insulinActionCurve
 
                         Task.detached(priority: .low) {
-                            debug(.nightscout, "Attempting to upload DIA to Nightscout after import review")
-                            try await self.nightscoutManager.uploadProfiles()
+                            do {
+                                debug(.nightscout, "Attempting to upload DIA to Nightscout after import review")
+                                try await self.nightscoutManager.uploadProfiles()
+                            } catch {
+                                debug(
+                                    .default,
+                                    "\(DebuggingIdentifiers.failed) failed to upload DIA to Nightscout: \(error.localizedDescription)"
+                                )
+                            }
                         }
                     } receiveValue: {}
                     .store(in: &lifetime)

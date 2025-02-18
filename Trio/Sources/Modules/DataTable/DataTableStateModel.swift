@@ -299,30 +299,36 @@ extension DataTable {
             newDate: Date
         ) {
             Task {
-                // Get original date from entry to re-create the entry later with the updated values and the same date
-                guard let originalEntry = await getOriginalEntryValues(treatmentObjectID) else { return }
+                do {
+                    // Get original date from entry to re-create the entry later with the updated values and the same date
+                    guard let originalEntry = await getOriginalEntryValues(treatmentObjectID) else { return }
 
-                // Deletion logic for carb and FPU entries
-                try await deleteOldEntries(
-                    treatmentObjectID,
-                    originalEntry: originalEntry,
-                    newCarbs: newCarbs,
-                    newFat: newFat,
-                    newProtein: newProtein,
-                    newNote: newNote
-                )
+                    // Deletion logic for carb and FPU entries
+                    try await deleteOldEntries(
+                        treatmentObjectID,
+                        originalEntry: originalEntry,
+                        newCarbs: newCarbs,
+                        newFat: newFat,
+                        newProtein: newProtein,
+                        newNote: newNote
+                    )
 
-                try await createNewEntries(
-                    originalDate: newDate,
-                    newCarbs: newCarbs,
-                    newFat: newFat,
-                    newProtein: newProtein,
-                    newNote: newNote
-                )
+                    try await createNewEntries(
+                        originalDate: newDate,
+                        newCarbs: newCarbs,
+                        newFat: newFat,
+                        newProtein: newProtein,
+                        newNote: newNote
+                    )
 
-                await syncWithServices()
-                // Perform a determine basal sync to update cob
-                try await apsManager.determineBasalSync()
+                    await syncWithServices()
+
+                    // Perform a determine basal sync to update cob
+                    try await apsManager.determineBasalSync()
+
+                } catch {
+                    debug(.default, "\(DebuggingIdentifiers.failed) failed to update entry: \(error.localizedDescription)")
+                }
             }
         }
 

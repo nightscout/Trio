@@ -513,15 +513,19 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         dispatchPrecondition(condition: .onQueue(processQueue))
 
         Task {
-            // filter buggy TBRs > maxBasal from MDT
-            let events = events.filter {
-                // type is optional...
-                guard let type = $0.type, type == .tempBasal else { return true }
-                return $0.dose?.unitsPerHour ?? 0 <= Double(settingsManager.pumpSettings.maxBasal)
+            do {
+                // filter buggy TBRs > maxBasal from MDT
+                let events = events.filter {
+                    // type is optional...
+                    guard let type = $0.type, type == .tempBasal else { return true }
+                    return $0.dose?.unitsPerHour ?? 0 <= Double(settingsManager.pumpSettings.maxBasal)
+                }
+                try await pumpHistoryStorage.storePumpEvents(events)
+                lastEventDate = events.last?.date
+                completion(nil)
+            } catch {
+                debug(.deviceManager, "\(DebuggingIdentifiers.failed) Failed to store pump events: \(error)")
             }
-            try await pumpHistoryStorage.storePumpEvents(events)
-            lastEventDate = events.last?.date
-            completion(nil)
         }
     }
 

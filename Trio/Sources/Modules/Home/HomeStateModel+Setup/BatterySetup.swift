@@ -27,8 +27,10 @@ extension Home.StateModel {
             ascending: false
         )
 
-        return await batteryFetchContext.perform {
-            guard let fetchedResults = results as? [OpenAPS_Battery] else { return [] }
+        return try await batteryFetchContext.perform {
+            guard let fetchedResults = results as? [OpenAPS_Battery] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
             return fetchedResults.map(\.objectID)
         }
     }

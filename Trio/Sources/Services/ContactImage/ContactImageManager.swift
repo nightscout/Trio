@@ -98,8 +98,10 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             fetchLimit: 1
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [OrefDetermination] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [OrefDetermination] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID)
         }
@@ -115,9 +117,9 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             fetchLimit: 3 /// We only need 1-3 values, depending on whether the user wants to show delta or not
         )
 
-        return await backgroundContext.perform {
+        return try await backgroundContext.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
-                return []
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return glucoseResults.map(\.objectID)

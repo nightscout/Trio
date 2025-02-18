@@ -28,8 +28,10 @@ extension Home.StateModel {
             batchSize: 50
         )
 
-        return await glucoseFetchContext.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await glucoseFetchContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             // Update Main Chart Y Axis Values
             // Perform everything on "context" to be thread safe

@@ -217,10 +217,12 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     private func processGlucose() async throws -> [BloodGlucose] {
         let results = try await fetchGlucose()
-        guard let results else { return [] }
 
-        return await context.perform {
-            results.map { result in
+        return try await context.perform {
+            guard let results else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
+            return results.map { result in
                 BloodGlucose(
                     sgv: Int(result.glucose),
                     direction: BloodGlucose.Direction(from: result.direction ?? ""),

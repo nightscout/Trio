@@ -681,8 +681,10 @@ extension Treatments.StateModel {
             ascending: false
         )
 
-        return await glucoseFetchContext.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await glucoseFetchContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID)
         }

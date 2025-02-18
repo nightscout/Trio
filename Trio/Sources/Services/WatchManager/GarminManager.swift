@@ -161,9 +161,16 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task {
-                    let watchState = try await self.setupGarminWatchState()
-                    let watchStateData = try JSONEncoder().encode(watchState)
-                    self.sendWatchStateData(watchStateData)
+                    do {
+                        let watchState = try await self.setupGarminWatchState()
+                        let watchStateData = try JSONEncoder().encode(watchState)
+                        self.sendWatchStateData(watchStateData)
+                    } catch {
+                        debug(
+                            .watchManager,
+                            "\(DebuggingIdentifiers.failed) failed to update watch state: \(error.localizedDescription)"
+                        )
+                    }
                 }
             }
             .store(in: &subscriptions)
@@ -174,9 +181,16 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task {
-                    let watchState = try await self.setupGarminWatchState()
-                    let watchStateData = try JSONEncoder().encode(watchState)
-                    self.sendWatchStateData(watchStateData)
+                    do {
+                        let watchState = try await self.setupGarminWatchState()
+                        let watchStateData = try JSONEncoder().encode(watchState)
+                        self.sendWatchStateData(watchStateData)
+                    } catch {
+                        debug(
+                            .watchManager,
+                            "\(DebuggingIdentifiers.failed) failed to update watch state: \(error.localizedDescription)"
+                        )
+                    }
                 }
             }
             .store(in: &subscriptions)
@@ -194,8 +208,10 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             fetchLimit: 288
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
             return fetchedResults.map(\.objectID)
         }
     }
@@ -575,9 +591,16 @@ extension BaseGarminManager: SettingsObserver {
         units = settingsManager.settings.units
 
         Task {
-            let watchState = try await setupGarminWatchState()
-            let watchStateData = try JSONEncoder().encode(watchState)
-            sendWatchStateData(watchStateData)
+            do {
+                let watchState = try await setupGarminWatchState()
+                let watchStateData = try JSONEncoder().encode(watchState)
+                sendWatchStateData(watchStateData)
+            } catch {
+                debug(
+                    .watchManager,
+                    "\(DebuggingIdentifiers.failed) failed to send watch state data: \(error.localizedDescription)"
+                )
+            }
         }
     }
 }

@@ -8,7 +8,7 @@ protocol TempTargetsObserver {
 }
 
 protocol TempTargetsStorage {
-    func storeTempTarget(tempTarget: TempTarget) async
+    func storeTempTarget(tempTarget: TempTarget) async throws
     func saveTempTargetsToStorage(_ targets: [TempTarget])
     func fetchForTempTargetPresets() async throws -> [NSManagedObjectID]
     func fetchScheduledTempTargets() async throws -> [NSManagedObjectID]
@@ -48,9 +48,11 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             fetchLimit: fetchLimit
         )
 
-        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [TempTargetStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await backgroundContext.perform {
             return fetchedResults.map(\.objectID)
         }
     }
@@ -65,9 +67,11 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             ascending: true
         )
 
-        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [TempTargetStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await backgroundContext.perform {
             return fetchedResults.map(\.objectID)
         }
     }
@@ -83,9 +87,11 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [TempTargetStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await backgroundContext.perform {
             return fetchedResults.map(\.objectID)
         }
     }
@@ -102,53 +108,53 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             fetchLimit: 1
         )
 
-        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [TempTargetStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await backgroundContext.perform {
-            fetchedResults.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
-    func storeTempTarget(tempTarget: TempTarget) async {
-        do {
-            var presetCount = -1
-            if tempTarget.isPreset == true {
-                let presets = try await fetchForTempTargetPresets()
-                presetCount = presets.count
+    func storeTempTarget(tempTarget: TempTarget) async throws {
+        var presetCount = -1
+        if tempTarget.isPreset == true {
+            let presets = try await fetchForTempTargetPresets()
+            presetCount = presets.count
+        }
+
+        try await backgroundContext.perform {
+            let newTempTarget = TempTargetStored(context: self.backgroundContext)
+            newTempTarget.date = tempTarget.createdAt
+            newTempTarget.id = UUID()
+            newTempTarget.enabled = tempTarget.enabled ?? false
+            newTempTarget.duration = tempTarget.duration as NSDecimalNumber
+            newTempTarget.isUploadedToNS = false
+            newTempTarget.name = tempTarget.name
+            newTempTarget.target = NSDecimalNumber(decimal: tempTarget.targetTop ?? 0)
+            newTempTarget.isPreset = tempTarget.isPreset ?? false
+
+            // Nullify half basal target to ensure the latest HBT is used via OpenAPS Manager when sending TT data to oref
+            newTempTarget.halfBasalTarget = nil
+
+            if let halfBasalTarget = tempTarget.halfBasalTarget,
+               halfBasalTarget != self.settingsManager.preferences.halfBasalExerciseTarget
+            {
+                newTempTarget.halfBasalTarget = NSDecimalNumber(decimal: halfBasalTarget)
             }
 
-            try await backgroundContext.perform {
-                let newTempTarget = TempTargetStored(context: self.backgroundContext)
-                newTempTarget.date = tempTarget.createdAt
-                newTempTarget.id = UUID()
-                newTempTarget.enabled = tempTarget.enabled ?? false
-                newTempTarget.duration = tempTarget.duration as NSDecimalNumber
-                newTempTarget.isUploadedToNS = false
-                newTempTarget.name = tempTarget.name
-                newTempTarget.target = NSDecimalNumber(decimal: tempTarget.targetTop ?? 0)
-                newTempTarget.isPreset = tempTarget.isPreset ?? false
+            if tempTarget.isPreset == true, presetCount > -1 {
+                newTempTarget.orderPosition = Int16(presetCount + 1)
+            }
 
-                // Nullify half basal target to ensure the latest HBT is used via OpenAPS Manager when sending TT data to oref
-                newTempTarget.halfBasalTarget = nil
-
-                if let halfBasalTarget = tempTarget.halfBasalTarget,
-                   halfBasalTarget != self.settingsManager.preferences.halfBasalExerciseTarget
-                {
-                    newTempTarget.halfBasalTarget = NSDecimalNumber(decimal: halfBasalTarget)
-                }
-
-                if tempTarget.isPreset == true, presetCount > -1 {
-                    newTempTarget.orderPosition = Int16(presetCount + 1)
-                }
-
+            do {
                 guard self.backgroundContext.hasChanges else { return }
                 try self.backgroundContext.save()
+            } catch let error as NSError {
+                debug(.default, "\(DebuggingIdentifiers.failed) Failed to save new temp target with error: \(error.userInfo)")
+                throw error
             }
-        } catch {
-            debug(
-                .default,
-                "\(DebuggingIdentifiers.failed) Failed to store temp target: \(error.localizedDescription)"
-            )
         }
     }
 
@@ -252,8 +258,10 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             ascending: false
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedTempTargets = results as? [TempTargetStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedTempTargets = results as? [TempTargetStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedTempTargets.map { tempTarget in
                 NightscoutTreatment(
@@ -291,8 +299,10 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             ascending: false
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedTempTargetRuns = results as? [TempTargetRunStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedTempTargetRuns = results as? [TempTargetRunStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedTempTargetRuns.map { tempTargetRun in
                 var durationInMinutes = (tempTargetRun.endDate?.timeIntervalSince(tempTargetRun.startDate ?? Date()) ?? 1) / 60

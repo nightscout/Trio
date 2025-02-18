@@ -11,10 +11,17 @@ extension Adjustments.StateModel {
     /// This also needs to be called when we cancel an Temp Target via the Home View to update the State of the Button for this case
     func updateLatestTempTargetConfiguration() {
         Task {
-            let id = try await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1)
-            async let updateState: () = updateLatestTempTargetConfigurationOfState(from: id)
-            async let setTempTarget: () = setCurrentTempTarget(from: id)
-            _ = await (updateState, setTempTarget)
+            do {
+                let id = try await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1)
+                async let updateState: () = updateLatestTempTargetConfigurationOfState(from: id)
+                async let setTempTarget: () = setCurrentTempTarget(from: id)
+                _ = await (updateState, setTempTarget)
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to load latest temp target configuration with error: \(error.localizedDescription)"
+                )
+            }
         }
     }
 
@@ -115,16 +122,16 @@ extension Adjustments.StateModel {
     }
 
     /// Saves a Temp Target based on whether it is scheduled or custom.
-    func invokeSaveOfCustomTempTargets() async {
+    func invokeSaveOfCustomTempTargets() async throws {
         if date > Date() {
-            await saveScheduledTempTarget()
+            try await saveScheduledTempTarget()
         } else {
-            await saveCustomTempTarget()
+            try await saveCustomTempTarget()
         }
     }
 
     /// Saves a scheduled Temp Target and activates it at the specified date.
-    func saveScheduledTempTarget() async {
+    func saveScheduledTempTarget() async throws {
         let date = self.date
         guard date > Date() else { return }
 
@@ -140,15 +147,12 @@ extension Adjustments.StateModel {
             enabled: false,
             halfBasalTarget: halfBasalTarget
         )
-        await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
+        try await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
         setupScheduledTempTargetsArray()
-
-        Task {
-            await waitUntilDate(date)
-            await disableAllActiveTempTargets(createTempTargetRunEntry: true)
-            await enableScheduledTempTarget(for: date)
-            tempTargetStorage.saveTempTargetsToStorage([tempTarget])
-        }
+        await waitUntilDate(date)
+        await disableAllActiveTempTargets(createTempTargetRunEntry: true)
+        await enableScheduledTempTarget(for: date)
+        tempTargetStorage.saveTempTargetsToStorage([tempTarget])
     }
 
     /// Enables a scheduled Temp Target for a specific date.
@@ -194,7 +198,7 @@ extension Adjustments.StateModel {
     }
 
     /// Saves a custom Temp Target and disables existing ones.
-    func saveCustomTempTarget() async {
+    func saveCustomTempTarget() async throws {
         await disableAllActiveTempTargets(createTempTargetRunEntry: true)
         let tempTarget = TempTarget(
             name: tempTargetName,
@@ -209,7 +213,7 @@ extension Adjustments.StateModel {
             enabled: true,
             halfBasalTarget: halfBasalTarget
         )
-        await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
+        try await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
         tempTargetStorage.saveTempTargetsToStorage([tempTarget])
         await resetTempTargetState()
         isTempTargetEnabled = true
@@ -217,7 +221,7 @@ extension Adjustments.StateModel {
     }
 
     /// Creates a new Temp Target preset.
-    func saveTempTargetPreset() async {
+    func saveTempTargetPreset() async throws {
         let tempTarget = TempTarget(
             name: tempTargetName,
             createdAt: Date(),
@@ -230,7 +234,7 @@ extension Adjustments.StateModel {
             enabled: false,
             halfBasalTarget: halfBasalTarget
         )
-        await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
+        try await tempTargetStorage.storeTempTarget(tempTarget: tempTarget)
         await resetTempTargetState()
         setupTempTargetPresetsArray()
     }

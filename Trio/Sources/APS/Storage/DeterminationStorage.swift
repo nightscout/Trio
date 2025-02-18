@@ -35,8 +35,10 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
             fetchLimit: 1
         )
 
-        return await context.perform {
-            guard let fetchedResults = results as? [OrefDetermination] else { return [] }
+        return try await context.perform {
+            guard let fetchedResults = results as? [OrefDetermination] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
             return fetchedResults.map(\.objectID)
         }
     }

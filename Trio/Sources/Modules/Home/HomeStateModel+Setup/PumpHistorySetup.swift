@@ -28,9 +28,9 @@ extension Home.StateModel {
             batchSize: 30
         )
 
-        return await pumpHistoryFetchContext.perform {
+        return try await pumpHistoryFetchContext.perform {
             guard let pumpEvents = results as? [PumpEventStored] else {
-                return []
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return pumpEvents.map(\.objectID)
@@ -78,8 +78,10 @@ extension Home.StateModel {
             fetchLimit: 1
         )
 
-        return await pumpHistoryFetchContext.perform {
-            guard let fetchedResults = results as? [PumpEventStored] else { return [].first }
+        return try await pumpHistoryFetchContext.perform {
+            guard let fetchedResults = results as? [PumpEventStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID).first
         }

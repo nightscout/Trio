@@ -128,18 +128,29 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
 
     private func cobOrIobDidUpdate() {
         Task { @MainActor in
-            self.determination = try await fetchAndMapDetermination()
-            if let determination = determination {
-                await self.updateContentState(determination)
+            do {
+                self.determination = try await fetchAndMapDetermination()
+                if let determination = determination {
+                    await self.updateContentState(determination)
+                }
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) failed to fetch and map determination: \(error.localizedDescription)"
+                )
             }
         }
     }
 
     private func overridesDidUpdate() {
         Task { @MainActor in
-            self.override = try await fetchAndMapOverride()
-            if let determination = determination {
-                await self.updateContentState(determination)
+            do {
+                self.override = try await fetchAndMapOverride()
+                if let determination = determination {
+                    await self.updateContentState(determination)
+                }
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch and map override: \(error.localizedDescription)")
             }
         }
     }
@@ -198,8 +209,12 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
 
     private func setupGlucoseArray() {
         Task { @MainActor in
-            self.glucoseFromPersistence = try await fetchAndMapGlucose()
-            glucoseDidUpdate(glucoseFromPersistence ?? [])
+            do {
+                self.glucoseFromPersistence = try await fetchAndMapGlucose()
+                glucoseDidUpdate(glucoseFromPersistence ?? [])
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch glucose with error: \(error)")
+            }
         }
     }
 

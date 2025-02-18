@@ -23,8 +23,15 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
             let pushMessage = try JSONDecoder().decode(PushMessage.self, from: jsonData)
 
             Task {
-                try await TrioRemoteControl.shared.handleRemoteNotification(pushMessage: pushMessage)
-                completionHandler(.newData)
+                do {
+                    try await TrioRemoteControl.shared.handleRemoteNotification(pushMessage: pushMessage)
+                    completionHandler(.newData)
+                } catch {
+                    debug(
+                        .default,
+                        "\(DebuggingIdentifiers.failed) failed to handle remote notification with error: \(error.localizedDescription)"
+                    )
+                }
             }
         } catch {
             debug(.remoteControl, "Error decoding push message: \(error.localizedDescription)")

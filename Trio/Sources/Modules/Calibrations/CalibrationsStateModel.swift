@@ -46,9 +46,9 @@ extension Calibrations {
                 fetchLimit: 1 /// We only need the last value
             )
 
-            return await backgroundContext.perform {
+            return try await backgroundContext.perform {
                 guard let glucoseResults = results as? [GlucoseStored] else {
-                    return []
+                    throw CoreDataError.fetchError(function: #function, file: #file)
                 }
 
                 return glucoseResults.map(\.objectID)

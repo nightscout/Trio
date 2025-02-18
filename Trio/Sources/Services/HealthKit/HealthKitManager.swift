@@ -391,8 +391,10 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
             var insulinSamples: [HKQuantitySample] = []
 
-            await backgroundContext.perform {
-                guard let existingTempBasalEntries = fetchedInsulinEntries as? [PumpEventStored] else { return }
+            try await backgroundContext.perform {
+                guard let existingTempBasalEntries = fetchedInsulinEntries as? [PumpEventStored] else {
+                    throw CoreDataError.fetchError(function: #function, file: #file)
+                }
 
                 for event in insulinEvents {
                     switch event.type {

@@ -85,8 +85,15 @@ extension ISFEditor {
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
             Task.detached(priority: .low) {
-                debug(.nightscout, "Attempting to upload ISF to Nightscout")
-                try await self.nightscout.uploadProfiles()
+                do {
+                    debug(.nightscout, "Attempting to upload ISF to Nightscout")
+                    try await self.nightscout.uploadProfiles()
+                } catch {
+                    debug(
+                        .default,
+                        "\(DebuggingIdentifiers.failed) Faile to upload ISF to Nightscout: \(error.localizedDescription)"
+                    )
+                }
             }
         }
 

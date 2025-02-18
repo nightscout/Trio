@@ -304,8 +304,10 @@ extension BaseTidepoolManager {
             )
 
             // Ensure that the processing happens within the background context for thread safety
-            await backgroundContext.perform {
-                guard let existingTempBasalEntries = results as? [PumpEventStored] else { return }
+            try await backgroundContext.perform {
+                guard let existingTempBasalEntries = results as? [PumpEventStored] else {
+                    throw CoreDataError.fetchError(function: #function, file: #file)
+                }
 
                 let insulinDoseEvents: [DoseEntry] = events.reduce([]) { result, event in
                     var result = result

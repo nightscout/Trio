@@ -2,7 +2,7 @@ import CoreData
 import Foundation
 
 extension TrioRemoteControl {
-    @MainActor func handleTempTargetCommand(_ pushMessage: PushMessage) async {
+    @MainActor func handleTempTargetCommand(_ pushMessage: PushMessage) async throws {
         guard let targetValue = pushMessage.target,
               let durationValue = pushMessage.duration
         else {
@@ -26,7 +26,7 @@ extension TrioRemoteControl {
             halfBasalTarget: settings.preferences.halfBasalExerciseTarget
         )
 
-        await tempTargetsStorage.storeTempTarget(tempTarget: tempTarget)
+        try await tempTargetsStorage.storeTempTarget(tempTarget: tempTarget)
         tempTargetsStorage.saveTempTargetsToStorage([tempTarget])
 
         debug(

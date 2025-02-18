@@ -27,8 +27,10 @@ extension Home.StateModel {
             ascending: false
         )
 
-        return await overrideFetchContext.perform {
-            guard let fetchedResults = results as? [OverrideStored] else { return [] }
+        return try await overrideFetchContext.perform {
+            guard let fetchedResults = results as? [OverrideStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
             return fetchedResults.map(\.objectID)
         }
     }
@@ -70,8 +72,10 @@ extension Home.StateModel {
             ascending: false
         )
 
-        return await overrideFetchContext.perform {
-            guard let fetchedResults = results as? [OverrideRunStored] else { return [] }
+        return try await overrideFetchContext.perform {
+            guard let fetchedResults = results as? [OverrideRunStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
             return fetchedResults.map(\.objectID)
         }
     }

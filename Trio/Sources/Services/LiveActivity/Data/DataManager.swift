@@ -14,9 +14,9 @@ extension LiveActivityBridge {
             fetchLimit: 72
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
-                return []
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return glucoseResults.map {
@@ -36,9 +36,9 @@ extension LiveActivityBridge {
             propertiesToFetch: ["iob", "cob", "totalDailyDose", "currentTarget", "deliverAt"]
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let determinationResults = results as? [[String: Any]] else {
-                return nil
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return determinationResults.first.map {
@@ -64,9 +64,9 @@ extension LiveActivityBridge {
             propertiesToFetch: ["enabled", "name", "target", "date", "duration"]
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let overrideResults = results as? [[String: Any]] else {
-                return nil
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return overrideResults.first.map {

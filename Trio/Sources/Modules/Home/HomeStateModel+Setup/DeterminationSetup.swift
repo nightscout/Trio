@@ -50,9 +50,9 @@ extension Home.StateModel {
             propertiesToFetch: ["cob", "iob", "deliverAt", "objectID"]
         )
 
-        return await determinationFetchContext.perform {
+        return try await determinationFetchContext.perform {
             guard let fetchedResults = results as? [[String: Any]] else {
-                return []
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             // Update Chart Scales

@@ -186,8 +186,10 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             propertiesToFetch: ["timestamp", "cob", "iob", "objectID"]
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [[String: Any]] else { return nil }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [[String: Any]] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.first?["objectID"] as? NSManagedObjectID
         }
@@ -203,8 +205,10 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             propertiesToFetch: ["objectID", "glucose"]
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [[String: Any]] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [[String: Any]] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
         }

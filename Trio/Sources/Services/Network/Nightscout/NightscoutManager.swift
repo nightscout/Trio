@@ -104,11 +104,18 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         /// This way, we ensure the latest enacted determination is always part of `devicestatus` and avoid having instances
         /// where the first uploaded non-enacted determination (i.e., "suggested"), lacks the "enacted" data.
         Task {
-            async let lastEnactedDeterminationID = determinationStorage
-                .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
+            do {
+                let lastEnactedDeterminationID = try await determinationStorage
+                    .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
 
-            self.lastEnactedDetermination = try await determinationStorage
-                .getOrefDeterminationNotYetUploadedToNightscout(lastEnactedDeterminationID)
+                self.lastEnactedDetermination = await determinationStorage
+                    .getOrefDeterminationNotYetUploadedToNightscout(lastEnactedDeterminationID)
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) failed to fetch last enacted determination: \(error.localizedDescription)"
+                )
+            }
         }
     }
 
@@ -802,12 +809,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     return
                 }
 
-                do {
-                    try await nightscout.uploadProfile(profileStore)
-                    debug(.nightscout, "Profile uploaded")
-                } catch {
-                    debug(.nightscout, "NightscoutManager uploadProfile: \(error.localizedDescription)")
-                }
+                try await nightscout.uploadProfile(profileStore)
+                debug(.nightscout, "Profile uploaded")
+            } catch {
+                debug(.nightscout, "NightscoutManager uploadProfile: \(error.localizedDescription)")
+                throw error
             }
         } else {
             debug(.nightscout, "Upload to NS disabled; aborting profile uploaded")

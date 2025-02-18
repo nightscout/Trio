@@ -170,13 +170,17 @@ extension Adjustments {
             for (index, override) in overridePresets.enumerated() {
                 override.orderPosition = Int16(index + 1)
             }
-            do {
-                guard viewContext.hasChanges else { return }
-                try viewContext.save()
-                setupOverridePresetsArray()
-                Task { try await nightscoutManager.uploadProfiles() }
-            } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Override Presets order")
+            Task {
+                do {
+                    guard viewContext.hasChanges else { return }
+                    try viewContext.save()
+                    setupOverridePresetsArray()
+                    try await nightscoutManager.uploadProfiles()
+                } catch {
+                    debugPrint(
+                        "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Override Presets order or upload profiles"
+                    )
+                }
             }
         }
 

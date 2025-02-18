@@ -72,8 +72,10 @@ extension Stat {
                     propertiesToFetch: ["glucose", "objectID"]
                 )
 
-                return await context.perform {
-                    guard let fetchedResults = results as? [[String: Any]] else { return [] }
+                return try await context.perform {
+                    guard let fetchedResults = results as? [[String: Any]] else {
+                        throw CoreDataError.fetchError(function: #function, file: #file)
+                    }
                     return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
                 }
             } catch {

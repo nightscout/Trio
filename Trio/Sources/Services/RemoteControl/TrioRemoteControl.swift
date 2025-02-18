@@ -69,7 +69,7 @@ class TrioRemoteControl: Injectable {
         case .bolus:
             try await handleBolusCommand(pushMessage)
         case .tempTarget:
-            await handleTempTargetCommand(pushMessage)
+            try await handleTempTargetCommand(pushMessage)
         case .cancelTempTarget:
             await cancelTempTarget(pushMessage)
         case .meal:

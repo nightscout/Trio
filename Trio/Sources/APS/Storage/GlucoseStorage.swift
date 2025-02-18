@@ -336,8 +336,10 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             ascending: false
         )
 
-        return await coredataContext.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await coredataContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map { result in
                 BloodGlucose(
@@ -367,9 +369,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await coredataContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await coredataContext.perform {
             return fetchedResults.map { result in
                 NightscoutTreatment(
                     duration: nil,
@@ -421,9 +425,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await coredataContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await coredataContext.perform {
             return fetchedResults.map { result in
                 BloodGlucose(
                     _id: result.id?.uuidString ?? UUID().uuidString,
@@ -451,9 +457,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await coredataContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await coredataContext.perform {
             return fetchedResults.map { result in
                 BloodGlucose(
                     _id: result.id?.uuidString ?? UUID().uuidString,
@@ -481,9 +489,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await coredataContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await coredataContext.perform {
             return fetchedResults.map { result in
                 BloodGlucose(
                     _id: result.id?.uuidString ?? UUID().uuidString,
@@ -512,9 +522,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await coredataContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await coredataContext.perform {
             return fetchedResults.map { result in
                 BloodGlucose(
                     _id: result.id?.uuidString ?? UUID().uuidString,

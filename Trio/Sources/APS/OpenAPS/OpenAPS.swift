@@ -111,9 +111,9 @@ final class OpenAPS {
             batchSize: 24
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
-                return ""
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             // convert to JSON
@@ -130,9 +130,9 @@ final class OpenAPS {
             ascending: false
         )
 
-        let json = await context.perform {
+        let json = try await context.perform {
             guard let carbResults = results as? [CarbEntryStored] else {
-                return ""
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             var jsonArray = self.jsonConverter.convertToJSON(carbResults)
@@ -180,9 +180,9 @@ final class OpenAPS {
             batchSize: 50
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let pumpEventResults = results as? [PumpEventStored] else {
-                return nil
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return pumpEventResults.map(\.objectID)
@@ -555,11 +555,12 @@ final class OpenAPS {
                 .apsManager,
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to create pump profile and normal profile: \(error)"
             )
+            throw error
         }
     }
 
     private func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async throws -> RawJSON {
-        await withCheckedContinuation { continuation in
+        try await withCheckedThrowingContinuation { continuation in
             jsWorker.inCommonContext { worker in
                 worker.evaluateBatch(scripts: [
                     Script(name: Prepare.log),

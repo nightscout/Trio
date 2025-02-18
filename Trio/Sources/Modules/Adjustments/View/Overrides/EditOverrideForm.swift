@@ -513,29 +513,31 @@ struct EditOverrideForm: View {
                 Button(action: {
                     saveChanges()
 
-                    do {
-                        guard let moc = override.managedObjectContext else { return }
-                        guard moc.hasChanges else { return }
-                        try moc.save()
-                        Task {
-                            try await state.nightscoutManager.uploadProfiles()
-                        }
-                        // Disable previous active Override
-                        if let currentActiveOverride = state.currentActiveOverride {
-                            Task {
-                                await state.disableAllActiveOverrides(
-                                    except: currentActiveOverride.objectID,
-                                    createOverrideRunEntry: false
-                                )
-                                // Update View
-                                state.updateLatestOverrideConfiguration()
-                            }
-                        }
+                    Task {
+                        do {
+                            guard let moc = override.managedObjectContext else { return }
+                            guard moc.hasChanges else { return }
+                            try moc.save()
 
-                        hasChanges = false
-                        presentationMode.wrappedValue.dismiss()
-                    } catch {
-                        debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Override")
+                            try await state.nightscoutManager.uploadProfiles()
+
+                            // Disable previous active Override
+                            if let currentActiveOverride = state.currentActiveOverride {
+                                Task {
+                                    await state.disableAllActiveOverrides(
+                                        except: currentActiveOverride.objectID,
+                                        createOverrideRunEntry: false
+                                    )
+                                    // Update View
+                                    state.updateLatestOverrideConfiguration()
+                                }
+                            }
+
+                            hasChanges = false
+                            presentationMode.wrappedValue.dismiss()
+                        } catch {
+                            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Override")
+                        }
                     }
                 }, label: {
                     Text("Save Override")

@@ -577,13 +577,13 @@ final class BaseAPSManager: APSManager, Injectable {
             fetchLimit: 1
         )
 
-        let fetchedTempBasal = await privateContext.perform {
+        let fetchedTempBasal = try await privateContext.perform {
             guard let fetchedResults = results as? [PumpEventStored],
                   let tempBasalEvent = fetchedResults.first,
                   let tempBasal = tempBasalEvent.tempBasal,
                   let eventTimestamp = tempBasalEvent.timestamp
             else {
-                return TempBasal(duration: 0, rate: 0, temp: .absolute, timestamp: date)
+                throw APSError.apsError(message: "Failed to fetch temp basal")
             }
 
             let delta = Int((date.timeIntervalSince1970 - eventTimestamp.timeIntervalSince1970) / 60)
@@ -865,9 +865,9 @@ final class BaseAPSManager: APSManager, Injectable {
             batchSize: batchSize
         )
 
-        return await privateContext.perform {
+        return try await privateContext.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
-                return []
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return glucoseResults

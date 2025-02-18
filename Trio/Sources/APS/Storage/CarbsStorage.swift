@@ -348,9 +348,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
-        return await coredataContext.perform {
+        return try await coredataContext.perform {
             guard let carbEntries = results as? [CarbEntryStored] else {
-                return []
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return carbEntries.map { result in
@@ -387,8 +387,10 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
-        return await coredataContext.perform {
-            guard let fpuEntries = results as? [CarbEntryStored] else { return [] }
+        return try await coredataContext.perform {
+            guard let fpuEntries = results as? [CarbEntryStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fpuEntries.map { result in
                 NightscoutTreatment(
@@ -424,11 +426,11 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
-        guard let carbEntries = results as? [CarbEntryStored] else {
-            return []
-        }
+        return try await coredataContext.perform {
+            guard let carbEntries = results as? [CarbEntryStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await coredataContext.perform {
             return carbEntries.map { result in
                 CarbsEntry(
                     id: result.id?.uuidString,
@@ -455,11 +457,11 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             ascending: false
         )
 
-        guard let carbEntries = results as? [CarbEntryStored] else {
-            return []
-        }
+        return try await coredataContext.perform {
+            guard let carbEntries = results as? [CarbEntryStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await coredataContext.perform {
             return carbEntries.map { result in
                 CarbsEntry(
                     id: result.id?.uuidString,

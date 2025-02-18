@@ -216,6 +216,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 debugPrint("\(DebuggingIdentifiers.succeeded) stored pump events in Core Data")
             } catch let error as NSError {
                 debugPrint("\(DebuggingIdentifiers.failed) failed to store pump events with error: \(error.userInfo)")
+                throw error
             }
         }
     }
@@ -270,8 +271,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             ascending: false
         )
 
-        return await context.perform { [self] in
-            guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+        return try await context.perform { [self] in
+            guard let fetchedPumpEvents = results as? [PumpEventStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedPumpEvents.map { event in
                 switch event.type {
@@ -429,10 +432,12 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+        return try await context.perform {
+            guard let fetchedPumpEvents = results as? [PumpEventStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await context.perform {
-            fetchedPumpEvents.map { event in
+            return fetchedPumpEvents.map { event in
                 switch event.type {
                 case PumpEvent.bolus.rawValue:
                     return PumpHistoryEvent(
@@ -471,10 +476,12 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+        return try await context.perform {
+            guard let fetchedPumpEvents = results as? [PumpEventStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await context.perform {
-            fetchedPumpEvents.map { event in
+            return fetchedPumpEvents.map { event in
                 switch event.type {
                 case PumpEvent.bolus.rawValue:
                     return PumpHistoryEvent(

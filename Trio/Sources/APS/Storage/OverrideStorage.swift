@@ -47,8 +47,10 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             fetchLimit: 1
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [OverrideStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [OverrideStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID)
         }
@@ -64,8 +66,10 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             fetchLimit: fetchLimit
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [OverrideStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [OverrideStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID)
         }
@@ -81,8 +85,10 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             ascending: true
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [OverrideStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [OverrideStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID)
         }
@@ -209,8 +215,10 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             ascending: false
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedOverrides = results as? [OverrideStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedOverrides = results as? [OverrideStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedOverrides.map { override in
                 let duration = override.indefinite ? 43200 : override.duration ?? 0 // 43200 min = 30 days
@@ -239,8 +247,10 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             ascending: false
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedOverrideRuns = results as? [OverrideRunStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedOverrideRuns = results as? [OverrideRunStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedOverrideRuns.map { overrideRun in
                 var durationInMinutes = (overrideRun.endDate?.timeIntervalSince(overrideRun.startDate ?? Date()) ?? 1) / 60
@@ -266,8 +276,10 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             ascending: true
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [OverrideStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [OverrideStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map { overrideStored in
                 let duration = overrideStored.duration as? Decimal != 0 ? overrideStored.duration as? Decimal : nil
@@ -294,10 +306,12 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             fetchLimit: 1
         )
 
-        return await backgroundContext.perform {
+        return try await backgroundContext.perform {
             guard let fetchedResults = results as? [OverrideStored],
                   let latestOverride = fetchedResults.first
-            else { return nil }
+            else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return latestOverride.objectID
         }

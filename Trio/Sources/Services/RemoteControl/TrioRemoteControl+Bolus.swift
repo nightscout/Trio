@@ -74,7 +74,7 @@ extension TrioRemoteControl {
               let iob = firstResult["iob"] as? Decimal
         else {
             await logError("Failed to fetch current IOB.")
-            return Decimal(0)
+            throw CoreDataError.fetchError(function: #function, file: #file)
         }
 
         return iob
@@ -99,7 +99,7 @@ extension TrioRemoteControl {
 
         guard let bolusDictionaries = results as? [[String: Any]] else {
             await logError("Failed to cast fetched bolus events. Fetched entities type: \(type(of: results))")
-            return 0
+            throw CoreDataError.fetchError(function: #function, file: #file)
         }
 
         let totalAmount = bolusDictionaries.compactMap { ($0["bolus.amount"] as? NSNumber)?.decimalValue }.reduce(0, +)

@@ -347,8 +347,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             fetchLimit: 288
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID)
         }
@@ -366,8 +368,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             fetchLimit: 1
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [PumpEventStored] else { return [].first }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [PumpEventStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID).first
         }

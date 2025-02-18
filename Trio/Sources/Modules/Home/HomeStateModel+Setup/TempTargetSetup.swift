@@ -27,8 +27,10 @@ extension Home.StateModel {
             ascending: false
         )
 
-        return await tempTargetFetchContext.perform {
-            guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+        return try await tempTargetFetchContext.perform {
+            guard let fetchedResults = results as? [TempTargetStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
             return fetchedResults.map(\.objectID)
         }
     }
@@ -64,8 +66,10 @@ extension Home.StateModel {
             ascending: false
         )
 
-        return await tempTargetFetchContext.perform {
-            guard let fetchedResults = results as? [TempTargetRunStored] else { return [] }
+        return try await tempTargetFetchContext.perform {
+            guard let fetchedResults = results as? [TempTargetRunStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
             return fetchedResults.map(\.objectID)
         }
     }

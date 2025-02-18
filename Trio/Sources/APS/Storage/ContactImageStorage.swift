@@ -35,8 +35,10 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
                 ascending: false
             )
 
-            return await backgroundContext.perform {
-                guard let fetchedContactImageEntries = results as? [ContactImageEntryStored] else { return [] }
+            return try await backgroundContext.perform {
+                guard let fetchedContactImageEntries = results as? [ContactImageEntryStored]
+                else { throw CoreDataError.fetchError(function: #function, file: #file)
+                }
 
                 return fetchedContactImageEntries.compactMap { entry in
                     ContactImageEntry(

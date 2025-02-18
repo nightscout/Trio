@@ -94,8 +94,12 @@ extension BasalProfileEditor {
                         self.initialItems = self.items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
                         Task.detached(priority: .low) {
-                            debug(.nightscout, "Attempting to upload basal rates to Nightscout")
-                            try await self.nightscout.uploadProfiles()
+                            do {
+                                debug(.nightscout, "Attempting to upload basal rates to Nightscout")
+                                try await self.nightscout.uploadProfiles()
+                            } catch {
+                                debug(.default, "Failed to upload basal rates to Nightscout: \(error.localizedDescription)")
+                            }
                         }
                     case .failure:
                         // Handle the error, show error message
