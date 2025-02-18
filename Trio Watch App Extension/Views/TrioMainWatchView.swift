@@ -141,7 +141,7 @@ struct TrioMainWatchView: View {
                             .foregroundStyle(Color.primary, isOverrideActive ? Color.primary : Color.purple)
                     }
                     .tint(isOverrideActive ? Color.purple : nil)
-                    .disabled(!isWatchStateDated || !isSessionUnreachable)
+                    .disabled(isWatchStateDated || isSessionUnreachable)
 
                     Button {
                         showingTreatmentMenuSheet = true
@@ -151,7 +151,7 @@ struct TrioMainWatchView: View {
                     }
                     .controlSize(.large)
                     .buttonStyle(WatchOSButtonStyle(deviceType: state.deviceType))
-                    .disabled(!isWatchStateDated || !isSessionUnreachable)
+                    .disabled(isWatchStateDated || isSessionUnreachable)
 
                     Button {
                         showingTempTargetSheet = true
@@ -160,7 +160,7 @@ struct TrioMainWatchView: View {
                             .foregroundStyle(isTempTargetActive ? Color.primary : Color.loopGreen.opacity(0.75))
                     }
                     .tint(isTempTargetActive ? Color.loopGreen.opacity(0.75) : nil)
-                    .disabled(!isWatchStateDated || !isSessionUnreachable)
+                    .disabled(isWatchStateDated || isSessionUnreachable)
                 }
             }
             .fullScreenCover(isPresented: $showingTreatmentMenuSheet) {

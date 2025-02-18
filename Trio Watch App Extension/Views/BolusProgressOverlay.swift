@@ -64,7 +64,7 @@ struct BolusProgressOverlay: View {
                 }
                 .buttonStyle(.bordered)
                 .padding()
-                .disabled(!isWatchStateDated || !isSessionUnreachable)
+                .disabled(isWatchStateDated || isSessionUnreachable)
             }
             .padding()
             .background(Color.black.opacity(0.9))
