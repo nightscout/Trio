@@ -38,7 +38,7 @@ struct SelectionPopoverView: ChartContent {
             .annotation(
                 position: .top,
                 alignment: .center,
-                overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
+                overflowResolution: .init(x: .fit(to: .chart), y: .disabled)
             ) {
                 selectionPopover
             }
@@ -67,7 +67,7 @@ struct SelectionPopoverView: ChartContent {
                 Text(selectedGlucose.date?.formatted(.dateTime.hour().minute(.twoDigits)) ?? "")
                     .font(.body).bold()
             }
-            .font(.body).padding(.bottom, 5)
+            .font(.body).padding(.bottom, 2)
 
             HStack {
                 Text(glucoseToDisplay.description).bold() + Text(" \(units.rawValue)")
@@ -95,7 +95,8 @@ struct SelectionPopoverView: ChartContent {
                 .foregroundStyle(Color.orange).font(.body)
             }
         }
-        .padding()
+        .padding(.horizontal)
+        .padding(.vertical, 2)
         .background {
             RoundedRectangle(cornerRadius: 4)
                 .fill(Color.chart.opacity(0.85))
