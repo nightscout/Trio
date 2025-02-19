@@ -201,10 +201,36 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         return newOverride.objectID
     }
 
-    /// marked as MainActor to be able to publish changes from the background
     /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
-    @MainActor func deleteOverridePreset(_ objectID: NSManagedObjectID) async {
-        await CoreDataStack.shared.deleteObject(identifiedBy: objectID)
+    func deleteOverridePreset(_ objectID: NSManagedObjectID) async {
+        // Use injected context if available, otherwise create new task context
+        let taskContext = context != CoreDataStack.shared.newTaskContext()
+            ? context
+            : CoreDataStack.shared.newTaskContext()
+
+        taskContext.name = "deleteContext"
+        taskContext.transactionAuthor = "deleteOverride"
+
+        await taskContext.perform {
+            do {
+                let result = try taskContext.existingObject(with: objectID) as? OverrideStored
+                guard let override = result else {
+                    debugPrint("Override for batch delete not found. \(DebuggingIdentifiers.failed)")
+                    return
+                }
+
+                taskContext.delete(override)
+
+                guard taskContext.hasChanges else { return }
+                try taskContext.save()
+
+                debugPrint(
+                    "OverrideStorage: \(#function) \(DebuggingIdentifiers.succeeded) deleted override from core data"
+                )
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) Error deleting override: \(error.localizedDescription)")
+            }
+        }
     }
 
     func getOverridesNotYetUploadedToNightscout() async throws -> [NightscoutExercise] {
