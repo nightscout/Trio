@@ -13,7 +13,6 @@ protocol CarbsStorage {
     func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async throws
     func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async
     func syncDate() -> Date
-    func recent() -> [CarbsEntry]
     func getCarbsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getFPUsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getCarbsNotYetUploadedToHealth() async throws -> [CarbsEntry]
@@ -282,12 +281,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         Date().addingTimeInterval(-1.days.timeInterval)
     }
 
-    func recent() -> [CarbsEntry] {
-        storage.retrieve(OpenAPS.Monitor.carbHistory, as: [CarbsEntry].self)?.reversed() ?? []
-    }
-
     func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async {
-        let taskContext = CoreDataStack.shared.newTaskContext()
+        // Use injected context if available, otherwise create new task context
+        let taskContext = context != CoreDataStack.shared.newTaskContext()
+            ? context
+            : CoreDataStack.shared.newTaskContext()
+
         taskContext.name = "deleteContext"
         taskContext.transactionAuthor = "deleteCarbs"
 
