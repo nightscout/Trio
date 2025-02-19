@@ -545,7 +545,10 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     func deleteGlucose(_ treatmentObjectID: NSManagedObjectID) async {
-        let taskContext = CoreDataStack.shared.newTaskContext()
+        // Use injected context if available, otherwise create new task context
+        let taskContext = context != CoreDataStack.shared.newTaskContext()
+            ? context
+            : CoreDataStack.shared.newTaskContext()
         taskContext.name = "deleteContext"
         taskContext.transactionAuthor = "deleteGlucose"
 
