@@ -577,13 +577,13 @@ final class BaseAPSManager: APSManager, Injectable {
             fetchLimit: 1
         )
 
-        let fetchedTempBasal = try await privateContext.perform {
+        let fetchedTempBasal = await privateContext.perform {
             guard let fetchedResults = results as? [PumpEventStored],
                   let tempBasalEvent = fetchedResults.first,
                   let tempBasal = tempBasalEvent.tempBasal,
                   let eventTimestamp = tempBasalEvent.timestamp
             else {
-                throw APSError.apsError(message: "Failed to fetch temp basal")
+                return TempBasal(duration: 0, rate: 0, temp: .absolute, timestamp: date)
             }
 
             let delta = Int((date.timeIntervalSince1970 - eventTimestamp.timeIntervalSince1970) / 60)
