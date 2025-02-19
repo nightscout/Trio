@@ -297,11 +297,15 @@ extension DynamicSettings {
                                 }
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text(
-                                        "If your glucose target is 110 mg/dL, Trio will use a safety threshold of 75 mg/dL, unless you set Minimum Safety Threshold (mg/dL) to something > 75."
+                                        "If your glucose target is \(state.units == .mgdL ? "110" : 110.formattedAsMmolL) \(state.units.rawValue), Trio will use a safety threshold of \(state.units == .mgdL ? "75" : 75.formattedAsMmolL) \(state.units.rawValue), unless you set Minimum Safety Threshold to something > \(state.units == .mgdL ? "75" : 75.formattedAsMmolL) \(state.units.rawValue)."
                                     )
-                                    Text("110 - 0.5 × (110 - 40) = 75")
+                                    Text(
+                                        "\(state.units == .mgdL ? "110" : 110.formattedAsMmolL) - 0.5 × (\(state.units == .mgdL ? "110" : 110.formattedAsMmolL) - \(state.units == .mgdL ? "40" : 40.formattedAsMmolL)) = \(state.units == .mgdL ? "75" : 75.formattedAsMmolL)"
+                                    )
                                 }
-                                Text("This setting is limited to values between 60 - 120 mg/dL (3.3 - 6.6 mmol/L)")
+                                Text(
+                                    "This setting is limited to values between \(state.units == .mgdL ? "60" : 60.formattedAsMmolL) - \(state.units == .mgdL ? "120" : 120.formattedAsMmolL) \(state.units.rawValue)"
+                                )
                                 Text(
                                     "Note: Basal may be resumed if there is negative IOB and glucose is rising faster than the forecast."
                                 )

@@ -20,6 +20,8 @@ import WatchConnectivity
     var trend: String? = ""
     var delta: String? = "--"
     var glucoseValues: [(date: Date, glucose: Double, color: Color)] = []
+    var minYAxisValue: Decimal = 39
+    var maxYAxisValue: Decimal = 200
     var cob: String? = "--"
     var iob: String? = "--"
     var lastLoopTime: String? = "--"
@@ -516,6 +518,18 @@ import WatchConnectivity
                 )
             }
             .sorted { $0.date < $1.date }
+        }
+
+        if let minYAxisValue = message[WatchMessageKeys.minYAxisValue] {
+            if let decimalValue = (minYAxisValue as? NSNumber)?.decimalValue {
+                self.minYAxisValue = decimalValue
+            }
+        }
+
+        if let maxYAxisValue = message[WatchMessageKeys.maxYAxisValue] {
+            if let decimalValue = (maxYAxisValue as? NSNumber)?.decimalValue {
+                self.maxYAxisValue = decimalValue
+            }
         }
 
         if let overrideData = message[WatchMessageKeys.overridePresets] as? [[String: Any]] {

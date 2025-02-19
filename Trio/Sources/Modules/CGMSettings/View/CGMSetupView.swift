@@ -3,9 +3,9 @@ import LoopKitUI
 import SwiftUI
 import UIKit
 
-extension CGM {
+extension CGMSettings {
     struct CGMSetupView: UIViewControllerRepresentable {
-        let CGMType: cgmName
+        let CGMType: CGMModel
         let bluetoothManager: BluetoothStateManager
         let unit: GlucoseUnits
         weak var completionDelegate: CompletionDelegate?
