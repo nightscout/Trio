@@ -271,7 +271,7 @@ extension AlgorithmAdvancedSettings {
                             "Min 5m Carb Impact sets the expected glucose rise from carbs over 5 minutes when absorption isn't obvious from glucose data."
                         )
                         Text(
-                            "The default value of 8 mg/dL per 5 minutes corresponds to an absorption rate of 24 g of carbs per hour."
+                            "The default is an expected \(state.units == .mgdL ? "8" : 8.formattedAsMmolL) \(state.units.rawValue)/5min. This affects how fast COB is decayed in situations when carb absorption is not visible in BG deviations. The default of \(state.units == .mgdL ? "8" : 8.formattedAsMmolL) \(state.units.rawValue)/5min corresponds to a minimum carb absorption rate of 24 g/hr at a CSF of \(state.units == .mgdL ? "4" : 4.formattedAsMmolL) \(state.units.rawValue)/g."
                         )
                         Text(
                             "This setting helps the system estimate how much glucose your body is absorbing, even when it's not immediately visible in your glucose data, ensuring more accurate insulin dosing during carb absorption."

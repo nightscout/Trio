@@ -7,6 +7,7 @@ enum CoreDataError: Error {
     case persistentHistoryChangeError
     case unexpectedError(error: Error)
     case fetchError
+    case storeNotInitializedError
 }
 
 extension CoreDataError: LocalizedError {
@@ -24,6 +25,8 @@ extension CoreDataError: LocalizedError {
             return String(localized: "Received unexpected error. \(error.localizedDescription)", comment: "")
         case .fetchError:
             return String(localized: "Failed to fetch object \(DebuggingIdentifiers.failed).", comment: "")
+        case .storeNotInitializedError:
+            return String(localized: "Failed to initialize Core Data's persistent store.", comment: "")
         }
     }
 }
