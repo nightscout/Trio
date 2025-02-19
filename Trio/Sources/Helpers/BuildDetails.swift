@@ -27,8 +27,8 @@ class BuildDetails {
     }
 
     var branchAndSha: String {
-        let branch = dict["com-trio-branch"] as? String ?? "Unknown"
-        let sha = dict["com-trio-commit-sha"] as? String ?? "Unknown"
+        let branch = dict["com-trio-branch"] as? String ?? String(localized: "Unknown")
+        let sha = dict["com-trio-commit-sha"] as? String ?? String(localized: "Unknown")
         return "\(branch) \(sha)"
     }
 
@@ -75,9 +75,9 @@ class BuildDetails {
     // Expiration header based on build type
     var expirationHeaderString: String {
         if isTestFlightBuild() {
-            return "Beta (TestFlight) Expires"
+            return String(localized: "Beta (TestFlight) Expires")
         } else {
-            return "App Expires"
+            return String(localized: "App Expires")
         }
     }
 }

@@ -155,7 +155,7 @@ extension Main {
 
             view.configureContent(
                 title: "title",
-                body: NSLocalizedString(message.content, comment: "Info message"),
+                body: message.content,
                 iconImage: nil,
                 iconText: nil,
                 buttonImage: nil,
@@ -177,15 +177,15 @@ extension Main {
             case .info,
                  .other:
                 config.duration = .seconds(seconds: 5)
-                titleContent = message.title != "" ? message.title : NSLocalizedString("Info", comment: "Info title")
+                titleContent = message.title != "" ? message.title : String(localized: "Info", comment: "Info title")
             case .warning:
                 config.duration = .forever
                 titleContent = message.title != "" ? message
-                    .title : NSLocalizedString("Warning", comment: "Warning title")
+                    .title : String(localized: "Warning", comment: "Warning title")
             case .error:
                 config.duration = .forever
                 titleContent = message.title != "" ? message
-                    .title : NSLocalizedString("Error", comment: "Error title")
+                    .title : String(localized: "Error", comment: "Error title")
             }
 
             view.titleLabel?.text = titleContent

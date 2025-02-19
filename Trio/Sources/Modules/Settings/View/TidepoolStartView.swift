@@ -101,7 +101,7 @@ struct TidepoolStartView: BaseView {
                 hintText: Text(
                     "When connected, uploading of carbs, bolus, basal and glucose from Trio to your Tidepool account is enabled.\n\nUse your Tidepool credentials to login. If you dont already have a Tidepool account, you can sign up for one on the login page."
                 ),
-                sheetTitle: "Help"
+                sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
         }
         .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

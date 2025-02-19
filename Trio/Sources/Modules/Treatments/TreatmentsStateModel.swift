@@ -595,9 +595,8 @@ extension Treatments {
         }
 
         func addPresetToNewMeal() {
-            let test: String = selection?.dish ?? "dontAdd"
-            if test != "dontAdd" {
-                summation.append(test)
+            if let selection = selection, let dish = selection.dish {
+                summation.append(dish)
             }
         }
 
