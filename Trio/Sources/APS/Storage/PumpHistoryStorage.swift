@@ -25,14 +25,13 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     @Injected() private var settings: SettingsManager!
 
     private let updateSubject = PassthroughSubject<Void, Never>()
-    private let context: NSManagedObjectContext
+    private let context = CoreDataStack.shared.newTaskContext()
 
     var updatePublisher: AnyPublisher<Void, Never> {
         updateSubject.eraseToAnyPublisher()
     }
 
-    init(resolver: Resolver, context: NSManagedObjectContext? = nil) {
-        self.context = context ?? CoreDataStack.shared.newTaskContext()
+    init(resolver: Resolver) {
         injectServices(resolver)
     }
 

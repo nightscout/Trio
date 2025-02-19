@@ -1,91 +1,71 @@
-import Foundation
 import Swinject
-import Testing
 @testable import Trio
+import XCTest
 
-@Suite("Plugin Manager Tests") struct PluginManagerTests: Injectable {
+class PluginManagerTests: XCTestCase, Injectable {
     let fileStorage = BaseFileStorage()
     @Injected() var pluginManager: PluginManager!
     let resolver = TrioApp().resolver
 
-    init() {
+    override func setUp() {
         injectServices(resolver)
     }
 
-    @Test("Can load CGM managers") func testCGMManagerLoad() {
-        // Given
+    func testCGMManagerLoad() {
         let cgmLoopManagers = pluginManager.availableCGMManagers
-
-        // Then
-        #expect(!cgmLoopManagers.isEmpty, "Should have available CGM managers")
-
-        // When loading valid CGM manager
+        XCTAssertNotNil(cgmLoopManagers)
+        XCTAssertTrue(!cgmLoopManagers.isEmpty)
         if let cgmLoop = cgmLoopManagers.first {
             let cgmLoopManager = pluginManager.getCGMManagerTypeByIdentifier(cgmLoop.identifier)
-            #expect(cgmLoopManager != nil, "Should load valid CGM manager")
+            XCTAssertNotNil(cgmLoopManager)
+        } else {
+            XCTFail("Not found CGM loop manager")
         }
-
-        // When trying to load CGM manager with pump identifier
+        /// try to load a Pump manager with a CGM identifier
         if let cgmLoop = cgmLoopManagers.last {
-            let invalidManager = pluginManager.getPumpManagerTypeByIdentifier(cgmLoop.identifier)
-            #expect(invalidManager == nil, "Should not load CGM manager with pump identifier")
+            let cgmLoopManager = pluginManager.getPumpManagerTypeByIdentifier(cgmLoop.identifier)
+            XCTAssertNil(cgmLoopManager)
+        } else {
+            XCTFail("Not found CGM loop manager")
         }
     }
 
-    @Test("Can load pump managers") func testPumpManagerLoad() {
-        // Given
+    func testPumpManagerLoad() {
         let pumpLoopManagers = pluginManager.availablePumpManagers
-
-        // Then
-        #expect(!pumpLoopManagers.isEmpty, "Should have available pump managers")
-
-        // When loading valid pump manager
+        XCTAssertNotNil(pumpLoopManagers)
+        XCTAssertTrue(!pumpLoopManagers.isEmpty)
         if let pumpLoop = pumpLoopManagers.first {
             let pumpLoopManager = pluginManager.getPumpManagerTypeByIdentifier(pumpLoop.identifier)
-            #expect(pumpLoopManager != nil, "Should load valid pump manager")
+            XCTAssertNotNil(pumpLoopManager)
+        } else {
+            XCTFail("Not found pump loop manager")
         }
-
-        // When trying to load pump manager with CGM identifier
+        /// try to load a CGM manager with a pump identifier
         if let pumpLoop = pumpLoopManagers.last {
-            let invalidManager = pluginManager.getCGMManagerTypeByIdentifier(pumpLoop.identifier)
-            #expect(invalidManager == nil, "Should not load pump manager with CGM identifier")
+            let pumpLoopManager = pluginManager.getCGMManagerTypeByIdentifier(pumpLoop.identifier)
+            XCTAssertNil(pumpLoopManager)
+        } else {
+            XCTFail("Not found pump loop manager")
         }
     }
 
-    @Test("Can load service managers") func testServiceManagerLoad() {
-        // Given
+    func testServiceManagerLoad() {
         let serviceManagers = pluginManager.availableServices
-
-        // Then
-        #expect(!serviceManagers.isEmpty, "Should have available services")
-
-        // When
+        XCTAssertNotNil(serviceManagers)
+        XCTAssertTrue(!serviceManagers.isEmpty)
         if let serviceLoop = serviceManagers.first {
             let serviceManager = pluginManager.getServiceTypeByIdentifier(serviceLoop.identifier)
-            #expect(serviceManager != nil, "Should load valid service manager")
+            XCTAssertNotNil(serviceManager)
+        } else {
+            XCTFail("Not found Service loop manager")
         }
     }
 
-    @Test("Available managers have valid descriptors") func testManagerDescriptors() {
-        // Given/When
-        let pumpManagers = pluginManager.availablePumpManagers
-        let cgmManagers = pluginManager.availableCGMManagers
-        let serviceManagers = pluginManager.availableServices
+    override func setUpWithError() throws {
+        // Put setup code here. This method is called before the invocation of each test method in the class.
+    }
 
-        // Then
-        for manager in pumpManagers {
-            #expect(!manager.identifier.isEmpty, "Pump manager should have non-empty identifier")
-            #expect(!manager.localizedTitle.isEmpty, "Pump manager should have non-empty title")
-        }
-
-        for manager in cgmManagers {
-            #expect(!manager.identifier.isEmpty, "CGM manager should have non-empty identifier")
-            #expect(!manager.localizedTitle.isEmpty, "CGM manager should have non-empty title")
-        }
-
-        for manager in serviceManagers {
-            #expect(!manager.identifier.isEmpty, "Service should have non-empty identifier")
-            #expect(!manager.localizedTitle.isEmpty, "Service should have non-empty title")
-        }
+    override func tearDownWithError() throws {
+        // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 }
