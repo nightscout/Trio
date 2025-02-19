@@ -225,8 +225,27 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         return newTempTarget.objectID
     }
 
-    @MainActor func deleteTempTargetPreset(_ objectID: NSManagedObjectID) async {
-        await CoreDataStack.shared.deleteObject(identifiedBy: objectID)
+    func deleteTempTargetPreset(_ objectID: NSManagedObjectID) async {
+        let taskContext = context != CoreDataStack.shared.newTaskContext()
+            ? context
+            : CoreDataStack.shared.newTaskContext()
+
+        await taskContext.perform {
+            do {
+                let result = try taskContext.existingObject(with: objectID) as? TempTargetStored
+                guard let tempTarget = result else {
+                    debug(.default, "\(DebuggingIdentifiers.failed) Temp Target for batch delete not found.")
+                    return
+                }
+
+                taskContext.delete(tempTarget)
+
+                guard taskContext.hasChanges else { return }
+                try taskContext.save()
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) Failed to delete Temp Target: \(error)")
+            }
+        }
     }
 
     func syncDate() -> Date {
