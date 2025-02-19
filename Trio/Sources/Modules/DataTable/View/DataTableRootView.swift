@@ -180,7 +180,7 @@ extension DataTable {
                 } else {
                     ContentUnavailableView(
                         "No data.",
-                        systemImage: "injection.needle"
+                        systemImage: "syringe"
                     )
                 }
             }.listRowBackground(Color.chart)
