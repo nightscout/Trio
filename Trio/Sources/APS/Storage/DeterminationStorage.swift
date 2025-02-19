@@ -18,9 +18,10 @@ protocol DeterminationStorage {
 
 final class BaseDeterminationStorage: DeterminationStorage, Injectable {
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-    private let context = CoreDataStack.shared.newTaskContext()
+    private let context: NSManagedObjectContext
 
-    init(resolver: Resolver) {
+    init(resolver: Resolver, context: NSManagedObjectContext? = nil) {
+        self.context = context ?? CoreDataStack.shared.newTaskContext()
         injectServices(resolver)
     }
 

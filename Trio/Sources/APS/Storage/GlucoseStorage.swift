@@ -33,8 +33,6 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settingsManager: SettingsManager!
 
-    let coredataContext = CoreDataStack.shared.newTaskContext()
-
     private let updateSubject = PassthroughSubject<Void, Never>()
 
     var updatePublisher: AnyPublisher<Void, Never> {
@@ -45,7 +43,10 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         static let filterTime: TimeInterval = 3.5 * 60
     }
 
-    init(resolver: Resolver) {
+    private let context: NSManagedObjectContext
+
+    init(resolver: Resolver, context: NSManagedObjectContext? = nil) {
+        self.context = context ?? CoreDataStack.shared.newTaskContext()
         injectServices(resolver)
     }
 
@@ -61,7 +62,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     func storeGlucose(_ glucose: [BloodGlucose]) async throws {
-        try await coredataContext.perform {
+        try await context.perform {
             // Get new glucose values that don't exist yet
             let newGlucose = self.filterNewGlucoseValues(glucose)
             guard !newGlucose.isEmpty else { return }
@@ -93,7 +94,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
         var existingDates = Set<Date>()
         do {
-            let results = try coredataContext.fetch(fetchRequest) as? [NSDictionary]
+            let results = try context.fetch(fetchRequest) as? [NSDictionary]
             existingDates = Set(results?.compactMap({ $0["date"] as? Date }) ?? [])
         } catch {
             debugPrint("Failed to fetch existing glucose dates: \(error)")
@@ -112,12 +113,12 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     private func storeGlucoseRegular(_ glucose: [BloodGlucose]) throws {
         for entry in glucose {
-            let glucoseEntry = GlucoseStored(context: coredataContext)
+            let glucoseEntry = GlucoseStored(context: context)
             configureGlucoseEntry(glucoseEntry, with: entry)
         }
 
-        guard coredataContext.hasChanges else { return }
-        try coredataContext.save()
+        guard context.hasChanges else { return }
+        try context.save()
     }
 
     private func storeGlucoseBatch(_ glucose: [BloodGlucose]) throws {
@@ -135,7 +136,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 return false
             }
         )
-        try coredataContext.execute(batchInsert)
+        try context.execute(batchInsert)
         // Only send update for batch insert since regular save triggers CoreData notifications
         updateSubject.send()
     }
@@ -218,8 +219,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     func addManualGlucose(glucose: Int) {
-        coredataContext.perform {
-            let newItem = GlucoseStored(context: self.coredataContext)
+        context.perform {
+            let newItem = GlucoseStored(context: self.context)
             newItem.id = UUID()
             newItem.date = Date()
             newItem.glucose = Int16(glucose)
@@ -229,8 +230,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             newItem.isUploadedToTidepool = false
 
             do {
-                guard self.coredataContext.hasChanges else { return }
-                try self.coredataContext.save()
+                guard self.context.hasChanges else { return }
+                try self.context.save()
 
                 // Glucose subscribers already listen to the update publisher, so call here to update glucose-related data.
                 self.updateSubject.send()
@@ -281,9 +282,9 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         fr.fetchLimit = 1
 
         var date: Date?
-        coredataContext.performAndWait {
+        context.performAndWait {
             do {
-                let results = try self.coredataContext.fetch(fr)
+                let results = try self.context.fetch(fr)
                 date = results.first?.date
             } catch let error as NSError {
                 print("Fetch error: \(DebuggingIdentifiers.failed) \(error.localizedDescription), \(error.userInfo)")
@@ -317,7 +318,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         let predicate = NSPredicate.predicateFor20MinAgo
         return (try CoreDataStack.shared.fetchEntities(
             ofType: GlucoseStored.self,
-            onContext: coredataContext,
+            onContext: context,
             predicate: predicate,
             key: "date",
             ascending: false,
@@ -330,13 +331,13 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     func getGlucoseNotYetUploadedToNightscout() async throws -> [BloodGlucose] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: coredataContext,
+            onContext: context,
             predicate: NSPredicate.glucoseNotYetUploadedToNightscout,
             key: "date",
             ascending: false
         )
 
-        return try await coredataContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -363,13 +364,13 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     func getManualGlucoseNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: coredataContext,
+            onContext: context,
             predicate: NSPredicate.manualGlucoseNotYetUploadedToNightscout,
             key: "date",
             ascending: false
         )
 
-        return try await coredataContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -419,13 +420,13 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     func getGlucoseNotYetUploadedToHealth() async throws -> [BloodGlucose] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: coredataContext,
+            onContext: context,
             predicate: NSPredicate.glucoseNotYetUploadedToHealth,
             key: "date",
             ascending: false
         )
 
-        return try await coredataContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -451,13 +452,13 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     func getManualGlucoseNotYetUploadedToHealth() async throws -> [BloodGlucose] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: coredataContext,
+            onContext: context,
             predicate: NSPredicate.manualGlucoseNotYetUploadedToHealth,
             key: "date",
             ascending: false
         )
 
-        return try await coredataContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -483,13 +484,13 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     func getGlucoseNotYetUploadedToTidepool() async throws -> [StoredGlucoseSample] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: coredataContext,
+            onContext: context,
             predicate: NSPredicate.glucoseNotYetUploadedToTidepool,
             key: "date",
             ascending: false
         )
 
-        return try await coredataContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -516,13 +517,13 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     func getManualGlucoseNotYetUploadedToTidepool() async throws -> [StoredGlucoseSample] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
-            onContext: coredataContext,
+            onContext: context,
             predicate: NSPredicate.manualGlucoseNotYetUploadedToTidepool,
             key: "date",
             ascending: false
         )
 
-        return try await coredataContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [GlucoseStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -572,7 +573,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     var alarm: GlucoseAlarm? {
         /// glucose can not be older than 20 minutes due to the predicate in the fetch request
-        coredataContext.performAndWait {
+        context.performAndWait {
             do {
                 guard let glucose = try fetchLatestGlucose() else { return nil }
 

@@ -31,24 +31,26 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settingsManager: SettingsManager!
 
-    private let backgroundContext = CoreDataStack.shared.newTaskContext()
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
-    init(resolver: Resolver) {
+    private let context: NSManagedObjectContext
+
+    init(resolver: Resolver, context: NSManagedObjectContext? = nil) {
+        self.context = context ?? CoreDataStack.shared.newTaskContext()
         injectServices(resolver)
     }
 
     func loadLatestTempTargetConfigurations(fetchLimit: Int) async throws -> [NSManagedObjectID] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.lastActiveTempTarget,
             key: "orderPosition",
             ascending: true,
             fetchLimit: fetchLimit
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [TempTargetStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -61,13 +63,13 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
     func fetchForTempTargetPresets() async throws -> [NSManagedObjectID] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.allTempTargetPresets,
             key: "orderPosition",
             ascending: true
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [TempTargetStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -81,13 +83,13 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
 
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: scheduledTempTargets,
             key: "date",
             ascending: false
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [TempTargetStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -101,14 +103,14 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
 
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: predicate,
             key: "date",
             ascending: false,
             fetchLimit: 1
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [TempTargetStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -124,8 +126,8 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             presetCount = presets.count
         }
 
-        try await backgroundContext.perform {
-            let newTempTarget = TempTargetStored(context: self.backgroundContext)
+        try await context.perform {
+            let newTempTarget = TempTargetStored(context: self.context)
             newTempTarget.date = tempTarget.createdAt
             newTempTarget.id = UUID()
             newTempTarget.enabled = tempTarget.enabled ?? false
@@ -149,8 +151,8 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             }
 
             do {
-                guard self.backgroundContext.hasChanges else { return }
-                try self.backgroundContext.save()
+                guard self.context.hasChanges else { return }
+                try self.context.save()
             } catch let error as NSError {
                 debug(.default, "\(DebuggingIdentifiers.failed) Failed to save new temp target with error: \(error.userInfo)")
                 throw error
@@ -180,13 +182,13 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
     }
 
     func existsTempTarget(with date: Date) async -> Bool {
-        await backgroundContext.perform {
+        await context.perform {
             // Fetch all Temp Targets with the given date
             let fetchRequest: NSFetchRequest<TempTargetStored> = TempTargetStored.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "date == %@", date as NSDate)
 
             do {
-                let results = try self.backgroundContext.fetch(fetchRequest)
+                let results = try self.context.fetch(fetchRequest)
                 return !results.isEmpty
             } catch let error as NSError {
                 debugPrint("\(DebuggingIdentifiers.failed) Failed to check for existing Temp Target: \(error)")
@@ -252,13 +254,13 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
     func getTempTargetsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.lastActiveAdjustmentNotYetUploadedToNightscout,
             key: "date",
             ascending: false
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedTempTargets = results as? [TempTargetStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -289,7 +291,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
     func getTempTargetRunsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetRunStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate(
                 format: "startDate >= %@ AND isUploadedToNS == %@",
                 Date.oneDayAgo as NSDate,
@@ -299,7 +301,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             ascending: false
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedTempTargetRuns = results as? [TempTargetRunStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
