@@ -5,6 +5,11 @@ import SwiftUI
 import Swinject
 
 extension Settings {
+    struct VersionInfo: Equatable {
+        var latestVersion: String?
+        var isUpdateAvailable: Bool
+    }
+
     struct RootView: BaseView {
         let resolver: Resolver
         @StateObject var state = StateModel()
@@ -18,6 +23,10 @@ extension Settings {
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
+        @State private var versionInfo = VersionInfo(
+            latestVersion: nil,
+            isUpdateAvailable: false
+        )
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
@@ -46,7 +55,7 @@ extension Settings {
                                         .frame(width: 50, height: 50)
                                         .cornerRadius(10)
                                         .padding(.trailing, 10)
-                                    VStack(alignment: .leading) {
+                                    VStack(alignment: .leading, spacing: 4) {
                                         Text("Trio v\(versionNumber) (\(buildNumber))")
                                             .font(.headline)
                                         if let expirationDate = buildDetails.calculateExpirationDate() {
@@ -60,6 +69,23 @@ extension Settings {
                                                 .foregroundColor(.secondary)
                                         } else {
                                             Text("Simulator Build has no expiry")
+                                                .font(.footnote)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        if let latest = versionInfo.latestVersion {
+                                            HStack {
+                                                Text("Latest version: \(latest)")
+                                                    .font(.footnote)
+                                                    .foregroundColor(versionInfo.isUpdateAvailable ? .orange : .green)
+                                                Image(
+                                                    systemName: versionInfo
+                                                        .isUpdateAvailable ? "exclamationmark.triangle.fill" :
+                                                        "checkmark.circle.fill"
+                                                )
+                                                .foregroundColor(versionInfo.isUpdateAvailable ? .orange : .green)
+                                            }
+                                        } else {
+                                            Text("Latest version: Fetching...")
                                                 .font(.footnote)
                                                 .foregroundColor(.secondary)
                                         }
@@ -312,6 +338,17 @@ extension Settings {
             }
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
             .screenNavigation(self)
+            .onAppear {
+                AppVersionChecker.shared.refreshVersionInfo { _, latestVersion, isNewer, isBlacklisted in
+                    let updateAvailable = isNewer && !isBlacklisted
+                    DispatchQueue.main.async {
+                        versionInfo = VersionInfo(
+                            latestVersion: latestVersion,
+                            isUpdateAvailable: updateAvailable
+                        )
+                    }
+                }
+            }
         }
     }
 }
