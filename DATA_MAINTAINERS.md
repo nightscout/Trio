@@ -1,4 +1,9 @@
 # Data maintainers
 
-Contacts:
-- Sam King (kingst@ucdavis.edu)
+Contacts (GitHub handles):
+- kingst
+- marv-out
+- mikeplante1
+- dsnallfot
+- bjornoleh
+- dnzxy
