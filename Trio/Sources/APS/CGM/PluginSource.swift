@@ -7,7 +7,7 @@ import LoopKit
 import LoopKitUI
 
 final class PluginSource: GlucoseSource {
-    private let processQueue = DispatchQueue(label: "DexcomSource.processQueue")
+    private let processQueue = DispatchQueue(label: "CGMPluginSource.processQueue")
     private let glucoseStorage: GlucoseStorage!
     var glucoseManager: FetchGlucoseManager?
 
