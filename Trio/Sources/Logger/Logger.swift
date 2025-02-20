@@ -157,13 +157,13 @@ final class Logger {
             case .apsManager,
                  .bolusState,
                  .businessLogic,
-                 .coreData,
                  .deviceManager,
                  .nightscout,
                  .openAPS,
                  .remoteControl,
                  .service,
-                 .watchManager:
+                 .watchManager,
+                 .coreData:
                 return OSLog(subsystem: subsystem, category: name)
             }
         }
