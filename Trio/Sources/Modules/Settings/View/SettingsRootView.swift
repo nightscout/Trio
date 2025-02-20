@@ -8,6 +8,7 @@ extension Settings {
     struct VersionInfo: Equatable {
         var latestVersion: String?
         var isUpdateAvailable: Bool
+        var isBlacklisted: Bool
     }
 
     struct RootView: BaseView {
@@ -25,7 +26,8 @@ extension Settings {
         @State private var booleanPlaceholder: Bool = false
         @State private var versionInfo = VersionInfo(
             latestVersion: nil,
-            isUpdateAvailable: false
+            isUpdateAvailable: false,
+            isBlacklisted: false
         )
 
         @Environment(\.colorScheme) var colorScheme
@@ -83,6 +85,14 @@ extension Settings {
                                                         "checkmark.circle.fill"
                                                 )
                                                 .foregroundColor(versionInfo.isUpdateAvailable ? .orange : .green)
+                                            }
+                                            if versionInfo.isBlacklisted {
+                                                HStack {
+                                                    Text("Warning: Known issues. Update now.").font(.footnote)
+                                                        .foregroundColor(.red)
+                                                    Image(systemName: "exclamationmark.triangle.fill")
+                                                        .foregroundColor(.red)
+                                                }
                                             }
                                         } else {
                                             Text("Latest version: Fetching...")
@@ -340,11 +350,12 @@ extension Settings {
             .screenNavigation(self)
             .onAppear {
                 AppVersionChecker.shared.refreshVersionInfo { _, latestVersion, isNewer, isBlacklisted in
-                    let updateAvailable = isNewer && !isBlacklisted
+                    let updateAvailable = isNewer
                     DispatchQueue.main.async {
                         versionInfo = VersionInfo(
                             latestVersion: latestVersion,
-                            isUpdateAvailable: updateAvailable
+                            isUpdateAvailable: updateAvailable,
+                            isBlacklisted: isBlacklisted
                         )
                     }
                 }
