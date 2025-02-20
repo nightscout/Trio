@@ -90,7 +90,7 @@ extension Settings {
                                                 HStack {
                                                     Text("Warning: Known issues. Update now.").font(.footnote)
                                                         .foregroundColor(.red)
-                                                    Image(systemName: "exclamationmark.triangle.fill")
+                                                    Image(systemName: "exclamationmark.octagon.fill")
                                                         .foregroundColor(.red)
                                                 }
                                             }
