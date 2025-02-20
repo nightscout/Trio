@@ -134,12 +134,16 @@ extension CGMSettings {
         }
 
         func deleteCGM() {
-            shouldDisplayCGMSetupSheet = false
+            fetchGlucoseManager.performOnCGMManagerQueue {
+                // Call plugin functionality on the manager queue (or at least attempt to)
+                self.fetchGlucoseManager?.deleteGlucoseSource()
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
-                self.fetchGlucoseManager.deleteGlucoseSource()
-                self.completionNotifyingDidComplete(OtherCGMSourceCompletionNotifying())
-            })
+                // UI updates go back to Main
+                DispatchQueue.main.async {
+                    self.shouldDisplayCGMSetupSheet = false
+                    self.completionNotifyingDidComplete(CGMDeletionCompletionNotifying())
+                }
+            }
         }
     }
 }
