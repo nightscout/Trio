@@ -145,15 +145,6 @@ extension CGMSettings {
                 }
             }
         }
-
-//        func deleteCGM() {
-//            shouldDisplayCGMSetupSheet = false
-//
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
-//                self.fetchGlucoseManager.deleteGlucoseSource()
-//                self.completionNotifyingDidComplete(OtherCGMSourceCompletionNotifying())
-//            })
-//        }
     }
 }
 
