@@ -352,15 +352,22 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .boolean,
                     label: NSLocalizedString("Use Swift Oref", comment: "Use Swift Oref"),
-                    miniHint: "Use new Swift OpenAPS Oref algorithm",
+                    miniHint: "Enables new algorithm version and helps verify it works correctly by allowing anonymous data uploads.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "This experimental option uses a new version of the OpenAPS Oref algorithm written directly in Swift programming language, replacing the current JavaScript version."
+                            "We're building a faster and more maintainable Swift version of the Oref algorithm to improve Trio for everyone."
                         )
+                        Text("When enabled:")
+                        BulletPoint("App logs anonymous calculation data to verify accuracy")
+                        BulletPoint("Data is stored securely on UC Davis servers in Google Cloud")
+                        BulletPoint("Only development team has access")
+                        BulletPoint("All data will be deleted after verification")
+                        BulletPoint("No personal information is collected")
+
                         Text(
-                            "When enabled, we'll securely log anonymous technical data comparing the Swift and existing JavaScript algorithms to improve calculation accuracy."
+                            "You can disable this feature anytime."
                         )
                     }
                 )
@@ -383,6 +390,21 @@ extension AlgorithmAdvancedSettings {
             .onDisappear {
                 state.saveIfChanged()
             }
+        }
+    }
+}
+
+struct BulletPoint: View {
+    let text: String
+
+    init(_ text: String) {
+        self.text = text
+    }
+
+    var body: some View {
+        HStack(alignment: .top) {
+            Text("•")
+            Text(text)
         }
     }
 }
