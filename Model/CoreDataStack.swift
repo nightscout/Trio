@@ -175,11 +175,11 @@ class CoreDataStack: ObservableObject {
             let deleteHistoryTokensRequest = NSPersistentHistoryChangeRequest.deleteHistory(before: date)
             do {
                 try taskContext.execute(deleteHistoryTokensRequest)
-                debug(.coreData, "\(DebuggingIdentifiers.succeeded) Successfully deleted persistent history before \(date)")
+                debug(.coreData, "\(DebuggingIdentifiers.succeeded) Successfully deleted persistent history from before \(date)")
             } catch {
                 debug(
                     .coreData,
-                    "\(DebuggingIdentifiers.failed) Failed to delete persistent history before \(date): \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Failed to delete persistent history from before \(date): \(error.localizedDescription)"
                 )
             }
         }
