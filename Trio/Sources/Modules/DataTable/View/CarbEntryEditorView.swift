@@ -171,7 +171,7 @@ struct CarbEntryEditorView: View {
                         selection: $editedDate,
                         displayedComponents: [.date, .hourAndMinute]
                     )
-                }
+                }.listRowBackground(Color.chart)
             }
             .safeAreaInset(
                 edge: .bottom,

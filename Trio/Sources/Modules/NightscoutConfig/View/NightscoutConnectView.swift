@@ -80,21 +80,6 @@ struct NightscoutConnectView: View {
                 }
                 .listRowBackground(Color.clear)
             }
-
-            // TODO: Find out if this is still required or needed ?!
-//            Section {
-//                Toggle("Use local glucose server", isOn: $state.useLocalSource)
-//                HStack {
-//                    Text("Port")
-//                    TextFieldWithToolBar(
-//                        text: $state.localPort,
-//                        placeholder: "",
-//                        keyboardType: .numberPad,
-//                        numberFormatter: portFormatter,
-//                        allowDecimalSeparator: false
-//                    )
-//                }
-//            } header: { Text("Local glucose source") }.listRowBackground(Color.chart)
         }
         .listSectionSpacing(sectionSpacing)
         .navigationTitle("Connect")

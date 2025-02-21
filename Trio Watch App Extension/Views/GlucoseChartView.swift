@@ -6,6 +6,8 @@ import SwiftUI
 
 struct GlucoseChartView: View {
     let glucoseValues: [(date: Date, glucose: Double, color: Color)]
+    let minYAxisValue: Decimal
+    let maxYAxisValue: Decimal
     @State private var timeWindow: TimeWindow = .threeHours
 
     enum TimeWindow: Int {
@@ -69,6 +71,9 @@ struct GlucoseChartView: View {
                         }
                     }
                 }
+                .chartYScale(
+                    domain: minYAxisValue ... maxYAxisValue
+                )
                 .chartPlotStyle { plotContent in
                     plotContent
                         .background(

@@ -19,19 +19,30 @@ extension Home.StateModel {
                 // Ensure all values exist, otherwise set default values
                 guard let minGlucose = minGlucose, let maxGlucose = maxGlucose else {
                     Task {
-                        await self.updateChartBounds(minValue: 39, maxValue: 300)
+                        await self.updateChartBounds(minValue: 39, maxValue: 200)
                     }
                     return
                 }
 
-                // Adjust max forecast to be no more than 100 over max glucose
-                let adjustedMaxForecast = min(maxForecast ?? maxGlucose + 100, maxGlucose + 100)
+                // Adjust max forecast to be no more than 50 over max glucose
+                let adjustedMaxForecast = min(maxForecast ?? maxGlucose + 50, maxGlucose + 50)
                 let minOverall = min(minGlucose, minForecast ?? minGlucose)
                 let maxOverall = max(maxGlucose, adjustedMaxForecast)
 
+                var maxYValue = Decimal(200)
+                if maxOverall > 200, maxOverall <= 225 {
+                    maxYValue = Decimal(250)
+                } else if maxOverall > 225, maxOverall <= 275 {
+                    maxYValue = Decimal(300)
+                } else if maxOverall > 275, maxOverall <= 325 {
+                    maxYValue = Decimal(350)
+                } else if maxOverall > 325 {
+                    maxYValue = Decimal(400)
+                }
+
                 // Update the chart bounds on the main thread
                 Task {
-                    await self.updateChartBounds(minValue: minOverall - 50, maxValue: maxOverall + 80)
+                    await self.updateChartBounds(minValue: minOverall, maxValue: maxYValue)
                 }
             }
         }

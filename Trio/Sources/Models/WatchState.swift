@@ -8,6 +8,8 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable {
     var trend: String?
     var delta: String?
     var glucoseValues: [WatchGlucoseObject] = []
+    var minYAxisValue: Decimal = 39.0
+    var maxYAxisValue: Decimal = 200.0
     var units: GlucoseUnits = .mgdL
     var iob: String?
     var cob: String?
@@ -17,9 +19,9 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable {
 
     // Safety limits
     var maxBolus: Decimal = 10.0
-    var maxCarbs: Decimal = 250
-    var maxFat: Decimal = 250
-    var maxProtein: Decimal = 250
+    var maxCarbs: Decimal = 250.0
+    var maxFat: Decimal = 250.0
+    var maxProtein: Decimal = 250.0
 
     // Pump specific dosing increment
     var bolusIncrement: Decimal = 0.05
@@ -34,6 +36,8 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable {
             zip(lhs.glucoseValues, rhs.glucoseValues).allSatisfy {
                 $0.0.date == $0.1.date && $0.0.glucose == $0.1.glucose && $0.0.color == $0.1.color
             } &&
+            lhs.minYAxisValue == rhs.minYAxisValue &&
+            lhs.maxYAxisValue == rhs.maxYAxisValue &&
             lhs.units == rhs.units &&
             lhs.iob == rhs.iob &&
             lhs.cob == rhs.cob &&
@@ -58,6 +62,8 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable {
             hasher.combine(value.glucose)
             hasher.combine(value.color)
         }
+        hasher.combine(minYAxisValue)
+        hasher.combine(maxYAxisValue)
         hasher.combine(units)
         hasher.combine(iob)
         hasher.combine(cob)

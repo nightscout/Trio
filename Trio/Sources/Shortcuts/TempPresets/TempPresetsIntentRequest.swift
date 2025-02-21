@@ -167,6 +167,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
 
     func cancelTempTarget() async {
         await disableAllActiveTempTargets(createTempTargetRunEntry: true, shouldStartBackgroundTask: true)
+        tempTargetsStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date().addingTimeInterval(-1))])
     }
 
     @MainActor func disableAllActiveTempTargets(

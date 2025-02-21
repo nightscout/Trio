@@ -167,7 +167,8 @@ extension MainChartView {
                     maxForecast: state.maxForecast,
                     units: state.units,
                     maxValue: state.maxYAxisValue,
-                    forecastDisplayType: state.forecastDisplayType
+                    forecastDisplayType: state.forecastDisplayType,
+                    lastDeterminationDate: state.determinationsFromPersistence.first?.deliverAt ?? .distantPast
                 )
 
                 /// show glucose value when hovering over it

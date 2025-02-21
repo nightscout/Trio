@@ -94,7 +94,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
                         let newPumpEvent = PumpEventStored(context: self.context)
                         newPumpEvent.id = UUID().uuidString
-                        newPumpEvent.timestamp = event.date
+                        // restrict entry to now or past
+                        newPumpEvent.timestamp = event.date > Date() ? Date() : event.date
                         newPumpEvent.type = PumpEvent.bolus.rawValue
                         newPumpEvent.isUploadedToNS = false
                         newPumpEvent.isUploadedToHealth = false
@@ -232,7 +233,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             // create pump event
             let newPumpEvent = PumpEventStored(context: self.context)
             newPumpEvent.id = UUID().uuidString
-            newPumpEvent.timestamp = timestamp
+            // restrict entry to now or past
+            newPumpEvent.timestamp = timestamp > Date() ? Date() : timestamp
             newPumpEvent.type = PumpEvent.bolus.rawValue
             newPumpEvent.isUploadedToNS = false
             newPumpEvent.isUploadedToHealth = false
