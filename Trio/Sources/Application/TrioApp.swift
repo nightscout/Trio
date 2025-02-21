@@ -68,7 +68,7 @@ import Swinject
             "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.default.buildDate()))] [buildExpires: \(String(describing: BuildDetails.default.calculateExpirationDate()))]"
         )
 
-        // Initialize Core Data Stack
+        // Setup up the Core Data Stack
         coreDataStack = CoreDataStack.shared
 
         // Explicitly initialize Core Data Stack
