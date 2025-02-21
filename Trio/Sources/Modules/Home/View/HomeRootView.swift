@@ -899,7 +899,7 @@ extension Home {
                 HStack {
                     tappableButton(
                         buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
-                        label: "Stats",
+                        label: String(localized: "Stats", comment: "Stats icon in main view"),
                         iconString: statsIconString,
                         action: { state.showModal(for: .statistics) }
                     )
@@ -913,7 +913,7 @@ extension Home {
 
                     tappableButton(
                         buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
-                        label: "Info",
+                        label: String(localized: "Info", comment: "Info icon in main view"),
                         iconString: "info",
                         action: { state.isLegendPresented.toggle() }
                     )
