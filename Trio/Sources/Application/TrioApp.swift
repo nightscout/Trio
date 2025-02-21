@@ -67,20 +67,20 @@ import Swinject
             .default,
             "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.default.buildDate()))] [buildExpires: \(String(describing: BuildDetails.default.calculateExpirationDate()))]"
         )
-        
+
         // Setup up the Core Data Stack
         coreDataStack = CoreDataStack.shared
 
         do {
             // Explicitly initialize Core Data Stacak
             try coreDataStack.initializeStack()
-            
+
             // Load services
             loadServices()
-            
+
             // Fix bug in iOS 18 related to the translucent tab bar
             configureTabBarAppearance()
-            
+
             // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
             cleanupOldData()
         } catch {
