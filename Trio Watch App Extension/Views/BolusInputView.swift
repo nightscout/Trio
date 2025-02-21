@@ -66,7 +66,7 @@ struct BolusInputView: View {
                         let bolusIncrement = Double(truncating: state.bolusIncrement as NSNumber)
                         let adjustedBolusAmount = floor(bolusAmount / bolusIncrement) * bolusIncrement
 
-                        Text(String(format: "%.2f U", adjustedBolusAmount))
+                        Text(String(format: "%.2f \(String(localized: "U", comment: "Insulin unit"))", adjustedBolusAmount))
                             .fontWeight(.bold)
                             .font(.system(.title2, design: .rounded))
                             .foregroundColor(bolusAmount > 0.0 && bolusAmount >= effectiveBolusLimit ? .loopRed : .primary)
