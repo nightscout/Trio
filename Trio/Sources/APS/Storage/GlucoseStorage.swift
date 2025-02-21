@@ -103,10 +103,10 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     private func storeGlucoseInCoreData(_ glucose: [BloodGlucose]) throws {
-        if glucose.count <= 3 {
-            try storeGlucoseRegular(glucose)
-        } else {
+        if glucose.count > 1 {
             try storeGlucoseBatch(glucose)
+        } else {
+            try storeGlucoseRegular(glucose)
         }
     }
 
