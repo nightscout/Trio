@@ -44,7 +44,11 @@ extension Settings {
                     let buildDetails = BuildDetails.default
 
                     Section(
-                        header: Text("BRANCH: \(buildDetails.branchAndSha)").textCase(nil),
+                        header: Text(String(
+                            localized: "BRANCH: \(buildDetails.branchAndSha)",
+                            comment: "Displays the current branch and commit SHA"
+                        ))
+                            .textCase(nil),
                         content: {
                             let versionNumber = Bundle.main.releaseVersionNumber ?? "Unknown"
                             let buildNumber = Bundle.main.buildVersionNumber ?? "Unknown"
@@ -58,7 +62,10 @@ extension Settings {
                                         .cornerRadius(10)
                                         .padding(.trailing, 10)
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text("Trio v\(versionNumber) (\(buildNumber))")
+                                        Text(String(
+                                            localized: "Trio v\(versionNumber) (\(buildNumber))",
+                                            comment: "App version and build number"
+                                        ))
                                             .font(.headline)
                                         if let expirationDate = buildDetails.calculateExpirationDate() {
                                             let formattedDate = DateFormatter.localizedString(
@@ -70,32 +77,44 @@ extension Settings {
                                                 .font(.footnote)
                                                 .foregroundColor(.secondary)
                                         } else {
-                                            Text("Simulator Build has no expiry")
+                                            Text(String(
+                                                localized: "Simulator Build has no expiry",
+                                                comment: "Indicates no expiration for a simulator build"
+                                            ))
                                                 .font(.footnote)
                                                 .foregroundColor(.secondary)
                                         }
                                         if let latest = versionInfo.latestVersion {
                                             HStack {
-                                                Text("Latest version: \(latest)")
+                                                Text(String(
+                                                    localized: "Latest version: \(latest)",
+                                                    comment: "Displays the latest version number"
+                                                ))
                                                     .font(.footnote)
                                                     .foregroundColor(versionInfo.isUpdateAvailable ? .orange : .green)
                                                 Image(
-                                                    systemName: versionInfo
-                                                        .isUpdateAvailable ? "exclamationmark.triangle.fill" :
-                                                        "checkmark.circle.fill"
+                                                    systemName: versionInfo.isUpdateAvailable ?
+                                                        "exclamationmark.triangle.fill" : "checkmark.circle.fill"
                                                 )
                                                 .foregroundColor(versionInfo.isUpdateAvailable ? .orange : .green)
                                             }
                                             if versionInfo.isBlacklisted {
                                                 HStack {
-                                                    Text("Warning: Known issues. Update now.").font(.footnote)
+                                                    Text(String(
+                                                        localized: "Warning: Known issues. Update now.",
+                                                        comment: "Warning message for blacklisted version"
+                                                    ))
+                                                        .font(.footnote)
                                                         .foregroundColor(.red)
                                                     Image(systemName: "exclamationmark.octagon.fill")
                                                         .foregroundColor(.red)
                                                 }
                                             }
                                         } else {
-                                            Text("Latest version: Fetching...")
+                                            Text(String(
+                                                localized: "Latest version: Fetching...",
+                                                comment: "Message shown while fetching latest version"
+                                            ))
                                                 .font(.footnote)
                                                 .foregroundColor(.secondary)
                                         }
@@ -103,7 +122,8 @@ extension Settings {
                                 }
                             }
                         }
-                    ).listRowBackground(Color.chart)
+                    )
+                    .listRowBackground(Color.chart)
 
                     SettingInputSection(
                         decimalValue: $decimalPlaceholder,

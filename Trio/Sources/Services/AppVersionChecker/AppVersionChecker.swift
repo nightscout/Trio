@@ -81,8 +81,11 @@ final class AppVersionChecker {
                 if now.timeIntervalSince(lastShown) > 86400 { // 24 hours
                     self.showAlert(
                         on: vc,
-                        title: "Update Required",
-                        message: "The current version has a critical issue and should be updated as soon as possible."
+                        title: String(localized: "Update Required", comment: "Title for critical update alert"),
+                        message: String(
+                            localized: "The current version has a critical issue and should be updated as soon as possible.",
+                            comment: "Message for critical update alert"
+                        )
                     )
                     self.lastBlacklistNotificationShown = now
                     self.lastVersionUpdateNotificationShown = now
@@ -92,11 +95,14 @@ final class AppVersionChecker {
             else if isNewer {
                 let lastShown = self.lastVersionUpdateNotificationShown ?? .distantPast
                 if now.timeIntervalSince(lastShown) > 1_209_600 { // 2 weeks
-                    let versionText = latestVersion ?? "Unknown"
+                    let versionText = latestVersion ?? String(localized: "Unknown", comment: "Fallback text for unknown version")
                     self.showAlert(
                         on: vc,
-                        title: "Update Available",
-                        message: "A new version (\(versionText)) is available. It is recommended to update."
+                        title: String(localized: "Update Available", comment: "Title for update available alert"),
+                        message: String(
+                            localized: "A new version (\(versionText)) is available. It is recommended to update.",
+                            comment: "Message for update available alert"
+                        )
                     )
                     self.lastVersionUpdateNotificationShown = now
                 }
