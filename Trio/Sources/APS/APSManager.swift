@@ -452,7 +452,7 @@ final class BaseAPSManager: APSManager, Injectable {
                     $0.bolusDidFail()
                 }
             }
-            callback?(false, "Error! Failed to enact bolus.")
+            callback?(false, String(localized: "Error! Failed to enact bolus.", comment: "Error message for enacting a bolus"))
             return
         }
 
@@ -469,7 +469,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 await determineBasalSync()
             }
             bolusProgress.send(0)
-            callback?(true, "Bolus enacted successfully.")
+            callback?(true, String(localized: "Bolus enacted successfully.", comment: "Success message for enacting a bolus"))
         } catch {
             warning(.apsManager, "Bolus failed with error: \(error.localizedDescription)")
             processError(APSError.pumpError(error))
@@ -480,7 +480,10 @@ final class BaseAPSManager: APSManager, Injectable {
                     }
                 }
             }
-            callback?(false, "Error! Failed to enact bolus.")
+            callback?(
+                false,
+                String(localized: "Error! Failed to enact bolus.", comment: "Error message for failing to enact a bolus")
+            )
         }
     }
 
@@ -490,11 +493,14 @@ final class BaseAPSManager: APSManager, Injectable {
         do {
             _ = try await pump.cancelBolus()
             debug(.apsManager, "Bolus cancelled")
-            callback?(true, "Bolus cancelled successfully.")
+            callback?(true, String(localized: "Bolus cancelled successfully.", comment: "Success message for canceling a bolus"))
         } catch {
             debug(.apsManager, "Bolus cancellation failed with error: \(error.localizedDescription)")
             processError(APSError.pumpError(error))
-            callback?(false, "Error! Bolus cancellation failed.")
+            callback?(
+                false,
+                String(localized: "Error! Bolus cancellation failed.", comment: "Error message for canceling a bolus")
+            )
         }
         bolusReporter?.removeObserver(self)
         bolusReporter = nil

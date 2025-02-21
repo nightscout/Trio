@@ -37,7 +37,7 @@ struct BolusConfirmationView: View {
                 HStack {
                     Text("Bolus")
                     Spacer()
-                    Text(String(format: "%.2f U", adjustedBolusAmount))
+                    Text(String(format: "%.2f \(String(localized: "U", comment: "Insulin unit"))", adjustedBolusAmount))
                         .bold()
                         .foregroundStyle(Color.insulin)
                 }.padding(.horizontal)

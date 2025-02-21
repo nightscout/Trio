@@ -632,7 +632,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 carbEntry.id = UUID()
                 carbEntry.carbs = Double(truncating: amount as NSNumber)
                 carbEntry.date = date
-                carbEntry.note = "Via Watch"
+                carbEntry.note = String(localized: "Via Watch", comment: "Note added to carb entry when entered via watch")
                 carbEntry.isFPU = false // set this to false to ensure watch-entered carbs are displayed in main chart
                 carbEntry.isUploadedToNS = false
 
@@ -642,7 +642,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     debug(.watchManager, "📱 Saved carbs from watch: \(amount)g at \(date)")
 
                     // Acknowledge success
-                    self.sendAcknowledgment(toWatch: true, message: "Carbs logged successfully.")
+                    self.sendAcknowledgment(
+                        toWatch: true,
+                        message: String(
+                            localized: "Carbs logged successfully.",
+                            comment: "Success message sent to watch when carbs are logged successfully"
+                        )
+                    )
                 } catch {
                     debug(.watchManager, "❌ Error saving carbs: \(error.localizedDescription)")
 
@@ -664,7 +670,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
             do {
                 // Notify Watch: "Saving carbs..."
-                self.sendAcknowledgment(toWatch: true, message: "Saving Carbs...")
+                self.sendAcknowledgment(
+                    toWatch: true,
+                    message: String(localized: "Saving Carbs...", comment: "Successful message sent to watch when saving carbs")
+                )
 
                 // Save carbs entry in Core Data
                 try await context.perform {
@@ -672,7 +681,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     carbEntry.id = UUID()
                     carbEntry.carbs = NSDecimalNumber(decimal: carbsAmount).doubleValue
                     carbEntry.date = date
-                    carbEntry.note = "Via Watch"
+                    carbEntry.note = String(localized: "Via Watch", comment: "Note added to carb entry when entered via watch")
                     carbEntry.isFPU = false // set this to false to ensure watch-entered carbs are displayed in main chart
                     carbEntry.isUploadedToNS = false
 
@@ -682,7 +691,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 }
 
                 // Notify Watch: "Enacting bolus..."
-                sendAcknowledgment(toWatch: true, message: "Enacting bolus...")
+                sendAcknowledgment(
+                    toWatch: true,
+                    message: String(
+                        localized: "Enacting bolus...",
+                        comment: "Successful message sent to watch when enacting bolus"
+                    )
+                )
 
                 // Enact bolus via APS Manager
                 let bolusDouble = NSDecimalNumber(decimal: bolusAmount).doubleValue
@@ -692,7 +707,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 }
                 debug(.watchManager, "📱 Enacted bolus from watch via APS Manager: \(bolusDouble) U")
                 // Notify Watch: "Carbs and bolus logged successfully"
-                sendAcknowledgment(toWatch: true, message: "Carbs and Bolus logged successfully.")
+                sendAcknowledgment(
+                    toWatch: true,
+                    message: String(
+                        localized: "Carbs and Bolus logged successfully.",
+                        comment: "Successful message sent to watch when logging carbs and bolus"
+                    )
+                )
 
             } catch {
                 debug(.watchManager, "❌ Error processing combined request: \(error.localizedDescription)")
