@@ -6,8 +6,8 @@ import SwiftUI
 
 struct GlucoseChartView: View {
     let glucoseValues: [(date: Date, glucose: Double, color: Color)]
-    @Binding var minYAxisValue: Decimal
-    @Binding var maxYAxisValue: Decimal
+    let minYAxisValue: Decimal
+    let maxYAxisValue: Decimal
     @State private var timeWindow: TimeWindow = .threeHours
 
     enum TimeWindow: Int {

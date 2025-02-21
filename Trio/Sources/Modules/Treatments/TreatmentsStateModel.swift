@@ -574,9 +574,8 @@ extension Treatments {
         }
 
         func addPresetToNewMeal() {
-            let test: String = selection?.dish ?? "dontAdd"
-            if test != "dontAdd" {
-                summation.append(test)
+            if let selection = selection, let dish = selection.dish {
+                summation.append(dish)
             }
         }
 
@@ -788,7 +787,7 @@ extension Treatments.StateModel {
         } else {
             simulatedDetermination = await Task { [self] in
                 debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
-                return await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
+                return await apsManager.simulateDetermineBasal(simulatedCarbsAmount: carbs, simulatedBolusAmount: amount)
             }.value
         }
 
