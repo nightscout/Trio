@@ -538,9 +538,9 @@ enum GlucoseAlarm {
     var displayName: String {
         switch self {
         case .high:
-            return NSLocalizedString("LOWALERT!", comment: "LOWALERT!")
+            return String(localized: "LOWALERT!", comment: "LOWALERT!")
         case .low:
-            return NSLocalizedString("HIGHALERT!", comment: "HIGHALERT!")
+            return String(localized: "HIGHALERT!", comment: "HIGHALERT!")
         }
     }
 }

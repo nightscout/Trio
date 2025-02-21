@@ -29,10 +29,12 @@ extension PumpConfig {
                                     state.setupPump = true
                                 } label: {
                                     HStack {
-                                        Image(uiImage: pumpState.image ?? UIImage()).padding()
+                                        Image(uiImage: pumpState.image ?? UIImage())
                                         Text(pumpState.name)
                                     }
-                                }
+                                    .frame(maxWidth: .infinity, minHeight: 50, alignment: .center)
+                                    .font(.title2)
+                                }.padding()
                                 if state.alertNotAck {
                                     Spacer()
                                     Button("Acknowledge all alerts") { state.ack() }
@@ -70,7 +72,6 @@ extension PumpConfig {
                             }
                         }
                     )
-                    .padding(.top)
                     .listRowBackground(Color.chart)
                 }
                 .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
@@ -118,7 +119,7 @@ extension PumpConfig {
                                 )
                             }
                         ),
-                        sheetTitle: "Help"
+                        sheetTitle: String(localized: "Help", comment: "Help sheet title")
                     )
                 }
                 .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {

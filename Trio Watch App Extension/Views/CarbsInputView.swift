@@ -12,16 +12,7 @@ struct CarbsInputView: View {
     let continueToBolus: Bool
 
     private var effectiveCarbsLimit: Double {
-        // Extract current COB from string and convert to Double
-        let currentCOB = Double(state.cob?.replacingOccurrences(of: " g", with: "") ?? "0") ?? 0
-
-        // Calculate available COB
-        let availableCOB = max(0, Double(truncating: state.maxCOB as NSNumber) - currentCOB)
-
-        return min(
-            Double(truncating: state.maxCarbs as NSNumber),
-            availableCOB
-        )
+        Double(truncating: state.maxCarbs as NSNumber)
     }
 
     var trioBackgroundColor = LinearGradient(
@@ -41,16 +32,15 @@ struct CarbsInputView: View {
                 // "-" Button
                 Button(action: {
                     if carbsAmount > 0 {
-                        let currentAmount = carbsAmount
                         carbsAmount < 5 ? carbsAmount = 0 : (carbsAmount -= 5)
                     }
                 }) {
                     Image(systemName: "minus.circle.fill")
                         .font(.title3)
-                        .foregroundColor(.orange)
+                        .tint(.orange)
                 }
                 .buttonStyle(.borderless)
-                .disabled(carbsAmount < 1)
+                .disabled(carbsAmount <= 0)
 
                 Spacer()
 
@@ -75,11 +65,11 @@ struct CarbsInputView: View {
 
                 // "+" Button
                 Button(action: {
-                    carbsAmount += 5
+                    carbsAmount = min(effectiveCarbsLimit, carbsAmount + 5)
                 }) {
                     Image(systemName: "plus.circle.fill")
                         .font(.title3)
-                        .foregroundColor(.orange)
+                        .tint(.orange)
                 }
                 .buttonStyle(.borderless)
                 .disabled(carbsAmount >= effectiveCarbsLimit)
@@ -109,7 +99,7 @@ struct CarbsInputView: View {
             }
             .buttonStyle(.bordered)
             .tint(.orange)
-            .disabled(!(carbsAmount > 0.0) || carbsAmount >= effectiveCarbsLimit)
+            .disabled(!(carbsAmount > 0.0) || carbsAmount > effectiveCarbsLimit)
         }
         .background(trioBackgroundColor)
         .toolbar {

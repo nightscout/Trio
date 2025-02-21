@@ -131,13 +131,13 @@ struct PopupView: View {
 
     var calcSettingsSecondRow: some View {
         GridRow {
-            Text(state.carbRatio.formatted() + " " + NSLocalizedString("g/U", comment: " grams per Unit"))
+            Text(state.carbRatio.formatted() + " " + String(localized: "g/U", comment: " grams per Unit"))
                 .gridCellAnchor(.leading)
 
             let isf = state.units == .mmolL ? state.isf.formattedAsMmolL : state.isf.description
             Text(
                 isf + " " + state.units
-                    .rawValue + NSLocalizedString("/U", comment: "/Insulin unit")
+                    .rawValue + String(localized: "/U", comment: "/Insulin unit")
             ).gridCellAnchor(.leading)
 
             let target = state.units == .mmolL ? state.target.formattedAsMmolL : state.target.description
@@ -235,7 +235,7 @@ struct PopupView: View {
                 Text(
                     state.wholeCob
                         .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits))) +
-                        NSLocalizedString(" g", comment: "grams")
+                        String(localized: " g", comment: "grams")
                 )
             }
 

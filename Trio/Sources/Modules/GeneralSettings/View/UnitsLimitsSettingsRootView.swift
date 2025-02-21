@@ -36,12 +36,12 @@ extension UnitsLimitsSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Max IOB", comment: "Max IOB")
+                            hintLabel = String(localized: "Max IOB", comment: "Max IOB")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxIOB"),
-                    label: NSLocalizedString("Max IOB", comment: "Max IOB"),
+                    label: String(localized: "Max IOB", comment: "Max IOB"),
                     miniHint: "Maximum units of insulin allowed to be active.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
@@ -69,13 +69,13 @@ extension UnitsLimitsSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Max Bolus"
+                            hintLabel = String(localized: "Max Bolus")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxBolus"),
-                    label: "Max Bolus",
-                    miniHint: "Largest bolus of insulin allowed.",
+                    label: String(localized: "Max Bolus"),
+                    miniHint: String(localized: "Largest bolus of insulin allowed."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 10 units").bold()
@@ -95,13 +95,13 @@ extension UnitsLimitsSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Max Basal"
+                            hintLabel = String(localized: "Max Basal")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxBasal"),
-                    label: "Max Basal",
-                    miniHint: "Largest basal rate allowed.",
+                    label: String(localized: "Max Basal"),
+                    miniHint: String(localized: "Largest basal rate allowed."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 2 units").bold()
@@ -122,13 +122,13 @@ extension UnitsLimitsSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Max COB", comment: "Max COB")
+                            hintLabel = String(localized: "Max COB", comment: "Max COB")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxCOB"),
-                    label: NSLocalizedString("Max COB", comment: "Max COB"),
-                    miniHint: "Maximum Carbs On Board (COB) allowed.",
+                    label: String(localized: "Max COB", comment: "Max COB"),
+                    miniHint: String(localized: "Maximum Carbs On Board (COB) allowed."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 120 grams of carbs").bold()
@@ -149,7 +149,7 @@ extension UnitsLimitsSettings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

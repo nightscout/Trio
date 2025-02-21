@@ -6,7 +6,6 @@ import UIKit
 import WatchConnectivity
 
 /// Protocol defining the base functionality for Watch communication
-// TODO: Complete this
 protocol WatchManager {
     func setupWatchState() async -> WatchState
 }
@@ -57,7 +56,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
         broadcaster.register(SettingsObserver.self, observer: self)
         broadcaster.register(PumpSettingsObserver.self, observer: self)
-        broadcaster.register(PreferencesObserver.self, observer: self)
 
         // Observer for OrefDetermination and adjustments
         coreDataPublisher =
@@ -255,6 +253,31 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             }
             .sorted { $0.date < $1.date }
 
+            // Set axis domain: min and max Y-axis values
+            // Apply unit parsing conditionally, if user uses mmol/L
+            let maxGlucoseValue = Decimal(glucoseObjects.map { Int($0.glucose) }.max() ?? 200)
+            var maxYValue = Decimal(200)
+
+            if maxGlucoseValue > maxYValue, maxGlucoseValue <= 225 {
+                maxYValue = Decimal(250)
+            } else if maxGlucoseValue > 225, maxGlucoseValue <= 275 {
+                maxYValue = Decimal(300)
+            } else if maxGlucoseValue > 275, maxGlucoseValue <= 325 {
+                maxYValue = Decimal(350)
+            } else if maxGlucoseValue > 325 {
+                maxYValue = Decimal(400)
+            }
+
+            if self.units == .mmolL {
+                maxYValue = Double(truncating: maxYValue as NSNumber).asMmolL
+            }
+            watchState.maxYAxisValue = maxYValue
+
+            if self.units == .mmolL {
+                let minYValue = Double(truncating: watchState.minYAxisValue as NSNumber).asMmolL
+                watchState.minYAxisValue = minYValue
+            }
+
             // Convert direction to trend string
             watchState.trend = latestGlucose.direction
 
@@ -287,8 +310,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             watchState.maxCarbs = self.settingsManager.settings.maxCarbs
             watchState.maxFat = self.settingsManager.settings.maxFat
             watchState.maxProtein = self.settingsManager.settings.maxProtein
-            watchState.maxIOB = self.settingsManager.preferences.maxIOB
-            watchState.maxCOB = self.settingsManager.preferences.maxCOB
             watchState.bolusIncrement = self.settingsManager.preferences.bolusIncrement
             watchState.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
 
@@ -390,6 +411,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     "color": value.color
                 ]
             },
+            WatchMessageKeys.minYAxisValue: state.minYAxisValue,
+            WatchMessageKeys.maxYAxisValue: state.maxYAxisValue,
             WatchMessageKeys.overridePresets: state.overridePresets.map { preset in
                 [
                     "name": preset.name,
@@ -406,8 +429,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.maxCarbs: state.maxCarbs,
             WatchMessageKeys.maxFat: state.maxFat,
             WatchMessageKeys.maxProtein: state.maxProtein,
-            WatchMessageKeys.maxIOB: state.maxIOB,
-            WatchMessageKeys.maxCOB: state.maxCOB,
             WatchMessageKeys.bolusIncrement: state.bolusIncrement,
             WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster
         ]
@@ -613,6 +634,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 carbEntry.date = date
                 carbEntry.note = "Via Watch"
                 carbEntry.isFPU = false // set this to false to ensure watch-entered carbs are displayed in main chart
+                carbEntry.isUploadedToNS = false
 
                 do {
                     guard context.hasChanges else { return }
@@ -652,6 +674,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     carbEntry.date = date
                     carbEntry.note = "Via Watch"
                     carbEntry.isFPU = false // set this to false to ensure watch-entered carbs are displayed in main chart
+                    carbEntry.isUploadedToNS = false
 
                     guard context.hasChanges else { return }
                     try context.save()
@@ -907,18 +930,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     /// Sends bolus progress updates to the Watch
     /// - Parameter progress: The current bolus progress as a Decimal
-//    private func sendBolusProgressToWatch(progress: Decimal?) async {
-//        guard let session = session, session.isReachable, let progress = progress else { return }
-//
-//        let message: [String: Any] = [
-//            WatchMessageKeys.bolusProgress: Double(truncating: progress as NSNumber),
-//            WatchMessageKeys.activeBolusAmount: activeBolusAmount
-//        ]
-//
-//        session.sendMessage(message, replyHandler: nil) { error in
-//            debug(.watchManager, "❌ Error sending bolus progress: \(error.localizedDescription)")
-//        }
-//    }
     private func sendBolusProgressToWatch(progress: Decimal?) async {
         guard let session = session, let progress = progress, let pumpManager = apsManager.pumpManager else { return }
 
@@ -960,15 +971,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 }
 
 // TODO: - is there a better approach than setting up the watch state every time a setting has changed?
-extension BaseWatchManager: SettingsObserver, PumpSettingsObserver, PreferencesObserver {
-    // to update maxCOB, maxIOB
-    func preferencesDidChange(_: Preferences) {
-        Task {
-            let state = await self.setupWatchState()
-            await self.sendDataToWatch(state)
-        }
-    }
-
+extension BaseWatchManager: SettingsObserver, PumpSettingsObserver {
     // to update maxBolus
     func pumpSettingsDidChange(_: PumpSettings) {
         Task {

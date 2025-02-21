@@ -20,6 +20,8 @@ import WatchConnectivity
     var trend: String? = ""
     var delta: String? = "--"
     var glucoseValues: [(date: Date, glucose: Double, color: Color)] = []
+    var minYAxisValue: Decimal = 39
+    var maxYAxisValue: Decimal = 200
     var cob: String? = "--"
     var iob: String? = "--"
     var lastLoopTime: String? = "--"
@@ -44,8 +46,6 @@ import WatchConnectivity
     var maxCarbs: Decimal = 250
     var maxFat: Decimal = 250
     var maxProtein: Decimal = 250
-    var maxIOB: Decimal = 0
-    var maxCOB: Decimal = 120
 
     // Pump specific dosing increment
     var bolusIncrement: Decimal = 0.05
@@ -68,8 +68,6 @@ import WatchConnectivity
     var showBolusProgressOverlay: Bool {
         (!showAcknowledgmentBanner || !showCommsAnimation) && bolusProgress > 0 && bolusProgress < 1.0 && !isBolusCanceled
     }
-
-    
 
     var recommendedBolus: Decimal = 0
 
@@ -218,13 +216,7 @@ import WatchConnectivity
                 DispatchQueue.main.async {
                     if !self.isBolusCanceled {
                         self.bolusProgress = progress
-
-                        // we only need to grab the active bolus amount from the phone if it is a phone-invoked bolus
-                        // when it comes from the watch, we already have it stored and available
-                        if self.activeBolusAmount == 0 {
-                            self.activeBolusAmount = activeBolusAmount
-                        }
-
+                        self.activeBolusAmount = activeBolusAmount
                         self.deliveredAmount = deliveredAmount
                     }
                 }
@@ -244,6 +236,9 @@ import WatchConnectivity
             DispatchQueue.main.async {
                 self.bolusProgress = 0
                 self.activeBolusAmount = 0
+                self
+                    .isBolusCanceled =
+                    false /// Reset flag to ensure a bolus progress is also shown after canceling bolus from watch
             }
             return
         } else {
@@ -315,13 +310,7 @@ import WatchConnectivity
                 DispatchQueue.main.async {
                     if !self.isBolusCanceled {
                         self.bolusProgress = progress
-
-                        // we only need to grab the active bolus amount from the phone if it is a phone-invoked bolus
-                        // when it comes from the watch, we already have it stored and available
-                        if self.activeBolusAmount == 0 {
-                            self.activeBolusAmount = activeBolusAmount
-                        }
-
+                        self.activeBolusAmount = activeBolusAmount
                         self.deliveredAmount = deliveredAmount
                     }
                 }
@@ -363,7 +352,7 @@ import WatchConnectivity
                 // reset input amounts
                 self.bolusAmount = 0
                 self.carbsAmount = 0
-                
+
                 // reset auth progress
                 self.confirmationProgress = 0
             }
@@ -532,6 +521,18 @@ import WatchConnectivity
             .sorted { $0.date < $1.date }
         }
 
+        if let minYAxisValue = message[WatchMessageKeys.minYAxisValue] {
+            if let decimalValue = (minYAxisValue as? NSNumber)?.decimalValue {
+                self.minYAxisValue = decimalValue
+            }
+        }
+
+        if let maxYAxisValue = message[WatchMessageKeys.maxYAxisValue] {
+            if let decimalValue = (maxYAxisValue as? NSNumber)?.decimalValue {
+                self.maxYAxisValue = decimalValue
+            }
+        }
+
         if let overrideData = message[WatchMessageKeys.overridePresets] as? [[String: Any]] {
             overridePresets = overrideData.compactMap { data in
                 guard let name = data["name"] as? String,
@@ -584,18 +585,6 @@ import WatchConnectivity
         if let maxProteinValue = message[WatchMessageKeys.maxProtein] {
             if let decimalValue = (maxProteinValue as? NSNumber)?.decimalValue {
                 maxProtein = decimalValue
-            }
-        }
-
-        if let maxIOBValue = message[WatchMessageKeys.maxIOB] {
-            if let decimalValue = (maxIOBValue as? NSNumber)?.decimalValue {
-                maxIOB = decimalValue
-            }
-        }
-
-        if let maxCOBValue = message[WatchMessageKeys.maxCOB] {
-            if let decimalValue = (maxCOBValue as? NSNumber)?.decimalValue {
-                maxCOB = decimalValue
             }
         }
 

@@ -210,7 +210,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         let results = await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: backgroundContext,
-            predicate: NSPredicate.lastActiveOverrideNotYetUploadedToNightscout,
+            predicate: NSPredicate.lastActiveAdjustmentNotYetUploadedToNightscout,
             key: "date",
             ascending: false
         )
@@ -225,7 +225,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
                     eventType: OverrideStored.EventType.nsExercise,
                     createdAt: override.date ?? Date(),
                     enteredBy: NightscoutExercise.local,
-                    notes: override.name ?? "Custom Override",
+                    notes: override.name ?? String(localized: "Custom Override"),
                     id: UUID(uuidString: override.id ?? UUID().uuidString)
                 )
             }
@@ -256,7 +256,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
                     eventType: OverrideStored.EventType.nsExercise,
                     createdAt: (overrideRun.startDate ?? overrideRun.override?.date) ?? Date(),
                     enteredBy: NightscoutExercise.local,
-                    notes: overrideRun.name ?? "Custom Override",
+                    notes: overrideRun.name ?? String(localized: "Custom Override"),
                     id: overrideRun.id
                 )
             }

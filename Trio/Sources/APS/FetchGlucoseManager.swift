@@ -126,10 +126,15 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         // if plugin, if not the same pluginID, need to reset the cgmManager
         // if plugin and newManager provides, update cgmManager
         debug(.apsManager, "plugin : \(String(describing: cgmManager?.pluginIdentifier))")
-        if let manager = newManager
-        {
-            cgmManager = manager
-            removeCalibrations()
+
+        if let manager = newManager {
+            // If the pointer to manager is the *same* as our current `cgmManager`, skip re-init
+            if manager !== cgmManager {
+                // or do a more thorough check to see if it is the same class & state
+                removeCalibrations()
+                cgmManager = manager
+                glucoseSource = nil
+            }
         } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
             cgmManager = cgmManagerFromRawValue(rawCGMManager)
             updateManagerUnits(cgmManager)
@@ -334,6 +339,24 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             }
         } else {
             return entries
+        }
+    }
+}
+
+extension FetchGlucoseManager {
+    /// Dispatches given `functionToInvoke` to the CGM manager's queue (if any).
+    func performOnCGMManagerQueue(_ functionToInvoke: @escaping () -> Void) {
+        // If a CGM manager exists and it defines a delegate queue, use it
+        if let cgmManager = self.cgmManager,
+           let managerQueue = cgmManager.delegateQueue
+        {
+            managerQueue.async {
+                functionToInvoke()
+            }
+        } else {
+            // If there's no cgmManager or no queue, just run the block immediately
+            // This possibly executes `functionToInvoke` on main thread
+            functionToInvoke()
         }
     }
 }

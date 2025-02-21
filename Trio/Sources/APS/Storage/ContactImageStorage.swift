@@ -39,7 +39,7 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
 
             return fetchedContactImageEntries.compactMap { entry in
                 ContactImageEntry(
-                    name: entry.name ?? "No name provided",
+                    name: entry.name ?? String(localized: "No name provided"),
                     layout: ContactImageLayout(rawValue: entry.layout ?? "Default") ?? .default,
                     ring: ContactImageLargeRing(rawValue: entry.ring ?? "Hidden") ?? .none,
                     primary: ContactImageValue(rawValue: entry.primary ?? "Glucose Reading") ?? .glucose,

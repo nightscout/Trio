@@ -103,7 +103,11 @@ struct BolusConfirmationView: View {
                         .wristLocation == .left ? "digitalcrown.arrow.clockwise.fill" : "digitalcrown.arrow.counterclockwise.fill"
                 )
                 .symbolRenderingMode(.palette)
-                .foregroundStyle(Color.primary, Color.insulin)
+                .foregroundStyle(Color.insulin, Color.primary)
+                .symbolEffect(
+                    .variableColor.reversing,
+                    options: .speed(100).repeating
+                )
             }
         }
         .blur(radius: state.showBolusProgressOverlay ? 3 : 0)

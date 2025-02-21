@@ -86,11 +86,6 @@ extension TargetsEditor {
             .navigationTitle("Glucose Targets")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {
-                if state.items.isNotEmpty {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        EditButton()
-                    }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { state.add() }) {
                         HStack {

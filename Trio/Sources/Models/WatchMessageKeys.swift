@@ -37,6 +37,8 @@ enum WatchMessageKeys {
     static let cob = "cob"
     static let lastLoopTime = "lastLoopTime"
     static let glucoseValues = "glucoseValues"
+    static let minYAxisValue = "minYAxisValue"
+    static let maxYAxisValue = "maxYAxisValue"
     static let overridePresets = "overridePresets"
     static let tempTargetPresets = "tempTargetPresets"
 
@@ -45,8 +47,6 @@ enum WatchMessageKeys {
     static let maxCarbs = "maxCarbs"
     static let maxFat = "maxFat"
     static let maxProtein = "maxProtein"
-    static let maxIOB = "maxIOB"
-    static let maxCOB = "maxCOB"
     static let bolusIncrement = "bolusIncrement"
     static let confirmBolusFaster = "confirmBolusFaster"
 }

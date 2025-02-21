@@ -13,16 +13,7 @@ struct BolusInputView: View {
     @FocusState private var isCrownFocused: Bool
 
     private var effectiveBolusLimit: Double {
-        // Extract current IOB from string and convert to Double
-        let currentIOB = Double(state.iob?.replacingOccurrences(of: " U", with: "") ?? "0") ?? 0
-
-        // Calculate available IOB
-        let availableIOB = max(0, Double(truncating: state.maxIOB as NSNumber) - currentIOB)
-
-        return min(
-            Double(truncating: state.maxBolus as NSNumber),
-            availableIOB
-        )
+        Double(truncating: state.maxBolus as NSNumber)
     }
 
     var trioBackgroundColor = LinearGradient(
@@ -37,7 +28,7 @@ struct BolusInputView: View {
                 ProgressView("Calculating Bolus...")
                 Spacer()
             } else {
-                if effectiveBolusLimit == 0 {
+                if effectiveBolusLimit <= 0 {
                     VStack(spacing: 8) {
                         Text("Bolus limit cannot be fetched from phone!").font(.headline)
                         Text("Check device settings, connect to phone, and try again.").font(.caption)
@@ -62,10 +53,10 @@ struct BolusInputView: View {
                         }) {
                             Image(systemName: "minus.circle.fill")
                                 .font(.title3)
-                                .foregroundColor(Color.insulin)
+                                .tint(Color.insulin)
                         }
                         .buttonStyle(.borderless)
-                        .disabled(bolusAmount == 0)
+                        .disabled(bolusAmount <= 0)
 
                         Spacer()
 
@@ -92,11 +83,14 @@ struct BolusInputView: View {
 
                         // "+" Button
                         Button(action: {
-                            bolusAmount += Double(truncating: state.bolusIncrement as NSNumber)
+                            bolusAmount = min(
+                                effectiveBolusLimit,
+                                bolusAmount + Double(truncating: state.bolusIncrement as NSNumber)
+                            )
                         }) {
                             Image(systemName: "plus.circle.fill")
                                 .font(.title3)
-                                .foregroundColor(Color.insulin)
+                                .tint(Color.insulin)
                         }
                         .buttonStyle(.borderless)
                         .disabled(bolusAmount >= effectiveBolusLimit)
@@ -121,7 +115,7 @@ struct BolusInputView: View {
                     }
                     .buttonStyle(.bordered)
                     .tint(Color.insulin)
-                    .disabled(!(bolusAmount > 0.0) || bolusAmount >= effectiveBolusLimit)
+                    .disabled(!(bolusAmount > 0.0) || bolusAmount > effectiveBolusLimit)
 
                     Text(String(format: "Recommended: %.1f U", NSDecimalNumber(decimal: state.recommendedBolus).doubleValue))
                         .font(.footnote)
@@ -160,8 +154,9 @@ struct BolusInputView: View {
             }
         }
         // Add onChange to update bolus amount when recommendation changes
-        .onChange(of: state.recommendedBolus) { _, newValue in
-            if bolusAmount == 0 { // Only update if user hasn't modified the value
+        .onChange(of: state.recommendedBolus) { oldValue, newValue in
+            // Only update if user hasn't modified the value OR if recommendation hasn't changed
+            if bolusAmount == 0 || oldValue != newValue {
                 bolusAmount = Double(truncating: NSDecimalNumber(decimal: newValue))
             }
         }

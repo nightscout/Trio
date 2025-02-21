@@ -167,7 +167,8 @@ extension MainChartView {
                     maxForecast: state.maxForecast,
                     units: state.units,
                     maxValue: state.maxYAxisValue,
-                    forecastDisplayType: state.forecastDisplayType
+                    forecastDisplayType: state.forecastDisplayType,
+                    lastDeterminationDate: state.determinationsFromPersistence.first?.deliverAt ?? .distantPast
                 )
 
                 /// show glucose value when hovering over it
@@ -201,7 +202,13 @@ extension MainChartView {
                 domain: units == .mgdL ? state.minYAxisValue ... state.maxYAxisValue : state.minYAxisValue
                     .asMmolL ... state.maxYAxisValue.asMmolL
             )
-            .backport.chartForegroundStyleScale(state: state)
+            .chartLegend(.hidden)
+            .chartForegroundStyleScale([
+                "iob": Color.insulin,
+                "uam": Color.uam,
+                "zt": Color.zt,
+                "cob": Color.orange
+            ])
         }
     }
 }
