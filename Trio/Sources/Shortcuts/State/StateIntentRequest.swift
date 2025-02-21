@@ -83,7 +83,7 @@ final class StateIntentRequest: BaseIntentsRequest {
                     .asMmolL : Decimal(lastGlucose)
             ) as NSNumber)!
 
-            let directionAsString = lastValue.direction ?? "none"
+            let directionAsString = lastValue.direction ?? String(localized: "none")
 
             let deltaAsString = delta
                 .map {

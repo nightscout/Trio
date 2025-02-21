@@ -51,7 +51,7 @@ extension Adjustments.StateModel {
 
             if let tempTargetToEdit = try viewContext.existingObject(with: firstID) as? TempTargetStored {
                 currentActiveTempTarget = tempTargetToEdit
-                activeTempTargetName = tempTargetToEdit.name ?? "Custom Temp Target"
+                activeTempTargetName = tempTargetToEdit.name ?? String(localized: "Custom Temp Target")
                 tempTargetTarget = tempTargetToEdit.target?.decimalValue ?? 0
             }
         } catch {
@@ -357,7 +357,7 @@ extension Adjustments.StateModel {
             if let tempTargetToEdit = try viewContext.existingObject(with: duplidateId) as? TempTargetStored
             {
                 currentActiveTempTarget = tempTargetToEdit
-                activeTempTargetName = tempTargetToEdit.name ?? "Custom Temp Target"
+                activeTempTargetName = tempTargetToEdit.name ?? String(localized: "Custom Temp Target")
             }
         } catch {
             debugPrint(

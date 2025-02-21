@@ -99,7 +99,7 @@ extension NightscoutConfig {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = "Import Settings from Nightscout"
+                                        hintLabel = String(localized: "Import Settings from Nightscout")
                                         selectedVerboseHint =
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 10) {
@@ -162,7 +162,7 @@ extension NightscoutConfig {
                                     Spacer()
                                     Button(
                                         action: {
-                                            hintLabel = "Backfill Glucose from Nightscout"
+                                            hintLabel = String(localized: "Backfill Glucose from Nightscout")
                                             selectedVerboseHint =
                                                 AnyView(
                                                     Text(
@@ -198,7 +198,7 @@ extension NightscoutConfig {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .navigationBarTitle("Nightscout")

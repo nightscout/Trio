@@ -115,7 +115,7 @@ struct AppGroupSource: GlucoseSource {
     }
 
     func sourceInfo() -> [String: Any]? {
-        [GlucoseSourceKey.description.rawValue: "Group ID: \(Bundle.main.appGroupSuiteName ?? "Not set"))"]
+        [GlucoseSourceKey.description.rawValue: "Group ID: \(Bundle.main.appGroupSuiteName ?? String(localized: "Not set"))"]
     }
 }
 

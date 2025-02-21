@@ -49,13 +49,15 @@ extension DynamicSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Activate Dynamic Sensitivity (Dynamic ISF)"
+                            hintLabel = String(localized: "Activate Dynamic Sensitivity (Dynamic ISF)")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Activate Dynamic ISF",
-                    miniHint: "Dynamically adjust insulin sensitivity using Dynamic Ratio rather than Autosens Ratio.",
+                    label: String(localized: "Activate Dynamic ISF"),
+                    miniHint: String(
+                        localized: "Dynamically adjust insulin sensitivity using Dynamic Ratio rather than Autosens Ratio."
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -73,7 +75,7 @@ extension DynamicSettings {
                         )
                         .bold()
                     },
-                    headerText: "Dynamic Settings"
+                    headerText: String(localized: "Dynamic Settings")
                 )
 
                 if state.useNewFormula {
@@ -85,13 +87,13 @@ extension DynamicSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Activate Dynamic CR (Carb Ratio)"
+                                hintLabel = String(localized: "Activate Dynamic CR (Carb Ratio)")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: "Activate Dynamic CR (Carb Ratio)",
-                        miniHint: "Dynamically adjust your Carb Ratio (CR).",
+                        label: String(localized: "Activate Dynamic CR (Carb Ratio)"),
+                        miniHint: String(localized: "Dynamically adjust your Carb Ratio (CR)."),
                         verboseHint:
 
                         VStack(alignment: .leading, spacing: 10) {
@@ -116,13 +118,13 @@ extension DynamicSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Use Sigmoid Formula"
+                                hintLabel = String(localized: "Use Sigmoid Formula")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: "Use Sigmoid Formula",
-                        miniHint: "Adjust insulin sensitivity using a sigmoid-shaped curve.",
+                        label: String(localized: "Use Sigmoid Formula"),
+                        miniHint: String(localized: "Adjust insulin sensitivity using a sigmoid-shaped curve."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -152,14 +154,14 @@ extension DynamicSettings {
                                 get: { selectedVerboseHint },
                                 set: {
                                     selectedVerboseHint = $0.map { AnyView($0) }
-                                    hintLabel = "Adjustment Factor (AF)"
+                                    hintLabel = String(localized: "Adjustment Factor (AF)")
                                 }
                             ),
                             // TODO?: include conditional links to Desmos logarithmic graphs based on which .glucose setting is used
                             units: state.units,
                             type: .decimal("adjustmentFactor"),
-                            label: "Adjustment Factor (AF)",
-                            miniHint: "Alter the rate of Dynamic ISF (Sensitivity) adjustments.",
+                            label: String(localized: "Adjustment Factor (AF)"),
+                            miniHint: String(localized: "Alter the rate of Dynamic ISF (Sensitivity) adjustments."),
                             verboseHint:
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Default: 80%").bold()
@@ -183,13 +185,13 @@ extension DynamicSettings {
                                 get: { selectedVerboseHint },
                                 set: {
                                     selectedVerboseHint = $0.map { AnyView($0) }
-                                    hintLabel = "Sigmoid Adjustment Factor"
+                                    hintLabel = String(localized: "Sigmoid Adjustment Factor")
                                 }
                             ),
                             units: state.units,
                             type: .decimal("adjustmentFactorSigmoid"),
-                            label: "Sigmoid Adjustment Factor",
-                            miniHint: "Alter the rate of dynamic sensitivity adjustments for Sigmoid.",
+                            label: String(localized: "Sigmoid Adjustment Factor"),
+                            miniHint: String(localized: "Alter the rate of dynamic sensitivity adjustments for Sigmoid."),
                             verboseHint:
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Default: 50%").bold()
@@ -217,13 +219,13 @@ extension DynamicSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Weighted Average of TDD"
+                                hintLabel = String(localized: "Weighted Average of TDD")
                             }
                         ),
                         units: state.units,
                         type: .decimal("weightPercentage"),
-                        label: "Weighted Average of TDD",
-                        miniHint: "Weight of 24-hr TDD against 10-day TDD.",
+                        label: String(localized: "Weighted Average of TDD"),
+                        miniHint: String(localized: "Weight of 24-hr TDD against 10-day TDD."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 35%").bold()
@@ -246,13 +248,13 @@ extension DynamicSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Adjust Basal"
+                                hintLabel = String(localized: "Adjust Basal")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: "Adjust Basal",
-                        miniHint: "Use Dynamic Ratio to adjust basal rates.",
+                        label: String(localized: "Adjust Basal"),
+                        miniHint: String(localized: "Use Dynamic Ratio to adjust basal rates."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
@@ -274,13 +276,13 @@ extension DynamicSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Minimum Safety Threshold"
+                                hintLabel = String(localized: "Minimum Safety Threshold")
                             }
                         ),
                         units: state.units,
                         type: .decimal("threshold_setting"),
-                        label: "Minimum Safety Threshold",
-                        miniHint: "Increase the safety threshold used to suspend insulin delivery.",
+                        label: String(localized: "Minimum Safety Threshold"),
+                        miniHint: String(localized: "Increase the safety threshold used to suspend insulin delivery."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: Set by Algorithm").bold()
@@ -321,7 +323,7 @@ extension DynamicSettings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

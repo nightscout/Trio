@@ -80,7 +80,7 @@ struct SelectionPopoverView: ChartContent {
                     Image(systemName: "syringe.fill").frame(width: 15)
                     Text(Formatter.bolusFormatter.string(from: iob) ?? "")
                         .bold()
-                        + Text(NSLocalizedString(" U", comment: "Insulin unit"))
+                        + Text(String(localized: " U", comment: "Insulin unit"))
                 }
                 .foregroundStyle(Color.insulin).font(.body)
             }
@@ -90,7 +90,7 @@ struct SelectionPopoverView: ChartContent {
                     Image(systemName: "fork.knife").frame(width: 15)
                     Text(Formatter.integerFormatter.string(from: selectedCOBValue.cob as NSNumber) ?? "")
                         .bold()
-                        + Text(NSLocalizedString(" g", comment: "gram of carbs"))
+                        + Text(String(localized: " g", comment: "gram of carbs"))
                 }
                 .foregroundStyle(Color.orange).font(.body)
             }

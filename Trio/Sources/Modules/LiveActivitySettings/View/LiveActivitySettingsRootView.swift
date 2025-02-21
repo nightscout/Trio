@@ -53,13 +53,13 @@ extension LiveActivitySettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Enable Live Activity"
+                                hintLabel = String(localized: "Enable Live Activity")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: "Enable Live Activity",
-                        miniHint: "Display customizable data on Lock Screen and Dynamic Island.",
+                        label: String(localized: "Enable Live Activity"),
+                        miniHint: String(localized: "Display customizable data on Lock Screen and Dynamic Island."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 10) {
@@ -78,7 +78,7 @@ extension LiveActivitySettings {
                                 )
                             }
                         },
-                        headerText: "Display Live Data From Trio"
+                        headerText: String(localized: "Display Live Data From Trio")
                     )
 
                     if state.useLiveActivity {
@@ -103,7 +103,7 @@ extension LiveActivitySettings {
                                     Spacer()
                                     Button(
                                         action: {
-                                            hintLabel = "Lock Screen Widget Style"
+                                            hintLabel = String(localized: "Lock Screen Widget Style")
                                             selectedVerboseHint =
                                                 AnyView(
                                                     VStack(alignment: .leading, spacing: 10) {
@@ -164,7 +164,7 @@ extension LiveActivitySettings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

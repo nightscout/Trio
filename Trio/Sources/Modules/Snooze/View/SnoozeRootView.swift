@@ -62,20 +62,20 @@ extension Snooze {
 
             switch state.alarm {
             case .high:
-                celltext = NSLocalizedString("High Glucose Alarm active", comment: "High Glucose Alarm active")
+                celltext = String(localized: "High Glucose Alarm active", comment: "High Glucose Alarm active")
             case .low:
-                celltext = NSLocalizedString("Low Glucose Alarm active", comment: "Low Glucose Alarm active")
+                celltext = String(localized: "Low Glucose Alarm active", comment: "Low Glucose Alarm active")
             case .none:
-                celltext = NSLocalizedString("No Glucose Alarm active", comment: "No Glucose Alarm active")
+                celltext = String(localized: "No Glucose Alarm active", comment: "No Glucose Alarm active")
             }
 
             if state.snoozeUntilDate > Date() {
                 snoozeDescription = String(
-                    format: NSLocalizedString("snoozing until %@", comment: "snoozing until %@"),
+                    format: String(localized: "snoozing until %@", comment: "snoozing until %@"),
                     dateFormatter.string(from: state.snoozeUntilDate)
                 )
             } else {
-                snoozeDescription = NSLocalizedString("not snoozing", comment: "not snoozing")
+                snoozeDescription = String(localized: "not snoozing", comment: "not snoozing")
             }
 
             return [celltext, snoozeDescription].joined(separator: ", ")

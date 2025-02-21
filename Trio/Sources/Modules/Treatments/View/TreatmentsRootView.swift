@@ -266,7 +266,8 @@ extension Treatments {
                                         )
 
                                         Text(
-                                            NSLocalizedString(
+                                            String(
+                                                localized:
                                                 " U",
                                                 comment: "Unit in number of units delivered (keep the space character!)"
                                             )
