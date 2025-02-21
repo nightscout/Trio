@@ -118,10 +118,10 @@ final class AppVersionChecker {
      - isBlacklisted: `true` if the current version is blacklisted.
      */
     func refreshVersionInfo(completion: @escaping (
-        String,    /* currentVersion */
-        String?,   /* latestVersion */
-        Bool,      /* isNewer */
-        Bool       /* isBlacklisted */
+        String,
+        String?,
+        Bool,
+        Bool
     ) -> Void) {
         let currentVersion = version()
         checkForNewVersion { latestVersion, isNewer, isBlacklisted in
