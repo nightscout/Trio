@@ -232,7 +232,7 @@ final class BaseAPSManager: APSManager, Injectable {
         // Check if too soon for next loop
         if lastLoopDate > lastLoopStartDate {
             guard lastLoopStartDate.addingTimeInterval(Config.loopInterval) < Date() else {
-                debug(.apsManager, "too close to do a loop : \(lastLoopStartDate)")
+                debug(.apsManager, "Not enough time have passed since last loop at : \(lastLoopStartDate)")
                 return false
             }
         }
