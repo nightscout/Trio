@@ -166,17 +166,18 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         let content = UNMutableNotificationContent()
 
         if snoozeUntilDate > Date() {
-            titles.append(NSLocalizedString("(Snoozed)", comment: "(Snoozed)"))
+            titles.append(String(localized: "(Snoozed)", comment: "(Snoozed)"))
         } else {
             content.sound = .default
             playSoundIfNeeded()
         }
 
-        titles.append(String(format: NSLocalizedString("Carbs required: %d g", comment: "Carbs required"), carbs))
+        titles.append(String(format: String(localized: "Carbs required: %d g", comment: "Carbs required"), carbs))
 
         content.title = titles.joined(separator: " ")
         content.body = String(
-            format: NSLocalizedString(
+            format: String(
+                localized:
                 "To prevent LOW required %d g of carbs",
                 comment: "To prevent LOW required %d g of carbs"
             ),
@@ -186,8 +187,8 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     }
 
     private func scheduleMissingLoopNotifiactions(date _: Date) {
-        let title = NSLocalizedString("Trio Not Active", comment: "Trio Not Active")
-        let body = NSLocalizedString("Last loop was more than %d min ago", comment: "Last loop was more than %d min ago")
+        let title = String(localized: "Trio Not Active", comment: "Trio Not Active")
+        let body = String(localized: "Last loop was more than %d min ago", comment: "Last loop was more than %d min ago")
 
         let firstContent = UNMutableNotificationContent()
         firstContent.title = title
@@ -221,8 +222,9 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     }
 
     private func notifyBolusFailure() {
-        let title = NSLocalizedString("Bolus failed", comment: "Bolus failed")
-        let body = NSLocalizedString(
+        let title = String(localized: "Bolus failed", comment: "Bolus failed")
+        let body = String(
+            localized:
             "Bolus failed or inaccurate. Check pump history before repeating.",
             comment: "Bolus failed or inaccurate. Check pump history before repeating."
         )
@@ -278,13 +280,13 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
             switch glucoseStorage.alarm {
             case .none:
-                titles.append(NSLocalizedString("Glucose", comment: "Glucose"))
+                titles.append(String(localized: "Glucose", comment: "Glucose"))
             case .low:
-                titles.append(NSLocalizedString("LOWALERT!", comment: "LOWALERT!"))
+                titles.append(String(localized: "LOWALERT!", comment: "LOWALERT!"))
                 messageType = MessageType.warning
                 notificationAlarm = true
             case .high:
-                titles.append(NSLocalizedString("HIGHALERT!", comment: "HIGHALERT!"))
+                titles.append(String(localized: "HIGHALERT!", comment: "HIGHALERT!"))
                 messageType = MessageType.warning
                 notificationAlarm = true
             }
@@ -297,7 +299,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             ) + infoBody()
 
             if snoozeUntilDate > Date() {
-                titles.append(NSLocalizedString("(Snoozed)", comment: "(Snoozed)"))
+                titles.append(String(localized: "(Snoozed)", comment: "(Snoozed)"))
                 notificationAlarm = false
             } else {
                 titles.append(body)
@@ -333,7 +335,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             .string(from: Double(
                 units == .mmolL ? glucoseValue
                     .asMmolL : Decimal(glucoseValue)
-            ) as NSNumber)! + " " + NSLocalizedString(units.rawValue, comment: "units")
+            ) as NSNumber)! + " " + String(localized: "\(units.rawValue)", comment: "units")
         let directionText = direction ?? "↔︎"
         let deltaText = delta
             .map {
@@ -363,7 +365,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 body.append(
                     "\n"
                         + String(
-                            format: NSLocalizedString("Nightscout ping: %d ms", comment: "Nightscout ping"),
+                            format: String(localized: "Nightscout ping: %d ms", comment: "Nightscout ping"),
                             Int(ping * 1000)
                         )
                 )
@@ -374,7 +376,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 body.append(
                     "\n"
                         + String(
-                            format: NSLocalizedString("Transmitter: %@%%", comment: "Transmitter: %@%%"),
+                            format: String(localized: "Transmitter: %@%%", comment: "Transmitter: %@%%"),
                             "\(transmitterBattery)"
                         )
                 )
@@ -502,11 +504,11 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
         if message.title == "" {
             switch message.type {
             case .info:
-                content.title = NSLocalizedString("Info", comment: "Info title")
+                content.title = String(localized: "Info", comment: "Info title")
             case .warning:
-                content.title = NSLocalizedString("Warning", comment: "Warning title")
+                content.title = String(localized: "Warning", comment: "Warning title")
             case .error:
-                content.title = NSLocalizedString("Error", comment: "Error title")
+                content.title = String(localized: "Error", comment: "Error title")
             default:
                 content.title = message.title
             }
@@ -538,7 +540,7 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
         default: break
         }
 
-        content.body = NSLocalizedString(message.content, comment: "Info message")
+        content.body = String(localized: "\(message.content)", comment: "Info message")
         content.sound = .default
         addRequest(
             identifier: identifier,

@@ -55,7 +55,7 @@ struct ListStateView: View {
                 Text("IOB").font(.caption).foregroundColor(.secondary)
                 Text(
                     (numberFormatter.string(from: (state.iob ?? 0) as NSNumber) ?? "0") +
-                        NSLocalizedString(" U", comment: "Insulin unit")
+                        String(localized: " U", comment: "Insulin unit")
                 )
                 .font(.body).fontWeight(.bold)
             }
@@ -63,7 +63,7 @@ struct ListStateView: View {
                 Text("COB").font(.caption).foregroundColor(.secondary)
                 Text(
                     (numberFormatter.string(from: (state.cob ?? 0) as NSNumber) ?? "0") +
-                        NSLocalizedString(" g", comment: "gram of carbs")
+                        String(localized: " g", comment: "gram of carbs")
                 )
                 .font(.body).fontWeight(.bold)
             }
@@ -79,9 +79,9 @@ struct ListStateView: View {
                 let minutes = -1 * state.date.timeIntervalSinceNow / 60
                 let text = timaAgoFormatter.string(for: Double(minutes)) ?? ""
                 Text(
-                    minutes <= 1 ? "< 1 " + NSLocalizedString("min", comment: "Short form for minutes") : (
+                    minutes <= 1 ? "< 1 " + String(localized: "min", comment: "Short form for minutes") : (
                         text + " " +
-                            NSLocalizedString("min", comment: "Short form for minutes") + " "
+                            String(localized: "min", comment: "Short form for minutes") + " "
                     )
                 )
                 .font(.caption2).foregroundColor(.secondary)

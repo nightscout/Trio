@@ -331,7 +331,7 @@ extension LocalizedStringKey {
         let mirror = Mirror(reflecting: self)
         let children = mirror.children
         if let label = children.first(where: { $0.label == "key" })?.value as? String {
-            return NSLocalizedString(label, comment: "")
+            return String(localized: "\(label)", comment: "")
         } else {
             return ""
         }

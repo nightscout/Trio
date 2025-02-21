@@ -119,7 +119,7 @@ extension PumpConfig {
                                 )
                             }
                         ),
-                        sheetTitle: "Help"
+                        sheetTitle: String(localized: "Help", comment: "Help sheet title")
                     )
                 }
                 .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
