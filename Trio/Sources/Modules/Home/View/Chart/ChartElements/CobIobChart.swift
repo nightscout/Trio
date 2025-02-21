@@ -80,7 +80,24 @@ extension MainChartView {
     }
 
     func drawCOBIOBChart() -> some ChartContent {
-        ForEach(state.enactedAndNonEnactedDeterminations) { item in
+        // Filter out duplicate entries by `deliverAt`,
+        // We sometimes get two determinations when editing carbs, one without the entry-to-be-edited and then another one after editing the entry.
+        // We are fetching determinations in descending order, so the first one is the latter determination (with correct amounts), so keeping the first one encountered.
+        var seenDates = Set<Date>()
+        let filteredDeterminations = state.enactedAndNonEnactedDeterminations.filter { item in
+            if let date = item.deliverAt {
+                if seenDates.contains(date) {
+                    // Already seen this date – filter it out.
+                    return false
+                } else {
+                    seenDates.insert(date)
+                    return true
+                }
+            }
+            return true
+        }
+
+        return ForEach(filteredDeterminations) { item in
 
             // MARK: - COB line and area mark
 

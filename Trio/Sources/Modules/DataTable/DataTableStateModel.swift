@@ -313,6 +313,8 @@ extension DataTable {
                 )
 
                 await syncWithServices()
+                // Perform a determine basal sync to update cob
+                await apsManager.determineBasalSync()
             }
         }
 

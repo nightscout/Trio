@@ -19,7 +19,6 @@ enum Screen: Identifiable, Hashable {
     case manualTempBasal
     case dataTable
     case cgm
-    case cgmDirect
     case healthkit
     case glucoseNotificationSettings
     case mealSettings
@@ -89,9 +88,7 @@ extension Screen {
         case .dataTable:
             DataTable.RootView(resolver: resolver)
         case .cgm:
-            CGM.RootView(resolver: resolver, displayClose: false)
-        case .cgmDirect:
-            CGM.RootView(resolver: resolver, displayClose: true)
+            CGMSettings.RootView(resolver: resolver, displayClose: false)
         case .healthkit:
             AppleHealthKit.RootView(resolver: resolver)
         case .glucoseNotificationSettings:

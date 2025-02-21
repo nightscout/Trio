@@ -9,6 +9,7 @@ struct ForecastView: ChartContent {
     let units: GlucoseUnits
     let maxValue: Decimal
     let forecastDisplayType: ForecastDisplayType
+    let lastDeterminationDate: Date
 
     var body: some ChartContent {
         if forecastDisplayType == .lines {
@@ -19,7 +20,7 @@ struct ForecastView: ChartContent {
     }
 
     private func timeForIndex(_ index: Int32) -> Date {
-        let currentTime = Date()
+        let currentTime = lastDeterminationDate
         let timeInterval = TimeInterval(index * 300)
         return currentTime.addingTimeInterval(timeInterval)
     }

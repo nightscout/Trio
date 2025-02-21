@@ -6,7 +6,6 @@ struct PumpView: View {
     let name: String
     let expiresAtDate: Date?
     let timerDate: Date
-    let timeZone: TimeZone?
     let pumpStatusHighlightMessage: String?
     let battery: [OpenAPS_Battery]
 
@@ -68,22 +67,6 @@ struct PumpView: View {
                         Capsule()
                             .stroke(reservoirColor.opacity(0.4), lineWidth: 2)
                     )
-
-                    if let timeZone = timeZone, timeZone.secondsFromGMT() != TimeZone.current.secondsFromGMT() {
-                        HStack {
-                            Image(systemName: "clock.badge.exclamationmark.fill")
-                                .font(.callout)
-                                .symbolRenderingMode(.palette)
-                                .foregroundStyle(.red, Color(.warning))
-
-                            Text("Timezone")
-                                .font(.callout)
-                                .fontWeight(.bold)
-                                .fontDesign(.rounded)
-                                .foregroundStyle(.red)
-                        }
-                        .padding(.leading, 12)
-                    }
                 }
 
                 if (battery.first?.display) != nil, let shouldBatteryDisplay = battery.first?.display, shouldBatteryDisplay {
