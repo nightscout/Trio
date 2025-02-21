@@ -107,7 +107,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
     private func registerHandlers() {
         // Due to the Batch insert this only is used for observing Deletion of Glucose entries
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.sendGlucoseNotification()

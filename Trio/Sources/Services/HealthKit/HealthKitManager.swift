@@ -94,7 +94,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     }
 
     private func registerHandlers() {
-        coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("PumpEventStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task { [weak self] in
                 guard let self = self else { return }
@@ -102,7 +102,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             }
         }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("CarbEntryStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task { [weak self] in
                 guard let self = self else { return }
@@ -111,7 +111,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         }.store(in: &subscriptions)
 
         // This works only for manual Glucose
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task { [weak self] in
                 guard let self = self else { return }

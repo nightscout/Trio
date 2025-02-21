@@ -625,7 +625,7 @@ extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
 
 extension Treatments.StateModel {
     private func registerHandlers() {
-        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.setupDeterminationsArray()
@@ -635,7 +635,7 @@ extension Treatments.StateModel {
         }.store(in: &subscriptions)
 
         // Due to the Batch insert this only is used for observing Deletion of Glucose entries
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             self.setupGlucoseArray()
         }.store(in: &subscriptions)

@@ -70,13 +70,13 @@ extension Publisher where Output == Set<NSManagedObjectID> {
     /// Example usage:
     /// ```swift
     /// // Filter changes for "GlucoseStored" entity
-    /// publisher.filterByEntityName("GlucoseStored")
+    /// publisher.filteredByEntityName("GlucoseStored")
     /// ```
     ///
     /// - Parameters:
     ///   - name: The name of the Core Data entity to filter for
     /// - Returns: A publisher emitting filtered sets of NSManagedObjectIDs
-    func filterByEntityName(
+    func filteredByEntityName(
         _ name: String
     ) -> some Publisher<Set<NSManagedObjectID>, Self.Failure> {
         compactMap { objectIDs -> Set<NSManagedObjectID>? in

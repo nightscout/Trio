@@ -130,7 +130,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         /// 1. To ensure that any upload flag updates have properly been performed, and in subsequent fetching processes only truly unuploaded data is fetched
         /// 2. To not spam the user's NS site with a high number of uploads in a very short amount of time (less than 1sec)
         coreDataPublisher?
-            .filterByEntityName("OrefDetermination")
+            .filteredByEntityName("OrefDetermination")
             .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
             .sink { [weak self] objectIDs in
                 guard let self = self else { return }
@@ -163,7 +163,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
             .store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("OverrideStored")
+        coreDataPublisher?.filteredByEntityName("OverrideStored")
             .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
             .sink { [weak self] _ in
                 guard let self = self else { return }
@@ -172,7 +172,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 }
             }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("OverrideRunStored")
+        coreDataPublisher?.filteredByEntityName("OverrideRunStored")
             .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
             .sink { [weak self] _ in
                 guard let self = self else { return }
@@ -181,7 +181,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 }
             }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("TempTargetStored")
+        coreDataPublisher?.filteredByEntityName("TempTargetStored")
             .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
             .sink { [weak self] _ in
                 guard let self = self else { return }
@@ -190,7 +190,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 }
             }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("TempTargetRunStored")
+        coreDataPublisher?.filteredByEntityName("TempTargetRunStored")
             .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
             .sink { [weak self] _ in
                 guard let self = self else { return }
@@ -199,7 +199,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 }
             }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("PumpEventStored")
+        coreDataPublisher?.filteredByEntityName("PumpEventStored")
             .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
             .sink { [weak self] objectIDs in
                 guard let self = self else { return }
@@ -225,7 +225,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
             .store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("CarbEntryStored")
+        coreDataPublisher?.filteredByEntityName("CarbEntryStored")
             .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
             .sink { [weak self] objectIDs in
                 guard let self = self else { return }
@@ -253,7 +253,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
             .store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("GlucoseStored")
+        coreDataPublisher?.filteredByEntityName("GlucoseStored")
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task.detached {

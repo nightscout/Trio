@@ -98,17 +98,17 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
     }
 
     private func registerHandler() {
-        coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("OverrideStored").sink { [weak self] _ in
             guard let self = self else { return }
             self.overridesDidUpdate()
         }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             self.setupGlucoseArray()
         }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("OrefDetermination")
+        coreDataPublisher?.filteredByEntityName("OrefDetermination")
             .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .utility))
             .sink { [weak self] _ in
                 guard let self = self else { return }

@@ -89,7 +89,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     }
 
     private func registerHandlers() {
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.createEvent()

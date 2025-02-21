@@ -232,22 +232,22 @@ extension Home {
         }
 
         private func registerHandlers() {
-            coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupDeterminationsArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupGlucoseArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("CarbEntryStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupCarbsArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("PumpEventStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupInsulinArray()
                 self.setupLastBolus()
@@ -255,27 +255,27 @@ extension Home {
                 self.displayPumpStatusBadge()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("OpenAPS_Battery").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("OpenAPS_Battery").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupBatteryArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("OverrideStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupOverrides()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("OverrideRunStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("OverrideRunStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupOverrideRunStored()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("TempTargetStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("TempTargetStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupTempTargetsStored()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("TempTargetRunStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("TempTargetRunStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupTempTargetsRunStored()
             }.store(in: &subscriptions)

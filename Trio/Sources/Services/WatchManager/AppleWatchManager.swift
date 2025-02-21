@@ -81,7 +81,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     private func registerHandlers() {
-        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 let state = await self.setupWatchState()
@@ -90,7 +90,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }.store(in: &subscriptions)
 
         // Due to the Batch insert this only is used for observing Deletion of Glucose entries
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 let state = await self.setupWatchState()
@@ -98,14 +98,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             }
         }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("PumpEventStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.getActiveBolusAmount()
             }
         }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("OverrideStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 let state = await self.setupWatchState()
@@ -113,7 +113,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             }
         }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("TempTargetStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("TempTargetStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 let state = await self.setupWatchState()

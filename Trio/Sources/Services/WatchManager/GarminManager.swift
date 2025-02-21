@@ -157,7 +157,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// When these change, we re-compute the Garmin watch state and send updates to the watch.
     private func registerHandlers() {
         coreDataPublisher?
-            .filterByEntityName("OrefDetermination")
+            .filteredByEntityName("OrefDetermination")
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task {
@@ -177,7 +177,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
         // Due to the batch insert, this only observes deletion of Glucose entries
         coreDataPublisher?
-            .filterByEntityName("GlucoseStored")
+            .filteredByEntityName("GlucoseStored")
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task {
