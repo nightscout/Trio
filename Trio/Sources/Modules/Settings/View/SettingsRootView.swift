@@ -38,6 +38,38 @@ extension Settings {
             SettingItems.filteredItems(searchText: searchText)
         }
 
+        @ViewBuilder
+        func versionInfoView() -> some View {
+            let latestVersion = versionInfo.latestVersion
+            if let version = latestVersion {
+                let updateColor: Color = versionInfo.isUpdateAvailable ? .orange : .green
+                let versionIconName = versionInfo.isUpdateAvailable ? "exclamationmark.triangle.fill" : "checkmark.circle.fill"
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Latest version: \(version)")
+                            .font(.footnote)
+                            .foregroundColor(updateColor)
+                        Image(systemName: versionIconName)
+                            .foregroundColor(updateColor)
+                    }
+                    if versionInfo.isBlacklisted {
+                        HStack {
+                            Text("Warning: Known issues. Update now.")
+                                .font(.footnote)
+                                .foregroundColor(.red)
+                            Image(systemName: "exclamationmark.octagon.fill")
+                                .foregroundColor(.red)
+                        }
+                    }
+                }
+            } else {
+                Text("Latest version: Fetching...")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            }
+        }
+
         var body: some View {
             List {
                 if searchText.isEmpty {
@@ -74,31 +106,8 @@ extension Settings {
                                                 .font(.footnote)
                                                 .foregroundColor(.secondary)
                                         }
-                                        if let latest = versionInfo.latestVersion {
-                                            HStack {
-                                                Text("Latest version: \(latest)")
-                                                    .font(.footnote)
-                                                    .foregroundColor(versionInfo.isUpdateAvailable ? .orange : .green)
-                                                Image(
-                                                    systemName: versionInfo
-                                                        .isUpdateAvailable ? "exclamationmark.triangle.fill" :
-                                                        "checkmark.circle.fill"
-                                                )
-                                                .foregroundColor(versionInfo.isUpdateAvailable ? .orange : .green)
-                                            }
-                                            if versionInfo.isBlacklisted {
-                                                HStack {
-                                                    Text("Warning: Known issues. Update now.").font(.footnote)
-                                                        .foregroundColor(.red)
-                                                    Image(systemName: "exclamationmark.octagon.fill")
-                                                        .foregroundColor(.red)
-                                                }
-                                            }
-                                        } else {
-                                            Text("Latest version: Fetching...")
-                                                .font(.footnote)
-                                                .foregroundColor(.secondary)
-                                        }
+
+                                        versionInfoView()
                                     }
                                 }
                             }
