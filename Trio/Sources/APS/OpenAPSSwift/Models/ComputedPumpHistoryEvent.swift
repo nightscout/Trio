@@ -17,6 +17,7 @@ struct ComputedPumpHistoryEvent: Codable, Equatable, Identifiable {
     let isExternal: Bool?
     let insulin: Decimal?
     let isTempBolus: Bool
+    let omitFromTempHistory: Bool
 
     // Make these non-computed properties to ensure they're always set
     let started_at: Date
@@ -42,7 +43,8 @@ struct ComputedPumpHistoryEvent: Codable, Equatable, Identifiable {
         isSMB: Bool?,
         isExternal: Bool?,
         insulin: Decimal?,
-        isTempBolus: Bool = false
+        isTempBolus: Bool = false,
+        omitFromTempHistory: Bool = false
     ) {
         self.id = id
         self.type = type
@@ -60,6 +62,7 @@ struct ComputedPumpHistoryEvent: Codable, Equatable, Identifiable {
         self.isExternal = isExternal
         self.insulin = insulin
         self.isTempBolus = isTempBolus
+        self.omitFromTempHistory = omitFromTempHistory
 
         // Explicitly set started_at and date as required by history.js
         started_at = timestamp // This matches behavior of new Date(tz(timestamp))
@@ -87,5 +90,6 @@ extension ComputedPumpHistoryEvent {
         case date
         case insulin
         case isTempBolus
+        case omitFromTempHistory
     }
 }

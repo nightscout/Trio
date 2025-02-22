@@ -71,3 +71,16 @@ extension IobResult {
         }
     }
 }
+
+extension ComputedPumpHistoryEvent {
+    func contains(tempBolus: ComputedPumpHistoryEvent) -> Bool {
+        guard type == .tempBasal, tempBolus.isTempBolus else {
+            fatalError("invalid type for computed pump history event")
+        }
+
+        let start = timestamp
+        let end = start + duration!.minutesToSeconds
+
+        return start <= tempBolus.timestamp && end > tempBolus.timestamp
+    }
+}

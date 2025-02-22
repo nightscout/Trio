@@ -90,6 +90,7 @@ struct AlgorithmComparison: Codable {
     let jsException: AlgorithmException?
     let swiftException: AlgorithmException?
     let comparisonError: AlgorithmException?
+    let version: String?
 
     // Inputs for mismatches
     let iobInput: IobInputs?
@@ -131,5 +132,6 @@ struct AlgorithmComparison: Codable {
         self.comparisonError = comparisonError
         iobInput = iobInputs
         timezone = TimeZone.current.identifier
+        version = "1"
     }
 }

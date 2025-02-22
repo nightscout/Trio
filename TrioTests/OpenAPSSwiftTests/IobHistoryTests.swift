@@ -456,4 +456,70 @@ import Testing
         // Total: -1U
         #expect(treatments.netInsulin().isWithin(0.01, of: -1))
     }
+
+    @Test("should omit zero temp and split temp basal around suspend") func splitTempBasalFromSuspend() async throws {
+        let basalprofile = [
+            BasalProfileEntry(
+                start: "00:00:00",
+                minutes: 0,
+                rate: 1.2
+            )
+        ]
+
+        let now = Calendar.current.startOfDay(for: Date()) + 30.minutesToSeconds
+        let timestamp30mAgo = now - 30.minutesToSeconds
+        let timestamp20mAgo = now - 20.minutesToSeconds
+        let timestamp10mAgo = now - 10.minutesToSeconds
+
+        let pumpHistory = [
+            ComputedPumpHistoryEvent.forTest(
+                type: .tempBasal,
+                timestamp: timestamp30mAgo,
+                duration: nil,
+                rate: 2.4,
+                temp: .absolute
+            ),
+            ComputedPumpHistoryEvent.forTest(
+                type: .tempBasalDuration,
+                timestamp: timestamp30mAgo,
+                durationMin: 30
+            ),
+            ComputedPumpHistoryEvent.forTest(
+                type: .pumpSuspend,
+                timestamp: timestamp20mAgo
+            ),
+            ComputedPumpHistoryEvent.forTest(
+                type: .pumpResume,
+                timestamp: timestamp10mAgo
+            )
+        ]
+
+        var profile = Profile()
+        profile.dia = 3
+        profile.basalprofile = basalprofile
+        profile.currentBasal = 1.2
+        profile.maxDailyBasal = 1.2
+        profile.suspendZerosIob = true
+
+        let treatments = try IobHistory.calcTempTreatments(
+            history: pumpHistory,
+            profile: profile,
+            clock: now,
+            autosens: nil,
+            zeroTempDuration: nil
+        )
+
+        let tempBasals = treatments.filter { $0.type == .tempBasal }
+        #expect(tempBasals[0].duration == 10)
+        #expect(tempBasals[0].timestamp == timestamp30mAgo)
+        #expect(tempBasals[0].rate == 2.4)
+        #expect(tempBasals[1].rate == 0)
+        #expect(tempBasals.count == 2) // the original temp basal + last zero
+
+        // 10m at 2.4U/h - 1.2U/h -> 0.2U
+        // 10m at 0U/h - 1.2U/h -> -0.2U
+        // 10m at 2.4U/h - 1.2U/h -> 0.2U
+        // Total: 0.2
+        #expect(treatments.netInsulin().isWithin(0.01, of: 0.2))
+    }
 }
