@@ -38,8 +38,7 @@ extension Settings {
             SettingItems.filteredItems(searchText: searchText)
         }
 
-        @ViewBuilder
-        func versionInfoView() -> some View {
+        @ViewBuilder var versionInfoView: some View {
             let latestVersion = versionInfo.latestVersion
             if let version = latestVersion {
                 let updateColor: Color = versionInfo.isUpdateAvailable ? .orange : .green
@@ -107,7 +106,7 @@ extension Settings {
                                                 .foregroundColor(.secondary)
                                         }
 
-                                        versionInfoView()
+                                        versionInfoView
                                     }
                                 }
                             }
