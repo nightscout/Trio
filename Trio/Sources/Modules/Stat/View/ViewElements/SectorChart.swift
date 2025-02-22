@@ -33,7 +33,7 @@ struct SectorChart: View {
                         angularInset: 1.5
                     )
                     .cornerRadius(3)
-                    .foregroundStyle(data.color.gradient)
+                    .foregroundStyle(data.color)
                     .annotation(position: .overlay, alignment: .center, spacing: 0) {
                         if data.percentage > 0 {
                             Text("\(Int(data.percentage))%")
@@ -234,7 +234,7 @@ private struct RangeDetailPopover: View {
         .padding(20)
         .background {
             RoundedRectangle(cornerRadius: 10)
-                .fill(data.color.gradient)
+                .fill(data.color)
         }
     }
 

@@ -244,7 +244,7 @@ struct AGPSelectionPopover: View {
         .padding(20)
         .background {
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.blue.gradient)
+                .fill(Color.blue)
         }
     }
 }

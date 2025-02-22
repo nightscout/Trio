@@ -480,7 +480,7 @@ private struct MealSelectionPopover: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.orange.gradient)
+                .fill(Color.orange)
         )
     }
 }

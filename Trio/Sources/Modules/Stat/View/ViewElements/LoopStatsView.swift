@@ -14,7 +14,7 @@ struct LoopStatsView: View {
                     y: .value("Category", data.category)
                 )
                 .cornerRadius(5)
-                .foregroundStyle(data.category == "Successful Loops" ? Color.blue.gradient : Color.green.gradient)
+                .foregroundStyle(data.category == "Successful Loops" ? Color.blue : Color.green)
                 .annotation(position: .overlay) {
                     HStack {
                         Text(annotationText(for: data))

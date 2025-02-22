@@ -325,7 +325,7 @@ private struct TDDSelectionPopover: View {
         .padding(20)
         .background {
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.insulin.gradient)
+                .fill(Color.insulin)
         }
     }
 }
