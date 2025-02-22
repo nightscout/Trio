@@ -63,10 +63,19 @@ enum ComparisonResultType: String, Codable {
     case comparisonError // The comparison algorithm itself failed
 }
 
+/// For tracking inputs to IoB when there is a mismatch
+struct IobInputs: Codable {
+    let history: [PumpHistoryEvent]
+    let profile: Profile
+    let clock: Date
+    let autosens: Autosens?
+}
+
 /// Represents a complete comparison between JS and Swift implementations
 struct AlgorithmComparison: Codable {
     let id: UUID
     let createdAt: Date
+    let timezone: String
     let function: OrefFunction
     let resultType: ComparisonResultType
 
@@ -82,6 +91,21 @@ struct AlgorithmComparison: Codable {
     let swiftException: AlgorithmException?
     let comparisonError: AlgorithmException?
 
+    // Inputs for mismatches
+    let iobInput: IobInputs?
+
+    #if targetEnvironment(simulator)
+        static let isSimulator = true
+    #else
+        static let isSimulator = false
+    #endif
+
+    #if DEBUG
+        static let isDebugBuild = true
+    #else
+        static let isDebugBuild = false
+    #endif
+
     init(
         function: OrefFunction,
         resultType: ComparisonResultType,
@@ -91,6 +115,7 @@ struct AlgorithmComparison: Codable {
         jsException: AlgorithmException? = nil,
         swiftException: AlgorithmException? = nil,
         comparisonError: AlgorithmException? = nil,
+        iobInputs: IobInputs? = nil,
         id: UUID = UUID(),
         createdAt: Date = Date()
     ) {
@@ -104,5 +129,7 @@ struct AlgorithmComparison: Codable {
         self.jsException = jsException
         self.swiftException = swiftException
         self.comparisonError = comparisonError
+        iobInput = iobInputs
+        timezone = TimeZone.current.identifier
     }
 }

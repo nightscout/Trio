@@ -51,11 +51,12 @@ actor JsSwiftOrefComparisonLogger {
 
     // MARK: - Logger implementation
 
-    private let minBatchSize = 8
-    private let maxStoredEntries = 256
+    private let minBatchSize = 16
+    private let maxStoredEntries = 4096
     private let fileManager = FileManager.default
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
+    private var isUploading = false
 
     // server settings for getting a signed Google Cloud Storage URL
     // that we can PUT to
@@ -81,7 +82,17 @@ actor JsSwiftOrefComparisonLogger {
 
     private func readComparisons() throws -> [AlgorithmComparison] {
         let data = try Data(contentsOf: storageUrl)
-        return try decoder.decode([AlgorithmComparison].self, from: data)
+        do {
+            return try decoder.decode([AlgorithmComparison].self, from: data)
+        } catch DecodingError.keyNotFound {
+            // this can happen when we change the AlgorithmComparison
+            // struct, we can just drop the values that are cached and try again
+            try "[]".write(to: storageUrl, atomically: true, encoding: .utf8)
+            let data = try Data(contentsOf: storageUrl)
+            return try decoder.decode([AlgorithmComparison].self, from: data)
+        } catch {
+            throw error
+        }
     }
 
     private func writeComparisons(_ comparisons: [AlgorithmComparison]) throws {
@@ -98,8 +109,16 @@ actor JsSwiftOrefComparisonLogger {
 
         try writeComparisons(comparisons)
 
-        if comparisons.count >= minBatchSize {
-            try await uploadCurrentBatch()
+        // upload when we have enough entries and avoid uploading duplicates
+        if comparisons.count >= minBatchSize, !isUploading {
+            isUploading = true
+            do {
+                try await uploadCurrentBatch()
+                isUploading = false
+            } catch {
+                isUploading = false
+                throw error
+            }
         }
     }
 

@@ -40,4 +40,23 @@ struct OpenAPSSwift {
             return .failure(error)
         }
     }
+
+    static func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) -> (OrefFunctionResult, IobInputs?) {
+        var iobInputs: IobInputs?
+
+        do {
+            let pumpHistory = try JSONBridge.pumpHistory(from: pumphistory)
+            let profile = try JSONBridge.profile(from: profile)
+            let clock = try JSONBridge.clock(from: clock)
+            let autosens = try JSONBridge.autosens(from: autosens)
+
+            iobInputs = IobInputs(history: pumpHistory, profile: profile, clock: clock, autosens: autosens)
+
+            let iobResult = try IobGenerator.generate(history: pumpHistory, profile: profile, clock: clock, autosens: autosens)
+
+            return try (.success(JSONBridge.to(iobResult)), iobInputs)
+        } catch {
+            return (.failure(error), iobInputs)
+        }
+    }
 }
