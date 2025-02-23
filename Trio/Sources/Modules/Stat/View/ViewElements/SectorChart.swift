@@ -24,6 +24,68 @@ struct SectorChart: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 20) {
+            // Calculate total number of glucose readings
+            let total = Decimal(glucose.count)
+            // Count readings between high limit and 250 mg/dL (high)
+            let high = glucose.filter { $0.glucose > Int(highLimit) }.count
+            // Count readings between low limit and 140 mg/dL (tight control)
+            let tight = glucose.filter { $0.glucose >= Int(lowLimit) && $0.glucose <= 140 }.count
+            // Count readings between 140 and high limit (normal range)
+            let normal = glucose.filter { $0.glucose > 140 && $0.glucose <= Int(highLimit) }.count
+            // Count readings between 54 and low limit (low)
+            let low = glucose.filter { $0.glucose < Int(lowLimit) }.count
+
+            let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
+            let sumReadings = justGlucoseArray.reduce(0, +)
+
+            let glucoseAverage = Decimal(sumReadings) / total
+            let medianGlucose = BareStatisticsView.medianCalculation(array: justGlucoseArray)
+
+            let lowPercentage = Decimal(low) / total * 100
+            let tightPercentage = Decimal(tight) / total * 100
+            let inRangePercentage = Decimal(normal) / total * 100
+            let highPercentage = Decimal(high) / total * 100
+
+            VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("70-180").font(.subheadline).foregroundStyle(Color.secondary)
+                    Text(inRangePercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " %")
+                        .foregroundStyle(Color.loopGreen)
+                }
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("70-140").font(.subheadline).foregroundStyle(Color.secondary)
+                    Text(tightPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " %")
+                        .foregroundStyle(Color.green)
+                }
+            }.padding(.leading, 5)
+
+            VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("> 180").font(.subheadline).foregroundStyle(Color.secondary)
+                    Text(highPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " %")
+                        .foregroundStyle(Color.orange)
+                }
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("< 54").font(.subheadline).foregroundStyle(Color.secondary)
+                    Text(lowPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " %")
+                        .foregroundStyle(Color.loopRed)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Average").font(.subheadline).foregroundStyle(Color.secondary)
+                    Text(glucoseAverage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))))
+                }
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Median").font(.subheadline).foregroundStyle(Color.secondary)
+                    Text(medianGlucose.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))))
+                }
+            }
+
             Chart {
                 ForEach(rangeData, id: \.range) { data in
                     SectorMark(
@@ -32,27 +94,27 @@ struct SectorChart: View {
                         outerRadius: selectedRange == data.range ? 100 : 80,
                         angularInset: 1.5
                     )
-                    .cornerRadius(3)
+//                    .cornerRadius(3)
                     .foregroundStyle(data.color)
-                    .annotation(position: .overlay, alignment: .center, spacing: 0) {
-                        if data.percentage > 0 {
-                            Text("\(Int(data.percentage))%")
-                                .font(.callout)
-                                .foregroundStyle(.white)
-                                .fontWeight(.bold)
-                        }
-                    }
+//                    .annotation(position: .automatic, alignment: .leading, spacing: 0) {
+//                        if data.percentage > 0 {
+//                            Text("\(Int(data.percentage))%")
+//                                .font(.callout)
+//                                .foregroundStyle(.white)
+//                                .fontWeight(.bold)
+//                        }
+//                    }
                 }
             }
-            .chartLegend(position: .bottom, spacing: 20)
+//            .chartLegend(position: .bottom, spacing: 20)
             .chartAngleSelection(value: $selectedCount)
-            .chartForegroundStyleScale([
-                "High": Color.orange,
-                "In Range": Color.green,
-                "Low": Color.red
-            ])
-            .padding(.vertical)
-            .frame(height: 250)
+//            .chartForegroundStyleScale([
+//                "High": Color.orange,
+//                "In Range": Color.green,
+//                "Low": Color.red
+//            ])
+//            .padding(.vertical)
+            .frame(height: 100)
         }
         .onChange(of: selectedCount) { _, newValue in
             if let newValue {
@@ -193,8 +255,8 @@ struct SectorChart: View {
                 title: "Low Glucose",
                 color: .red,
                 items: [
-                    ("Very Low (<\(veryLowThresholdTreshold) \(units.rawValue))", Decimal(veryLow) / total * 100),
-                    ("Low (\(veryLowThresholdTreshold)-\(lowLimitTreshold) \(units.rawValue))", Decimal(low) / total * 100)
+                    ("Low (\(veryLowThresholdTreshold)-\(lowLimitTreshold) \(units.rawValue))", Decimal(low) / total * 100),
+                    ("Very Low (<\(veryLowThresholdTreshold) \(units.rawValue))", Decimal(veryLow) / total * 100)
                 ]
             )
         }
@@ -234,7 +296,7 @@ private struct RangeDetailPopover: View {
         .padding(20)
         .background {
             RoundedRectangle(cornerRadius: 10)
-                .fill(data.color)
+                .fill(Color.blue)
         }
     }
 

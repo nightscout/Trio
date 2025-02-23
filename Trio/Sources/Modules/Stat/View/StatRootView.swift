@@ -117,14 +117,14 @@ extension Stat {
                         )
                     }
 
-                    Divider()
-
-                    SectorChart(
-                        highLimit: state.highLimit,
-                        lowLimit: state.lowLimit,
-                        units: state.units,
-                        glucose: state.glucoseFromPersistence
-                    )
+//                    Divider()
+//
+//                    SectorChart(
+//                        highLimit: state.highLimit,
+//                        lowLimit: state.lowLimit,
+//                        units: state.units,
+//                        glucose: state.glucoseFromPersistence
+//                    )
                 }
             }
         }
@@ -132,6 +132,15 @@ extension Stat {
         private var glucoseStatsCard: some View {
             StatCard {
                 VStack(spacing: Constants.spacing) {
+                    SectorChart(
+                        highLimit: state.highLimit,
+                        lowLimit: state.lowLimit,
+                        units: state.units,
+                        glucose: state.glucoseFromPersistence
+                    )
+
+                    Divider()
+
                     BareStatisticsView.HbA1cView(
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
@@ -140,15 +149,15 @@ extension Stat {
                         glucose: state.glucoseFromPersistence
                     )
 
-                    Divider()
-
-                    BareStatisticsView.BloodGlucoseView(
-                        highLimit: state.highLimit,
-                        lowLimit: state.lowLimit,
-                        units: state.units,
-                        hbA1cDisplayUnit: state.hbA1cDisplayUnit,
-                        glucose: state.glucoseFromPersistence
-                    )
+//                    Divider()
+//
+//                    BareStatisticsView.BloodGlucoseView(
+//                        highLimit: state.highLimit,
+//                        lowLimit: state.lowLimit,
+//                        units: state.units,
+//                        hbA1cDisplayUnit: state.hbA1cDisplayUnit,
+//                        glucose: state.glucoseFromPersistence
+//                    )
                 }
             }
         }

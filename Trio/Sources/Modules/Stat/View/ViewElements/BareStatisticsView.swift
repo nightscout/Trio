@@ -5,7 +5,7 @@ import SwiftUI
 struct BareStatisticsView {
     // MARK: - Helper Functions
 
-    private static func medianCalculation(array: [Int]) -> Double {
+    static func medianCalculation(array: [Int]) -> Double {
         guard !array.isEmpty else { return 0 }
         let sorted = array.sorted()
         let length = array.count
@@ -39,53 +39,68 @@ struct BareStatisticsView {
         }
 
         private var hba1c: some View {
-            HStack(spacing: 50) {
-                let useUnit: GlucoseUnits = {
-                    if hbA1cDisplayUnit == .mmolMol { return .mmolL }
-                    else { return .mgdL }
-                }()
+            VStack(alignment: .leading) {
+                HStack(spacing: 40) {
+                    let useUnit: GlucoseUnits = {
+                        if hbA1cDisplayUnit == .mmolMol { return .mmolL }
+                        else { return .mgdL }
+                    }()
 
-                let hba1cs = glucoseStats()
-                // First date
-                let previous = glucose.last?.date ?? Date()
-                // Last date (recent)
-                let current = glucose.first?.date ?? Date()
-                // Total time in days
-                let numberOfDays = (current - previous).timeInterval / 8.64E4
+                    let glucoseStats = calculateGlucoseStatistics()
+                    // First date
+                    let previous = glucose.last?.date ?? Date()
+                    // Last date (recent)
+                    let current = glucose.first?.date ?? Date()
+                    // Total time in days
+                    let numberOfDays = (current - previous).timeInterval / 8.64E4
 
-                let hba1cString = (
-                    useUnit == .mmolL ? hba1cs.ifcc
-                        .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) : hba1cs.ngsp
-                        .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
-                        + " %"
-                )
-                VStack(spacing: 5) {
-                    Text("HbA1c").font(.subheadline).foregroundColor(.secondary)
-                    Text(hba1cString)
-                }
-                VStack(spacing: 5) {
-                    Text("SD").font(.subheadline).foregroundColor(.secondary)
-                    Text(
-                        hba1cs.sd
-                            .formatted(
-                                .number.grouping(.never).rounded()
-                                    .precision(.fractionLength(units == .mmolL ? 1 : 0))
-                            )
+                    let hba1cString = (
+                        useUnit == .mmolL ? glucoseStats.ifcc
+                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) : glucoseStats.ngsp
+                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
+                            + " %"
                     )
-                }
-                VStack(spacing: 5) {
-                    Text("CV").font(.subheadline).foregroundColor(.secondary)
-                    Text(hba1cs.cv.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))))
-                }
-                VStack(spacing: 5) {
-                    Text("Days").font(.subheadline).foregroundColor(.secondary)
-                    Text(numberOfDays.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))))
+                    VStack(spacing: 5) {
+                        Text("HbA1c").font(.subheadline).foregroundColor(.secondary)
+                        Text(hba1cString)
+                    }
+                    VStack(spacing: 5) {
+                        Text("GMI").font(.subheadline).foregroundColor(.secondary)
+                        Text(glucoseStats.gmi.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + " %")
+                    }
+                    VStack(spacing: 5) {
+                        Text("SD").font(.subheadline).foregroundColor(.secondary)
+                        Text(
+                            glucoseStats.sd
+                                .formatted(
+                                    .number.grouping(.never).rounded()
+                                        .precision(.fractionLength(units == .mmolL ? 1 : 0))
+                                )
+                        )
+                    }
+                    VStack(spacing: 5) {
+                        Text("CV").font(.subheadline).foregroundColor(.secondary)
+                        Text(glucoseStats.cv.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))))
+                    }
+                    VStack(spacing: 5) {
+                        Text("Days").font(.subheadline).foregroundColor(.secondary)
+                        Text(numberOfDays.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))))
+                    }
                 }
             }
         }
 
-        func glucoseStats()
-            -> (ifcc: Double, ngsp: Double, average: Double, median: Double, sd: Double, cv: Double, readings: Double)
+        func calculateGlucoseStatistics()
+            -> (
+                ifcc: Double,
+                ngsp: Double,
+                gmi: Double,
+                average: Double,
+                median: Double,
+                sd: Double,
+                cv: Double,
+                readings: Double
+            )
         {
             // First date
             let previous = glucose.last?.date ?? Date()
@@ -105,10 +120,15 @@ struct BareStatisticsView {
 
             var NGSPa1CStatisticValue = 0.0
             var IFCCa1CStatisticValue = 0.0
+            var GMIValue = 0.0
 
             if numberOfDays > 0 {
                 NGSPa1CStatisticValue = (glucoseAverage + 46.7) / 28.7
                 IFCCa1CStatisticValue = 10.929 * (NGSPa1CStatisticValue - 2.152)
+
+                // Calculate GMI using the standard formula
+                // GMI = 3.31 + 0.02392 * averageGlucose (mg/dL)
+                GMIValue = 3.31 + 0.02392 * glucoseAverage
             }
 
             var sumOfSquares = 0.0
@@ -127,6 +147,7 @@ struct BareStatisticsView {
             return (
                 ifcc: IFCCa1CStatisticValue,
                 ngsp: NGSPa1CStatisticValue,
+                gmi: GMIValue,
                 average: glucoseAverage * (units == .mmolL ? 0.0555 : 1),
                 median: medianGlucose * (units == .mmolL ? 0.0555 : 1),
                 sd: sd * (units == .mmolL ? 0.0555 : 1),
