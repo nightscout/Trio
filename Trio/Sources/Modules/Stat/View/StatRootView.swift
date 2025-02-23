@@ -122,7 +122,7 @@ extension Stat {
                 chart().padding(.top, 20)
                 Picker("Duration", selection: $state.selectedDuration) {
                     ForEach(Stat.StateModel.Duration.allCases) { duration in
-                        Text(NSLocalizedString(duration.rawValue, comment: "")).tag(Optional(duration))
+                        Text(duration.rawValue).tag(Optional(duration))
                     }
                 }.onChange(of: state.selectedDuration) { _, newValue in
                     state.setupGlucoseArray(for: newValue)

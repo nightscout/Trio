@@ -86,7 +86,7 @@ extension Home {
                 Image(uiImage: badgeImage.withRenderingMode(.alwaysTemplate))
                     .font(.system(size: 14))
                     .colorMultiply(badgeColor)
-                Text(NSLocalizedString("Time Change Detected", comment: ""))
+                Text(String(localized: "Time Change Detected", comment: ""))
                     .bold()
                     .font(.system(size: 14))
                     .foregroundStyle(badgeColor)
@@ -170,13 +170,14 @@ extension Home {
             var manualBasalString = ""
 
             if let apsManager = state.apsManager, apsManager.isManualTempBasal {
-                manualBasalString = NSLocalizedString(
+                manualBasalString = String(
+                    localized:
                     " - Manual Basal ⚠️",
                     comment: "Manual Temp basal"
                 )
             }
 
-            return rateString + " " + NSLocalizedString(" U/hr", comment: "Unit per hour with space") + manualBasalString
+            return rateString + " " + String(localized: " U/hr", comment: "Unit per hour with space") + manualBasalString
         }
 
         var overrideString: String? {
@@ -291,11 +292,11 @@ extension Home {
                         Group {
                             if button.active {
                                 Text(
-                                    NSLocalizedString(button.hours.description, comment: "") + " " +
-                                        NSLocalizedString("h", comment: "h")
+                                    button.hours.description + " " +
+                                        String(localized: "h", comment: "h")
                                 )
                             } else {
-                                Text(NSLocalizedString(button.hours.description, comment: ""))
+                                Text(button.hours.description)
                             }
                         }
                         .font(.footnote)
@@ -435,7 +436,7 @@ extension Home {
                             Formatter.decimalFormatterWithTwoFractionDigits
                                 .string(from: (state.enactedAndNonEnactedDeterminations.first?.iob ?? 0) as NSNumber) ?? "0"
                         ) +
-                            NSLocalizedString(" U", comment: "Insulin unit")
+                            String(localized: " U", comment: "Insulin unit")
                     )
                     .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
@@ -452,7 +453,7 @@ extension Home {
                                 from: NSNumber(value: state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
                             ) ?? "0"
                         ) +
-                            NSLocalizedString(" g", comment: "gram of carbs")
+                            String(localized: " g", comment: "gram of carbs")
                     )
                     .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
@@ -496,7 +497,7 @@ extension Home {
                                     .string(from: (state.determinationsFromPersistence.first?.totalDailyDose ?? 0) as NSNumber) ??
                                     "0"
                             ) +
-                            NSLocalizedString(" U", comment: "Insulin unit")
+                            String(localized: " U", comment: "Insulin unit")
                     )
                     .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 } else {
@@ -504,7 +505,7 @@ extension Home {
                     HStack {
                         Text(
                             "TINS: \(state.roundedTotalBolus)" +
-                                NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
+                                String(localized: " U", comment: "Unit in number of units delivered (keep the space character!)")
                         )
                         .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                         .onChange(of: state.hours) {
@@ -526,7 +527,7 @@ extension Home {
                     .font(.title2)
                     .foregroundStyle(Color.primary, Color.purple)
                 VStack(alignment: .leading) {
-                    Text(latestOverride.first?.name ?? "Custom Override")
+                    Text(latestOverride.first?.name ?? String(localized: "Custom Override"))
                         .font(.subheadline)
                         .frame(alignment: .leading)
 
@@ -545,7 +546,7 @@ extension Home {
                     .font(.title2)
                     .foregroundStyle(Color.loopGreen)
                 VStack(alignment: .leading) {
-                    Text(latestTempTarget.first?.name ?? "Temp Target")
+                    Text(latestTempTarget.first?.name ?? String(localized: "Temp Target"))
                         .font(.subheadline)
                     Text(tempTargetString)
                         .font(.caption)
@@ -759,7 +760,7 @@ extension Home {
                     (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
                         + " of " +
                         (Formatter.decimalFormatterWithTwoFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
-                        + NSLocalizedString(" U", comment: "Insulin unit")
+                        + String(localized: " U", comment: "Insulin unit")
 
                 ZStack {
                     /// rectangle as background
@@ -898,7 +899,7 @@ extension Home {
                 HStack {
                     tappableButton(
                         buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
-                        label: "Stats",
+                        label: String(localized: "Stats", comment: "Stats icon in main view"),
                         iconString: statsIconString,
                         action: { state.showModal(for: .statistics) }
                     )
@@ -912,7 +913,7 @@ extension Home {
 
                     tappableButton(
                         buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
-                        label: "Info",
+                        label: String(localized: "Info", comment: "Info icon in main view"),
                         iconString: "info",
                         action: { state.isLegendPresented.toggle() }
                     )

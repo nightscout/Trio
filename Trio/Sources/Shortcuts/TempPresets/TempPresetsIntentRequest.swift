@@ -8,12 +8,12 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
         case noDurationDefined
     }
 
-    func fetchAndProcessTempTargets() async -> [TempPreset] {
+    func fetchAndProcessTempTargets() async throws -> [TempPreset] {
         // Fetch all Temp Target Presets via TempTargetStorage
-        let allTempTargetPresetsIDs = await tempTargetsStorage.fetchForTempTargetPresets()
+        let allTempTargetPresetsIDs = try await tempTargetsStorage.fetchForTempTargetPresets()
 
         // Perform the fetch and process on the Core Data context's thread
-        return await coredataContext.perform {
+        return try await coredataContext.perform {
             // Fetch existing TempTargetStored objects based on their NSManagedObjectIDs
             let tempTargetObjects: [TempTargetStored] = allTempTargetPresetsIDs.compactMap { id in
                 guard let object = try? self.coredataContext.existingObject(with: id) as? TempTargetStored else {
@@ -24,14 +24,14 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             }
 
             // Map fetched TempTargetStored objects to TempPreset
-            return tempTargetObjects.compactMap { object in
+            return try tempTargetObjects.compactMap { object in
                 guard let id = object.id,
                       let name = object.name,
                       let target = object.target?.decimalValue,
                       let duration = object.duration?.decimalValue
                 else {
                     debugPrint("\(#file) \(#function) Missing data for TempTargetStored object.")
-                    return TempPreset(id: UUID(), name: "", duration: 0)
+                    throw TempPresetsError.noTempTargetFound
                 }
                 return TempPreset(id: id, name: name, targetTop: target, duration: duration)
             }
@@ -199,10 +199,9 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             }
         }
 
-        // Get NSManagedObjectID of all active temp Targets
-        let ids = await tempTargetsStorage.loadLatestTempTargetConfigurations(fetchLimit: 0)
-
         do {
+            // Get NSManagedObjectID of all active temp Targets
+            let ids = try await tempTargetsStorage.loadLatestTempTargetConfigurations(fetchLimit: 0)
             // Fetch existing OverrideStored objects
             let results = try ids.compactMap { id in
                 try self.viewContext.existingObject(with: id) as? TempTargetStored

@@ -75,7 +75,14 @@ extension NightscoutConfig {
                     if enabled {
                         debug(.nightscout, "Upload has been enabled by the user.")
                         Task {
-                            await self.nightscoutManager.uploadProfiles()
+                            do {
+                                try await self.nightscoutManager.uploadProfiles()
+                            } catch {
+                                debug(
+                                    .default,
+                                    "\(DebuggingIdentifiers.failed) failed to upload profiles: \(error.localizedDescription)"
+                                )
+                            }
                         }
                     } else {
                         debug(.nightscout, "Upload has been disabled by the user.")
@@ -156,7 +163,9 @@ extension NightscoutConfig {
 
             do {
                 guard let fetchedProfile = await nightscoutManager.importSettings() else {
-                    importStatus = .failed
+                    await MainActor.run {
+                        importStatus = .failed
+                    }
                     throw NSError(
                         domain: "ImportError",
                         code: 1,
@@ -178,7 +187,9 @@ extension NightscoutConfig {
                 }
 
                 if carbratios.contains(where: { $0.ratio <= 0 }) {
-                    importStatus = .failed
+                    await MainActor.run {
+                        importStatus = .failed
+                    }
                     throw NSError(
                         domain: "ImportError",
                         code: 2,
@@ -199,7 +210,9 @@ extension NightscoutConfig {
                 }
 
                 if pumpName != "Omnipod DASH", basals.contains(where: { $0.rate <= 0 }) {
-                    importStatus = .failed
+                    await MainActor.run {
+                        importStatus = .failed
+                    }
                     throw NSError(
                         domain: "ImportError",
                         code: 3,
@@ -208,7 +221,9 @@ extension NightscoutConfig {
                 }
 
                 if pumpName == "Omnipod DASH", basals.reduce(0, { $0 + $1.rate }) <= 0 {
-                    importStatus = .failed
+                    await MainActor.run {
+                        importStatus = .failed
+                    }
                     throw NSError(
                         domain: "ImportError",
                         code: 4,
@@ -229,7 +244,9 @@ extension NightscoutConfig {
                 }
 
                 if sensitivities.contains(where: { $0.sensitivity <= 0 }) {
-                    importStatus = .failed
+                    await MainActor.run {
+                        importStatus = .failed
+                    }
                     throw NSError(
                         domain: "ImportError",
                         code: 5,
@@ -261,25 +278,35 @@ extension NightscoutConfig {
                         RepeatingScheduleValue(startTime: TimeInterval($0.minutes * 60), value: Double($0.rate))
                     }
 
-                    pump.syncBasalRateSchedule(items: syncValues) { result in
-                        switch result {
-                        case .success:
-                            self.storage.save(basals, as: OpenAPS.Settings.basalProfile)
-                            self.finalizeImport(
-                                carbratiosProfile: carbratiosProfile,
-                                sensitivitiesProfile: sensitivitiesProfile,
-                                targetsProfile: targetsProfile,
-                                dia: fetchedProfile.dia
-                            )
-                        case .failure:
-                            self.importErrors.append(
-                                "Settings were imported but the basal rates could not be saved to pump (communication error)."
-                            )
-                            self.importStatus = .failed
+                    await withCheckedContinuation { continuation in
+                        pump.syncBasalRateSchedule(items: syncValues) { [weak self] result in
+                            guard let self else {
+                                continuation.resume()
+                                return
+                            }
+
+                            switch result {
+                            case .success:
+                                self.storage.save(basals, as: OpenAPS.Settings.basalProfile)
+                                self.finalizeImport(
+                                    carbratiosProfile: carbratiosProfile,
+                                    sensitivitiesProfile: sensitivitiesProfile,
+                                    targetsProfile: targetsProfile,
+                                    dia: fetchedProfile.dia
+                                )
+                            case .failure:
+                                Task { @MainActor in
+                                    self.importErrors.append(
+                                        "Settings were imported but the basal rates could not be saved to pump (communication error)."
+                                    )
+                                    self.importStatus = .failed
+                                }
+                            }
+                            continuation.resume()
                         }
                     }
 
-                    if importErrors.isNotEmpty, importStatus == .failed {
+                    if await MainActor.run(body: { importErrors.isNotEmpty && importStatus == .failed }) {
                         throw NSError(
                             domain: "ImportError",
                             code: 6,
@@ -298,7 +325,7 @@ extension NightscoutConfig {
                     )
                 }
             } catch {
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.importErrors.append(error.localizedDescription)
                     debug(.service, "Settings import failed with error: \(error.localizedDescription)")
                 }
@@ -344,20 +371,25 @@ extension NightscoutConfig {
             let glucose = await nightscoutManager.fetchGlucose(since: Date().addingTimeInterval(-1.days.timeInterval))
 
             if glucose.isNotEmpty {
-                await MainActor.run {
-                    self.backfilling = false
-                }
+                do {
+                    try await glucoseStorage.storeGlucose(glucose)
 
-                glucoseStorage.storeGlucose(glucose)
-
-                Task.detached {
-                    await self.healthKitManager.uploadGlucose()
+                    Task.detached {
+                        await self.healthKitManager.uploadGlucose()
+                    }
+                } catch let error as CoreDataError {
+                    debug(.nightscout, "Core Data error while storing backfilled glucose: \(error.localizedDescription)")
+                    message = "Error: \(error.localizedDescription)"
+                } catch {
+                    debug(.nightscout, "Unexpected error while storing backfilled glucose: \(error.localizedDescription)")
+                    message = "Error: \(error.localizedDescription)"
                 }
             } else {
-                await MainActor.run {
-                    self.backfilling = false
-                    debug(.nightscout, "No glucose values found or fetched to backfill.")
-                }
+                debug(.nightscout, "No glucose values found or fetched to backfill.")
+            }
+
+            await MainActor.run {
+                self.backfilling = false
             }
         }
 
@@ -383,8 +415,15 @@ extension NightscoutConfig {
                         self.importedInsulinActionCurve = settings.insulinActionCurve
 
                         Task.detached(priority: .low) {
-                            debug(.nightscout, "Attempting to upload DIA to Nightscout after import review")
-                            await self.nightscoutManager.uploadProfiles()
+                            do {
+                                debug(.nightscout, "Attempting to upload DIA to Nightscout after import review")
+                                try await self.nightscoutManager.uploadProfiles()
+                            } catch {
+                                debug(
+                                    .default,
+                                    "\(DebuggingIdentifiers.failed) failed to upload DIA to Nightscout: \(error.localizedDescription)"
+                                )
+                            }
                         }
                     } receiveValue: {}
                     .store(in: &lifetime)

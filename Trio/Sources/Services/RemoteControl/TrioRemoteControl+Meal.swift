@@ -1,7 +1,7 @@
 import Foundation
 
 extension TrioRemoteControl {
-    func handleMealCommand(_ pushMessage: PushMessage) async {
+    func handleMealCommand(_ pushMessage: PushMessage) async throws {
         guard pushMessage.carbs != nil || pushMessage.fat != nil || pushMessage.protein != nil else {
             await logError("Command rejected: meal data is incomplete or invalid.", pushMessage: pushMessage)
             return
@@ -72,7 +72,7 @@ extension TrioRemoteControl {
             fpuID: fatDecimal ?? 0 > 0 || proteinDecimal ?? 0 > 0 ? UUID().uuidString : nil
         )
 
-        await carbsStorage.storeCarbs([mealEntry], areFetchedFromRemote: false)
+        try await carbsStorage.storeCarbs([mealEntry], areFetchedFromRemote: false)
 
         debug(
             .remoteControl,

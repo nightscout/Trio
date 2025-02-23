@@ -27,6 +27,27 @@ extension GlucoseStored {
 
         return glucose.allSatisfy { $0.glucose == firstValue }
     }
+
+    // Preview
+    @discardableResult static func makePreviewGlucose(count: Int, provider: CoreDataStack) -> [GlucoseStored] {
+        let context = provider.persistentContainer.viewContext
+        let baseGlucose = 120
+        let glucoseValues = (0 ..< count).map { index -> GlucoseStored in
+            let glucose = GlucoseStored(context: context)
+            glucose.id = UUID()
+            glucose.date = Date.now.addingTimeInterval(Double(index) * -300) // Every 5 minutes
+            glucose.glucose = Int16(baseGlucose + (index % 3) * 10) // Varying between 120-140
+            glucose.direction = BloodGlucose.Direction.flat.rawValue
+            glucose.isManual = false
+            glucose.isUploadedToNS = false
+            glucose.isUploadedToHealth = false
+            glucose.isUploadedToTidepool = false
+            return glucose
+        }
+
+        try? context.save()
+        return glucoseValues
+    }
 }
 
 extension NSPredicate {

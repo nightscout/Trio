@@ -18,10 +18,10 @@ struct OverridePreset: AppEntity, Identifiable {
 
 struct OverridePresetsQuery: EntityQuery {
     func entities(for identifiers: [OverridePreset.ID]) async throws -> [OverridePreset] {
-        await OverridePresetsIntentRequest().fetchIDs(identifiers)
+        try await OverridePresetsIntentRequest().fetchIDs(identifiers)
     }
 
     func suggestedEntities() async throws -> [OverridePreset] {
-        await OverridePresetsIntentRequest().fetchAndProcessOverrides()
+        try await OverridePresetsIntentRequest().fetchAndProcessOverrides()
     }
 }

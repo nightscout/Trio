@@ -249,10 +249,14 @@ struct AddTempTargetForm: View {
                 content: {
                     Button(action: {
                         Task {
-                            if noNameSpecified { state.tempTargetName = "Custom Target" }
-                            didPressSave.toggle()
-                            await state.invokeSaveOfCustomTempTargets()
-                            dismiss()
+                            do {
+                                if noNameSpecified { state.tempTargetName = "Custom Target" }
+                                didPressSave.toggle()
+                                try await state.invokeSaveOfCustomTempTargets()
+                                dismiss()
+                            } catch {
+                                debug(.default, "\(DebuggingIdentifiers.failed) failed to save custom temp target: \(error)")
+                            }
                         }
                     }, label: {
                         Text("Start Temp Target")
@@ -266,10 +270,14 @@ struct AddTempTargetForm: View {
             Section {
                 Button(action: {
                     Task {
-                        if noNameSpecified { state.tempTargetName = "Custom Target" }
-                        didPressSave.toggle()
-                        await state.saveTempTargetPreset()
-                        dismiss()
+                        do {
+                            if noNameSpecified { state.tempTargetName = "Custom Target" }
+                            didPressSave.toggle()
+                            try await state.saveTempTargetPreset()
+                            dismiss()
+                        } catch {
+                            debug(.default, "\(DebuggingIdentifiers.failed) failed to save temp target preset: \(error)")
+                        }
                     }
                 }, label: {
                     Text("Save as Preset")

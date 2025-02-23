@@ -4,8 +4,8 @@ import Foundation
 
 @available(iOS 16.2, *)
 extension LiveActivityBridge {
-    func fetchAndMapGlucose() async -> [GlucoseData] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchAndMapGlucose() async throws -> [GlucoseData] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForSixHoursAgo,
@@ -14,9 +14,9 @@ extension LiveActivityBridge {
             fetchLimit: 72
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
-                return []
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return glucoseResults.map {
@@ -25,8 +25,8 @@ extension LiveActivityBridge {
         }
     }
 
-    func fetchAndMapDetermination() async -> DeterminationData? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchAndMapDetermination() async throws -> DeterminationData? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
@@ -36,9 +36,9 @@ extension LiveActivityBridge {
             propertiesToFetch: ["iob", "cob", "totalDailyDose", "currentTarget", "deliverAt"]
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let determinationResults = results as? [[String: Any]] else {
-                return nil
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return determinationResults.first.map {
@@ -53,8 +53,8 @@ extension LiveActivityBridge {
         }
     }
 
-    func fetchAndMapOverride() async -> OverrideData? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchAndMapOverride() async throws -> OverrideData? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgo,
@@ -64,9 +64,9 @@ extension LiveActivityBridge {
             propertiesToFetch: ["enabled", "name", "target", "date", "duration"]
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let overrideResults = results as? [[String: Any]] else {
-                return nil
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return overrideResults.first.map {

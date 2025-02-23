@@ -26,20 +26,20 @@ extension AppleHealthKit {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Connect to Apple Health"
+                            hintLabel = String(localized: "Connect to Apple Health")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Connect to Apple Health",
-                    miniHint: "Allow Trio to read from and write to Apple Health.",
+                    label: String(localized: "Connect to Apple Health"),
+                    miniHint: String(localized: "Allow Trio to read from and write to Apple Health."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("This allows Trio to read from and write to Apple Health.")
                         Text("Warning: You must also give permissions in iOS System Settings for the Health app.").bold()
                     },
-                    headerText: "Apple Health Integration"
+                    headerText: String(localized: "Apple Health Integration")
                 )
 
                 if !state.needShowInformationTextForSetPermissions {
@@ -71,7 +71,7 @@ extension AppleHealthKit {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

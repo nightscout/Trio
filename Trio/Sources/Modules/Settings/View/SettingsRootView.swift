@@ -77,8 +77,8 @@ extension Settings {
                     Section(
                         header: Text("BRANCH: \(buildDetails.branchAndSha)").textCase(nil),
                         content: {
-                            let versionNumber = Bundle.main.releaseVersionNumber ?? "Unknown"
-                            let buildNumber = Bundle.main.buildVersionNumber ?? "Unknown"
+                            let versionNumber = Bundle.main.releaseVersionNumber ?? String(localized: "Unknown")
+                            let buildNumber = Bundle.main.buildVersionNumber ?? String(localized: "Unknown")
 
                             Group {
                                 HStack {
@@ -121,13 +121,13 @@ extension Settings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Closed Loop"
+                                hintLabel = String(localized: "Closed Loop")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: "Closed Loop",
-                        miniHint: "Enable automated insulin delivery.",
+                        label: String(localized: "Closed Loop"),
+                        miniHint: String(localized: "Enable automated insulin delivery."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Running Trio in closed loop mode requires an active CGM sensor session and a connected pump. This enables automated insulin delivery."
@@ -136,7 +136,7 @@ extension Settings {
                                 "Before enabling, dial in your settings (basal / insulin sensitivity / carb ratio), and familiarize yourself with the app."
                             )
                         },
-                        headerText: "Automated Insulin Delivery"
+                        headerText: String(localized: "Automated Insulin Delivery")
                     )
 
                     Section(
@@ -328,7 +328,7 @@ extension Settings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .sheet(isPresented: $showShareSheet) {
