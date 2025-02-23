@@ -116,15 +116,6 @@ extension Stat {
                             glucoseRangeStats: state.glucoseRangeStats
                         )
                     }
-
-//                    Divider()
-//
-//                    SectorChart(
-//                        highLimit: state.highLimit,
-//                        lowLimit: state.lowLimit,
-//                        units: state.units,
-//                        glucose: state.glucoseFromPersistence
-//                    )
                 }
             }
         }
@@ -141,23 +132,13 @@ extension Stat {
 
                     Divider()
 
-                    BareStatisticsView.HbA1cView(
+                    BareStatisticsView.GlucoseMetricsView(
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        hbA1cDisplayUnit: state.hbA1cDisplayUnit,
+                        eA1cDisplayUnit: state.eA1cDisplayUnit,
                         glucose: state.glucoseFromPersistence
                     )
-
-//                    Divider()
-//
-//                    BareStatisticsView.BloodGlucoseView(
-//                        highLimit: state.highLimit,
-//                        lowLimit: state.lowLimit,
-//                        units: state.units,
-//                        hbA1cDisplayUnit: state.hbA1cDisplayUnit,
-//                        glucose: state.glucoseFromPersistence
-//                    )
                 }
             }
         }
@@ -285,7 +266,7 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        hbA1cDisplayUnit: state.hbA1cDisplayUnit,
+                        eA1cDisplayUnit: state.eA1cDisplayUnit,
                         loopStatRecords: state.loopStatRecords
                     )
                 }

@@ -27,22 +27,18 @@ struct BareStatisticsView {
         return sorted[length / 2]
     }
 
-    struct HbA1cView: View {
+    struct GlucoseMetricsView: View {
         let highLimit: Decimal
         let lowLimit: Decimal
         let units: GlucoseUnits
-        let hbA1cDisplayUnit: HbA1cDisplayUnit
+        let eA1cDisplayUnit: EstimatedA1cDisplayUnit
         let glucose: [GlucoseStored]
 
         var body: some View {
-            hba1c
-        }
-
-        private var hba1c: some View {
             VStack(alignment: .leading) {
                 HStack(spacing: 40) {
                     let useUnit: GlucoseUnits = {
-                        if hbA1cDisplayUnit == .mmolMol { return .mmolL }
+                        if eA1cDisplayUnit == .mmolMol { return .mmolL }
                         else { return .mgdL }
                     }()
 
@@ -54,15 +50,15 @@ struct BareStatisticsView {
                     // Total time in days
                     let numberOfDays = (current - previous).timeInterval / 8.64E4
 
-                    let hba1cString = (
+                    let eA1cString = (
                         useUnit == .mmolL ? glucoseStats.ifcc
                             .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) : glucoseStats.ngsp
                             .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
                             + " %"
                     )
                     VStack(spacing: 5) {
-                        Text("HbA1c").font(.subheadline).foregroundColor(.secondary)
-                        Text(hba1cString)
+                        Text("ebA1c").font(.subheadline).foregroundColor(.secondary)
+                        Text(eA1cString)
                     }
                     VStack(spacing: 5) {
                         Text("GMI").font(.subheadline).foregroundColor(.secondary)
@@ -102,57 +98,72 @@ struct BareStatisticsView {
                 readings: Double
             )
         {
-            // First date
+            // First recorded glucose date
             let previous = glucose.last?.date ?? Date()
-            // Last date (recent)
+            // Most recent glucose date
             let current = glucose.first?.date ?? Date()
-            // Total time in days
+            // Total duration in days
             let numberOfDays = (current - previous).timeInterval / 8.64E4
 
+            // Avoid division by zero, ensure at least 1 day
             let denominator = numberOfDays < 1 ? 1 : numberOfDays
 
+            // Extract glucose values as an array of integers
             let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
             let sumReadings = justGlucoseArray.reduce(0, +)
             let countReadings = justGlucoseArray.count
 
+            // Calculate the mean (average) glucose value
             let glucoseAverage = Double(sumReadings) / Double(countReadings)
+            // Calculate the median glucose value
             let medianGlucose = BareStatisticsView.medianCalculation(array: justGlucoseArray)
 
-            var NGSPa1CStatisticValue = 0.0
-            var IFCCa1CStatisticValue = 0.0
-            var GMIValue = 0.0
+            // Variables to store calculated values
+            var eA1cNGSP = 0.0 // eA1c in NGSP (%) standard (CGM-based)
+            var eA1cIFCC = 0.0 // eA1c in IFCC (mmol/mol) standard (CGM-based)
+            var GMIValue = 0.0 // Glucose Management Index
 
             if numberOfDays > 0 {
-                NGSPa1CStatisticValue = (glucoseAverage + 46.7) / 28.7
-                IFCCa1CStatisticValue = 10.929 * (NGSPa1CStatisticValue - 2.152)
+                // **eA1c NGSP Calculation**: Estimated A1c in percentage (%)
+                // Based on CGM readings, using the DCCT-derived formula:
+                // eA1c NGSP (%) = (Average Glucose mg/dL + 46.7) / 28.7
+                eA1cNGSP = (glucoseAverage + 46.7) / 28.7
 
-                // Calculate GMI using the standard formula
-                // GMI = 3.31 + 0.02392 * averageGlucose (mg/dL)
+                // **eA1c IFCC Calculation**: Conversion from eA1c NGSP to eA1c IFCC (mmol/mol)
+                // eA1c IFCC (mmol/mol) = 10.929 * (eA1c NGSP - 2.152)
+                // This conversion aligns with the IFCC standard.
+                eA1cIFCC = 10.929 * (eA1cNGSP - 2.152)
+
+                // **Glucose Management Index (GMI)**: Alternative eA1c estimate based on CGM data
+                // GMI = 3.31 + (0.02392 × Average Glucose mg/dL)
                 GMIValue = 3.31 + 0.02392 * glucoseAverage
             }
 
+            // Calculate Standard Deviation (SD) and Coefficient of Variation (CV)
             var sumOfSquares = 0.0
-            for array in justGlucoseArray {
-                sumOfSquares += pow(Double(array) - Double(glucoseAverage), 2)
+            for value in justGlucoseArray {
+                sumOfSquares += pow(Double(value) - glucoseAverage, 2)
             }
 
             var sd = 0.0
             var cv = 0.0
 
             if glucoseAverage > 0 {
+                // Standard deviation: Measure of glucose variability
                 sd = sqrt(sumOfSquares / Double(countReadings))
-                cv = sd / Double(glucoseAverage) * 100
+                // Coefficient of variation (CV %): Variability relative to mean glucose
+                cv = sd / glucoseAverage * 100
             }
 
             return (
-                ifcc: IFCCa1CStatisticValue,
-                ngsp: NGSPa1CStatisticValue,
-                gmi: GMIValue,
-                average: glucoseAverage * (units == .mmolL ? 0.0555 : 1),
+                ifcc: eA1cIFCC, // eA1c IFCC (mmol/mol)
+                ngsp: eA1cNGSP, // eA1c NGSP (%)
+                gmi: GMIValue, // Glucose Management Index
+                average: glucoseAverage * (units == .mmolL ? 0.0555 : 1), // Convert if needed
                 median: medianGlucose * (units == .mmolL ? 0.0555 : 1),
                 sd: sd * (units == .mmolL ? 0.0555 : 1),
                 cv: cv,
-                readings: Double(countReadings) / denominator
+                readings: Double(countReadings) / denominator // Readings per day
             )
         }
     }
@@ -161,7 +172,7 @@ struct BareStatisticsView {
         let highLimit: Decimal
         let lowLimit: Decimal
         let units: GlucoseUnits
-        let hbA1cDisplayUnit: HbA1cDisplayUnit
+        let eA1cDisplayUnit: EstimatedA1cDisplayUnit
         let glucose: [GlucoseStored]
 
         var body: some View {
@@ -263,7 +274,7 @@ struct BareStatisticsView {
         let highLimit: Decimal
         let lowLimit: Decimal
         let units: GlucoseUnits
-        let hbA1cDisplayUnit: HbA1cDisplayUnit
+        let eA1cDisplayUnit: EstimatedA1cDisplayUnit
         let loopStatRecords: [LoopStatRecord]
 
         var body: some View {

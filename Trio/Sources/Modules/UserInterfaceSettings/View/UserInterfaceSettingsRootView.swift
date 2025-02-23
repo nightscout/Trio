@@ -435,17 +435,17 @@ extension UserInterfaceSettings {
                     content: {
                         VStack {
                             Picker(
-                                selection: $state.hbA1cDisplayUnit,
-                                label: Text("HbA1c Display Unit")
+                                selection: $state.eA1cDisplayUnit,
+                                label: Text("eA1c Display Unit")
                             ) {
-                                ForEach(HbA1cDisplayUnit.allCases) { selection in
+                                ForEach(EstimatedA1cDisplayUnit.allCases) { selection in
                                     Text(selection.displayName).tag(selection)
                                 }
                             }.padding(.top)
 
                             HStack(alignment: .center) {
                                 Text(
-                                    "Choose to display HbA1c in percent or mmol/mol."
+                                    "Choose to display eA1c in percent or mmol/mol."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -453,11 +453,11 @@ extension UserInterfaceSettings {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = String(localized: "HbA1c Display Unit")
+                                        hintLabel = String(localized: "eA1c Display Unit")
                                         selectedVerboseHint =
                                             AnyView(
                                                 Text(
-                                                    "Choose which format you'd prefer the HbA1c value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)."
+                                                    "Choose which format you'd prefer the eA1c (estimated A1c) value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)."
                                                 )
                                             )
                                         shouldDisplayHint.toggle()

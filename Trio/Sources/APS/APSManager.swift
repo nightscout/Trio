@@ -920,7 +920,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 total_average: 0
             )
             let processedGlucoseStats = await glucoseStats
-            let hbA1cDisplayUnit = processedGlucoseStats.hbA1cDisplayUnit
+            let eA1cDisplayUnit = processedGlucoseStats.eA1cDisplayUnit
 
             let dailystat = await Statistics(
                 created_at: Date(),
@@ -942,8 +942,8 @@ final class BaseAPSManager: APSManager, Injectable {
                 Statistics: Stats(
                     Distribution: processedGlucoseStats.TimeInRange,
                     Glucose: processedGlucoseStats.avg,
-                    HbA1c: processedGlucoseStats.hbs,
-                    Units: Units(Glucose: units.rawValue, HbA1c: hbA1cDisplayUnit.rawValue),
+                    EstimatedA1c: processedGlucoseStats.hbs,
+                    Units: Units(Glucose: units.rawValue, EstimatedA1c: eA1cDisplayUnit.rawValue),
                     LoopCycles: loopStats,
                     Insulin: insulin,
                     Variance: processedGlucoseStats.variance
@@ -1109,7 +1109,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 cv: Double,
                 readings: Double
             ),
-            hbA1cDisplayUnit: HbA1cDisplayUnit,
+            eA1cDisplayUnit: EstimatedA1cDisplayUnit,
             numberofDays: Double,
             TimeInRange: TIRs,
             avg: Averages,
@@ -1145,7 +1145,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 cv: Double,
                 readings: Double
             ),
-            hbA1cDisplayUnit: HbA1cDisplayUnit,
+            eA1cDisplayUnit: EstimatedA1cDisplayUnit,
             numberofDays: Double,
             TimeInRange: TIRs,
             avg: Averages,
@@ -1176,19 +1176,19 @@ final class BaseAPSManager: APSManager, Injectable {
                 total: self.roundDecimal(Decimal(totalDaysGlucose.median), 1)
             )
 
-            let hbA1cDisplayUnit = self.settingsManager.settings.hbA1cDisplayUnit
+            let eA1cDisplayUnit = self.settingsManager.settings.eA1cDisplayUnit
 
             let hbs = Durations(
-                day: hbA1cDisplayUnit == .mmolMol ?
+                day: eA1cDisplayUnit == .mmolMol ?
                     self.roundDecimal(Decimal(oneDayGlucose.ifcc), 1) :
                     self.roundDecimal(Decimal(oneDayGlucose.ngsp), 1),
-                week: hbA1cDisplayUnit == .mmolMol ?
+                week: eA1cDisplayUnit == .mmolMol ?
                     self.roundDecimal(Decimal(sevenDaysGlucose.ifcc), 1) :
                     self.roundDecimal(Decimal(sevenDaysGlucose.ngsp), 1),
-                month: hbA1cDisplayUnit == .mmolMol ?
+                month: eA1cDisplayUnit == .mmolMol ?
                     self.roundDecimal(Decimal(thirtyDaysGlucose.ifcc), 1) :
                     self.roundDecimal(Decimal(thirtyDaysGlucose.ngsp), 1),
-                total: hbA1cDisplayUnit == .mmolMol ?
+                total: eA1cDisplayUnit == .mmolMol ?
                     self.roundDecimal(Decimal(totalDaysGlucose.ifcc), 1) :
                     self.roundDecimal(Decimal(totalDaysGlucose.ngsp), 1)
             )
@@ -1263,7 +1263,7 @@ final class BaseAPSManager: APSManager, Injectable {
             )
             let variance = Variance(SD: standardDeviations, CV: cvs)
 
-            result = (oneDayGlucose, hbA1cDisplayUnit, numberOfDays, TimeInRange, avg, hbs, variance)
+            result = (oneDayGlucose, eA1cDisplayUnit, numberOfDays, TimeInRange, avg, hbs, variance)
         }
 
         return result!

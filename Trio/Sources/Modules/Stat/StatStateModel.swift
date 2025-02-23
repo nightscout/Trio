@@ -43,7 +43,7 @@ extension Stat {
         @ObservationIgnored @Injected() var settings: SettingsManager!
         var highLimit: Decimal = 180
         var lowLimit: Decimal = 70
-        var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
+        var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
         var timeInRangeChartStyle: TimeInRangeChartStyle = .vertical
         var units: GlucoseUnits = .mgdL
         var glucoseFromPersistence: [GlucoseStored] = []
@@ -172,7 +172,7 @@ extension Stat {
             highLimit = settingsManager.settings.high
             lowLimit = settingsManager.settings.low
             units = settingsManager.settings.units
-            hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
+            eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
             timeInRangeChartStyle = settingsManager.settings.timeInRangeChartStyle
         }
 
