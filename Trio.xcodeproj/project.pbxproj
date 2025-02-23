@@ -472,6 +472,9 @@
 		DD32CFA22CC824E2003686D6 /* TrioRemoteControl+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CFA12CC824E1003686D6 /* TrioRemoteControl+Helpers.swift */; };
 		DD3A3CE72D29C93F00AE478E /* Helper+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3A3CE62D29C93F00AE478E /* Helper+Extensions.swift */; };
 		DD3A3CE92D29C97800AE478E /* Helper+ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3A3CE82D29C97800AE478E /* Helper+ButtonStyles.swift */; };
+		DD498F2B2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
+		DD498F2C2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
+		DD498F2D2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
 		DD4FFF332D458EE600B6CFF9 /* GarminWatchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4FFF322D458EE600B6CFF9 /* GarminWatchState.swift */; };
 		DD5DC9F12CF3D97C00AB8703 /* AdjustmentsStateModel+Overrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F02CF3D96E00AB8703 /* AdjustmentsStateModel+Overrides.swift */; };
 		DD5DC9F32CF3D9DD00AB8703 /* AdjustmentsStateModel+TempTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F22CF3D9D600AB8703 /* AdjustmentsStateModel+TempTargets.swift */; };
@@ -3393,6 +3396,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DD498F2B2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */,
 				6B1A8D242B14D91700E76752 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3401,6 +3405,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DD498F2D2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */,
 				DD09D6442D2B553A000D82C9 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3410,6 +3415,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BDFF7A872D25F97D0016C40C /* Assets.xcassets in Resources */,
+				DD498F2C2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

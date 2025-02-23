@@ -186,7 +186,10 @@ extension NightscoutConfig {
                 .blur(radius: state.importStatus == .running ? 5 : 0)
 
                 if state.importStatus == .running {
-                    CustomProgressView(text: "Importing Profile...")
+                    CustomProgressView(text: String(
+                        localized: "Importing Profile...",
+                        comment: "Progress text when importing profile via Nightscout"
+                    ))
                 }
             }
             .fullScreenCover(isPresented: $state.isImportResultReviewPresented, content: {
