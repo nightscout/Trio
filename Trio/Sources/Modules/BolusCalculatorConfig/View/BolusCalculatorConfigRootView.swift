@@ -41,12 +41,12 @@ extension BolusCalculatorConfig {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Display Meal Presets"
+                            hintLabel = String(localized: "Display Meal Presets")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Display Meal Presets",
+                    label: String(localized: "Display Meal Presets"),
                     miniHint: "Allow the creation of saved, preset meals.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: ON").bold()
@@ -62,13 +62,13 @@ extension BolusCalculatorConfig {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Recommended Bolus Percentage"
+                            hintLabel = String(localized: "Recommended Bolus Percentage")
                         }
                     ),
                     units: state.units,
                     type: .decimal("overrideFactor"),
-                    label: "Recommended Bolus Percentage",
-                    miniHint: "Percentage of bolus suggested in bolus calculator.",
+                    label: String(localized: "Recommended Bolus Percentage"),
+                    miniHint: String(localized: "Percentage of bolus suggested in bolus calculator."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 80%").bold()
@@ -82,7 +82,7 @@ extension BolusCalculatorConfig {
                             "Tip: If you are a new Trio user, it is not advised to set this to 100% until you have verified that your core settings (basal rates, ISF, and CR) do not need adjusting."
                         )
                     },
-                    headerText: "Calculator Configuration"
+                    headerText: String(localized: "Calculator Configuration")
                 )
 
                 SettingInputSection(
@@ -93,14 +93,14 @@ extension BolusCalculatorConfig {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Fatty Meal"
+                            hintLabel = String(localized: "Fatty Meal")
                         }
                     ),
                     units: state.units,
                     type: .conditionalDecimal("fattyMealFactor"),
-                    label: "Enable Fatty Meal Option",
-                    conditionalLabel: "Fatty Meal Bolus Percentage",
-                    miniHint: "Add and set a bolus option for meals that absorb slowly.",
+                    label: String(localized: "Enable Fatty Meal Option"),
+                    conditionalLabel: String(localized: "Fatty Meal Bolus Percentage"),
+                    miniHint: String(localized: "Add and set a bolus option for meals that absorb slowly."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -127,14 +127,14 @@ extension BolusCalculatorConfig {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Super Bolus"
+                            hintLabel = String(localized: "Super Bolus")
                         }
                     ),
                     units: state.units,
                     type: .conditionalDecimal("sweetMealFactor"),
-                    label: "Enable Super Bolus Option",
-                    conditionalLabel: "Super Bolus Percentage",
-                    miniHint: "Add and set a bolus option for meals that absorb quickly.",
+                    label: String(localized: "Enable Super Bolus Option"),
+                    conditionalLabel: String(localized: "Super Bolus Percentage"),
+                    miniHint: String(localized: "Add and set a bolus option for meals that absorb quickly."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -160,7 +160,7 @@ extension BolusCalculatorConfig {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

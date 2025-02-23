@@ -224,7 +224,7 @@ extension Adjustments.StateModel {
 
             if let overrideToEdit = try viewContext.existingObject(with: firstID) as? OverrideStored {
                 currentActiveOverride = overrideToEdit
-                activeOverrideName = overrideToEdit.name ?? "Custom Override"
+                activeOverrideName = overrideToEdit.name ?? String(localized: "Custom Override")
             }
         } catch {
             debugPrint(
@@ -248,7 +248,7 @@ extension Adjustments.StateModel {
 
             if let overrideToEdit = try viewContext.existingObject(with: duplicateId) as? OverrideStored {
                 currentActiveOverride = overrideToEdit
-                activeOverrideName = overrideToEdit.name ?? "Custom Override"
+                activeOverrideName = overrideToEdit.name ?? String(localized: "Custom Override")
             }
         } catch {
             debugPrint(

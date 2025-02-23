@@ -769,9 +769,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                    isf > 0, cr > 0
                 {
                     carbsHr = settingsManager.preferences.min5mCarbimpact * 12 / isf * cr
-                    if settingsManager.settings.units == .mmolL {
-                        carbsHr *= GlucoseUnits.exchangeRate
-                    }
                     carbsHr = Decimal(round(Double(carbsHr) * 10.0)) / 10
                 }
 

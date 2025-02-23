@@ -7,10 +7,10 @@ enum ForecastDisplayType: String, JSON, CaseIterable, Identifiable, Codable, Has
     var displayName: String {
         switch self {
         case .cone:
-            return NSLocalizedString("Cone", comment: "")
+            return String(localized: "Cone", comment: "")
 
         case .lines:
-            return NSLocalizedString("Lines", comment: "")
+            return String(localized: "Lines", comment: "")
         }
     }
 }

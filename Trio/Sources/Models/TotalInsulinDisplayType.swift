@@ -14,9 +14,9 @@ enum TotalInsulinDisplayType: String, JSON, CaseIterable, Identifiable, Codable,
     var displayName: String {
         switch self {
         case .totalDailyDose:
-            return NSLocalizedString("TDD", comment: "")
+            return String(localized: "TDD", comment: "")
         case .totalInsulinInScope:
-            return NSLocalizedString("TINS", comment: "")
+            return String(localized: "TINS", comment: "")
         }
     }
 }

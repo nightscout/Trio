@@ -157,7 +157,7 @@ extension MealSettings {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = "Limits per Entry"
+                                        hintLabel = String(localized: "Limits per Entry")
                                         selectedVerboseHint =
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 5) {
@@ -190,13 +190,15 @@ extension MealSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Maximum Meal Absorption Time"
+                            hintLabel = String(localized: "Maximum Meal Absorption Time")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxMealAbsorptionTime"),
-                    label: "Max Meal Absorption Time",
-                    miniHint: "The maximum duration for tracking carb entries in estimating Carbs on Board (COB)",
+                    label: String(localized: "Max Meal Absorption Time"),
+                    miniHint: String(
+                        localized: "The maximum duration for tracking carb entries in estimating Carbs on Board (COB)"
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 6 hours").bold()
@@ -220,13 +222,13 @@ extension MealSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Enable Fat and Protein Entries"
+                            hintLabel = String(localized: "Enable Fat and Protein Entries")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Enable Fat and Protein Entries",
-                    miniHint: "Add fat and protein macros to meal entries.",
+                    label: String(localized: "Enable Fat and Protein Entries"),
+                    miniHint: String(localized: "Add fat and protein macros to meal entries."),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(spacing: 10) {
@@ -262,7 +264,7 @@ extension MealSettings {
                             }
                         }
                     },
-                    headerText: "Fat and Protein"
+                    headerText: String(localized: "Fat and Protein")
                 )
                 if state.useFPUconversion {
                     SettingInputSection(
@@ -273,13 +275,13 @@ extension MealSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Fat and Protein Delay"
+                                hintLabel = String(localized: "Fat and Protein Delay")
                             }
                         ),
                         units: state.units,
                         type: .decimal("delay"),
-                        label: "Fat and Protein Delay",
-                        miniHint: "Delay between fat & protein entry and first FPU entry.",
+                        label: String(localized: "Fat and Protein Delay"),
+                        miniHint: String(localized: "Delay between fat & protein entry and first FPU entry."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 60 min").bold()
@@ -300,13 +302,13 @@ extension MealSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Maximum Duration"
+                                hintLabel = String(localized: "Maximum Duration")
                             }
                         ),
                         units: state.units,
                         type: .decimal("timeCap"),
-                        label: "Maximum Duration",
-                        miniHint: "Set the maximum timeframe to extend FPUs.",
+                        label: String(localized: "Maximum Duration"),
+                        miniHint: String(localized: "Set the maximum timeframe to extend FPUs."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 8 hours").bold()
@@ -329,13 +331,13 @@ extension MealSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Spread Interval"
+                                hintLabel = String(localized: "Spread Interval")
                             }
                         ),
                         units: state.units,
                         type: .decimal("minuteInterval"),
-                        label: "Spread Interval",
-                        miniHint: "Time interval between FPUs.",
+                        label: String(localized: "Spread Interval"),
+                        miniHint: String(localized: "Time interval between FPUs."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 30 minutes").bold()
@@ -356,13 +358,13 @@ extension MealSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Fat and Protein Percentage"
+                                hintLabel = String(localized: "Fat and Protein Percentage")
                             }
                         ),
                         units: state.units,
                         type: .decimal("individualAdjustmentFactor"),
-                        label: "Fat and Protein Percentage",
-                        miniHint: "Adjust the Warsaw Method FPU Conversion rate.",
+                        label: String(localized: "Fat and Protein Percentage"),
+                        miniHint: String(localized: "Adjust the Warsaw Method FPU Conversion rate."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: 50%").bold()
                             VStack(spacing: 10) {
@@ -392,7 +394,7 @@ extension MealSettings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

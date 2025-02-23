@@ -32,6 +32,7 @@ extension Home {
         @State var showTreatments = false
         @State var selectedTab: Int = 0
         @State var showPumpSelection: Bool = false
+        @State var showCGMSelection: Bool = false
         @State var notificationsDisabled = false
         @State var timeButtons: [TimePicker] = [
             TimePicker(active: false, hours: 4),
@@ -80,6 +81,41 @@ extension Home {
             }
         }
 
+        @ViewBuilder func pumpTimezoneView(_ badgeImage: UIImage, _ badgeColor: Color) -> some View {
+            HStack {
+                Image(uiImage: badgeImage.withRenderingMode(.alwaysTemplate))
+                    .font(.system(size: 14))
+                    .colorMultiply(badgeColor)
+                Text(String(localized: "Time Change Detected", comment: ""))
+                    .bold()
+                    .font(.system(size: 14))
+                    .foregroundStyle(badgeColor)
+            }
+            .onTapGesture {
+                if state.pumpDisplayState != nil {
+                    // sends user to pump settings
+                    state.shouldDisplayPumpSetupSheet.toggle()
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.vertical, 5)
+            .padding(.horizontal, 10)
+            .overlay(
+                Capsule()
+                    .stroke(badgeColor.opacity(0.4), lineWidth: 2)
+            )
+        }
+
+        var cgmSelectionButtons: some View {
+            ForEach(cgmOptions, id: \.name) { option in
+                if let cgm = state.listOfCGM.first(where: option.predicate) {
+                    Button(option.name) {
+                        state.addCGM(cgm: cgm)
+                    }
+                }
+            }
+        }
+
         var glucoseView: some View {
             CurrentGlucoseView(
                 timerDate: state.timerDate,
@@ -93,7 +129,11 @@ extension Home {
                 glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
-                    state.openCGM()
+                    if !state.cgmAvailable {
+                        showCGMSelection.toggle()
+                    } else {
+                        state.shouldDisplayCGMSetupSheet.toggle()
+                    }
                 }
                 .onLongPressGesture {
                     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
@@ -108,7 +148,6 @@ extension Home {
                 name: state.pumpName,
                 expiresAtDate: state.pumpExpiresAtDate,
                 timerDate: state.timerDate,
-                timeZone: state.timeZone,
                 pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
                 battery: state.batteryFromPersistence
             )
@@ -118,7 +157,7 @@ extension Home {
                     showPumpSelection.toggle()
                 } else {
                     // sends user to pump settings
-                    state.setupPump.toggle()
+                    state.shouldDisplayPumpSetupSheet.toggle()
                 }
             }
         }
@@ -131,13 +170,14 @@ extension Home {
             var manualBasalString = ""
 
             if let apsManager = state.apsManager, apsManager.isManualTempBasal {
-                manualBasalString = NSLocalizedString(
+                manualBasalString = String(
+                    localized:
                     " - Manual Basal ⚠️",
                     comment: "Manual Temp basal"
                 )
             }
 
-            return rateString + " " + NSLocalizedString(" U/hr", comment: "Unit per hour with space") + manualBasalString
+            return rateString + " " + String(localized: " U/hr", comment: "Unit per hour with space") + manualBasalString
         }
 
         var overrideString: String? {
@@ -252,11 +292,11 @@ extension Home {
                         Group {
                             if button.active {
                                 Text(
-                                    NSLocalizedString(button.hours.description, comment: "") + " " +
-                                        NSLocalizedString("h", comment: "h")
+                                    button.hours.description + " " +
+                                        String(localized: "h", comment: "h")
                                 )
                             } else {
-                                Text(NSLocalizedString(button.hours.description, comment: ""))
+                                Text(button.hours.description)
                             }
                         }
                         .font(.footnote)
@@ -396,7 +436,7 @@ extension Home {
                             Formatter.decimalFormatterWithTwoFractionDigits
                                 .string(from: (state.enactedAndNonEnactedDeterminations.first?.iob ?? 0) as NSNumber) ?? "0"
                         ) +
-                            NSLocalizedString(" U", comment: "Insulin unit")
+                            String(localized: " U", comment: "Insulin unit")
                     )
                     .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
@@ -413,7 +453,7 @@ extension Home {
                                 from: NSNumber(value: state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
                             ) ?? "0"
                         ) +
-                            NSLocalizedString(" g", comment: "gram of carbs")
+                            String(localized: " g", comment: "gram of carbs")
                     )
                     .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
@@ -457,7 +497,7 @@ extension Home {
                                     .string(from: (state.determinationsFromPersistence.first?.totalDailyDose ?? 0) as NSNumber) ??
                                     "0"
                             ) +
-                            NSLocalizedString(" U", comment: "Insulin unit")
+                            String(localized: " U", comment: "Insulin unit")
                     )
                     .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 } else {
@@ -465,7 +505,7 @@ extension Home {
                     HStack {
                         Text(
                             "TINS: \(state.roundedTotalBolus)" +
-                                NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
+                                String(localized: " U", comment: "Unit in number of units delivered (keep the space character!)")
                         )
                         .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                         .onChange(of: state.hours) {
@@ -487,7 +527,7 @@ extension Home {
                     .font(.title2)
                     .foregroundStyle(Color.primary, Color.purple)
                 VStack(alignment: .leading) {
-                    Text(latestOverride.first?.name ?? "Custom Override")
+                    Text(latestOverride.first?.name ?? String(localized: "Custom Override"))
                         .font(.subheadline)
                         .frame(alignment: .leading)
 
@@ -506,7 +546,7 @@ extension Home {
                     .font(.title2)
                     .foregroundStyle(Color.loopGreen)
                 VStack(alignment: .leading) {
-                    Text(latestTempTarget.first?.name ?? "Temp Target")
+                    Text(latestTempTarget.first?.name ?? String(localized: "Temp Target"))
                         .font(.subheadline)
                     Text(tempTargetString)
                         .font(.caption)
@@ -720,7 +760,7 @@ extension Home {
                     (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
                         + " of " +
                         (Formatter.decimalFormatterWithTwoFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
-                        + NSLocalizedString(" U", comment: "Insulin unit")
+                        + String(localized: " U", comment: "Insulin unit")
 
                 ZStack {
                     /// rectangle as background
@@ -839,12 +879,17 @@ extension Home {
                         pumpView
                         Spacer()
                     }.padding(.leading, 20)
-                }.padding(.top, 10)
-                    .safeAreaInset(edge: .top, spacing: 0) {
-                        if notificationsDisabled {
-                            alertSafetyNotificationsView(geo: geo)
-                        }
+                }
+                .padding(.top, 10)
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    if notificationsDisabled {
+                        alertSafetyNotificationsView(geo: geo)
                     }
+                    if let badgeImage = state.pumpStatusBadgeImage, let badgeColor = state.pumpStatusBadgeColor {
+                        pumpTimezoneView(badgeImage, badgeColor)
+                            .padding(.horizontal, 20)
+                    }
+                }
 
                 mealPanel(geo).padding(.top, UIDevice.adjustPadding(min: nil, max: 30))
                     .padding(.bottom, UIDevice.adjustPadding(min: nil, max: 20))
@@ -854,7 +899,7 @@ extension Home {
                 HStack {
                     tappableButton(
                         buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
-                        label: "Stats",
+                        label: String(localized: "Stats", comment: "Stats icon in main view"),
                         iconString: statsIconString,
                         action: { state.showModal(for: .statistics) }
                     )
@@ -868,11 +913,11 @@ extension Home {
 
                     tappableButton(
                         buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
-                        label: "Info",
+                        label: String(localized: "Info", comment: "Info icon in main view"),
                         iconString: "info",
                         action: { state.isLegendPresented.toggle() }
                     )
-                }.padding([.horizontal, .top, .bottom])
+                }.padding([.horizontal, .bottom])
 
                 if let progress = state.bolusProgress {
                     bolusView(geo: geo, progress)
@@ -914,6 +959,10 @@ extension Home {
             .sheet(isPresented: $state.isLoopStatusPresented) {
                 LoopStatusView(state: state)
             }
+            .sheet(isPresented: $state.isLegendPresented) {
+                ChartLegendView(state: state)
+            }
+            // PUMP RELATED
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
                 Button("Medtronic") { state.addPump(.minimed) }
                 Button("Omnipod Eros") { state.addPump(.omnipod) }
@@ -921,7 +970,7 @@ extension Home {
                 Button("Dana(RS/-i)") { state.addPump(.dana) }
                 Button("Pump Simulator") { state.addPump(.simulator) }
             } message: { Text("Select Pump Model") }
-            .sheet(isPresented: $state.setupPump) {
+            .sheet(isPresented: $state.shouldDisplayPumpSetupSheet) {
                 if let pumpManager = state.provider.apsManager.pumpManager {
                     PumpConfig.PumpSettingsView(
                         pumpManager: pumpManager,
@@ -939,8 +988,48 @@ extension Home {
                     )
                 }
             }
-            .sheet(isPresented: $state.isLegendPresented) {
-                ChartLegendView(state: state)
+            // CGM RELATED
+            .confirmationDialog("CGM Model", isPresented: $showCGMSelection) {
+                cgmSelectionButtons
+            } message: {
+                Text("Select CGM Model")
+            }
+            .sheet(isPresented: $state.shouldDisplayCGMSetupSheet) {
+                switch state.cgmCurrent.type {
+                case .enlite,
+                     .nightscout,
+                     .none,
+                     .simulator,
+                     .xdrip:
+                    CGMSettings.CustomCGMOptionsView(
+                        resolver: self.resolver,
+                        state: state.cgmStateModel,
+                        cgmCurrent: state.cgmCurrent,
+                        deleteCGM: state.deleteCGM
+                    )
+                case .plugin:
+                    if let fetchGlucoseManager = state.fetchGlucoseManager,
+                       let cgmManager = fetchGlucoseManager.cgmManager,
+                       state.cgmCurrent.type == fetchGlucoseManager.cgmGlucoseSourceType,
+                       state.cgmCurrent.id == fetchGlucoseManager.cgmGlucosePluginId
+                    {
+                        CGMSettings.CGMSettingsView(
+                            cgmManager: cgmManager,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            unit: state.settingsManager.settings.units,
+                            completionDelegate: state
+                        )
+                    } else {
+                        CGMSettings.CGMSetupView(
+                            CGMType: state.cgmCurrent,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            unit: state.settingsManager.settings.units,
+                            completionDelegate: state,
+                            setupDelegate: state,
+                            pluginCGMManager: self.state.pluginCGMManager
+                        )
+                    }
+                }
             }
         }
 

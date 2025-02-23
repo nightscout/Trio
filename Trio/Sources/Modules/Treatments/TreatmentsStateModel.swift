@@ -394,26 +394,6 @@ extension Treatments {
 
         /// Calculate insulin recommendation
         @MainActor func calculateInsulin() async -> Decimal {
-//            let input = CalculationInput(
-//                carbs: carbs,
-//                currentBG: currentBG,
-//                deltaBG: deltaBG,
-//                target: target,
-//                isf: isf,
-//                carbRatio: carbRatio,
-//                iob: iob,
-//                cob: cob,
-//                useFattyMealCorrectionFactor: useFattyMealCorrectionFactor,
-//                fattyMealFactor: fattyMealFactor,
-//                useSuperBolus: useSuperBolus,
-//                sweetMealFactor: sweetMealFactor,
-//                basal: basal,
-//                fraction: fraction,
-//                maxBolus: maxBolus
-//            )
-//
-//            let result = await bolusCalculationManager.calculateInsulin(input: input)
-
             let result = await bolusCalculationManager.handleBolusCalculation(
                 carbs: carbs,
                 useFattyMealCorrection: useFattyMealCorrectionFactor,
@@ -446,18 +426,16 @@ extension Treatments {
                 let isFatPresent = fat > 0
                 let isProteinPresent = protein > 0
 
+                if isCarbsPresent || isFatPresent || isProteinPresent {
+                    await saveMeal()
+                }
+
                 if isInsulinGiven {
                     try await handleInsulin(isExternal: externalInsulin)
-                } else if isCarbsPresent || isFatPresent || isProteinPresent {
-                    await MainActor.run {
-                        self.waitForSuggestion = true
-                    }
                 } else {
                     hideModal()
                     return
                 }
-
-                await saveMeal()
 
                 // If glucose data is stale end the custom loading animation by hiding the modal
                 // Get date on Main thread
@@ -574,11 +552,12 @@ extension Treatments {
             )]
             await carbsStorage.storeCarbs(carbsToStore, areFetchedFromRemote: false)
 
-            if carbs > 0 || fat > 0 || protein > 0 {
-                // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
-                if amount <= 0 {
-                    await apsManager.determineBasalSync()
+            // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
+            if amount <= 0 {
+                await MainActor.run {
+                    self.waitForSuggestion = true
                 }
+                await apsManager.determineBasalSync()
             }
         }
 
@@ -609,9 +588,8 @@ extension Treatments {
         }
 
         func addPresetToNewMeal() {
-            let test: String = selection?.dish ?? "dontAdd"
-            if test != "dontAdd" {
-                summation.append(test)
+            if let selection = selection, let dish = selection.dish {
+                summation.append(dish)
             }
         }
 
@@ -823,7 +801,7 @@ extension Treatments.StateModel {
         } else {
             simulatedDetermination = await Task { [self] in
                 debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
-                return await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
+                return await apsManager.simulateDetermineBasal(simulatedCarbsAmount: carbs, simulatedBolusAmount: amount)
             }.value
         }
 

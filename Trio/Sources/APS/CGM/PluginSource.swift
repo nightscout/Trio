@@ -7,7 +7,7 @@ import LoopKit
 import LoopKitUI
 
 final class PluginSource: GlucoseSource {
-    private let processQueue = DispatchQueue(label: "DexcomSource.processQueue")
+    private let processQueue = DispatchQueue(label: "CGMPluginSource.processQueue")
     private let glucoseStorage: GlucoseStorage!
     var glucoseManager: FetchGlucoseManager?
 
@@ -107,8 +107,7 @@ extension PluginSource: CGMManagerDelegate {
     func cgmManagerWantsDeletion(_ manager: CGMManager) {
         dispatchPrecondition(condition: .onQueue(processQueue))
         debug(.deviceManager, " CGM Manager with identifier \(manager.pluginIdentifier) wants deletion")
-        // TODO:
-        glucoseManager?.cgmGlucoseSourceType = .none
+        glucoseManager?.deleteGlucoseSource()
     }
 
     func cgmManager(_: CGMManager, hasNew readingResult: CGMReadingResult) {
@@ -160,8 +159,9 @@ extension PluginSource: CGMManagerDelegate {
         UUID().uuidString
     }
 
-    func cgmManager(_: CGMManager, didUpdate status: CGMManagerStatus) {
-        debug(.deviceManager, "DEBUG DID UPDATE STATE")
+    func cgmManager(_ cgmManager: CGMManager, didUpdate status: CGMManagerStatus) {
+        debug(.deviceManager, "CGM Manager did update state to \(status)")
+        
         processQueue.async {
             if self.cgmHasValidSensorSession != status.hasValidSensorSession {
                 self.cgmHasValidSensorSession = status.hasValidSensorSession

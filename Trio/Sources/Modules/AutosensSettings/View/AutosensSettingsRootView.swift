@@ -105,7 +105,7 @@ extension AutosensSettings {
                         Spacer()
                         Button(
                             action: {
-                                hintLabel = "Autosens"
+                                hintLabel = String(localized: "Autosens")
                                 selectedVerboseHint = AnyView(autosensVerboseHint)
                                 shouldDisplayHint.toggle()
                             },
@@ -134,12 +134,12 @@ extension AutosensSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Autosens Max", comment: "Autosens Max")
+                            hintLabel = String(localized: "Autosens Max", comment: "Autosens Max")
                         }
                     ),
                     units: state.units,
                     type: .decimal("autosensMax"),
-                    label: NSLocalizedString("Autosens Max", comment: "Autosens Max"),
+                    label: String(localized: "Autosens Max", comment: "Autosens Max"),
                     miniHint: "Upper limit of the Autosens Ratio.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
@@ -154,7 +154,7 @@ extension AutosensSettings {
                             "Tip: Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower."
                         )
                     },
-                    headerText: "Glucose Deviations Algorithm"
+                    headerText: String(localized: "Glucose Deviations Algorithm")
                 )
 
                 SettingInputSection(
@@ -165,12 +165,12 @@ extension AutosensSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Autosens Min", comment: "Autosens Min")
+                            hintLabel = String(localized: "Autosens Min", comment: "Autosens Min")
                         }
                     ),
                     units: state.units,
                     type: .decimal("autosensMin"),
-                    label: NSLocalizedString("Autosens Min", comment: "Autosens Min"),
+                    label: String(localized: "Autosens Min", comment: "Autosens Min"),
                     miniHint: "Lower limit of the Autosens Ratio.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
@@ -195,12 +195,12 @@ extension AutosensSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Rewind Resets Autosens", comment: "Rewind Resets Autosens")
+                            hintLabel = String(localized: "Rewind Resets Autosens", comment: "Rewind Resets Autosens")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: NSLocalizedString("Rewind Resets Autosens", comment: "Rewind Resets Autosens"),
+                    label: String(localized: "Rewind Resets Autosens", comment: "Rewind Resets Autosens"),
                     miniHint: "Pump rewind initiates a reset in Autosens Ratio.",
                     verboseHint: VStack(alignment: .leading, spacing: 5) {
                         Text("Default: ON").bold()
@@ -226,7 +226,7 @@ extension AutosensSettings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

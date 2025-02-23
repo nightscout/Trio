@@ -38,13 +38,16 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier")
+                            hintLabel = String(localized: "Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxDailySafetyMultiplier"),
-                    label: NSLocalizedString("Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier"),
-                    miniHint: "Limits temporary basal rates to this percentage of your largest basal rate.",
+                    label: String(localized: "Max Daily Safety Multiplier", comment: "Max Daily Safety Multiplier"),
+                    miniHint: String(
+                        localized: "Limits temporary basal rates to this percentage of your largest basal rate.",
+                        comment: "Mini Hint for Max Daily Safety Multiplier"
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 300%").bold()
@@ -64,7 +67,8 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString(
+                            hintLabel = String(
+                                localized:
                                 "Current Basal Safety Multiplier",
                                 comment: "Current Basal Safety Multiplier"
                             )
@@ -72,8 +76,11 @@ extension AlgorithmAdvancedSettings {
                     ),
                     units: state.units,
                     type: .decimal("currentBasalSafetyMultiplier"),
-                    label: NSLocalizedString("Current Basal Safety Multiplier", comment: "Current Basal Safety Multiplier"),
-                    miniHint: "Limits temporary basal rates to this percentage of the current basal rate.",
+                    label: String(localized: "Current Basal Safety Multiplier", comment: "Current Basal Safety Multiplier"),
+                    miniHint: String(
+                        localized: "Limits temporary basal rates to this percentage of the current basal rate.",
+                        comment: "Mini Hint for Current Basal Safety Multiplier"
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 400%").bold()
@@ -95,13 +102,16 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Duration of Insulin Action"
+                            hintLabel = String(localized: "Duration of Insulin Action", comment: "Duration of Insulin Action")
                         }
                     ),
                     units: state.units,
                     type: .decimal("dia"),
-                    label: "Duration of Insulin Action",
-                    miniHint: "Number of hours insulin is active in your body.",
+                    label: String(localized: "Duration of Insulin Action", comment: "Duration of Insulin Action"),
+                    miniHint: String(
+                        localized: "Number of hours insulin is active in your body.",
+                        comment: "Mini Hint for Duration of Insulin Action"
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 10 hours").bold()
@@ -125,14 +135,17 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time")
+                            hintLabel = String(localized: "Use Custom Peak Time", comment: "Use Custom Peak Time")
                         }
                     ),
                     units: state.units,
                     type: .conditionalDecimal("insulinPeakTime"),
-                    label: NSLocalizedString("Use Custom Peak Time", comment: "Use Custom Peak Time"),
-                    conditionalLabel: NSLocalizedString("Insulin Peak Time", comment: "Insulin Peak Time"),
-                    miniHint: "Set a custom time for peak insulin effect.",
+                    label: String(localized: "Use Custom Peak Time", comment: "Use Custom Peak Time"),
+                    conditionalLabel: String(localized: "Insulin Peak Time", comment: "Insulin Peak Time"),
+                    miniHint: String(
+                        localized: "Set a custom time for peak insulin effect.",
+                        comment: "Mini Hint for Insulin Peak Time"
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: Set by Insulin Type").bold()
@@ -156,13 +169,16 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps")
+                            hintLabel = String(localized: "Skip Neutral Temps", comment: "Skip Neutral Temps")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: NSLocalizedString("Skip Neutral Temps", comment: "Skip Neutral Temps"),
-                    miniHint: "Skip neutral temporary basal rates to reduce MDT pump alerts.",
+                    label: String(localized: "Skip Neutral Temps", comment: "Skip Neutral Temps"),
+                    miniHint: String(
+                        localized: "Skip neutral temporary basal rates to reduce MDT pump alerts.",
+                        comment: "Mini Hint for Skip Neutral Temps"
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -183,13 +199,16 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Unsuspend If No Temp", comment: "Unsuspend If No Temp")
+                            hintLabel = String(localized: "Unsuspend If No Temp", comment: "Unsuspend If No Temp")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: NSLocalizedString("Unsuspend If No Temp", comment: "Unsuspend If No Temp"),
-                    miniHint: "Resume pump automatically after suspension.",
+                    label: String(localized: "Unsuspend If No Temp", comment: "Unsuspend If No Temp"),
+                    miniHint: String(
+                        localized: "Resume pump automatically after suspension.",
+                        comment: "Mini Hint for Unsuspend If No Temp"
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -208,13 +227,16 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Suspend Zeros IOB", comment: "Suspend Zeros IOB")
+                            hintLabel = String(localized: "Suspend Zeros IOB", comment: "Suspend Zeros IOB")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: NSLocalizedString("Suspend Zeros IOB", comment: "Suspend Zeros IOB"),
-                    miniHint: "Clear temporary basal rates and reset IOB when suspended.",
+                    label: String(localized: "Suspend Zeros IOB", comment: "Suspend Zeros IOB"),
+                    miniHint: String(
+                        localized: "Clear temporary basal rates and reset IOB when suspended.",
+                        comment: "Mini Hint for Suspend Zeros IOB"
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -236,12 +258,12 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Min 5m Carb Impact", comment: "Min 5m Carb Impact")
+                            hintLabel = String(localized: "Min 5m Carb Impact", comment: "Min 5m Carb Impact")
                         }
                     ),
                     units: state.units,
                     type: .decimal("min5mCarbimpact"),
-                    label: NSLocalizedString("Min 5m Carb Impact", comment: "Min 5m Carb Impact"),
+                    label: String(localized: "Min 5m Carb Impact", comment: "Min 5m Carb Impact"),
                     miniHint: "Default impact of carb absorption over a 5 minute interval.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
@@ -249,7 +271,7 @@ extension AlgorithmAdvancedSettings {
                             "Min 5m Carb Impact sets the expected glucose rise from carbs over 5 minutes when absorption isn't obvious from glucose data."
                         )
                         Text(
-                            "The default value of 8 mg/dL per 5 minutes corresponds to an absorption rate of 24 g of carbs per hour."
+                            "The default is an expected \(state.units == .mgdL ? "8" : 8.formattedAsMmolL) \(state.units.rawValue)/5min. This affects how fast COB is decayed in situations when carb absorption is not visible in BG deviations. The default of \(state.units == .mgdL ? "8" : 8.formattedAsMmolL) \(state.units.rawValue)/5min corresponds to a minimum carb absorption rate of 24 g/hr at a CSF of \(state.units == .mgdL ? "4" : 4.formattedAsMmolL) \(state.units.rawValue)/g."
                         )
                         Text(
                             "This setting helps the system estimate how much glucose your body is absorbing, even when it's not immediately visible in your glucose data, ensuring more accurate insulin dosing during carb absorption."
@@ -265,13 +287,16 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Remaining Carbs Percentage", comment: "Remaining Carbs Percentage")
+                            hintLabel = String(localized: "Remaining Carbs Percentage", comment: "Remaining Carbs Percentage")
                         }
                     ),
                     units: state.units,
                     type: .decimal("remainingCarbsFraction"),
-                    label: NSLocalizedString("Remaining Carbs Percentage", comment: "Remaining Carbs Percentage"),
-                    miniHint: "Percentage of carbs still available if no absorption is detected.",
+                    label: String(localized: "Remaining Carbs Percentage", comment: "Remaining Carbs Percentage"),
+                    miniHint: String(
+                        localized: "Percentage of carbs still available if no absorption is detected.",
+                        comment: "Mini Hint for Remaining Carbs Percentage"
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 100%").bold()
@@ -292,13 +317,16 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap")
+                            hintLabel = String(localized: "Remaining Carbs Cap", comment: "Remaining Carbs Cap")
                         }
                     ),
                     units: state.units,
                     type: .decimal("remainingCarbsCap"),
-                    label: NSLocalizedString("Remaining Carbs Cap", comment: "Remaining Carbs Cap"),
-                    miniHint: "Maximum amount of carbs still available if no absorption is detected.",
+                    label: String(localized: "Remaining Carbs Cap", comment: "Remaining Carbs Cap"),
+                    miniHint: String(
+                        localized: "Maximum amount of carbs still available if no absorption is detected.",
+                        comment: "Mini hint for Remaining Carbs Cap"
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 90 g").bold()
@@ -319,13 +347,16 @@ extension AlgorithmAdvancedSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Noisy CGM Target Multiplier", comment: "Noisy CGM Target Multiplier")
+                            hintLabel = String(localized: "Noisy CGM Target Multiplier", comment: "Noisy CGM Target Multiplier")
                         }
                     ),
                     units: state.units,
                     type: .decimal("noisyCGMTargetMultiplier"),
-                    label: NSLocalizedString("Noisy CGM Target Increase", comment: "Noisy CGM Target Increase"),
-                    miniHint: "Percentage increase of glucose target when CGM is inconsistent.",
+                    label: String(localized: "Noisy CGM Target Increase", comment: "Noisy CGM Target Increase"),
+                    miniHint: String(
+                        localized: "Percentage increase of glucose target when CGM is inconsistent.",
+                        comment: "Mini Hint for Noisy CGM Target Increase"
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 130%").bold()
@@ -346,7 +377,7 @@ extension AlgorithmAdvancedSettings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden)
