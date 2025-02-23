@@ -208,7 +208,7 @@ enum SettingItems {
                 "Total Insulin Display Type",
                 "Total Daily Dose (TDD)",
                 "Total Insulin in Scope (TINS)",
-                "Override HbA1c Unit",
+                "Override eA1c Unit",
                 "Standing / Laying TIR Chart",
                 "Show Carbs Required Badge",
                 "Carbs Required Threshold",
