@@ -11,13 +11,11 @@ protocol PumpHistoryObserver {
 
 protocol PumpHistoryStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
-    func storePumpEvents(_ events: [NewPumpEvent])
+    func storePumpEvents(_ events: [NewPumpEvent]) async throws
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
-    func recent() -> [PumpHistoryEvent]
-    func getPumpHistoryNotYetUploadedToNightscout() async -> [NightscoutTreatment]
-    func getPumpHistoryNotYetUploadedToHealth() async -> [PumpHistoryEvent]
-    func getPumpHistoryNotYetUploadedToTidepool() async -> [PumpHistoryEvent]
-    func deleteInsulin(at date: Date)
+    func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
+    func getPumpHistoryNotYetUploadedToHealth() async throws -> [PumpHistoryEvent]
+    func getPumpHistoryNotYetUploadedToTidepool() async throws -> [PumpHistoryEvent]
 }
 
 final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
@@ -27,6 +25,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     @Injected() private var settings: SettingsManager!
 
     private let updateSubject = PassthroughSubject<Void, Never>()
+    private let context = CoreDataStack.shared.newTaskContext()
 
     var updatePublisher: AnyPublisher<Void, Never> {
         updateSubject.eraseToAnyPublisher()
@@ -39,190 +38,184 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     typealias PumpEvent = PumpEventStored.EventType
     typealias TempType = PumpEventStored.TempType
 
-    private let context = CoreDataStack.shared.newTaskContext()
-
     private func roundDose(_ dose: Double, toIncrement increment: Double) -> Decimal {
         let roundedValue = (dose / increment).rounded() * increment
         return Decimal(roundedValue)
     }
 
-    func storePumpEvents(_ events: [NewPumpEvent]) {
-        processQueue.async {
-            self.context.perform {
-                for event in events {
-                    // Fetch to filter out duplicates
-                    // TODO: - move this to the Core Data Class
+    func storePumpEvents(_ events: [NewPumpEvent]) async throws {
+        try await context.perform {
+            for event in events {
+                let existingEvents: [PumpEventStored] = try CoreDataStack.shared.fetchEntities(
+                    ofType: PumpEventStored.self,
+                    onContext: self.context,
+                    predicate: NSPredicate.duplicateInLastHour(event.date),
+                    key: "timestamp",
+                    ascending: false,
+                    batchSize: 50
+                ) as? [PumpEventStored] ?? []
 
-                    let existingEvents: [PumpEventStored] = CoreDataStack.shared.fetchEntities(
-                        ofType: PumpEventStored.self,
-                        onContext: self.context,
-                        predicate: NSPredicate.duplicateInLastHour(event.date),
-                        key: "timestamp",
-                        ascending: false,
-                        batchSize: 50
-                    ) as? [PumpEventStored] ?? []
+                switch event.type {
+                case .bolus:
 
-                    switch event.type {
-                    case .bolus:
+                    guard let dose = event.dose else { continue }
+                    let amount = self.roundDose(
+                        dose.unitsInDeliverableIncrements,
+                        toIncrement: Double(self.settings.preferences.bolusIncrement)
+                    )
 
-                        guard let dose = event.dose else { continue }
-                        let amount = self.roundDose(
-                            dose.unitsInDeliverableIncrements,
-                            toIncrement: Double(self.settings.preferences.bolusIncrement)
-                        )
+                    guard existingEvents.isEmpty else {
+                        // Duplicate found, do not store the event
+                        print("Duplicate event found with timestamp: \(event.date)")
 
-                        guard existingEvents.isEmpty else {
-                            // Duplicate found, do not store the event
-                            print("Duplicate event found with timestamp: \(event.date)")
+                        if let existingEvent = existingEvents.first(where: { $0.type == EventType.bolus.rawValue }) {
+                            if existingEvent.timestamp == event.date {
+                                if let existingAmount = existingEvent.bolus?.amount, amount < existingAmount as Decimal {
+                                    // Update existing event with new smaller value
+                                    existingEvent.bolus?.amount = amount as NSDecimalNumber
+                                    existingEvent.bolus?.isSMB = dose.automatic ?? true
+                                    existingEvent.isUploadedToNS = false
+                                    existingEvent.isUploadedToHealth = false
+                                    existingEvent.isUploadedToTidepool = false
 
-                            if let existingEvent = existingEvents.first(where: { $0.type == EventType.bolus.rawValue }) {
-                                if existingEvent.timestamp == event.date {
-                                    if let existingAmount = existingEvent.bolus?.amount, amount < existingAmount as Decimal {
-                                        // Update existing event with new smaller value
-                                        existingEvent.bolus?.amount = amount as NSDecimalNumber
-                                        existingEvent.bolus?.isSMB = dose.automatic ?? true
-                                        existingEvent.isUploadedToNS = false
-                                        existingEvent.isUploadedToHealth = false
-                                        existingEvent.isUploadedToTidepool = false
-
-                                        print("Updated existing event with smaller value: \(amount)")
-                                    }
+                                    print("Updated existing event with smaller value: \(amount)")
                                 }
                             }
-                            continue
                         }
-
-                        let newPumpEvent = PumpEventStored(context: self.context)
-                        newPumpEvent.id = UUID().uuidString
-                        // restrict entry to now or past
-                        newPumpEvent.timestamp = event.date > Date() ? Date() : event.date
-                        newPumpEvent.type = PumpEvent.bolus.rawValue
-                        newPumpEvent.isUploadedToNS = false
-                        newPumpEvent.isUploadedToHealth = false
-                        newPumpEvent.isUploadedToTidepool = false
-
-                        let newBolusEntry = BolusStored(context: self.context)
-                        newBolusEntry.pumpEvent = newPumpEvent
-                        newBolusEntry.amount = NSDecimalNumber(decimal: amount)
-                        newBolusEntry.isExternal = dose.manuallyEntered
-                        newBolusEntry.isSMB = dose.automatic ?? true
-
-                    case .tempBasal:
-                        guard let dose = event.dose else { continue }
-
-                        guard existingEvents.isEmpty else {
-                            // Duplicate found, do not store the event
-                            print("Duplicate event found with timestamp: \(event.date)")
-                            continue
-                        }
-
-                        let rate = Decimal(dose.unitsPerHour)
-                        let minutes = (dose.endDate - dose.startDate).timeInterval / 60
-                        let delivered = dose.deliveredUnits
-                        let date = event.date
-
-                        let isCancel = delivered != nil
-                        guard !isCancel else { continue }
-
-                        let newPumpEvent = PumpEventStored(context: self.context)
-                        newPumpEvent.id = UUID().uuidString
-                        newPumpEvent.timestamp = date
-                        newPumpEvent.type = PumpEvent.tempBasal.rawValue
-                        newPumpEvent.isUploadedToNS = false
-                        newPumpEvent.isUploadedToHealth = false
-                        newPumpEvent.isUploadedToTidepool = false
-
-                        let newTempBasal = TempBasalStored(context: self.context)
-                        newTempBasal.pumpEvent = newPumpEvent
-                        newTempBasal.duration = Int16(round(minutes))
-                        newTempBasal.rate = rate as NSDecimalNumber
-                        newTempBasal.tempType = TempType.absolute.rawValue
-
-                    case .suspend:
-                        guard existingEvents.isEmpty else {
-                            // Duplicate found, do not store the event
-                            print("Duplicate event found with timestamp: \(event.date)")
-                            continue
-                        }
-                        let newPumpEvent = PumpEventStored(context: self.context)
-                        newPumpEvent.id = UUID().uuidString
-                        newPumpEvent.timestamp = event.date
-                        newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
-                        newPumpEvent.isUploadedToNS = false
-                        newPumpEvent.isUploadedToHealth = false
-                        newPumpEvent.isUploadedToTidepool = false
-
-                    case .resume:
-                        guard existingEvents.isEmpty else {
-                            // Duplicate found, do not store the event
-                            print("Duplicate event found with timestamp: \(event.date)")
-                            continue
-                        }
-                        let newPumpEvent = PumpEventStored(context: self.context)
-                        newPumpEvent.id = UUID().uuidString
-                        newPumpEvent.timestamp = event.date
-                        newPumpEvent.type = PumpEvent.pumpResume.rawValue
-                        newPumpEvent.isUploadedToNS = false
-                        newPumpEvent.isUploadedToHealth = false
-                        newPumpEvent.isUploadedToTidepool = false
-
-                    case .rewind:
-                        guard existingEvents.isEmpty else {
-                            // Duplicate found, do not store the event
-                            print("Duplicate event found with timestamp: \(event.date)")
-                            continue
-                        }
-                        let newPumpEvent = PumpEventStored(context: self.context)
-                        newPumpEvent.id = UUID().uuidString
-                        newPumpEvent.timestamp = event.date
-                        newPumpEvent.type = PumpEvent.rewind.rawValue
-                        newPumpEvent.isUploadedToNS = false
-                        newPumpEvent.isUploadedToHealth = false
-                        newPumpEvent.isUploadedToTidepool = false
-
-                    case .prime:
-                        guard existingEvents.isEmpty else {
-                            // Duplicate found, do not store the event
-                            print("Duplicate event found with timestamp: \(event.date)")
-                            continue
-                        }
-                        let newPumpEvent = PumpEventStored(context: self.context)
-                        newPumpEvent.id = UUID().uuidString
-                        newPumpEvent.timestamp = event.date
-                        newPumpEvent.type = PumpEvent.prime.rawValue
-                        newPumpEvent.isUploadedToNS = false
-                        newPumpEvent.isUploadedToHealth = false
-                        newPumpEvent.isUploadedToTidepool = false
-
-                    case .alarm:
-                        guard existingEvents.isEmpty else {
-                            // Duplicate found, do not store the event
-                            print("Duplicate event found with timestamp: \(event.date)")
-                            continue
-                        }
-                        let newPumpEvent = PumpEventStored(context: self.context)
-                        newPumpEvent.id = UUID().uuidString
-                        newPumpEvent.timestamp = event.date
-                        newPumpEvent.type = PumpEvent.pumpAlarm.rawValue
-                        newPumpEvent.isUploadedToNS = false
-                        newPumpEvent.isUploadedToHealth = false
-                        newPumpEvent.isUploadedToTidepool = false
-                        newPumpEvent.note = event.title
-
-                    default:
                         continue
                     }
-                }
 
-                do {
-                    guard self.context.hasChanges else { return }
-                    try self.context.save()
+                    let newPumpEvent = PumpEventStored(context: self.context)
+                    newPumpEvent.id = UUID().uuidString
+                    // restrict entry to now or past
+                    newPumpEvent.timestamp = event.date > Date() ? Date() : event.date
+                    newPumpEvent.type = PumpEvent.bolus.rawValue
+                    newPumpEvent.isUploadedToNS = false
+                    newPumpEvent.isUploadedToHealth = false
+                    newPumpEvent.isUploadedToTidepool = false
 
-                    self.updateSubject.send(())
-                    debugPrint("\(DebuggingIdentifiers.succeeded) stored pump events in Core Data")
-                } catch let error as NSError {
-                    debugPrint("\(DebuggingIdentifiers.failed) failed to store pump events with error: \(error.userInfo)")
+                    let newBolusEntry = BolusStored(context: self.context)
+                    newBolusEntry.pumpEvent = newPumpEvent
+                    newBolusEntry.amount = NSDecimalNumber(decimal: amount)
+                    newBolusEntry.isExternal = dose.manuallyEntered
+                    newBolusEntry.isSMB = dose.automatic ?? true
+
+                case .tempBasal:
+                    guard let dose = event.dose else { continue }
+
+                    guard existingEvents.isEmpty else {
+                        // Duplicate found, do not store the event
+                        print("Duplicate event found with timestamp: \(event.date)")
+                        continue
+                    }
+
+                    let rate = Decimal(dose.unitsPerHour)
+                    let minutes = (dose.endDate - dose.startDate).timeInterval / 60
+                    let delivered = dose.deliveredUnits
+                    let date = event.date
+
+                    let isCancel = delivered != nil
+                    guard !isCancel else { continue }
+
+                    let newPumpEvent = PumpEventStored(context: self.context)
+                    newPumpEvent.id = UUID().uuidString
+                    newPumpEvent.timestamp = date
+                    newPumpEvent.type = PumpEvent.tempBasal.rawValue
+                    newPumpEvent.isUploadedToNS = false
+                    newPumpEvent.isUploadedToHealth = false
+                    newPumpEvent.isUploadedToTidepool = false
+
+                    let newTempBasal = TempBasalStored(context: self.context)
+                    newTempBasal.pumpEvent = newPumpEvent
+                    newTempBasal.duration = Int16(round(minutes))
+                    newTempBasal.rate = rate as NSDecimalNumber
+                    newTempBasal.tempType = TempType.absolute.rawValue
+
+                case .suspend:
+                    guard existingEvents.isEmpty else {
+                        // Duplicate found, do not store the event
+                        print("Duplicate event found with timestamp: \(event.date)")
+                        continue
+                    }
+                    let newPumpEvent = PumpEventStored(context: self.context)
+                    newPumpEvent.id = UUID().uuidString
+                    newPumpEvent.timestamp = event.date
+                    newPumpEvent.type = PumpEvent.pumpSuspend.rawValue
+                    newPumpEvent.isUploadedToNS = false
+                    newPumpEvent.isUploadedToHealth = false
+                    newPumpEvent.isUploadedToTidepool = false
+
+                case .resume:
+                    guard existingEvents.isEmpty else {
+                        // Duplicate found, do not store the event
+                        print("Duplicate event found with timestamp: \(event.date)")
+                        continue
+                    }
+                    let newPumpEvent = PumpEventStored(context: self.context)
+                    newPumpEvent.id = UUID().uuidString
+                    newPumpEvent.timestamp = event.date
+                    newPumpEvent.type = PumpEvent.pumpResume.rawValue
+                    newPumpEvent.isUploadedToNS = false
+                    newPumpEvent.isUploadedToHealth = false
+                    newPumpEvent.isUploadedToTidepool = false
+
+                case .rewind:
+                    guard existingEvents.isEmpty else {
+                        // Duplicate found, do not store the event
+                        print("Duplicate event found with timestamp: \(event.date)")
+                        continue
+                    }
+                    let newPumpEvent = PumpEventStored(context: self.context)
+                    newPumpEvent.id = UUID().uuidString
+                    newPumpEvent.timestamp = event.date
+                    newPumpEvent.type = PumpEvent.rewind.rawValue
+                    newPumpEvent.isUploadedToNS = false
+                    newPumpEvent.isUploadedToHealth = false
+                    newPumpEvent.isUploadedToTidepool = false
+
+                case .prime:
+                    guard existingEvents.isEmpty else {
+                        // Duplicate found, do not store the event
+                        print("Duplicate event found with timestamp: \(event.date)")
+                        continue
+                    }
+                    let newPumpEvent = PumpEventStored(context: self.context)
+                    newPumpEvent.id = UUID().uuidString
+                    newPumpEvent.timestamp = event.date
+                    newPumpEvent.type = PumpEvent.prime.rawValue
+                    newPumpEvent.isUploadedToNS = false
+                    newPumpEvent.isUploadedToHealth = false
+                    newPumpEvent.isUploadedToTidepool = false
+
+                case .alarm:
+                    guard existingEvents.isEmpty else {
+                        // Duplicate found, do not store the event
+                        print("Duplicate event found with timestamp: \(event.date)")
+                        continue
+                    }
+                    let newPumpEvent = PumpEventStored(context: self.context)
+                    newPumpEvent.id = UUID().uuidString
+                    newPumpEvent.timestamp = event.date
+                    newPumpEvent.type = PumpEvent.pumpAlarm.rawValue
+                    newPumpEvent.isUploadedToNS = false
+                    newPumpEvent.isUploadedToHealth = false
+                    newPumpEvent.isUploadedToTidepool = false
+                    newPumpEvent.note = event.title
+
+                default:
+                    continue
                 }
+            }
+
+            do {
+                guard self.context.hasChanges else { return }
+                try self.context.save()
+
+                self.updateSubject.send(())
+                debugPrint("\(DebuggingIdentifiers.succeeded) stored pump events in Core Data")
+            } catch let error as NSError {
+                debugPrint("\(DebuggingIdentifiers.failed) failed to store pump events with error: \(error.userInfo)")
+                throw error
             }
         }
     }
@@ -258,24 +251,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         }
     }
 
-    func recent() -> [PumpHistoryEvent] {
-        storage.retrieve(OpenAPS.Monitor.pumpHistory, as: [PumpHistoryEvent].self)?.reversed() ?? []
-    }
-
-    func deleteInsulin(at date: Date) {
-        processQueue.sync {
-            var allValues = storage.retrieve(OpenAPS.Monitor.pumpHistory, as: [PumpHistoryEvent].self) ?? []
-            guard let entryIndex = allValues.firstIndex(where: { $0.timestamp == date }) else {
-                return
-            }
-            allValues.remove(at: entryIndex)
-            storage.save(allValues, as: OpenAPS.Monitor.pumpHistory)
-            broadcaster.notify(PumpHistoryObserver.self, on: processQueue) {
-                $0.pumpHistoryDidUpdate(allValues)
-            }
-        }
-    }
-
     func determineBolusEventType(for event: PumpEventStored) -> PumpEventStored.EventType {
         if event.bolus!.isSMB {
             return .smb
@@ -286,8 +261,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         return PumpEventStored.EventType(rawValue: event.type!) ?? PumpEventStored.EventType.bolus
     }
 
-    func getPumpHistoryNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToNightscout,
@@ -295,8 +270,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             ascending: false
         )
 
-        return await context.perform { [self] in
-            guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+        return try await context.perform { [self] in
+            guard let fetchedPumpEvents = results as? [PumpEventStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedPumpEvents.map { event in
                 switch event.type {
@@ -445,8 +422,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         }
     }
 
-    func getPumpHistoryNotYetUploadedToHealth() async -> [PumpHistoryEvent] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getPumpHistoryNotYetUploadedToHealth() async throws -> [PumpHistoryEvent] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToHealth,
@@ -454,10 +431,12 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+        return try await context.perform {
+            guard let fetchedPumpEvents = results as? [PumpEventStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await context.perform {
-            fetchedPumpEvents.map { event in
+            return fetchedPumpEvents.map { event in
                 switch event.type {
                 case PumpEvent.bolus.rawValue:
                     return PumpHistoryEvent(
@@ -487,8 +466,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         }
     }
 
-    func getPumpHistoryNotYetUploadedToTidepool() async -> [PumpHistoryEvent] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getPumpHistoryNotYetUploadedToTidepool() async throws -> [PumpHistoryEvent] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpEventsNotYetUploadedToTidepool,
@@ -496,10 +475,12 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedPumpEvents = results as? [PumpEventStored] else { return [] }
+        return try await context.perform {
+            guard let fetchedPumpEvents = results as? [PumpEventStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await context.perform {
-            fetchedPumpEvents.map { event in
+            return fetchedPumpEvents.map { event in
                 switch event.type {
                 case PumpEvent.bolus.rawValue:
                     return PumpHistoryEvent(

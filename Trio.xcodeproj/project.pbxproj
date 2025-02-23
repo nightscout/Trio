@@ -1969,18 +1969,18 @@
 				CE1F6DE62BAF1A180064EB8D /* BuildDetails.plist */,
 				38F3783A2613555C009DB701 /* Config.xcconfig */,
 				BD1CF8B72C1A4A8400CB930A /* ConfigOverride.xcconfig */,
-				3818AA48274C267000843DB3 /* Frameworks */,
-				6B1A8D1C2B14D91600E76752 /* LiveActivity */,
-				587A54C82BCDCE0F009D38E2 /* Model */,
-				3818AA44274C229000843DB3 /* Packages */,
-				388E595925AD948C0019842D /* Products */,
-				192F0FF5276AC36D0085BE4D /* Recovered References */,
 				388E595A25AD948C0019842D /* Trio */,
+				587A54C82BCDCE0F009D38E2 /* Model */,
 				38FCF3EE25E9028E0078B0D1 /* TrioTests */,
+				6B1A8D1C2B14D91600E76752 /* LiveActivity */,
 				BDFF7AA12D25FAC70016C40C /* Trio Watch App */,
 				BDFF7A9C2D25FA730016C40C /* Trio Watch App Extension */,
 				BDFF7AA02D25FAA80016C40C /* Trio Watch App Tests */,
 				DD09D6492D2B6253000D82C9 /* Trio Watch Complication */,
+				3818AA48274C267000843DB3 /* Frameworks */,
+				3818AA44274C229000843DB3 /* Packages */,
+				388E595925AD948C0019842D /* Products */,
+				192F0FF5276AC36D0085BE4D /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -2354,11 +2354,11 @@
 		587A54C82BCDCE0F009D38E2 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				DDE179112C9100FA003CDDB7 /* Classes+Properties */,
 				BDF34F8F2C10CF8C00D51995 /* CoreDataStack.swift */,
-				5825D1622BD405AE00F36E9B /* Helper */,
-				DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */,
 				BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */,
+				DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */,
+				DDE179112C9100FA003CDDB7 /* Classes+Properties */,
+				5825D1622BD405AE00F36E9B /* Helper */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -3289,8 +3289,9 @@
 		388E595025AD948C0019842D /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1620;
-				LastUpgradeCheck = 1240;
+				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					388E595725AD948C0019842D = {
 						CreatedOnToolsVersion = 12.3;
@@ -3424,6 +3425,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		3811DEF525CA169200A708ED /* Swiftformat */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 12;
 			files = (
 			);
@@ -3461,6 +3463,7 @@
 		};
 		DD88C8DF2C4D583900F2D558 /* Run Script: Capture Build Details */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -3479,6 +3482,7 @@
 		};
 		DD88C8E02C4D716400F2D558 /* Run Script: get branch name and commit ID */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -3942,7 +3946,6 @@
 				195D80B92AF697F700D25097 /* DynamicSettingsProvider.swift in Sources */,
 				DD09D47D2C5986DA003FEA5D /* CalendarEventSettingsProvider.swift in Sources */,
 				DD09D47B2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift in Sources */,
-				6BCF84DD2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
 				DD1745202C55523E00211FAC /* SMBSettingsDataFlow.swift in Sources */,
 				D6D02515BBFBE64FEBE89856 /* DataTableRootView.swift in Sources */,
 				DD1745292C55642100211FAC /* SettingInputSection.swift in Sources */,
@@ -3959,7 +3962,6 @@
 				B7C465E9472624D8A2BE2A6A /* (null) in Sources */,
 				71D44AAB2CA5F5EA0036EE9E /* AlertPermissionsChecker.swift in Sources */,
 				320D030F724170A637F06D50 /* (null) in Sources */,
-				CE94598729E9E4110047C9C6 /* WatchConfigRootView.swift in Sources */,
 				19E1F7E829D082D0005C8D20 /* IconConfigDataFlow.swift in Sources */,
 				5A2325522BFCBF55003518CA /* NightscoutUploadView.swift in Sources */,
 				E3A08AAE59538BC8A8ABE477 /* GlucoseNotificationSettingsDataFlow.swift in Sources */,
@@ -4024,7 +4026,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6BCF84DE2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
 				6BCF84DE2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
 				DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */,
 				6B1A8D1E2B14D91600E76752 /* LiveActivityBundle.swift in Sources */,

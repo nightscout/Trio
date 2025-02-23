@@ -26,36 +26,43 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
     ///
     /// - Returns: An array of `ContactImageEntry` objects.
     func fetchContactImageEntries() async -> [ContactImageEntry] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: ContactImageEntryStored.self,
-            onContext: backgroundContext,
-            predicate: NSPredicate.all,
-            key: "hasHighContrast",
-            ascending: false
-        )
+        do {
+            let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+                ofType: ContactImageEntryStored.self,
+                onContext: backgroundContext,
+                predicate: NSPredicate.all,
+                key: "hasHighContrast",
+                ascending: false
+            )
 
-        return await backgroundContext.perform {
-            guard let fetchedContactImageEntries = results as? [ContactImageEntryStored] else { return [] }
+            return try await backgroundContext.perform {
+                guard let fetchedContactImageEntries = results as? [ContactImageEntryStored]
+                else { throw CoreDataError.fetchError(function: #function, file: #file)
+                }
 
-            return fetchedContactImageEntries.compactMap { entry in
-                ContactImageEntry(
-                    name: entry.name ?? String(localized: "No name provided"),
-                    layout: ContactImageLayout(rawValue: entry.layout ?? "Default") ?? .default,
-                    ring: ContactImageLargeRing(rawValue: entry.ring ?? "Hidden") ?? .none,
-                    primary: ContactImageValue(rawValue: entry.primary ?? "Glucose Reading") ?? .glucose,
-                    top: ContactImageValue(rawValue: entry.top ?? "None") ?? .none,
-                    bottom: ContactImageValue(rawValue: entry.bottom ?? "None") ?? .none,
-                    contactId: entry.contactId?.string,
-                    hasHighContrast: entry.hasHighContrast,
-                    ringWidth: ContactImageEntry.RingWidth(rawValue: Int(entry.ringWidth)) ?? .regular,
-                    ringGap: ContactImageEntry.RingGap(rawValue: Int(entry.ringGap)) ?? .small,
-                    fontSize: ContactImageEntry.FontSize(rawValue: Int(entry.fontSize)) ?? .regular,
-                    secondaryFontSize: ContactImageEntry.FontSize(rawValue: Int(entry.fontSizeSecondary)) ?? .small,
-                    fontWeight: Font.Weight.fromString(entry.fontWeight ?? "regular"),
-                    fontWidth: Font.Width.fromString(entry.fontWidth ?? "standard"),
-                    managedObjectID: entry.objectID
-                )
+                return fetchedContactImageEntries.compactMap { entry in
+                    ContactImageEntry(
+                        name: entry.name ?? String(localized: "No name provided"),
+                        layout: ContactImageLayout(rawValue: entry.layout ?? "Default") ?? .default,
+                        ring: ContactImageLargeRing(rawValue: entry.ring ?? "Hidden") ?? .none,
+                        primary: ContactImageValue(rawValue: entry.primary ?? "Glucose Reading") ?? .glucose,
+                        top: ContactImageValue(rawValue: entry.top ?? "None") ?? .none,
+                        bottom: ContactImageValue(rawValue: entry.bottom ?? "None") ?? .none,
+                        contactId: entry.contactId?.string,
+                        hasHighContrast: entry.hasHighContrast,
+                        ringWidth: ContactImageEntry.RingWidth(rawValue: Int(entry.ringWidth)) ?? .regular,
+                        ringGap: ContactImageEntry.RingGap(rawValue: Int(entry.ringGap)) ?? .small,
+                        fontSize: ContactImageEntry.FontSize(rawValue: Int(entry.fontSize)) ?? .regular,
+                        secondaryFontSize: ContactImageEntry.FontSize(rawValue: Int(entry.fontSizeSecondary)) ?? .small,
+                        fontWeight: Font.Weight.fromString(entry.fontWeight ?? "regular"),
+                        fontWidth: Font.Width.fromString(entry.fontWidth ?? "standard"),
+                        managedObjectID: entry.objectID
+                    )
+                }
             }
+        } catch {
+            debug(.default, "\(DebuggingIdentifiers.failed) Error fetching contact image entries: \(error.localizedDescription)")
+            return []
         }
     }
 

@@ -41,9 +41,42 @@ class CoreDataStack: ObservableObject {
         }
     }
 
+    // Factory method for tests
+    static func createForTests() -> CoreDataStack {
+        CoreDataStack(inMemory: true)
+    }
+
+    // Used for Canvas Preview
+    static var preview: CoreDataStack = {
+        let stack = CoreDataStack(inMemory: true)
+        let context = stack.persistentContainer.viewContext
+
+        let pumpHistory = PumpEventStored.makePreviewEvents(count: 10, provider: stack)
+
+        return stack
+    }()
+
+    // Shared managed object model
+    static var managedObjectModel: NSManagedObjectModel = {
+        let bundle = Bundle(for: CoreDataStack.self)
+        guard let url = bundle.url(forResource: "TrioCoreDataPersistentContainer", withExtension: "momd") else {
+            fatalError("Failed \(DebuggingIdentifiers.failed) to locate momd file")
+        }
+
+        guard let model = NSManagedObjectModel(contentsOf: url) else {
+            fatalError("Failed \(DebuggingIdentifiers.failed) to load momd file")
+        }
+
+        return model
+    }()
+
     /// A persistent container to set up the Core Data Stack
     lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "TrioCoreDataPersistentContainer")
+        // Use shared model instead of loading a new one
+        let container = NSPersistentContainer(
+            name: "TrioCoreDataPersistentContainer",
+            managedObjectModel: Self.managedObjectModel
+        )
 
         guard let description = container.persistentStoreDescriptions.first else {
             fatalError("Failed \(DebuggingIdentifiers.failed) to retrieve a persistent store description")
@@ -88,7 +121,7 @@ class CoreDataStack: ObservableObject {
         let taskContext = persistentContainer.newBackgroundContext()
 
         /// ensure that the background contexts stay in sync with the main context
-        taskContext.automaticallyMergesChangesFromParent = true
+        taskContext.automaticallyMergesChangesFromParent = false
         taskContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         taskContext.undoManager = nil
         return taskContext
@@ -98,14 +131,14 @@ class CoreDataStack: ObservableObject {
         do {
             try await fetchPersistentHistoryTransactionsAndChanges()
         } catch {
-            debugPrint("\(error.localizedDescription)")
+            debug(.coreData, "\(error.localizedDescription)")
         }
     }
 
     private func fetchPersistentHistoryTransactionsAndChanges() async throws {
         let taskContext = newTaskContext()
         taskContext.name = "persistentHistoryContext"
-        //        debugPrint("Start fetching persistent history changes from the store ... \(DebuggingIdentifiers.inProgress)")
+//        debug(.coreData,"Start fetching persistent history changes from the store ... \(DebuggingIdentifiers.inProgress)")
 
         try await taskContext.perform {
             // Execute the persistent history change since the last transaction
@@ -120,7 +153,7 @@ class CoreDataStack: ObservableObject {
     }
 
     private func mergePersistentHistoryChanges(from history: [NSPersistentHistoryTransaction]) {
-        //        debugPrint("Received \(history.count) persistent history transactions")
+//        debug(.coreData,"Received \(history.count) persistent history transactions")
         // Update view context with objectIDs from history change request
         /// - Tag: mergeChanges
         let viewContext = persistentContainer.viewContext
@@ -142,10 +175,11 @@ class CoreDataStack: ObservableObject {
             let deleteHistoryTokensRequest = NSPersistentHistoryChangeRequest.deleteHistory(before: date)
             do {
                 try taskContext.execute(deleteHistoryTokensRequest)
-                debugPrint("\(DebuggingIdentifiers.succeeded) Successfully deleted persistent history before \(date)")
+                debug(.coreData, "\(DebuggingIdentifiers.succeeded) Successfully deleted persistent history from before \(date)")
             } catch {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) Failed to delete persistent history before \(date): \(error.localizedDescription)"
+                debug(
+                    .coreData,
+                    "\(DebuggingIdentifiers.failed) Failed to delete persistent history from before \(date): \(error.localizedDescription)"
                 )
             }
         }
@@ -155,9 +189,9 @@ class CoreDataStack: ObservableObject {
         // Force initialization of persistent container
         let container = persistentContainer
 
-        // Verify the store is loaded and available
-        guard container.persistentStoreCoordinator.persistentStores.isNotEmpty else {
-            throw CoreDataError.storeNotInitializedError
+        // Verify the store is loaded
+        guard container.persistentStoreCoordinator.persistentStores.isEmpty == false else {
+            throw CoreDataError.storeNotInitializedError(function: #function, file: #file)
         }
     }
 }
@@ -169,7 +203,7 @@ extension CoreDataStack {
     ///  - Tag: synchronousDelete
     func deleteObject(identifiedBy objectID: NSManagedObjectID) async {
         let viewContext = persistentContainer.viewContext
-        debugPrint("Start deleting data from the store ...\(DebuggingIdentifiers.inProgress)")
+        debug(.coreData, "Start deleting data from the store ...\(DebuggingIdentifiers.inProgress)")
 
         await viewContext.perform {
             do {
@@ -178,9 +212,9 @@ extension CoreDataStack {
 
                 guard viewContext.hasChanges else { return }
                 try viewContext.save()
-                debugPrint("Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
+                debug(.coreData, "Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
             } catch {
-                debugPrint("Failed to delete data: \(error.localizedDescription)")
+                debug(.coreData, "Failed to delete data: \(error.localizedDescription)")
             }
         }
     }
@@ -191,7 +225,9 @@ extension CoreDataStack {
         _ objectType: T.Type,
         dateKey: String,
         days: Int,
-        isPresetKey: String? = nil
+        isPresetKey: String? = nil,
+        callingFunction: String = #function,
+        callingClass: String = #fileID
     ) async throws {
         let taskContext = newTaskContext()
         taskContext.name = "deleteContext"
@@ -219,7 +255,7 @@ extension CoreDataStack {
 
             // Guard check if there are NSManagedObjects older than the specified days
             guard !objectIDs.isEmpty else {
-//                debugPrint("No objects found older than \(days) days.")
+//                debug(.coreData,"No objects found older than \(days) days.")
                 return
             }
 
@@ -230,15 +266,15 @@ extension CoreDataStack {
                       let batchDeleteResult = fetchResult as? NSBatchDeleteResult,
                       let success = batchDeleteResult.result as? Bool, success
                 else {
-                    debugPrint("Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
-                    throw CoreDataError.batchDeleteError
+                    debug(.coreData, "Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
+                    throw CoreDataError.batchDeleteError(function: callingFunction, file: callingClass)
                 }
             }
 
-            debugPrint("Successfully deleted data older than \(days) days. \(DebuggingIdentifiers.succeeded)")
+            debug(.coreData, "Successfully deleted data older than \(days) days. \(DebuggingIdentifiers.succeeded)")
         } catch {
-            debugPrint("Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
-            throw CoreDataError.batchDeleteError
+            debug(.coreData, "Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
+            throw CoreDataError.unexpectedError(error: error, function: callingFunction, file: callingClass)
         }
     }
 
@@ -247,7 +283,9 @@ extension CoreDataStack {
         childType: Child.Type,
         dateKey: String,
         days: Int,
-        relationshipKey: String // The key of the Child Entity that links to the parent Entity
+        relationshipKey: String, // The key of the Child Entity that links to the parent Entity
+        callingFunction: String = #function,
+        callingClass: String = #fileID
     ) async throws {
         let taskContext = newTaskContext()
         taskContext.name = "deleteContext"
@@ -267,7 +305,7 @@ extension CoreDataStack {
             }
 
             guard !parentObjectIDs.isEmpty else {
-//                debugPrint("No \(parentType) objects found older than \(days) days.")
+//                debug(.coreData,"No \(parentType) objects found older than \(days) days.")
                 return
             }
 
@@ -281,7 +319,7 @@ extension CoreDataStack {
             }
 
             guard !childObjectIDs.isEmpty else {
-//                debugPrint("No \(childType) objects found related to \(parentType) objects older than \(days) days.")
+//                debug(.coreData,"No \(childType) objects found related to \(parentType) objects older than \(days) days.")
                 return
             }
 
@@ -292,17 +330,18 @@ extension CoreDataStack {
                       let batchDeleteResult = fetchResult as? NSBatchDeleteResult,
                       let success = batchDeleteResult.result as? Bool, success
                 else {
-                    debugPrint("Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
-                    throw CoreDataError.batchDeleteError
+                    debug(.coreData, "Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
+                    throw CoreDataError.batchDeleteError(function: callingFunction, file: callingClass)
                 }
             }
 
-            debugPrint(
+            debug(
+                .coreData,
                 "Successfully deleted \(childType) data related to \(parentType) objects older than \(days) days. \(DebuggingIdentifiers.succeeded)"
             )
         } catch {
-            debugPrint("Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
-            throw CoreDataError.batchDeleteError
+            debug(.coreData, "Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
+            throw CoreDataError.unexpectedError(error: error, function: callingFunction, file: callingClass)
         }
     }
 }
@@ -323,7 +362,7 @@ extension CoreDataStack {
         propertiesToFetch: [String]? = nil,
         callingFunction: String = #function,
         callingClass: String = #fileID
-    ) -> [Any] {
+    ) throws -> [Any] {
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: type))
         request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
         request.predicate = predicate
@@ -344,7 +383,7 @@ extension CoreDataStack {
         context.transactionAuthor = "fetchEntities"
 
         /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
-        return context.performAndWait {
+        return try context.performAndWait {
             do {
                 if propertiesToFetch != nil {
                     return try context.fetch(request) as? [[String: Any]] ?? []
@@ -352,11 +391,10 @@ extension CoreDataStack {
                     return try context.fetch(request) as? [T] ?? []
                 }
             } catch let error as NSError {
-                debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on Thread: \(Thread.current)"
+                throw CoreDataError.fetchError(
+                    function: callingFunction,
+                    file: callingClass
                 )
-
-                return []
             }
         }
     }
@@ -371,12 +409,14 @@ extension CoreDataStack {
         fetchLimit: Int? = nil,
         batchSize: Int? = nil,
         propertiesToFetch: [String]? = nil,
+        relationshipKeyPathsForPrefetching: [String]? = nil,
         callingFunction: String = #function,
         callingClass: String = #fileID
-    ) async -> Any {
+    ) async throws -> Any {
         let request: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: String(describing: type))
         request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
         request.predicate = predicate
+
         if let limit = fetchLimit {
             request.fetchLimit = limit
         }
@@ -389,11 +429,14 @@ extension CoreDataStack {
         } else {
             request.resultType = .managedObjectResultType
         }
+        if let prefetchKeyPaths = relationshipKeyPathsForPrefetching {
+            request.relationshipKeyPathsForPrefetching = prefetchKeyPaths
+        }
 
         context.name = "fetchContext"
         context.transactionAuthor = "fetchEntities"
 
-        return await context.perform {
+        return try await context.perform {
             do {
                 if propertiesToFetch != nil {
                     return try context.fetch(request) as? [[String: Any]] ?? []
@@ -401,10 +444,11 @@ extension CoreDataStack {
                     return try context.fetch(request) as? [T] ?? []
                 }
             } catch let error as NSError {
-                debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on Thread: \(Thread.current)"
+                throw CoreDataError.unexpectedError(
+                    error: error,
+                    function: callingFunction,
+                    file: callingClass
                 )
-                return []
             }
         }
     }
@@ -412,9 +456,11 @@ extension CoreDataStack {
     // Get NSManagedObject
     func getNSManagedObject<T: NSManagedObject>(
         with ids: [NSManagedObjectID],
-        context: NSManagedObjectContext
-    ) async -> [T] {
-        await context.perform {
+        context: NSManagedObjectContext,
+        callingFunction: String = #function,
+        callingClass: String = #fileID
+    ) async throws -> [T] {
+        try await context.perform {
             var objects = [T]()
             do {
                 for id in ids {
@@ -422,10 +468,13 @@ extension CoreDataStack {
                         objects.append(object)
                     }
                 }
+                return objects
             } catch {
-                debugPrint("Failed to fetch objects: \(error.localizedDescription)")
+                throw CoreDataError.fetchError(
+                    function: callingFunction,
+                    file: callingClass
+                )
             }
-            return objects
         }
     }
 }
@@ -442,7 +491,7 @@ extension CoreDataStack {
         do {
             try context.save()
         } catch {
-            debugPrint("Error saving context \(DebuggingIdentifiers.failed): \(error)")
+            debug(.coreData, "Error saving context \(DebuggingIdentifiers.failed): \(error)")
         }
     }
 }
@@ -458,11 +507,12 @@ extension NSManagedObjectContext {
         do {
             guard onContext.hasChanges else { return }
             try onContext.save()
-//            debugPrint(
+//            debug(.coreData,
 //                "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
 //            )
         } catch let error as NSError {
-            debugPrint(
+            debug(
+                .coreData,
                 "Saving to Core Data failed in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.failed) with error \(error), \(error.userInfo)"
             )
             throw error

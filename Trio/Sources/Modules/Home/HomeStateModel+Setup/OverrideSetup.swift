@@ -5,14 +5,21 @@ extension Home.StateModel {
     // Setup Overrides
     func setupOverrides() {
         Task {
-            let ids = await self.fetchOverrides()
-            let overrideObjects: [OverrideStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
-            await updateOverrideArray(with: overrideObjects)
+            do {
+                let ids = try await self.fetchOverrides()
+                let overrideObjects: [OverrideStored] = try await CoreDataStack.shared
+                    .getNSManagedObject(with: ids, context: viewContext)
+                await updateOverrideArray(with: overrideObjects)
+            } catch let error as CoreDataError {
+                debug(.default, "Core Data error in setupOverrides: \(error.localizedDescription)")
+            } catch {
+                debug(.default, "Unexpected error in setupOverrides: \(error.localizedDescription)")
+            }
         }
     }
 
-    private func fetchOverrides() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchOverrides() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: overrideFetchContext,
             predicate: NSPredicate.lastActiveOverride, // this predicate filters for all Overrides within the last 24h
@@ -20,9 +27,10 @@ extension Home.StateModel {
             ascending: false
         )
 
-        return await overrideFetchContext.perform {
-            guard let fetchedResults = results as? [OverrideStored] else { return [] }
-
+        return try await overrideFetchContext.perform {
+            guard let fetchedResults = results as? [OverrideStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
             return fetchedResults.map(\.objectID)
         }
     }
@@ -41,16 +49,22 @@ extension Home.StateModel {
     // Setup expired Overrides
     func setupOverrideRunStored() {
         Task {
-            let ids = await self.fetchOverrideRunStored()
-            let overrideRunObjects: [OverrideRunStored] = await CoreDataStack.shared
-                .getNSManagedObject(with: ids, context: viewContext)
-            await updateOverrideRunStoredArray(with: overrideRunObjects)
+            do {
+                let ids = try await self.fetchOverrideRunStored()
+                let overrideRunObjects: [OverrideRunStored] = try await CoreDataStack.shared
+                    .getNSManagedObject(with: ids, context: viewContext)
+                await updateOverrideRunStoredArray(with: overrideRunObjects)
+            } catch let error as CoreDataError {
+                debug(.default, "Core Data error in setupOverrideRunStored: \(error.localizedDescription)")
+            } catch {
+                debug(.default, "Unexpected error in setupOverrideRunStored: \(error.localizedDescription)")
+            }
         }
     }
 
-    private func fetchOverrideRunStored() async -> [NSManagedObjectID] {
+    private func fetchOverrideRunStored() async throws -> [NSManagedObjectID] {
         let predicate = NSPredicate(format: "startDate >= %@", Date.oneDayAgo as NSDate)
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideRunStored.self,
             onContext: overrideFetchContext,
             predicate: predicate,
@@ -58,9 +72,10 @@ extension Home.StateModel {
             ascending: false
         )
 
-        return await overrideFetchContext.perform {
-            guard let fetchedResults = results as? [OverrideRunStored] else { return [] }
-
+        return try await overrideFetchContext.perform {
+            guard let fetchedResults = results as? [OverrideRunStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
             return fetchedResults.map(\.objectID)
         }
     }

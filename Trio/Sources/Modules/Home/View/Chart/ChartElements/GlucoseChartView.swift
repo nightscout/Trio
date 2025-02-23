@@ -76,3 +76,25 @@ struct GlucoseChartView: ChartContent {
         }
     }
 }
+
+#Preview {
+    let previewStack = CoreDataStack.preview
+    return NavigationView {
+        VStack {
+            Chart {
+                GlucoseChartView(
+                    glucoseData: GlucoseStored.makePreviewGlucose(count: 24, provider: previewStack),
+                    units: .mgdL,
+                    highGlucose: 180,
+                    lowGlucose: 70,
+                    currentGlucoseTarget: 100,
+                    isSmoothingEnabled: false,
+                    glucoseColorScheme: .dynamicColor
+                )
+            }
+            .frame(height: 200)
+            .padding()
+        }
+        .navigationTitle("Glucose Chart")
+    }
+}
