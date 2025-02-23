@@ -237,7 +237,7 @@ struct PopupView: View {
                     Text(
                         state.wholeCob
                             .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits))) +
-                        String(localized: " g", comment: "grams")
+                            String(localized: " g", comment: "grams")
                     ).foregroundColor(state.wholeCob >= state.maxCOB ? Color.loopRed : .primary)
                 }
 

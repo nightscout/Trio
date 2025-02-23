@@ -189,12 +189,12 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             )
     }
 
-    /// Returns maxIOB and maxCOB from storage
-    /// - Returns:  object containing maxIOB and maxCOB limits
+    /// Retrieves Preferences from storage
+    /// - Returns: Preferences object containing maxIOB and maxCOB
     private func getPreferences() async -> Preferences {
         await fileStorage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self)
             ?? Preferences(from: OpenAPS.defaults(for: OpenAPS.Settings.preferences))
-            ?? Preferences(maxIOB: 0, maxCOB: 0)
+            ?? Preferences(maxIOB: 0, maxCOB: 120)
     }
 
     /// Fetches recent glucose readings from CoreData
@@ -288,8 +288,10 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         let currentISF = await getCurrentSettingValue(for: .isf)
 
         // Get max IOB and max COB
-        let maxIOB = await getPreferences().maxIOB
-        let maxCOB = await getPreferences().maxCOB
+
+        let preferences = await getPreferences()
+        let maxIOB = preferences.maxIOB
+        let maxCOB = preferences.maxCOB
 
         // Fetch glucose data
         let glucoseIds = await fetchGlucose()

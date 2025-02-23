@@ -250,15 +250,10 @@ extension Treatments {
                     }
                 }
                 group.addTask {
-                    let getMaxIOB = await self.provider.getPreferences().maxIOB
+                    let getPreferences = await self.provider.getPreferences()
                     await MainActor.run {
-                        self.maxIOB = getMaxIOB
-                    }
-                }
-                group.addTask {
-                    let getMaxCOB = await self.provider.getPreferences().maxCOB
-                    await MainActor.run {
-                        self.maxCOB = getMaxCOB
+                        self.maxIOB = getPreferences.maxIOB
+                        self.maxCOB = getPreferences.maxCOB
                     }
                 }
             }
