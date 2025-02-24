@@ -54,7 +54,7 @@ struct BareStatisticsView {
                         useUnit == .mmolL ? glucoseStats.ifcc
                             .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) : glucoseStats.ngsp
                             .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
-                            + " %"
+                            + "%"
                     )
                     VStack(spacing: 5) {
                         Text("ebA1c").font(.subheadline).foregroundColor(.secondary)
@@ -62,7 +62,7 @@ struct BareStatisticsView {
                     }
                     VStack(spacing: 5) {
                         Text("GMI").font(.subheadline).foregroundColor(.secondary)
-                        Text(glucoseStats.gmi.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + " %")
+                        Text(glucoseStats.gmi.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
                     }
                     VStack(spacing: 5) {
                         Text("SD").font(.subheadline).foregroundColor(.secondary)
@@ -191,7 +191,7 @@ struct BareStatisticsView {
                 let numberOfDays = (current - previous).timeInterval / 8.64E4
 
                 VStack(spacing: 5) {
-                    Text(numberOfDays < 1 ? "Readings" : "Readings / 24 h").font(.subheadline)
+                    Text(numberOfDays < 1 ? "Readings" : "Readings / 24h").font(.subheadline)
                         .foregroundColor(.secondary)
                     Text(bgs.readings.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))))
                 }
@@ -312,13 +312,13 @@ struct BareStatisticsView {
                     }
                     VStack(spacing: 5) {
                         Text("Interval").font(.subheadline).foregroundColor(.primary)
-                        Text(intervalAverage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + " min")
+                        Text(intervalAverage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "m")
                     }
                     VStack(spacing: 5) {
                         Text("Duration").font(.subheadline).foregroundColor(.primary)
                         Text(
                             (medianDuration / 1000)
-                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + " s"
+                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "s"
                         )
                     }
                     VStack(spacing: 5) {

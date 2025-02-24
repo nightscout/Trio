@@ -49,13 +49,13 @@ struct SectorChart: View {
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("70-180").font(.subheadline).foregroundStyle(Color.secondary)
-                    Text(inRangePercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " %")
+                    Text(inRangePercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + "%")
                         .foregroundStyle(Color.loopGreen)
                 }
 
                 VStack(alignment: .leading, spacing: 5) {
                     Text("70-140").font(.subheadline).foregroundStyle(Color.secondary)
-                    Text(tightPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " %")
+                    Text(tightPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + "%")
                         .foregroundStyle(Color.green)
                 }
             }.padding(.leading, 5)
@@ -63,13 +63,13 @@ struct SectorChart: View {
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("> 180").font(.subheadline).foregroundStyle(Color.secondary)
-                    Text(highPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " %")
+                    Text(highPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + "%")
                         .foregroundStyle(Color.orange)
                 }
 
                 VStack(alignment: .leading, spacing: 5) {
                     Text("< 54").font(.subheadline).foregroundStyle(Color.secondary)
-                    Text(lowPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + " %")
+                    Text(lowPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + "%")
                         .foregroundStyle(Color.loopRed)
                 }
             }
@@ -94,26 +94,10 @@ struct SectorChart: View {
                         outerRadius: selectedRange == data.range ? 100 : 80,
                         angularInset: 1.5
                     )
-//                    .cornerRadius(3)
                     .foregroundStyle(data.color)
-//                    .annotation(position: .automatic, alignment: .leading, spacing: 0) {
-//                        if data.percentage > 0 {
-//                            Text("\(Int(data.percentage))%")
-//                                .font(.callout)
-//                                .foregroundStyle(.white)
-//                                .fontWeight(.bold)
-//                        }
-//                    }
                 }
             }
-//            .chartLegend(position: .bottom, spacing: 20)
             .chartAngleSelection(value: $selectedCount)
-//            .chartForegroundStyleScale([
-//                "High": Color.orange,
-//                "In Range": Color.green,
-//                "Low": Color.red
-//            ])
-//            .padding(.vertical)
             .frame(height: 100)
         }
         .onChange(of: selectedCount) { _, newValue in
@@ -132,7 +116,7 @@ struct SectorChart: View {
                 let data = getDetailedData(for: selectedRange)
                 RangeDetailPopover(data: data)
                     .transition(.scale.combined(with: .opacity))
-                    .offset(y: -90) // TODO: make this dynamic
+                    .offset(y: -150) // TODO: make this dynamic
             }
         }
     }
@@ -214,12 +198,50 @@ struct SectorChart: View {
             let highLimitTreshold = units == .mmolL ? Decimal(Int(highLimit)).asMmolL : highLimit
             let veryHighThreshold = units == .mmolL ? Decimal(250).asMmolL : 250
 
+            let highGlucoseValues = glucose.filter { $0.glucose > Int(highLimit) }
+            let highGlucoseValuesAsInt = highGlucoseValues.compactMap({ each in Int(each.glucose as Int16) })
+            let highGlucoseTotal = highGlucoseValuesAsInt.reduce(0, +)
+
+            let average = Decimal(highGlucoseTotal / highGlucoseValues.count)
+            let median = Decimal(BareStatisticsView.medianCalculation(array: highGlucoseValuesAsInt))
+
+            var sumOfSquares = 0.0
+            highGlucoseValuesAsInt.forEach { value in
+                sumOfSquares += pow(Double(value) - Double(average), 2)
+            }
+
+            var standardDeviation = 0.0
+
+            if average > 0 {
+                standardDeviation = sqrt(sumOfSquares / Double(highGlucoseValues.count))
+            }
+
             return RangeDetail(
                 title: "High Glucose",
                 color: .orange,
                 items: [
-                    ("Very High (>\(veryHighThreshold) \(units.rawValue))", Decimal(veryHigh) / total * 100),
-                    ("High (\(highLimitTreshold)-\(veryHighThreshold) \(units.rawValue))", Decimal(high) / total * 100)
+                    (
+                        "Very High (>\(veryHighThreshold)):",
+                        formatPercentage(Decimal(veryHigh) / total * 100)
+                    ),
+                    (
+                        "High (\(highLimitTreshold)-\(veryHighThreshold)):",
+                        formatPercentage(Decimal(high) / total * 100)
+                    ),
+                    ("Avergage", units == .mgdL ? average.description : average.formattedAsMmolL),
+                    ("Median", units == .mgdL ? median.description : median.formattedAsMmolL),
+                    (
+                        "SD",
+                        units == .mgdL ? standardDeviation.formatted(
+                            .number.grouping(.never).rounded()
+                                .precision(.fractionLength(0))
+                        ) : standardDeviation.asMmolL.formatted(
+                            .number.grouping(.never).rounded()
+                                .precision(
+                                    .fractionLength(1)
+                                )
+                        )
+                    )
                 ]
             )
         case .inRange:
@@ -237,8 +259,14 @@ struct SectorChart: View {
                 title: "In Range",
                 color: .green,
                 items: [
-                    ("Tight (\(lowLimitTreshold)-\(tightThresholdTreshold) \(units.rawValue))", Decimal(tight) / total * 100),
-                    ("Normal (\(tightThresholdTreshold)-\(highLimitTreshold) \(units.rawValue))", Decimal(normal) / total * 100)
+                    (
+                        "Tight (\(lowLimitTreshold)-\(tightThresholdTreshold) \(units.rawValue))",
+                        formatPercentage(Decimal(tight) / total * 100)
+                    ),
+                    (
+                        "Normal (\(tightThresholdTreshold)-\(highLimitTreshold) \(units.rawValue))",
+                        formatPercentage(Decimal(normal) / total * 100)
+                    )
                 ]
             )
         case .low:
@@ -255,11 +283,24 @@ struct SectorChart: View {
                 title: "Low Glucose",
                 color: .red,
                 items: [
-                    ("Low (\(veryLowThresholdTreshold)-\(lowLimitTreshold) \(units.rawValue))", Decimal(low) / total * 100),
-                    ("Very Low (<\(veryLowThresholdTreshold) \(units.rawValue))", Decimal(veryLow) / total * 100)
+                    (
+                        "Low (\(veryLowThresholdTreshold)-\(lowLimitTreshold) \(units.rawValue))",
+                        formatPercentage(Decimal(low) / total * 100)
+                    ),
+                    (
+                        "Very Low (<\(veryLowThresholdTreshold) \(units.rawValue))",
+                        formatPercentage(Decimal(veryLow) / total * 100)
+                    )
                 ]
             )
         }
+    }
+
+    func formatPercentage(_ value: Decimal) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .percent
+        formatter.maximumFractionDigits = 1
+        return formatter.string(from: NSDecimalNumber(decimal: value / 100)) ?? "0%"
     }
 }
 
@@ -270,40 +311,56 @@ private struct RangeDetail {
     /// The color used to represent this range in the UI
     let color: Color
     /// Array of tuples containing label and percentage for each sub-range
-    let items: [(label: String, percentage: Decimal)]
+    let items: [(label: String, value: String)]
 }
 
 /// A popover view that displays detailed breakdown of glucose percentages for a range category
 private struct RangeDetailPopover: View {
     let data: RangeDetail
 
+    @Environment(\.colorScheme) var colorScheme
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(data.title)
                 .font(.subheadline)
                 .fontWeight(.bold)
+                .foregroundStyle(data.color)
+                .padding(.bottom, 4)
 
-            ForEach(data.items, id: \.label) { item in
-                HStack {
-                    Text(item.label)
-                    Spacer()
-                    Text(formatPercentage(item.percentage))
+            ForEach(Array(data.items.enumerated()), id: \..offset) { index, item in
+                if index < 2 {
+                    HStack {
+                        Text(item.label)
+                        Text(item.value).bold()
+                    }
+                    .font(.footnote)
                 }
-                .font(.footnote)
+            }
+
+            HStack(spacing: 20) {
+                ForEach(Array(data.items.enumerated()), id: \..offset) { index, item in
+                    if index > 1 {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(item.label)
+                            HStack {
+                                Text(item.value).bold()
+                            }
+                        }
+                        .font(.footnote)
+                    }
+                }
             }
         }
-        .foregroundStyle(.white)
         .padding(20)
         .background {
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.blue)
+                .fill(colorScheme == .dark ? Color.bgDarkBlue.opacity(0.9) : Color.white.opacity(0.95))
+                .shadow(color: Color.secondary, radius: 2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(data.color, lineWidth: 2)
+                )
         }
-    }
-
-    private func formatPercentage(_ value: Decimal) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .percent
-        formatter.maximumFractionDigits = 1
-        return formatter.string(from: NSDecimalNumber(decimal: value / 100)) ?? "0%"
     }
 }

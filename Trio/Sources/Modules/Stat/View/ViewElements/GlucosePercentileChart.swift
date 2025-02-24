@@ -119,7 +119,6 @@ struct GlucosePercentileChart: View {
             }
             .chartXSelection(value: $selection.animation(.easeInOut))
             .frame(height: 200)
-
             legend
         }
     }
@@ -189,6 +188,8 @@ struct AGPSelectionPopover: View {
     let time: Date
     let units: GlucoseUnits
 
+    @Environment(\.colorScheme) var colorScheme
+
     private var timeText: String {
         if let hour = Calendar.current.dateComponents([.hour], from: time).hour {
             return "\(hour):00-\(hour + 1):00"
@@ -240,11 +241,15 @@ struct AGPSelectionPopover: View {
             }
             .font(.headline.bold())
         }
-        .foregroundStyle(.white)
         .padding(20)
         .background {
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.blue)
+                .fill(colorScheme == .dark ? Color.bgDarkBlue.opacity(0.9) : Color.white.opacity(0.95))
+                .shadow(color: Color.secondary, radius: 2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color.blue, lineWidth: 2)
+                )
         }
     }
 }
