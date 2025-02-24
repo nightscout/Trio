@@ -10,51 +10,61 @@ class CoreDataStack: ObservableObject {
     private let inMemory: Bool
 
     let persistentContainer: NSPersistentContainer
-    
+
     private init(inMemory: Bool = false) {
-            self.inMemory = inMemory
+        self.inMemory = inMemory
 
-            // Initialize persistent container immediately
-            persistentContainer = NSPersistentContainer(
-                name: "TrioCoreDataPersistentContainer",
-                managedObjectModel: Self.managedObjectModel
-            )
+        // Initialize persistent container immediately
+        persistentContainer = NSPersistentContainer(
+            name: "TrioCoreDataPersistentContainer",
+            managedObjectModel: Self.managedObjectModel
+        )
 
-            guard let description = persistentContainer.persistentStoreDescriptions.first else {
-                fatalError("Failed \(DebuggingIdentifiers.failed) to retrieve a persistent store description")
-            }
+        guard let description = persistentContainer.persistentStoreDescriptions.first else {
+            fatalError("Failed \(DebuggingIdentifiers.failed) to retrieve a persistent store description")
+        }
 
-            if inMemory {
-                description.url = URL(fileURLWithPath: "/dev/null")
-            }
+        if inMemory {
+            description.url = URL(fileURLWithPath: "/dev/null")
+        }
 
-            description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-            description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-            description.shouldMigrateStoreAutomatically = true
-            description.shouldInferMappingModelAutomatically = true
+        // Enable persistent store remote change notifications
+        /// - Tag: persistentStoreRemoteChange
+        description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
 
-            persistentContainer.loadPersistentStores { _, error in
-                if let error = error as NSError? {
-                    fatalError("Unresolved Error \(DebuggingIdentifiers.failed) \(error), \(error.userInfo)")
-                }
-            }
+        // Enable persistent history tracking
+        /// - Tag: persistentHistoryTracking
+        description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
 
-            persistentContainer.viewContext.automaticallyMergesChangesFromParent = false
-            persistentContainer.viewContext.name = "viewContext"
-            persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-            persistentContainer.viewContext.undoManager = nil
-            persistentContainer.viewContext.shouldDeleteInaccessibleFaults = true
+        // Enable lightweight migration
+        /// - Tag: lightweightMigration
+        description.shouldMigrateStoreAutomatically = true
+        description.shouldInferMappingModelAutomatically = true
 
-            notificationToken = Foundation.NotificationCenter.default.addObserver(
-                forName: .NSPersistentStoreRemoteChange,
-                object: nil,
-                queue: nil
-            ) { _ in
-                Task {
-                    await self.fetchPersistentHistory()
-                }
+        persistentContainer.loadPersistentStores { _, error in
+            if let error = error as NSError? {
+                fatalError("Unresolved Error \(DebuggingIdentifiers.failed) \(error), \(error.userInfo)")
             }
         }
+
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = false
+        persistentContainer.viewContext.name = "viewContext"
+        /// - Tag: viewContextmergePolicy
+        persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        persistentContainer.viewContext.undoManager = nil
+        persistentContainer.viewContext.shouldDeleteInaccessibleFaults = true
+
+        // Observe Core Data remote change notifications on the queue where the changes were made
+        notificationToken = Foundation.NotificationCenter.default.addObserver(
+            forName: .NSPersistentStoreRemoteChange,
+            object: nil,
+            queue: nil
+        ) { _ in
+            Task {
+                await self.fetchPersistentHistory()
+            }
+        }
+    }
 
     deinit {
         if let observer = notificationToken {
@@ -495,7 +505,8 @@ extension NSManagedObjectContext {
         do {
             guard onContext.hasChanges else { return }
             try onContext.save()
-            debug(.coreData,
+            debug(
+                .coreData,
                 "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
             )
         } catch let error as NSError {
