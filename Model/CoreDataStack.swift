@@ -9,8 +9,50 @@ class CoreDataStack: ObservableObject {
     private var notificationToken: NSObjectProtocol?
     private let inMemory: Bool
 
+    let persistentContainer: NSPersistentContainer
+
     private init(inMemory: Bool = false) {
         self.inMemory = inMemory
+
+        // Initialize persistent container immediately
+        persistentContainer = NSPersistentContainer(
+            name: "TrioCoreDataPersistentContainer",
+            managedObjectModel: Self.managedObjectModel
+        )
+
+        guard let description = persistentContainer.persistentStoreDescriptions.first else {
+            fatalError("Failed \(DebuggingIdentifiers.failed) to retrieve a persistent store description")
+        }
+
+        if inMemory {
+            description.url = URL(fileURLWithPath: "/dev/null")
+        }
+
+        // Enable persistent store remote change notifications
+        /// - Tag: persistentStoreRemoteChange
+        description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+
+        // Enable persistent history tracking
+        /// - Tag: persistentHistoryTracking
+        description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+
+        // Enable lightweight migration
+        /// - Tag: lightweightMigration
+        description.shouldMigrateStoreAutomatically = true
+        description.shouldInferMappingModelAutomatically = true
+
+        persistentContainer.loadPersistentStores { _, error in
+            if let error = error as NSError? {
+                fatalError("Unresolved Error \(DebuggingIdentifiers.failed) \(error), \(error.userInfo)")
+            }
+        }
+
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = false
+        persistentContainer.viewContext.name = "viewContext"
+        /// - Tag: viewContextmergePolicy
+        persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        persistentContainer.viewContext.undoManager = nil
+        persistentContainer.viewContext.shouldDeleteInaccessibleFaults = true
 
         // Observe Core Data remote change notifications on the queue where the changes were made
         notificationToken = Foundation.NotificationCenter.default.addObserver(
@@ -68,50 +110,6 @@ class CoreDataStack: ObservableObject {
         }
 
         return model
-    }()
-
-    /// A persistent container to set up the Core Data Stack
-    lazy var persistentContainer: NSPersistentContainer = {
-        // Use shared model instead of loading a new one
-        let container = NSPersistentContainer(
-            name: "TrioCoreDataPersistentContainer",
-            managedObjectModel: Self.managedObjectModel
-        )
-
-        guard let description = container.persistentStoreDescriptions.first else {
-            fatalError("Failed \(DebuggingIdentifiers.failed) to retrieve a persistent store description")
-        }
-
-        if inMemory {
-            description.url = URL(fileURLWithPath: "/dev/null")
-        }
-
-        // Enable persistent store remote change notifications
-        /// - Tag: persistentStoreRemoteChange
-        description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-
-        // Enable persistent history tracking
-        /// - Tag: persistentHistoryTracking
-        description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-
-        // Enable lightweight migration
-        /// - Tag: lightweightMigration
-        description.shouldMigrateStoreAutomatically = true
-        description.shouldInferMappingModelAutomatically = true
-
-        container.loadPersistentStores { _, error in
-            if let error = error as NSError? {
-                fatalError("Unresolved Error \(DebuggingIdentifiers.failed) \(error), \(error.userInfo)")
-            }
-        }
-
-        container.viewContext.automaticallyMergesChangesFromParent = false
-        container.viewContext.name = "viewContext"
-        /// - Tag: viewContextmergePolicy
-        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        container.viewContext.undoManager = nil
-        container.viewContext.shouldDeleteInaccessibleFaults = true
-        return container
     }()
 
     /// Creates and configures a private queue context
@@ -507,9 +505,10 @@ extension NSManagedObjectContext {
         do {
             guard onContext.hasChanges else { return }
             try onContext.save()
-//            debug(.coreData,
-//                "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
-//            )
+            debug(
+                .coreData,
+                "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
+            )
         } catch let error as NSError {
             debug(
                 .coreData,
