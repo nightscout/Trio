@@ -242,19 +242,15 @@ extension Adjustments.StateModel {
     /// Enacts a Temp Target preset by enabling it.
     @MainActor func enactTempTargetPreset(withID id: NSManagedObjectID) async {
         do {
-            let tempTargetToEnact = try viewContext.existingObject(with: id) as? TempTargetStored
-            tempTargetToEnact?.enabled = true
-            tempTargetToEnact?.date = Date()
-            tempTargetToEnact?.isUploadedToNS = false
+            guard let tempTargetToEnact = try viewContext.existingObject(with: id) as? TempTargetStored else { return }
+            /// Wait for currently active temp target to be disabled before storing the new temp target
+            await disableAllActiveTempTargets(createTempTargetRunEntry: true)
+            await resetTempTargetState()
+
+            tempTargetToEnact.enabled = true
+            tempTargetToEnact.date = Date()
+            tempTargetToEnact.isUploadedToNS = false
             isTempTargetEnabled = true
-
-            async let disableTempTargets: () = disableAllActiveTempTargets(
-                except: id,
-                createTempTargetRunEntry: currentActiveTempTarget != nil
-            )
-            async let resetState: () = resetTempTargetState()
-            _ = await (disableTempTargets, resetState)
-
             if viewContext.hasChanges {
                 try viewContext.save()
             }
@@ -262,11 +258,11 @@ extension Adjustments.StateModel {
             updateLatestTempTargetConfiguration()
 
             let tempTarget = TempTarget(
-                name: tempTargetToEnact?.name,
+                name: tempTargetToEnact.name,
                 createdAt: Date(),
-                targetTop: tempTargetToEnact?.target?.decimalValue,
-                targetBottom: tempTargetToEnact?.target?.decimalValue,
-                duration: tempTargetToEnact?.duration?.decimalValue ?? 0,
+                targetTop: tempTargetToEnact.target?.decimalValue,
+                targetBottom: tempTargetToEnact.target?.decimalValue,
+                duration: tempTargetToEnact.duration?.decimalValue ?? 0,
                 enteredBy: TempTarget.local,
                 reason: TempTarget.custom,
                 isPreset: true,

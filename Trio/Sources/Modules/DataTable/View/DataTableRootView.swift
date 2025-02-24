@@ -250,8 +250,12 @@ extension DataTable {
             }
 
             let combined = overrides + tempTargets
-            return combined.sorted(by: { $0.startDate > $1.startDate })
-        }
+            return combined.sorted {
+                if $0.startDate == $1.startDate {
+                    return $0.endDate > $1.endDate
+                }
+                return $0.startDate > $1.startDate
+            } }
 
         private struct AdjustmentItem: Identifiable {
             let id: NSManagedObjectID

@@ -8,14 +8,15 @@ extension Adjustments.StateModel {
     /// Enacts an Override Preset by enabling it and disabling others.
     @MainActor func enactOverridePreset(withID id: NSManagedObjectID) async {
         do {
-            let overrideToEnact = try viewContext.existingObject(with: id) as? OverrideStored
-            overrideToEnact?.enabled = true
-            overrideToEnact?.date = Date()
-            overrideToEnact?.isUploadedToNS = false
-            isOverrideEnabled = true
-
-            await disableAllActiveOverrides(except: id, createOverrideRunEntry: currentActiveOverride != nil)
+            guard let overrideToEnact = try viewContext.existingObject(with: id) as? OverrideStored else { return }
+            /// Wait for currently active override to be disabled before storing the new one
+            await disableAllActiveOverrides(createOverrideRunEntry: currentActiveOverride != nil)
             await resetStateVariables()
+
+            overrideToEnact.enabled = true
+            overrideToEnact.date = Date()
+            overrideToEnact.isUploadedToNS = false
+            isOverrideEnabled = true
 
             guard viewContext.hasChanges else { return }
             try viewContext.save()
