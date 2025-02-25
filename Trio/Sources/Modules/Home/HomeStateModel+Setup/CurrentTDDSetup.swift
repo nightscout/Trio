@@ -31,7 +31,6 @@ extension Home.StateModel {
         self[keyPath: keyPath] = tddObjects
     }
 
-    // Custom fetch to more efficiently filter only for cob and iob
     private func fetchTDDIDs() async throws -> [NSManagedObjectID] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TDDStored.self,

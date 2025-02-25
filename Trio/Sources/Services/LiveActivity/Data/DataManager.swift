@@ -24,7 +24,7 @@ extension LiveActivityBridge {
             }
         }
     }
- 
+
     // TODO: extract logic or at least rename function appropiately
     func fetchAndMapDetermination() async throws -> DeterminationData? {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
