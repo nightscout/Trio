@@ -3,7 +3,11 @@ import LoopKitUI
 import Swinject
 
 protocol TDDStorage {
-    func calculateTDD(pumpManager: any PumpManagerUI, pumpHistory: [PumpHistoryEvent], basalProfile: [BasalProfileEntry]) async
+    func calculateTDD(
+        pumpManager: any PumpManagerUI,
+        pumpHistory: [PumpHistoryEvent],
+        basalProfile: [BasalProfileEntry]
+    ) async throws
         -> TDDResult
     func storeTDD(_ tddResult: TDDResult) async
 }
@@ -38,7 +42,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         pumpManager: any PumpManagerUI,
         pumpHistory: [PumpHistoryEvent],
         basalProfile: [BasalProfileEntry]
-    ) async -> TDDResult {
+    ) async throws -> TDDResult {
         debug(.apsManager, "Starting TDD calculation with \(pumpHistory.count) pump events")
 
         // Log the first and last pump history events if available
@@ -83,7 +87,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         async let weightedAverage = calculateWeightedAverage()
 
         // Await all concurrent calculations
-        let (hours, bolus, scheduled, temp, weighted) = await (
+        let (hours, bolus, scheduled, temp, weighted) = try await (
             pumpDataHours,
             bolusInsulin,
             scheduledBasalInsulin,
@@ -590,14 +594,14 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     ///
     /// - Returns: A weighted average of TDD as Decimal, or nil if insufficient data
     /// - Note: The weight percentage can be configured in preferences. Default is 0.65 (65% recent, 35% historical)
-    private func calculateWeightedAverage() async -> Decimal? {
+    private func calculateWeightedAverage() async throws -> Decimal? {
         // Fetch data from Core Data
         let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
         let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
 
         let predicate = NSPredicate(format: "date >= %@", tenDaysAgo as NSDate)
 
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TDDStored.self,
             onContext: privateContext,
             predicate: predicate,

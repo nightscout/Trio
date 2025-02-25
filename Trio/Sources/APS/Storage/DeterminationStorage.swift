@@ -4,7 +4,7 @@ import Foundation
 import Swinject
 
 protocol DeterminationStorage {
-    func fetchLastDeterminationObjectID(predicate: NSPredicate) async -> [NSManagedObjectID]
+    func fetchLastDeterminationObjectID(predicate: NSPredicate) async throws -> [NSManagedObjectID]
     func getForecastIDs(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext) async -> [NSManagedObjectID]
     func getForecastValueIDs(for forecastID: NSManagedObjectID, in context: NSManagedObjectContext) async -> [NSManagedObjectID]
     func fetchForecastObjects(
@@ -12,29 +12,32 @@ protocol DeterminationStorage {
         in context: NSManagedObjectContext
     ) async -> (UUID, Forecast?, [ForecastValue])
     func getOrefDeterminationNotYetUploadedToNightscout(_ determinationIds: [NSManagedObjectID]) async -> Determination?
+    func fetchForecastHierarchy(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext)
+    async throws -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
 }
 
 final class BaseDeterminationStorage: DeterminationStorage, Injectable {
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-    private let backgroundContext = CoreDataStack.shared.newTaskContext()
+    private let context = CoreDataStack.shared.newTaskContext()
 
     init(resolver: Resolver) {
         injectServices(resolver)
     }
 
-    func fetchLastDeterminationObjectID(predicate: NSPredicate) async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchLastDeterminationObjectID(predicate: NSPredicate) async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: predicate,
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [OrefDetermination] else { return [] }
-
+        return try await context.perform {
+            guard let fetchedResults = results as? [OrefDetermination] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
             return fetchedResults.map(\.objectID)
         }
     }
@@ -77,7 +80,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
         }
     }
 
-    // Fetch forecast value IDs for a given data set
+    // Fetch forecast objects for a given data set
     func fetchForecastObjects(
         for data: (id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]),
         in context: NSManagedObjectContext
@@ -112,19 +115,19 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
 
     // Convert NSSet to array of Ints for Predictions
     func parseForecastValues(ofType type: String, from determinationID: NSManagedObjectID) async -> [Int]? {
-        let forecastIDs = await getForecastIDs(for: determinationID, in: backgroundContext)
+        let forecastIDs = await getForecastIDs(for: determinationID, in: context)
 
         var forecastValuesList: [Int] = []
 
         for forecastID in forecastIDs {
-            await backgroundContext.perform {
-                if let forecast = try? self.backgroundContext.existingObject(with: forecastID) as? Forecast {
+            await context.perform {
+                if let forecast = try? self.context.existingObject(with: forecastID) as? Forecast {
                     // Filter the forecast based on the type
                     if forecast.type == type {
                         let forecastValueIDs = forecast.forecastValues?.sorted(by: { $0.index < $1.index }).map(\.objectID) ?? []
 
                         for forecastValueID in forecastValueIDs {
-                            if let forecastValue = try? self.backgroundContext
+                            if let forecastValue = try? self.context
                                 .existingObject(with: forecastValueID) as? ForecastValue
                             {
                                 let forecastValueInt = Int(forecastValue.value)
@@ -153,9 +156,9 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
             uam: await parseForecastValues(ofType: "uam", from: determinationId)
         )
 
-        return await backgroundContext.perform {
+        return await context.perform {
             do {
-                let orefDetermination = try self.backgroundContext.existingObject(with: determinationId) as? OrefDetermination
+                let orefDetermination = try self.context.existingObject(with: determinationId) as? OrefDetermination
 
                 // Check if the fetched object is of the expected type
                 if let orefDetermination = orefDetermination {
@@ -200,5 +203,36 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
 
             return result
         }
+    }
+
+    func fetchForecastHierarchy(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext)
+    async throws -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
+    {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: Forecast.self,
+            onContext: context,
+            predicate: NSPredicate(format: "orefDetermination = %@", determinationID),
+            key: "type",
+            ascending: true,
+            relationshipKeyPathsForPrefetching: ["forecastValues"]
+        )
+
+        var result: [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
+
+        await context.perform {
+            if let forecasts = results as? [Forecast] {
+                for forecast in forecasts {
+                    // Use the helper property that already sorts by index
+                    let sortedValues = forecast.forecastValuesArray
+                    result.append((
+                        id: UUID(),
+                        forecastID: forecast.objectID,
+                        forecastValueIDs: sortedValues.map(\.objectID)
+                    ))
+                }
+            }
+        }
+
+        return result
     }
 }

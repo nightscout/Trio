@@ -19,7 +19,6 @@ struct ContactImageDetailView: View {
     var body: some View {
         VStack {
             HStack {
-                // TODO: - make this beautiful @Dan
                 Spacer()
                 ZStack {
                     Circle()
@@ -41,6 +40,13 @@ struct ContactImageDetailView: View {
             .padding(.bottom)
 
             Form {
+                Section(
+                    header: Text("Contact Name"),
+                    content: {
+                        TextField("Enter Name (Optional)", text: $contactImageEntry.name)
+                    }
+                ).listRowBackground(Color.chart)
+
                 Section(header: Text("Style")) {
                     Picker("Layout", selection: $contactImageEntry.layout) {
                         ForEach(ContactImageLayout.allCases, id: \.id) { layout in

@@ -7,6 +7,7 @@ struct AddContactImageSheet: View {
 
     @ObservedObject var state: ContactImage.StateModel
 
+    @State private var contactName: String = ""
     @State private var hasHighContrast: Bool = true
     @State private var ringWidth: ContactImageEntry.RingWidth = .regular
     @State private var ringGap: ContactImageEntry.RingGap = .small
@@ -23,7 +24,7 @@ struct AddContactImageSheet: View {
     private var previewEntry: ContactImageEntry {
         ContactImageEntry(
             id: UUID(),
-            name: "", // automatically set and populated
+            name: contactName, // automatically set and populated
             layout: layout,
             ring: ring,
             primary: primary,
@@ -66,6 +67,13 @@ struct AddContactImageSheet: View {
                 .padding(.bottom)
 
                 Form {
+                    Section(
+                        header: Text("Contact Name"),
+                        content: {
+                            TextField("Enter Name (Optional)", text: $contactName)
+                        }
+                    ).listRowBackground(Color.chart)
+
                     // Layout Section
                     Section(header: Text("Style")) {
                         Picker("Layout", selection: $layout) {
@@ -232,7 +240,10 @@ struct AddContactImageSheet: View {
     private func saveNewEntry() {
         // Save the currently previewed entry
         Task {
-            await state.createAndSaveContactImage(entry: previewEntry, name: "Trio \(state.contactImageEntries.count + 1)")
+            await state.createAndSaveContactImage(
+                entry: previewEntry,
+                name: contactName.isEmpty ? "Trio \(state.contactImageEntries.count + 1)" : contactName
+            )
             dismiss()
         }
     }

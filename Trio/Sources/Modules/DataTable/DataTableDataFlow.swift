@@ -15,19 +15,16 @@ enum DataTable {
         var id: String { rawValue }
 
         var name: String {
-            var name: String = ""
             switch self {
             case .treatments:
-                name = "Treatments"
+                return String(localized: "Treatments", comment: "History Mode")
             case .meals:
-                name = "Meals"
+                return String(localized: "Meals", comment: "History Mode")
             case .glucose:
-                name = "Glucose"
+                return String(localized: "Glucose", comment: "History Mode")
             case .adjustments:
-                name = "Adjustments"
+                return String(localized: "Adjustments", comment: "History Mode")
             }
-
-            return NSLocalizedString(name, comment: "History Mode")
         }
     }
 
@@ -41,25 +38,22 @@ enum DataTable {
         case resume
 
         var name: String {
-            var name: String = ""
             switch self {
             case .carbs:
-                name = "Carbs"
+                return String(localized: "Carbs", comment: "Treatment type")
             case .fpus:
-                name = "Protein / Fat"
+                return String(localized: "Protein / Fat", comment: "Treatment type")
             case .bolus:
-                name = "Bolus"
+                return String(localized: "Bolus", comment: "Treatment type")
             case .tempBasal:
-                name = "Temp Basal"
+                return String(localized: "Temp Basal", comment: "Treatment type")
             case .tempTarget:
-                name = "Temp Target"
+                return String(localized: "Temp Target", comment: "Treatment type")
             case .suspend:
-                name = "Suspend"
+                return String(localized: "Suspend", comment: "Treatment type")
             case .resume:
-                name = "Resume"
+                return String(localized: "Resume", comment: "Treatment type")
             }
-
-            return NSLocalizedString(name, comment: "Treatment type")
         }
     }
 
@@ -142,24 +136,24 @@ enum DataTable {
             switch type {
             case .carbs:
                 return numberFormatter
-                    .string(from: amount as NSNumber)! + NSLocalizedString(" g", comment: "gram of carbs")
+                    .string(from: amount as NSNumber)! + String(localized: " g", comment: "gram of carbs")
             case .fpus:
                 return numberFormatter
-                    .string(from: amount as NSNumber)! + NSLocalizedString(" g", comment: "gram of carb equilvalents")
+                    .string(from: amount as NSNumber)! + String(localized: " g", comment: "gram of carb equilvalents")
             case .bolus:
                 var bolusText = " "
                 if isSMB ?? false {}
                 else if isExternal ?? false {
-                    bolusText += NSLocalizedString("External", comment: "External Insulin")
+                    bolusText += String(localized: "External", comment: "External Insulin")
                 } else {
-                    bolusText += NSLocalizedString("Manual", comment: "Manual Bolus")
+                    bolusText += String(localized: "Manual", comment: "Manual Bolus")
                 }
 
                 return numberFormatter
-                    .string(from: amount as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit") + bolusText
+                    .string(from: amount as NSNumber)! + String(localized: " U", comment: "Insulin unit") + bolusText
             case .tempBasal:
                 return numberFormatter
-                    .string(from: amount as NSNumber)! + NSLocalizedString(" U/hr", comment: "Unit insulin per hour")
+                    .string(from: amount as NSNumber)! + String(localized: " U/hr", comment: "Unit insulin per hour")
             case .tempTarget:
                 var converted = amount
                 if units == .mmolL {

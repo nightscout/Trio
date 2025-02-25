@@ -24,20 +24,20 @@ struct NightscoutFetchView: View {
                     get: { selectedVerboseHint },
                     set: {
                         selectedVerboseHint = $0.map { AnyView($0) }
-                        hintLabel = "Allow Fetching from Nightscout"
+                        hintLabel = String(localized: "Allow Fetching from Nightscout")
                     }
                 ),
                 units: state.units,
                 type: .boolean,
-                label: "Allow Fetching from Nightscout",
-                miniHint: "Enable fetching of selected data sets from Nightscout.",
+                label: String(localized: "Allow Fetching from Nightscout"),
+                miniHint: String(localized: "Enable fetching of selected data sets from Nightscout."),
                 verboseHint: VStack(alignment: .leading, spacing: 10) {
                     Text("Default: OFF").bold()
                     Text(
                         "The Fetch Treatments toggle enables fetching of carbs and temp targets entered in Careportal or by another uploading device than Trio from Nightscout."
                     )
                 },
-                headerText: "Fetch NS Care Portal Data"
+                headerText: String(localized: "Fetch NS Care Portal Data")
             )
         }
         .listSectionSpacing(sectionSpacing)
@@ -47,7 +47,7 @@ struct NightscoutFetchView: View {
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
                 hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                sheetTitle: "Help"
+                sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
         }
         .navigationTitle("Fetch")

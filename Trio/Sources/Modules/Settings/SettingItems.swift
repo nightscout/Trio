@@ -171,6 +171,7 @@ enum SettingItems {
             view: .mealSettings,
             searchContents: [
                 "Max Carbs",
+                "Max Meal Absorption Time",
                 "Max Fat",
                 "Max Protein",
                 "Display and Allow Fat and Protein Entries",
@@ -330,7 +331,7 @@ extension LocalizedStringKey {
         let mirror = Mirror(reflecting: self)
         let children = mirror.children
         if let label = children.first(where: { $0.label == "key" })?.value as? String {
-            return NSLocalizedString(label, comment: "")
+            return String(localized: "\(label)", comment: "")
         } else {
             return ""
         }

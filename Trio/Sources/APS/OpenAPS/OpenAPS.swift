@@ -100,8 +100,8 @@ final class OpenAPS {
     }
 
     // fetch glucose to pass it to the meal function and to determine basal
-    private func fetchAndProcessGlucose() async -> String {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchAndProcessGlucose() async throws -> String {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgoInMinutes,
@@ -111,9 +111,9 @@ final class OpenAPS {
             batchSize: 24
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
-                return ""
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             // convert to JSON
@@ -121,8 +121,8 @@ final class OpenAPS {
         }
     }
 
-    private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil) async -> String {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil) async throws -> String {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgo,
@@ -130,9 +130,9 @@ final class OpenAPS {
             ascending: false
         )
 
-        let json = await context.perform {
+        let json = try await context.perform {
             guard let carbResults = results as? [CarbEntryStored] else {
-                return ""
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             var jsonArray = self.jsonConverter.convertToJSON(carbResults)
@@ -170,8 +170,8 @@ final class OpenAPS {
         return json
     }
 
-    private func fetchPumpHistoryObjectIDs() async -> [NSManagedObjectID]? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchPumpHistoryObjectIDs() async throws -> [NSManagedObjectID]? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpHistoryLast1440Minutes,
@@ -180,16 +180,19 @@ final class OpenAPS {
             batchSize: 50
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let pumpEventResults = results as? [PumpEventStored] else {
-                return nil
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return pumpEventResults.map(\.objectID)
         }
     }
 
-    private func parsePumpHistory(_ pumpHistoryObjectIDs: [NSManagedObjectID], iob: Decimal? = nil) async -> String {
+    private func parsePumpHistory(
+        _ pumpHistoryObjectIDs: [NSManagedObjectID],
+        simulatedBolusAmount: Decimal? = nil
+    ) async -> String {
         // Return an empty JSON object if the list of object IDs is empty
         guard !pumpHistoryObjectIDs.isEmpty else { return "{}" }
 
@@ -199,9 +202,9 @@ final class OpenAPS {
             var dtos = self.loadAndMapPumpEvents(pumpHistoryObjectIDs)
 
             // Optionally add the IOB as a DTO
-            if let iob = iob {
-                let iobDTO = self.createIOBDTO(iob: iob)
-                dtos.insert(iobDTO, at: 0)
+            if let simulatedBolusAmount = simulatedBolusAmount {
+                let simulatedBolusDTO = self.createSimulatedBolusDTO(simulatedBolusAmount: simulatedBolusAmount)
+                dtos.insert(simulatedBolusDTO, at: 0)
             }
 
             // Convert the DTOs to JSON
@@ -226,12 +229,24 @@ final class OpenAPS {
             if let tempBasalDTO = event.toTempBasalDTOEnum() {
                 eventDTOs.append(tempBasalDTO)
             }
+            if let pumpSuspendDTO = event.toPumpSuspendDTO() {
+                eventDTOs.append(pumpSuspendDTO)
+            }
+            if let pumpResumeDTO = event.toPumpResumeDTO() {
+                eventDTOs.append(pumpResumeDTO)
+            }
+            if let rewindDTO = event.toRewindDTO() {
+                eventDTOs.append(rewindDTO)
+            }
+            if let primeDTO = event.toPrimeDTO() {
+                eventDTOs.append(primeDTO)
+            }
             return eventDTOs
         }
         return dtos
     }
 
-    private func createIOBDTO(iob: Decimal) -> PumpEventDTO {
+    private func createSimulatedBolusDTO(simulatedBolusAmount: Decimal) -> PumpEventDTO {
         let oneSecondAgo = Calendar.current
             .date(
                 byAdding: .second,
@@ -243,7 +258,7 @@ final class OpenAPS {
         let bolusDTO = BolusDTO(
             id: UUID().uuidString,
             timestamp: dateFormatted,
-            amount: Double(iob),
+            amount: Double(simulatedBolusAmount),
             isExternal: false,
             isSMB: true,
             duration: 0,
@@ -255,8 +270,8 @@ final class OpenAPS {
     func determineBasal(
         currentTemp: TempBasal,
         clock: Date = Date(),
-        carbs: Decimal? = nil,
-        iob: Decimal? = nil,
+        simulatedCarbsAmount: Decimal? = nil,
+        simulatedBolusAmount: Decimal? = nil,
         simulation: Bool = false
     ) async throws -> Determination? {
         debug(.openAPS, "Start determineBasal")
@@ -266,7 +281,7 @@ final class OpenAPS {
 
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
-        async let carbs = fetchAndProcessCarbs(additionalCarbs: carbs ?? 0)
+        async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0)
         async let glucose = fetchAndProcessGlucose()
         async let oref2 = oref2()
         async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
@@ -287,10 +302,10 @@ final class OpenAPS {
             reservoir,
             preferences
         ) = await (
-            parsePumpHistory(await pumpHistoryObjectIDs, iob: iob),
-            carbs,
-            glucose,
-            oref2,
+            try parsePumpHistory(await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
+            try carbs,
+            try glucose,
+            try oref2,
             profileAsync,
             basalAsync,
             autosenseAsync,
@@ -351,12 +366,12 @@ final class OpenAPS {
 
             return determination
         } else {
-            return nil
+            throw APSError.apsError(message: "Determination is nil")
         }
     }
 
-    func oref2() async -> RawJSON {
-        await context.perform {
+    func oref2() async throws -> RawJSON {
+        try await context.perform {
             // Retrieve user preferences
             let userPreferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
             let weightPercentage = userPreferences?.weightPercentage ?? 1.0
@@ -366,10 +381,10 @@ final class OpenAPS {
             // Fetch historical events for Total Daily Dose (TDD) calculation
             let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
             let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
-            let historicalTDDData = self.fetchHistoricalTDDData(from: tenDaysAgo)
+            let historicalTDDData = try self.fetchHistoricalTDDData(from: tenDaysAgo)
 
             // Fetch the last active Override
-            let activeOverrides = self.fetchActiveOverrides()
+            let activeOverrides = try self.fetchActiveOverrides()
             let isOverrideActive = activeOverrides.first?.enabled ?? false
             let overridePercentage = Decimal(activeOverrides.first?.percentage ?? 100)
             let isOverrideIndefinite = activeOverrides.first?.indefinite ?? true
@@ -433,9 +448,9 @@ final class OpenAPS {
 
         // Await the results of asynchronous tasks
         let (pumpHistoryJSON, carbsAsJSON, glucoseAsJSON, profile, basalProfile, tempTargets) = await (
-            parsePumpHistory(await pumpHistoryObjectIDs),
-            carbs,
-            glucose,
+            try parsePumpHistory(await pumpHistoryObjectIDs),
+            try carbs,
+            try glucose,
             getProfile,
             getBasalProfile,
             getTempTargets
@@ -462,7 +477,7 @@ final class OpenAPS {
         }
     }
 
-    func createProfiles() async {
+    func createProfiles() async throws {
         debug(.openAPS, "Start creating pump profile and user profile")
 
         // Load required settings and profiles asynchronously
@@ -492,9 +507,9 @@ final class OpenAPS {
         var adjustedPreferences = preferences
 
         // Check for active Temp Targets and adjust HBT if necessary
-        await context.perform {
+        try await context.perform {
             // Check if a Temp Target is active and if its HBT differs from user preferences
-            if let activeTempTarget = self.fetchActiveTempTargets().first,
+            if let activeTempTarget = try self.fetchActiveTempTargets().first,
                activeTempTarget.enabled,
                let activeHBT = activeTempTarget.halfBasalTarget?.decimalValue,
                activeHBT != defaultHalfBasalTarget
@@ -540,11 +555,12 @@ final class OpenAPS {
                 .apsManager,
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to create pump profile and normal profile: \(error)"
             )
+            throw error
         }
     }
 
     private func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async throws -> RawJSON {
-        await withCheckedContinuation { continuation in
+        try await withCheckedThrowingContinuation { continuation in
             jsWorker.inCommonContext { worker in
                 worker.evaluateBatch(scripts: [
                     Script(name: Prepare.log),
@@ -786,8 +802,8 @@ final class OpenAPS {
 
 // Non-Async fetch methods for oref2
 extension OpenAPS {
-    func fetchActiveTempTargets() -> [TempTargetStored] {
-        CoreDataStack.shared.fetchEntities(
+    func fetchActiveTempTargets() throws -> [TempTargetStored] {
+        try CoreDataStack.shared.fetchEntities(
             ofType: TempTargetStored.self,
             onContext: context,
             predicate: NSPredicate.lastActiveTempTarget,
@@ -797,8 +813,8 @@ extension OpenAPS {
         ) as? [TempTargetStored] ?? []
     }
 
-    func fetchActiveOverrides() -> [OverrideStored] {
-        CoreDataStack.shared.fetchEntities(
+    func fetchActiveOverrides() throws -> [OverrideStored] {
+        try CoreDataStack.shared.fetchEntities(
             ofType: OverrideStored.self,
             onContext: context,
             predicate: NSPredicate.lastActiveOverride,
@@ -808,8 +824,8 @@ extension OpenAPS {
         ) as? [OverrideStored] ?? []
     }
 
-    func fetchHistoricalTDDData(from date: Date) -> [[String: Any]] {
-        CoreDataStack.shared.fetchEntities(
+    func fetchHistoricalTDDData(from date: Date) throws -> [[String: Any]] {
+        try CoreDataStack.shared.fetchEntities(
             ofType: OrefDetermination.self,
             onContext: context,
             predicate: NSPredicate(format: "timestamp > %@ AND totalDailyDose > 0", date as NSDate),

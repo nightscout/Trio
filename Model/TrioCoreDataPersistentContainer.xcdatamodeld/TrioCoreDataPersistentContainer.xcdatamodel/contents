@@ -51,6 +51,9 @@
         <fetchIndex name="byDate">
             <fetchIndexElement property="date" type="Binary" order="descending"/>
         </fetchIndex>
+        <fetchIndex name="byValue">
+            <fetchIndexElement property="forecastValues" type="Binary" order="ascending"/>
+        </fetchIndex>
     </entity>
     <entity name="ForecastValue" representedClassName="ForecastValue" syncable="YES">
         <attribute name="index" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -139,6 +142,9 @@
         <relationship name="forecasts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Forecast" inverseName="orefDetermination" inverseEntity="Forecast"/>
         <fetchIndex name="byDate">
             <fetchIndexElement property="deliverAt" type="Binary" order="descending"/>
+        </fetchIndex>
+        <fetchIndex name="byTimestamp">
+            <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
         </fetchIndex>
     </entity>
     <entity name="OverrideRunStored" representedClassName="OverrideRunStored" syncable="YES">

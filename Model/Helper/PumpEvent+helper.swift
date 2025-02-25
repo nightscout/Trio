@@ -12,6 +12,32 @@ extension PumpEventStored {
         }
         return request
     }
+
+    // Preview
+    @discardableResult static func makePreviewEvents(count: Int, provider: CoreDataStack) -> [PumpEventStored] {
+        let context = provider.persistentContainer.viewContext
+        let events = (0 ..< count).map { index -> PumpEventStored in
+            let event = PumpEventStored(context: context)
+            event.id = UUID().uuidString
+            event.timestamp = Date.now.addingTimeInterval(Double(index) * -300) // Every 5 minutes
+            event.type = EventType.bolus.rawValue
+            event.isUploadedToNS = false
+            event.isUploadedToHealth = false
+            event.isUploadedToTidepool = false
+
+            // Add a bolus
+            let bolus = BolusStored(context: context)
+            bolus.amount = 2.5 as NSDecimalNumber
+            bolus.isExternal = false
+            bolus.isSMB = false
+            bolus.pumpEvent = event
+
+            return event
+        }
+
+        try? context.save()
+        return events
+    }
 }
 
 public extension PumpEventStored {
@@ -65,7 +91,11 @@ extension NSPredicate {
 
     static var recentPumpHistory: NSPredicate {
         let date = Date.twentyMinutesAgo
-        return NSPredicate(format: "timestamp >= %@", date as NSDate)
+        return NSPredicate(
+            format: "type == %@ AND timestamp <= %@",
+            PumpEventStored.EventType.tempBasal.rawValue,
+            date as NSDate
+        )
     }
 
     static var lastPumpBolus: NSPredicate {
@@ -102,7 +132,7 @@ struct BolusDTO: Codable {
     var isExternal: Bool
     var isSMB: Bool
     var duration: Int
-    var _type: String = "Bolus"
+    var _type: String = EventType.bolus.rawValue
 }
 
 struct TempBasalDTO: Codable {
@@ -110,14 +140,14 @@ struct TempBasalDTO: Codable {
     var timestamp: String
     var temp: String
     var rate: Double
-    var _type: String = "TempBasal"
+    var _type: String = EventType.tempBasal.rawValue
 }
 
 struct TempBasalDurationDTO: Codable {
     var id: String
     var timestamp: String
     var duration: Int
-    var _type: String = "TempBasalDuration"
+    var _type: String = EventType.tempBasalDuration.rawValue
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -127,11 +157,39 @@ struct TempBasalDurationDTO: Codable {
     }
 }
 
+struct SuspendDTO: Codable {
+    var id: String
+    var timestamp: String
+    var _type: String = EventType.pumpSuspend.rawValue
+}
+
+struct ResumeDTO: Codable {
+    var id: String
+    var timestamp: String
+    var _type: String = EventType.pumpResume.rawValue
+}
+
+struct RewindDTO: Codable {
+    var id: String
+    var timestamp: String
+    var _type: String = EventType.rewind.rawValue
+}
+
+struct PrimeDTO: Codable {
+    var id: String
+    var timestamp: String
+    var _type: String = EventType.prime.rawValue
+}
+
 // Mask distinct DTO subtypes with a common enum that conforms to Encodable
 enum PumpEventDTO: Encodable {
     case bolus(BolusDTO)
     case tempBasal(TempBasalDTO)
     case tempBasalDuration(TempBasalDurationDTO)
+    case suspend(SuspendDTO)
+    case resume(ResumeDTO)
+    case rewind(RewindDTO)
+    case prime(PrimeDTO)
 
     func encode(to encoder: Encoder) throws {
         switch self {
@@ -141,6 +199,14 @@ enum PumpEventDTO: Encodable {
             try tempBasal.encode(to: encoder)
         case let .tempBasalDuration(tempBasalDuration):
             try tempBasalDuration.encode(to: encoder)
+        case let .suspend(suspend):
+            try suspend.encode(to: encoder)
+        case let .resume(resume):
+            try resume.encode(to: encoder)
+        case let .rewind(rewind):
+            try rewind.encode(to: encoder)
+        case let .prime(prime):
+            try prime.encode(to: encoder)
         }
     }
 }
@@ -194,5 +260,53 @@ extension PumpEventStored {
             duration: Int(tempBasal.duration)
         )
         return .tempBasalDuration(tempBasalDurationDTO)
+    }
+
+    func toPumpSuspendDTO() -> PumpEventDTO? {
+        guard let id = id, let timestamp = timestamp, let type = type, type == EventType.pumpSuspend.rawValue else {
+            return nil
+        }
+
+        let suspendDTO = SuspendDTO(
+            id: id,
+            timestamp: PumpEventStored.dateFormatter.string(from: timestamp)
+        )
+        return .suspend(suspendDTO)
+    }
+
+    func toPumpResumeDTO() -> PumpEventDTO? {
+        guard let id = id, let timestamp = timestamp, let type = type, type == EventType.pumpResume.rawValue else {
+            return nil
+        }
+
+        let resumeDTO = ResumeDTO(
+            id: id,
+            timestamp: PumpEventStored.dateFormatter.string(from: timestamp)
+        )
+        return .resume(resumeDTO)
+    }
+
+    func toRewindDTO() -> PumpEventDTO? {
+        guard let id = id, let timestamp = timestamp, let type = type, type == EventType.rewind.rawValue else {
+            return nil
+        }
+
+        let rewindDTO = RewindDTO(
+            id: id,
+            timestamp: PumpEventStored.dateFormatter.string(from: timestamp)
+        )
+        return .rewind(rewindDTO)
+    }
+
+    func toPrimeDTO() -> PumpEventDTO? {
+        guard let id = id, let timestamp = timestamp, let type = type, type == EventType.prime.rawValue else {
+            return nil
+        }
+
+        let primeDTO = PrimeDTO(
+            id: id,
+            timestamp: PumpEventStored.dateFormatter.string(from: timestamp)
+        )
+        return .prime(primeDTO)
     }
 }
