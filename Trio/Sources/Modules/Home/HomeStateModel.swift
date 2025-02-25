@@ -63,7 +63,7 @@ extension Home {
         var alarm: GlucoseAlarm?
         var manualTempBasal = false
         var isSmoothingEnabled = false
-        var maxValue: Decimal = 1.2
+        var maxAutosensSetting: Decimal = 1.2
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
         var currentGlucoseTarget: Decimal = 100
@@ -372,7 +372,7 @@ extension Home {
             manualTempBasal = apsManager.isManualTempBasal
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
             glucoseColorScheme = settingsManager.settings.glucoseColorScheme
-            maxValue = settingsManager.preferences.autosensMax
+            maxAutosensSetting = settingsManager.preferences.autosensMax
             lowGlucose = settingsManager.settings.low
             highGlucose = settingsManager.settings.high
             hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
@@ -386,7 +386,6 @@ extension Home {
             highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
             lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
-            maxValue = settingsManager.preferences.autosensMax
         }
 
         @MainActor private func setupCGMSettings() async {
@@ -690,7 +689,7 @@ extension Home.StateModel:
     }
 
     func preferencesDidChange(_: Preferences) {
-        maxValue = settingsManager.preferences.autosensMax
+        maxAutosensSetting = settingsManager.preferences.autosensMax
         settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
         isExerciseModeActive = settingsManager.preferences.exerciseMode

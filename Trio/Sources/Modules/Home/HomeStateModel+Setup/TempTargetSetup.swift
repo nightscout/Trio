@@ -124,9 +124,9 @@ extension Home.StateModel {
         let deviationFromNormal = halfBasalTargetValue - normalTarget
 
         let adjustmentFactor = deviationFromNormal + (tempTargetValue - normalTarget)
-        let adjustmentRatio: Decimal = (deviationFromNormal * adjustmentFactor <= 0) ? maxValue : deviationFromNormal /
+        let adjustmentRatio: Decimal = (deviationFromNormal * adjustmentFactor <= 0) ? maxAutosensSetting : deviationFromNormal /
             adjustmentFactor
 
-        return Int(Double(min(adjustmentRatio, maxValue) * 100).rounded())
+        return Int(Double(min(adjustmentRatio, maxAutosensSetting) * 100).rounded())
     }
 }
