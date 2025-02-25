@@ -187,14 +187,18 @@ extension TargetBehavoir {
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
-            .alert(
+            .confirmationDialog(
                 "Cannot Enable This Setting",
-                isPresented: $showAutosensMaxAlert
+                isPresented: $showAutosensMaxAlert,
+                titleVisibility: .visible
             ) {
-                // Alert button(s). For a single button:
+                // Actions that appear in the dialog
                 Button("Got it!", role: .cancel) {}
+                    .foregroundColor(Color.tabBar)
             } message: {
-                Text("This feature cannot be enabled unless Autosens Max > 100%.")
+                Text(
+                    "This feature cannot be enabled unless Algorithm Settings > AutoSens > Autosens Max is set higher than 100%."
+                )
             }
             .navigationTitle("Target Behavior")
             .navigationBarTitleDisplayMode(.automatic)
