@@ -382,7 +382,14 @@ extension Treatments {
         @State private var showDangerousLowAlert = false
 
         var treatmentButton: some View {
-            Button {
+            var treatmentButtonBackground = Color(.systemBlue)
+            if limitExceeded || (state.amount > 0 && state.currentBG <= 54) {
+                treatmentButtonBackground = Color(.systemRed)
+            } else if disableTaskButton {
+                treatmentButtonBackground = Color(.systemGray)
+            }
+
+            return Button {
                 if state.currentBG <= 54 {
                     showDangerousLowAlert = true
                 } else {
@@ -403,10 +410,7 @@ extension Treatments {
                 .frame(height: 35)
             }
             .disabled(disableTaskButton)
-            .listRowBackground(
-                limitExceeded || (state.amount > 0 && state.currentBG <= 54) ? Color(.systemRed) :
-                    disableTaskButton ? Color(.systemGray) : Color(.systemBlue)
-            )
+            .listRowBackground(treatmentButtonBackground)
             .shadow(radius: 3)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .confirmationDialog(
