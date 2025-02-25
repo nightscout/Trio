@@ -59,7 +59,7 @@ extension Adjustments {
         var tempTargetPresets: [TempTargetStored] = []
         var scheduledTempTargets: [TempTargetStored] = []
         var percentage: Double = 100
-        var maxAutosensSetting: Decimal = 1.2
+        var autosensMax: Decimal = 1.2
         var halfBasalTarget: Decimal = 160
         var settingHalfBasalTarget: Decimal = 160
         var highTTraisesSens: Bool = false
@@ -152,7 +152,7 @@ extension Adjustments {
             units = settingsManager.settings.units
             defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
             defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
-            maxAutosensSetting = settingsManager.preferences.autosensMax
+            autosensMax = settingsManager.preferences.autosensMax
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
@@ -262,15 +262,15 @@ extension Adjustments.StateModel: SettingsObserver, PreferencesObserver {
     func preferencesDidChange(_: Preferences) {
         defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
         defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
-        maxAutosensSetting = settingsManager.preferences.autosensMax
+        autosensMax = settingsManager.preferences.autosensMax
         settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
         isExerciseModeActive = settingsManager.preferences.exerciseMode
         lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
         percentage = computeAdjustedPercentage()
-        // Force lowTTlowersSens off if maxAutosensSetting <= 1
-        if maxAutosensSetting <= 1, lowTTlowersSens == true {
+        // Force lowTTlowersSens off if autosensMax <= 1
+        if autosensMax <= 1, lowTTlowersSens == true {
             lowTTlowersSens = false
             settingsManager.preferences.lowTemptargetLowersSensitivity = false
         }

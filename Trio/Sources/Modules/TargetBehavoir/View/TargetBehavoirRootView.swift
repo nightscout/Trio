@@ -210,7 +210,7 @@ extension TargetBehavoir {
         private var effectiveLowTTLowersSensBinding: Binding<Bool> {
             Binding<Bool>(
                 get: {
-                    if state.maxAutosensSetting > 1 {
+                    if state.autosensMax > 1 {
                         // Show the *real* user preference
                         return state.lowTemptargetLowersSensitivity
                     } else {
@@ -221,7 +221,7 @@ extension TargetBehavoir {
                 set: { newValue in
                     if newValue {
                         // User wants to turn it ON
-                        if state.maxAutosensSetting > 1 {
+                        if state.autosensMax > 1 {
                             // Condition is valid => set the real model property to true
                             state.lowTemptargetLowersSensitivity = true
                         } else {

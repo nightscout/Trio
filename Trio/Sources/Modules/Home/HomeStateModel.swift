@@ -63,7 +63,7 @@ extension Home {
         var alarm: GlucoseAlarm?
         var manualTempBasal = false
         var isSmoothingEnabled = false
-        var maxAutosensSetting: Decimal = 1.2
+        var autosensMax: Decimal = 1.2
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
         var currentGlucoseTarget: Decimal = 100
@@ -372,7 +372,7 @@ extension Home {
             manualTempBasal = apsManager.isManualTempBasal
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
             glucoseColorScheme = settingsManager.settings.glucoseColorScheme
-            maxAutosensSetting = settingsManager.preferences.autosensMax
+            autosensMax = settingsManager.preferences.autosensMax
             lowGlucose = settingsManager.settings.low
             highGlucose = settingsManager.settings.high
             hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
@@ -689,7 +689,7 @@ extension Home.StateModel:
     }
 
     func preferencesDidChange(_: Preferences) {
-        maxAutosensSetting = settingsManager.preferences.autosensMax
+        autosensMax = settingsManager.preferences.autosensMax
         settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
         isExerciseModeActive = settingsManager.preferences.exerciseMode

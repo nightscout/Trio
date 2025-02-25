@@ -255,7 +255,7 @@ extension Home {
             } else { halfBasalTarget = state.settingHalfBasalTarget }
             var showPercentage = false
             if target > 100, state.isExerciseModeActive || state.highTTraisesSens { showPercentage = true }
-            if target < 100, state.lowTTlowersSens, state.maxAutosensSetting > 1 { showPercentage = true }
+            if target < 100, state.lowTTlowersSens, state.autosensMax > 1 { showPercentage = true }
             if showPercentage {
                 percentageString =
                     " \(state.computeAdjustedPercentage(halfBasalTargetValue: halfBasalTarget, tempTargetValue: target))%" }

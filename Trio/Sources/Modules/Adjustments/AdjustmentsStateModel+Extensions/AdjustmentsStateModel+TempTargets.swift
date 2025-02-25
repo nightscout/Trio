@@ -400,7 +400,7 @@ extension Adjustments.StateModel {
     /// Determines if sensitivity adjustment is enabled based on target.
     func isAdjustSensEnabled(usingTarget initialTarget: Decimal? = nil) -> Bool {
         let target = initialTarget ?? tempTargetTarget
-        if target < normalTarget, lowTTlowersSens && maxAutosensSetting > 1 { return true }
+        if target < normalTarget, lowTTlowersSens && autosensMax > 1 { return true }
         if target > normalTarget, highTTraisesSens || isExerciseModeActive { return true }
         return false
     }
@@ -417,8 +417,8 @@ extension Adjustments.StateModel {
     func computeSliderHigh(usingTarget initialTarget: Decimal? = nil) -> Double {
         let calcTarget = initialTarget ?? tempTargetTarget
         guard calcTarget != 0
-        else { return Double(maxAutosensSetting * 100) } // oref defined limit for increased insulin delivery
-        let maxSens = calcTarget > normalTarget ? 95 : Double(maxAutosensSetting * 100)
+        else { return Double(autosensMax * 100) } // oref defined limit for increased insulin delivery
+        let maxSens = calcTarget > normalTarget ? 95 : Double(autosensMax * 100)
         return maxSens
     }
 
@@ -432,10 +432,10 @@ extension Adjustments.StateModel {
         let deviationFromNormal = halfBasalTargetValue - normalTarget
 
         let adjustmentFactor = deviationFromNormal + (calcTarget - normalTarget)
-        let adjustmentRatio: Decimal = (deviationFromNormal * adjustmentFactor <= 0) ? maxAutosensSetting : deviationFromNormal /
+        let adjustmentRatio: Decimal = (deviationFromNormal * adjustmentFactor <= 0) ? autosensMax : deviationFromNormal /
             adjustmentFactor
 
-        return Double(min(adjustmentRatio, maxAutosensSetting) * 100).rounded()
+        return Double(min(adjustmentRatio, autosensMax) * 100).rounded()
     }
 }
 
