@@ -348,14 +348,15 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     func calculateInsulin(input: CalculationInput) async -> CalculationResult {
         // insulin needed for the current blood glucose
         let targetDifference = input.currentBG - input.target
-        let targetDifferenceInsulin = apsManager.roundBolusNoCap(amount: targetDifference / input.isf)
+
+        let targetDifferenceInsulin = targetDifference / input.isf
 
         // more or less insulin because of bg trend in the last 15 minutes
-        let fifteenMinutesInsulin = apsManager.roundBolusNoCap(amount: input.deltaBG / input.isf)
+        let fifteenMinutesInsulin = input.deltaBG / input.isf
 
         // determine whole COB for which we want to dose insulin for and then determine insulin for wholeCOB
         let wholeCob = min(Decimal(input.cob) + input.carbs, input.maxCOB)
-        let wholeCobInsulin = apsManager.roundBolusNoCap(amount: wholeCob / input.carbRatio)
+        let wholeCobInsulin = wholeCob / input.carbRatio
 
         // determine how much the calculator reduces/ increases the bolus because of IOB
         let iobInsulinReduction = (-1) * input.iob
@@ -376,30 +377,35 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         }
 
         // apply custom factor at the end of the calculations
-        let result = wholeCalc * input.fraction
-
         // apply custom factor if fatty meal toggle in bolus calc config settings is on and the box for fatty meals is checked (in RootView)
-        var insulinCalculated: Decimal
+        var factoredInsulin = wholeCalc * input.fraction
         var superBolusInsulin: Decimal = 0
         if input.useFattyMealCorrectionFactor {
-            insulinCalculated = result * input.fattyMealFactor
+            factoredInsulin *= input.fattyMealFactor
         } else if input.useSuperBolus {
             superBolusInsulin = input.sweetMealFactor * input.basal
-            insulinCalculated = result + superBolusInsulin
-        } else {
-            insulinCalculated = result
+            factoredInsulin += superBolusInsulin
         }
 
-        // display no negative insulinCalculated
-        insulinCalculated = max(insulinCalculated, 0)
-        insulinCalculated = min(insulinCalculated, input.maxBolus)
-        insulinCalculated = min(insulinCalculated, input.maxIOB - input.iob)
-
-        // round calculated recommendation to allowed bolus increment
-        insulinCalculated = apsManager.roundBolus(amount: insulinCalculated)
+        // the final result for recommended insulin amount
+        var insulinCalculated: Decimal
+        // don't recommend insulin when glucose is < 54
+        if input.currentBG < 54 {
+            insulinCalculated = 0
+        } else {
+            // no negative insulinCalculated
+            insulinCalculated = max(factoredInsulin, 0)
+            // don't exceed maxBolus
+            insulinCalculated = min(insulinCalculated, input.maxBolus)
+            // dont exceed maxIOB
+            insulinCalculated = min(insulinCalculated, input.maxIOB - input.iob)
+            // round calculated recommendation to allowed bolus increment
+            insulinCalculated = apsManager.roundBolus(amount: insulinCalculated)
+        }
 
         return CalculationResult(
             insulinCalculated: insulinCalculated,
+            factoredInsulin: factoredInsulin,
             wholeCalc: wholeCalc,
             correctionInsulin: targetDifferenceInsulin,
             iobInsulinReduction: iobInsulinReduction,
@@ -452,7 +458,8 @@ struct CalculationInput: Sendable {
 
 /// Results of the bolus calculation
 struct CalculationResult: Sendable {
-    let insulinCalculated: Decimal // Final calculated insulin amount
+    let insulinCalculated: Decimal // Final calculated insulin amount which respects limits
+    let factoredInsulin: Decimal // Total calculation after adjustments
     let wholeCalc: Decimal // Total calculation before adjustments
     let correctionInsulin: Decimal // Insulin for BG correction
     let iobInsulinReduction: Decimal // IOB reduction amount

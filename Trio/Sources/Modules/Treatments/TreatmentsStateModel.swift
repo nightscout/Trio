@@ -62,6 +62,7 @@ extension Treatments {
         var wholeCobInsulin: Decimal = 0
         var iobInsulinReduction: Decimal = 0
         var wholeCalc: Decimal = 0
+        var factoredInsulin: Decimal = 0
         var insulinCalculated: Decimal = 0
         var fraction: Decimal = 0
         var basal: Decimal = 0
@@ -403,6 +404,7 @@ extension Treatments {
             iobInsulinReduction = result.iobInsulinReduction
             superBolusInsulin = result.superBolusInsulin
             wholeCalc = result.wholeCalc
+            factoredInsulin = result.factoredInsulin
             fifteenMinInsulin = result.fifteenMinutesInsulin
 
             return apsManager.roundBolus(amount: result.insulinCalculated)

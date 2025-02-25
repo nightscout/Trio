@@ -83,7 +83,7 @@ struct PopupView: View {
                     calcDeltaRow
                     calcDeltaFormulaRow
 
-                    DividerCustom()
+                    DividerCustom(2)
 
                     calcFullBolusRow
 
@@ -97,6 +97,16 @@ struct PopupView: View {
 
                     calcResultRow
                     calcResultFormulaRow
+
+                    DividerCustom()
+
+                    GridRow {
+                        Text("Recommended Bolus")
+                            .gridCellColumns(3)
+                            .gridCellAnchor(.center)
+                            .padding(.bottom, 10)
+                    }
+                    limitsRow
                 }
 
                 Spacer()
@@ -213,14 +223,13 @@ struct PopupView: View {
         GridRow(alignment: .center) {
             HStack {
                 Text("IOB:").foregroundColor(.secondary)
-                Text(self.insulinFormatter(state.iob) + " U")
+                Text(self.insulinFormatter(state.iob, .plain) + " U")
             }
 
             Text("Subtract IOB").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8)).font(.footnote)
 
-            let iobFormatted = self.insulinFormatter(state.iob)
             HStack {
-                Text((state.iob >= 0 ? "-" : "") + (state.iob >= 0 ? iobFormatted : "(" + iobFormatted + ")"))
+                Text(self.insulinFormatter(-1 * state.iob, .plain))
                 Text("U").foregroundColor(.secondary)
             }.fontWeight(.bold)
                 .gridColumnAlignment(.trailing)
@@ -229,27 +238,9 @@ struct PopupView: View {
 
     var calcCOBRow: some View {
         GridRow(alignment: .center) {
-            // Left column using ZStack to overlay Max COB
-            ZStack(alignment: .leading) {
-                // Main COB content
-                HStack {
-                    Text("COB:").foregroundColor(.secondary)
-                    Text(
-                        state.wholeCob
-                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits))) +
-                            String(localized: " g", comment: "grams")
-                    ).foregroundColor(state.wholeCob >= state.maxCOB ? Color.loopRed : .primary)
-                }
-
-                // Max COB overlay positioned below
-                if state.wholeCob >= state.maxCOB {
-                    Text("Max COB")
-                        .foregroundColor(Color.loopRed)
-                        .font(.caption)
-                        .offset(y: 16) // Adjust this value to position the text correctly
-                }
-            }
-            .frame(height: 20) // Fixed height for main content only
+            let maxCobReached: Bool = state.wholeCob >= state.maxCOB
+            Text(maxCobReached ? "Max COB:" : "COB:")
+                .foregroundColor(maxCobReached ? Color.loopRed : .secondary)
 
             // Middle column
             Text(
@@ -265,9 +256,7 @@ struct PopupView: View {
 
             // Right column
             HStack {
-                Text(
-                    self.insulinFormatter(state.wholeCobInsulin)
-                )
+                Text(self.insulinFormatter(state.wholeCobInsulin))
                 Text("U").foregroundColor(.secondary)
             }
             .fontWeight(.bold)
@@ -277,13 +266,15 @@ struct PopupView: View {
 
     var calcCOBFormulaRow: some View {
         GridRow(alignment: .center) {
-            Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+            Text(
+                state.wholeCob
+                    .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits))) +
+                    String(localized: " g", comment: "grams")
+            )
 
-            Text("COB ÷ Carb Ratio").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
-                .gridColumnAlignment(.leading)
-                .gridCellColumns(2)
+            Text("COB / Carb Ratio").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+                .gridColumnAlignment(.leading).font(.caption)
         }
-        .font(.caption)
     }
 
     var calcDeltaRow: some View {
@@ -332,6 +323,7 @@ struct PopupView: View {
             Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
 
             HStack {
+                Text("≈").foregroundColor(.secondary)
                 Text(self.insulinFormatter(state.wholeCalc))
                     .foregroundStyle(state.wholeCalc < 0 ? Color.loopRed : Color.primary)
                 Text("U").foregroundColor(.secondary)
@@ -373,23 +365,21 @@ struct PopupView: View {
 
     var calcResultRow: some View {
         GridRow(alignment: .center) {
-            Text("Result").fontWeight(.bold)
+            Text("Factors").foregroundColor(.secondary)
 
             HStack {
                 Text(state.useSuperBolus ? "(" : "")
                     .foregroundColor(.loopRed)
 
                     + Text(self.insulinFormatter(state.wholeCalc))
-                    .foregroundColor(state.wholeCalc < 0 ? Color.loopRed : Color.primary)
+                    .foregroundColor(state.wholeCalc < 0 ? Color.loopRed : Color.secondary)
 
                     + Text(" × ")
-                    .foregroundColor(.secondary)
 
                     + Text((100 * state.fraction).formatted() + "%")
 
                     // if fatty meal is chosen
                     + Text(state.useFattyMealCorrectionFactor ? " × " : "")
-                    .foregroundColor(.secondary)
 
                     + Text(state.useFattyMealCorrectionFactor ? (100 * state.fattyMealFactor).formatted() + "%" : "")
                     .foregroundColor(.orange)
@@ -400,21 +390,19 @@ struct PopupView: View {
                     .foregroundColor(.loopRed)
 
                     + Text(state.useSuperBolus ? " + " : "")
-                    .foregroundColor(.secondary)
 
                     + Text(state.useSuperBolus ? self.insulinFormatter(state.superBolusInsulin) : "")
                     .foregroundColor(.loopRed)
                     // endif superbolus is chosen
 
                     + Text(" ≈ ")
-                    .foregroundColor(.secondary)
             }
             .gridColumnAlignment(.leading)
+            .foregroundColor(.secondary)
 
             HStack {
-                Text(self.insulinFormatter(state.insulinCalculated))
+                Text(self.insulinFormatter(state.factoredInsulin))
                     .fontWeight(.bold)
-                    .foregroundColor(state.insulinCalculated >= state.maxBolus ? Color.loopRed : Color.blue)
                 Text("U").foregroundColor(.secondary)
             }
             .gridColumnAlignment(.trailing)
@@ -426,26 +414,16 @@ struct PopupView: View {
         GridRow(alignment: .bottom) {
             if state.useFattyMealCorrectionFactor {
                 Group {
-                    getFormulaText("Full Bolus x Fatty Meal % x Percentage", colorScheme: colorScheme) +
-                        getCappedText(
-                            insulinCalculated: state.insulinCalculated,
-                            maxBolus: state.maxBolus,
-                            maxIOB: state.maxIOB,
-                            iob: state.iob
-                        )
+                    Text("Full Bolus x Rec. Bolus % x Fatty Meal %")
+                        .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
                 }
                 .font(.caption)
                 .gridCellAnchor(.center)
                 .gridCellColumns(3)
             } else if state.useSuperBolus {
                 Group {
-                    getFormulaText("(Full Bolus x Percentage) + Super Bolus", colorScheme: colorScheme) +
-                        getCappedText(
-                            insulinCalculated: state.insulinCalculated,
-                            maxBolus: state.maxBolus,
-                            maxIOB: state.maxIOB,
-                            iob: state.iob
-                        )
+                    Text("(Full Bolus x Rec. Bolus %) + Super Bolus")
+                        .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
                 }
                 .font(.caption)
                 .gridCellAnchor(.center)
@@ -453,13 +431,8 @@ struct PopupView: View {
             } else {
                 Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
                 Group {
-                    getFormulaText("Full Bolus x Percentage", colorScheme: colorScheme) +
-                        getCappedText(
-                            insulinCalculated: state.insulinCalculated,
-                            maxBolus: state.maxBolus,
-                            maxIOB: state.maxIOB,
-                            iob: state.iob
-                        )
+                    Text("Full Bolus x Rec. Bolus %")
+                        .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
                 }
                 .font(.caption)
                 .padding(.top, 5)
@@ -469,17 +442,59 @@ struct PopupView: View {
         }
     }
 
-    private func insulinFormatter(_ value: Decimal) -> String {
-        let toRound = NSDecimalNumber(decimal: value).doubleValue
-        let roundedValue = Decimal(floor(100 * toRound) / 100)
+    var limitsRow: some View {
+        GridRow(alignment: .top) {
+            Text("Limits").foregroundColor(.secondary)
 
+            VStack {
+                let iobAvailable: Decimal = state.maxIOB - state.iob
+                if state.factoredInsulin < 0 {
+                    Text("No insulin recommended.")
+                } else if state.currentBG < 54 {
+                    Text("Glucose is very low.")
+                } else if state.maxBolus <= iobAvailable && state.factoredInsulin > state.maxBolus {
+                    Text("Max Bolus = \(insulinFormatter(state.maxBolus)) U")
+                } else if state.factoredInsulin > iobAvailable {
+                    let iobFormatted = state.iob < 0 ? "(" + insulinFormatter(state.iob) + ")" : insulinFormatter(state.iob)
+                    Text(
+                        "\(insulinFormatter(state.maxIOB)) - \(iobFormatted) = \(insulinFormatter(iobAvailable)) U"
+                    )
+                    Text("Max IOB - Current IOB")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .foregroundColor(Color.loopRed)
+
+            HStack {
+                Text(insulinFormatter(state.insulinCalculated))
+                    .foregroundColor(state.insulinCalculated > 0 ? Color.insulin : .primary)
+                Text("U").foregroundColor(.secondary)
+            }
+            .fontWeight(.bold)
+            .gridColumnAlignment(.trailing)
+        }
+    }
+
+    private func insulinFormatter(_ value: Decimal, _ roundingMode: NSDecimalNumber.RoundingMode = .down) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.minimumFractionDigits = 2
         formatter.maximumFractionDigits = 2
-        formatter.locale = Locale.current // Uses the user's locale
+        formatter.locale = Locale.current
 
-        return formatter.string(from: roundedValue as NSNumber) ?? String(format: "%.2f", toRound)
+        let handler = NSDecimalNumberHandler(
+            roundingMode: roundingMode,
+            scale: 2,
+            raiseOnExactness: false,
+            raiseOnOverflow: false,
+            raiseOnUnderflow: false,
+            raiseOnDivideByZero: false
+        )   
+
+        let roundedValue = NSDecimalNumber(decimal: value).rounding(accordingToBehavior: handler)
+
+        return formatter.string(from: roundedValue) ?? "\(value)"
     }
 
     struct DividerDouble: View {
@@ -498,29 +513,17 @@ struct PopupView: View {
     }
 
     struct DividerCustom: View {
+        var height: CGFloat
+
+        init(_ height: CGFloat = 1) {
+            self.height = height
+        }
+
         var body: some View {
             Rectangle()
-                .frame(height: 1)
+                .frame(height: height)
                 .foregroundColor(.gray.opacity(0.65))
                 .padding(.vertical)
         }
-    }
-}
-
-extension View {
-    // Function to generate the warning text for max bolus/IOB
-    func getCappedText(insulinCalculated: Decimal, maxBolus: Decimal, maxIOB: Decimal, iob: Decimal) -> Text {
-        let limitedByMaxBolus = insulinCalculated >= maxBolus && maxBolus < maxIOB - iob
-        let limitedByMaxIOB = insulinCalculated >= maxIOB - iob
-        return Text(
-            limitedByMaxBolus ? " ≈ Max Bolus" :
-                limitedByMaxIOB ? " ≈ Max IOB" : ""
-        ).foregroundColor(Color.loopRed)
-    }
-
-    // Function to generate the formula text with opacity
-    func getFormulaText(_ text: String, colorScheme: ColorScheme) -> Text {
-        Text(text)
-            .foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
     }
 }
