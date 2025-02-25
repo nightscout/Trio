@@ -202,35 +202,19 @@ extension TargetBehavoir {
             }
             .navigationTitle("Target Behavior")
             .navigationBarTitleDisplayMode(.automatic)
-//            .onDisappear {
-//                state.saveIfChanged()
-//            }
+            //            .onDisappear {
+            //                state.saveIfChanged()
+            //            }
         }
 
         private var effectiveLowTTLowersSensBinding: Binding<Bool> {
-            Binding<Bool>(
-                get: {
-                    if state.autosensMax > 1 {
-                        // Show the *real* user preference
-                        return state.lowTemptargetLowersSensitivity
-                    } else {
-                        // "Mask" it as OFF in the UI
-                        return false
-                    }
-                },
+            Binding(
+                get: { state.autosensMax > 1 && state.lowTemptargetLowersSensitivity },
                 set: { newValue in
-                    if newValue {
-                        // User wants to turn it ON
-                        if state.autosensMax > 1 {
-                            // Condition is valid => set the real model property to true
-                            state.lowTemptargetLowersSensitivity = true
-                        } else {
-                            // Condition not met => show alert, do NOT turn it on
-                            showAutosensMaxAlert = true
-                        }
+                    if newValue, state.autosensMax <= 1 {
+                        showAutosensMaxAlert = true
                     } else {
-                        // Turning it off is always allowed
-                        state.lowTemptargetLowersSensitivity = false
+                        state.lowTemptargetLowersSensitivity = newValue
                     }
                 }
             )
