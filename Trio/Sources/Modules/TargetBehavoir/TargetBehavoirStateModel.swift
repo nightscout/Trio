@@ -32,9 +32,4 @@ extension TargetBehavoir.StateModel: SettingsObserver {
     func settingsDidChange(_: TrioSettings) {
         units = settingsManager.settings.units
     }
-
-    func preferencesDidChange(_: Preferences) {
-        lowTemptargetLowersSensitivity = settingsManager.preferences.lowTemptargetLowersSensitivity
-        autosensMax = settingsManager.preferences.autosensMax
-    }
 }
