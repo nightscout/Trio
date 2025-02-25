@@ -36,6 +36,7 @@ extension AlgorithmAdvancedSettings {
                 currentBasalSafetyMultiplier = $0 }
             subscribePreferencesSetting(\.useCustomPeakTime, on: $useCustomPeakTime) { useCustomPeakTime = $0 }
             subscribePreferencesSetting(\.insulinPeakTime, on: $insulinPeakTime) { insulinPeakTime = $0 }
+            subscribePreferencesSetting(\.skipNeutralTemps, on: $skipNeutralTemps) { skipNeutralTemps = $0 }
             subscribePreferencesSetting(\.unsuspendIfNoTemp, on: $unsuspendIfNoTemp) { unsuspendIfNoTemp = $0 }
             subscribePreferencesSetting(\.suspendZerosIOB, on: $suspendZerosIOB) { suspendZerosIOB = $0 }
             subscribePreferencesSetting(\.suspendZerosIOB, on: $suspendZerosIOB) { suspendZerosIOB = $0 }
