@@ -87,7 +87,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         async let weightedAverage = calculateWeightedAverage()
 
         // Await all concurrent calculations
-        let (hours, bolus, scheduled, temp, weighted) = await (
+        let (hours, bolus, scheduled, temp, weighted) = try await (
             pumpDataHours,
             bolusInsulin,
             scheduledBasalInsulin,
