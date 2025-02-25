@@ -18,7 +18,10 @@ struct IobGenerator {
             zeroTempDuration: 240
         )
 
-        let lastBolusTime = treatments.filter({ $0.insulin != nil }).map(\.timestamp).max() ?? Date(timeIntervalSince1970: 0)
+        // In Javascript it checks for `started_at` to separate tempBolus
+        // from bolus but we explicitly track tempBolus instead
+        let lastBolusTime = treatments.filter({ $0.insulin != nil && $0.isTempBolus == false }).map(\.timestamp)
+            .max() ?? Date(timeIntervalSince1970: 0)
         let lastTemp = treatments.filter({ $0.rate != nil && ($0.duration ?? 0) > 0 }).sorted(by: { $0.timestamp < $1.timestamp })
             .last
 

@@ -94,13 +94,15 @@ enum IobCalculation {
             }
             iob += tIOB.iobContrib
             activity += tIOB.activityContrib
-            if insulin < 0.1 {
-                // bolus to represent temp basal, which can only be 0.05 or -0.05
-                basaliob += tIOB.iobContrib
-                netbasalinsulin += insulin
-            } else {
-                bolusiob += tIOB.iobContrib
-                bolusinsulin += insulin
+            if tIOB.iobContrib != 0 {
+                if insulin < 0.1 {
+                    // bolus to represent temp basal, which can only be 0.05 or -0.05
+                    basaliob += tIOB.iobContrib
+                    netbasalinsulin += insulin
+                } else {
+                    bolusiob += tIOB.iobContrib
+                    bolusinsulin += insulin
+                }
             }
         }
 

@@ -6,14 +6,24 @@ import Foundation
 ///  - We ignore event types that Trio won't send us
 ///  - We exclude some redundant events (shouldn't impact the IoB calculation)
 ///
-///  There are two areas where we changed the implementation that could impact IoB calculations
+///  There is one area where we changed the implementation that could impact IoB calculations
 ///  - We don't split temp basals that cross suspends -- after a suspend resumes we assume that
 ///     it goes back to the profile basal rate
-///  - We don't split temp basals into 30 minute durations. This doesn't impact the total insulin accounting
-///    but could give the temp basal bolus entries slightly different timing
 ///
 ///  From looking at the implementat, the `suspendZerosIob` should just be on by default to
 ///  handle pump suspensions correctly
+///
+///  The current Javascript implementation is an approximation of IoB, but we have an issue
+///  open to update to more accurate pump events: https://github.com/nightscout/Trio-dev/issues/325
+///
+///  Also, the current Javascript implementation implements the approximate algorithm incorrectly in
+///  a few corner cases:
+///  - If a tempBasal is longer than 30 minutes and has a profile basal rate change in the middle, it will
+///   miss this split resulting in incorrect insulin calculations.
+///  - When splitting events, it uses minutes instead of seconds or milliseconds to calculate durations,
+///   which can lead to incorrect durations.
+///
+/// These seem like small issues, and they are, but I have seen both in my data over a few days of running.
 
 struct IobHistory {
     struct PumpSuspended {
@@ -179,44 +189,98 @@ struct IobHistory {
         return adjustedTempHistory + (tempHistory.last.map { [$0] } ?? [])
     }
 
-    /// Returns the relative offset of a profile break in the middle of the event, if one exists
-    private static func findIntersectionOffset(tempBasal: ComputedPumpHistoryEvent, profileBreaks: [Decimal]) -> TimeInterval? {
-        let minutesPerDay = Decimal(24 * 60)
-        if let minutes = tempBasal.timestamp.minutesSinceMidnightWithPrecision {
-            let endMinutes = minutes + (tempBasal.duration ?? 0)
-            for profileBreak in profileBreaks {
-                let breakPlusOneDay = profileBreak + minutesPerDay
-                if profileBreak > minutes, profileBreak < endMinutes {
-                    return (profileBreak - minutes).minutesToSeconds
-                } else if breakPlusOneDay > minutes, breakPlusOneDay < endMinutes {
-                    return (breakPlusOneDay - minutes).minutesToSeconds
-                }
+    private static func splitAtMinutesSinceMidnight(
+        tempBasal: ComputedPumpHistoryEvent,
+        splitPoint: Decimal
+    ) throws -> [ComputedPumpHistoryEvent] {
+        // FIXME: bug in JS where they only use minute precision for startMinutes
+        // The net effect is that it truncates the startMinutes. The differences should
+        // be small but at least it matches
+        guard let startMinutes = tempBasal.timestamp.minutesSinceMidnight.map({ Decimal($0) }) else {
+            throw MinutesFromMidnightError.invalidCalendar
+        }
+
+        guard let duration = tempBasal.duration else {
+            throw IobError.tempBasalDurationMissingDuration(timestamp: tempBasal.timestamp)
+        }
+
+        let event1Duration = splitPoint - startMinutes
+        let event2Duration = duration - event1Duration
+        let event2Start = tempBasal.timestamp + event1Duration.minutesToSeconds
+
+        return [
+            tempBasal.copyWith(duration: event1Duration),
+            tempBasal.copyWith(duration: event2Duration, timestamp: event2Start)
+        ]
+    }
+
+    private static func splitAtProfileBreak(
+        tempBasal: ComputedPumpHistoryEvent,
+        profileBreaks: [Decimal]
+    ) throws -> [ComputedPumpHistoryEvent] {
+        guard let duration = tempBasal.duration else {
+            throw IobError.tempBasalMissingDuration(timestamp: tempBasal.timestamp)
+        }
+
+        guard let startMinutes = tempBasal.timestamp.minutesSinceMidnightWithPrecision else {
+            throw MinutesFromMidnightError.invalidCalendar
+        }
+
+        let endMinutes = startMinutes + duration
+        for profileBreak in profileBreaks {
+            if profileBreak > startMinutes, profileBreak < endMinutes {
+                return try splitAtMinutesSinceMidnight(tempBasal: tempBasal, splitPoint: profileBreak)
             }
         }
 
-        return nil
+        return [tempBasal]
+    }
+
+    // we know that these are all at most 30 minutes since we split by 30m first
+    private static func splitAtMidnight(tempBasal: ComputedPumpHistoryEvent) throws -> [ComputedPumpHistoryEvent] {
+        let minutesPerDay = Decimal(24 * 60)
+        guard let startMinutes = tempBasal.timestamp.minutesSinceMidnightWithPrecision else {
+            throw MinutesFromMidnightError.invalidCalendar
+        }
+
+        guard let duration = tempBasal.duration else {
+            throw IobError.tempBasalMissingDuration(timestamp: tempBasal.timestamp)
+        }
+
+        let endMinutes = startMinutes + duration
+        if endMinutes > minutesPerDay {
+            return try splitAtMinutesSinceMidnight(tempBasal: tempBasal, splitPoint: minutesPerDay)
+        } else {
+            return [tempBasal]
+        }
+    }
+
+    private static func splitBy30mDuration(tempBasal: ComputedPumpHistoryEvent) throws -> [ComputedPumpHistoryEvent] {
+        guard let duration = tempBasal.duration else {
+            throw IobError.tempBasalMissingDuration(timestamp: tempBasal.timestamp)
+        }
+
+        return stride(from: tempBasal.timestamp, to: tempBasal.timestamp + duration.minutesToSeconds, by: 30.minutesToSeconds)
+            .map { start in
+
+                // Calculate the duration for this chunk
+                let endOfChunk = start + 30.minutesToSeconds
+                let endOfTempBasal = tempBasal.timestamp + duration.minutesToSeconds
+                let end = min(endOfChunk, endOfTempBasal)
+                let durationInSeconds = end.timeIntervalSince(start)
+
+                return tempBasal.copyWith(duration: durationInSeconds.secondsToMinutes, timestamp: start)
+            }
     }
 
     /// Splits any temp basal commands that cross profile break points to simplify the IoB calculation
     private static func splitTempBasal(
         tempBasal: ComputedPumpHistoryEvent,
-        profileBreaks: [Decimal],
-        accumulator: [ComputedPumpHistoryEvent] = []
-    ) -> [ComputedPumpHistoryEvent] {
-        guard let offset = findIntersectionOffset(tempBasal: tempBasal, profileBreaks: profileBreaks),
-              let duration = tempBasal.duration
-        else {
-            return accumulator + [tempBasal]
-        }
-
-        let firstEvent = tempBasal.copyWith(duration: offset.secondsToMinutes)
-        let secondEvent = tempBasal.copyWith(
-            duration: duration - offset.secondsToMinutes,
-            timestamp: tempBasal.timestamp + offset
-        )
-
-        // use tail recursion to give the compiler a chance to optimize
-        return splitTempBasal(tempBasal: secondEvent, profileBreaks: profileBreaks, accumulator: accumulator + [firstEvent])
+        profileBreaks: [Decimal]
+    ) throws -> [ComputedPumpHistoryEvent] {
+        try splitBy30mDuration(tempBasal: tempBasal)
+            .flatMap({ try splitAtMidnight(tempBasal: $0) })
+            .flatMap({ try splitAtProfileBreak(tempBasal: $0, profileBreaks: profileBreaks) })
     }
 
     /// Converts tempBasal commands to bolus commands with roughly equal insulin delivered
@@ -267,9 +331,8 @@ struct IobHistory {
         autosens: Autosens?
     ) throws -> [ComputedPumpHistoryEvent] {
         let profileBreaksMinutesSinceMidnight = profile.basalprofile?.map({ Decimal($0.minutes) }) ?? []
-        let splitTempBasals = tempHistory
-            .flatMap { splitTempBasal(tempBasal: $0, profileBreaks: profileBreaksMinutesSinceMidnight) }
-
+        let splitTempBasals = try tempHistory
+            .flatMap { try splitTempBasal(tempBasal: $0, profileBreaks: profileBreaksMinutesSinceMidnight) }
         return try splitTempBasals
             .flatMap { try extractTempBoluses(from: $0, profile: profile, autosens: autosens) }
     }

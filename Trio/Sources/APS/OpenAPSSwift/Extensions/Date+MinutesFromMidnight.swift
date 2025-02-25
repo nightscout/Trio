@@ -56,3 +56,13 @@ extension Date {
         return currentMinutes >= lowerBound && currentMinutes < upperBound
     }
 }
+
+extension Date {
+    /// Rounds the date to the nearest minute boundary by rounding the Unix timestamp
+    /// - Returns: A new Date with seconds rounded to the nearest minute
+    func roundedToNearestMinute() -> Date {
+        let timestampInMinutes = timeIntervalSince1970.secondsToMinutes
+        let timestampRounded = timestampInMinutes.rounded()
+        return Date(timeIntervalSince1970: timestampRounded.minutesToSeconds)
+    }
+}

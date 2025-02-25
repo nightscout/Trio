@@ -2,6 +2,7 @@ import Foundation
 
 enum JSONError: Error {
     case invalidString
+    case invalidDate(String)
     case decodingFailed(Error)
     case encodingFailed
 }
@@ -41,6 +42,29 @@ enum JSONBridge {
 
     static func trioSettings(from: JSON) throws -> TrioSettings {
         try JSONBridge.from(string: from.rawJSON)
+    }
+
+    static func pumpHistory(from: JSON) throws -> [PumpHistoryEvent] {
+        try JSONBridge.from(string: from.rawJSON)
+    }
+
+    static func profile(from: JSON) throws -> Profile {
+        try JSONBridge.from(string: from.rawJSON)
+    }
+
+    static func autosens(from: JSON) throws -> Autosens? {
+        try JSONBridge.from(string: from.rawJSON)
+    }
+
+    static func clock(from: JSON) throws -> Date {
+        let dateJson = from.rawJSON.replacingOccurrences(of: "\"", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if let date = Formatter.iso8601withFractionalSeconds.date(from: dateJson) ?? Formatter.iso8601
+            .date(from: dateJson)
+        {
+            return date
+        }
+
+        throw JSONError.invalidDate(from.rawJSON)
     }
 
     static func from<T: Decodable>(string: String) throws -> T {

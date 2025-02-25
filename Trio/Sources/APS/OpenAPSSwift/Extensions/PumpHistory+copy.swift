@@ -161,7 +161,8 @@ extension ComputedPumpHistoryEvent {
             note: nil,
             isSMB: nil,
             isExternal: nil,
-            insulin: insulin
+            insulin: insulin,
+            isTempBolus: true
         )
     }
 
