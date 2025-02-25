@@ -40,12 +40,10 @@ extension Treatments {
         var minDelta: Decimal = 0
         var expectedDelta: Decimal = 0
         var minPredBG: Decimal = 0
-        var waitForSuggestion: Bool = false
+        var isAwaitingDeterminationResult: Bool = false
         var carbRatio: Decimal = 0
 
         var addButtonPressed: Bool = false
-
-        var waitForSuggestionInitial: Bool = false
 
         var target: Decimal = 0
         var cob: Int16 = 0
@@ -122,6 +120,9 @@ extension Treatments {
 
         var isActive: Bool = false
 
+        var showDeterminationFailureAlert = false
+        var determinationFailureMessage = ""
+
         // Queue for handling Core Data change notifications
         private let queue = DispatchQueue(label: "TreatmentsStateModel.queue", qos: .userInitiated)
         private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
@@ -170,32 +171,26 @@ extension Treatments {
         private func setupBolusStateConcurrently() {
             debug(.bolusState, "setupBolusStateConcurrently fired")
             Task {
-                await withTaskGroup(of: Void.self) { group in
-                    group.addTask {
-                        self.setupGlucoseArray()
-                    }
-                    group.addTask {
-                        self.setupDeterminationsAndForecasts()
-                    }
-                    group.addTask {
-                        await self.setupSettings()
-                    }
-                    group.addTask {
-                        self.registerObservers()
-                    }
-
-                    if self.waitForSuggestionInitial {
+                do {
+                    try await withThrowingTaskGroup(of: Void.self) { group in
                         group.addTask {
-                            let isDetermineBasalSuccessful = await self.apsManager.determineBasal()
-                            if !isDetermineBasalSuccessful {
-                                await MainActor.run {
-                                    self.waitForSuggestion = false
-                                    self.insulinRequired = 0
-                                    self.insulinRecommended = 0
-                                }
-                            }
+                            self.setupGlucoseArray()
                         }
+                        group.addTask {
+                            self.setupDeterminationsAndForecasts()
+                        }
+                        group.addTask {
+                            await self.setupSettings()
+                        }
+                        group.addTask {
+                            self.registerObservers()
+                        }
+
+                        // Wait for all tasks to complete
+                        try await group.waitForAll()
                     }
+                } catch let error as NSError {
+                    debug(.default, "Failed to setup bolus state concurrently: \(error.localizedDescription)")
                 }
             }
         }
@@ -206,7 +201,7 @@ extension Treatments {
         ///   - `apsManager.bolusProgress` is a `CurrentValueSubject<Decimal?, Never>`.
         ///   - When a bolus starts, this subject emits `0` (or a fraction like `0.1, 0.5, etc.`).
         ///   - When the bolus finishes, the subject is typically set to `nil`.
-        ///   - This treats ANY non-nil value as “bolus in progress.”
+        ///   - This treats ANY non-nil value as "bolus in progress."
         ///
         private func subscribeToBolusProgress() {
             bolusProgressCancellable = apsManager.bolusProgress
@@ -379,27 +374,7 @@ extension Treatments {
         // MARK: CALCULATIONS FOR THE BOLUS CALCULATOR
 
         /// Calculate insulin recommendation
-        @MainActor func calculateInsulin() async -> Decimal {
-//            let input = CalculationInput(
-//                carbs: carbs,
-//                currentBG: currentBG,
-//                deltaBG: deltaBG,
-//                target: target,
-//                isf: isf,
-//                carbRatio: carbRatio,
-//                iob: iob,
-//                cob: cob,
-//                useFattyMealCorrectionFactor: useFattyMealCorrectionFactor,
-//                fattyMealFactor: fattyMealFactor,
-//                useSuperBolus: useSuperBolus,
-//                sweetMealFactor: sweetMealFactor,
-//                basal: basal,
-//                fraction: fraction,
-//                maxBolus: maxBolus
-//            )
-//
-//            let result = await bolusCalculationManager.calculateInsulin(input: input)
-
+        func calculateInsulin() async -> Decimal {
             let result = await bolusCalculationManager.handleBolusCalculation(
                 carbs: carbs,
                 useFattyMealCorrection: useFattyMealCorrectionFactor,
@@ -407,14 +382,16 @@ extension Treatments {
             )
 
             // Update state properties with calculation results on main thread
-            targetDifference = result.targetDifference
-            targetDifferenceInsulin = result.targetDifferenceInsulin
-            wholeCob = result.wholeCob
-            wholeCobInsulin = result.wholeCobInsulin
-            iobInsulinReduction = result.iobInsulinReduction
-            superBolusInsulin = result.superBolusInsulin
-            wholeCalc = result.wholeCalc
-            fifteenMinInsulin = result.fifteenMinutesInsulin
+            await MainActor.run {
+                targetDifference = result.targetDifference
+                targetDifferenceInsulin = result.targetDifferenceInsulin
+                wholeCob = result.wholeCob
+                wholeCobInsulin = result.wholeCobInsulin
+                iobInsulinReduction = result.iobInsulinReduction
+                superBolusInsulin = result.superBolusInsulin
+                wholeCalc = result.wholeCalc
+                fifteenMinInsulin = result.fifteenMinutesInsulin
+            }
 
             return apsManager.roundBolus(amount: result.insulinCalculated)
         }
@@ -432,18 +409,16 @@ extension Treatments {
                 let isFatPresent = fat > 0
                 let isProteinPresent = protein > 0
 
+                if isCarbsPresent || isFatPresent || isProteinPresent {
+                    await saveMeal()
+                }
+
                 if isInsulinGiven {
-                    try await handleInsulin(isExternal: externalInsulin)
-                } else if isCarbsPresent || isFatPresent || isProteinPresent {
-                    await MainActor.run {
-                        self.waitForSuggestion = true
-                    }
+                    await handleInsulin(isExternal: externalInsulin)
                 } else {
                     hideModal()
                     return
                 }
-
-                await saveMeal()
 
                 // If glucose data is stale end the custom loading animation by hiding the modal
                 // Get date on Main thread
@@ -453,7 +428,9 @@ extension Treatments {
 
                 guard glucoseStorage.isGlucoseDataFresh(date) else {
                     await MainActor.run {
-                        waitForSuggestion = false
+                        isAwaitingDeterminationResult = false
+                        showDeterminationFailureAlert = true
+                        determinationFailureMessage = "Glucose data is stale"
                     }
                     return hideModal()
                 }
@@ -462,16 +439,13 @@ extension Treatments {
 
         // MARK: - Insulin
 
-        private func handleInsulin(isExternal: Bool) async throws {
+        private func handleInsulin(isExternal: Bool) async {
             debug(.bolusState, "handleInsulin fired")
+
             if !isExternal {
                 await addPumpInsulin()
             } else {
                 await addExternalInsulin()
-            }
-
-            await MainActor.run {
-                self.waitForSuggestion = true
             }
         }
 
@@ -486,6 +460,10 @@ extension Treatments {
             do {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
+                    // show loading animation
+                    await MainActor.run {
+                        self.isAwaitingDeterminationResult = true
+                    }
                     await apsManager.enactBolus(amount: maxAmount, isSMB: false, callback: nil)
                 } else {
                     print("authentication failed")
@@ -493,10 +471,9 @@ extension Treatments {
             } catch {
                 print("authentication error for pump bolus: \(error.localizedDescription)")
                 await MainActor.run {
-                    self.waitForSuggestion = false
-                    if self.addButtonPressed {
-                        self.hideModal()
-                    }
+                    self.isAwaitingDeterminationResult = false
+                    self.showDeterminationFailureAlert = true
+                    self.determinationFailureMessage = error.localizedDescription
                 }
             }
         }
@@ -516,20 +493,23 @@ extension Treatments {
             do {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
+                    // show loading animation
+                    await MainActor.run {
+                        self.isAwaitingDeterminationResult = true
+                    }
                     // store external dose to pump history
                     await pumpHistoryStorage.storeExternalInsulinEvent(amount: amount, timestamp: date)
                     // perform determine basal sync
-                    await apsManager.determineBasalSync()
+                    try await apsManager.determineBasalSync()
                 } else {
                     print("authentication failed")
                 }
             } catch {
                 print("authentication error for external insulin: \(error.localizedDescription)")
                 await MainActor.run {
-                    self.waitForSuggestion = false
-                    if self.addButtonPressed {
-                        self.hideModal()
-                    }
+                    self.isAwaitingDeterminationResult = false
+                    self.showDeterminationFailureAlert = true
+                    self.determinationFailureMessage = error.localizedDescription
                 }
             }
         }
@@ -537,34 +517,39 @@ extension Treatments {
         // MARK: - Carbs
 
         func saveMeal() async {
-            guard carbs > 0 || fat > 0 || protein > 0 else { return }
+            do {
+                guard carbs > 0 || fat > 0 || protein > 0 else { return }
 
-            await MainActor.run {
-                self.carbs = min(self.carbs, self.maxCarbs)
-                self.fat = min(self.fat, self.maxFat)
-                self.protein = min(self.protein, self.maxProtein)
-                self.id_ = UUID().uuidString
-            }
+                await MainActor.run {
+                    self.carbs = min(self.carbs, self.maxCarbs)
+                    self.fat = min(self.fat, self.maxFat)
+                    self.protein = min(self.protein, self.maxProtein)
+                    self.id_ = UUID().uuidString
+                }
 
-            let carbsToStore = [CarbsEntry(
-                id: id_,
-                createdAt: now,
-                actualDate: date,
-                carbs: carbs,
-                fat: fat,
-                protein: protein,
-                note: note,
-                enteredBy: CarbsEntry.local,
-                isFPU: false,
-                fpuID: fat > 0 || protein > 0 ? UUID().uuidString : nil
-            )]
-            await carbsStorage.storeCarbs(carbsToStore, areFetchedFromRemote: false)
+                let carbsToStore = [CarbsEntry(
+                    id: id_,
+                    createdAt: now,
+                    actualDate: date,
+                    carbs: carbs,
+                    fat: fat,
+                    protein: protein,
+                    note: note,
+                    enteredBy: CarbsEntry.local,
+                    isFPU: false,
+                    fpuID: fat > 0 || protein > 0 ? UUID().uuidString : nil
+                )]
+                try await carbsStorage.storeCarbs(carbsToStore, areFetchedFromRemote: false)
 
-            if carbs > 0 || fat > 0 || protein > 0 {
                 // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
                 if amount <= 0 {
-                    await apsManager.determineBasalSync()
+                    await MainActor.run {
+                        self.isAwaitingDeterminationResult = true
+                    }
+                    try await apsManager.determineBasalSync()
                 }
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) Failed to save carbs: \(error.localizedDescription)")
             }
         }
 
@@ -595,9 +580,8 @@ extension Treatments {
         }
 
         func addPresetToNewMeal() {
-            let test: String = selection?.dish ?? "dontAdd"
-            if test != "dontAdd" {
-                summation.append(test)
+            if let selection = selection, let dish = selection.dish {
+                summation.append(dish)
             }
         }
 
@@ -620,7 +604,7 @@ extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
 
         DispatchQueue.main.async {
             debug(.bolusState, "determinationDidUpdate fired")
-            self.waitForSuggestion = false
+            self.isAwaitingDeterminationResult = false
             if self.addButtonPressed {
                 self.hideModal()
             }
@@ -630,7 +614,7 @@ extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
     func bolusDidFail() {
         DispatchQueue.main.async {
             debug(.bolusState, "bolusDidFail fired")
-            self.waitForSuggestion = false
+            self.isAwaitingDeterminationResult = false
             if self.addButtonPressed {
                 self.hideModal()
             }
@@ -640,7 +624,7 @@ extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
 
 extension Treatments.StateModel {
     private func registerHandlers() {
-        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.setupDeterminationsArray()
@@ -650,7 +634,7 @@ extension Treatments.StateModel {
         }.store(in: &subscriptions)
 
         // Due to the Batch insert this only is used for observing Deletion of Glucose entries
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             self.setupGlucoseArray()
         }.store(in: &subscriptions)
@@ -673,14 +657,22 @@ extension Treatments.StateModel {
     // Glucose
     private func setupGlucoseArray() {
         Task {
-            let ids = await self.fetchGlucose()
-            let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
-            await updateGlucoseArray(with: glucoseObjects)
+            do {
+                let ids = try await self.fetchGlucose()
+                let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared
+                    .getNSManagedObject(with: ids, context: viewContext)
+                await updateGlucoseArray(with: glucoseObjects)
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) Error setting up glucose array: \(error.localizedDescription)"
+                )
+            }
         }
     }
 
-    private func fetchGlucose() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchGlucose() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: glucoseFetchContext,
             predicate: NSPredicate.glucose,
@@ -688,8 +680,10 @@ extension Treatments.StateModel {
             ascending: false
         )
 
-        return await glucoseFetchContext.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await glucoseFetchContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID)
         }
@@ -708,69 +702,75 @@ extension Treatments.StateModel {
 
     // Determinations
     private func setupDeterminationsArray() async {
-        // Fetch object IDs on a background thread
-        let fetchedObjectIDs = await determinationStorage.fetchLastDeterminationObjectID(
-            predicate: NSPredicate.predicateFor30MinAgoForDetermination
-        )
+        do {
+            let fetchedObjectIDs = try await determinationStorage.fetchLastDeterminationObjectID(
+                predicate: NSPredicate.predicateFor30MinAgoForDetermination
+            )
 
-        // Update determinationObjectIDs on the main thread
-        await MainActor.run {
-            determinationObjectIDs = fetchedObjectIDs
+            await MainActor.run {
+                determinationObjectIDs = fetchedObjectIDs
+            }
+
+            let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
+                .getNSManagedObject(with: determinationObjectIDs, context: viewContext)
+
+            updateDeterminationsArray(with: determinationObjects)
+        } catch let error as CoreDataError {
+            debug(.default, "Core Data error: \(error.localizedDescription)")
+        } catch {
+            debug(.default, "Unexpected error: \(error.localizedDescription)")
         }
-
-        let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
-            .getNSManagedObject(with: determinationObjectIDs, context: viewContext)
-
-        updateDeterminationsArray(with: determinationObjects)
     }
 
     private func mapForecastsForChart() async -> Determination? {
-        let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
-            .getNSManagedObject(with: determinationObjectIDs, context: determinationFetchContext)
+        do {
+            let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
+                .getNSManagedObject(with: determinationObjectIDs, context: determinationFetchContext)
 
-        return await determinationFetchContext.perform {
-            guard let determinationObject = determinationObjects.first else {
+            let determination = await determinationFetchContext.perform {
+                let determinationObject = determinationObjects.first
+                let eventualBG = determinationObject?.eventualBG?.intValue
+
+                let forecastsSet = determinationObject?.forecasts ?? []
+                let predictions = Predictions(
+                    iob: forecastsSet.extractValues(for: "iob"),
+                    zt: forecastsSet.extractValues(for: "zt"),
+                    cob: forecastsSet.extractValues(for: "cob"),
+                    uam: forecastsSet.extractValues(for: "uam")
+                )
+
+                return Determination(
+                    id: UUID(),
+                    reason: "",
+                    units: 0,
+                    insulinReq: 0,
+                    sensitivityRatio: 0,
+                    rate: 0,
+                    duration: 0,
+                    iob: 0,
+                    cob: 0,
+                    predictions: predictions.isEmpty ? nil : predictions,
+                    carbsReq: 0,
+                    temp: nil,
+                    reservoir: 0,
+                    insulinForManualBolus: 0,
+                    manualBolusErrorString: 0,
+                    carbRatio: 0,
+                    received: false
+                )
+            }
+
+            guard !determinationObjects.isEmpty else {
                 return nil
             }
 
-            let eventualBG = determinationObject.eventualBG?.intValue
-
-            let forecastsSet = determinationObject.forecasts ?? []
-            let predictions = Predictions(
-                iob: forecastsSet.extractValues(for: "iob"),
-                zt: forecastsSet.extractValues(for: "zt"),
-                cob: forecastsSet.extractValues(for: "cob"),
-                uam: forecastsSet.extractValues(for: "uam")
+            return determination
+        } catch {
+            debug(
+                .default,
+                "\(DebuggingIdentifiers.failed) Error mapping forecasts for chart: \(error.localizedDescription)"
             )
-
-            return Determination(
-                id: UUID(),
-                reason: "",
-                units: 0,
-                insulinReq: 0,
-                eventualBG: eventualBG,
-                sensitivityRatio: 0,
-                rate: 0,
-                duration: 0,
-                iob: 0,
-                cob: 0,
-                predictions: predictions.isEmpty ? nil : predictions,
-                carbsReq: 0,
-                temp: nil,
-                bg: 0,
-                reservoir: 0,
-                isf: 0,
-                current_target: 0,
-                insulinForManualBolus: 0,
-                manualBolusErrorString: 0,
-                minDelta: 0,
-                expectedDelta: 0,
-                minGuardBG: 0,
-                minPredBG: 0,
-                threshold: 0,
-                carbRatio: 0,
-                received: false
-            )
+            return nil
         }
     }
 
@@ -807,7 +807,7 @@ extension Treatments.StateModel {
         } else {
             simulatedDetermination = await Task { [self] in
                 debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
-                return await apsManager.simulateDetermineBasal(carbs: carbs, iob: amount)
+                return await apsManager.simulateDetermineBasal(simulatedCarbsAmount: carbs, simulatedBolusAmount: amount)
             }.value
         }
 

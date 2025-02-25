@@ -8,9 +8,9 @@ enum TimeInRangeChartStyle: String, JSON, CaseIterable, Identifiable, Codable, H
     var displayName: String {
         switch self {
         case .vertical:
-            return NSLocalizedString("Vertical", comment: "")
+            return String(localized: "Vertical", comment: "")
         case .horizontal:
-            return NSLocalizedString("Horizontal", comment: "")
+            return String(localized: "Horizontal", comment: "")
         }
     }
 }

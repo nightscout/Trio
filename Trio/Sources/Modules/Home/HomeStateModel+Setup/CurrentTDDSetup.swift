@@ -4,20 +4,23 @@ import Foundation
 extension Home.StateModel {
     func setupTDDArray() {
         Task {
-            // Get the NSManagedObjectIDs
-            async let tddObjectIds = fetchTDD()
-            let tddIds = await tddObjectIds
+            do {
+                // Get the NSManagedObjectIDs
+                let tddObjectIds = try await fetchTDDIDs()
 
-            // Get the NSManagedObjects and map them to TDD on the Main Thread
-            await updateTDDArray(with: tddIds, keyPath: \.fetchedTDDs)
+                // Get the NSManagedObjects and map them to TDD on the Main Thread
+                try await updateTDDArray(with: tddObjectIds, keyPath: \.fetchedTDDs)
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch TDDs: \(error.localizedDescription)")
+            }
         }
     }
 
     @MainActor private func updateTDDArray(
         with IDs: [NSManagedObjectID],
         keyPath: ReferenceWritableKeyPath<Home.StateModel, [TDD]>
-    ) async {
-        let tddObjects: [TDD] = await CoreDataStack.shared
+    ) async throws {
+        let tddObjects: [TDD] = try await CoreDataStack.shared
             .getNSManagedObject(with: IDs, context: viewContext)
             .compactMap { managedObject in
                 // Safely extract date and total as optional
@@ -29,8 +32,8 @@ extension Home.StateModel {
     }
 
     // Custom fetch to more efficiently filter only for cob and iob
-    private func fetchTDD() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchTDDIDs() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TDDStored.self,
             onContext: tddFetchContext,
             predicate: NSPredicate.predicateForOneDayAgo,

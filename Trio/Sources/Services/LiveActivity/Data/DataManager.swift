@@ -4,8 +4,8 @@ import Foundation
 
 @available(iOS 16.2, *)
 extension LiveActivityBridge {
-    func fetchAndMapGlucose() async -> [GlucoseData] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchAndMapGlucose() async throws -> [GlucoseData] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForSixHoursAgo,
@@ -14,9 +14,9 @@ extension LiveActivityBridge {
             fetchLimit: 72
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
-                return []
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return glucoseResults.map {
@@ -25,36 +25,50 @@ extension LiveActivityBridge {
         }
     }
 
-    func fetchAndMapDetermination() async -> DeterminationData? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchAndMapDetermination() async throws -> DeterminationData? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: context,
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1,
-            propertiesToFetch: ["iob", "cob", "totalDailyDose", "currentTarget", "deliverAt"]
+            propertiesToFetch: ["iob", "cob", "currentTarget", "deliverAt"]
         )
 
-        return await context.perform {
-            guard let determinationResults = results as? [[String: Any]] else {
+        let tddResults = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TDDStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateFor30MinAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 1,
+            propertiesToFetch: ["total"]
+        )
+
+        return try await context.perform {
+            guard let determinationResults = results as? [[String: Any]], let tddResults = tddResults as? [[String: Any]] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
+
+            guard let determination = determinationResults.first else {
                 return nil
             }
 
-            return determinationResults.first.map {
-                DeterminationData(
-                    cob: ($0["cob"] as? Int) ?? 0,
-                    iob: ($0["iob"] as? NSDecimalNumber)?.decimalValue ?? 0,
-                    tdd: ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue ?? 0,
-                    target: ($0["currentTarget"] as? NSDecimalNumber)?.decimalValue ?? 0,
-                    date: $0["deliverAt"] as? Date ?? nil
-                )
-            }
+            let tddValue = (tddResults.first?["total"] as? NSDecimalNumber)?.decimalValue ?? 0
+
+            return DeterminationData(
+                cob: (determination["cob"] as? Int) ?? 0,
+                iob: (determination["iob"] as? NSDecimalNumber)?.decimalValue ?? 0,
+                tdd: tddValue,
+                target: (determination["currentTarget"] as? NSDecimalNumber)?.decimalValue ?? 0,
+                date: determination["deliverAt"] as? Date ?? nil
+            )
         }
     }
 
-    func fetchAndMapOverride() async -> OverrideData? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchAndMapOverride() async throws -> OverrideData? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgo,
@@ -64,9 +78,9 @@ extension LiveActivityBridge {
             propertiesToFetch: ["enabled", "name", "target", "date", "duration"]
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let overrideResults = results as? [[String: Any]] else {
-                return nil
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return overrideResults.first.map {

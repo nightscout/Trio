@@ -1,3 +1,4 @@
+import CGMBLEKitUI
 import Combine
 import CoreData
 import Foundation
@@ -10,6 +11,7 @@ extension Home {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var broadcaster: Broadcaster!
         @ObservationIgnored @Injected() var apsManager: APSManager!
+        @ObservationIgnored @Injected() var pluginCGMManager: PluginManager!
         @ObservationIgnored @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
@@ -17,6 +19,11 @@ extension Home {
         @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
         @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
+
+        var cgmStateModel: CGMSettings.StateModel {
+            CGMSettings.StateModel.shared
+        }
+
         private let timer = DispatchTimer(timeInterval: 5)
         private(set) var filteredHours = 24
         var startMarker = Date(timeIntervalSinceNow: TimeInterval(hours: -24))
@@ -44,7 +51,8 @@ extension Home {
         var isExerciseModeActive: Bool = false
         var settingHalfBasalTarget: Decimal = 160
         var percentage: Int = 100
-        var setupPump = false
+        var shouldDisplayPumpSetupSheet = false
+        var shouldDisplayCGMSetupSheet = false
         var errorMessage: String?
         var errorDate: Date?
         var bolusProgress: Decimal?
@@ -64,7 +72,6 @@ extension Home {
         var displayXgridLines: Bool = false
         var displayYgridLines: Bool = false
         var thresholdLines: Bool = false
-        var timeZone: TimeZone?
         var hours: Int16 = 6
         var totalBolus: Decimal = 0
         var isLoopStatusPresented: Bool = false
@@ -92,7 +99,12 @@ extension Home {
         var isOverrideCancelled: Bool = false
         var preprocessedData: [(id: UUID, forecast: Forecast, forecastValue: ForecastValue)] = []
         var pumpStatusHighlightMessage: String?
+        var pumpStatusBadgeImage: UIImage?
+        var pumpStatusBadgeColor: Color?
         var cgmAvailable: Bool = false
+        var listOfCGM: [CGMModel] = []
+        var cgmCurrent = cgmDefaultModel
+
         var showCarbsRequiredBadge: Bool = true
         private(set) var setupPumpType: PumpConfig.PumpType = .minimed
         var minForecast: [Int] = []
@@ -101,7 +113,7 @@ extension Home {
         var forecastDisplayType: ForecastDisplayType = .cone
 
         var minYAxisValue: Decimal = 39
-        var maxYAxisValue: Decimal = 300
+        var maxYAxisValue: Decimal = 200
 
         var minValueCobChart: Decimal = 0
         var maxValueCobChart: Decimal = 20
@@ -128,6 +140,10 @@ extension Home {
 
         typealias PumpEvent = PumpEventStored.EventType
 
+        override init() {
+            super.init()
+        }
+
         override func subscribe() {
             coreDataPublisher =
                 changedObjectsOnManagedObjectContextDidSavePublisher()
@@ -147,6 +163,7 @@ extension Home {
                 // We need to initialize settings and observers first
                 await self.setupSettings()
                 await self.setupPumpSettings()
+                await self.setupCGMSettings()
                 self.registerObservers()
 
                 // The rest can be initialized concurrently
@@ -185,9 +202,6 @@ extension Home {
                         self.setupReservoir()
                     }
                     group.addTask {
-                        self.setupCurrentPumpTimezone()
-                    }
-                    group.addTask {
                         self.setupOverrides()
                     }
                     group.addTask {
@@ -206,7 +220,7 @@ extension Home {
         // These combine subscribers are only necessary due to the batch inserts of glucose/FPUs which do not trigger a ManagedObjectContext change notification
         private func registerSubscribers() {
             glucoseStorage.updatePublisher
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .sink { [weak self] _ in
                     guard let self = self else { return }
                     self.setupGlucoseArray()
@@ -214,7 +228,7 @@ extension Home {
                 .store(in: &subscriptions)
 
             carbsStorage.updatePublisher
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .sink { [weak self] _ in
                     guard let self = self else { return }
                     self.setupFPUsArray()
@@ -223,54 +237,55 @@ extension Home {
         }
 
         private func registerHandlers() {
-            coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupDeterminationsArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("TDDStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("TDDStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupTDDArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupGlucoseArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("CarbEntryStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupCarbsArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("PumpEventStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupInsulinArray()
                 self.setupLastBolus()
                 self.displayPumpStatusHighlightMessage()
+                self.displayPumpStatusBadge()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("OpenAPS_Battery").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("OpenAPS_Battery").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupBatteryArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("OverrideStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupOverrides()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("OverrideRunStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("OverrideRunStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupOverrideRunStored()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("TempTargetStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("TempTargetStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupTempTargetsStored()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("TempTargetRunStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("TempTargetRunStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupTempTargetsRunStored()
             }.store(in: &subscriptions)
@@ -340,10 +355,11 @@ extension Home {
                         self.battery = nil
                         self.pumpName = ""
                         self.pumpExpiresAtDate = nil
-                        self.setupPump = false
+                        self.shouldDisplayPumpSetupSheet = false
                     } else {
                         self.setupReservoir()
                         self.displayPumpStatusHighlightMessage()
+                        self.displayPumpStatusBadge()
                         self.setupBatteryArray()
                     }
                 }
@@ -374,7 +390,6 @@ extension Home {
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
             totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
-            cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
             showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
             forecastDisplayType = settingsManager.settings.forecastDisplayType
             isExerciseModeActive = settingsManager.preferences.exerciseMode
@@ -384,9 +399,81 @@ extension Home {
             maxValue = settingsManager.preferences.autosensMax
         }
 
+        @MainActor private func setupCGMSettings() async {
+            cgmAvailable = fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none
+
+            listOfCGM = (
+                CGMType.allCases.filter { $0 != CGMType.plugin }.map {
+                    CGMModel(id: $0.id, type: $0, displayName: $0.displayName, subtitle: $0.subtitle)
+                } +
+                    pluginCGMManager.availableCGMManagers.map {
+                        CGMModel(
+                            id: $0.identifier,
+                            type: CGMType.plugin,
+                            displayName: $0.localizedTitle,
+                            subtitle: $0.localizedTitle
+                        )
+                    }
+            ).sorted(by: { lhs, rhs in
+                if lhs.displayName == "None" {
+                    return true
+                } else if rhs.displayName == "None" {
+                    return false
+                } else {
+                    return lhs.displayName < rhs.displayName
+                }
+            })
+
+            switch settingsManager.settings.cgm {
+            case .plugin:
+                if let cgmPluginInfo = listOfCGM.first(where: { $0.id == settingsManager.settings.cgmPluginIdentifier }) {
+                    cgmCurrent = CGMModel(
+                        id: settingsManager.settings.cgmPluginIdentifier,
+                        type: .plugin,
+                        displayName: cgmPluginInfo.displayName,
+                        subtitle: cgmPluginInfo.subtitle
+                    )
+                } else {
+                    // no more type of plugin available - fallback to default
+                    cgmCurrent = cgmDefaultModel
+                }
+            default:
+                cgmCurrent = CGMModel(
+                    id: settingsManager.settings.cgm.id,
+                    type: settingsManager.settings.cgm,
+                    displayName: settingsManager.settings.cgm.displayName,
+                    subtitle: settingsManager.settings.cgm.subtitle
+                )
+            }
+        }
+
         func addPump(_ type: PumpConfig.PumpType) {
             setupPumpType = type
-            setupPump = true
+            shouldDisplayPumpSetupSheet = true
+        }
+
+        func addCGM(cgm: CGMModel) {
+            cgmCurrent = cgm
+            switch cgmCurrent.type {
+            case .plugin:
+                shouldDisplayCGMSetupSheet = true
+            default:
+                fetchGlucoseManager.cgmGlucoseSourceType = cgmCurrent.type
+                completionNotifyingDidComplete(CGMSetupCompletionNotifying())
+            }
+        }
+
+        func deleteCGM() {
+            fetchGlucoseManager.performOnCGMManagerQueue {
+                // Call plugin functionality on the manager queue (or at least attempt to)
+                self.fetchGlucoseManager?.deleteGlucoseSource()
+
+                // UI updates go back to Main
+                DispatchQueue.main.async {
+                    self.shouldDisplayCGMSetupSheet = false
+                    self.completionNotifyingDidComplete(CGMDeletionCompletionNotifying())
+                }
+            }
         }
 
         /// Display the eventual status message provided by the manager of the pump
@@ -405,6 +492,22 @@ extension Home {
             }
         }
 
+        private func displayPumpStatusBadge(_ didDeactivate: Bool = false) {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                if let statusBadge = self.provider.deviceManager.pumpManager?.pumpStatusBadge,
+                   let image = statusBadge.image, !didDeactivate
+                {
+                    pumpStatusBadgeImage = image
+                    pumpStatusBadgeColor = statusBadge.state == .critical ? .critical : .warning
+
+                } else {
+                    pumpStatusBadgeImage = nil
+                    pumpStatusBadgeColor = nil
+                }
+            }
+        }
+
         func runLoop() {
             provider.heartbeatNow()
         }
@@ -419,7 +522,7 @@ extension Home {
                 await apsManager.cancelBolus(nil)
 
                 // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
-                await apsManager.determineBasalSync()
+                try await apsManager.determineBasalSync()
             }
         }
 
@@ -504,13 +607,6 @@ extension Home {
             }
         }
 
-        private func setupCurrentPumpTimezone() {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.timeZone = self.provider.pumpTimeZone()
-            }
-        }
-
         private func getCurrentGlucoseTarget() async {
             let now = Date()
             let calendar = Calendar.current
@@ -557,10 +653,6 @@ extension Home {
                 }
             }
         }
-
-        func openCGM() {
-            router.mainSecondaryModalView.send(router.view(for: .cgmDirect))
-        }
     }
 }
 
@@ -572,7 +664,6 @@ extension Home.StateModel:
     BasalProfileObserver,
     BGTargetsObserver,
     PumpReservoirObserver,
-    PumpTimeZoneObserver,
     PumpDeactivatedObserver
 {
     func determinationDidUpdate(_: Determination) {
@@ -601,7 +692,11 @@ extension Home.StateModel:
         forecastDisplayType = settingsManager.settings.forecastDisplayType
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
+        displayPumpStatusBadge()
         setupBatteryArray()
+        Task {
+            await setupCGMSettings()
+        }
     }
 
     func preferencesDidChange(_: Preferences) {
@@ -634,21 +729,53 @@ extension Home.StateModel:
     func pumpReservoirDidChange(_: Decimal) {
         setupReservoir()
         displayPumpStatusHighlightMessage()
+        displayPumpStatusBadge()
     }
 
     func pumpDeactivatedDidChange() {
         displayPumpStatusHighlightMessage(true)
+        displayPumpStatusBadge(true)
         batteryFromPersistence = []
-    }
-
-    func pumpTimeZoneDidChange(_: TimeZone) {
-        setupCurrentPumpTimezone()
     }
 }
 
 extension Home.StateModel: CompletionDelegate {
-    func completionNotifyingDidComplete(_: CompletionNotifying) {
-        setupPump = false
+    func completionNotifyingDidComplete(_ notifying: CompletionNotifying) {
+        debug(.service, "Completion fired by: \(type(of: notifying))")
+        shouldDisplayCGMSetupSheet = false
+
+        if notifying is CGMSetupCompletionNotifying || notifying is CGMDeletionCompletionNotifying ||
+            notifying is CGMManagerSettingsNavigationViewController || notifying is any SetupTableViewControllerDelegate ||
+            notifying is any CGMManagerOnboarding
+        {
+            if fetchGlucoseManager.cgmGlucoseSourceType == .none {
+                debug(.service, "CGMDeletionCompletionNotifying: CGM Deletion Completed")
+
+                cgmCurrent = cgmDefaultModel
+                settingsManager.settings.cgm = cgmDefaultModel.type
+                settingsManager.settings.cgmPluginIdentifier = cgmDefaultModel.id
+                fetchGlucoseManager.deleteGlucoseSource()
+            } else {
+                debug(.service, "CGMSetupCompletionNotifying: CGM Setup Completed")
+
+                settingsManager.settings.cgm = cgmCurrent.type
+                settingsManager.settings.cgmPluginIdentifier = cgmCurrent.id
+                fetchGlucoseManager.updateGlucoseSource(cgmGlucoseSourceType: cgmCurrent.type, cgmGlucosePluginId: cgmCurrent.id)
+
+                shouldDisplayCGMSetupSheet = cgmCurrent.type == .simulator || cgmCurrent.type == .nightscout || cgmCurrent
+                    .type == .xdrip || cgmCurrent.type == .enlite
+            }
+
+            // update glucose source if required
+            DispatchQueue.main.async {
+                self.broadcaster.notify(GlucoseObserver.self, on: .main) {
+                    $0.glucoseDidUpdate([])
+                }
+            }
+        } else {
+            // pump related handling
+            shouldDisplayPumpSetupSheet = false // hides sheet
+        }
     }
 }
 
@@ -665,6 +792,21 @@ extension Home.StateModel: PumpManagerOnboardingDelegate {
     }
 
     func pumpManagerOnboarding(didPauseOnboarding _: PumpManagerUI) {
-        // TODO:
+        // nothing to do
+    }
+}
+
+extension Home.StateModel: CGMManagerOnboardingDelegate {
+    func cgmManagerOnboarding(didCreateCGMManager manager: LoopKitUI.CGMManagerUI) {
+        // update the glucose source
+        fetchGlucoseManager.updateGlucoseSource(
+            cgmGlucoseSourceType: cgmCurrent.type,
+            cgmGlucosePluginId: cgmCurrent.id,
+            newManager: manager
+        )
+    }
+
+    func cgmManagerOnboarding(didOnboardCGMManager _: LoopKitUI.CGMManagerUI) {
+        // nothing to do
     }
 }

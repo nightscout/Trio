@@ -1,8 +1,19 @@
+<<<<<<< HEAD
 oref0 branch: removeTDDCalc - git version: 73d6d6c
 
 Last commits:
 73d6d6c webpack for Trio-dev
 5c6ce4b remove TDD calculation
+=======
+oref0 branch: maxAbsorptionTime - git version: a542ed3
+
+Last commits:
+a542ed3 use guarded maxAbsorptionTime
+4c77757 Revert "reduce dynISF logging"
+1567c76 use variable name maxMealAbsorptionTime
+61b4f85 reduce dynISF logging
+0fe81c1 introduce maxAbsorptionTime to orefmaxAbsorptionTime
+>>>>>>> 1a56bed2791188e95bcc95a6bbc964f47b3e5811
 ade267d Merge pull request #37 from mountrcg/tdd-pumpdataCheck
 46deecb remove dynisf check on pumpdata calc
 2f258b2 Merge pull request #36 from mountrcg/fixTDDcheck

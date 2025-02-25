@@ -105,16 +105,20 @@ extension DataTable {
         /// - **Parameter**: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
         func invokeCarbDeletionTask(_ treatmentObjectID: NSManagedObjectID, isFpuOrComplexMeal: Bool = false) {
             Task {
-                await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: isFpuOrComplexMeal)
+                do {
+                    try await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: isFpuOrComplexMeal)
 
-                await MainActor.run {
-                    carbEntryDeleted = true
-                    waitForSuggestion = true
+                    await MainActor.run {
+                        carbEntryDeleted = true
+                        waitForSuggestion = true
+                    }
+                } catch {
+                    debug(.default, "\(DebuggingIdentifiers.failed) Failed to delete carbs: \(error.localizedDescription)")
                 }
             }
         }
 
-        func deleteCarbs(_ treatmentObjectID: NSManagedObjectID, isFpuOrComplexMeal: Bool = false) async {
+        func deleteCarbs(_ treatmentObjectID: NSManagedObjectID, isFpuOrComplexMeal: Bool = false) async throws {
             // Delete from Nightscout/Apple Health/Tidepool
             await deleteFromServices(treatmentObjectID, isFPUDeletion: isFpuOrComplexMeal)
 
@@ -122,7 +126,7 @@ extension DataTable {
             await carbsStorage.deleteCarbsEntryStored(treatmentObjectID)
 
             // Perform a determine basal sync to update cob
-            await apsManager.determineBasalSync()
+            try await apsManager.determineBasalSync()
         }
 
         /// Deletes carb and FPU entries from all connected services (Nightscout, HealthKit, Tidepool)
@@ -208,16 +212,20 @@ extension DataTable {
         /// - **Parameter**: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
         func invokeInsulinDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
-                await invokeInsulinDeletion(treatmentObjectID)
+                do {
+                    try await invokeInsulinDeletion(treatmentObjectID)
 
-                await MainActor.run {
-                    insulinEntryDeleted = true
-                    waitForSuggestion = true
+                    await MainActor.run {
+                        insulinEntryDeleted = true
+                        waitForSuggestion = true
+                    }
+                } catch {
+                    debug(.default, "\(DebuggingIdentifiers.failed) Failed to delete insulin entry: \(error)")
                 }
             }
         }
 
-        func invokeInsulinDeletion(_ treatmentObjectID: NSManagedObjectID) async {
+        func invokeInsulinDeletion(_ treatmentObjectID: NSManagedObjectID) async throws {
             do {
                 let authenticated = try await unlockmanager.unlock()
 
@@ -233,7 +241,7 @@ extension DataTable {
                 await CoreDataStack.shared.deleteObject(identifiedBy: treatmentObjectID)
 
                 // Perform a determine basal sync to update iob
-                await apsManager.determineBasalSync()
+                try await apsManager.determineBasalSync()
             } catch {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Error while Insulin Deletion Task: \(error.localizedDescription)"
@@ -291,28 +299,36 @@ extension DataTable {
             newDate: Date
         ) {
             Task {
-                // Get original date from entry to re-create the entry later with the updated values and the same date
-                guard let originalEntry = await getOriginalEntryValues(treatmentObjectID) else { return }
+                do {
+                    // Get original date from entry to re-create the entry later with the updated values and the same date
+                    guard let originalEntry = await getOriginalEntryValues(treatmentObjectID) else { return }
 
-                // Deletion logic for carb and FPU entries
-                await deleteOldEntries(
-                    treatmentObjectID,
-                    originalEntry: originalEntry,
-                    newCarbs: newCarbs,
-                    newFat: newFat,
-                    newProtein: newProtein,
-                    newNote: newNote
-                )
+                    // Deletion logic for carb and FPU entries
+                    try await deleteOldEntries(
+                        treatmentObjectID,
+                        originalEntry: originalEntry,
+                        newCarbs: newCarbs,
+                        newFat: newFat,
+                        newProtein: newProtein,
+                        newNote: newNote
+                    )
 
-                await createNewEntries(
-                    originalDate: newDate,
-                    newCarbs: newCarbs,
-                    newFat: newFat,
-                    newProtein: newProtein,
-                    newNote: newNote
-                )
+                    try await createNewEntries(
+                        originalDate: newDate,
+                        newCarbs: newCarbs,
+                        newFat: newFat,
+                        newProtein: newProtein,
+                        newNote: newNote
+                    )
 
-                await syncWithServices()
+                    await syncWithServices()
+
+                    // Perform a determine basal sync to update cob
+                    try await apsManager.determineBasalSync()
+
+                } catch {
+                    debug(.default, "\(DebuggingIdentifiers.failed) failed to update entry: \(error.localizedDescription)")
+                }
             }
         }
 
@@ -322,7 +338,7 @@ extension DataTable {
             newFat: Decimal,
             newProtein: Decimal,
             newNote: String
-        ) async {
+        ) async throws {
             let newEntry = CarbsEntry(
                 id: UUID().uuidString,
                 createdAt: Date(),
@@ -337,7 +353,7 @@ extension DataTable {
             )
 
             // Handles internally whether to create fake carbs or not based on whether fat > 0 or protein > 0
-            await carbsStorage.storeCarbs([newEntry], areFetchedFromRemote: false)
+            try await carbsStorage.storeCarbs([newEntry], areFetchedFromRemote: false)
         }
 
         /// Deletes the old carb/ FPU entries and creates new ones with updated values
@@ -358,24 +374,24 @@ extension DataTable {
             newFat _: Decimal,
             newProtein _: Decimal,
             newNote _: String
-        ) async {
+        ) async throws {
             if ((originalEntry.entryValues?.carbs ?? 0) == 0 && (originalEntry.entryValues?.fat ?? 0) > 0) ||
                 ((originalEntry.entryValues?.carbs ?? 0) == 0 && (originalEntry.entryValues?.protein ?? 0) > 0)
             {
                 // Delete the zero-carb-entry and all its carb equivalents connected by the same fpuID from remote services and Core Data
                 // Use fpuID
-                await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: true)
+                try await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: true)
             } else if ((originalEntry.entryValues?.carbs ?? 0) > 0 && (originalEntry.entryValues?.fat ?? 0) > 0) ||
                 ((originalEntry.entryValues?.carbs ?? 0) > 0 && (originalEntry.entryValues?.protein ?? 0) > 0)
             {
                 // Delete carb entry and carb equivalents that are all connected by the same fpuID from remote services and Core Data
                 // Use fpuID
-                await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: true)
+                try await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: true)
 
             } else {
                 // Delete just the carb entry since there are no carb equivalents
                 // Use NSManagedObjectID
-                await deleteCarbs(treatmentObjectID)
+                try await deleteCarbs(treatmentObjectID)
             }
         }
 

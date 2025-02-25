@@ -34,7 +34,9 @@ extension Calibrations {
                             Text(state.units.rawValue).foregroundColor(.secondary)
                         }
                         Button {
-                            state.addCalibration()
+                            Task {
+                                await state.addCalibration()
+                            }
                         }
                         label: { Text("Add") }
                             .disabled(state.newCalibration <= 0)

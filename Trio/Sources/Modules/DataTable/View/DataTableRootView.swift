@@ -178,9 +178,10 @@ extension DataTable {
                         treatmentView(item)
                     }
                 } else {
-                    HStack {
-                        Text("No data.")
-                    }
+                    ContentUnavailableView(
+                        "No data.",
+                        systemImage: "injection.needle"
+                    )
                 }
             }.listRowBackground(Color.chart)
         }
@@ -197,9 +198,10 @@ extension DataTable {
                         mealView(item)
                     }
                 } else {
-                    HStack {
-                        Text("No data.")
-                    }
+                    ContentUnavailableView(
+                        "No data.",
+                        systemImage: "fork.knife"
+                    )
                 }
             }.listRowBackground(Color.chart)
         }
@@ -215,9 +217,10 @@ extension DataTable {
                         adjustmentView(for: item)
                     }
                 } else {
-                    HStack {
-                        Text("No data.")
-                    }
+                    ContentUnavailableView(
+                        "No data.",
+                        systemImage: "clock.arrow.2.circlepath"
+                    )
                 }
             }
             .listRowBackground(Color.chart)
@@ -227,7 +230,7 @@ extension DataTable {
             let overrides = overrideRunStored.map { override -> AdjustmentItem in
                 AdjustmentItem(
                     id: override.objectID,
-                    name: override.name ?? "Override",
+                    name: override.name ?? String(localized: "Override"),
                     startDate: override.startDate ?? Date(),
                     endDate: override.endDate ?? Date(),
                     target: override.target?.decimalValue,
@@ -238,7 +241,7 @@ extension DataTable {
             let tempTargets = tempTargetRunStored.map { tempTarget -> AdjustmentItem in
                 AdjustmentItem(
                     id: tempTarget.objectID,
-                    name: tempTarget.name ?? "Temp Target",
+                    name: tempTarget.name ?? String(localized: "Temp Target"),
                     startDate: tempTarget.startDate ?? Date(),
                     endDate: tempTarget.endDate ?? Date(),
                     target: tempTarget.target?.decimalValue,
@@ -247,8 +250,12 @@ extension DataTable {
             }
 
             let combined = overrides + tempTargets
-            return combined.sorted(by: { $0.startDate > $1.startDate })
-        }
+            return combined.sorted {
+                if $0.startDate == $1.startDate {
+                    return $0.endDate > $1.endDate
+                }
+                return $0.startDate > $1.startDate
+            } }
 
         private struct AdjustmentItem: Identifiable {
             let id: NSManagedObjectID
@@ -367,7 +374,7 @@ extension DataTable {
                             ).tint(.red)
                         }
                         .alert(
-                            Text(NSLocalizedString(alertTitle, comment: "")),
+                            Text(alertTitle),
                             isPresented: $isRemoveHistoryItemAlertPresented
                         ) {
                             Button("Cancel", role: .cancel) {}
@@ -380,13 +387,14 @@ extension DataTable {
                                 state.invokeGlucoseDeletionTask(glucoseToDeleteObjectID)
                             }
                         } message: {
-                            Text("\n" + NSLocalizedString(alertMessage, comment: ""))
+                            Text("\n" + alertMessage)
                         }
                     }
                 } else {
-                    HStack {
-                        Text("No data.")
-                    }
+                    ContentUnavailableView(
+                        "No data.",
+                        systemImage: "drop.fill"
+                    )
                 }
             }.listRowBackground(Color.chart)
                 .alert(isPresented: $showAlert) {
@@ -482,18 +490,18 @@ extension DataTable {
                     Text(bolus.isSMB ? "SMB" : item.type ?? "Bolus")
                     Text(
                         (Formatter.decimalFormatterWithTwoFractionDigits.string(from: amount) ?? "0") +
-                            NSLocalizedString(" U", comment: "Insulin unit")
+                            String(localized: " U", comment: "Insulin unit")
                     )
                     .foregroundColor(.secondary)
                     if bolus.isExternal {
-                        Text(NSLocalizedString("External", comment: "External Insulin")).foregroundColor(.secondary)
+                        Text(String(localized: "External", comment: "External Insulin")).foregroundColor(.secondary)
                     }
                 } else if let tempBasal = item.tempBasal, let rate = tempBasal.rate {
                     Image(systemName: "circle.fill").foregroundColor(Color.insulin.opacity(0.4))
                     Text("Temp Basal")
                     Text(
                         (Formatter.decimalFormatterWithTwoFractionDigits.string(from: rate) ?? "0") +
-                            NSLocalizedString(" U/hr", comment: "Unit insulin per hour")
+                            String(localized: " U/hr", comment: "Unit insulin per hour")
                     )
                     .foregroundColor(.secondary)
                     if tempBasal.duration > 0 {
@@ -518,7 +526,7 @@ extension DataTable {
                             alertMessage = Formatter.dateFormatter
                                 .string(from: item.timestamp ?? Date()) + ", " +
                                 (Formatter.decimalFormatterWithTwoFractionDigits.string(from: item.bolus?.amount ?? 0) ?? "0") +
-                                NSLocalizedString(" U", comment: "Insulin unit")
+                                String(localized: " U", comment: "Insulin unit")
 
                             if let bolus = item.bolus {
                                 // Add text snippet, so that alert message is more descriptive for SMBs
@@ -531,7 +539,7 @@ extension DataTable {
                 }
             }
             .alert(
-                Text(NSLocalizedString(alertTitle, comment: "")),
+                Text(alertTitle),
                 isPresented: $isRemoveHistoryItemAlertPresented
             ) {
                 Button("Cancel", role: .cancel) {}
@@ -545,7 +553,7 @@ extension DataTable {
                     state.invokeInsulinDeletionTask(treatmentObjectID)
                 }
             } message: {
-                Text("\n" + NSLocalizedString(alertMessage, comment: ""))
+                Text("\n" + alertMessage)
             }
         }
 
@@ -557,14 +565,14 @@ extension DataTable {
                         Text("Fat / Protein")
                         Text(
                             (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
-                                NSLocalizedString(" g", comment: "gram of carbs")
+                                String(localized: " g", comment: "gram of carbs")
                         )
                     } else {
                         Image(systemName: "circle.fill").foregroundColor(Color.loopYellow)
                         Text("Carbs")
                         Text(
                             (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
-                                NSLocalizedString(" g", comment: "gram of carb equilvalents")
+                                String(localized: " g", comment: "gram of carb equilvalents")
                         )
                     }
 
@@ -595,7 +603,7 @@ extension DataTable {
                             alertMessage = Formatter.dateFormatter
                                 .string(from: meal.date ?? Date()) + ", " +
                                 (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
-                                NSLocalizedString(" g", comment: "gram of carbs")
+                                String(localized: " g", comment: "gram of carbs")
                         }
                         // meal is complex-meal or fpu-only
                         else {
@@ -620,7 +628,7 @@ extension DataTable {
                 .disabled(!state.settingsManager.settings.useFPUconversion && meal.isFPU)
             }
             .alert(
-                Text(NSLocalizedString(alertTitle, comment: "")),
+                Text(alertTitle),
                 isPresented: $isRemoveHistoryItemAlertPresented
             ) {
                 Button("Cancel", role: .cancel) {}
@@ -637,7 +645,7 @@ extension DataTable {
                     )
                 }
             } message: {
-                Text("\n" + NSLocalizedString(alertMessage, comment: ""))
+                Text("\n" + alertMessage)
             }
         }
 

@@ -8,18 +8,18 @@ protocol TempTargetsObserver {
 }
 
 protocol TempTargetsStorage {
-    func storeTempTarget(tempTarget: TempTarget) async
+    func storeTempTarget(tempTarget: TempTarget) async throws
     func saveTempTargetsToStorage(_ targets: [TempTarget])
-    func fetchForTempTargetPresets() async -> [NSManagedObjectID]
-    func fetchScheduledTempTargets() async -> [NSManagedObjectID]
-    func fetchScheduledTempTarget(for targetDate: Date) async -> [NSManagedObjectID]
+    func fetchForTempTargetPresets() async throws -> [NSManagedObjectID]
+    func fetchScheduledTempTargets() async throws -> [NSManagedObjectID]
+    func fetchScheduledTempTarget(for targetDate: Date) async throws -> [NSManagedObjectID]
     func copyRunningTempTarget(_ tempTarget: TempTargetStored) async -> NSManagedObjectID
-    func deleteOverridePreset(_ objectID: NSManagedObjectID) async
-    func loadLatestTempTargetConfigurations(fetchLimit: Int) async -> [NSManagedObjectID]
+    func deleteTempTargetPreset(_ objectID: NSManagedObjectID) async
+    func loadLatestTempTargetConfigurations(fetchLimit: Int) async throws -> [NSManagedObjectID]
     func syncDate() -> Date
     func recent() -> [TempTarget]
-    func getTempTargetsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
-    func getTempTargetRunsNotYetUploadedToNightscout() async -> [NightscoutTreatment]
+    func getTempTargetsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
+    func getTempTargetRunsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func presets() -> [TempTarget]
     func current() -> TempTarget?
     func existsTempTarget(with date: Date) async -> Bool
@@ -38,8 +38,8 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         injectServices(resolver)
     }
 
-    func loadLatestTempTargetConfigurations(fetchLimit: Int) async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func loadLatestTempTargetConfigurations(fetchLimit: Int) async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.lastActiveTempTarget,
@@ -48,16 +48,18 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             fetchLimit: fetchLimit
         )
 
-        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [TempTargetStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await backgroundContext.perform {
             return fetchedResults.map(\.objectID)
         }
     }
 
     /// Returns the NSManagedObjectID of the Temp Target Presets
-    func fetchForTempTargetPresets() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchForTempTargetPresets() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.allTempTargetPresets,
@@ -65,17 +67,19 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             ascending: true
         )
 
-        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [TempTargetStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await backgroundContext.perform {
             return fetchedResults.map(\.objectID)
         }
     }
 
-    func fetchScheduledTempTargets() async -> [NSManagedObjectID] {
+    func fetchScheduledTempTargets() async throws -> [NSManagedObjectID] {
         let scheduledTempTargets = NSPredicate(format: "date > %@", Date() as NSDate)
 
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
             predicate: scheduledTempTargets,
@@ -83,17 +87,19 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             ascending: false
         )
 
-        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [TempTargetStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await backgroundContext.perform {
             return fetchedResults.map(\.objectID)
         }
     }
 
-    func fetchScheduledTempTarget(for targetDate: Date) async -> [NSManagedObjectID] {
+    func fetchScheduledTempTarget(for targetDate: Date) async throws -> [NSManagedObjectID] {
         let predicate = NSPredicate(format: "date == %@", targetDate as NSDate)
 
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
             predicate: predicate,
@@ -102,21 +108,23 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             fetchLimit: 1
         )
 
-        guard let fetchedResults = results as? [TempTargetStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [TempTargetStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
-        return await backgroundContext.perform {
-            fetchedResults.map(\.objectID)
+            return fetchedResults.map(\.objectID)
         }
     }
 
-    func storeTempTarget(tempTarget: TempTarget) async {
+    func storeTempTarget(tempTarget: TempTarget) async throws {
         var presetCount = -1
         if tempTarget.isPreset == true {
-            let presets = await fetchForTempTargetPresets()
+            let presets = try await fetchForTempTargetPresets()
             presetCount = presets.count
         }
 
-        await backgroundContext.perform {
+        try await backgroundContext.perform {
             let newTempTarget = TempTargetStored(context: self.backgroundContext)
             newTempTarget.date = tempTarget.createdAt
             newTempTarget.id = UUID()
@@ -144,9 +152,8 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
                 guard self.backgroundContext.hasChanges else { return }
                 try self.backgroundContext.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Temp Target to Core Data with error: \(error.userInfo)"
-                )
+                debug(.default, "\(DebuggingIdentifiers.failed) Failed to save new temp target with error: \(error.userInfo)")
+                throw error
             }
         }
     }
@@ -216,7 +223,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         return newTempTarget.objectID
     }
 
-    @MainActor func deleteOverridePreset(_ objectID: NSManagedObjectID) async {
+    @MainActor func deleteTempTargetPreset(_ objectID: NSManagedObjectID) async {
         await CoreDataStack.shared.deleteObject(identifiedBy: objectID)
     }
 
@@ -242,17 +249,19 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         return last
     }
 
-    func getTempTargetsNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getTempTargetsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: backgroundContext,
-            predicate: NSPredicate.lastActiveOverrideNotYetUploadedToNightscout, // TODO: create adjustment predicate (OR+TT)
+            predicate: NSPredicate.lastActiveAdjustmentNotYetUploadedToNightscout,
             key: "date",
             ascending: false
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedTempTargets = results as? [TempTargetStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedTempTargets = results as? [TempTargetStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedTempTargets.map { tempTarget in
                 NightscoutTreatment(
@@ -277,8 +286,8 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
         }
     }
 
-    func getTempTargetRunsNotYetUploadedToNightscout() async -> [NightscoutTreatment] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func getTempTargetRunsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetRunStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate(
@@ -290,8 +299,10 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             ascending: false
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedTempTargetRuns = results as? [TempTargetRunStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedTempTargetRuns = results as? [TempTargetRunStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedTempTargetRuns.map { tempTargetRun in
                 var durationInMinutes = (tempTargetRun.endDate?.timeIntervalSince(tempTargetRun.startDate ?? Date()) ?? 1) / 60
