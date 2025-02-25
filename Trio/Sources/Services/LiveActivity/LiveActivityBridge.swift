@@ -51,7 +51,6 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
     private let queue = DispatchQueue(label: "LiveActivityBridge.queue", qos: .userInitiated)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
-    private let orefDeterminationSubject = PassthroughSubject<Void, Never>()
 
     init(resolver: Resolver) {
         coreDataPublisher =
@@ -99,49 +98,59 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
     }
 
     private func registerHandler() {
-        coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("OverrideStored").sink { [weak self] _ in
             guard let self = self else { return }
             self.overridesDidUpdate()
         }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
-            self.orefDeterminationSubject.send()
+            self.setupGlucoseArray()
         }.store(in: &subscriptions)
+
+        coreDataPublisher?.filteredByEntityName("OrefDetermination")
+            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .utility))
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.cobOrIobDidUpdate()
+            }.store(in: &subscriptions)
     }
 
     private func registerSubscribers() {
         glucoseStorage.updatePublisher
-            .receive(on: DispatchQueue.global(qos: .background))
+            .receive(on: queue)
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupGlucoseArray()
-            }
-            .store(in: &subscriptions)
-
-        orefDeterminationSubject
-            .debounce(for: .seconds(2), scheduler: DispatchQueue.global(qos: .background))
-            .sink { [weak self] in
-                guard let self = self else { return }
-                self.cobOrIobDidUpdate()
             }
             .store(in: &subscriptions)
     }
 
     private func cobOrIobDidUpdate() {
         Task { @MainActor in
-            self.determination = await fetchAndMapDetermination()
-            if let determination = determination {
-                await self.updateContentState(determination)
+            do {
+                self.determination = try await fetchAndMapDetermination()
+                if let determination = determination {
+                    await self.updateContentState(determination)
+                }
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) failed to fetch and map determination: \(error.localizedDescription)"
+                )
             }
         }
     }
 
     private func overridesDidUpdate() {
         Task { @MainActor in
-            self.override = await fetchAndMapOverride()
-            if let determination = determination {
-                await self.updateContentState(determination)
+            do {
+                self.override = try await fetchAndMapOverride()
+                if let determination = determination {
+                    await self.updateContentState(determination)
+                }
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch and map override: \(error.localizedDescription)")
             }
         }
     }
@@ -200,8 +209,12 @@ final class LiveActivityBridge: Injectable, ObservableObject, SettingsObserver {
 
     private func setupGlucoseArray() {
         Task { @MainActor in
-            self.glucoseFromPersistence = await fetchAndMapGlucose()
-            glucoseDidUpdate(glucoseFromPersistence ?? [])
+            do {
+                self.glucoseFromPersistence = try await fetchAndMapGlucose()
+                glucoseDidUpdate(glucoseFromPersistence ?? [])
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch glucose with error: \(error)")
+            }
         }
     }
 

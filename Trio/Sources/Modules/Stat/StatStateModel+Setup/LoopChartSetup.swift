@@ -31,20 +31,24 @@ extension Stat.StateModel {
     /// 3. Updating loop stat records on the main thread (!) for the Loop duration chart
     func setupLoopStatRecords() {
         Task {
-            let (recordIDs, failedRecordIDs) = await self.fetchLoopStatRecords(for: selectedDurationForLoopStats)
+            do {
+                let (recordIDs, failedRecordIDs) = try await self.fetchLoopStatRecords(for: selectedDurationForLoopStats)
 
-            // Update loop records for duration chart
-            await self.updateLoopStatRecords(allLoopIds: recordIDs)
+                // Update loop records for duration chart
+                await self.updateLoopStatRecords(allLoopIds: recordIDs)
 
-            // Calculate statistics and update on main thread
-            let stats = await self.getLoopStats(
-                allLoopIds: recordIDs,
-                failedLoopIds: failedRecordIDs,
-                duration: selectedDurationForLoopStats
-            )
+                // Calculate statistics and update on main thread
+                let stats = try await self.getLoopStats(
+                    allLoopIds: recordIDs,
+                    failedLoopIds: failedRecordIDs,
+                    duration: selectedDurationForLoopStats
+                )
 
-            await MainActor.run {
-                self.loopStats = stats
+                await MainActor.run {
+                    self.loopStats = stats
+                }
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch loop stats: \(error.localizedDescription)")
             }
         }
     }
@@ -52,7 +56,7 @@ extension Stat.StateModel {
     /// Fetches loop statistics records for the specified duration
     /// - Parameter duration: The time period to fetch records for
     /// - Returns: A tuple containing arrays of NSManagedObjectIDs for (all loops, failed loops)
-    func fetchLoopStatRecords(for duration: Duration) async -> ([NSManagedObjectID], [NSManagedObjectID]) {
+    func fetchLoopStatRecords(for duration: Duration) async throws -> ([NSManagedObjectID], [NSManagedObjectID]) {
         // Calculate the date range based on selected duration
         let now = Date()
         let startDate: Date
@@ -91,7 +95,7 @@ extension Stat.StateModel {
         )
 
         // Wait for both results and convert to object IDs
-        let (allLoops, failedLoops) = await (allLoopsResult, failedLoopsResult)
+        let (allLoops, failedLoops) = try await (allLoopsResult, failedLoopsResult)
 
         return (
             (allLoops as? [LoopStatRecord] ?? []).map(\.objectID),
@@ -123,7 +127,7 @@ extension Stat.StateModel {
         allLoopIds: [NSManagedObjectID],
         failedLoopIds: [NSManagedObjectID],
         duration: Duration
-    ) async -> [(category: String, count: Int, percentage: Double)] {
+    ) async throws -> [(category: String, count: Int, percentage: Double)] {
         // Calculate the date range for glucose readings
         let now = Date()
         let startDate: Date
@@ -141,11 +145,11 @@ extension Stat.StateModel {
         }
 
         // Get glucose statistics
-        let totalGlucose = await calculateGlucoseStats(from: startDate, to: now)
+        let totalGlucose = try await calculateGlucoseStats(from: startDate, to: now)
 
         // Get NSManagedObject
-        let allLoops = await CoreDataStack.shared.getNSManagedObject(with: allLoopIds, context: loopTaskContext)
-        let failedLoops = await CoreDataStack.shared.getNSManagedObject(with: failedLoopIds, context: loopTaskContext)
+        let allLoops = try await CoreDataStack.shared.getNSManagedObject(with: allLoopIds, context: loopTaskContext)
+        let failedLoops = try await CoreDataStack.shared.getNSManagedObject(with: failedLoopIds, context: loopTaskContext)
 
         return await loopTaskContext.perform {
             let totalLoopsCount = allLoops.count
@@ -193,12 +197,12 @@ extension Stat.StateModel {
     private func calculateGlucoseStats(
         from startDate: Date,
         to _: Date
-    ) async -> Int {
+    ) async throws -> Int {
         // Create predicate for glucose readings
         let glucosePredicate = NSPredicate(format: "date >= %@", startDate as NSDate)
 
         // Fetch glucose readings asynchronously
-        let glucoseResult = await CoreDataStack.shared.fetchEntitiesAsync(
+        let glucoseResult = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: loopTaskContext,
             predicate: glucosePredicate,

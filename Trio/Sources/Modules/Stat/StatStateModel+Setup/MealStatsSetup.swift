@@ -23,15 +23,19 @@ extension Stat.StateModel {
     /// 3. Calculates and caches initial daily averages
     func setupMealStats() {
         Task {
-            let (hourly, daily) = await fetchMealStats()
+            do {
+                let (hourly, daily) = try await fetchMealStats()
 
-            await MainActor.run {
-                self.hourlyMealStats = hourly
-                self.dailyMealStats = daily
+                await MainActor.run {
+                    self.hourlyMealStats = hourly
+                    self.dailyMealStats = daily
+                }
+
+                // Initially calculate and cache daily averages
+                await calculateAndCacheDailyAverages()
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch meal stats: \(error)")
             }
-
-            // Initially calculate and cache daily averages
-            await calculateAndCacheDailyAverages()
         }
     }
 
@@ -43,9 +47,9 @@ extension Stat.StateModel {
     /// 2. Groups entries by hour and day
     /// 3. Calculates total macronutrients for each time period
     /// 4. Returns the processed statistics as (hourly: [MealStats], daily: [MealStats])
-    private func fetchMealStats() async -> (hourly: [MealStats], daily: [MealStats]) {
+    private func fetchMealStats() async throws -> (hourly: [MealStats], daily: [MealStats]) {
         // Fetch CarbEntryStored entries from Core Data
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: mealTaskContext,
             predicate: NSPredicate.carbsForStats,

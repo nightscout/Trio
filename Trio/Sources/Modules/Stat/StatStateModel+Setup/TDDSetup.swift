@@ -14,24 +14,28 @@ extension Stat.StateModel {
     /// Sets up TDD statistics by fetching and processing insulin data
     func setupTDDStats() {
         Task {
-            let (hourly, daily) = await fetchTDDStats()
+            do {
+                let (hourly, daily) = try await fetchTDDStats()
 
-            await MainActor.run {
-                self.hourlyTDDStats = hourly
-                self.dailyTDDStats = daily
+                await MainActor.run {
+                    self.hourlyTDDStats = hourly
+                    self.dailyTDDStats = daily
+                }
+
+                // Initially calculate and cache daily averages
+                await calculateAndCacheTDDAverages()
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) failed fetching TDD stats: \(error.localizedDescription)")
             }
-
-            // Initially calculate and cache daily averages
-            await calculateAndCacheTDDAverages()
         }
     }
 
     /// Fetches and processes Total Daily Dose (TDD) statistics from CoreData
     /// - Returns: A tuple containing hourly and daily TDD statistics arrays
     /// - Note: Processes both hourly statistics for the last 10 days and complete daily statistics
-    private func fetchTDDStats() async -> (hourly: [TDDStats], daily: [TDDStats]) {
+    private func fetchTDDStats() async throws -> (hourly: [TDDStats], daily: [TDDStats]) {
         // Fetch temp basal records from CoreData
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempBasalStored.self,
             onContext: tddTaskContext,
             predicate: NSPredicate.pumpHistoryForStats,

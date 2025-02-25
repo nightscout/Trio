@@ -22,7 +22,8 @@ struct CarbsInputView: View {
     )
 
     var body: some View {
-        let buttonLabel = continueToBolus ? "Proceed" : "Log Carbs"
+        let buttonLabel = continueToBolus ? String(localized: "Proceed", comment: "Button Label to Proceed to Bolus on Watch") :
+            String(localized: "Log Carbs", comment: "Button Label to Log Carbs on Watch")
 
         // TODO: introduce meal setting fpu enablement to conditional handle FPU
         VStack {
@@ -45,7 +46,7 @@ struct CarbsInputView: View {
                 Spacer()
 
                 // Display the current carb amount
-                Text(String(format: "%.0f g", carbsAmount))
+                Text(String(format: "%.0f \(String(localized: "g", comment: "gram of carbs"))", carbsAmount))
                     .fontWeight(.bold)
                     .font(.system(.title2, design: .rounded))
                     .foregroundColor(carbsAmount > 0.0 && carbsAmount >= effectiveCarbsLimit ? .loopRed : .primary)

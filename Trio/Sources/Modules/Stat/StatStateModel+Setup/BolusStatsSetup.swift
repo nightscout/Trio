@@ -23,15 +23,19 @@ extension Stat.StateModel {
     /// 3. Calculates and caches initial daily averages
     func setupBolusStats() {
         Task {
-            let (hourly, daily) = await fetchBolusStats()
+            do {
+                let (hourly, daily) = try await fetchBolusStats()
 
-            await MainActor.run {
-                self.hourlyBolusStats = hourly
-                self.dailyBolusStats = daily
+                await MainActor.run {
+                    self.hourlyBolusStats = hourly
+                    self.dailyBolusStats = daily
+                }
+
+                // Initially calculate and cache daily averages
+                await calculateAndCacheBolusAverages()
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) failed to setup bolus stats: \(error.localizedDescription)")
             }
-
-            // Initially calculate and cache daily averages
-            await calculateAndCacheBolusAverages()
         }
     }
 
@@ -43,9 +47,9 @@ extension Stat.StateModel {
     /// 2. Groups entries by hour and day
     /// 3. Calculates total insulin for each time period
     /// 4. Returns the processed statistics as (hourly: [BolusStats], daily: [BolusStats])
-    private func fetchBolusStats() async -> (hourly: [BolusStats], daily: [BolusStats]) {
+    private func fetchBolusStats() async throws -> (hourly: [BolusStats], daily: [BolusStats]) {
         // Fetch PumpEventStored entries from Core Data
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: BolusStored.self,
             onContext: bolusTaskContext,
             predicate: NSPredicate.pumpHistoryForStats,

@@ -189,35 +189,41 @@ extension Stat {
         }
 
         private func fetchGlucose(for duration: Duration) async -> [NSManagedObjectID] {
-            let predicate: NSPredicate
+            do {
+                let predicate: NSPredicate
 
-            switch duration {
-            case .Day:
-                predicate = NSPredicate.glucoseForStatsDay
-            case .Week:
-                predicate = NSPredicate.glucoseForStatsWeek
-            case .Today:
-                predicate = NSPredicate.glucoseForStatsToday
-            case .Month:
-                predicate = NSPredicate.glucoseForStatsMonth
-            case .Total:
-                predicate = NSPredicate.glucoseForStatsTotal
-            }
+                switch duration {
+                case .Day:
+                    predicate = NSPredicate.glucoseForStatsDay
+                case .Week:
+                    predicate = NSPredicate.glucoseForStatsWeek
+                case .Today:
+                    predicate = NSPredicate.glucoseForStatsToday
+                case .Month:
+                    predicate = NSPredicate.glucoseForStatsMonth
+                case .Total:
+                    predicate = NSPredicate.glucoseForStatsTotal
+                }
 
-            let results = await CoreDataStack.shared.fetchEntitiesAsync(
-                ofType: GlucoseStored.self,
-                onContext: context,
-                predicate: predicate,
-                key: "date",
-                ascending: false,
-                batchSize: 100,
-                propertiesToFetch: ["glucose", "objectID"]
-            )
+                let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+                    ofType: GlucoseStored.self,
+                    onContext: context,
+                    predicate: predicate,
+                    key: "date",
+                    ascending: false,
+                    batchSize: 100,
+                    propertiesToFetch: ["glucose", "objectID"]
+                )
 
-            return await context.perform {
-                guard let fetchedResults = results as? [[String: Any]] else { return [] }
-
-                return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
+                return try await context.perform {
+                    guard let fetchedResults = results as? [[String: Any]] else {
+                        throw CoreDataError.fetchError(function: #function, file: #file)
+                    }
+                    return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
+                }
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) Error fetching glucose for stats: \(error.localizedDescription)")
+                return []
             }
         }
 
