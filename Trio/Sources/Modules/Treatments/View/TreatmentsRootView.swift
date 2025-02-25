@@ -409,15 +409,15 @@ extension Treatments {
             )
             .shadow(radius: 3)
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            .alert("⚠️ DANGEROUSLY LOW GLUCOSE ⚠️", isPresented: $showDangerousLowAlert) {
+            .confirmationDialog(
+                "Glucose is very low! Give insulin?",
+                isPresented: $showDangerousLowAlert,
+                titleVisibility: .visible
+            ) {
                 Button("Cancel", role: .cancel) {}
-                Button("Yes, Deliver Insulin", role: .destructive) {
+                Button("Ignore Warning and Enact Bolus", role: .destructive) {
                     state.invokeTreatmentsTask()
                 }
-            } message: {
-                Text(
-                    "Your glucose is \(state.units == .mgdL ? String(describing: state.currentBG) : String(describing: state.currentBG.asMmolL)) \(state.units.rawValue), which is dangerously low!\n\nAre you sure you want to deliver insulin? This could be EXTREMELY DANGEROUS."
-                )
             }
         }
 

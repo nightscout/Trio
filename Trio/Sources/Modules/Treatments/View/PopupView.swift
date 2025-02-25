@@ -490,7 +490,7 @@ struct PopupView: View {
             raiseOnOverflow: false,
             raiseOnUnderflow: false,
             raiseOnDivideByZero: false
-        )   
+        )
 
         let roundedValue = NSDecimalNumber(decimal: value).rounding(accordingToBehavior: handler)
 
