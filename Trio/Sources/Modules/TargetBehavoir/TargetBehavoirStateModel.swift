@@ -12,10 +12,11 @@ extension TargetBehavoir {
         @Published var sensitivityRaisesTarget: Bool = false
         @Published var resistanceLowersTarget: Bool = false
         @Published var halfBasalExerciseTarget: Decimal = 160
+        @Published var maxAutosensSetting: Decimal = 1
 
         override func subscribe() {
             units = settingsManager.settings.units
-
+            maxAutosensSetting = settingsManager.preferences.autosensMax
             subscribePreferencesSetting(\.highTemptargetRaisesSensitivity, on: $highTemptargetRaisesSensitivity) {
                 highTemptargetRaisesSensitivity = $0 }
             subscribePreferencesSetting(\.lowTemptargetLowersSensitivity, on: $lowTemptargetLowersSensitivity) {
@@ -30,5 +31,10 @@ extension TargetBehavoir {
 extension TargetBehavoir.StateModel: SettingsObserver {
     func settingsDidChange(_: TrioSettings) {
         units = settingsManager.settings.units
+    }
+
+    func preferencesDidChange(_: Preferences) {
+        lowTemptargetLowersSensitivity = settingsManager.preferences.lowTemptargetLowersSensitivity
+        maxAutosensSetting = settingsManager.preferences.autosensMax
     }
 }

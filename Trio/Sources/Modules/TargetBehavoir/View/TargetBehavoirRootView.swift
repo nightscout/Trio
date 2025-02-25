@@ -60,7 +60,7 @@ extension TargetBehavoir {
 
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
-                    booleanValue: lowTTLowersSensBinding,
+                    booleanValue: effectiveLowTTLowersSensBinding,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
@@ -207,25 +207,29 @@ extension TargetBehavoir {
 //            }
         }
 
-        private var lowTTLowersSensBinding: Binding<Bool> {
+        private var effectiveLowTTLowersSensBinding: Binding<Bool> {
             Binding<Bool>(
                 get: {
-                    state.lowTemptargetLowersSensitivity
+                    if state.maxAutosensSetting > 1 {
+                        // Show the *real* user preference
+                        return state.lowTemptargetLowersSensitivity
+                    } else {
+                        // "Mask" it as OFF in the UI
+                        return false
+                    }
                 },
                 set: { newValue in
                     if newValue {
-                        // Check some condition, e.g. from `settingsManager` or any property
-                        // For example: if state.settings.preferences.autosensMax > 1
-                        // You may need to adapt this to your actual condition:
-                        if state.settings.preferences.autosensMax > 1 {
+                        // User wants to turn it ON
+                        if state.maxAutosensSetting > 1 {
+                            // Condition is valid => set the real model property to true
                             state.lowTemptargetLowersSensitivity = true
                         } else {
-                            // Disallow enabling and optionally show an alert
+                            // Condition not met => show alert, do NOT turn it on
                             showAutosensMaxAlert = true
-                            state.lowTemptargetLowersSensitivity = false
                         }
                     } else {
-                        // Always allow turning it off
+                        // Turning it off is always allowed
                         state.lowTemptargetLowersSensitivity = false
                     }
                 }
