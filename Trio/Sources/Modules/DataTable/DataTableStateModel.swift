@@ -106,12 +106,15 @@ extension DataTable {
         func invokeCarbDeletionTask(_ treatmentObjectID: NSManagedObjectID, isFpuOrComplexMeal: Bool = false) {
             Task {
                 do {
-                    try await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: isFpuOrComplexMeal)
-
+                    /// Set the variables that control the CustomProgressView BEFORE the actual deletion
+                    /// otherwise the determineBasalSync gets executed first, sets waitForSuggestion to false and afterwards waitForSuggestion is set in this function to true, leading to an endless animation
                     await MainActor.run {
                         carbEntryDeleted = true
                         waitForSuggestion = true
                     }
+
+                    try await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: isFpuOrComplexMeal)
+
                 } catch {
                     debug(.default, "\(DebuggingIdentifiers.failed) Failed to delete carbs: \(error.localizedDescription)")
                 }
@@ -214,11 +217,6 @@ extension DataTable {
             Task {
                 do {
                     try await invokeInsulinDeletion(treatmentObjectID)
-
-                    await MainActor.run {
-                        insulinEntryDeleted = true
-                        waitForSuggestion = true
-                    }
                 } catch {
                     debug(.default, "\(DebuggingIdentifiers.failed) Failed to delete insulin entry: \(error)")
                 }
@@ -232,6 +230,16 @@ extension DataTable {
                 guard authenticated else {
                     debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Authentication Error")
                     return
+                }
+
+                /// Set variables that control the CustomProgressView to true AFTER the authentication and BEFORE the actual determineBasalSync
+                /// We definitely need to set the variables BEFORE the actual sync
+                /// otherwise the determineBasalSync gets executed first, sets waitForSuggestion to false and afterwards waitForSuggestion is set in this function to true, leading to an endless animation
+                /// But we also want it AFTER the authentication
+                /// otherwise the animation would pop up even before the authentication prompt appears to the user
+                await MainActor.run {
+                    insulinEntryDeleted = true
+                    waitForSuggestion = true
                 }
 
                 // Delete from remote service(s) (i.e. Nightscout, Apple Health, Tidepool)
