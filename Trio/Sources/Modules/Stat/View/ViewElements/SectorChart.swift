@@ -184,186 +184,116 @@ struct SectorChart: View {
     /// - Parameter range: The glucose range category to analyze
     /// - Returns: A RangeDetail object containing the title, color and detailed statistics
     private func getDetailedData(for range: GlucoseRange) -> RangeDetail {
-        // Calculate total number of glucose readings
         let total = Decimal(glucose.count)
 
         switch range {
         case .high:
-            // Count readings above 250 mg/dL (very high)
             let veryHigh = glucose.filter { $0.glucose > 250 }.count
-            // Count readings between high limit and 250 mg/dL (high)
             let high = glucose.filter { $0.glucose > Int(highLimit) && $0.glucose <= 250 }.count
 
-            // Format glucose values
-            let highLimitTreshold = units == .mmolL ? Decimal(Int(highLimit)).asMmolL : highLimit
-            let veryHighThreshold = units == .mmolL ? Decimal(250).asMmolL : 250
-
             let highGlucoseValues = glucose.filter { $0.glucose > Int(highLimit) }
-            let highGlucoseValuesAsInt = highGlucoseValues.compactMap({ each in Int(each.glucose as Int16) })
-            let highGlucoseTotal = highGlucoseValuesAsInt.reduce(0, +)
-
-            let average = Decimal(highGlucoseTotal / highGlucoseValues.count)
-            let median = Decimal(BareStatisticsView.medianCalculation(array: highGlucoseValuesAsInt))
-
-            var sumOfSquares = 0.0
-            highGlucoseValuesAsInt.forEach { value in
-                sumOfSquares += pow(Double(value) - Double(average), 2)
-            }
-
-            var standardDeviation = 0.0
-
-            if average > 0 {
-                standardDeviation = sqrt(sumOfSquares / Double(highGlucoseValues.count))
-            }
+            let highGlucoseValuesAsInt = highGlucoseValues.map { Int($0.glucose) }
+            let (average, median, standardDeviation) = calculateDetailedStatistics(for: highGlucoseValuesAsInt)
 
             return RangeDetail(
                 title: "High Glucose",
                 color: .orange,
                 items: [
-                    (
-                        "Very High (>\(veryHighThreshold)):",
-                        formatPercentage(Decimal(veryHigh) / total * 100)
-                    ),
-                    (
-                        "High (\(highLimitTreshold)-\(veryHighThreshold)):",
-                        formatPercentage(Decimal(high) / total * 100)
-                    ),
-                    ("Avergage", units == .mgdL ? average.description : average.formattedAsMmolL),
-                    ("Median", units == .mgdL ? median.description : median.formattedAsMmolL),
-                    (
-                        "SD",
-                        units == .mgdL ? standardDeviation.formatted(
-                            .number.grouping(.never).rounded()
-                                .precision(.fractionLength(0))
-                        ) : standardDeviation.asMmolL.formatted(
-                            .number.grouping(.never).rounded()
-                                .precision(
-                                    .fractionLength(1)
-                                )
-                        )
-                    )
+                    ("Very High (>\(formatValue(250)))", formatPercentage(Decimal(veryHigh) / total * 100)),
+                    ("High (\(formatValue(highLimit))-\(formatValue(250)))", formatPercentage(Decimal(high) / total * 100)),
+                    ("Average", formatValue(average)),
+                    ("Median", formatValue(median)),
+                    ("SD", formatSD(standardDeviation))
                 ]
             )
+
         case .inRange:
-            // Count readings between low limit and 140 mg/dL (tight control)
             let tight = glucose.filter { $0.glucose >= Int(lowLimit) && $0.glucose <= 140 }.count
-            // Count readings between 140 and high limit (normal range)
             let glucoseValues = glucose.filter { $0.glucose >= Int(lowLimit) && $0.glucose <= Int(highLimit) }
-
-            // Format glucose values
-            let lowLimitTreshold = units == .mmolL ? Decimal(Int(lowLimit)).asMmolL : lowLimit
-            let highLimitTreshold = units == .mmolL ? Decimal(Int(highLimit)).asMmolL : highLimit
-            let tightThresholdTreshold = units == .mmolL ? Decimal(140).asMmolL : 140
-
-            let glucoseValuesAsInt = glucoseValues.compactMap({ each in Int(each.glucose as Int16) })
-            let glucoseTotal = glucoseValuesAsInt.reduce(0, +)
-
-            let average = Decimal(glucoseTotal / glucoseValues.count)
-            let median = Decimal(BareStatisticsView.medianCalculation(array: glucoseValuesAsInt))
-
-            var sumOfSquares = 0.0
-            glucoseValuesAsInt.forEach { value in
-                sumOfSquares += pow(Double(value) - Double(average), 2)
-            }
-
-            var standardDeviation = 0.0
-
-            if average > 0 {
-                standardDeviation = sqrt(sumOfSquares / Double(glucoseValues.count))
-            }
+            let glucoseValuesAsInt = glucoseValues.map { Int($0.glucose) }
+            let (average, median, standardDeviation) = calculateDetailedStatistics(for: glucoseValuesAsInt)
 
             return RangeDetail(
                 title: "In Range",
                 color: .green,
                 items: [
                     (
-                        "Normal (\(lowLimitTreshold)-\(highLimitTreshold))",
+                        "Normal (\(formatValue(lowLimit))-\(formatValue(highLimit)))",
                         formatPercentage(Decimal(glucoseValues.count) / total * 100)
                     ),
-                    (
-                        "Tight (\(lowLimitTreshold)-\(tightThresholdTreshold))",
-                        formatPercentage(Decimal(tight) / total * 100)
-                    ),
-                    ("Avergage", units == .mgdL ? average.description : average.formattedAsMmolL),
-                    ("Median", units == .mgdL ? median.description : median.formattedAsMmolL),
-                    (
-                        "SD",
-                        units == .mgdL ? standardDeviation.formatted(
-                            .number.grouping(.never).rounded()
-                                .precision(.fractionLength(0))
-                        ) : standardDeviation.asMmolL.formatted(
-                            .number.grouping(.never).rounded()
-                                .precision(
-                                    .fractionLength(1)
-                                )
-                        )
-                    )
+                    ("Tight (\(formatValue(lowLimit))-\(formatValue(140)))", formatPercentage(Decimal(tight) / total * 100)),
+                    ("Average", formatValue(average)),
+                    ("Median", formatValue(median)),
+                    ("SD", formatSD(standardDeviation))
                 ]
             )
+
         case .low:
-            // Count readings below 54 mg/dL (very low/urgent low)
             let veryLow = glucose.filter { $0.glucose <= 54 }.count
-            // Count readings between 54 and low limit (low)
             let low = glucose.filter { $0.glucose > 54 && $0.glucose < Int(lowLimit) }.count
 
-            // Format glucose values
-            let lowLimitTreshold = units == .mmolL ? Decimal(Int(lowLimit)).asMmolL : lowLimit
-            let veryLowThresholdTreshold = units == .mmolL ? Decimal(54).asMmolL : 54
-
             let lowGlucoseValues = glucose.filter { $0.glucose < Int(lowLimit) }
-            let lowGlucoseValuesAsInt = lowGlucoseValues.compactMap({ each in Int(each.glucose as Int16) })
-            let lowGlucoseTotal = lowGlucoseValuesAsInt.reduce(0, +)
-
-            let average = Decimal(lowGlucoseTotal / lowGlucoseValues.count)
-            let median = Decimal(BareStatisticsView.medianCalculation(array: lowGlucoseValuesAsInt))
-
-            var sumOfSquares = 0.0
-            lowGlucoseValuesAsInt.forEach { value in
-                sumOfSquares += pow(Double(value) - Double(average), 2)
-            }
-
-            var standardDeviation = 0.0
-
-            if average > 0 {
-                standardDeviation = sqrt(sumOfSquares / Double(lowGlucoseValues.count))
-            }
+            let lowGlucoseValuesAsInt = lowGlucoseValues.map { Int($0.glucose) }
+            let (average, median, standardDeviation) = calculateDetailedStatistics(for: lowGlucoseValuesAsInt)
 
             return RangeDetail(
                 title: "Low Glucose",
                 color: .red,
                 items: [
-                    (
-                        "Low (\(veryLowThresholdTreshold)-\(lowLimitTreshold))",
-                        formatPercentage(Decimal(low) / total * 100)
-                    ),
-                    (
-                        "Very Low (<\(veryLowThresholdTreshold))",
-                        formatPercentage(Decimal(veryLow) / total * 100)
-                    ),
-                    ("Avergage", units == .mgdL ? average.description : average.formattedAsMmolL),
-                    ("Median", units == .mgdL ? median.description : median.formattedAsMmolL),
-                    (
-                        "SD",
-                        units == .mgdL ? standardDeviation.formatted(
-                            .number.grouping(.never).rounded()
-                                .precision(.fractionLength(0))
-                        ) : standardDeviation.asMmolL.formatted(
-                            .number.grouping(.never).rounded()
-                                .precision(
-                                    .fractionLength(1)
-                                )
-                        )
-                    )
+                    ("Low (\(formatValue(54))-\(formatValue(lowLimit)))", formatPercentage(Decimal(low) / total * 100)),
+                    ("Very Low (<\(formatValue(54)))", formatPercentage(Decimal(veryLow) / total * 100)),
+                    ("Average", formatValue(average)),
+                    ("Median", formatValue(median)),
+                    ("SD", formatSD(standardDeviation))
                 ]
             )
         }
     }
 
-    func formatPercentage(_ value: Decimal) -> String {
+    /// Formats a percentage value to a string with one decimal place.
+    /// - Parameter value: A decimal value representing the percentage.
+    /// - Returns: A formatted percentage string
+    private func formatPercentage(_ value: Decimal) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .percent
         formatter.maximumFractionDigits = 1
         return formatter.string(from: NSDecimalNumber(decimal: value / 100)) ?? "0%"
+    }
+
+    /// Calculates statistical values for a given array of glucose readings.
+    /// - Parameter values: An array of glucose readings as integers.
+    /// - Returns: A tuple containing the average, median, and standard deviation.
+    private func calculateDetailedStatistics(for values: [Int]) -> (Decimal, Decimal, Double) {
+        guard !values.isEmpty else { return (0, 0, 0) }
+
+        let total = values.reduce(0, +)
+        let average = Decimal(total / values.count)
+        let median = Decimal(BareStatisticsView.medianCalculation(array: values))
+
+        let sumOfSquares = values.reduce(0.0) { sum, value in
+            sum + pow(Double(value) - Double(average), 2)
+        }
+
+        let standardDeviation = sqrt(sumOfSquares / Double(values.count))
+        return (average, median, standardDeviation)
+    }
+
+    /// Formats the standard deviation value based on glucose units.
+    /// - Parameter sd: The standard deviation as a Double.
+    /// - Returns: A formatted string representing the standard deviation.
+    private func formatSD(_ sd: Double) -> String {
+        units == .mgdL ? sd.formatted(
+            .number.grouping(.never).rounded().precision(.fractionLength(0))
+        ) : sd.asMmolL.formatted(
+            .number.grouping(.never).rounded().precision(.fractionLength(1))
+        )
+    }
+
+    /// Formats a glucose value based on the current units.
+    /// - Parameter value: A decimal value representing the glucose level.
+    /// - Returns: A formatted string of the glucose value.
+    private func formatValue(_ value: Decimal) -> String {
+        units == .mgdL ? value.description : value.formattedAsMmolL
     }
 }
 
