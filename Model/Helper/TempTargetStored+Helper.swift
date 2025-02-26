@@ -14,6 +14,17 @@ extension NSPredicate {
             true as NSNumber
         )
     }
+
+    static var currentTempTarget: NSPredicate {
+        let date = Date.oneDayAgo
+        return NSPredicate(
+            format: "(date >= %@ AND enabled == %@) OR (date >= %@ AND enabled == %@)",
+            date as NSDate,
+            true as NSNumber,
+            Date() as NSDate,
+            false as NSNumber
+        )
+    }
 }
 
 extension TempTargetStored {

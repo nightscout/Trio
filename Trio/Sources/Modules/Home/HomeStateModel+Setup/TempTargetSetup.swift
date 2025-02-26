@@ -22,7 +22,7 @@ extension Home.StateModel {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: tempTargetFetchContext,
-            predicate: NSPredicate.lastActiveTempTarget,
+            predicate: NSPredicate.currentTempTarget,
             key: "date",
             ascending: false
         )
