@@ -170,8 +170,6 @@ extension Stat {
             setupBolusStats()
             setupLoopStatRecords()
             setupMealStats()
-            highLimit = settingsManager.settings.high
-            lowLimit = settingsManager.settings.low
             units = settingsManager.settings.units
             eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
             timeInRangeChartStyle = settingsManager.settings.timeInRangeChartStyle
