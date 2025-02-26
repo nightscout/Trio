@@ -757,7 +757,7 @@ final class OpenAPS {
                 let body = try String(contentsOf: url)
                 return Script(name: name, body: body)
             } catch {
-                print("Failed to load script \(name): \(error)")
+                debug(.openAPS, "Failed to load script \(name): \(error)")
             }
         }
 
