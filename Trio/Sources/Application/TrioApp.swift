@@ -63,9 +63,13 @@ import Swinject
     }
 
     init() {
+        let submodulesInfo = BuildDetails.default.submodules.map { key, value in
+            "\(key): \(value.branch) \(value.commitSHA)"
+        }.joined(separator: ", ")
+
         debug(
             .default,
-            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.default.buildDate()))] [buildExpires: \(String(describing: BuildDetails.default.calculateExpirationDate()))]"
+            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.default.buildDate()))] [buildExpires: \(String(describing: BuildDetails.default.calculateExpirationDate()))] [submodules: \(submodulesInfo)]"
         )
 
         // Setup up the Core Data Stack
