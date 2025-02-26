@@ -203,13 +203,15 @@ struct AGPSelectionPopover: View {
             HStack {
                 Image(systemName: "clock")
                 Text(timeText)
-                    .fontWeight(.bold)
+                    .bold()
+                    .foregroundStyle(.secondary)
             }
             .font(.subheadline)
+            .padding(.bottom, 4)
 
-            Grid(alignment: .leading, horizontalSpacing: 8) {
+            Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 4) {
                 GridRow {
-                    Text("90%:")
+                    Text("90%:").bold()
                     Text(units == .mmolL ? stats.percentile90.asMmolL.formatted(
                         .number.grouping(.never).rounded()
                             .precision(.fractionLength(1))
@@ -217,11 +219,10 @@ struct AGPSelectionPopover: View {
                         .number.grouping(.never).rounded()
                             .precision(.fractionLength(0))
                     ))
-                    Text(units.rawValue)
-                        .foregroundStyle(.secondary)
+                    Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
-                    Text("75%:")
+                    Text("75%:").bold()
                     Text(units == .mmolL ? stats.percentile75.asMmolL.formatted(
                         .number.grouping(.never).rounded()
                             .precision(.fractionLength(1))
@@ -229,11 +230,10 @@ struct AGPSelectionPopover: View {
                         .number.grouping(.never).rounded()
                             .precision(.fractionLength(0))
                     ))
-                    Text(units.rawValue)
-                        .foregroundStyle(.secondary)
+                    Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
-                    Text("Median:")
+                    Text("Median:").bold()
                     Text(units == .mmolL ? stats.median.asMmolL.formatted(
                         .number.grouping(.never).rounded()
                             .precision(.fractionLength(1))
@@ -241,11 +241,10 @@ struct AGPSelectionPopover: View {
                         .number.grouping(.never).rounded()
                             .precision(.fractionLength(0))
                     ))
-                    Text(units.rawValue)
-                        .foregroundStyle(.secondary)
+                    Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
-                    Text("25%:")
+                    Text("25%:").bold()
                     Text(units == .mmolL ? stats.percentile25.asMmolL.formatted(
                         .number.grouping(.never).rounded()
                             .precision(.fractionLength(1))
@@ -253,11 +252,10 @@ struct AGPSelectionPopover: View {
                         .number.grouping(.never).rounded()
                             .precision(.fractionLength(0))
                     ))
-                    Text(units.rawValue)
-                        .foregroundStyle(.secondary)
+                    Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
-                    Text("10%:")
+                    Text("10%:").bold()
                     Text(units == .mmolL ? stats.percentile10.asMmolL.formatted(
                         .number.grouping(.never).rounded()
                             .precision(.fractionLength(1))
@@ -265,11 +263,10 @@ struct AGPSelectionPopover: View {
                         .number.grouping(.never).rounded()
                             .precision(.fractionLength(0))
                     ))
-                    Text(units.rawValue)
-                        .foregroundStyle(.secondary)
+                    Text(units.rawValue).foregroundStyle(.secondary)
                 }
             }
-            .font(.headline.bold())
+            .font(.headline)
         }
         .padding(20)
         .background {
