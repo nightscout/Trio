@@ -92,7 +92,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             bolusInsulin,
             scheduledBasalInsulin,
             tempBasalInsulin,
-            try weightedAverage
+            weightedAverage
         )
 
         // Total insulin calculation
@@ -109,7 +109,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         let bolusString = String(format: "%.2f", NSDecimalNumber(decimal: bolus.rounded(toPlaces: 2)).doubleValue)
         let tempBasalString = String(format: "%.2f", NSDecimalNumber(decimal: temp.rounded(toPlaces: 2)).doubleValue)
         let scheduledBasalString = String(format: "%.2f", NSDecimalNumber(decimal: scheduled.rounded(toPlaces: 2)).doubleValue)
-        let weightedAvgString = String(format: "%.2f", NSDecimalNumber(decimal: weighted?.rounded(toPlaces: 2) ?? 0))
+        let weightedAvgString = String(format: "%.2f", NSDecimalNumber(decimal: weighted?.rounded(toPlaces: 2) ?? 0).doubleValue)
         let hoursString = String(format: "%.5f", NSDecimalNumber(decimal: Decimal(hours).truncated(toPlaces: 5)).doubleValue)
 
         debug(.apsManager, """
