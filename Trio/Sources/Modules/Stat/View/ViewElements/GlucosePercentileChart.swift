@@ -210,31 +210,61 @@ struct AGPSelectionPopover: View {
             Grid(alignment: .leading, horizontalSpacing: 8) {
                 GridRow {
                     Text("90%:")
-                    Text(units == .mmolL ? stats.percentile90.asMmolL.formatted(.number) : stats.percentile90.formatted(.number))
+                    Text(units == .mmolL ? stats.percentile90.asMmolL.formatted(
+                        .number.grouping(.never).rounded()
+                            .precision(.fractionLength(1))
+                    ) : stats.percentile90.formatted(
+                        .number.grouping(.never).rounded()
+                            .precision(.fractionLength(0))
+                    ))
                     Text(units.rawValue)
                         .foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("75%:")
-                    Text(units == .mmolL ? stats.percentile75.asMmolL.formatted(.number) : stats.percentile75.formatted(.number))
+                    Text(units == .mmolL ? stats.percentile75.asMmolL.formatted(
+                        .number.grouping(.never).rounded()
+                            .precision(.fractionLength(1))
+                    ) : stats.percentile75.formatted(
+                        .number.grouping(.never).rounded()
+                            .precision(.fractionLength(0))
+                    ))
                     Text(units.rawValue)
                         .foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("Median:")
-                    Text(units == .mmolL ? stats.median.asMmolL.formatted(.number) : stats.median.formatted(.number))
+                    Text(units == .mmolL ? stats.median.asMmolL.formatted(
+                        .number.grouping(.never).rounded()
+                            .precision(.fractionLength(1))
+                    ) : stats.median.formatted(
+                        .number.grouping(.never).rounded()
+                            .precision(.fractionLength(0))
+                    ))
                     Text(units.rawValue)
                         .foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("25%:")
-                    Text(units == .mmolL ? stats.percentile25.asMmolL.formatted(.number) : stats.percentile25.formatted(.number))
+                    Text(units == .mmolL ? stats.percentile25.asMmolL.formatted(
+                        .number.grouping(.never).rounded()
+                            .precision(.fractionLength(1))
+                    ) : stats.percentile25.formatted(
+                        .number.grouping(.never).rounded()
+                            .precision(.fractionLength(0))
+                    ))
                     Text(units.rawValue)
                         .foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("10%:")
-                    Text(units == .mmolL ? stats.percentile10.asMmolL.formatted(.number) : stats.percentile10.formatted(.number))
+                    Text(units == .mmolL ? stats.percentile10.asMmolL.formatted(
+                        .number.grouping(.never).rounded()
+                            .precision(.fractionLength(1))
+                    ) : stats.percentile10.formatted(
+                        .number.grouping(.never).rounded()
+                            .precision(.fractionLength(0))
+                    ))
                     Text(units.rawValue)
                         .foregroundStyle(.secondary)
                 }

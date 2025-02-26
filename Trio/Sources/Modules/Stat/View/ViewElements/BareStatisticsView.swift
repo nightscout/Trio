@@ -57,7 +57,7 @@ struct BareStatisticsView {
                             + "%"
                     )
                     VStack(spacing: 5) {
-                        Text("ebA1c").font(.subheadline).foregroundColor(.secondary)
+                        Text("eA1c").font(.subheadline).foregroundColor(.secondary)
                         Text(eA1cString)
                     }
                     VStack(spacing: 5) {

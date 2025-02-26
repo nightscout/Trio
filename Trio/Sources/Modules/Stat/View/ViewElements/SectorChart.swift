@@ -31,7 +31,7 @@ struct SectorChart: View {
             // Count readings between low limit and 140 mg/dL (tight control)
             let tight = glucose.filter { $0.glucose >= Int(lowLimit) && $0.glucose <= 140 }.count
             // Count readings between 140 and high limit (normal range)
-            let normal = glucose.filter { $0.glucose > 140 && $0.glucose <= Int(highLimit) }.count
+            let normal = glucose.filter { $0.glucose >= Int(lowLimit) && $0.glucose <= Int(highLimit) }.count
             // Count readings between 54 and low limit (low)
             let low = glucose.filter { $0.glucose < Int(lowLimit) }.count
 
@@ -248,24 +248,55 @@ struct SectorChart: View {
             // Count readings between low limit and 140 mg/dL (tight control)
             let tight = glucose.filter { $0.glucose >= Int(lowLimit) && $0.glucose <= 140 }.count
             // Count readings between 140 and high limit (normal range)
-            let normal = glucose.filter { $0.glucose > 140 && $0.glucose <= Int(highLimit) }.count
+            let glucoseValues = glucose.filter { $0.glucose >= Int(lowLimit) && $0.glucose <= Int(highLimit) }
 
             // Format glucose values
             let lowLimitTreshold = units == .mmolL ? Decimal(Int(lowLimit)).asMmolL : lowLimit
             let highLimitTreshold = units == .mmolL ? Decimal(Int(highLimit)).asMmolL : highLimit
             let tightThresholdTreshold = units == .mmolL ? Decimal(140).asMmolL : 140
 
+            let glucoseValuesAsInt = glucoseValues.compactMap({ each in Int(each.glucose as Int16) })
+            let glucoseTotal = glucoseValuesAsInt.reduce(0, +)
+
+            let average = Decimal(glucoseTotal / glucoseValues.count)
+            let median = Decimal(BareStatisticsView.medianCalculation(array: glucoseValuesAsInt))
+
+            var sumOfSquares = 0.0
+            glucoseValuesAsInt.forEach { value in
+                sumOfSquares += pow(Double(value) - Double(average), 2)
+            }
+
+            var standardDeviation = 0.0
+
+            if average > 0 {
+                standardDeviation = sqrt(sumOfSquares / Double(glucoseValues.count))
+            }
+
             return RangeDetail(
                 title: "In Range",
                 color: .green,
                 items: [
                     (
-                        "Tight (\(lowLimitTreshold)-\(tightThresholdTreshold) \(units.rawValue))",
-                        formatPercentage(Decimal(tight) / total * 100)
+                        "Normal (\(lowLimitTreshold)-\(highLimitTreshold))",
+                        formatPercentage(Decimal(glucoseValues.count) / total * 100)
                     ),
                     (
-                        "Normal (\(tightThresholdTreshold)-\(highLimitTreshold) \(units.rawValue))",
-                        formatPercentage(Decimal(normal) / total * 100)
+                        "Tight (\(lowLimitTreshold)-\(tightThresholdTreshold))",
+                        formatPercentage(Decimal(tight) / total * 100)
+                    ),
+                    ("Avergage", units == .mgdL ? average.description : average.formattedAsMmolL),
+                    ("Median", units == .mgdL ? median.description : median.formattedAsMmolL),
+                    (
+                        "SD",
+                        units == .mgdL ? standardDeviation.formatted(
+                            .number.grouping(.never).rounded()
+                                .precision(.fractionLength(0))
+                        ) : standardDeviation.asMmolL.formatted(
+                            .number.grouping(.never).rounded()
+                                .precision(
+                                    .fractionLength(1)
+                                )
+                        )
                     )
                 ]
             )
@@ -279,17 +310,49 @@ struct SectorChart: View {
             let lowLimitTreshold = units == .mmolL ? Decimal(Int(lowLimit)).asMmolL : lowLimit
             let veryLowThresholdTreshold = units == .mmolL ? Decimal(54).asMmolL : 54
 
+            let lowGlucoseValues = glucose.filter { $0.glucose < Int(lowLimit) }
+            let lowGlucoseValuesAsInt = lowGlucoseValues.compactMap({ each in Int(each.glucose as Int16) })
+            let lowGlucoseTotal = lowGlucoseValuesAsInt.reduce(0, +)
+
+            let average = Decimal(lowGlucoseTotal / lowGlucoseValues.count)
+            let median = Decimal(BareStatisticsView.medianCalculation(array: lowGlucoseValuesAsInt))
+
+            var sumOfSquares = 0.0
+            lowGlucoseValuesAsInt.forEach { value in
+                sumOfSquares += pow(Double(value) - Double(average), 2)
+            }
+
+            var standardDeviation = 0.0
+
+            if average > 0 {
+                standardDeviation = sqrt(sumOfSquares / Double(lowGlucoseValues.count))
+            }
+
             return RangeDetail(
                 title: "Low Glucose",
                 color: .red,
                 items: [
                     (
-                        "Low (\(veryLowThresholdTreshold)-\(lowLimitTreshold) \(units.rawValue))",
+                        "Low (\(veryLowThresholdTreshold)-\(lowLimitTreshold))",
                         formatPercentage(Decimal(low) / total * 100)
                     ),
                     (
-                        "Very Low (<\(veryLowThresholdTreshold) \(units.rawValue))",
+                        "Very Low (<\(veryLowThresholdTreshold))",
                         formatPercentage(Decimal(veryLow) / total * 100)
+                    ),
+                    ("Avergage", units == .mgdL ? average.description : average.formattedAsMmolL),
+                    ("Median", units == .mgdL ? median.description : median.formattedAsMmolL),
+                    (
+                        "SD",
+                        units == .mgdL ? standardDeviation.formatted(
+                            .number.grouping(.never).rounded()
+                                .precision(.fractionLength(0))
+                        ) : standardDeviation.asMmolL.formatted(
+                            .number.grouping(.never).rounded()
+                                .precision(
+                                    .fractionLength(1)
+                                )
+                        )
                     )
                 ]
             )
