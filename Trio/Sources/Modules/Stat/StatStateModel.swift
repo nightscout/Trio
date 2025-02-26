@@ -46,6 +46,7 @@ extension Stat {
         var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
         var timeInRangeChartStyle: TimeInRangeChartStyle = .vertical
         var units: GlucoseUnits = .mgdL
+        var useFPUconversion: Bool = false
         var glucoseFromPersistence: [GlucoseStored] = []
         var loopStatRecords: [LoopStatRecord] = []
         var loopStats: [(category: String, count: Int, percentage: Double)] = []
@@ -174,6 +175,7 @@ extension Stat {
             units = settingsManager.settings.units
             eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
             timeInRangeChartStyle = settingsManager.settings.timeInRangeChartStyle
+            useFPUconversion = settingsManager.settings.useFPUconversion
         }
 
         func setupGlucoseArray(for duration: Duration) {

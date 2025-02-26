@@ -261,29 +261,31 @@ struct MealStatsView: View {
                         .font(.headline)
                         .foregroundStyle(.secondary)
                 }
-                GridRow {
-                    Text("Fat:")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Text(currentAverages.fat.formatted(.number.precision(.fractionLength(1))))
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                        .gridColumnAlignment(.trailing)
-                    Text("g")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                }
-                GridRow {
-                    Text("Protein:")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Text(currentAverages.protein.formatted(.number.precision(.fractionLength(1))))
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                        .gridColumnAlignment(.trailing)
-                    Text("g")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
+                if state.useFPUconversion {
+                    GridRow {
+                        Text("Fat:")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                        Text(currentAverages.fat.formatted(.number.precision(.fractionLength(1))))
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                            .gridColumnAlignment(.trailing)
+                        Text("g")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                    }
+                    GridRow {
+                        Text("Protein:")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                        Text(currentAverages.protein.formatted(.number.precision(.fractionLength(1))))
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                            .gridColumnAlignment(.trailing)
+                        Text("g")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
 
@@ -310,30 +312,32 @@ struct MealStatsView: View {
                         isSameTimeUnit(stat.date, date) ? 1 : 0.3
                     } ?? 1
                 )
-                // Fat Bar (middle)
-                BarMark(
-                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
-                    y: .value("Amount", stat.fat)
-                )
-                .foregroundStyle(by: .value("Type", "Fat"))
-                .position(by: .value("Type", "Macros"))
-                .opacity(
-                    selectedDate.map { date in
-                        isSameTimeUnit(stat.date, date) ? 1 : 0.3
-                    } ?? 1
-                )
-                // Protein Bar (top)
-                BarMark(
-                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
-                    y: .value("Amount", stat.protein)
-                )
-                .foregroundStyle(by: .value("Type", "Protein"))
-                .position(by: .value("Type", "Macros"))
-                .opacity(
-                    selectedDate.map { date in
-                        isSameTimeUnit(stat.date, date) ? 1 : 0.3
-                    } ?? 1
-                )
+                if state.useFPUconversion {
+                    // Fat Bar (middle)
+                    BarMark(
+                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                        y: .value("Amount", stat.fat)
+                    )
+                    .foregroundStyle(by: .value("Type", "Fat"))
+                    .position(by: .value("Type", "Macros"))
+                    .opacity(
+                        selectedDate.map { date in
+                            isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                        } ?? 1
+                    )
+                    // Protein Bar (top)
+                    BarMark(
+                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                        y: .value("Amount", stat.protein)
+                    )
+                    .foregroundStyle(by: .value("Type", "Protein"))
+                    .position(by: .value("Type", "Macros"))
+                    .opacity(
+                        selectedDate.map { date in
+                            isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                        } ?? 1
+                    )
+                }
             }
 
             // Selection popover outside of the ForEach loop!
@@ -349,15 +353,20 @@ struct MealStatsView: View {
                     spacing: 0,
                     overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
                 ) {
-                    MealSelectionPopover(date: selectedDate, meal: selectedMeal, selectedDuration: selectedDuration)
+                    MealSelectionPopover(
+                        date: selectedDate,
+                        meal: selectedMeal,
+                        selectedDuration: selectedDuration,
+                        isFpuEnabled: state.useFPUconversion
+                    )
                 }
             }
         }
-        .chartForegroundStyleScale([
+        .chartForegroundStyleScale(state.useFPUconversion ? [
             "Carbs": Color.orange,
             "Fat": Color.green,
             "Protein": Color.blue
-        ])
+        ] : ["Carbs": Color.orange])
         .chartLegend(position: .bottom, alignment: .leading, spacing: 12)
         .chartYAxis {
             AxisMarks(position: .trailing) { value in
@@ -433,6 +442,8 @@ private struct MealSelectionPopover: View {
     let meal: MealStats
     // The selected duration in the time picker
     let selectedDuration: Stat.StateModel.StatsTimeInterval
+    // Setting controlling whether to display fat and protein
+    let isFpuEnabled: Bool
 
     private var timeText: String {
         if selectedDuration == .Day {
@@ -459,19 +470,21 @@ private struct MealSelectionPopover: View {
                         .gridColumnAlignment(.trailing)
                     Text("g")
                 }
-                // Fat row
-                GridRow {
-                    Text("Fat:")
-                    Text(meal.fat.formatted(.number.precision(.fractionLength(1))))
-                        .gridColumnAlignment(.trailing)
-                    Text("g")
-                }
-                // Protein row
-                GridRow {
-                    Text("Protein:")
-                    Text(meal.protein.formatted(.number.precision(.fractionLength(1))))
-                        .gridColumnAlignment(.trailing)
-                    Text("g")
+                if isFpuEnabled {
+                    // Fat row
+                    GridRow {
+                        Text("Fat:")
+                        Text(meal.fat.formatted(.number.precision(.fractionLength(1))))
+                            .gridColumnAlignment(.trailing)
+                        Text("g")
+                    }
+                    // Protein row
+                    GridRow {
+                        Text("Protein:")
+                        Text(meal.protein.formatted(.number.precision(.fractionLength(1))))
+                            .gridColumnAlignment(.trailing)
+                        Text("g")
+                    }
                 }
             }
             .font(.headline.bold())
