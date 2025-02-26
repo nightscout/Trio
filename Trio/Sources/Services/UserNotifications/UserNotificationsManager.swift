@@ -107,7 +107,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
     private func registerHandlers() {
         // Due to the Batch insert this only is used for observing Deletion of Glucose entries
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.sendGlucoseNotification()
@@ -243,8 +243,8 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         )
     }
 
-    private func fetchGlucoseIDs() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchGlucoseIDs() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.predicateFor20MinAgo,
@@ -253,8 +253,10 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             fetchLimit: 3
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID)
         }
@@ -263,7 +265,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     @MainActor private func sendGlucoseNotification() async {
         do {
             addAppBadge(glucose: nil)
-            let glucoseIDs = await fetchGlucoseIDs()
+            let glucoseIDs = try await fetchGlucoseIDs()
             let glucoseObjects = try glucoseIDs.compactMap { id in
                 try viewContext.existingObject(with: id) as? GlucoseStored
             }

@@ -47,7 +47,10 @@ struct BolusProgressOverlay: View {
                     .tint(progressGradient)
 
                 Text(String(
-                    format: "%.2f U of %.2f U",
+                    format: String(
+                        localized: "%.2f U of %.2f U",
+                        comment: "Format for showing delivered and active bolus amounts, 'x U of y U' on watch"
+                    ),
                     state.deliveredAmount,
                     state.activeBolusAmount
                 ))

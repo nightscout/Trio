@@ -758,7 +758,7 @@ extension Home {
                 let bolusFraction = progress * (bolusTotal as Decimal)
                 let bolusString =
                     (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
-                        + " of " +
+                        + String(localized: " of ", comment: "Bolus string partial message: 'x U of y U' in home view") +
                         (Formatter.decimalFormatterWithTwoFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
                         + String(localized: " U", comment: "Insulin unit")
 
@@ -1099,7 +1099,7 @@ extension Home {
                 tabBar()
 
                 if state.waitForSuggestion {
-                    CustomProgressView(text: "Updating IOB...")
+                    CustomProgressView(text: String(localized: "Updating IOB...", comment: "Progress text when updating IOB"))
                 }
             }
         }

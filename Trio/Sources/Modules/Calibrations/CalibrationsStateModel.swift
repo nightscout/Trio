@@ -36,8 +36,8 @@ extension Calibrations {
         }
 
         /// - Returns: An array of NSManagedObjectIDs for glucose readings.
-        private func fetchGlucose() async -> [NSManagedObjectID] {
-            let results = await CoreDataStack.shared.fetchEntitiesAsync(
+        private func fetchGlucose() async throws -> [NSManagedObjectID] {
+            let results = try await CoreDataStack.shared.fetchEntitiesAsync(
                 ofType: GlucoseStored.self,
                 onContext: backgroundContext,
                 predicate: NSPredicate.predicateFor20MinAgo,
@@ -46,9 +46,9 @@ extension Calibrations {
                 fetchLimit: 1 /// We only need the last value
             )
 
-            return await backgroundContext.perform {
+            return try await backgroundContext.perform {
                 guard let glucoseResults = results as? [GlucoseStored] else {
-                    return []
+                    throw CoreDataError.fetchError(function: #function, file: #file)
                 }
 
                 return glucoseResults.map(\.objectID)
@@ -56,28 +56,32 @@ extension Calibrations {
         }
 
         @MainActor func addCalibration() async {
-            defer {
-                UIApplication.shared.endEditing()
-                setupCalibrations()
-            }
+            do {
+                defer {
+                    UIApplication.shared.endEditing()
+                    setupCalibrations()
+                }
 
-            var glucose = newCalibration
-            if units == .mmolL {
-                glucose = newCalibration.asMgdL
-            }
+                var glucose = newCalibration
+                if units == .mmolL {
+                    glucose = newCalibration.asMgdL
+                }
 
-            let glucoseValuesIds = await fetchGlucose()
-            let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared
-                .getNSManagedObject(with: glucoseValuesIds, context: viewContext)
+                let glucoseValuesIds = try await fetchGlucose()
+                let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared
+                    .getNSManagedObject(with: glucoseValuesIds, context: viewContext)
 
-            if let lastGlucose = glucoseObjects.first {
-                let unfiltered = lastGlucose.glucose
-                let calibration = Calibration(x: Double(unfiltered), y: Double(glucose))
+                if let lastGlucose = glucoseObjects.first {
+                    let unfiltered = lastGlucose.glucose
+                    let calibration = Calibration(x: Double(unfiltered), y: Double(glucose))
 
-                calibrationService.addCalibration(calibration)
-            } else {
-                info(.service, "Glucose is stale for calibration")
-                return
+                    calibrationService.addCalibration(calibration)
+                } else {
+                    info(.service, "Glucose is stale for calibration")
+                    return
+                }
+            } catch {
+                debug(.default, "\(DebuggingIdentifiers.failed) Failed to add calibration: \(error.localizedDescription)")
             }
         }
 

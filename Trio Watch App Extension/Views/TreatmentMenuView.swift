@@ -103,9 +103,9 @@ enum TreatmentOption: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .mealBolusCombo: return "Meal & Bolus"
-        case .meal: return "Meal"
-        case .bolus: return "Bolus"
+        case .mealBolusCombo: return String(localized: "Meal & Bolus", comment: "Watch App Treatment Option 'Meal & Bolus'")
+        case .meal: return String(localized: "Meal", comment: "Watch App Treatment Option 'Meal'")
+        case .bolus: return String(localized: "Bolus", comment: "Watch App Treatment Option 'Bolus'")
         }
     }
 }

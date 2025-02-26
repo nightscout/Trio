@@ -4,28 +4,34 @@ import Foundation
 extension Home.StateModel {
     func setupDeterminationsArray() {
         Task {
-            // Get the NSManagedObjectIDs
-            async let enactedObjectIds = determinationStorage
-                .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
-            async let enactedAndNonEnactedObjectIds = fetchCobAndIob()
+            do {
+                // Get the NSManagedObjectIDs
+                async let enactedObjectIds = determinationStorage
+                    .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDetermination)
+                async let enactedAndNonEnactedObjectIds = fetchCobAndIob()
 
-            let enactedIDs = await enactedObjectIds
-            let enactedAndNonEnactedIds = await enactedAndNonEnactedObjectIds
+                let enactedIDs = try await enactedObjectIds
+                let enactedAndNonEnactedIds = try await enactedAndNonEnactedObjectIds
 
-            // Get the NSManagedObjects and return them on the Main Thread
-            await updateDeterminationsArray(with: enactedIDs, keyPath: \.determinationsFromPersistence)
-            await updateDeterminationsArray(with: enactedAndNonEnactedIds, keyPath: \.enactedAndNonEnactedDeterminations)
+                // Get the NSManagedObjects and return them on the Main Thread
+                try await updateDeterminationsArray(with: enactedIDs, keyPath: \.determinationsFromPersistence)
+                try await updateDeterminationsArray(with: enactedAndNonEnactedIds, keyPath: \.enactedAndNonEnactedDeterminations)
 
-            await updateForecastData()
+                await updateForecastData()
+            } catch let error as CoreDataError {
+                debug(.default, "Core Data error in setupDeterminationsArray: \(error.localizedDescription)")
+            } catch {
+                debug(.default, "Unexpected error in setupDeterminationsArray: \(error.localizedDescription)")
+            }
         }
     }
 
     @MainActor private func updateDeterminationsArray(
         with IDs: [NSManagedObjectID],
         keyPath: ReferenceWritableKeyPath<Home.StateModel, [OrefDetermination]>
-    ) async {
+    ) async throws {
         // Fetch the objects off the main thread
-        let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
+        let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
             .getNSManagedObject(with: IDs, context: viewContext)
 
         // Update the array on the main thread
@@ -33,8 +39,8 @@ extension Home.StateModel {
     }
 
     // Custom fetch to more efficiently filter only for cob and iob
-    private func fetchCobAndIob() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchCobAndIob() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: determinationFetchContext,
             predicate: NSPredicate.determinationsForCobIobCharts,
@@ -44,9 +50,9 @@ extension Home.StateModel {
             propertiesToFetch: ["cob", "iob", "deliverAt", "objectID"]
         )
 
-        return await determinationFetchContext.perform {
+        return try await determinationFetchContext.perform {
             guard let fetchedResults = results as? [[String: Any]] else {
-                return []
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             // Update Chart Scales
