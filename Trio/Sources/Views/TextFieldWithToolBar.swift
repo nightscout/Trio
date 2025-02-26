@@ -185,6 +185,16 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
 }
 
 extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
+    public func textFieldDidEndEditing(_ textField: UITextField) {
+        if let text = textField.text,
+           let decimal = Decimal(string: text, locale: parent.numberFormatter.locale)
+        {
+            // Format the number properly when editing ends
+            textField.text = parent.numberFormatter.string(from: decimal as NSNumber)
+            parent.text = decimal
+        }
+    }
+
     public func textField(
         _ textField: UITextField,
         shouldChangeCharactersIn range: NSRange,
@@ -192,52 +202,57 @@ extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
     ) -> Bool {
         // Check if the input is a number or the decimal separator
         let isNumber = CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: string))
-        let isDecimalSeparator = (string == decimalFormatter.decimalSeparator && textField.text?.contains(string) == false)
 
-        // Only proceed if the input is a valid number or decimal separator
-        if isNumber || isDecimalSeparator && parent.allowDecimalSeparator,
-           let currentText = textField.text as NSString?
-        {
-            // Get the proposed new text
-            let proposedTextOriginal = currentText.replacingCharacters(in: range, with: string)
+        // Get the current locale's decimal separator
+        let currentDecimalSeparator = parent.numberFormatter.decimalSeparator ?? "."
 
-            // Remove thousand separator
-            let proposedText = proposedTextOriginal.replacingOccurrences(of: decimalFormatter.groupingSeparator, with: "")
+        // Check if input is a decimal separator (either . or ,)
+        let isInputDecimalSeparator = string == "." || string == ","
 
-            // Try to convert proposed text to number
-            let number = parent.numberFormatter.number(from: proposedText) ?? decimalFormatter.number(from: proposedText)
-
-            let decimalPlacesCurrent = calculateDecimalPlaces(in: currentText as String)
-            let maxDecimalPlaces = parent.numberFormatter.maximumFractionDigits
-            let isCursorAfterDecimal = isCursorAfterDecimal(in: textField, range: range)
-
-            if decimalPlacesCurrent >= maxDecimalPlaces,
-               range.length == 0,
-               isCursorAfterDecimal
-            {
+        // Only allow the decimal separator configured in the locale
+        if isInputDecimalSeparator {
+            // If it's not the correct decimal separator for this locale, reject it
+            if string != currentDecimalSeparator {
                 return false
             }
-
-            // Update the binding value if conversion is successful
-            if let number = number {
-                let lastCharIndex = proposedText.index(before: proposedText.endIndex)
-                let hasDecimalSeparator = proposedText.contains(decimalFormatter.decimalSeparator)
-                let hasTrailingZeros = (hasDecimalSeparator && proposedText[lastCharIndex] == "0") || isDecimalSeparator
-                if !hasTrailingZeros
-                {
-                    DispatchQueue.main.async {
-                        self.parent.text = number.decimalValue
-                    }
-                }
-            } else {
-                DispatchQueue.main.async {
-                    self.parent.text = 0
-                }
+            // Check if the field already contains a decimal separator
+            if textField.text?.contains(currentDecimalSeparator) == true {
+                return false
             }
         }
 
-        // Allow the change if it's a valid number or decimal separator
-        return isNumber || isDecimalSeparator && parent.allowDecimalSeparator
+        // Only proceed if the input is a valid number or the correct decimal separator
+        if isNumber || (string == currentDecimalSeparator && parent.allowDecimalSeparator),
+           let currentText = textField.text as NSString?
+        {
+            // Calculate the new text length
+            let newLength = currentText.length + string.count - range.length
+
+            // Check max length if specified
+            if let maxLength = parent.maxLength, newLength > maxLength {
+                return false
+            }
+
+            // Create the new text string
+            let newText = currentText.replacingCharacters(in: range, with: string)
+
+            // If text starts with decimal separator, add leading zero
+            if newText.hasPrefix(currentDecimalSeparator) {
+                textField.text = "0" + newText
+                parent.text = Decimal(string: textField.text ?? "0") ?? 0
+                return false
+            }
+
+            // Update the binding
+            if let decimal = Decimal(string: newText, locale: parent.numberFormatter.locale) {
+                parent.text = decimal
+            }
+
+            return true
+        }
+
+        // Allow the change if it's a valid number or the correct decimal separator
+        return isNumber || (string == currentDecimalSeparator && parent.allowDecimalSeparator)
     }
 
     public func textFieldDidBeginEditing(_: UITextField) {
