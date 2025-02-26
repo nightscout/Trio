@@ -48,13 +48,13 @@ struct SectorChart: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("70-180").font(.subheadline).foregroundStyle(Color.secondary)
+                    Text("\(formatValue(lowLimit))-\(formatValue(highLimit))").font(.subheadline).foregroundStyle(Color.secondary)
                     Text(inRangePercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + "%")
                         .foregroundStyle(Color.loopGreen)
                 }
 
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("70-140").font(.subheadline).foregroundStyle(Color.secondary)
+                    Text("\(formatValue(lowLimit))-\(formatValue(140))").font(.subheadline).foregroundStyle(Color.secondary)
                     Text(tightPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + "%")
                         .foregroundStyle(Color.green)
                 }
@@ -62,13 +62,13 @@ struct SectorChart: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("> 180").font(.subheadline).foregroundStyle(Color.secondary)
+                    Text("> \(formatValue(highLimit))").font(.subheadline).foregroundStyle(Color.secondary)
                     Text(highPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + "%")
                         .foregroundStyle(Color.orange)
                 }
 
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("< 54").font(.subheadline).foregroundStyle(Color.secondary)
+                    Text("< \(formatValue(lowLimit))").font(.subheadline).foregroundStyle(Color.secondary)
                     Text(lowPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + "%")
                         .foregroundStyle(Color.loopRed)
                 }
@@ -77,12 +77,20 @@ struct SectorChart: View {
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Average").font(.subheadline).foregroundStyle(Color.secondary)
-                    Text(glucoseAverage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))))
+                    Text(
+                        units == .mgdL ? glucoseAverage
+                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) : glucoseAverage.asMmolL
+                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
+                    )
                 }
 
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Median").font(.subheadline).foregroundStyle(Color.secondary)
-                    Text(medianGlucose.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))))
+                    Text(
+                        units == .mgdL ? medianGlucose
+                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) : medianGlucose.asMmolL
+                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
+                    )
                 }
             }
 
