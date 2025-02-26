@@ -1136,41 +1136,6 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-//    private func tddForStats() async -> (currentTDD: Decimal, tddTotalAverage: Decimal) {
-//        let requestTDD = TDDStored.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
-//        let sort = NSSortDescriptor(key: "timestamp", ascending: false)
-//        let daysOf14Ago = Date().addingTimeInterval(-14.days.timeInterval)
-//        requestTDD.predicate = NSPredicate(format: "date > %@", daysOf14Ago as NSDate)
-//        requestTDD.sortDescriptors = [sort]
-//        requestTDD.propertiesToFetch = ["date", "total"]
-//        requestTDD.resultType = .dictionaryResultType
-//
-//        var currentTDD: Decimal = 0
-//        var tddTotalAverage: Decimal = 0
-//
-//        let results = await privateContext.perform {
-//            do {
-//                let fetchedResults = try self.privateContext.fetch(requestTDD) as? [[String: Any]]
-//                return fetchedResults ?? []
-//            } catch {
-//                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to get TDD Data for Statistics Upload")
-//                return []
-//            }
-//        }
-//
-//        if !results.isEmpty {
-//            if let latestTDD = results.first?["total"] as? NSDecimalNumber {
-//                currentTDD = latestTDD.decimalValue
-//            }
-//            let tddArray = results.compactMap { ($0["total"] as? NSDecimalNumber)?.decimalValue }
-//            if !tddArray.isEmpty {
-//                tddTotalAverage = tddArray.reduce(0, +) / Decimal(tddArray.count)
-//            }
-//        }
-//
-//        return (currentTDD, tddTotalAverage)
-//    }
-
     private func glucoseForStats() async -> (
         oneDayGlucose: (ifcc: Double, ngsp: Double, average: Double, median: Double, sd: Double, cv: Double, readings: Double),
         hbA1cDisplayUnit: HbA1cDisplayUnit,

@@ -14,6 +14,9 @@
       location = "group:OmniBLE/OmniBLE.xcodeproj">
    </FileRef>
    <FileRef
+      location = "group:DanaKit/DanaKit.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:RileyLinkKit/RileyLinkKit.xcodeproj">
    </FileRef>
    <FileRef
