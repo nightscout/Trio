@@ -15,6 +15,7 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
     var textFieldDidBeginEditing: (() -> Void)?
     var numberFormatter: NumberFormatter
     var allowDecimalSeparator: Bool
+    var showArrows: Bool
     var previousTextField: (() -> Void)?
     var nextTextField: (() -> Void)?
 
@@ -33,7 +34,8 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         numberFormatter: NumberFormatter,
         allowDecimalSeparator: Bool = true,
         previousTextField: (() -> Void)? = nil,
-        nextTextField: (() -> Void)? = nil
+        nextTextField: (() -> Void)? = nil,
+        showArrows: Bool = false
     ) {
         _text = text
         self.placeholder = placeholder
@@ -51,6 +53,7 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         self.allowDecimalSeparator = allowDecimalSeparator
         self.previousTextField = previousTextField
         self.nextTextField = nextTextField
+        self.showArrows = showArrows
     }
 
     public func makeUIView(context: Context) -> UITextField {
@@ -68,36 +71,63 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         return textField
     }
 
-    private func makeDoneToolbar(for textField: UITextField, context: Context) -> UIToolbar {
-        let toolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 50))
-        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let doneButton = UIBarButtonItem(
-            image: UIImage(systemName: "keyboard.chevron.compact.down"),
-            style: .done,
-            target: textField,
-            action: #selector(UITextField.resignFirstResponder)
-        )
-        let clearButton = UIBarButtonItem(
-            image: UIImage(systemName: "trash"),
-            style: .plain,
-            target: context.coordinator,
-            action: #selector(Coordinator.clearText)
-        )
-        let previousButton = UIBarButtonItem(
-            image: UIImage(systemName: "chevron.up"),
-            style: .plain,
-            target: context.coordinator,
-            action: #selector(Coordinator.previousTextField)
-        )
-        let nextButton = UIBarButtonItem(
-            image: UIImage(systemName: "chevron.down"),
-            style: .plain,
-            target: context.coordinator,
-            action: #selector(Coordinator.nextTextField)
+    private func makeDoneToolbar(for _: UITextField, context: Context) -> UIToolbar {
+        let toolbar = UIToolbar()
+        var items: [UIBarButtonItem] = []
+
+        // Add navigation arrows if enabled
+        if showArrows {
+            if previousTextField != nil {
+                let previousButton = UIBarButtonItem(
+                    image: UIImage(systemName: "chevron.left"),
+                    style: .plain,
+                    target: context.coordinator,
+                    action: #selector(Coordinator.previousTextField)
+                )
+                items.append(previousButton)
+            }
+
+            if nextTextField != nil {
+                let nextButton = UIBarButtonItem(
+                    image: UIImage(systemName: "chevron.right"),
+                    style: .plain,
+                    target: context.coordinator,
+                    action: #selector(Coordinator.nextTextField)
+                )
+                items.append(nextButton)
+            }
+
+            // Add flexible space between arrows and other buttons
+            if !items.isEmpty {
+                items.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
+            }
+        }
+
+        // Add clear button
+        items.append(
+            UIBarButtonItem(
+                image: UIImage(systemName: "trash"),
+                style: .plain,
+                target: context.coordinator,
+                action: #selector(Coordinator.clearText)
+            )
         )
 
-        toolbar.items = [clearButton, previousButton, nextButton, flexibleSpace, doneButton]
+        // Add flexible space
+        items.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
+
+        // Add done button
+        items.append(
+            UIBarButtonItem(
+                barButtonSystemItem: .done,
+                target: UIApplication.shared,
+                action: #selector(UIApplication.endEditing)
+            )
+        )
+
+        toolbar.items = items
         toolbar.sizeToFit()
+
         return toolbar
     }
 
@@ -269,7 +299,7 @@ extension UITextField {
 }
 
 extension UIApplication {
-    func endEditing() {
+    @objc func endEditing() {
         sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
