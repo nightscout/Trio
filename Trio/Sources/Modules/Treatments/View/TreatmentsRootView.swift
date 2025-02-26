@@ -80,15 +80,16 @@ extension Treatments {
             HStack {
                 HStack {
                     Text("Protein")
-
                     TextFieldWithToolBar(
                         text: $state.protein,
                         placeholder: "0",
                         keyboardType: .numberPad,
                         numberFormatter: mealFormatter,
-                        previousTextField: { focusOnPreviousTextField(index: 2) },
-                        nextTextField: { focusOnNextTextField(index: 2) }
-                    ).focused($focusedField, equals: .protein)
+                        showArrows: true,
+                        previousTextField: { focusedField = previousField(from: .protein) },
+                        nextTextField: { focusedField = nextField(from: .protein) }
+                    )
+                    .focused($focusedField, equals: .protein)
                     Text("g").foregroundColor(.secondary)
                 }
 
@@ -101,9 +102,11 @@ extension Treatments {
                         placeholder: "0",
                         keyboardType: .numberPad,
                         numberFormatter: mealFormatter,
-                        previousTextField: { focusOnPreviousTextField(index: 3) },
-                        nextTextField: { focusOnNextTextField(index: 3) }
-                    ).focused($focusedField, equals: .fat)
+                        showArrows: true,
+                        previousTextField: { focusedField = previousField(from: .fat) },
+                        nextTextField: { focusedField = nextField(from: .fat) }
+                    )
+                    .focused($focusedField, equals: .fat)
                     Text("g").foregroundColor(.secondary)
                 }
             }
@@ -118,39 +121,46 @@ extension Treatments {
                     placeholder: "0",
                     keyboardType: .numberPad,
                     numberFormatter: mealFormatter,
-                    previousTextField: { focusOnPreviousTextField(index: 1) },
-                    nextTextField: { focusOnNextTextField(index: 1) }
-                ).focused($focusedField, equals: .carbs)
-                    .onChange(of: state.carbs) {
-                        handleDebouncedInput()
-                    }
+                    showArrows: true,
+                    previousTextField: { focusedField = previousField(from: .carbs) },
+                    nextTextField: { focusedField = nextField(from: .carbs) }
+                )
+                .focused($focusedField, equals: .carbs)
+                .onChange(of: state.carbs) {
+                    handleDebouncedInput()
+                }
                 Text("g").foregroundColor(.secondary)
             }
         }
 
-        func focusOnPreviousTextField(index: Int) {
-            switch index {
-            case 2:
-                focusedField = .carbs
-            case 3:
-                focusedField = .fat
-            case 4:
-                focusedField = .protein
-            default:
-                break
+        private func nextField(from current: FocusedField) -> FocusedField? {
+            // If fat/protein fields are hidden, skip them in navigation
+            let showFPU = state.useFPUconversion
+
+            switch current {
+            case .fat:
+                return .bolus
+            case .protein:
+                return .fat
+            case .carbs:
+                return showFPU ? .protein : .bolus
+            case .bolus:
+                return .carbs
             }
         }
 
-        func focusOnNextTextField(index: Int) {
-            switch index {
-            case 1:
-                focusedField = .fat
-            case 2:
-                focusedField = .protein
-            case 3:
-                focusedField = .bolus
-            default:
-                break
+        private func previousField(from current: FocusedField) -> FocusedField? {
+            let showFPU = state.useFPUconversion
+
+            switch current {
+            case .fat:
+                return .protein
+            case .protein:
+                return .carbs
+            case .carbs:
+                return .bolus
+            case .bolus:
+                return showFPU ? .fat : .carbs
             }
         }
 
@@ -287,8 +297,9 @@ extension Treatments {
                                     textColor: colorScheme == .dark ? .white : .blue,
                                     maxLength: 5,
                                     numberFormatter: formatter,
-                                    previousTextField: { focusOnPreviousTextField(index: 4) },
-                                    nextTextField: { focusOnNextTextField(index: 4) }
+                                    showArrows: true,
+                                    previousTextField: { focusedField = previousField(from: .bolus) },
+                                    nextTextField: { focusedField = nextField(from: .bolus) }
                                 ).focused($focusedField, equals: .bolus)
                                     .onChange(of: state.amount) {
                                         Task {

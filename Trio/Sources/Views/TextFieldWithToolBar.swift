@@ -33,9 +33,9 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         textFieldDidBeginEditing: (() -> Void)? = nil,
         numberFormatter: NumberFormatter,
         allowDecimalSeparator: Bool = true,
+        showArrows: Bool = false,
         previousTextField: (() -> Void)? = nil,
-        nextTextField: (() -> Void)? = nil,
-        showArrows: Bool = false
+        nextTextField: (() -> Void)? = nil
     ) {
         _text = text
         self.placeholder = placeholder
@@ -51,9 +51,9 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         self.numberFormatter = numberFormatter
         self.numberFormatter.numberStyle = .decimal
         self.allowDecimalSeparator = allowDecimalSeparator
+        self.showArrows = showArrows
         self.previousTextField = previousTextField
         self.nextTextField = nextTextField
-        self.showArrows = showArrows
     }
 
     public func makeUIView(context: Context) -> UITextField {
@@ -77,9 +77,19 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
 
         // Add navigation arrows if enabled
         if showArrows {
+            // Add clear button
+            items.append(
+                UIBarButtonItem(
+                    image: UIImage(systemName: "trash"),
+                    style: .plain,
+                    target: context.coordinator,
+                    action: #selector(Coordinator.clearText)
+                )
+            )
+
             if previousTextField != nil {
                 let previousButton = UIBarButtonItem(
-                    image: UIImage(systemName: "chevron.left"),
+                    image: UIImage(systemName: "chevron.up"),
                     style: .plain,
                     target: context.coordinator,
                     action: #selector(Coordinator.previousTextField)
@@ -89,29 +99,14 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
 
             if nextTextField != nil {
                 let nextButton = UIBarButtonItem(
-                    image: UIImage(systemName: "chevron.right"),
+                    image: UIImage(systemName: "chevron.down"),
                     style: .plain,
                     target: context.coordinator,
                     action: #selector(Coordinator.nextTextField)
                 )
                 items.append(nextButton)
             }
-
-            // Add flexible space between arrows and other buttons
-            if !items.isEmpty {
-                items.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
-            }
         }
-
-        // Add clear button
-        items.append(
-            UIBarButtonItem(
-                image: UIImage(systemName: "trash"),
-                style: .plain,
-                target: context.coordinator,
-                action: #selector(Coordinator.clearText)
-            )
-        )
 
         // Add flexible space
         items.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
