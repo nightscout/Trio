@@ -65,6 +65,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var deviceDataManager: DeviceDataManager!
     @Injected() private var nightscout: NightscoutManager!
     @Injected() private var settingsManager: SettingsManager!
+    @Injected() private var tddStorage: TDDStorage!
     @Injected() private var broadcaster: Broadcaster!
     @Persisted(key: "lastLoopStartDate") private var lastLoopStartDate: Date = .distantPast
     @Persisted(key: "lastLoopDate") var lastLoopDate: Date = .distantPast {
@@ -381,8 +382,31 @@ final class BaseAPSManager: APSManager, Injectable {
         return false
     }
 
+    /// Calculates and stores the Total Daily Dose (TDD)
+    private func calculateAndStoreTDD() async throws {
+        guard let pumpManager else { return }
+
+        async let pumpHistory = pumpHistoryStorage.getPumpHistory()
+        async let basalProfile = storage
+            .retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ??
+            [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile)) ??
+            [] // OpenAPS.defaults ensures we at least get default rate of 1u/hr for 24 hrs
+
+        // Calculate TDD
+        let tddResult = try await tddStorage.calculateTDD(
+            pumpManager: pumpManager,
+            pumpHistory: pumpHistory,
+            basalProfile: basalProfile
+        )
+
+        // Store TDD in Core Data
+        await tddStorage.storeTDD(tddResult)
+    }
+
     func determineBasal() async throws {
         debug(.apsManager, "Start determine basal")
+
+        try await calculateAndStoreTDD()
 
         // Fetch glucose asynchronously
         let glucose = try await fetchGlucose(predicate: NSPredicate.predicateForOneHourAgo, fetchLimit: 6)
