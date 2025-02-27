@@ -51,7 +51,6 @@ extension Stat {
         var loopStatRecords: [LoopStatRecord] = []
         var loopStats: [(category: String, count: Int, percentage: Double)] = []
         var groupedLoopStats: [LoopStatsByPeriod] = []
-        var tddStats: [TDD] = []
         var bolusStats: [BolusStats] = []
         var hourlyStats: [HourlyStats] = []
         var glucoseRangeStats: [GlucoseRangeStats] = []
