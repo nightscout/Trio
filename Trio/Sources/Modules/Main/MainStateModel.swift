@@ -216,7 +216,7 @@ extension Main {
                 case .info:
                     if let errorIndex = message.content.range(of: "error", options: .caseInsensitive) {
                         message.title = String(localized: "Error", comment: "Error title")
-                        if let errorIndex = message.content.range(of: "Pump error:", options: .caseInsensitive) {
+                        if let errorPumpIndex = message.content.range(of: "Pump error:", options: .caseInsensitive) {
                             message.type = .error
                         }
                     } else {
