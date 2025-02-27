@@ -315,7 +315,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
                 eventType: OverrideStored.EventType.nsExercise,
                 createdAt: recordDate,
                 enteredBy: NightscoutExercise.local,
-                notes: record.name ?? "🛠️ Anpassad Override",
+                notes: record.name ?? String(localized: "Custom Override"),
                 id: UUID(uuidString: record.id ?? UUID().uuidString)
             )
         }
