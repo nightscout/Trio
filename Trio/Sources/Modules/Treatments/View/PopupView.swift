@@ -95,10 +95,11 @@ struct PopupView: View {
 
                     DividerDouble()
 
-                    calcResultRow
-                    calcResultFormulaRow
-
-                    DividerCustom()
+                    if (state.factoredInsulin > 0) {
+                        calcResultRow
+                        calcResultFormulaRow
+                        DividerCustom()
+                    }
 
                     GridRow {
                         Text("Recommended Bolus")
