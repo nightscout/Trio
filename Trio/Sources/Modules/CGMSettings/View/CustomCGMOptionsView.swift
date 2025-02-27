@@ -91,9 +91,6 @@ extension CGMSettings {
                     /// LoopKit submodules set placement to .trailing; we'll keep it "proper" here
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Close") {
-                            if cgmCurrent.type == .simulator {
-                                saveSimulatorSettings()
-                            }
                             presentationMode.wrappedValue.dismiss()
                         }
                     }
@@ -236,6 +233,9 @@ extension CGMSettings {
                     }
                 }
                 .padding(.vertical, 4)
+                .onChange(of: produceStaleValues) { _, newValue in
+                    UserDefaults.standard.set(newValue, forKey: "GlucoseSimulator_ProduceStaleValues")
+                }
 
                 if !produceStaleValues {
                     VStack(alignment: .leading, spacing: 8) {
@@ -245,6 +245,9 @@ extension CGMSettings {
                             .foregroundColor(.secondary)
                         Slider(value: $centerValue, in: 80 ... 200, step: 1)
                             .accentColor(.accentColor)
+                            .onChange(of: centerValue) { _, newValue in
+                                UserDefaults.standard.set(newValue, forKey: "GlucoseSimulator_CenterValue")
+                            }
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
@@ -257,6 +260,9 @@ extension CGMSettings {
                             .foregroundColor(.secondary)
                         Slider(value: $amplitude, in: 10 ... 100, step: 5)
                             .accentColor(.accentColor)
+                            .onChange(of: amplitude) { _, newValue in
+                                UserDefaults.standard.set(newValue, forKey: "GlucoseSimulator_Amplitude")
+                            }
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
@@ -266,6 +272,9 @@ extension CGMSettings {
                             .foregroundColor(.secondary)
                         Slider(value: $period, in: 3600 ... 21600, step: 1800)
                             .accentColor(.accentColor)
+                            .onChange(of: period) { _, newValue in
+                                UserDefaults.standard.set(newValue, forKey: "GlucoseSimulator_Period")
+                            }
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
@@ -275,6 +284,9 @@ extension CGMSettings {
                             .foregroundColor(.secondary)
                         Slider(value: $noiseAmplitude, in: 0 ... 20, step: 1)
                             .accentColor(.accentColor)
+                            .onChange(of: noiseAmplitude) { _, newValue in
+                                UserDefaults.standard.set(newValue, forKey: "GlucoseSimulator_NoiseAmplitude")
+                            }
                     }
                 } else {
                     Text("When stale values are enabled, the simulator will repeatedly output the last generated glucose value.")
@@ -298,7 +310,7 @@ extension CGMSettings {
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 4)
-                
+
                 Text("Glucose trace WILL NOT be affected by any insulin or carb entries.")
                     .font(.caption)
                     .foregroundColor(.secondary)
