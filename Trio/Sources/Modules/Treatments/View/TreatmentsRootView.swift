@@ -379,48 +379,77 @@ extension Treatments {
             }
         }
 
-        @State private var showDangerousLowAlert = false
+        @State private var showConfirmDialogForBolusing = false
+
+        private var bolusWarning: String {
+            let isGlucoseVeryLow = state.currentBG < 54
+            let isMinPredBGVeryLow = state.minPredBG < 54
+
+            guard !state.externalInsulin,
+                  state.amount > 0,
+                  isGlucoseVeryLow || isMinPredBGVeryLow
+            else {
+                return ""
+            }
+
+            let warning = isGlucoseVeryLow
+                ? "Glucose is very low."
+                : "Glucose forecast is very low."
+
+            return warning
+        }
 
         var treatmentButton: some View {
             var treatmentButtonBackground = Color(.systemBlue)
-            if limitExceeded || (state.amount > 0 && state.currentBG <= 54) {
+            if limitExceeded {
                 treatmentButtonBackground = Color(.systemRed)
             } else if disableTaskButton {
                 treatmentButtonBackground = Color(.systemGray)
             }
 
-            return Button {
-                if state.currentBG <= 54 {
-                    showDangerousLowAlert = true
-                } else {
-                    state.invokeTreatmentsTask()
-                }
-            } label: {
-                HStack {
-                    if state.isBolusInProgress && state.amount > 0 &&
-                        !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
-                    {
-                        ProgressView()
+            return Section {
+                Button {
+                    if bolusWarning != "" {
+                        showConfirmDialogForBolusing = true
+                    } else {
+                        state.invokeTreatmentsTask()
                     }
-                    taskButtonLabel
+                } label: {
+                    HStack {
+                        if state.isBolusInProgress && state.amount > 0 &&
+                            !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
+                        {
+                            ProgressView()
+                        }
+                        taskButtonLabel
+                    }
+                    .font(.headline)
+                    .foregroundStyle(Color.white)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .frame(height: 35)
                 }
-                .font(.headline)
-                .foregroundStyle(Color.white)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .frame(height: 35)
-            }
-            .disabled(disableTaskButton)
-            .listRowBackground(treatmentButtonBackground)
-            .shadow(radius: 3)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .confirmationDialog(
-                "Glucose is very low! Give insulin?",
-                isPresented: $showDangerousLowAlert,
-                titleVisibility: .visible
-            ) {
-                Button("Cancel", role: .cancel) {}
-                Button("Ignore Warning and Enact Bolus", role: .destructive) {
-                    state.invokeTreatmentsTask()
+                .disabled(disableTaskButton)
+                .listRowBackground(treatmentButtonBackground)
+                .shadow(radius: 3)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .confirmationDialog(
+                    bolusWarning + " Bolus \(state.amount.description) U?",
+                    isPresented: $showConfirmDialogForBolusing,
+                    titleVisibility: .visible
+                ) {
+                    Button("Cancel", role: .cancel) {}
+                    Button("Ignore Warning and Enact Bolus", role: .destructive) {
+                        state.invokeTreatmentsTask()
+                    }
+                }
+            } header: {
+                if bolusWarning != "" {
+                    Text(bolusWarning)
+                        .textCase(nil)
+                        .font(.subheadline)
+                        .foregroundColor(Color.loopRed)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.top, -22)
                 }
             }
         }

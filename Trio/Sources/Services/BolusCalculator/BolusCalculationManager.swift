@@ -30,6 +30,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     private struct BolusCalculatorVariables {
         var insulinRequired: Decimal
         var evBG: Decimal
+        var minPredBG: Decimal
         var insulin: Decimal
         var target: Decimal
         var isf: Decimal
@@ -245,6 +246,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             return BolusCalculatorVariables(
                 insulinRequired: 0,
                 evBG: 0,
+                minPredBG: 0,
                 insulin: 0,
                 target: currentBGTarget,
                 isf: currentISF,
@@ -259,6 +261,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         return BolusCalculatorVariables(
             insulinRequired: (mostRecentDetermination.insulinReq ?? 0) as Decimal,
             evBG: (mostRecentDetermination.eventualBG ?? 0) as Decimal,
+            minPredBG: (mostRecentDetermination.minPredBGFromReason ?? 0) as Decimal,
             insulin: (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal,
             target: (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal,
             isf: (mostRecentDetermination.insulinSensitivity ?? NSDecimalNumber(decimal: currentISF)) as Decimal,
@@ -338,7 +341,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             fraction: settings.fraction,
             maxBolus: maxBolus,
             maxIOB: maxIOB,
-            maxCOB: maxCOB
+            maxCOB: maxCOB,
+            minPredBG: bolusVars.minPredBG
         )
     }
 
@@ -389,8 +393,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
 
         // the final result for recommended insulin amount
         var insulinCalculated: Decimal
-        // don't recommend insulin when glucose is < 54
-        if input.currentBG < 54 {
+        // don't recommend insulin when current glucose or minPredBG is < 54
+        if input.currentBG < 54 || input.minPredBG < 54 {
             insulinCalculated = 0
         } else {
             // no negative insulinCalculated
@@ -454,6 +458,7 @@ struct CalculationInput: Sendable {
     let maxBolus: Decimal // Maximum allowed bolus
     let maxIOB: Decimal // Maximum allowed IOB to be used for rec. bolus calculation
     let maxCOB: Decimal // Maximum allowed COB to be used for rec. bolus calculation
+    let minPredBG: Decimal // Minimum Predicted Glucose determined by Oref
 }
 
 /// Results of the bolus calculation

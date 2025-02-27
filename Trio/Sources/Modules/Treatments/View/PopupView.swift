@@ -95,7 +95,7 @@ struct PopupView: View {
 
                     DividerDouble()
 
-                    if (state.factoredInsulin > 0) {
+                    if state.factoredInsulin > 0 {
                         calcResultRow
                         calcResultFormulaRow
                         DividerCustom()
@@ -453,6 +453,8 @@ struct PopupView: View {
                     Text("No insulin recommended.")
                 } else if state.currentBG < 54 {
                     Text("Glucose is very low.")
+                } else if state.minPredBG < 54 {
+                    Text("Glucose forecast is very low.")
                 } else if state.maxBolus <= iobAvailable && state.factoredInsulin > state.maxBolus {
                     Text("Max Bolus = \(insulinFormatter(state.maxBolus)) U")
                 } else if state.factoredInsulin > iobAvailable {
