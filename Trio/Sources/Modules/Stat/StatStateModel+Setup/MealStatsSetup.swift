@@ -65,10 +65,8 @@ extension Stat.StateModel {
             let calendar = Calendar.current
 
             // Group entries by hour for hourly statistics
-            // TODO: - Introduce paging to also be able to show complete history
-
             let now = Date()
-            let twentyDaysAgo = Calendar.current.date(byAdding: .day, value: -10, to: now) ?? now
+            let twentyDaysAgo = Calendar.current.date(byAdding: .day, value: -20, to: now) ?? now
 
             let hourlyGrouped = Dictionary(grouping: fetchedResults.filter { entry in
                 guard let date = entry.date else { return false }

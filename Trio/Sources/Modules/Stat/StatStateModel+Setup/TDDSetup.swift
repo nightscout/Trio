@@ -54,15 +54,14 @@ extension Stat.StateModel {
 
             let calendar = Calendar.current
 
-            // Calculate date range for hourly statistics (last 10 days)
-            // TODO: - Introduce paging to also be able to show complete history
+            // Calculate date range for hourly statistics (last 20 days)
             let now = Date()
-            let tenDaysAgo = Calendar.current.date(byAdding: .day, value: -10, to: now) ?? now
+            let twentyDaysAgo = Calendar.current.date(byAdding: .day, value: -20, to: now) ?? now
 
             // Group entries by hour for hourly statistics, filtering for last 10 days only
             let hourlyGrouped = Dictionary(grouping: fetchedResults.filter { entry in
                 guard let date = entry.pumpEvent?.timestamp else { return false }
-                return date >= tenDaysAgo && date <= now
+                return date >= twentyDaysAgo && date <= now
             }) { entry in
                 // Create date components for hour-level grouping
                 let components = calendar.dateComponents(
