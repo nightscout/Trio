@@ -263,7 +263,7 @@ extension DynamicSettings {
                             Text(
                                 "Enabling Adjust Basal replaces the standard Autosens Ratio calculation with its own Autosens Ratio calculated as such:"
                             )
-                            Text("Autosens Ratio =\n(Weighted Average of TDD) ÷ (10-day Average of TDD)")
+                            Text("Autosens Ratio =\n(Weighted Average of TDD) / (10-day Average of TDD)")
                             Text("New Basal Profile =\n(Current Basal Profile) × (Autosens Ratio)")
                         }
                     )

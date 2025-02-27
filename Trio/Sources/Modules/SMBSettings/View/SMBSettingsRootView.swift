@@ -258,7 +258,7 @@ extension SMBSettings {
                             Text(
                                 "𝒳 = Max SMB Basal Minutes"
                             )
-                            Text("(𝒳 ÷ 60) × current basal rate")
+                            Text("(𝒳 / 60) × current basal rate")
                         }
 
                         VStack(alignment: .leading, spacing: 10) {
@@ -304,7 +304,7 @@ extension SMBSettings {
                             Text(
                                 "𝒳 = Max UAM SMB Basal Minutes"
                             )
-                            Text("(𝒳 ÷ 60) × current basal rate")
+                            Text("(𝒳 / 60) × current basal rate")
                         }
                         VStack(alignment: .leading, spacing: 10) {
                             Text(

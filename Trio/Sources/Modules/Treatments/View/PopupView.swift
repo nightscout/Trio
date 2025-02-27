@@ -199,7 +199,7 @@ struct PopupView: View {
 
             let targetDifference = state.units == .mmolL ? state.targetDifference.formattedAsMmolL : state.targetDifference
                 .description
-            let secondRow = targetDifference + " ÷ " +
+            let secondRow = targetDifference + " / " +
                 (state.units == .mmolL ? state.isf.formattedAsMmolL : state.isf.description)
                 .description + " ≈ " + self.insulinFormatter(state.targetDifferenceInsulin)
 
@@ -213,7 +213,7 @@ struct PopupView: View {
         GridRow(alignment: .top) {
             Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
 
-            Text("(Current - Target) ÷ ISF").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+            Text("(Current - Target) / ISF").foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
                 .gridColumnAlignment(.leading)
                 .gridCellColumns(2)
         }
@@ -247,7 +247,7 @@ struct PopupView: View {
             Text(
                 state.wholeCob
                     .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
-                    + " ÷ " +
+                    + " / " +
                     state.carbRatio.formatted()
                     + " ≈ " +
                     self.insulinFormatter(state.wholeCobInsulin)
@@ -288,7 +288,7 @@ struct PopupView: View {
             let fifteenMinInsulinFormatted = self.insulinFormatter(state.fifteenMinInsulin)
 
             Text(
-                deltaBG + " ÷ " + isf + " ≈ " + fifteenMinInsulinFormatted
+                deltaBG + " / " + isf + " ≈ " + fifteenMinInsulinFormatted
             )
             .foregroundColor(.secondary)
             .gridColumnAlignment(.leading)
@@ -310,7 +310,7 @@ struct PopupView: View {
                     state.units.rawValue
             )
 
-            Text("15 min Delta ÷ ISF").font(.caption).foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
+            Text("15 min Delta / ISF").font(.caption).foregroundColor(.secondary.opacity(colorScheme == .dark ? 0.65 : 0.8))
                 .gridColumnAlignment(.leading)
                 .gridCellColumns(2).padding(.top, 5)
         }
