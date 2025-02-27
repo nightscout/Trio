@@ -1,191 +1,47 @@
 import Charts
 import SwiftUI
 
+/// A view that displays a bar chart for Total Daily Dose (TDD) statistics.
+///
+/// This view presents insulin usage over time, with the ability to adjust the time interval
+/// and scroll through historical data.
 struct TDDChartView: View {
+    /// The selected time interval for displaying statistics.
     @Binding var selectedDuration: Stat.StateModel.StatsTimeInterval
+    /// The list of TDD statistics data.
     let tddStats: [TDDStats]
+    /// The state model containing cached statistics data.
     let state: Stat.StateModel
 
+    /// The current scroll position in the chart.
     @State private var scrollPosition = Date()
+    /// The currently selected date in the chart.
     @State private var selectedDate: Date?
+    /// The calculated average TDD for the visible range.
     @State private var currentAverage: Double = 0
+    /// Timer to throttle updates when scrolling.
     @State private var updateTimer = Stat.UpdateTimer()
 
-    private var visibleDomainLength: TimeInterval {
-        switch selectedDuration {
-        case .Day: return 24 * 3600
-        case .Week: return 7 * 24 * 3600
-        case .Month: return 30 * 24 * 3600
-        case .Total: return 90 * 24 * 3600
-        }
-    }
-
+    /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
-        let start = scrollPosition
-        let end = start.addingTimeInterval(visibleDomainLength)
-        return (start, end)
+        StatsHelper.visibleDateRange(from: scrollPosition, for: selectedDuration)
     }
 
-    private var dateFormat: Date.FormatStyle {
-        switch selectedDuration {
-        case .Day:
-            return .dateTime.hour()
-        case .Week:
-            return .dateTime.weekday(.abbreviated)
-        case .Month:
-            return .dateTime.day()
-        case .Total:
-            return .dateTime.month(.abbreviated)
-        }
-    }
-
-    private var alignmentComponents: DateComponents {
-        switch selectedDuration {
-        case .Day:
-            return DateComponents(hour: 0)
-        case .Week:
-            return DateComponents(weekday: 2)
-        case .Month,
-             .Total:
-            return DateComponents(day: 1)
-        }
-    }
-
+    /// Retrieves the TDD statistic for a given date.
+    /// - Parameter date: The date for which to retrieve TDD data.
+    /// - Returns: The `TDDStats` object if available, otherwise `nil`.
     private func getTDDForDate(_ date: Date) -> TDDStats? {
-        let calendar = Calendar.current
-
-        return tddStats.first { stat in
-            switch selectedDuration {
-            case .Day:
-                return calendar.isDate(stat.date, equalTo: date, toGranularity: .hour)
-            default:
-                return calendar.isDate(stat.date, inSameDayAs: date)
-            }
+        tddStats.first { stat in
+            StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration)
         }
     }
 
+    /// Updates the average TDD value based on the visible date range.
     private func updateAverages() {
         currentAverage = state.getCachedTDDAverages(for: visibleDateRange)
     }
 
-    /// Formats the visible date range into a human-readable string
-    private func formatVisibleDateRange() -> String {
-        let start = visibleDateRange.start
-        let end = visibleDateRange.end
-        let calendar = Calendar.current
-        let today = Date()
-
-        // Special handling for Day view with relative dates
-        if selectedDuration == .Day {
-            let startDateText: String
-            let endDateText: String
-            let timeFormat = start.formatted(.dateTime.hour().minute())
-
-            // Format start date
-            if calendar.isDate(start, inSameDayAs: today) {
-                startDateText = "Today"
-            } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-                startDateText = "Yesterday"
-            } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-                startDateText = "Tomorrow"
-            } else {
-                startDateText = start.formatted(.dateTime.day().month())
-            }
-
-            // Format end date
-            if calendar.isDate(end, inSameDayAs: today) {
-                endDateText = "Today"
-            } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-                endDateText = "Yesterday"
-            } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-                endDateText = "Tomorrow"
-            } else {
-                endDateText = end.formatted(.dateTime.day().month())
-            }
-
-            // If start and end are on the same day, show date only once
-            if calendar.isDate(start, inSameDayAs: end) {
-                return "\(startDateText), \(timeFormat) - \(end.formatted(.dateTime.hour().minute()))"
-            }
-
-            return "\(startDateText), \(timeFormat) - \(endDateText), \(end.formatted(.dateTime.hour().minute()))"
-        }
-
-        // Standard format for other views - only show dates without time
-        let startText: String
-        let endText: String
-
-        // Check for relative dates
-        if calendar.isDate(start, inSameDayAs: today) {
-            startText = "Today"
-        } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-            startText = "Yesterday"
-        } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-            startText = "Tomorrow"
-        } else {
-            startText = start.formatted(.dateTime.day().month())
-        }
-
-        if calendar.isDate(end, inSameDayAs: today) {
-            endText = "Today"
-        } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-            endText = "Yesterday"
-        } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-            endText = "Tomorrow"
-        } else {
-            endText = end.formatted(.dateTime.day().month())
-        }
-
-        return "\(startText) - \(endText)"
-    }
-
-    private func getInitialScrollPosition() -> Date {
-        let calendar = Calendar.current
-        let now = Date()
-
-        switch selectedDuration {
-        case .Day:
-            return calendar.date(byAdding: .day, value: -1, to: now)!
-        case .Week:
-            return calendar.date(byAdding: .day, value: -7, to: now)!
-        case .Month:
-            return calendar.date(byAdding: .month, value: -1, to: now)!
-        case .Total:
-            return calendar.date(byAdding: .month, value: -3, to: now)!
-        }
-    }
-
-    private func isSameTimeUnit(_ date1: Date, _ date2: Date) -> Bool {
-        switch selectedDuration {
-        case .Day:
-            return Calendar.current.isDate(date1, equalTo: date2, toGranularity: .hour)
-        default:
-            return Calendar.current.isDate(date1, inSameDayAs: date2)
-        }
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            statsView
-            chartsView
-        }
-        .onAppear {
-            scrollPosition = getInitialScrollPosition()
-            updateAverages()
-        }
-        .onChange(of: scrollPosition) {
-            updateTimer.scheduleUpdate {
-                updateAverages()
-            }
-        }
-        .onChange(of: selectedDuration) {
-            Task {
-                scrollPosition = getInitialScrollPosition()
-                updateAverages()
-            }
-        }
-    }
-
+    /// A view displaying the statistics summary including average TDD.
     private var statsView: some View {
         HStack {
             Text("Average:")
@@ -200,12 +56,38 @@ struct TDDChartView: View {
 
             Spacer()
 
-            Text(formatVisibleDateRange())
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+            Text(
+                StatsHelper
+                    .formatVisibleDateRange(from: visibleDateRange.start, to: visibleDateRange.end, for: selectedDuration)
+            )
+            .font(.footnote)
+            .foregroundStyle(.secondary)
         }
     }
 
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            statsView
+            chartsView
+        }
+        .onAppear {
+            scrollPosition = StatsHelper.getInitialScrollPosition(for: selectedDuration)
+            updateAverages()
+        }
+        .onChange(of: scrollPosition) {
+            updateTimer.scheduleUpdate {
+                updateAverages()
+            }
+        }
+        .onChange(of: selectedDuration) {
+            Task {
+                scrollPosition = StatsHelper.getInitialScrollPosition(for: selectedDuration)
+                updateAverages()
+            }
+        }
+    }
+
+    /// A view displaying the bar chart for TDD statistics.
     private var chartsView: some View {
         Chart {
             ForEach(tddStats) { stat in
@@ -216,7 +98,7 @@ struct TDDChartView: View {
                 .foregroundStyle(Color.insulin)
                 .opacity(
                     selectedDate.map { date in
-                        isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                        StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
                     } ?? 1
                 )
             }
@@ -258,24 +140,24 @@ struct TDDChartView: View {
                     switch selectedDuration {
                     case .Day:
                         if hour % 6 == 0 {
-                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .Month:
                         if day % 5 == 0 {
-                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .Total:
                         if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
-                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     default:
-                        AxisValueLabel(format: dateFormat, centered: true)
+                        AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
                             .font(.footnote)
                         AxisGridLine()
                     }
@@ -290,14 +172,21 @@ struct TDDChartView: View {
                 matching: selectedDuration == .Day ?
                     DateComponents(minute: 0) :
                     DateComponents(hour: 0),
-                majorAlignment: .matching(alignmentComponents)
+                majorAlignment: .matching(StatsHelper.alignmentComponents(for: selectedDuration))
             )
         )
-        .chartXVisibleDomain(length: visibleDomainLength)
+        .chartXVisibleDomain(length: StatsHelper.visibleDomainLength(for: selectedDuration))
         .frame(height: 250)
     }
 }
 
+/// A popover view displaying TDD (Total Daily Dose) for a given time period.
+/// Shows the insulin amount in units (U) for an hourly or daily interval, depending on `selectedDuration`.
+///
+/// - Parameters:
+///   - date: The reference date for determining the displayed time range.
+///   - tdd: The TDDStats containing insulin usage data.
+///   - selectedDuration: The selected time interval (hourly or daily).
 private struct TDDSelectionPopover: View {
     let date: Date
     let tdd: TDDStats

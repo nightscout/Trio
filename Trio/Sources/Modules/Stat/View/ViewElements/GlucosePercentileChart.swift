@@ -1,20 +1,32 @@
 import Charts
 import SwiftUI
 
+/// A view that displays an Ambulatory Glucose Profile (AGP) chart.
+///
+/// This chart visualizes glucose percentile statistics over a 24-hour period.
+/// It includes the 10-90 percentile, 25-75 percentile, median glucose values,
+/// and high/low glucose limits.
 struct GlucosePercentileChart: View {
+    /// The list of stored glucose values.
     let glucose: [GlucoseStored]
+    /// The upper glucose limit for the chart.
     let highLimit: Decimal
+    /// The lower glucose limit for the chart.
     let lowLimit: Decimal
+    /// The units used for glucose measurement (mg/dL or mmol/L).
     let units: GlucoseUnits
+    /// The hourly glucose statistics.
     let hourlyStats: [HourlyStats]
+    /// Flag indicating whether the chart represents today's data.
     let isToday: Bool
 
+    /// The currently selected hour in the chart.
     @State private var selection: Date? = nil
 
+    /// Retrieves the hourly statistics for the selected time.
     private var selectedStats: HourlyStats? {
         guard let selection = selection else { return nil }
 
-        // Don't show stats for future times if viewing today
         if isToday && selection > Date() {
             return nil
         }
@@ -123,66 +135,36 @@ struct GlucosePercentileChart: View {
         }
     }
 
+    /// A view displaying the legend for the chart.
     private var legend: some View {
         HStack(spacing: 20) {
             VStack {
-                // 10-90 Percentile
-                HStack(spacing: 8) {
-                    Rectangle()
-                        .frame(width: 20, height: 8)
-                        .foregroundStyle(.blue.opacity(0.2))
-                    Text("10% - 90%")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                // 25-75 Percentile
-                HStack(spacing: 8) {
-                    Rectangle()
-                        .frame(width: 20, height: 8)
-                        .foregroundStyle(.blue.opacity(0.3))
-                    Text("25% - 75%")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                legendItem(color: .blue.opacity(0.2), text: "10% - 90%")
+                legendItem(color: .blue.opacity(0.3), text: "25% - 75%")
             }
-
-            // Median
-            HStack(spacing: 8) {
-                Rectangle()
-                    .frame(width: 20, height: 2)
-                    .foregroundStyle(.blue)
-                Text("Median")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
+            legendItem(color: .blue, text: "Median")
             VStack {
-                // High Limit
-                HStack(spacing: 8) {
-                    Rectangle()
-                        .frame(width: 20, height: 1)
-                        .foregroundStyle(.orange)
-                    Text("High Limit")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                // Low Limit
-                HStack(spacing: 8) {
-                    Rectangle()
-                        .frame(width: 20, height: 1)
-                        .foregroundStyle(.red)
-                    Text("Low Limit")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                legendItem(color: .orange, text: "High Limit")
+                legendItem(color: .red, text: "Low Limit")
             }
         }
         .padding(.horizontal)
     }
+
+    /// Creates a legend item with a given color and text.
+    private func legendItem(color: Color, text: String) -> some View {
+        HStack(spacing: 8) {
+            Rectangle()
+                .frame(width: 20, height: 8)
+                .foregroundStyle(color)
+            Text(text)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
 }
 
+/// A popover view displaying detailed glucose statistics for a selected time.
 struct AGPSelectionPopover: View {
     let stats: HourlyStats
     let time: Date
@@ -198,75 +180,43 @@ struct AGPSelectionPopover: View {
         }
     }
 
+    /// A helper function to format glucose values based on the selected unit.
+    private func formattedGlucoseValue(_ value: Double) -> String {
+        units == .mmolL ? value.formattedAsMmolL :
+            value.formatted()
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Image(systemName: "clock")
-                Text(timeText)
-                    .bold()
-                    .foregroundStyle(.secondary)
-            }
-            .font(.subheadline)
-            .padding(.bottom, 4)
+            Text(timeText).bold().font(.subheadline)
 
             Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 4) {
                 GridRow {
+                    Text("Median:").bold()
+                    Text(formattedGlucoseValue(stats.median))
+                    Text(units.rawValue).foregroundStyle(.secondary)
+                }
+                GridRow {
                     Text("90%:").bold()
-                    Text(units == .mmolL ? stats.percentile90.asMmolL.formatted(
-                        .number.grouping(.never).rounded()
-                            .precision(.fractionLength(1))
-                    ) : stats.percentile90.formatted(
-                        .number.grouping(.never).rounded()
-                            .precision(.fractionLength(0))
-                    ))
+                    Text(formattedGlucoseValue(stats.percentile90))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("75%:").bold()
-                    Text(units == .mmolL ? stats.percentile75.asMmolL.formatted(
-                        .number.grouping(.never).rounded()
-                            .precision(.fractionLength(1))
-                    ) : stats.percentile75.formatted(
-                        .number.grouping(.never).rounded()
-                            .precision(.fractionLength(0))
-                    ))
-                    Text(units.rawValue).foregroundStyle(.secondary)
-                }
-                GridRow {
-                    Text("Median:").bold()
-                    Text(units == .mmolL ? stats.median.asMmolL.formatted(
-                        .number.grouping(.never).rounded()
-                            .precision(.fractionLength(1))
-                    ) : stats.median.formatted(
-                        .number.grouping(.never).rounded()
-                            .precision(.fractionLength(0))
-                    ))
+                    Text(formattedGlucoseValue(stats.percentile75))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("25%:").bold()
-                    Text(units == .mmolL ? stats.percentile25.asMmolL.formatted(
-                        .number.grouping(.never).rounded()
-                            .precision(.fractionLength(1))
-                    ) : stats.percentile25.formatted(
-                        .number.grouping(.never).rounded()
-                            .precision(.fractionLength(0))
-                    ))
+                    Text(formattedGlucoseValue(stats.percentile25))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
                 GridRow {
                     Text("10%:").bold()
-                    Text(units == .mmolL ? stats.percentile10.asMmolL.formatted(
-                        .number.grouping(.never).rounded()
-                            .precision(.fractionLength(1))
-                    ) : stats.percentile10.formatted(
-                        .number.grouping(.never).rounded()
-                            .precision(.fractionLength(0))
-                    ))
+                    Text(formattedGlucoseValue(stats.percentile10))
                     Text(units.rawValue).foregroundStyle(.secondary)
                 }
-            }
-            .font(.headline)
+            }.font(.headline)
         }
         .padding(20)
         .background {

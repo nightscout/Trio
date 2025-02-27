@@ -1,225 +1,78 @@
 import Charts
 import SwiftUI
 
+/// A view that displays a bar chart for meal statistics.
+///
+/// This view presents macronutrient intake (carbohydrates, fats, and proteins) over time,
+/// allowing users to adjust the time interval and scroll through historical data.
 struct MealStatsView: View {
+    /// The selected time interval for displaying statistics.
     @Binding var selectedDuration: Stat.StateModel.StatsTimeInterval
+    /// The list of meal statistics data.
     let mealStats: [MealStats]
+    /// The state model containing cached statistics data.
     let state: Stat.StateModel
 
-    @State private var scrollPosition = Date() // gets updated in onAppear block
+    /// The current scroll position in the chart.
+    @State private var scrollPosition = Date()
+    /// The currently selected date in the chart.
     @State private var selectedDate: Date?
+    /// The calculated macronutrient averages for the visible range.
     @State private var currentAverages: (carbs: Double, fat: Double, protein: Double) = (0, 0, 0)
+    /// Timer to throttle updates when scrolling.
     @State private var updateTimer = Stat.UpdateTimer()
 
-    /// Returns the time interval length for the visible domain based on selected duration
-    /// - Returns: TimeInterval representing the visible time range in seconds
-    ///
-    /// Time intervals:
-    /// - Day: 24 hours (86400 seconds)
-    /// - Week: 7 days (604800 seconds)
-    /// - Month: 30 days (2592000 seconds)
-    /// - Total: 90 days (7776000 seconds)
-    private var visibleDomainLength: TimeInterval {
-        switch selectedDuration {
-        case .Day: return 24 * 3600 // One day in seconds
-        case .Week: return 7 * 24 * 3600 // One week in seconds
-        case .Month: return 30 * 24 * 3600 // One month in seconds (approximated)
-        case .Total: return 90 * 24 * 3600 // Three months in seconds
-        }
-    }
-
-    /// Calculates the visible date range based on scroll position and domain length
-    /// - Returns: Tuple containing start and end dates of the visible range
-    ///
-    /// The start date is determined by the current scroll position, while the end date
-    /// is calculated by adding the visible domain length to the start date
+    /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
-        let start = scrollPosition // Current scroll position marks the start
-        let end = start.addingTimeInterval(visibleDomainLength)
-        return (start, end)
+        StatsHelper.visibleDateRange(from: scrollPosition, for: selectedDuration)
     }
 
-    /// Returns the appropriate date format style based on the selected time interval
-    /// - Returns: A Date.FormatStyle configured for the current time interval
-    ///
-    /// Format styles:
-    /// - Day: Shows hour only (e.g. "13")
-    /// - Week: Shows abbreviated weekday (e.g. "Mon")
-    /// - Month: Shows day of month (e.g. "15")
-    /// - Total: Shows abbreviated month (e.g. "Jan")
-    private var dateFormat: Date.FormatStyle {
-        switch selectedDuration {
-        case .Day:
-            return .dateTime.hour()
-        case .Week:
-            return .dateTime.weekday(.abbreviated)
-        case .Month:
-            return .dateTime.day()
-        case .Total:
-            return .dateTime.month(.abbreviated)
-        }
-    }
-
-    /// Returns DateComponents for aligning dates based on the selected duration
-    /// - Returns: DateComponents configured for the appropriate alignment
-    ///
-    /// This property provides date components for aligning dates in the chart:
-    /// - For Day view: Aligns to start of day (midnight)
-    /// - For Week view: Aligns to Monday (weekday 2)
-    /// - For Month/Total view: Aligns to first day of month
-    private var alignmentComponents: DateComponents {
-        switch selectedDuration {
-        case .Day:
-            return DateComponents(hour: 0) // Align to midnight
-        case .Week:
-            return DateComponents(weekday: 2) // Monday is weekday 2 in Calendar
-        case .Month,
-             .Total:
-            return DateComponents(day: 1) // First day of month
-        }
-    }
-
-    /// Returns meal statistics for a specific date
-    /// - Parameter date: The date to find meal statistics for
-    /// - Returns: MealStats object if found for the given date, nil otherwise
-    ///
-    /// This function searches through the meal statistics array to find the first entry
-    /// that matches the provided date (comparing only the day component, not time).
+    /// Retrieves the meal statistic for a given date.
+    /// - Parameter date: The date for which to retrieve meal data.
+    /// - Returns: The `MealStats` object if available, otherwise `nil`.
     private func getMealForDate(_ date: Date) -> MealStats? {
-        let calendar = Calendar.current
-
-        return mealStats.first { stat in
-            switch selectedDuration {
-            case .Day:
-                return calendar.isDate(stat.date, equalTo: date, toGranularity: .hour)
-            default:
-                return calendar.isDate(stat.date, inSameDayAs: date)
-            }
+        mealStats.first { stat in
+            StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration)
         }
     }
 
-    /// Updates the current averages for macronutrients based on the visible date range
-    ///
-    /// This function:
-    /// - Gets the cached meal averages for the currently visible date range from the state
-    /// - Updates the currentAverages property with the retrieved values (carbs, fat, protein)
+    /// Updates the macronutrient averages based on the visible date range.
     private func updateAverages() {
-        // Get cached averages for visible time window
         currentAverages = state.getCachedMealAverages(for: visibleDateRange)
     }
 
-    /// Formats the visible date range into a human-readable string
-    /// - Returns: A formatted string representing the visible date range
-    ///
-    /// For Day view:
-    /// - Uses relative terms like "Today", "Yesterday", "Tomorrow" when applicable
-    /// - Shows time range in hours and minutes
-    /// - Combines dates if start and end are on the same day
-    ///
-    /// For other views:
-    /// - Uses standard date formatting
-    private func formatVisibleDateRange() -> String {
-        let start = visibleDateRange.start
-        let end = visibleDateRange.end
-        let calendar = Calendar.current
-        let today = Date()
-
-        // Special handling for Day view with relative dates
-        if selectedDuration == .Day {
-            let startDateText: String
-            let endDateText: String
-            let timeFormat = start.formatted(.dateTime.hour().minute())
-
-            // Format start date
-            if calendar.isDate(start, inSameDayAs: today) {
-                startDateText = "Today"
-            } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-                startDateText = "Yesterday"
-            } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-                startDateText = "Tomorrow"
-            } else {
-                startDateText = start.formatted(.dateTime.day().month())
+    /// A view displaying the statistics summary including macronutrient averages.
+    private var statsView: some View {
+        HStack {
+            Grid(alignment: .leading) {
+                GridRow {
+                    Text("Carbs:")
+                    Text(currentAverages.carbs.formatted(.number.precision(.fractionLength(1))))
+                    Text("g")
+                }
+                if state.useFPUconversion {
+                    GridRow {
+                        Text("Fat:")
+                        Text(currentAverages.fat.formatted(.number.precision(.fractionLength(1))))
+                        Text("g")
+                    }
+                    GridRow {
+                        Text("Protein:")
+                        Text(currentAverages.protein.formatted(.number.precision(.fractionLength(1))))
+                        Text("g")
+                    }
+                }
             }
+            .font(.headline)
 
-            // Format end date
-            if calendar.isDate(end, inSameDayAs: today) {
-                endDateText = "Today"
-            } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-                endDateText = "Yesterday"
-            } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-                endDateText = "Tomorrow"
-            } else {
-                endDateText = end.formatted(.dateTime.day().month())
-            }
+            Spacer()
 
-            // If start and end are on the same day, show date only once
-            if calendar.isDate(start, inSameDayAs: end) {
-                return "\(startDateText), \(timeFormat) - \(end.formatted(.dateTime.hour().minute()))"
-            }
-
-            return "\(startDateText), \(timeFormat) - \(endDateText), \(end.formatted(.dateTime.hour().minute()))"
-        }
-
-        // Standard format for other views - only show dates without time
-        let startText: String
-        let endText: String
-
-        // Check for relative dates
-        if calendar.isDate(start, inSameDayAs: today) {
-            startText = "Today"
-        } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-            startText = "Yesterday"
-        } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-            startText = "Tomorrow"
-        } else {
-            startText = start.formatted(.dateTime.day().month())
-        }
-
-        if calendar.isDate(end, inSameDayAs: today) {
-            endText = "Today"
-        } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-            endText = "Yesterday"
-        } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-            endText = "Tomorrow"
-        } else {
-            endText = end.formatted(.dateTime.day().month())
-        }
-
-        return "\(startText) - \(endText)"
-    }
-
-    /// Returns the initial scroll position date based on the selected duration
-    /// - Returns: A Date representing where the chart should initially scroll to
-    ///
-    /// This function calculates an appropriate starting scroll position by subtracting
-    /// a time interval from the current date based on the selected duration:
-    /// - For Day view: 1 day before now
-    /// - For Week view: 7 days before now
-    /// - For Month view: 1 month before now
-    /// - For Total view: 3 months before now
-    private func getInitialScrollPosition() -> Date {
-        let calendar = Calendar.current
-        let now = Date()
-
-        // Calculate scroll position based on selected time interval
-        switch selectedDuration {
-        case .Day:
-            return calendar.date(byAdding: .day, value: -1, to: now)!
-        case .Week:
-            return calendar.date(byAdding: .day, value: -7, to: now)!
-        case .Month:
-            return calendar.date(byAdding: .month, value: -1, to: now)!
-        case .Total:
-            return calendar.date(byAdding: .month, value: -3, to: now)!
-        }
-    }
-
-    private func isSameTimeUnit(_ date1: Date, _ date2: Date) -> Bool {
-        switch selectedDuration {
-        case .Day:
-            return Calendar.current.isDate(date1, equalTo: date2, toGranularity: .hour)
-        default:
-            return Calendar.current.isDate(date1, inSameDayAs: date2)
+            Text(
+                StatsHelper
+                    .formatVisibleDateRange(from: visibleDateRange.start, to: visibleDateRange.end, for: selectedDuration)
+            )
+            .font(.footnote)
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -228,9 +81,8 @@ struct MealStatsView: View {
             statsView
             chartsView
         }
-
         .onAppear {
-            scrollPosition = getInitialScrollPosition()
+            scrollPosition = StatsHelper.getInitialScrollPosition(for: selectedDuration)
             updateAverages()
         }
         .onChange(of: scrollPosition) {
@@ -240,63 +92,13 @@ struct MealStatsView: View {
         }
         .onChange(of: selectedDuration) {
             Task {
-                scrollPosition = getInitialScrollPosition()
+                scrollPosition = StatsHelper.getInitialScrollPosition(for: selectedDuration)
                 updateAverages()
             }
         }
     }
 
-    private var statsView: some View {
-        HStack {
-            Grid(alignment: .leading) {
-                GridRow {
-                    Text("Carbs:")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Text(currentAverages.carbs.formatted(.number.precision(.fractionLength(1))))
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                        .gridColumnAlignment(.trailing)
-                    Text("g")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                }
-                if state.useFPUconversion {
-                    GridRow {
-                        Text("Fat:")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                        Text(currentAverages.fat.formatted(.number.precision(.fractionLength(1))))
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                            .gridColumnAlignment(.trailing)
-                        Text("g")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                    }
-                    GridRow {
-                        Text("Protein:")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                        Text(currentAverages.protein.formatted(.number.precision(.fractionLength(1))))
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                            .gridColumnAlignment(.trailing)
-                        Text("g")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-
-            Spacer()
-
-            Text(formatVisibleDateRange())
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-        }
-    }
-
+    /// A view displaying the bar chart for meal statistics.
     private var chartsView: some View {
         Chart {
             ForEach(mealStats) { stat in
@@ -309,7 +111,7 @@ struct MealStatsView: View {
                 .position(by: .value("Type", "Macros"))
                 .opacity(
                     selectedDate.map { date in
-                        isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                        StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
                     } ?? 1
                 )
                 if state.useFPUconversion {
@@ -322,7 +124,7 @@ struct MealStatsView: View {
                     .position(by: .value("Type", "Macros"))
                     .opacity(
                         selectedDate.map { date in
-                            isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                            StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
                         } ?? 1
                     )
                     // Protein Bar (top)
@@ -334,7 +136,7 @@ struct MealStatsView: View {
                     .position(by: .value("Type", "Macros"))
                     .opacity(
                         selectedDate.map { date in
-                            isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                            StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
                         } ?? 1
                     )
                 }
@@ -388,24 +190,24 @@ struct MealStatsView: View {
                     switch selectedDuration {
                     case .Day:
                         if hour % 6 == 0 {
-                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .Month:
                         if day % 5 == 0 {
-                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .Total:
                         if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
-                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     default:
-                        AxisValueLabel(format: dateFormat, centered: true)
+                        AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
                             .font(.footnote)
                         AxisGridLine()
                     }
@@ -420,10 +222,10 @@ struct MealStatsView: View {
                 matching: selectedDuration == .Day ?
                     DateComponents(minute: 0) :
                     DateComponents(hour: 0),
-                majorAlignment: .matching(alignmentComponents)
+                majorAlignment: .matching(StatsHelper.alignmentComponents(for: selectedDuration))
             )
         )
-        .chartXVisibleDomain(length: visibleDomainLength)
+        .chartXVisibleDomain(length: StatsHelper.visibleDomainLength(for: selectedDuration))
         .frame(height: 250)
     }
 }

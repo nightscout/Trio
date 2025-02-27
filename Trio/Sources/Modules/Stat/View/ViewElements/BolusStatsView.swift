@@ -1,173 +1,76 @@
 import Charts
 import SwiftUI
 
+/// A view that displays a bar chart for bolus insulin statistics.
+///
+/// This view presents different types of bolus insulin (manual, SMB, and external) over time,
+/// allowing users to adjust the time interval and scroll through historical data.
 struct BolusStatsView: View {
+    /// The selected time interval for displaying statistics.
     @Binding var selectedDuration: Stat.StateModel.StatsTimeInterval
+    /// The list of bolus statistics data.
     let bolusStats: [BolusStats]
+    /// The state model containing cached statistics data.
     let state: Stat.StateModel
 
-    @State private var scrollPosition = Date() // gets updated in onAppear block
+    /// The current scroll position in the chart.
+    @State private var scrollPosition = Date()
+    /// The currently selected date in the chart.
     @State private var selectedDate: Date?
+    /// The calculated bolus insulin averages for the visible range.
     @State private var currentAverages: (manual: Double, smb: Double, external: Double) = (0, 0, 0)
+    /// Timer to throttle updates when scrolling.
     @State private var updateTimer = Stat.UpdateTimer()
 
-    /// Returns the time interval length for the visible domain based on selected duration
-    private var visibleDomainLength: TimeInterval {
-        switch selectedDuration {
-        case .Day: return 24 * 3600 // One day in seconds
-        case .Week: return 7 * 24 * 3600 // One week in seconds
-        case .Month: return 30 * 24 * 3600 // One month in seconds
-        case .Total: return 90 * 24 * 3600 // Three months in seconds
-        }
-    }
-
-    /// Calculates the visible date range based on scroll position and domain length
+    /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
-        let start = scrollPosition // Current scroll position marks the start
-        let end = start.addingTimeInterval(visibleDomainLength)
-        return (start, end)
+        StatsHelper.visibleDateRange(from: scrollPosition, for: selectedDuration)
     }
 
-    /// Returns the appropriate date format style based on the selected time interval
-    private var dateFormat: Date.FormatStyle {
-        switch selectedDuration {
-        case .Day:
-            return .dateTime.hour()
-        case .Week:
-            return .dateTime.weekday(.abbreviated)
-        case .Month:
-            return .dateTime.day()
-        case .Total:
-            return .dateTime.month(.abbreviated)
-        }
-    }
-
-    /// Returns DateComponents for aligning dates based on the selected duration
-    private var alignmentComponents: DateComponents {
-        switch selectedDuration {
-        case .Day:
-            return DateComponents(hour: 0) // Align to midnight
-        case .Week:
-            return DateComponents(weekday: 2) // Monday is weekday 2
-        case .Month,
-             .Total:
-            return DateComponents(day: 1) // First day of month
-        }
-    }
-
-    /// Returns bolus statistics for a specific date
+    /// Retrieves the bolus statistic for a given date.
+    /// - Parameter date: The date for which to retrieve bolus data.
+    /// - Returns: The `BolusStats` object if available, otherwise `nil`.
     private func getBolusForDate(_ date: Date) -> BolusStats? {
-        let calendar = Calendar.current
-
-        return bolusStats.first { stat in
-            switch selectedDuration {
-            case .Day:
-                return calendar.isDate(stat.date, equalTo: date, toGranularity: .hour)
-            default:
-                return calendar.isDate(stat.date, inSameDayAs: date)
-            }
+        bolusStats.first { stat in
+            StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration)
         }
     }
 
-    /// Updates the current averages for bolus insulin based on the visible date range
+    /// Updates the bolus insulin averages based on the visible date range.
     private func updateAverages() {
         currentAverages = state.getCachedBolusAverages(for: visibleDateRange)
     }
 
-    /// Formats the visible date range into a human-readable string
-    private func formatVisibleDateRange() -> String {
-        let start = visibleDateRange.start
-        let end = visibleDateRange.end
-        let calendar = Calendar.current
-        let today = Date()
-
-        // Special handling for Day view with relative dates
-        if selectedDuration == .Day {
-            let startDateText: String
-            let endDateText: String
-            let timeFormat = start.formatted(.dateTime.hour().minute())
-
-            // Format start date
-            if calendar.isDate(start, inSameDayAs: today) {
-                startDateText = "Today"
-            } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-                startDateText = "Yesterday"
-            } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-                startDateText = "Tomorrow"
-            } else {
-                startDateText = start.formatted(.dateTime.day().month())
+    /// A view displaying the statistics summary including bolus insulin averages.
+    private var statsView: some View {
+        HStack {
+            Grid(alignment: .leading) {
+                GridRow {
+                    Text("Manual:")
+                    Text(currentAverages.manual.formatted(.number.precision(.fractionLength(1))))
+                    Text("U")
+                }
+                GridRow {
+                    Text("SMB:")
+                    Text(currentAverages.smb.formatted(.number.precision(.fractionLength(1))))
+                    Text("U")
+                }
+                GridRow {
+                    Text("External:")
+                    Text(currentAverages.external.formatted(.number.precision(.fractionLength(1))))
+                    Text("U")
+                }
             }
+            .font(.headline)
 
-            // Format end date
-            if calendar.isDate(end, inSameDayAs: today) {
-                endDateText = "Today"
-            } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-                endDateText = "Yesterday"
-            } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-                endDateText = "Tomorrow"
-            } else {
-                endDateText = end.formatted(.dateTime.day().month())
-            }
+            Spacer()
 
-            // If start and end are on the same day, show date only once
-            if calendar.isDate(start, inSameDayAs: end) {
-                return "\(startDateText), \(timeFormat) - \(end.formatted(.dateTime.hour().minute()))"
-            }
-
-            return "\(startDateText), \(timeFormat) - \(endDateText), \(end.formatted(.dateTime.hour().minute()))"
-        }
-
-        // Standard format for other views - only show dates without time
-        let startText: String
-        let endText: String
-
-        // Check for relative dates
-        if calendar.isDate(start, inSameDayAs: today) {
-            startText = "Today"
-        } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-            startText = "Yesterday"
-        } else if calendar.isDate(start, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-            startText = "Tomorrow"
-        } else {
-            startText = start.formatted(.dateTime.day().month())
-        }
-
-        if calendar.isDate(end, inSameDayAs: today) {
-            endText = "Today"
-        } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-            endText = "Yesterday"
-        } else if calendar.isDate(end, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-            endText = "Tomorrow"
-        } else {
-            endText = end.formatted(.dateTime.day().month())
-        }
-
-        return "\(startText) - \(endText)"
-    }
-
-    private func isSameTimeUnit(_ date1: Date, _ date2: Date) -> Bool {
-        switch selectedDuration {
-        case .Day:
-            return Calendar.current.isDate(date1, equalTo: date2, toGranularity: .hour)
-        default:
-            return Calendar.current.isDate(date1, inSameDayAs: date2)
-        }
-    }
-
-    /// Returns the initial scroll position date based on the selected duration
-    private func getInitialScrollPosition() -> Date {
-        let calendar = Calendar.current
-        let now = Date()
-
-        switch selectedDuration {
-        case .Day:
-            return calendar.date(byAdding: .day, value: -1, to: now)!
-        case .Week:
-            return calendar.date(byAdding: .day, value: -7, to: now)!
-        case .Month:
-            return calendar.date(byAdding: .month, value: -1, to: now)!
-        case .Total:
-            return calendar.date(byAdding: .month, value: -3, to: now)!
+            Text(
+                StatsHelper
+                    .formatVisibleDateRange(from: visibleDateRange.start, to: visibleDateRange.end, for: selectedDuration)
+            )
+            .font(.footnote)
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -177,7 +80,7 @@ struct BolusStatsView: View {
             chartsView
         }
         .onAppear {
-            scrollPosition = getInitialScrollPosition()
+            scrollPosition = StatsHelper.getInitialScrollPosition(for: selectedDuration)
             updateAverages()
         }
         .onChange(of: scrollPosition) {
@@ -187,61 +90,13 @@ struct BolusStatsView: View {
         }
         .onChange(of: selectedDuration) {
             Task {
-                scrollPosition = getInitialScrollPosition()
+                scrollPosition = StatsHelper.getInitialScrollPosition(for: selectedDuration)
                 updateAverages()
             }
         }
     }
 
-    private var statsView: some View {
-        HStack {
-            Grid(alignment: .leading) {
-                GridRow {
-                    Text("Manual:")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Text(currentAverages.manual.formatted(.number.precision(.fractionLength(1))))
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                        .gridColumnAlignment(.trailing)
-                    Text("U")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                }
-                GridRow {
-                    Text("SMB:")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Text(currentAverages.smb.formatted(.number.precision(.fractionLength(1))))
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                        .gridColumnAlignment(.trailing)
-                    Text("U")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                }
-                GridRow {
-                    Text("External:")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Text(currentAverages.external.formatted(.number.precision(.fractionLength(1))))
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                        .gridColumnAlignment(.trailing)
-                    Text("U")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Spacer()
-
-            Text(formatVisibleDateRange())
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-        }
-    }
-
+    /// A view displaying the bar chart for bolus insulin statistics.
     private var chartsView: some View {
         Chart {
             ForEach(bolusStats) { stat in
@@ -254,7 +109,7 @@ struct BolusStatsView: View {
                 .position(by: .value("Type", "Boluses"))
                 .opacity(
                     selectedDate.map { date in
-                        isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                        StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
                     } ?? 1
                 )
 
@@ -267,7 +122,7 @@ struct BolusStatsView: View {
                 .position(by: .value("Type", "Boluses"))
                 .opacity(
                     selectedDate.map { date in
-                        isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                        StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
                     } ?? 1
                 )
                 // Correction Bolus Bar
@@ -279,7 +134,7 @@ struct BolusStatsView: View {
                 .position(by: .value("Type", "Boluses"))
                 .opacity(
                     selectedDate.map { date in
-                        isSameTimeUnit(stat.date, date) ? 1 : 0.3
+                        StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
                     } ?? 1
                 )
             }
@@ -326,25 +181,25 @@ struct BolusStatsView: View {
                     switch selectedDuration {
                     case .Day:
                         if hour % 6 == 0 { // Show only every 6 hours
-                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .Month:
                         if day % 5 == 0 { // Only show every 5th day
-                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .Total:
                         // Only show January, April, July, October
                         if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
-                            AxisValueLabel(format: dateFormat, centered: true)
+                            AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     default:
-                        AxisValueLabel(format: dateFormat, centered: true)
+                        AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
                             .font(.footnote)
                         AxisGridLine()
                     }
@@ -360,11 +215,11 @@ struct BolusStatsView: View {
                     DateComponents(minute: 0) : // Align to next hour for Day view
                     DateComponents(hour: 0), // Align to start of day for other views
                 majorAlignment: .matching(
-                    alignmentComponents
+                    StatsHelper.alignmentComponents(for: selectedDuration)
                 )
             )
         )
-        .chartXVisibleDomain(length: visibleDomainLength)
+        .chartXVisibleDomain(length: StatsHelper.visibleDomainLength(for: selectedDuration))
         .frame(height: 250)
     }
 }

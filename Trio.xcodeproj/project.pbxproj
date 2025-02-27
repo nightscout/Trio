@@ -510,6 +510,7 @@
 		DD88C8E22C50420800F2D558 /* DefinitionRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD88C8E12C50420800F2D558 /* DefinitionRow.swift */; };
 		DD940BAA2CA7585D000830A5 /* GlucoseColorScheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD940BA92CA7585D000830A5 /* GlucoseColorScheme.swift */; };
 		DD940BAC2CA75889000830A5 /* DynamicGlucoseColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD940BAB2CA75889000830A5 /* DynamicGlucoseColor.swift */; };
+		DD98ACC02D71013200C0778F /* StatsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD98ACBF2D71013200C0778F /* StatsHelper.swift */; };
 		DD9ECB682CA99F4500AA7C45 /* TrioRemoteControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB672CA99F4500AA7C45 /* TrioRemoteControl.swift */; };
 		DD9ECB6A2CA99F6C00AA7C45 /* PushMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB692CA99F6C00AA7C45 /* PushMessage.swift */; };
 		DD9ECB702CA9A0BA00AA7C45 /* RemoteControlConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9ECB6D2CA9A0BA00AA7C45 /* RemoteControlConfigStateModel.swift */; };
@@ -1219,6 +1220,7 @@
 		DD88C8E12C50420800F2D558 /* DefinitionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefinitionRow.swift; sourceTree = "<group>"; };
 		DD940BA92CA7585D000830A5 /* GlucoseColorScheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseColorScheme.swift; sourceTree = "<group>"; };
 		DD940BAB2CA75889000830A5 /* DynamicGlucoseColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicGlucoseColor.swift; sourceTree = "<group>"; };
+		DD98ACBF2D71013200C0778F /* StatsHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsHelper.swift; sourceTree = "<group>"; };
 		DD9ECB672CA99F4500AA7C45 /* TrioRemoteControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioRemoteControl.swift; sourceTree = "<group>"; };
 		DD9ECB692CA99F6C00AA7C45 /* PushMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushMessage.swift; sourceTree = "<group>"; };
 		DD9ECB6D2CA9A0BA00AA7C45 /* RemoteControlConfigStateModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteControlConfigStateModel.swift; sourceTree = "<group>"; };
@@ -2498,6 +2500,7 @@
 		BD249D842D42FBD200412DEB /* ViewElements */ = {
 			isa = PBXGroup;
 			children = (
+				DD98ACBF2D71013200C0778F /* StatsHelper.swift */,
 				BD249D932D42FC5C00412DEB /* TDDChart.swift */,
 				BD249D912D42FC5000412DEB /* SectorChart.swift */,
 				BD249D8F2D42FC4300412DEB /* MealStatsView.swift */,
@@ -3613,6 +3616,7 @@
 				CE7CA3552A064973004BE681 /* ListStateIntent.swift in Sources */,
 				BDF530D82B40F8AC002CAF43 /* LockScreenView.swift in Sources */,
 				195D80B72AF697B800D25097 /* DynamicSettingsDataFlow.swift in Sources */,
+				DD98ACC02D71013200C0778F /* StatsHelper.swift in Sources */,
 				3862CC2E2743F9F700BF832C /* CalendarManager.swift in Sources */,
 				CEA4F62329BE10F70011ADF7 /* SavitzkyGolayFilter.swift in Sources */,
 				38B4F3C325E2A20B00E76A18 /* PumpSetupView.swift in Sources */,
