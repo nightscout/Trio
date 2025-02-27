@@ -10,15 +10,8 @@
 ///
 /// class GlucoseSimulatorSource - main class
 /// protocol BloodGlucoseGenerator
-///  - IntelligentGenerator: BloodGlucoseGenerator
-
-// TODO: Every itteration trend make two steps, but must only one
-
-// TODO: Trend's value sticks to max and min Glucose value (in Glucose Generator)
-
-// TODO: Add reaction to insulin
-
-// TODO: Add probability to set trend's target value. Middle values must have more probability, than max and min.
+///  - IntelligentGenerator: BloodGlucoseGenerator - Generates random glucose values with trends
+///  - OscillatingGenerator: BloodGlucoseGenerator - Generates sinusoidal glucose values around a center point
 
 import Combine
 import Foundation
@@ -26,22 +19,29 @@ import LoopKitUI
 
 // MARK: - Glucose simulator
 
+/// A class that simulates glucose values for testing purposes.
+/// This class implements the GlucoseSource protocol and provides simulated glucose readings
+/// using different generator strategies.
 final class GlucoseSimulatorSource: GlucoseSource {
     var cgmManager: CGMManagerUI?
     var glucoseManager: FetchGlucoseManager?
 
     private enum Config {
-        // min time period to publish data
+        /// Minimum time period between data publications (in seconds)
         static let workInterval: TimeInterval = 300
-        // default BloodGlucose item at first run
-        // 288 = 1 day * 24 hours * 60 minites * 60 seconds / workInterval
+        /// Default number of blood glucose items to generate at first run
+        /// 288 = 1 day * 24 hours * 60 minutes * 60 seconds / workInterval
         static let defaultBGItems = 288
     }
 
+    /// The last glucose value that was generated
     @Persisted(key: "GlucoseSimulatorLastGlucose") private var lastGlucose = 100
 
+    /// The date of the last fetch operation
     @Persisted(key: "GlucoseSimulatorLastFetchDate") private var lastFetchDate: Date! = nil
 
+    /// Initializes the glucose simulator source
+    /// Sets up the initial fetch date if not already set
     init() {
         if lastFetchDate == nil {
             var lastDate = Date()
@@ -52,12 +52,13 @@ final class GlucoseSimulatorSource: GlucoseSource {
         }
     }
 
+    /// The glucose generator used to create simulated values
+    /// Uses OscillatingGenerator to create a sinusoidal pattern around 120 mg/dL
     private lazy var generator: BloodGlucoseGenerator = {
-        IntelligentGenerator(
-            currentGlucose: lastGlucose
-        )
+        OscillatingGenerator()
     }()
 
+    /// Determines if new glucose values can be generated based on the time elapsed since the last fetch
     private var canGenerateNewValues: Bool {
         guard let lastDate = lastFetchDate else { return true }
         if Calendar.current.dateComponents([.second], from: lastDate, to: Date()).second! >= Int(Config.workInterval) {
@@ -67,6 +68,9 @@ final class GlucoseSimulatorSource: GlucoseSource {
         }
     }
 
+    /// Fetches new glucose values if enough time has passed since the last fetch
+    /// - Parameter timer: Optional dispatch timer (not used in this implementation)
+    /// - Returns: A publisher that emits an array of BloodGlucose objects
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
         guard canGenerateNewValues else {
             return Just([]).eraseToAnyPublisher()
@@ -86,6 +90,8 @@ final class GlucoseSimulatorSource: GlucoseSource {
         return Just(glucoses).eraseToAnyPublisher()
     }
 
+    /// Fetches new glucose values if needed
+    /// - Returns: A publisher that emits an array of BloodGlucose objects
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
         fetch(nil)
     }
@@ -93,105 +99,166 @@ final class GlucoseSimulatorSource: GlucoseSource {
 
 // MARK: - Glucose generator
 
+/// Protocol defining the interface for glucose generators
+/// Implementations of this protocol provide different strategies for generating glucose values
 protocol BloodGlucoseGenerator {
+    /// Generates blood glucose values between the specified dates at the given interval
+    /// - Parameters:
+    ///   - startDate: The start date for generating values
+    ///   - finishDate: The end date for generating values
+    ///   - interval: The time interval between generated values
+    /// - Returns: An array of BloodGlucose objects
     func getBloodGlucoses(startDate: Date, finishDate: Date, withInterval: TimeInterval) -> [BloodGlucose]
 }
 
-class IntelligentGenerator: BloodGlucoseGenerator {
-    private enum Config {
-        // max and min glucose of trend's target
-        static let maxGlucose = 320
-        static let minGlucose = 45
+/// A glucose generator that creates a sinusoidal pattern around a center value
+/// This generator simulates a realistic oscillating glucose pattern with configurable parameters
+class OscillatingGenerator: BloodGlucoseGenerator {
+    /// Default values for simulator parameters
+    enum Defaults {
+        static let centerValue: Double = 120.0
+        static let amplitude: Double = 45.0
+        static let period: Double = 10800.0 // 3 hours in seconds
+        static let noiseAmplitude: Double = 5.0
     }
 
-    // target glucose of trend
-    @Persisted(key: "GlucoseSimulatorTargetValue") private var trendTargetValue = 100
-    // how many steps left in current trend
-    @Persisted(key: "GlucoseSimulatorTargetSteps") private var trendStepsLeft = 1
-    // direction of last step
-    @Persisted(key: "GlucoseSimulatorDirection") private var trandsStepDirection = BloodGlucose.Direction.flat.rawValue
-    var currentGlucose: Int
-    let startup = Date()
-    init(currentGlucose: Int) {
-        self.currentGlucose = currentGlucose
+    /// UserDefaults keys for storing simulator parameters
+    private enum UserDefaultsKeys {
+        static let centerValue = "GlucoseSimulator_CenterValue"
+        static let amplitude = "GlucoseSimulator_Amplitude"
+        static let period = "GlucoseSimulator_Period"
+        static let noiseAmplitude = "GlucoseSimulator_NoiseAmplitude"
     }
 
+    /// Amplitude of the oscillation (±45 mg/dL to create range from ~80 to ~170)
+    private var amplitude: Double {
+        get { UserDefaults.standard.double(forKey: UserDefaultsKeys.amplitude) != 0 ?
+            UserDefaults.standard.double(forKey: UserDefaultsKeys.amplitude) :
+            Defaults.amplitude }
+        set { UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.amplitude) }
+    }
+
+    /// Period of the oscillation in seconds (3 hours = 10800 seconds)
+    private var period: Double {
+        get { UserDefaults.standard.double(forKey: UserDefaultsKeys.period) != 0 ?
+            UserDefaults.standard.double(forKey: UserDefaultsKeys.period) :
+            Defaults.period }
+        set { UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.period) }
+    }
+
+    /// Center value of the oscillation (target glucose level)
+    private var centerValue: Double {
+        get { UserDefaults.standard.double(forKey: UserDefaultsKeys.centerValue) != 0 ?
+            UserDefaults.standard.double(forKey: UserDefaultsKeys.centerValue) :
+            Defaults.centerValue }
+        set { UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.centerValue) }
+    }
+
+    /// Amplitude of random noise to add to the values (±5 mg/dL)
+    private var noiseAmplitude: Double {
+        get { UserDefaults.standard.double(forKey: UserDefaultsKeys.noiseAmplitude) != 0 ?
+            UserDefaults.standard.double(forKey: UserDefaultsKeys.noiseAmplitude) :
+            Defaults.noiseAmplitude }
+        set { UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.noiseAmplitude) }
+    }
+
+    /// Start date for the simulation
+    private let startup = Date()
+
+    /// Reset all parameters to default values
+    func resetToDefaults() {
+        centerValue = Defaults.centerValue
+        amplitude = Defaults.amplitude
+        period = Defaults.period
+        noiseAmplitude = Defaults.noiseAmplitude
+    }
+
+    /// Generates blood glucose values between the specified dates at the given interval
+    /// - Parameters:
+    ///   - startDate: The start date for generating values
+    ///   - finishDate: The end date for generating values
+    ///   - interval: The time interval between generated values
+    /// - Returns: An array of BloodGlucose objects with sinusoidal pattern
     func getBloodGlucoses(startDate: Date, finishDate: Date, withInterval interval: TimeInterval) -> [BloodGlucose] {
         var result = [BloodGlucose]()
+        var currentDate = startDate
 
-        var _currentDate = startDate
-        while _currentDate <= finishDate {
-            result.append(getNextBloodGlucose(forDate: _currentDate))
-            _currentDate = _currentDate.addingTimeInterval(interval)
+        while currentDate <= finishDate {
+            let glucose = generate(date: currentDate)
+            let direction = calculateDirection(at: currentDate)
+
+            // Create BloodGlucose with the correct constructor
+            let bloodGlucose = BloodGlucose(
+                _id: UUID().uuidString,
+                sgv: glucose,
+                direction: direction,
+                date: Decimal(Int(currentDate.timeIntervalSince1970) * 1000),
+                dateString: currentDate,
+                unfiltered: Decimal(glucose),
+                filtered: nil,
+                noise: nil,
+                glucose: glucose,
+                type: nil,
+                activationDate: startup,
+                sessionStartDate: startup,
+                transmitterID: "SIMULATOR"
+            )
+
+            result.append(bloodGlucose)
+            currentDate = currentDate.addingTimeInterval(interval)
         }
 
         return result
     }
 
-    // get next glucose's value in current trend
-    private func getNextBloodGlucose(forDate date: Date) -> BloodGlucose {
-        let previousGlucose = currentGlucose
-        makeStepInTrend()
-        trandsStepDirection = getDirection(fromGlucose: previousGlucose, toGlucose: currentGlucose).rawValue
-        let glucose = BloodGlucose(
-            _id: UUID().uuidString,
-            sgv: currentGlucose,
-            direction: BloodGlucose.Direction(rawValue: trandsStepDirection),
-            date: Decimal(Int(date.timeIntervalSince1970) * 1000),
-            dateString: date,
-            unfiltered: Decimal(currentGlucose),
-            filtered: nil,
-            noise: nil,
-            glucose: currentGlucose,
-            type: nil,
-            activationDate: startup,
-            sessionStartDate: startup,
-            transmitterID: "SIMULATOR"
-        )
-        return glucose
+    /// Generates a glucose value for the specified date using a sinusoidal function
+    /// - Parameter date: The date for which to generate the glucose value
+    /// - Returns: An integer representing the glucose value in mg/dL
+    private func generate(date: Date) -> Int {
+        // Time in seconds since 1970
+        let timeSeconds = date.timeIntervalSince1970
+
+        // Calculate sine value
+        let sinValue = sin(2.0 * .pi * timeSeconds / period)
+
+        // Random noise
+        let noise = Double.random(in: -noiseAmplitude ... noiseAmplitude)
+
+        // Calculate glucose value: center + amplitude * sine + noise
+        let glucoseValue = centerValue + amplitude * sinValue + noise
+
+        // Return as integer
+        return Int(glucoseValue)
     }
 
-    private func setNewRandomTarget() {
-        guard trendTargetValue > 0 else {
-            trendTargetValue = Array(80 ... 110).randomElement()!
-            return
-        }
-        let difference = (Array(-50 ... -20) + Array(20 ... 50)).randomElement()!
-        let _value = trendTargetValue + difference
-        if _value <= Config.minGlucose {
-            trendTargetValue = Config.minGlucose
-        } else if _value >= Config.maxGlucose {
-            trendTargetValue = Config.maxGlucose
+    /// Calculates the direction (trend) of glucose change at the specified date
+    /// - Parameter date: The date for which to calculate the direction
+    /// - Returns: A BloodGlucose.Direction value indicating the trend
+    private func calculateDirection(at date: Date) -> BloodGlucose.Direction {
+        // Time in seconds since 1970
+        let timeSeconds = date.timeIntervalSince1970
+
+        // Calculate derivative of sine function (cosine)
+        let cosValue = cos(2.0 * .pi * timeSeconds / period)
+
+        // Slope of the curve at this point
+        let slope = -amplitude * 2.0 * .pi / period * cosValue
+
+        // Determine direction based on slope
+        if abs(slope) < 0.2 {
+            return .flat
+        } else if slope > 0 {
+            if slope > 1.0 {
+                return .singleUp
+            } else {
+                return .fortyFiveUp
+            }
         } else {
-            trendTargetValue = _value
+            if slope < -1.0 {
+                return .singleDown
+            } else {
+                return .fortyFiveDown
+            }
         }
-    }
-
-    private func setNewRandomSteps() {
-        trendStepsLeft = Array(3 ... 8).randomElement()!
-    }
-
-    private func getDirection(fromGlucose from: Int, toGlucose to: Int) -> BloodGlucose.Direction {
-        BloodGlucose.Direction(trend: Int(to - from))
-    }
-
-    private func generateNewTrend() {
-        setNewRandomTarget()
-        setNewRandomSteps()
-    }
-
-    private func makeStepInTrend() {
-        guard trendStepsLeft > 0 else { return }
-
-        currentGlucose +=
-            Int(Double((trendTargetValue - currentGlucose) / trendStepsLeft) * [0.3, 0.6, 1, 1.3, 1.6, 2.0].randomElement()!)
-        trendStepsLeft -= 1
-        if trendStepsLeft == 0 {
-            generateNewTrend()
-        }
-    }
-
-    func sourceInfo() -> [String: Any]? {
-        [GlucoseSourceKey.description.rawValue: "Glucose simulator"]
     }
 }

@@ -15,6 +15,36 @@ extension CGMSettings {
 
         @State private var shouldDisplayDeletionConfirmation: Bool = false
 
+        // Simulator settings
+        @State private var centerValue: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_CenterValue")
+        @State private var amplitude: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_Amplitude")
+        @State private var period: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_Period")
+        @State private var noiseAmplitude: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_NoiseAmplitude")
+
+        // Initialize state variables with defaults if needed
+        private func initializeSimulatorSettings() {
+            if centerValue == 0 {
+                centerValue = OscillatingGenerator.Defaults.centerValue
+            }
+            if amplitude == 0 {
+                amplitude = OscillatingGenerator.Defaults.amplitude
+            }
+            if period == 0 {
+                period = OscillatingGenerator.Defaults.period
+            }
+            if noiseAmplitude == 0 {
+                noiseAmplitude = OscillatingGenerator.Defaults.noiseAmplitude
+            }
+        }
+
+        // Save simulator settings to UserDefaults
+        private func saveSimulatorSettings() {
+            UserDefaults.standard.set(centerValue, forKey: "GlucoseSimulator_CenterValue")
+            UserDefaults.standard.set(amplitude, forKey: "GlucoseSimulator_Amplitude")
+            UserDefaults.standard.set(period, forKey: "GlucoseSimulator_Period")
+            UserDefaults.standard.set(noiseAmplitude, forKey: "GlucoseSimulator_NoiseAmplitude")
+        }
+
         var body: some View {
             NavigationView {
                 Form {
@@ -58,6 +88,9 @@ extension CGMSettings {
                     /// LoopKit submodules set placement to .trailing; we'll keep it "proper" here
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Close") {
+                            if cgmCurrent.type == .simulator {
+                                saveSimulatorSettings()
+                            }
                             presentationMode.wrappedValue.dismiss()
                         }
                     }
@@ -79,6 +112,11 @@ extension CGMSettings {
                             .tint(.red)
                     }
                 } message: { Text("Are you sure you want to delete \(cgmCurrent.displayName)?") }
+                .onAppear {
+                    if cgmCurrent.type == .simulator {
+                        initializeSimulatorSettings()
+                    }
+                }
             }
         }
 
@@ -137,50 +175,118 @@ extension CGMSettings {
         }
 
         var customCGMSection: some View {
-            Section(
-                header: Text("Configuration"),
-                content: {
-                    if cgmCurrent.type == .xdrip {
-                        VStack(alignment: .leading) {
-                            if let cgmTransmitterDeviceAddress = UserDefaults.standard
-                                .cgmTransmitterDeviceAddress
-                            {
-                                Text("CGM address :").padding(.top)
-                                Text(cgmTransmitterDeviceAddress)
-                            } else {
-                                Text("CGM is not used as heartbeat.").padding(.top)
-                            }
+            Group {
+                Section(
+                    header: Text("Configuration"),
+                    content: {
+                        if cgmCurrent.type == .xdrip {
+                            VStack(alignment: .leading) {
+                                if let cgmTransmitterDeviceAddress = UserDefaults.standard
+                                    .cgmTransmitterDeviceAddress
+                                {
+                                    Text("CGM address :").padding(.top)
+                                    Text(cgmTransmitterDeviceAddress)
+                                } else {
+                                    Text("CGM is not used as heartbeat.").padding(.top)
+                                }
 
-                            HStack(alignment: .center) {
-                                Text(
-                                    "A heartbeat tells Trio to start a loop cycle. This is required for closed loop."
-                                )
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                                .lineLimit(nil)
-                                Spacer()
-                            }.padding(.vertical)
-                        }
-                    } else if cgmCurrent.type == .simulator {
-                        Text(
-                            "Trio's glucose simulator does not offer any configuration. Its use is strictly for demonstration purposes only."
-                        )
-                    }
-
-                    if let link = cgmCurrent.type.externalLink {
-                        Button {
-                            UIApplication.shared.open(link, options: [:], completionHandler: nil)
-                        } label: {
-                            HStack {
-                                Text("About this source")
-                                Spacer()
-                                Image(systemName: "chevron.right")
+                                HStack(alignment: .center) {
+                                    Text(
+                                        "A heartbeat tells Trio to start a loop cycle. This is required for closed loop."
+                                    )
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(nil)
+                                    Spacer()
+                                }.padding(.vertical)
                             }
+                        } else if cgmCurrent.type == .simulator {
+                            simulatorConfigurationSection
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        if let link = cgmCurrent.type.externalLink {
+                            Button {
+                                UIApplication.shared.open(link, options: [:], completionHandler: nil)
+                            } label: {
+                                HStack {
+                                    Text("About this source")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
+                ).listRowBackground(Color.chart)
+            }
+        }
+
+        var simulatorConfigurationSection: some View {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Simulator Settings")
+                    .font(.headline)
+                    .padding(.top, 8)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Center Value: \(Int(centerValue)) mg/dL")
+                    Text("The average glucose level around which values will oscillate.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Slider(value: $centerValue, in: 80 ... 200, step: 1)
+                        .accentColor(.accentColor)
                 }
-            ).listRowBackground(Color.chart)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Amplitude: ±\(Int(amplitude)) mg/dL")
+                    Text("Range: \(Int(centerValue - amplitude))–\(Int(centerValue + amplitude)) mg/dL")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("The maximum deviation from the center value. Higher values create wider swings.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Slider(value: $amplitude, in: 10 ... 100, step: 5)
+                        .accentColor(.accentColor)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Period: \(Int(period / 3600)) hours")
+                    Text("The time it takes to complete one full cycle from high to low and back to high.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Slider(value: $period, in: 3600 ... 21600, step: 1800)
+                        .accentColor(.accentColor)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Noise: ±\(Int(noiseAmplitude)) mg/dL")
+                    Text("Random variation added to each reading to simulate real-world sensor noise.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Slider(value: $noiseAmplitude, in: 0 ... 20, step: 1)
+                        .accentColor(.accentColor)
+                }
+
+                Button("Reset to Defaults") {
+                    centerValue = OscillatingGenerator.Defaults.centerValue
+                    amplitude = OscillatingGenerator.Defaults.amplitude
+                    period = OscillatingGenerator.Defaults.period
+                    noiseAmplitude = OscillatingGenerator.Defaults.noiseAmplitude
+                    saveSimulatorSettings()
+                }
+                .buttonStyle(.bordered)
+                .padding(.top, 8)
+
+                Text("Changes will take effect on the next glucose reading.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
+
+                Text("The simulator creates a wave-like pattern that mimics natural glucose fluctuations throughout the day.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
+            }
+            .padding(.vertical, 8)
         }
 
         var stickyDeleteButton: some View {
