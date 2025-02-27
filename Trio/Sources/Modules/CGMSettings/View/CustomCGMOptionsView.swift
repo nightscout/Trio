@@ -298,6 +298,11 @@ extension CGMSettings {
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 4)
+                
+                Text("Glucose trace WILL NOT be affected by any insulin or carb entries.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
 
                 Text("The simulator creates a wave-like pattern that mimics natural glucose fluctuations throughout the day.")
                     .font(.caption)
