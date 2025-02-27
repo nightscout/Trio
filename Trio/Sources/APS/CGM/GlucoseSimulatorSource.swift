@@ -120,6 +120,7 @@ class OscillatingGenerator: BloodGlucoseGenerator {
         static let amplitude: Double = 45.0
         static let period: Double = 10800.0 // 3 hours in seconds
         static let noiseAmplitude: Double = 5.0
+        static let produceStaleValues: Bool = false
     }
 
     /// UserDefaults keys for storing simulator parameters
@@ -128,6 +129,7 @@ class OscillatingGenerator: BloodGlucoseGenerator {
         static let amplitude = "GlucoseSimulator_Amplitude"
         static let period = "GlucoseSimulator_Period"
         static let noiseAmplitude = "GlucoseSimulator_NoiseAmplitude"
+        static let produceStaleValues = "GlucoseSimulator_ProduceStaleValues"
     }
 
     /// Amplitude of the oscillation (±45 mg/dL to create range from ~80 to ~170)
@@ -162,8 +164,17 @@ class OscillatingGenerator: BloodGlucoseGenerator {
         set { UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.noiseAmplitude) }
     }
 
+    /// Whether to produce stale (unchanging) glucose values
+    var produceStaleValues: Bool {
+        get { UserDefaults.standard.bool(forKey: UserDefaultsKeys.produceStaleValues) }
+        set { UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.produceStaleValues) }
+    }
+
     /// Start date for the simulation
     private let startup = Date()
+
+    /// Last generated glucose value for stale mode
+    private var lastGeneratedGlucose: Int?
 
     /// Reset all parameters to default values
     func resetToDefaults() {
@@ -171,6 +182,8 @@ class OscillatingGenerator: BloodGlucoseGenerator {
         amplitude = Defaults.amplitude
         period = Defaults.period
         noiseAmplitude = Defaults.noiseAmplitude
+        produceStaleValues = Defaults.produceStaleValues
+        lastGeneratedGlucose = nil
     }
 
     /// Generates blood glucose values between the specified dates at the given interval
@@ -184,8 +197,19 @@ class OscillatingGenerator: BloodGlucoseGenerator {
         var currentDate = startDate
 
         while currentDate <= finishDate {
-            let glucose = generate(date: currentDate)
-            let direction = calculateDirection(at: currentDate)
+            let glucose: Int
+            let direction: BloodGlucose.Direction
+
+            if produceStaleValues, lastGeneratedGlucose != nil {
+                // In stale mode, use the last generated glucose value
+                glucose = lastGeneratedGlucose!
+                direction = .flat
+            } else {
+                // Generate a new glucose value
+                glucose = generate(date: currentDate)
+                direction = calculateDirection(at: currentDate)
+                lastGeneratedGlucose = glucose
+            }
 
             // Create BloodGlucose with the correct constructor
             let bloodGlucose = BloodGlucose(

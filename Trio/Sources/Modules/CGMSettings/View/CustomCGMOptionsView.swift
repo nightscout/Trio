@@ -20,6 +20,7 @@ extension CGMSettings {
         @State private var amplitude: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_Amplitude")
         @State private var period: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_Period")
         @State private var noiseAmplitude: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_NoiseAmplitude")
+        @State private var produceStaleValues: Bool = UserDefaults.standard.bool(forKey: "GlucoseSimulator_ProduceStaleValues")
 
         // Initialize state variables with defaults if needed
         private func initializeSimulatorSettings() {
@@ -35,6 +36,7 @@ extension CGMSettings {
             if noiseAmplitude == 0 {
                 noiseAmplitude = OscillatingGenerator.Defaults.noiseAmplitude
             }
+            // produceStaleValues is already initialized as false by default
         }
 
         // Save simulator settings to UserDefaults
@@ -43,6 +45,7 @@ extension CGMSettings {
             UserDefaults.standard.set(amplitude, forKey: "GlucoseSimulator_Amplitude")
             UserDefaults.standard.set(period, forKey: "GlucoseSimulator_Period")
             UserDefaults.standard.set(noiseAmplitude, forKey: "GlucoseSimulator_NoiseAmplitude")
+            UserDefaults.standard.set(produceStaleValues, forKey: "GlucoseSimulator_ProduceStaleValues")
         }
 
         var body: some View {
@@ -227,43 +230,57 @@ extension CGMSettings {
                     .font(.headline)
                     .padding(.top, 8)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Center Value: \(Int(centerValue)) mg/dL")
-                    Text("The average glucose level around which values will oscillate.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Slider(value: $centerValue, in: 80 ... 200, step: 1)
-                        .accentColor(.accentColor)
+                Toggle(isOn: $produceStaleValues) {
+                    VStack(alignment: .leading) {
+                        Text("Produce Stale Values")
+                    }
                 }
+                .padding(.vertical, 4)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Amplitude: ±\(Int(amplitude)) mg/dL")
-                    Text("Range: \(Int(centerValue - amplitude))–\(Int(centerValue + amplitude)) mg/dL")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text("The maximum deviation from the center value. Higher values create wider swings.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Slider(value: $amplitude, in: 10 ... 100, step: 5)
-                        .accentColor(.accentColor)
-                }
+                if !produceStaleValues {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Center Value: \(Int(centerValue)) mg/dL")
+                        Text("The average glucose level around which values will oscillate.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Slider(value: $centerValue, in: 80 ... 200, step: 1)
+                            .accentColor(.accentColor)
+                    }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Period: \(Int(period / 3600)) hours")
-                    Text("The time it takes to complete one full cycle from high to low and back to high.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Slider(value: $period, in: 3600 ... 21600, step: 1800)
-                        .accentColor(.accentColor)
-                }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Amplitude: ±\(Int(amplitude)) mg/dL")
+                        Text("Range: \(Int(centerValue - amplitude))–\(Int(centerValue + amplitude)) mg/dL")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Text("The maximum deviation from the center value. Higher values create wider swings.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Slider(value: $amplitude, in: 10 ... 100, step: 5)
+                            .accentColor(.accentColor)
+                    }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Noise: ±\(Int(noiseAmplitude)) mg/dL")
-                    Text("Random variation added to each reading to simulate real-world sensor noise.")
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Period: \(Int(period / 3600)) hours")
+                        Text("The time it takes to complete one full cycle from high to low and back to high.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Slider(value: $period, in: 3600 ... 21600, step: 1800)
+                            .accentColor(.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Noise: ±\(Int(noiseAmplitude)) mg/dL")
+                        Text("Random variation added to each reading to simulate real-world sensor noise.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Slider(value: $noiseAmplitude, in: 0 ... 20, step: 1)
+                            .accentColor(.accentColor)
+                    }
+                } else {
+                    Text("When stale values are enabled, the simulator will repeatedly output the last generated glucose value.")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Slider(value: $noiseAmplitude, in: 0 ... 20, step: 1)
-                        .accentColor(.accentColor)
+                        .padding(.vertical, 8)
                 }
 
                 Button("Reset to Defaults") {
@@ -271,6 +288,7 @@ extension CGMSettings {
                     amplitude = OscillatingGenerator.Defaults.amplitude
                     period = OscillatingGenerator.Defaults.period
                     noiseAmplitude = OscillatingGenerator.Defaults.noiseAmplitude
+                    produceStaleValues = OscillatingGenerator.Defaults.produceStaleValues
                     saveSimulatorSettings()
                 }
                 .buttonStyle(.bordered)
