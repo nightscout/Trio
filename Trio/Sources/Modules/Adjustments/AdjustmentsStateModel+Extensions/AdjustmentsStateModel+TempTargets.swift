@@ -366,6 +366,7 @@ extension Adjustments.StateModel {
     func invokeTempTargetPresetDeletion(_ objectID: NSManagedObjectID) async {
         await tempTargetStorage.deleteTempTargetPreset(objectID)
         setupTempTargetPresetsArray()
+        setupScheduledTempTargetsArray()
     }
 
     /// Resets Temp Target state variables.
