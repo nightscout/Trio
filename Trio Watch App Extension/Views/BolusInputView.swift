@@ -25,7 +25,10 @@ struct BolusInputView: View {
     var body: some View {
         VStack {
             if state.showBolusCalculationProgress {
-                ProgressView("Calculating Bolus...")
+                ProgressView(String(
+                    localized: "Calculating Bolus...",
+                    comment: "Progress view text on watch when calculating bolus"
+                ))
                 Spacer()
             } else {
                 if effectiveBolusLimit <= 0 {
@@ -63,7 +66,7 @@ struct BolusInputView: View {
                         let bolusIncrement = Double(truncating: state.bolusIncrement as NSNumber)
                         let adjustedBolusAmount = floor(bolusAmount / bolusIncrement) * bolusIncrement
 
-                        Text(String(format: "%.2f U", adjustedBolusAmount))
+                        Text(String(format: "%.2f \(String(localized: "U", comment: "Insulin unit"))", adjustedBolusAmount))
                             .fontWeight(.bold)
                             .font(.system(.title2, design: .rounded))
                             .foregroundColor(bolusAmount > 0.0 && bolusAmount >= effectiveBolusLimit ? .loopRed : .primary)
@@ -117,7 +120,10 @@ struct BolusInputView: View {
                     .tint(Color.insulin)
                     .disabled(!(bolusAmount > 0.0) || bolusAmount > effectiveBolusLimit)
 
-                    Text(String(format: "Recommended: %.1f U", NSDecimalNumber(decimal: state.recommendedBolus).doubleValue))
+                    Text(String(
+                        format: "\(String(localized: "Recommended:", comment: "Recommended bolus on Watch")) %.1f \(String(localized: "U", comment: "Insulin unit"))",
+                        NSDecimalNumber(decimal: state.recommendedBolus).doubleValue
+                    ))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

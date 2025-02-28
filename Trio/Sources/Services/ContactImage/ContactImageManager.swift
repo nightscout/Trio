@@ -77,7 +77,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     // MARK: - Core Data observation
 
     private func registerHandlers() {
-        coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.updateContactImageState()
@@ -88,8 +88,8 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
 
     // MARK: - Core Data Fetches
 
-    private func fetchlastDetermination() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchlastDetermination() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: backgroundContext,
             predicate: NSPredicate(format: "deliverAt >= %@", Date.halfHourAgo as NSDate), // fetches enacted and suggested
@@ -98,15 +98,17 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             fetchLimit: 1
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [OrefDetermination] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [OrefDetermination] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.map(\.objectID)
         }
     }
 
-    private func fetchGlucose() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchGlucose() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.predicateFor20MinAgo,
@@ -115,9 +117,9 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             fetchLimit: 3 /// We only need 1-3 values, depending on whether the user wants to show delta or not
         )
 
-        return await backgroundContext.perform {
+        return try await backgroundContext.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
-                return []
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return glucoseResults.map(\.objectID)
@@ -180,72 +182,77 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     /// and updates the `state` object, which represents the current contact trick state.
     /// - Important: This function must be called on the main actor to ensure thread safety. Otherwise, we would need to ensure thread safety by either using an actor or a perform closure
     @MainActor func updateContactImageState() async {
-        // Get NSManagedObjectIDs on backgroundContext
-        let glucoseValuesIds = await fetchGlucose()
-        let determinationIds = await fetchlastDetermination()
+        do {
+            // Get NSManagedObjectIDs on backgroundContext
+            let glucoseValuesIds = try await fetchGlucose()
+            let determinationIds = try await fetchlastDetermination()
 
-        // Get NSManagedObjects on MainActor
-        let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared
-            .getNSManagedObject(with: glucoseValuesIds, context: viewContext)
-        let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
-            .getNSManagedObject(with: determinationIds, context: viewContext)
-        let lastDetermination = determinationObjects.last
+            // Get NSManagedObjects on MainActor
+            let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared
+                .getNSManagedObject(with: glucoseValuesIds, context: viewContext)
+            let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
+                .getNSManagedObject(with: determinationIds, context: viewContext)
+            let lastDetermination = determinationObjects.last
 
-        if let firstGlucoseValue = glucoseObjects.first {
-            let value = settingsManager.settings.units == .mgdL
-                ? Decimal(firstGlucoseValue.glucose)
-                : Decimal(firstGlucoseValue.glucose).asMmolL
+            if let firstGlucoseValue = glucoseObjects.first {
+                let value = settingsManager.settings.units == .mgdL
+                    ? Decimal(firstGlucoseValue.glucose)
+                    : Decimal(firstGlucoseValue.glucose).asMmolL
 
-            state.glucose = Formatter.glucoseFormatter(for: units).string(from: value as NSNumber)
-            state.trend = firstGlucoseValue.directionEnum?.symbol
+                state.glucose = Formatter.glucoseFormatter(for: units).string(from: value as NSNumber)
+                state.trend = firstGlucoseValue.directionEnum?.symbol
 
-            let delta = glucoseObjects.count >= 2
-                ? Decimal(firstGlucoseValue.glucose) - Decimal(glucoseObjects.dropFirst().first?.glucose ?? 0)
-                : 0
-            let deltaConverted = settingsManager.settings.units == .mgdL ? delta : delta.asMmolL
-            state.delta = deltaFormatter.string(from: deltaConverted as NSNumber)
-        }
+                let delta = glucoseObjects.count >= 2
+                    ? Decimal(firstGlucoseValue.glucose) - Decimal(glucoseObjects.dropFirst().first?.glucose ?? 0)
+                    : 0
+                let deltaConverted = settingsManager.settings.units == .mgdL ? delta : delta.asMmolL
+                state.delta = deltaFormatter.string(from: deltaConverted as NSNumber)
+            }
 
-        state.lastLoopDate = lastDetermination?.timestamp
+            state.lastLoopDate = lastDetermination?.timestamp
 
-        let iobValue = lastDetermination?.iob as? Decimal ?? 0.0
-        state.iob = iobValue
-        state.iobText = Formatter.decimalFormatterWithOneFractionDigit.string(from: iobValue as NSNumber)
+            let iobValue = lastDetermination?.iob as? Decimal ?? 0.0
+            state.iob = iobValue
+            state.iobText = Formatter.decimalFormatterWithOneFractionDigit.string(from: iobValue as NSNumber)
 
-        // we need to do it complex and unelegant, otherwise unwrapping and parsing of cob results in 0
-        if let cobValue = lastDetermination?.cob {
-            state.cob = Decimal(cobValue)
-            state.cobText = Formatter.integerFormatter.string(from: Int(cobValue) as NSNumber)
+            // we need to do it complex and unelegant, otherwise unwrapping and parsing of cob results in 0
+            if let cobValue = lastDetermination?.cob {
+                state.cob = Decimal(cobValue)
+                state.cobText = Formatter.integerFormatter.string(from: Int(cobValue) as NSNumber)
 
-        } else {
-            state.cob = 0
-            state.cobText = "0"
-        }
+            } else {
+                state.cob = 0
+                state.cobText = "0"
+            }
 
-        if let eventualBG = settingsManager.settings.units == .mgdL ? lastDetermination?
-            .eventualBG : lastDetermination?
-            .eventualBG?.decimalValue.asMmolL as NSDecimalNumber?
-        {
-            let eventualBGAsString = Formatter.decimalFormatterWithOneFractionDigit.string(from: eventualBG)
-            state.eventualBG = eventualBGAsString.map { "⇢ " + $0 }
-        }
+            if let eventualBG = settingsManager.settings.units == .mgdL ? lastDetermination?
+                .eventualBG : lastDetermination?
+                .eventualBG?.decimalValue.asMmolL as NSDecimalNumber?
+            {
+                let eventualBGAsString = Formatter.decimalFormatterWithOneFractionDigit.string(from: eventualBG)
+                state.eventualBG = eventualBGAsString.map { "⇢ " + $0 }
+            }
 
-        // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
-        let hardCodedLow = Decimal(55)
-        let hardCodedHigh = Decimal(220)
-        let isDynamicColorScheme = settingsManager.settings.glucoseColorScheme == .dynamicColor
-        let highGlucoseColorValue = isDynamicColorScheme ? hardCodedHigh : settingsManager.settings.highGlucose
-        let lowGlucoseColorValue = isDynamicColorScheme ? hardCodedLow : settingsManager.settings.lowGlucose
+            // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+            let hardCodedLow = Decimal(55)
+            let hardCodedHigh = Decimal(220)
+            let isDynamicColorScheme = settingsManager.settings.glucoseColorScheme == .dynamicColor
+            let highGlucoseColorValue = isDynamicColorScheme ? hardCodedHigh : settingsManager.settings.highGlucose
+            let lowGlucoseColorValue = isDynamicColorScheme ? hardCodedLow : settingsManager.settings.lowGlucose
 
-        state.highGlucoseColorValue = units == .mgdL ? highGlucoseColorValue : highGlucoseColorValue.asMmolL
-        state.lowGlucoseColorValue = units == .mgdL ? lowGlucoseColorValue : lowGlucoseColorValue.asMmolL
-        state
-            .targetGlucose = await getCurrentGlucoseTarget() ??
-            (settingsManager.settings.units == .mgdL ? Decimal(100) : 100.asMmolL)
-        state.glucoseColorScheme = settingsManager.settings.glucoseColorScheme
+            state.highGlucoseColorValue = units == .mgdL ? highGlucoseColorValue : highGlucoseColorValue.asMmolL
+            state.lowGlucoseColorValue = units == .mgdL ? lowGlucoseColorValue : lowGlucoseColorValue.asMmolL
+            state
+                .targetGlucose = await getCurrentGlucoseTarget() ??
+                (settingsManager.settings.units == .mgdL ? Decimal(100) : 100.asMmolL)
+            state.glucoseColorScheme = settingsManager.settings.glucoseColorScheme
 
-        // Notify delegate about state update on main thread
-        await MainActor.run {
+            // Notify delegate about state update on main thread
+            await MainActor.run {
+                delegate?.contactImageManagerDidUpdateState(state)
+            }
+        } catch {
+            // Still notify delegate with current state, even if there was an error
             delegate?.contactImageManagerDidUpdateState(state)
         }
     }

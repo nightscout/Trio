@@ -20,8 +20,8 @@ protocol APSManager {
     var pumpExpiresAtDate: CurrentValueSubject<Date?, Never> { get }
     var isManualTempBasal: Bool { get }
     func enactTempBasal(rate: Double, duration: TimeInterval) async
-    func determineBasal() async -> Bool
-    func determineBasalSync() async
+    func determineBasal() async throws
+    func determineBasalSync() async throws
     func simulateDetermineBasal(simulatedCarbsAmount: Decimal, simulatedBolusAmount: Decimal) async -> Determination?
     func roundBolus(amount: Decimal) -> Decimal
     func roundBolusNoCap(amount: Decimal) -> Decimal
@@ -66,6 +66,7 @@ final class BaseAPSManager: APSManager, Injectable {
     @Injected() private var deviceDataManager: DeviceDataManager!
     @Injected() private var nightscout: NightscoutManager!
     @Injected() private var settingsManager: SettingsManager!
+    @Injected() private var tddStorage: TDDStorage!
     @Injected() private var broadcaster: Broadcaster!
     @Persisted(key: "lastLoopStartDate") private var lastLoopStartDate: Date = .distantPast
     @Persisted(key: "lastLoopDate") var lastLoopDate: Date = .distantPast {
@@ -131,7 +132,14 @@ final class BaseAPSManager: APSManager, Injectable {
             let wasParsed = storage.parseOnFileSettingsToMgdL()
             if wasParsed {
                 Task {
-                    await openAPS.createProfiles()
+                    do {
+                        try await openAPS.createProfiles()
+                    } catch {
+                        debug(
+                            .apsManager,
+                            "\(DebuggingIdentifiers.failed) Error creating profiles: \(error.localizedDescription)"
+                        )
+                    }
                 }
             }
         }
@@ -185,106 +193,134 @@ final class BaseAPSManager: APSManager, Injectable {
 
     // Loop entry point
     private func loop() {
-        Task {
-            // check the last start of looping is more the loopInterval but the previous loop was completed
-            if lastLoopDate > lastLoopStartDate {
-                guard lastLoopStartDate.addingTimeInterval(Config.loopInterval) < Date() else {
-                    debug(.apsManager, "too close to do a loop : \(lastLoopStartDate)")
-                    return
-                }
-            }
+        Task { [weak self] in
+            guard let self else { return }
 
-            guard !isLooping.value else {
-                warning(.apsManager, "Loop already in progress. Skip recommendation.")
-                return
-            }
+            // Check if we can start a new loop
+            guard await self.canStartNewLoop() else { return }
 
-            // start background time extension
-            backGroundTaskID = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") {
-                guard let backgroundTask = self.backGroundTaskID else { return }
-                Task {
-                    UIApplication.shared.endBackgroundTask(backgroundTask)
-                }
-                self.backGroundTaskID = .invalid
-            }
-
-            lastLoopStartDate = Date()
-
-            var previousLoop = [LoopStatRecord]()
-            var interval: Double?
+            // Setup loop and background task
+            var (loopStatRecord, backgroundTask) = await self.setupLoop()
 
             do {
-                try await privateContext.perform {
-                    let requestStats = LoopStatRecord.fetchRequest() as NSFetchRequest<LoopStatRecord>
-                    let sortStats = NSSortDescriptor(key: "end", ascending: false)
-                    requestStats.sortDescriptors = [sortStats]
-                    requestStats.fetchLimit = 1
-                    previousLoop = try self.privateContext.fetch(requestStats)
+                // Execute loop logic
+                try await self.executeLoop(loopStatRecord: &loopStatRecord)
 
-                    if (previousLoop.first?.end ?? .distantFuture) < self.lastLoopStartDate {
-                        interval = self.roundDouble(
-                            (self.lastLoopStartDate - (previousLoop.first?.end ?? Date())).timeInterval / 60,
-                            1
-                        )
-                    }
+                // Upload data to Nightscout if available
+                if let nightscoutManager = self.nightscout {
+                    await nightscoutManager.uploadCarbs()
+                    await nightscoutManager.uploadPumpHistory()
+                    await nightscoutManager.uploadOverrides()
+                    await nightscoutManager.uploadTempTargets()
                 }
-            } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch the last loop with error: \(error.userInfo)"
-                )
-            }
-
-            var loopStatRecord = LoopStats(
-                start: lastLoopStartDate,
-                loopStatus: "Starting",
-                interval: interval
-            )
-
-            isLooping.send(true)
-
-            do {
-                if await !determineBasal() {
-                    throw APSError.apsError(message: "Determine basal failed")
-                }
-
-                // Open loop completed
-                guard settings.closedLoop else {
-                    loopStatRecord.end = Date()
-                    loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
-                    loopStatRecord.loopStatus = "Success"
-                    await loopCompleted(loopStatRecord: loopStatRecord)
-                    return
-                }
-
-                // Closed loop - enact Determination
-                try await enactDetermination()
-                loopStatRecord.end = Date()
-                loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
-                loopStatRecord.loopStatus = "Success"
-                await loopCompleted(loopStatRecord: loopStatRecord)
             } catch {
-                loopStatRecord.end = Date()
-                loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
-                loopStatRecord.loopStatus = error.localizedDescription
-                await loopCompleted(error: error, loopStatRecord: loopStatRecord)
+                var updatedStats = loopStatRecord
+                updatedStats.end = Date()
+                updatedStats.duration = roundDouble((updatedStats.end! - updatedStats.start).timeInterval / 60, 2)
+                updatedStats.loopStatus = error.localizedDescription
+                await loopCompleted(error: error, loopStatRecord: updatedStats)
+                debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to complete Loop: \(error.localizedDescription)")
             }
 
-            if let nightscoutManager = nightscout {
-                await nightscoutManager.uploadCarbs()
-                await nightscoutManager.uploadPumpHistory()
-                await nightscoutManager.uploadOverrides()
-                await nightscoutManager.uploadTempTargets()
-            }
-
-            // End background task after all the operations are completed
-            if let backgroundTask = self.backGroundTaskID {
+            // Cleanup background task
+            if let backgroundTask = backgroundTask {
                 await UIApplication.shared.endBackgroundTask(backgroundTask)
                 self.backGroundTaskID = .invalid
             }
         }
     }
 
-//     Loop exit point
+    private func canStartNewLoop() async -> Bool {
+        // Check if too soon for next loop
+        if lastLoopDate > lastLoopStartDate {
+            guard lastLoopStartDate.addingTimeInterval(Config.loopInterval) < Date() else {
+                debug(.apsManager, "Not enough time have passed since last loop at : \(lastLoopStartDate)")
+                return false
+            }
+        }
+
+        // Check if loop already in progress
+        guard !isLooping.value else {
+            warning(.apsManager, "Loop already in progress. Skip recommendation.")
+            return false
+        }
+
+        return true
+    }
+
+    private func setupLoop() async -> (LoopStats, UIBackgroundTaskIdentifier?) {
+        // Start background task
+        let backgroundTask = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") { [weak self] in
+            guard let self, let backgroundTask = self.backGroundTaskID else { return }
+            Task {
+                UIApplication.shared.endBackgroundTask(backgroundTask)
+            }
+            self.backGroundTaskID = .invalid
+        }
+        backGroundTaskID = backgroundTask
+
+        // Set loop start time
+        lastLoopStartDate = Date()
+
+        // Calculate interval from previous loop
+        let interval = await calculateLoopInterval()
+
+        // Create initial loop stats record
+        let loopStatRecord = LoopStats(
+            start: lastLoopStartDate,
+            loopStatus: "Starting",
+            interval: interval
+        )
+
+        isLooping.send(true)
+
+        return (loopStatRecord, backgroundTask)
+    }
+
+    private func executeLoop(loopStatRecord: inout LoopStats) async throws {
+        try await determineBasal()
+
+        // Handle open loop
+        guard settings.closedLoop else {
+            loopStatRecord.end = Date()
+            loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
+            loopStatRecord.loopStatus = "Success"
+            await loopCompleted(loopStatRecord: loopStatRecord)
+            return
+        }
+
+        // Handle closed loop
+        try await enactDetermination()
+        loopStatRecord.end = Date()
+        loopStatRecord.duration = roundDouble((loopStatRecord.end! - loopStatRecord.start).timeInterval / 60, 2)
+        loopStatRecord.loopStatus = "Success"
+        await loopCompleted(loopStatRecord: loopStatRecord)
+    }
+
+    private func calculateLoopInterval() async -> Double? {
+        do {
+            return try await privateContext.perform {
+                let requestStats = LoopStatRecord.fetchRequest() as NSFetchRequest<LoopStatRecord>
+                let sortStats = NSSortDescriptor(key: "end", ascending: false)
+                requestStats.sortDescriptors = [sortStats]
+                requestStats.fetchLimit = 1
+                let previousLoop = try self.privateContext.fetch(requestStats)
+
+                if (previousLoop.first?.end ?? .distantFuture) < self.lastLoopStartDate {
+                    return self.roundDouble(
+                        (self.lastLoopStartDate - (previousLoop.first?.end ?? Date())).timeInterval / 60,
+                        1
+                    )
+                }
+                return nil
+            }
+        } catch {
+            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch the last loop with error: \(error)")
+            return nil
+        }
+    }
+
+    // Loop exit point
     private func loopCompleted(error: Error? = nil, loopStatRecord: LoopStats) async {
         isLooping.send(false)
 
@@ -347,14 +383,39 @@ final class BaseAPSManager: APSManager, Injectable {
         return false
     }
 
-    func determineBasal() async -> Bool {
+    /// Calculates and stores the Total Daily Dose (TDD)
+    private func calculateAndStoreTDD() async throws {
+        guard let pumpManager else { return }
+
+        async let pumpHistory = pumpHistoryStorage.getPumpHistory()
+        async let basalProfile = storage
+            .retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ??
+            [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile)) ??
+            [] // OpenAPS.defaults ensures we at least get default rate of 1u/hr for 24 hrs
+
+        // Calculate TDD
+        let tddResult = try await tddStorage.calculateTDD(
+            pumpManager: pumpManager,
+            pumpHistory: pumpHistory,
+            basalProfile: basalProfile
+        )
+
+        // Store TDD in Core Data
+        await tddStorage.storeTDD(tddResult)
+    }
+
+    func determineBasal() async throws {
         debug(.apsManager, "Start determine basal")
 
+        try await calculateAndStoreTDD()
+
         // Fetch glucose asynchronously
-        let glucose = await fetchGlucose(predicate: NSPredicate.predicateForOneHourAgo, fetchLimit: 6)
+        let glucose = try await fetchGlucose(predicate: NSPredicate.predicateForOneHourAgo, fetchLimit: 6)
 
         // Perform the context-related checks and actions
-        let isValidGlucoseData = await privateContext.perform {
+        let isValidGlucoseData = await privateContext.perform { [weak self] in
+            guard let self else { return false }
+
             guard glucose.count > 2 else {
                 debug(.apsManager, "Not enough glucose data")
                 self.processError(APSError.glucoseError(message: "Not enough glucose data"))
@@ -380,7 +441,7 @@ final class BaseAPSManager: APSManager, Injectable {
         guard isValidGlucoseData else {
             debug(.apsManager, "Glucose validation failed")
             processError(APSError.glucoseError(message: "Glucose validation failed"))
-            return false
+            return
         }
 
         do {
@@ -391,32 +452,30 @@ final class BaseAPSManager: APSManager, Injectable {
             async let autosenseResult = autosense()
 
             _ = try await autosenseResult
-            await openAPS.createProfiles()
+            try await openAPS.createProfiles()
             let determination = try await openAPS.determineBasal(currentTemp: await currentTemp, clock: now)
 
             if let determination = determination {
-                DispatchQueue.main.async {
+                // Capture weak self in closure
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
                     self.broadcaster.notify(DeterminationObserver.self, on: .main) {
                         $0.determinationDidUpdate(determination)
                     }
                 }
-                return true
-            } else {
-                return false
             }
         } catch {
-            debug(.apsManager, "Error determining basal: \(error)")
-            return false
+            throw APSError.apsError(message: "Error determining basal: \(error.localizedDescription)")
         }
     }
 
-    func determineBasalSync() async {
-        _ = await determineBasal()
+    func determineBasalSync() async throws {
+        _ = try await determineBasal()
     }
 
     func simulateDetermineBasal(simulatedCarbsAmount: Decimal, simulatedBolusAmount: Decimal) async -> Determination? {
         do {
-            let temp = await fetchCurrentTempBasal(date: Date.now)
+            let temp = try await fetchCurrentTempBasal(date: Date.now)
             return try await openAPS.determineBasal(
                 currentTemp: temp,
                 clock: Date(),
@@ -453,12 +512,14 @@ final class BaseAPSManager: APSManager, Injectable {
 
         if let error = verifyStatus() {
             processError(error)
-            processQueue.async {
-                self.broadcaster.notify(BolusFailureObserver.self, on: self.processQueue) {
+            // Capture broadcaster and queue before async context
+            let broadcaster = self.broadcaster
+            Task { @MainActor in
+                broadcaster?.notify(BolusFailureObserver.self, on: .main) {
                     $0.bolusDidFail()
                 }
             }
-            callback?(false, "Error! Failed to enact bolus.")
+            callback?(false, String(localized: "Error! Failed to enact bolus.", comment: "Error message for enacting a bolus"))
             return
         }
 
@@ -472,21 +533,26 @@ final class BaseAPSManager: APSManager, Injectable {
             try await pump.enactBolus(units: roundedAmount, automatic: isSMB)
             debug(.apsManager, "Bolus succeeded")
             if !isSMB {
-                await determineBasalSync()
+                try await determineBasalSync()
             }
             bolusProgress.send(0)
-            callback?(true, "Bolus enacted successfully.")
+            callback?(true, String(localized: "Bolus enacted successfully.", comment: "Success message for enacting a bolus"))
         } catch {
             warning(.apsManager, "Bolus failed with error: \(error.localizedDescription)")
             processError(APSError.pumpError(error))
             if !isSMB {
-                processQueue.async {
-                    self.broadcaster.notify(BolusFailureObserver.self, on: self.processQueue) {
+                // Use MainActor to handle broadcaster notification
+                let broadcaster = self.broadcaster
+                Task { @MainActor in
+                    broadcaster?.notify(BolusFailureObserver.self, on: .main) {
                         $0.bolusDidFail()
                     }
                 }
             }
-            callback?(false, "Error! Failed to enact bolus.")
+            callback?(
+                false,
+                String(localized: "Error! Failed to enact bolus.", comment: "Error message for failing to enact a bolus")
+            )
         }
     }
 
@@ -496,11 +562,14 @@ final class BaseAPSManager: APSManager, Injectable {
         do {
             _ = try await pump.cancelBolus()
             debug(.apsManager, "Bolus cancelled")
-            callback?(true, "Bolus cancelled successfully.")
+            callback?(true, String(localized: "Bolus cancelled successfully.", comment: "Success message for canceling a bolus"))
         } catch {
             debug(.apsManager, "Bolus cancellation failed with error: \(error.localizedDescription)")
             processError(APSError.pumpError(error))
-            callback?(false, "Error! Bolus cancellation failed.")
+            callback?(
+                false,
+                String(localized: "Error! Bolus cancellation failed.", comment: "Error message for canceling a bolus")
+            )
         }
         bolusReporter?.removeObserver(self)
         bolusReporter = nil
@@ -534,8 +603,8 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    private func fetchCurrentTempBasal(date: Date) async -> TempBasal {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchCurrentTempBasal(date: Date) async throws -> TempBasal {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: privateContext,
             predicate: NSPredicate.recentPumpHistory,
@@ -574,7 +643,7 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func enactDetermination() async throws {
-        guard let determinationID = await determinationStorage
+        guard let determinationID = try await determinationStorage
             .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination).first
         else {
             throw APSError.apsError(message: "Determination not found")
@@ -629,35 +698,39 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func reportEnacted(wasEnacted: Bool) async {
-        guard let determinationID = await determinationStorage
-            .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination).first
-        else {
-            return
-        }
-        await privateContext.perform {
-            if let determinationUpdated = self.privateContext.object(with: determinationID) as? OrefDetermination {
+        do {
+            guard let determinationID = try await determinationStorage
+                .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination).first
+            else {
+                debug(.apsManager, "No determination found to report enacted status")
+                return
+            }
+
+            try await privateContext.perform {
+                guard let determinationUpdated = try self.privateContext
+                    .existingObject(with: determinationID) as? OrefDetermination
+                else {
+                    debug(.apsManager, "Could not find determination object in context")
+                    return
+                }
+
                 determinationUpdated.timestamp = Date()
                 determinationUpdated.enacted = wasEnacted
                 determinationUpdated.isUploadedToNS = false
 
-                do {
-                    guard self.privateContext.hasChanges else { return }
-                    try self.privateContext.save()
-                    debugPrint("Update successful in reportEnacted() \(DebuggingIdentifiers.succeeded)")
-                } catch {
-                    debugPrint(
-                        "Failed  \(DebuggingIdentifiers.succeeded) to save context in reportEnacted(): \(error.localizedDescription)"
-                    )
-                }
-
+                guard self.privateContext.hasChanges else { return }
+                try self.privateContext.save()
                 debug(.apsManager, "Determination enacted. Enacted: \(wasEnacted)")
 
                 Task.detached(priority: .low) {
                     await self.statistics()
                 }
-            } else {
-                debugPrint("Failed to update OrefDetermination in reportEnacted()")
             }
+        } catch {
+            debug(
+                .apsManager,
+                "\(DebuggingIdentifiers.failed) Error reporting enacted status: \(error.localizedDescription)"
+            )
         }
     }
 
@@ -817,8 +890,8 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     // fetch glucose for time interval
-    func fetchGlucose(predicate: NSPredicate, fetchLimit: Int? = nil, batchSize: Int? = nil) async -> [GlucoseStored] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    func fetchGlucose(predicate: NSPredicate, fetchLimit: Int? = nil, batchSize: Int? = nil) async throws -> [GlucoseStored] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: privateContext,
             predicate: predicate,
@@ -828,9 +901,9 @@ final class BaseAPSManager: APSManager, Injectable {
             batchSize: batchSize
         )
 
-        return await privateContext.perform {
+        return try await privateContext.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
-                return []
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return glucoseResults
@@ -855,7 +928,7 @@ final class BaseAPSManager: APSManager, Injectable {
             async let carbTotal = carbsForStats()
             async let preferences = settingsManager.preferences
 
-            let loopStats = await loopStats(oneDayGlucose: await glucoseStats.oneDayGlucose.readings)
+            let loopStats = await loopStats(oneDayGlucose: Double(rawValue: (await glucoseStats?.oneDayGlucose.readings)!) ?? 0.0)
 
             // Only save and upload once per day
             guard (-1 * (await lastLoopForStats ?? .distantPast).timeIntervalSinceNow.hours) > 22 else { return }
@@ -925,7 +998,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 scheduled_basal: 0,
                 total_average: 0
             )
-            let processedGlucoseStats = await glucoseStats
+            guard let processedGlucoseStats = await glucoseStats else { return }
             let hbA1cDisplayUnit = processedGlucoseStats.hbA1cDisplayUnit
 
             let dailystat = await Statistics(
@@ -944,7 +1017,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 insulinType: insulin_type.rawValue,
                 peakActivityTime: iPa,
                 Carbs_24h: await carbTotal,
-                GlucoseStorage_Days: Decimal(roundDouble(processedGlucoseStats.numberofDays, 1)),
+                GlucoseStorage_Days: Decimal(roundDouble(Double(rawValue: processedGlucoseStats.numberofDays) ?? 0.0, 1)),
                 Statistics: Stats(
                     Distribution: processedGlucoseStats.TimeInRange,
                     Glucose: processedGlucoseStats.avg,
@@ -1104,175 +1177,153 @@ final class BaseAPSManager: APSManager, Injectable {
         return (currentTDD, tddTotalAverage)
     }
 
-    private func glucoseForStats() async
-        -> (
-            oneDayGlucose: (
-                ifcc: Double,
-                ngsp: Double,
-                average: Double,
-                median: Double,
-                sd: Double,
-                cv: Double,
-                readings: Double
-            ),
-            hbA1cDisplayUnit: HbA1cDisplayUnit,
-            numberofDays: Double,
-            TimeInRange: TIRs,
-            avg: Averages,
-            hbs: Durations,
-            variance: Variance
-        )
-    {
-        // Get the Glucose Values
-        let glucose24h = await fetchGlucose(predicate: NSPredicate.predicateForOneDayAgo, fetchLimit: 288, batchSize: 50)
-        let glucoseOneWeek = await fetchGlucose(
-            predicate: NSPredicate.predicateForOneWeek,
-            fetchLimit: 288 * 7,
-            batchSize: 250
-        )
-        let glucoseOneMonth = await fetchGlucose(
-            predicate: NSPredicate.predicateForOneMonth,
-            fetchLimit: 288 * 7 * 30,
-            batchSize: 500
-        )
-        let glucoseThreeMonths = await fetchGlucose(
-            predicate: NSPredicate.predicateForThreeMonths,
-            fetchLimit: 288 * 7 * 30 * 3,
-            batchSize: 1000
-        )
-
-        var result: (
-            oneDayGlucose: (
-                ifcc: Double,
-                ngsp: Double,
-                average: Double,
-                median: Double,
-                sd: Double,
-                cv: Double,
-                readings: Double
-            ),
-            hbA1cDisplayUnit: HbA1cDisplayUnit,
-            numberofDays: Double,
-            TimeInRange: TIRs,
-            avg: Averages,
-            hbs: Durations,
-            variance: Variance
-        )?
-
-        await privateContext.perform {
-            let units = self.settingsManager.settings.units
-
-            // First date
-            let previous = glucoseThreeMonths.last?.date ?? Date()
-            // Last date (recent)
-            let current = glucoseThreeMonths.first?.date ?? Date()
-            // Total time in days
-            let numberOfDays = (current - previous).timeInterval / 8.64E4
-
-            // Get glucose computations for every case
-            let oneDayGlucose = self.glucoseStats(glucose24h)
-            let sevenDaysGlucose = self.glucoseStats(glucoseOneWeek)
-            let thirtyDaysGlucose = self.glucoseStats(glucoseOneMonth)
-            let totalDaysGlucose = self.glucoseStats(glucoseThreeMonths)
-
-            let median = Durations(
-                day: self.roundDecimal(Decimal(oneDayGlucose.median), 1),
-                week: self.roundDecimal(Decimal(sevenDaysGlucose.median), 1),
-                month: self.roundDecimal(Decimal(thirtyDaysGlucose.median), 1),
-                total: self.roundDecimal(Decimal(totalDaysGlucose.median), 1)
+    private func glucoseForStats() async -> (
+        oneDayGlucose: (ifcc: Double, ngsp: Double, average: Double, median: Double, sd: Double, cv: Double, readings: Double),
+        hbA1cDisplayUnit: HbA1cDisplayUnit,
+        numberofDays: Double,
+        TimeInRange: TIRs,
+        avg: Averages,
+        hbs: Durations,
+        variance: Variance
+    )? {
+        do {
+            // Get the Glucose Values
+            let glucose24h = try await fetchGlucose(predicate: NSPredicate.predicateForOneDayAgo, fetchLimit: 288, batchSize: 50)
+            let glucoseOneWeek = try await fetchGlucose(
+                predicate: NSPredicate.predicateForOneWeek,
+                fetchLimit: 288 * 7,
+                batchSize: 250
+            )
+            let glucoseOneMonth = try await fetchGlucose(
+                predicate: NSPredicate.predicateForOneMonth,
+                fetchLimit: 288 * 7 * 30,
+                batchSize: 500
+            )
+            let glucoseThreeMonths = try await fetchGlucose(
+                predicate: NSPredicate.predicateForThreeMonths,
+                fetchLimit: 288 * 7 * 30 * 3,
+                batchSize: 1000
             )
 
-            let hbA1cDisplayUnit = self.settingsManager.settings.hbA1cDisplayUnit
+            return await privateContext.perform {
+                let units = self.settingsManager.settings.units
 
-            let hbs = Durations(
-                day: hbA1cDisplayUnit == .mmolMol ?
-                    self.roundDecimal(Decimal(oneDayGlucose.ifcc), 1) :
-                    self.roundDecimal(Decimal(oneDayGlucose.ngsp), 1),
-                week: hbA1cDisplayUnit == .mmolMol ?
-                    self.roundDecimal(Decimal(sevenDaysGlucose.ifcc), 1) :
-                    self.roundDecimal(Decimal(sevenDaysGlucose.ngsp), 1),
-                month: hbA1cDisplayUnit == .mmolMol ?
-                    self.roundDecimal(Decimal(thirtyDaysGlucose.ifcc), 1) :
-                    self.roundDecimal(Decimal(thirtyDaysGlucose.ngsp), 1),
-                total: hbA1cDisplayUnit == .mmolMol ?
-                    self.roundDecimal(Decimal(totalDaysGlucose.ifcc), 1) :
-                    self.roundDecimal(Decimal(totalDaysGlucose.ngsp), 1)
-            )
+                // First date
+                let previous = glucoseThreeMonths.last?.date ?? Date()
+                // Last date (recent)
+                let current = glucoseThreeMonths.first?.date ?? Date()
+                // Total time in days
+                let numberOfDays = (current - previous).timeInterval / 8.64E4
 
-            var oneDay_: (TIR: Double, hypos: Double, hypers: Double, normal_: Double) = (0.0, 0.0, 0.0, 0.0)
-            var sevenDays_: (TIR: Double, hypos: Double, hypers: Double, normal_: Double) = (0.0, 0.0, 0.0, 0.0)
-            var thirtyDays_: (TIR: Double, hypos: Double, hypers: Double, normal_: Double) = (0.0, 0.0, 0.0, 0.0)
-            var totalDays_: (TIR: Double, hypos: Double, hypers: Double, normal_: Double) = (0.0, 0.0, 0.0, 0.0)
-            // Get TIR computations for every case
-            oneDay_ = self.tir(glucose24h)
-            sevenDays_ = self.tir(glucoseOneWeek)
-            thirtyDays_ = self.tir(glucoseOneMonth)
-            totalDays_ = self.tir(glucoseThreeMonths)
+                // Get glucose computations for every case
+                let oneDayGlucose = self.glucoseStats(glucose24h)
+                let sevenDaysGlucose = self.glucoseStats(glucoseOneWeek)
+                let thirtyDaysGlucose = self.glucoseStats(glucoseOneMonth)
+                let totalDaysGlucose = self.glucoseStats(glucoseThreeMonths)
 
-            let tir = Durations(
-                day: self.roundDecimal(Decimal(oneDay_.TIR), 1),
-                week: self.roundDecimal(Decimal(sevenDays_.TIR), 1),
-                month: self.roundDecimal(Decimal(thirtyDays_.TIR), 1),
-                total: self.roundDecimal(Decimal(totalDays_.TIR), 1)
-            )
-            let hypo = Durations(
-                day: Decimal(oneDay_.hypos),
-                week: Decimal(sevenDays_.hypos),
-                month: Decimal(thirtyDays_.hypos),
-                total: Decimal(totalDays_.hypos)
-            )
-            let hyper = Durations(
-                day: Decimal(oneDay_.hypers),
-                week: Decimal(sevenDays_.hypers),
-                month: Decimal(thirtyDays_.hypers),
-                total: Decimal(totalDays_.hypers)
-            )
-            let normal = Durations(
-                day: Decimal(oneDay_.normal_),
-                week: Decimal(sevenDays_.normal_),
-                month: Decimal(thirtyDays_.normal_),
-                total: Decimal(totalDays_.normal_)
-            )
-            let range = Threshold(
-                low: units == .mmolL ? self.roundDecimal(self.settingsManager.settings.low.asMmolL, 1) :
-                    self.roundDecimal(self.settingsManager.settings.low, 0),
-                high: units == .mmolL ? self.roundDecimal(self.settingsManager.settings.high.asMmolL, 1) :
-                    self.roundDecimal(self.settingsManager.settings.high, 0)
-            )
-            let TimeInRange = TIRs(
-                TIR: tir,
-                Hypos: hypo,
-                Hypers: hyper,
-                Threshold: range,
-                Euglycemic: normal
-            )
-            let avgs = Durations(
-                day: self.roundDecimal(Decimal(oneDayGlucose.average), 1),
-                week: self.roundDecimal(Decimal(sevenDaysGlucose.average), 1),
-                month: self.roundDecimal(Decimal(thirtyDaysGlucose.average), 1),
-                total: self.roundDecimal(Decimal(totalDaysGlucose.average), 1)
-            )
-            let avg = Averages(Average: avgs, Median: median)
-            // Standard Deviations
-            let standardDeviations = Durations(
-                day: self.roundDecimal(Decimal(oneDayGlucose.sd), 1),
-                week: self.roundDecimal(Decimal(sevenDaysGlucose.sd), 1),
-                month: self.roundDecimal(Decimal(thirtyDaysGlucose.sd), 1),
-                total: self.roundDecimal(Decimal(totalDaysGlucose.sd), 1)
-            )
-            // CV = standard deviation / sample mean x 100
-            let cvs = Durations(
-                day: self.roundDecimal(Decimal(oneDayGlucose.cv), 1),
-                week: self.roundDecimal(Decimal(sevenDaysGlucose.cv), 1),
-                month: self.roundDecimal(Decimal(thirtyDaysGlucose.cv), 1),
-                total: self.roundDecimal(Decimal(totalDaysGlucose.cv), 1)
-            )
-            let variance = Variance(SD: standardDeviations, CV: cvs)
+                let median = Durations(
+                    day: self.roundDecimal(Decimal(oneDayGlucose.median), 1),
+                    week: self.roundDecimal(Decimal(sevenDaysGlucose.median), 1),
+                    month: self.roundDecimal(Decimal(thirtyDaysGlucose.median), 1),
+                    total: self.roundDecimal(Decimal(totalDaysGlucose.median), 1)
+                )
 
-            result = (oneDayGlucose, hbA1cDisplayUnit, numberOfDays, TimeInRange, avg, hbs, variance)
+                let hbA1cDisplayUnit = self.settingsManager.settings.hbA1cDisplayUnit
+
+                let hbs = Durations(
+                    day: hbA1cDisplayUnit == .mmolMol ?
+                        self.roundDecimal(Decimal(oneDayGlucose.ifcc), 1) :
+                        self.roundDecimal(Decimal(oneDayGlucose.ngsp), 1),
+                    week: hbA1cDisplayUnit == .mmolMol ?
+                        self.roundDecimal(Decimal(sevenDaysGlucose.ifcc), 1) :
+                        self.roundDecimal(Decimal(sevenDaysGlucose.ngsp), 1),
+                    month: hbA1cDisplayUnit == .mmolMol ?
+                        self.roundDecimal(Decimal(thirtyDaysGlucose.ifcc), 1) :
+                        self.roundDecimal(Decimal(thirtyDaysGlucose.ngsp), 1),
+                    total: hbA1cDisplayUnit == .mmolMol ?
+                        self.roundDecimal(Decimal(totalDaysGlucose.ifcc), 1) :
+                        self.roundDecimal(Decimal(totalDaysGlucose.ngsp), 1)
+                )
+
+                var oneDay_: (TIR: Double, hypos: Double, hypers: Double, normal_: Double) = (0.0, 0.0, 0.0, 0.0)
+                var sevenDays_: (TIR: Double, hypos: Double, hypers: Double, normal_: Double) = (0.0, 0.0, 0.0, 0.0)
+                var thirtyDays_: (TIR: Double, hypos: Double, hypers: Double, normal_: Double) = (0.0, 0.0, 0.0, 0.0)
+                var totalDays_: (TIR: Double, hypos: Double, hypers: Double, normal_: Double) = (0.0, 0.0, 0.0, 0.0)
+                // Get TIR computations for every case
+                oneDay_ = self.tir(glucose24h)
+                sevenDays_ = self.tir(glucoseOneWeek)
+                thirtyDays_ = self.tir(glucoseOneMonth)
+                totalDays_ = self.tir(glucoseThreeMonths)
+
+                let tir = Durations(
+                    day: self.roundDecimal(Decimal(oneDay_.TIR), 1),
+                    week: self.roundDecimal(Decimal(sevenDays_.TIR), 1),
+                    month: self.roundDecimal(Decimal(thirtyDays_.TIR), 1),
+                    total: self.roundDecimal(Decimal(totalDays_.TIR), 1)
+                )
+                let hypo = Durations(
+                    day: Decimal(oneDay_.hypos),
+                    week: Decimal(sevenDays_.hypos),
+                    month: Decimal(thirtyDays_.hypos),
+                    total: Decimal(totalDays_.hypos)
+                )
+                let hyper = Durations(
+                    day: Decimal(oneDay_.hypers),
+                    week: Decimal(sevenDays_.hypers),
+                    month: Decimal(thirtyDays_.hypers),
+                    total: Decimal(totalDays_.hypers)
+                )
+                let normal = Durations(
+                    day: Decimal(oneDay_.normal_),
+                    week: Decimal(sevenDays_.normal_),
+                    month: Decimal(thirtyDays_.normal_),
+                    total: Decimal(totalDays_.normal_)
+                )
+                let range = Threshold(
+                    low: units == .mmolL ? self.roundDecimal(self.settingsManager.settings.low.asMmolL, 1) :
+                        self.roundDecimal(self.settingsManager.settings.low, 0),
+                    high: units == .mmolL ? self.roundDecimal(self.settingsManager.settings.high.asMmolL, 1) :
+                        self.roundDecimal(self.settingsManager.settings.high, 0)
+                )
+                let TimeInRange = TIRs(
+                    TIR: tir,
+                    Hypos: hypo,
+                    Hypers: hyper,
+                    Threshold: range,
+                    Euglycemic: normal
+                )
+                let avgs = Durations(
+                    day: self.roundDecimal(Decimal(oneDayGlucose.average), 1),
+                    week: self.roundDecimal(Decimal(sevenDaysGlucose.average), 1),
+                    month: self.roundDecimal(Decimal(thirtyDaysGlucose.average), 1),
+                    total: self.roundDecimal(Decimal(totalDaysGlucose.average), 1)
+                )
+                let avg = Averages(Average: avgs, Median: median)
+                // Standard Deviations
+                let standardDeviations = Durations(
+                    day: self.roundDecimal(Decimal(oneDayGlucose.sd), 1),
+                    week: self.roundDecimal(Decimal(sevenDaysGlucose.sd), 1),
+                    month: self.roundDecimal(Decimal(thirtyDaysGlucose.sd), 1),
+                    total: self.roundDecimal(Decimal(totalDaysGlucose.sd), 1)
+                )
+                // CV = standard deviation / sample mean x 100
+                let cvs = Durations(
+                    day: self.roundDecimal(Decimal(oneDayGlucose.cv), 1),
+                    week: self.roundDecimal(Decimal(sevenDaysGlucose.cv), 1),
+                    month: self.roundDecimal(Decimal(thirtyDaysGlucose.cv), 1),
+                    total: self.roundDecimal(Decimal(totalDaysGlucose.cv), 1)
+                )
+                let variance = Variance(SD: standardDeviations, CV: cvs)
+
+                return (oneDayGlucose, hbA1cDisplayUnit, numberOfDays, TimeInRange, avg, hbs, variance)
+            }
+        } catch {
+            debug(
+                .apsManager,
+                "\(DebuggingIdentifiers.failed) Error fetching glucose for stats: \(error.localizedDescription)"
+            )
+            return nil
         }
-
-        return result!
     }
 
     private func loopStats(loopStatRecord: LoopStats) {

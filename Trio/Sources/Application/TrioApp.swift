@@ -71,11 +71,11 @@ import Swinject
         // Setup up the Core Data Stack
         coreDataStack = CoreDataStack.shared
 
+        // Explicitly initialize Core Data Stack
         do {
-            // Explicitly initialize Core Data Stacak
             try coreDataStack.initializeStack()
 
-            // Load services
+            // Only load services after successful Core Data initialization
             loadServices()
 
             // Fix bug in iOS 18 related to the translucent tab bar
@@ -84,12 +84,9 @@ import Swinject
             // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
             cleanupOldData()
         } catch {
-            debug(
-                .coreData,
-                "Failed to initialize Core Data Stack: \(error.localizedDescription)"
-            )
-            // Handle initialization failure
-            fatalError("Core Data Stack initialization failed: \(error.localizedDescription)")
+            debug(.coreData, "\(DebuggingIdentifiers.failed) Failed to initialize Core Data Stack: \(error.localizedDescription)")
+
+            fatalError("Core Data Stack initialization failed")
         }
     }
 
@@ -108,6 +105,14 @@ import Swinject
             /// If the App goes to the background we should ensure that all the changes are saved from the viewContext to the Persistent Container
             if newScenePhase == .background {
                 coreDataStack.save()
+            }
+
+            if newScenePhase == .active {
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController
+                {
+                    AppVersionChecker.shared.checkAndNotifyVersionStatus(in: rootVC)
+                }
             }
         }
         .backgroundTask(.appRefresh("com.trio.cleanup")) {
@@ -142,9 +147,9 @@ import Swinject
         request.earliestBeginDate = .now.addingTimeInterval(7 * 24 * 60 * 60) // 7 days
         do {
             try BGTaskScheduler.shared.submit(request)
-            debugPrint("Task scheduled successfully")
+            debug(.coreData, "Task for cleaning database scheduled successfully")
         } catch {
-            debugPrint("Failed to schedule tasks")
+            debug(.coreData, "Failed to schedule tasks for cleaning database: \(error.localizedDescription)")
         }
     }
 
