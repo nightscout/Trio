@@ -245,7 +245,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                         return UInt64($0.timeIntervalSince1970)
                     }
 
-                let iobValue = latestDetermination.iob ?? 0
+                    let iobValue = latestDetermination.iob ?? 0
                     watchState.iob = self.iobFormatterWithOneFractionDigit(iobValue as Decimal)
 
                     let cobNumber = NSNumber(value: latestDetermination.cob)
@@ -291,8 +291,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                         deltaValue = Double(truncating: deltaValue as NSNumber).asMmolL
                     }
 
-                    let formattedDelta = Formatter.glucoseFormatter(for: self.units)
-                        .string(from: deltaValue as NSNumber) ?? "0"
+                    let formattedDelta = deltaValue.description
                     watchState.delta = deltaValue < 0 ? "\(formattedDelta)" : "+\(formattedDelta)"
                 }
 
@@ -491,7 +490,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             }
         )
     }
-    
+
     func iobFormatterWithOneFractionDigit(_ value: Decimal) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
