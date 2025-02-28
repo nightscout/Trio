@@ -40,12 +40,12 @@ extension TargetBehavoir {
                         "High Temp Target Raises Sensitivity",
                         comment: "High Temp Target Raises Sensitivity"
                     ),
-                    miniHint: "Increase sensitivity when glucose is above target if a manual Temp Target > \(state.units == .mgdL ? "110" : 110.formattedAsMmolL) \(state.units.rawValue) is set.",
+                    miniHint: "Increase sensitivity when glucose is above target if a manual Temp Target > \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "When this feature is enabled, manually setting a temporary target above \(state.units == .mgdL ? "110" : 110.formattedAsMmolL) \(state.units.rawValue) will decrease the Autosens Ratio used for ISF and basal adjustments, resulting in less insulin delivered overall. This scales with the temporary target set; the higher the temp target, the lower the Autosens Ratio used."
+                            "When this feature is enabled, manually setting a temporary target above \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) will decrease the Autosens Ratio used for ISF and basal adjustments, resulting in less insulin delivered overall. This scales with the temporary target set; the higher the temp target, the lower the Autosens Ratio used."
                         )
                         Text(
                             "If Half Basal Exercise Target is set to \(state.units == .mgdL ? "160" : 160.formattedAsMmolL) \(state.units.rawValue), a temp target of \(state.units == .mgdL ? "120" : 120.formattedAsMmolL) \(state.units.rawValue) uses an Autosens Ratio of 0.75. A temp target of \(state.units == .mgdL ? "140" : 140.formattedAsMmolL) \(state.units.rawValue) uses an Autosens Ratio of 0.6."
