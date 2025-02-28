@@ -200,8 +200,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
 
     /// Fetches recent glucose readings from CoreData
     /// - Returns: Array of NSManagedObjectIDs for glucose readings
-    private func fetchGlucose() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchGlucose() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: glucoseFetchContext,
             predicate: NSPredicate.glucose,
@@ -277,73 +277,82 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         carbs: Decimal,
         useFattyMealCorrection: Bool,
         useSuperBolus: Bool
-    ) async -> CalculationInput {
-        // Get settings
-        let settings = await getSettings()
+    ) async throws -> CalculationInput {
+        do {
+            // Get settings
+            let settings = await getSettings()
 
-        // Get max bolus
-        let maxBolus = await getPumpSettings().maxBolus
+            // Get max bolus
+            let maxBolus = await getPumpSettings().maxBolus
 
-        // Get current profile values
-        let currentBasal = await getCurrentSettingValue(for: .basal)
-        let currentCarbRatio = await getCurrentSettingValue(for: .carbRatio)
-        let currentBGTarget = await getCurrentSettingValue(for: .bgTarget)
-        let currentISF = await getCurrentSettingValue(for: .isf)
+            // Get current profile values
+            let currentBasal = await getCurrentSettingValue(for: .basal)
+            let currentCarbRatio = await getCurrentSettingValue(for: .carbRatio)
+            let currentBGTarget = await getCurrentSettingValue(for: .bgTarget)
+            let currentISF = await getCurrentSettingValue(for: .isf)
 
-        // Get max IOB and max COB
+            // Get max IOB and max COB
 
-        let preferences = await getPreferences()
-        let maxIOB = preferences.maxIOB
-        let maxCOB = preferences.maxCOB
+            let preferences = await getPreferences()
+            let maxIOB = preferences.maxIOB
+            let maxCOB = preferences.maxCOB
 
-        // Fetch glucose data
-        let glucoseIds = await fetchGlucose()
-        let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared.getNSManagedObject(
-            with: glucoseIds,
-            context: glucoseFetchContext
-        )
-        let glucoseVars = await glucoseFetchContext.perform {
-            self.updateGlucoseVariables(with: glucoseObjects)
-        }
-
-        // Fetch determination data
-        let determinationIds = await determinationStorage.fetchLastDeterminationObjectID(
-            predicate: NSPredicate.predicateFor30MinAgoForDetermination
-        )
-        let determinationObjects: [OrefDetermination] = await CoreDataStack.shared.getNSManagedObject(
-            with: determinationIds,
-            context: determinationFetchContext
-        )
-        let bolusVars = await determinationFetchContext.perform {
-            self.updateBolusCalculatorVariables(
-                with: determinationObjects,
-                currentBGTarget: currentBGTarget,
-                currentISF: currentISF,
-                currentCarbRatio: currentCarbRatio,
-                currentBasal: currentBasal
+            // Fetch glucose data
+            let glucoseIds = try await fetchGlucose()
+            let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared.getNSManagedObject(
+                with: glucoseIds,
+                context: glucoseFetchContext
             )
-        }
+            let glucoseVars = await glucoseFetchContext.perform {
+                self.updateGlucoseVariables(with: glucoseObjects)
+            }
 
-        return CalculationInput(
-            carbs: carbs,
-            currentBG: glucoseVars.currentBG,
-            deltaBG: glucoseVars.deltaBG,
-            target: bolusVars.target,
-            isf: bolusVars.isf,
-            carbRatio: bolusVars.carbRatio,
-            iob: bolusVars.iob,
-            cob: bolusVars.cob,
-            useFattyMealCorrectionFactor: useFattyMealCorrection,
-            fattyMealFactor: settings.fattyMealFactor,
-            useSuperBolus: useSuperBolus,
-            sweetMealFactor: settings.sweetMealFactor,
-            basal: bolusVars.basal,
-            fraction: settings.fraction,
-            maxBolus: maxBolus,
-            maxIOB: maxIOB,
-            maxCOB: maxCOB,
-            minPredBG: bolusVars.minPredBG
-        )
+            // Fetch determination data
+            let determinationIds = try await determinationStorage.fetchLastDeterminationObjectID(
+                predicate: NSPredicate.predicateFor30MinAgoForDetermination
+            )
+            let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared.getNSManagedObject(
+                with: determinationIds,
+                context: determinationFetchContext
+            )
+            let bolusVars = await determinationFetchContext.perform {
+                self.updateBolusCalculatorVariables(
+                    with: determinationObjects,
+                    currentBGTarget: currentBGTarget,
+                    currentISF: currentISF,
+                    currentCarbRatio: currentCarbRatio,
+                    currentBasal: currentBasal
+                )
+            }
+
+            return CalculationInput(
+                carbs: carbs,
+                currentBG: glucoseVars.currentBG,
+                deltaBG: glucoseVars.deltaBG,
+                target: bolusVars.target,
+                isf: bolusVars.isf,
+                carbRatio: bolusVars.carbRatio,
+                iob: bolusVars.iob,
+                cob: bolusVars.cob,
+                useFattyMealCorrectionFactor: useFattyMealCorrection,
+                fattyMealFactor: settings.fattyMealFactor,
+                useSuperBolus: useSuperBolus,
+                sweetMealFactor: settings.sweetMealFactor,
+                basal: bolusVars.basal,
+                fraction: settings.fraction,
+                maxBolus: maxBolus,
+                maxIOB: maxIOB,
+                maxCOB: maxCOB,
+                minPredBG: bolusVars.minPredBG
+            )
+        } catch {
+            debug(
+                .default,
+                "\(DebuggingIdentifiers.failed) Error preparing calculation input: \(error.localizedDescription)"
+            )
+            // Return default values in case of error
+            throw error
+        }
     }
 
     /// Calculates the recommended insulin dose based on various parameters
@@ -428,14 +437,39 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     ///   - useFattyMealCorrection: Whether to apply fatty meal correction
     ///   - useSuperBolus: Whether to use super bolus calculation
     /// - Returns: CalculationResult containing the calculated insulin dose and details
-    func handleBolusCalculation(carbs: Decimal, useFattyMealCorrection: Bool, useSuperBolus: Bool) async -> CalculationResult {
-        let input = await prepareCalculationInput(
-            carbs: carbs,
-            useFattyMealCorrection: useFattyMealCorrection,
-            useSuperBolus: useSuperBolus
-        )
-        let result = await calculateInsulin(input: input)
-        return result
+    func handleBolusCalculation(
+        carbs: Decimal,
+        useFattyMealCorrection: Bool,
+        useSuperBolus: Bool
+    ) async -> CalculationResult {
+        do {
+            let input = try await prepareCalculationInput(
+                carbs: carbs,
+                useFattyMealCorrection: useFattyMealCorrection,
+                useSuperBolus: useSuperBolus
+            )
+            let result = await calculateInsulin(input: input)
+            return result
+        } catch {
+            debug(
+                .default,
+                "\(DebuggingIdentifiers.failed) Error in bolus calculation: \(error.localizedDescription)"
+            )
+            // Return safe default values
+            return CalculationResult(
+                insulinCalculated: 0,
+                factoredInsulin: 0,
+                wholeCalc: 0,
+                correctionInsulin: 0,
+                iobInsulinReduction: 0,
+                superBolusInsulin: 0,
+                targetDifference: 0,
+                targetDifferenceInsulin: 0,
+                fifteenMinutesInsulin: 0,
+                wholeCob: 0,
+                wholeCobInsulin: 0
+            )
+        }
     }
 }
 
