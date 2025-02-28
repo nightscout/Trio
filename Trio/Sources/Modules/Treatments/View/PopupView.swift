@@ -243,7 +243,6 @@ struct PopupView: View {
             Text(maxCobReached ? "Max COB:" : "COB:")
                 .foregroundColor(maxCobReached ? Color.loopRed : .secondary)
 
-            // Middle column
             Text(
                 state.wholeCob
                     .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
@@ -255,7 +254,6 @@ struct PopupView: View {
             .foregroundColor(.secondary)
             .gridColumnAlignment(.leading)
 
-            // Right column
             HStack {
                 Text(self.insulinFormatter(state.wholeCobInsulin))
                 Text("U").foregroundColor(.secondary)
