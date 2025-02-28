@@ -445,7 +445,7 @@ struct PopupView: View {
         GridRow(alignment: .top) {
             Text("Limits").foregroundColor(.secondary)
 
-            VStack {
+            VStack(alignment: .leading) {
                 let iobAvailable: Decimal = state.maxIOB - state.iob
                 if state.factoredInsulin < 0 {
                     Text("No insulin recommended.")
@@ -457,9 +457,9 @@ struct PopupView: View {
                     Text("Max Bolus = \(insulinFormatter(state.maxBolus)) U")
                 } else if state.factoredInsulin > iobAvailable {
                     let iobFormatted = state.iob < 0 ? "(" + insulinFormatter(state.iob) + ")" : insulinFormatter(state.iob)
-                    Text(
-                        "\(insulinFormatter(state.maxIOB)) - \(iobFormatted) = \(insulinFormatter(iobAvailable)) U"
-                    )
+                    Text("Available IOB = \(insulinFormatter(iobAvailable)) U")
+                    Text("\(insulinFormatter(state.maxIOB)) - \(iobFormatted)")
+                        .foregroundColor(.secondary)
                     Text("Max IOB - Current IOB")
                         .font(.caption)
                         .foregroundColor(.secondary)
