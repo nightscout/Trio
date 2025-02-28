@@ -10,7 +10,6 @@
 ///
 /// class GlucoseSimulatorSource - main class
 /// protocol BloodGlucoseGenerator
-///  - IntelligentGenerator: BloodGlucoseGenerator - Generates random glucose values with trends
 ///  - OscillatingGenerator: BloodGlucoseGenerator - Generates sinusoidal glucose values around a center point
 
 import Combine
@@ -175,6 +174,11 @@ class OscillatingGenerator: BloodGlucoseGenerator {
 
     /// Last generated glucose value for stale mode
     private var lastGeneratedGlucose: Int?
+
+    /// Provides information string to describe the simulator as glucose source
+    func sourceInfo() -> [String: Any]? {
+        [GlucoseSourceKey.description.rawValue: "Glucose simulator"]
+    }
 
     /// Reset all parameters to default values
     func resetToDefaults() {
