@@ -22,7 +22,7 @@ extension Home.StateModel {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: tempTargetFetchContext,
-            predicate: NSPredicate.currentTempTarget,
+            predicate: NSPredicate.tempTargetsForMainChart,
             key: "date",
             ascending: false
         )

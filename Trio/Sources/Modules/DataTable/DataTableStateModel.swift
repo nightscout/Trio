@@ -117,6 +117,10 @@ extension DataTable {
 
                 } catch {
                     debug(.default, "\(DebuggingIdentifiers.failed) Failed to delete carbs: \(error.localizedDescription)")
+                    await MainActor.run {
+                        carbEntryDeleted = false
+                        waitForSuggestion = false
+                    }
                 }
             }
         }
@@ -254,6 +258,10 @@ extension DataTable {
                 debugPrint(
                     "\(DebuggingIdentifiers.failed) \(#file) \(#function) Error while Insulin Deletion Task: \(error.localizedDescription)"
                 )
+                await MainActor.run {
+                    insulinEntryDeleted = false
+                    waitForSuggestion = false
+                }
             }
         }
 

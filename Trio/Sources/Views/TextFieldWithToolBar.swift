@@ -59,7 +59,7 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
     public func makeUIView(context: Context) -> UITextField {
         let textField = UITextField()
         context.coordinator.textField = textField
-        textField.inputAccessoryView = isDismissible ? makeDoneToolbar(for: textField, context: context) : nil
+        textField.inputAccessoryView = isDismissible ? createToolbar(for: textField, context: context) : nil
         textField.addTarget(context.coordinator, action: #selector(Coordinator.editingDidBegin), for: .editingDidBegin)
         textField.delegate = context.coordinator
         if text == 0 { /// show no value initially, i.e. empty String
@@ -71,7 +71,12 @@ public struct TextFieldWithToolBar: UIViewRepresentable {
         return textField
     }
 
-    private func makeDoneToolbar(for _: UITextField, context: Context) -> UIToolbar {
+    /// Creates and configures a toolbar for the text field with navigation and action buttons.
+    /// - Parameters:
+    ///   - _: The text field for which the toolbar is being created (unused parameter).
+    ///   - context: The SwiftUI context that contains the coordinator for handling button actions.
+    /// - Returns: A configured UIToolbar with appropriate buttons based on the view's configuration.
+    private func createToolbar(for _: UITextField, context: Context) -> UIToolbar {
         let toolbar = UIToolbar()
         var items: [UIBarButtonItem] = []
 
@@ -313,7 +318,7 @@ public struct TextFieldWithToolBarString: UIViewRepresentable {
     public func makeUIView(context: Context) -> UITextField {
         let textField = UITextField()
         context.coordinator.textField = textField
-        textField.inputAccessoryView = isDismissible ? makeDoneToolbar(for: textField, context: context) : nil
+        textField.inputAccessoryView = isDismissible ? createToolbar(for: textField, context: context) : nil
         textField.addTarget(context.coordinator, action: #selector(Coordinator.editingDidBegin), for: .editingDidBegin)
         textField.delegate = context.coordinator
         textField.text = text
@@ -326,7 +331,12 @@ public struct TextFieldWithToolBarString: UIViewRepresentable {
         return textField
     }
 
-    private func makeDoneToolbar(for textField: UITextField, context: Context) -> UIToolbar {
+    /// Creates and configures a toolbar for the text field with clear and dismiss buttons.
+    /// - Parameters:
+    ///   - textField: The text field for which the toolbar is being created.
+    ///   - context: The SwiftUI context that contains the coordinator for handling button actions.
+    /// - Returns: A configured UIToolbar with clear and dismiss buttons.
+    private func createToolbar(for textField: UITextField, context: Context) -> UIToolbar {
         let toolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 50))
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let doneButton = UIBarButtonItem(

@@ -133,6 +133,13 @@ extension Treatments {
             }
         }
 
+        /// Determines the next field to focus on based on the current focused field.
+        ///
+        /// This function handles the tab order navigation between input fields,
+        /// taking into account whether fat/protein fields are visible based on user settings.
+        ///
+        /// - Parameter current: The currently focused field
+        /// - Returns: The next field that should receive focus, or nil if there is no next field
         private func nextField(from current: FocusedField) -> FocusedField? {
             // If fat/protein fields are hidden, skip them in navigation
             let showFPU = state.useFPUconversion
@@ -149,6 +156,13 @@ extension Treatments {
             }
         }
 
+        /// Determines the previous field to focus on based on the current focused field.
+        ///
+        /// This function handles the reverse tab order navigation between input fields,
+        /// taking into account whether fat/protein fields are visible based on user settings.
+        ///
+        /// - Parameter current: The currently focused field
+        /// - Returns: The previous field that should receive focus, or nil if there is no previous field
         private func previousField(from current: FocusedField) -> FocusedField? {
             let showFPU = state.useFPUconversion
 
