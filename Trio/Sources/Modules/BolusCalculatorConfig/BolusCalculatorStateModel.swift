@@ -9,6 +9,7 @@ extension BolusCalculatorConfig {
         @Published var sweetMeals: Bool = false
         @Published var sweetMealFactor: Decimal = 0
         @Published var displayPresets: Bool = true
+        @Published var confirmBolus: ConfirmBolus = .veryLowGlucose
 
         override func subscribe() {
             units = settingsManager.settings.units
@@ -19,6 +20,7 @@ extension BolusCalculatorConfig {
             subscribeSetting(\.fattyMealFactor, on: $fattyMealFactor) { fattyMealFactor = $0 }
             subscribeSetting(\.sweetMeals, on: $sweetMeals) { sweetMeals = $0 }
             subscribeSetting(\.sweetMealFactor, on: $sweetMealFactor) { sweetMealFactor = $0 }
+            subscribeSetting(\.confirmBolus, on: $confirmBolus) { confirmBolus = $0 }
         }
     }
 }

@@ -152,6 +152,80 @@ extension BolusCalculatorConfig {
                         Text("This could be useful for fast absorbing meals like sugary cereal.")
                     }
                 )
+
+                Section {
+                    VStack {
+                        Picker(
+                            selection: $state.confirmBolus,
+                            label: Text("Confirm Bolus")
+                        ) {
+                            ForEach(ConfirmBolus.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
+                            }
+                        }.padding(.top)
+
+                        HStack(alignment: .center) {
+                            Text(
+                                "Triggers a confirmation dialog before enacting a bolus."
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = String(localized: "Confirm Bolus")
+                                    selectedVerboseHint =
+                                        AnyView(
+                                            VStack(alignment: .leading, spacing: 10) {
+                                                Text("Default: Very Low Glucose")
+                                                    .bold()
+
+                                                Text(
+                                                    "This setting triggers a confirmation dialog before enacting a bolus as an extra safeguard, but it does not affect authentication for bolusing (Face ID, Touch ID, password)."
+                                                )
+
+                                                VStack(alignment: .leading) {
+                                                    let bulletOptions: [(title: String, description: String)] = [
+                                                        ("Never", "Disables the bolus confirmation dialog."),
+                                                        (
+                                                            "Very Low Glucose",
+                                                            "Only confirm bolus when current glucose is < \(state.units == .mgdL ? "54" : 54.formattedAsMmolL) \(state.units.rawValue)."
+                                                        ),
+                                                        (
+                                                            "Very Low Forecast",
+                                                            "Confirm bolus when either current glucose is < \(state.units == .mgdL ? "54" : 54.formattedAsMmolL) \(state.units.rawValue), or glucose is forecasted < \(state.units == .mgdL ? "54" : 54.formattedAsMmolL) \(state.units.rawValue) by minPredBG."
+                                                        ),
+                                                        (
+                                                            "Always",
+                                                            "Always confirm before enacting a bolus."
+                                                        )
+                                                    ]
+
+                                                    ForEach(bulletOptions, id: \.title) { option in
+                                                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                                                            Text("•").padding(.trailing, 2)
+
+                                                            Text(option.title).bold() +
+                                                                Text(": " + option.description)
+                                                        }
+                                                    }
+                                                }
+
+                                                Text("Note: Does not affect logging external insulin.")
+                                            }
+                                        )
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+                }.listRowBackground(Color.chart)
             }
             .listSectionSpacing(sectionSpacing)
             .sheet(isPresented: $shouldDisplayHint) {

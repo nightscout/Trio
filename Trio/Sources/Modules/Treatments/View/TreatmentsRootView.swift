@@ -381,22 +381,29 @@ extension Treatments {
 
         @State private var showConfirmDialogForBolusing = false
 
-        private var bolusWarning: String {
+        private var bolusWarning: (shouldConfirm: Bool, warningMessage: String) {
             let isGlucoseVeryLow = state.currentBG < 54
-            let isMinPredBGVeryLow = state.minPredBG < 54
+            let isForecastVeryLow = state.minPredBG < 54
 
-            guard !state.externalInsulin,
-                  state.amount > 0,
-                  isGlucoseVeryLow || isMinPredBGVeryLow
-            else {
-                return ""
+            // Only warn when enacting a bolus via pump
+            guard !state.externalInsulin, state.amount > 0 else {
+                return (false, "")
             }
 
-            let warning = isGlucoseVeryLow
-                ? "Glucose is very low."
-                : "Glucose forecast is very low."
+            let warningMessage = switch (isGlucoseVeryLow, isForecastVeryLow) {
+            case (true, _): "Glucose is very low."
+            case (_, true): "Glucose forecast is very low."
+            default: ""
+            }
 
-            return warning
+            let shouldConfirm = switch state.confirmBolus {
+            case .never: false
+            case .always: true
+            case .veryLowGlucose: isGlucoseVeryLow
+            case .veryLowForecast: isGlucoseVeryLow || isForecastVeryLow
+            }
+
+            return (shouldConfirm, warningMessage)
         }
 
         var treatmentButton: some View {
@@ -409,7 +416,7 @@ extension Treatments {
 
             return Section {
                 Button {
-                    if bolusWarning != "" {
+                    if bolusWarning.shouldConfirm {
                         showConfirmDialogForBolusing = true
                     } else {
                         state.invokeTreatmentsTask()
@@ -433,18 +440,21 @@ extension Treatments {
                 .shadow(radius: 3)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .confirmationDialog(
-                    bolusWarning + " Bolus \(state.amount.description) U?",
+                    bolusWarning.warningMessage + " Bolus \(state.amount.description) U?",
                     isPresented: $showConfirmDialogForBolusing,
                     titleVisibility: .visible
                 ) {
                     Button("Cancel", role: .cancel) {}
-                    Button("Ignore Warning and Enact Bolus", role: .destructive) {
+                    Button(
+                        bolusWarning.warningMessage.isEmpty ? "Enact Bolus" : "Ignore Warning and Enact Bolus",
+                        role: bolusWarning.warningMessage.isEmpty ? nil : .destructive
+                    ) {
                         state.invokeTreatmentsTask()
                     }
                 }
             } header: {
-                if bolusWarning != "" {
-                    Text(bolusWarning)
+                if !bolusWarning.warningMessage.isEmpty {
+                    Text(bolusWarning.warningMessage)
                         .textCase(nil)
                         .font(.subheadline)
                         .foregroundColor(Color.loopRed)

@@ -69,6 +69,7 @@ struct TrioSettings: JSON, Equatable {
     var sweetMeals: Bool = false
     var sweetMealFactor: Decimal = 1
     var displayPresets: Bool = true
+    var confirmBolus: ConfirmBolus = .veryLowGlucose
     var useLiveActivity: Bool = false
     var lockScreenView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
@@ -296,6 +297,10 @@ extension TrioSettings: Decodable {
 
         if let displayPresets = try? container.decode(Bool.self, forKey: .displayPresets) {
             settings.displayPresets = displayPresets
+        }
+
+        if let confirmBolus = try? container.decode(ConfirmBolus.self, forKey: .confirmBolus) {
+            settings.confirmBolus = confirmBolus
         }
 
         if let useLiveActivity = try? container.decode(Bool.self, forKey: .useLiveActivity) {

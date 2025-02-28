@@ -70,6 +70,7 @@ extension Treatments {
         var fattyMealFactor: Decimal = 0
         var useFattyMealCorrectionFactor: Bool = false
         var displayPresets: Bool = true
+        var confirmBolus: ConfirmBolus = .veryLowGlucose
 
         var currentBasal: Decimal = 0
         var currentCarbRatio: Decimal = 0
@@ -287,6 +288,7 @@ extension Treatments {
             sweetMeals = settings.settings.sweetMeals
             sweetMealFactor = settings.settings.sweetMealFactor
             displayPresets = settings.settings.displayPresets
+            confirmBolus = settings.settings.confirmBolus
             forecastDisplayType = settings.settings.forecastDisplayType
             lowGlucose = settingsManager.settings.low
             highGlucose = settingsManager.settings.high
