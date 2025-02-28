@@ -109,11 +109,83 @@ import Testing
         // Given
         let date = Date()
         let forecastTypes = ["iob", "cob", "zt", "uam"]
-        var determinationId: NSManagedObjectID?
         let expectedValuesPerForecast = 5
 
         // STEP 1: Create test data
-        await testContext.perform {
+        let id = try await createTestData(
+            date: date,
+            forecastTypes: forecastTypes,
+            expectedValuesPerForecast: expectedValuesPerForecast
+        )
+
+        // STEP 2: Test hierarchy fetching
+        let hierarchy = try await storage.fetchForecastHierarchy(
+            for: id,
+            in: testContext
+        )
+
+        // Test hierarchy structure
+        #expect(hierarchy.count == forecastTypes.count, "Should have correct number of forecasts")
+
+        // STEP 3: Test individual forecasts
+        for data in hierarchy {
+            let (id, forecast, values) = await storage.fetchForecastObjects(
+                for: data,
+                in: testContext
+            )
+
+            // Test basic structure
+            #expect(forecast != nil, "Forecast should exist")
+            #expect(values.count == expectedValuesPerForecast, "Should have correct number of values")
+
+            // Test forecast type and values
+            if let forecast = forecast {
+                #expect(forecastTypes.contains(forecast.type ?? ""), "Should have valid forecast type")
+
+                // Test value patterns
+                let sortedValues = values.sorted { $0.index < $1.index }
+                switch forecast.type {
+                case "iob":
+                    #expect(sortedValues.first?.value == 100, "IOB should start at 100")
+                    #expect(sortedValues.last?.value == 140, "IOB should end at 140")
+                case "cob":
+                    #expect(sortedValues.first?.value == 50, "COB should start at 50")
+                    #expect(sortedValues.last?.value == 70, "COB should end at 70")
+                case "zt":
+                    #expect(sortedValues.first?.value == 80, "ZT should start at 80")
+                    #expect(sortedValues.last?.value == 112, "ZT should end at 112")
+                case "uam":
+                    #expect(sortedValues.first?.value == 120, "UAM should start at 120")
+                    #expect(sortedValues.last?.value == 60, "UAM should end at 60")
+                default:
+                    break
+                }
+            }
+        }
+
+        // STEP 4: Test relationship integrity
+        try await testContext.perform {
+            do {
+                let determination = try testContext.existingObject(with: id) as? OrefDetermination
+                let forecasts = Array(determination?.forecasts ?? [])
+
+                #expect(forecasts.count == forecastTypes.count, "Determination should have all forecasts")
+                #expect(
+                    forecasts.allSatisfy { Array($0.forecastValues ?? []).count == expectedValuesPerForecast },
+                    "Each forecast should have correct number of values"
+                )
+            } catch {
+                throw TestError("Failed to verify relationships: \(error)")
+            }
+        }
+    }
+
+    private func createTestData(
+        date: Date,
+        forecastTypes: [String],
+        expectedValuesPerForecast: Int
+    ) async throws -> NSManagedObjectID {
+        try await testContext.perform {
             let determination = OrefDetermination(context: testContext)
             determination.id = UUID()
             determination.deliverAt = date
@@ -146,73 +218,12 @@ import Testing
                 }
             }
 
-            try? testContext.save()
-            determinationId = determination.objectID
-        }
-
-        guard let determinationId = determinationId else {
-            throw TestError("Failed to create test data")
-        }
-
-        // STEP 2: Test hierarchy fetching
-        let hierarchy = try await storage.fetchForecastHierarchy(
-            for: determinationId,
-            in: testContext
-        )
-
-        // Test hierarchy structure
-        #expect(hierarchy.count == forecastTypes.count, "Should have correct number of forecasts")
-
-        // STEP 3: Test individual forecasts
-        for data in hierarchy {
-            let (id, forecast, values) = await storage.fetchForecastObjects(
-                for: data,
-                in: testContext
-            )
-
-            // Test basic structure
-            #expect(id != UUID(), "Should have valid UUID")
-            #expect(forecast != nil, "Forecast should exist")
-            #expect(values.count == expectedValuesPerForecast, "Should have correct number of values")
-
-            // Test forecast type and values
-            if let forecast = forecast {
-                #expect(forecastTypes.contains(forecast.type ?? ""), "Should have valid forecast type")
-
-                // Test value patterns
-                let sortedValues = values.sorted { $0.index < $1.index }
-                switch forecast.type {
-                case "iob":
-                    #expect(sortedValues.first?.value == 100, "IOB should start at 100")
-                    #expect(sortedValues.last?.value == 140, "IOB should end at 140")
-                case "cob":
-                    #expect(sortedValues.first?.value == 50, "COB should start at 50")
-                    #expect(sortedValues.last?.value == 70, "COB should end at 70")
-                case "zt":
-                    #expect(sortedValues.first?.value == 80, "ZT should start at 80")
-                    #expect(sortedValues.last?.value == 112, "ZT should end at 112")
-                case "uam":
-                    #expect(sortedValues.first?.value == 120, "UAM should start at 120")
-                    #expect(sortedValues.last?.value == 60, "UAM should end at 60")
-                default:
-                    break
-                }
-            }
-        }
-
-        // STEP 4: Test relationship integrity
-        try await testContext.perform {
             do {
-                let determination = try testContext.existingObject(with: determinationId) as? OrefDetermination
-                let forecasts = Array(determination?.forecasts ?? [])
+                try testContext.save()
 
-                #expect(forecasts.count == forecastTypes.count, "Determination should have all forecasts")
-                #expect(
-                    forecasts.allSatisfy { Array($0.forecastValues ?? []).count == expectedValuesPerForecast },
-                    "Each forecast should have correct number of values"
-                )
+                return determination.objectID
             } catch {
-                throw TestError("Failed to verify relationships: \(error)")
+                throw TestError("Failed to create test data: \(error)")
             }
         }
     }

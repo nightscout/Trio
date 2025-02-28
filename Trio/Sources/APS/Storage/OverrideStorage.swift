@@ -213,8 +213,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
 
         await taskContext.perform {
             do {
-                let result = try taskContext.existingObject(with: objectID) as? OverrideStored
-                guard let override = result else {
+                guard let override = try taskContext.existingObject(with: objectID) as? OverrideStored else {
                     debugPrint("Override for batch delete not found. \(DebuggingIdentifiers.failed)")
                     return
                 }
