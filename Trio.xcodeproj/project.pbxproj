@@ -286,7 +286,6 @@
 		AD3D2CD42CD01B9EB8F26522 /* PumpConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF65DA88F972B56090AD6AC3 /* PumpConfigDataFlow.swift */; };
 		B7C465E9472624D8A2BE2A6A /* (null) in Sources */ = {isa = PBXBuildFile; };
 		B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */ = {isa = PBXBuildFile; productRef = B958F1B62BA0711600484851 /* MKRingProgressView */; };
-		B9CAAEFC2AE70836000F68BC /* branch.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9CAAEFB2AE70836000F68BC /* branch.txt */; };
 		BA00D96F7B2FF169A06FB530 /* CGMSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C018D1680307A31C9ED7120 /* CGMSettingsStateModel.swift */; };
 		BD04ECCE2D29952A008C5FEB /* BolusProgressOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD04ECCD2D299522008C5FEB /* BolusProgressOverlay.swift */; };
 		BD0B2EF32C5998E600B3298F /* MealPresetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD0B2EF22C5998E600B3298F /* MealPresetView.swift */; };
@@ -512,6 +511,7 @@
 		DDAA29852D2D1D9E006546A1 /* AdjustmentsRootView+TempTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAA29842D2D1D98006546A1 /* AdjustmentsRootView+TempTargets.swift */; };
 		DDB37CC52D05048F00D99BF4 /* ContactImageStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */; };
 		DDB37CC72D05127500D99BF4 /* FontExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC62D05127500D99BF4 /* FontExtensions.swift */; };
+		DDCE790F2D6F97FC000A4D7A /* SubmodulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */; };
 		DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */; };
 		DDD163122C4C689900CD525A /* AdjustmentsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */; };
 		DDD163142C4C68D300CD525A /* AdjustmentsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163132C4C68D300CD525A /* AdjustmentsProvider.swift */; };
@@ -980,7 +980,6 @@
 		AF65DA88F972B56090AD6AC3 /* PumpConfigDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigDataFlow.swift; sourceTree = "<group>"; };
 		B5822B15939E719628E9FF7C /* SnoozeRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnoozeRootView.swift; sourceTree = "<group>"; };
 		B9B5C0607505A38F256BF99A /* CGMSettingsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CGMSettingsDataFlow.swift; sourceTree = "<group>"; };
-		B9CAAEFB2AE70836000F68BC /* branch.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = branch.txt; sourceTree = SOURCE_ROOT; };
 		BA49538D56989D8DA6FCF538 /* TargetsEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorDataFlow.swift; sourceTree = "<group>"; };
 		BD04ECCD2D299522008C5FEB /* BolusProgressOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusProgressOverlay.swift; sourceTree = "<group>"; };
 		BD0B2EF22C5998E600B3298F /* MealPresetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPresetView.swift; sourceTree = "<group>"; };
@@ -1210,6 +1209,7 @@
 		DDB37CC32D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageStorage.swift; sourceTree = "<group>"; };
 		DDB37CC62D05127500D99BF4 /* FontExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtensions.swift; sourceTree = "<group>"; };
+		DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmodulesView.swift; sourceTree = "<group>"; };
 		DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LiveActivity+Helper.swift"; sourceTree = "<group>"; };
 		DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentsStateModel.swift; sourceTree = "<group>"; };
 		DDD163132C4C68D300CD525A /* AdjustmentsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentsProvider.swift; sourceTree = "<group>"; };
@@ -1821,7 +1821,6 @@
 				3811DEC725C9DA7300A708ED /* Trio.entitlements */,
 				388E596425AD948E0019842D /* Info.plist */,
 				8A91342B2D63D9A2007F8874 /* InfoPlist.xcstrings */,
-				B9CAAEFB2AE70836000F68BC /* branch.txt */,
 				19DA487F29CD2B8400EEA1E7 /* Assets.xcassets */,
 			);
 			path = Resources;
@@ -2773,6 +2772,7 @@
 		DD1745112C54168300211FAC /* Subviews */ = {
 			isa = PBXGroup;
 			children = (
+				DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */,
 				DD1745122C54169400211FAC /* DevicesView.swift */,
 				DD1745142C54388A00211FAC /* TherapySettingsView.swift */,
 				DD1745162C54389F00211FAC /* FeatureSettingsView.swift */,
@@ -3181,7 +3181,6 @@
 			buildConfigurationList = 388E596725AD948E0019842D /* Build configuration list for PBXNativeTarget "Trio" */;
 			buildPhases = (
 				3811DEF525CA169200A708ED /* Swiftformat */,
-				DD88C8E02C4D716400F2D558 /* Run Script: get branch name and commit ID */,
 				388E595425AD948C0019842D /* Sources */,
 				388E595525AD948C0019842D /* Frameworks */,
 				388E595625AD948C0019842D /* Resources */,
@@ -3406,7 +3405,6 @@
 				19DA48E829CD339B00EEA1E7 /* Assets.xcassets in Resources */,
 				8A91342A2D63D9A1007F8874 /* Localizable.xcstrings in Resources */,
 				388E596F25AD96040019842D /* javascript in Resources */,
-				B9CAAEFC2AE70836000F68BC /* branch.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3510,25 +3508,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/scripts/capture-build-details.sh\"\n";
-		};
-		DD88C8E02C4D716400F2D558 /* Run Script: get branch name and commit ID */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Run Script: get branch name and commit ID";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Prints a message\necho \"writing BRANCH to branch.txt\"\n\n# Retrieves version, branch, and tag information from Git\ngit_version=$(git log -1 --format=\"%h\" --abbrev=7)\ngit_branch=$(git symbolic-ref --short -q HEAD)\ngit_tag=$(git describe --tags --exact-match 2>/dev/null)\n\n# Determines branch or tag information\ngit_branch_or_tag=\"${git_branch:-${git_tag}}\"\ngit_branch_or_tag_version=\"${git_branch_or_tag} ${git_version}\"\n\necho \"BRANCH = ${git_branch_or_tag_version}\" > \"./branch.txt\"\n\n# Prints a message about the working directory and branch.txt\necho \"branch.txt is created/modified in ${PWD}\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -3972,6 +3951,7 @@
 				DD1745132C54169400211FAC /* DevicesView.swift in Sources */,
 				7F7B756BE8543965D9FDF1A2 /* DataTableDataFlow.swift in Sources */,
 				1D845DF2E3324130E1D95E67 /* DataTableProvider.swift in Sources */,
+				DDCE790F2D6F97FC000A4D7A /* SubmodulesView.swift in Sources */,
 				19F95FFA29F1102A00314DDC /* StatRootView.swift in Sources */,
 				0D9A5E34A899219C5C4CDFAF /* DataTableStateModel.swift in Sources */,
 				6BCF84DD2B16843A003AD46E /* LiveActitiyAttributes.swift in Sources */,
