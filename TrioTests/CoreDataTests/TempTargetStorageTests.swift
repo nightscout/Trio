@@ -5,7 +5,7 @@ import Testing
 
 @testable import Trio
 
-@Suite("TempTargetStorage Tests") struct TempTargetsStorageTests: Injectable {
+@Suite("TempTargetStorage Tests", .serialized) struct TempTargetsStorageTests: Injectable {
     @Injected() var storage: TempTargetsStorage!
     let resolver: Resolver
     let coreDataStack = CoreDataStack.createForTests()

@@ -5,7 +5,7 @@ import Testing
 
 @testable import Trio
 
-@Suite("Override Storage Tests") struct OverrideStorageTests: Injectable {
+@Suite("Override Storage Tests", .serialized) struct OverrideStorageTests: Injectable {
     @Injected() var storage: OverrideStorage!
     let resolver: Resolver
     let coreDataStack = CoreDataStack.createForTests()

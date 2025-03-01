@@ -5,7 +5,7 @@ import Testing
 
 @testable import Trio
 
-@Suite("GlucoseStorage Tests") struct GlucoseStorageTests: Injectable {
+@Suite("GlucoseStorage Tests", .serialized) struct GlucoseStorageTests: Injectable {
     @Injected() var storage: GlucoseStorage!
     let resolver: Resolver
     let coreDataStack = CoreDataStack.createForTests()

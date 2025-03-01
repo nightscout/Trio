@@ -6,7 +6,7 @@ import Testing
 @testable import LoopKit
 @testable import Trio
 
-@Suite("PumpHistoryStorage Tests") struct PumpHistoryStorageTests: Injectable {
+@Suite("PumpHistoryStorage Tests", .serialized) struct PumpHistoryStorageTests: Injectable {
     @Injected() var storage: PumpHistoryStorage!
     let resolver: Resolver
     let coreDataStack = CoreDataStack.createForTests()
