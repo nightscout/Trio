@@ -110,13 +110,11 @@ import WatchConnectivity
             acknowledgmentMessage = "\(message)"
         } else {
             print("⌚️ Acknowledgment failed: \(message)")
+            DispatchQueue.main.async {
+                self.showCommsAnimation = false // Hide progress animation
+            }
             acknowledgementStatus = .failure
             acknowledgmentMessage = "\(message)"
-        }
-
-        DispatchQueue.main.async {
-            self.showCommsAnimation = false // Hide progress animation
-            self.showSyncingAnimation = false // Just ensure this is 100% set to false
         }
 
         if isFinal {

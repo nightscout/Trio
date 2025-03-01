@@ -23,14 +23,14 @@ struct NightscoutUploadView: View {
                     get: { selectedVerboseHint },
                     set: {
                         selectedVerboseHint = $0.map { AnyView($0) }
-                        hintLabel = "Allow Uploading to Nightscout"
+                        hintLabel = String(localized: "Allow Uploading to Nightscout")
                         shouldDisplayHint = true
                     }
                 ),
                 units: state.units,
                 type: .boolean,
-                label: "Allow Uploading to Nightscout",
-                miniHint: "Enable uploading of selected data sets to Nightscout.",
+                label: String(localized: "Allow Uploading to Nightscout"),
+                miniHint: String(localized: "Enable uploading of selected data sets to Nightscout."),
                 verboseHint:
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Default: OFF").bold()
@@ -56,14 +56,14 @@ struct NightscoutUploadView: View {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Upload Glucose"
+                            hintLabel = String(localized: "Upload Glucose")
                             shouldDisplayHint = true
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Upload Glucose",
-                    miniHint: "Enable uploading of CGM readings to Nightscout.",
+                    label: String(localized: "Upload Glucose"),
+                    miniHint: String(localized: "Enable uploading of CGM readings to Nightscout."),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text("Enabling this setting allows CGM readings from Trio to be used in Nightscout.")
@@ -78,7 +78,7 @@ struct NightscoutUploadView: View {
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
                 hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                sheetTitle: "Help"
+                sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
         }
         .navigationTitle("Upload")

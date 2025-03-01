@@ -15,7 +15,7 @@ import Foundation
 
         let carbs = min(Decimal(quantityCarbs), settingsManager.settings.maxCarbs)
 
-        await carbsStorage.storeCarbs(
+        try await carbsStorage.storeCarbs(
             [CarbsEntry(
                 id: UUID().uuidString,
                 createdAt: dateAdded,

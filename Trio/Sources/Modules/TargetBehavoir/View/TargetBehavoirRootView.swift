@@ -26,7 +26,8 @@ extension TargetBehavoir {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString(
+                            hintLabel = String(
+                                localized:
                                 "High Temp Target Raises Sensitivity",
                                 comment: "High Temp Target Raises Sensitivity"
                             )
@@ -34,23 +35,24 @@ extension TargetBehavoir {
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: NSLocalizedString(
+                    label: String(
+                        localized:
                         "High Temp Target Raises Sensitivity",
                         comment: "High Temp Target Raises Sensitivity"
                     ),
-                    miniHint: "Increase sensitivity when glucose is above target if a manual Temp Target > \(state.units == .mgdL ? "110" : 110.formattedAsMmolL) \(state.units.rawValue) is set.",
+                    miniHint: "Increase sensitivity when glucose is above target if a manual Temp Target > \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "When this feature is enabled, manually setting a temporary target above \(state.units == .mgdL ? "110" : 110.formattedAsMmolL) \(state.units.rawValue) will decrease the Autosens Ratio used for ISF and basal adjustments, resulting in less insulin delivered overall. This scales with the temporary target set; the higher the temp target, the lower the Autosens Ratio used."
+                            "When this feature is enabled, manually setting a temporary target above \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) will decrease the Autosens Ratio used for ISF and basal adjustments, resulting in less insulin delivered overall. This scales with the temporary target set; the higher the temp target, the lower the Autosens Ratio used."
                         )
                         Text(
                             "If Half Basal Exercise Target is set to \(state.units == .mgdL ? "160" : 160.formattedAsMmolL) \(state.units.rawValue), a temp target of \(state.units == .mgdL ? "120" : 120.formattedAsMmolL) \(state.units.rawValue) uses an Autosens Ratio of 0.75. A temp target of \(state.units == .mgdL ? "140" : 140.formattedAsMmolL) \(state.units.rawValue) uses an Autosens Ratio of 0.6."
                         )
                         Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target")
                     },
-                    headerText: "Algorithmic Target Settings"
+                    headerText: String(localized: "Algorithmic Target Settings")
                 )
 
                 SettingInputSection(
@@ -61,7 +63,8 @@ extension TargetBehavoir {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString(
+                            hintLabel = String(
+                                localized:
                                 "Low Temp Target Lowers Sensitivity",
                                 comment: "Low Temp Target Lowers Sensitivity"
                             )
@@ -69,7 +72,8 @@ extension TargetBehavoir {
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: NSLocalizedString(
+                    label: String(
+                        localized:
                         "Low Temp Target Lowers Sensitivity",
                         comment: "Low Temp Target Lowers Sensitivity"
                     ),
@@ -95,12 +99,12 @@ extension TargetBehavoir {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Sensitivity Raises Target", comment: "Sensitivity Raises Target")
+                            hintLabel = String(localized: "Sensitivity Raises Target", comment: "Sensitivity Raises Target")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: NSLocalizedString("Sensitivity Raises Target", comment: "Sensitivity Raises Target"),
+                    label: String(localized: "Sensitivity Raises Target", comment: "Sensitivity Raises Target"),
                     miniHint: "Raise target glucose if when Autosens Ratio is >1.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -118,12 +122,12 @@ extension TargetBehavoir {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Resistance Lowers Target", comment: "Resistance Lowers Target")
+                            hintLabel = String(localized: "Resistance Lowers Target", comment: "Resistance Lowers Target")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: NSLocalizedString("Resistance Lowers Target", comment: "Resistance Lowers Target"),
+                    label: String(localized: "Resistance Lowers Target", comment: "Resistance Lowers Target"),
                     miniHint: "Lower target glucose when Autosens Ratio is <1.",
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -141,12 +145,12 @@ extension TargetBehavoir {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Half Basal Exercise Target", comment: "Half Basal Exercise Target")
+                            hintLabel = String(localized: "Half Basal Exercise Target", comment: "Half Basal Exercise Target")
                         }
                     ),
                     units: state.units,
                     type: .decimal("halfBasalExerciseTarget"),
-                    label: NSLocalizedString("Half Basal Exercise Target", comment: "Half Basal Exercise Target"),
+                    label: String(localized: "Half Basal Exercise Target", comment: "Half Basal Exercise Target"),
                     miniHint: "Scales down your basal rate to 50% at this value.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
@@ -173,7 +177,7 @@ extension TargetBehavoir {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

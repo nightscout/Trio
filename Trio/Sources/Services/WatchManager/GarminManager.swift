@@ -53,7 +53,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Stores, retrieves, and updates insulin dose determinations in CoreData.
     @Injected() private var determinationStorage: DeterminationStorage!
 
-    /// Persists the user’s device list between app launches.
+    /// Persists the user's device list between app launches.
     @Persisted(key: "BaseGarminManager.persistedDevices") private var persistedDevices: [GarminDevice] = []
 
     /// Router for presenting alerts or navigation flows (injected via Swinject).
@@ -134,9 +134,16 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task {
-                    let watchState = await self.setupGarminWatchState()
-                    let watchStateData = try JSONEncoder().encode(watchState)
-                    self.sendWatchStateData(watchStateData)
+                    do {
+                        let watchState = try await self.setupGarminWatchState()
+                        let watchStateData = try JSONEncoder().encode(watchState)
+                        self.sendWatchStateData(watchStateData)
+                    } catch {
+                        debug(
+                            .watchManager,
+                            "\(DebuggingIdentifiers.failed) Error updating watch state: \(error.localizedDescription)"
+                        )
+                    }
                 }
             }
             .store(in: &subscriptions)
@@ -150,26 +157,40 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// When these change, we re-compute the Garmin watch state and send updates to the watch.
     private func registerHandlers() {
         coreDataPublisher?
-            .filterByEntityName("OrefDetermination")
+            .filteredByEntityName("OrefDetermination")
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task {
-                    let watchState = await self.setupGarminWatchState()
-                    let watchStateData = try JSONEncoder().encode(watchState)
-                    self.sendWatchStateData(watchStateData)
+                    do {
+                        let watchState = try await self.setupGarminWatchState()
+                        let watchStateData = try JSONEncoder().encode(watchState)
+                        self.sendWatchStateData(watchStateData)
+                    } catch {
+                        debug(
+                            .watchManager,
+                            "\(DebuggingIdentifiers.failed) failed to update watch state: \(error.localizedDescription)"
+                        )
+                    }
                 }
             }
             .store(in: &subscriptions)
 
         // Due to the batch insert, this only observes deletion of Glucose entries
         coreDataPublisher?
-            .filterByEntityName("GlucoseStored")
+            .filteredByEntityName("GlucoseStored")
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 Task {
-                    let watchState = await self.setupGarminWatchState()
-                    let watchStateData = try JSONEncoder().encode(watchState)
-                    self.sendWatchStateData(watchStateData)
+                    do {
+                        let watchState = try await self.setupGarminWatchState()
+                        let watchStateData = try JSONEncoder().encode(watchState)
+                        self.sendWatchStateData(watchStateData)
+                    } catch {
+                        debug(
+                            .watchManager,
+                            "\(DebuggingIdentifiers.failed) failed to update watch state: \(error.localizedDescription)"
+                        )
+                    }
                 }
             }
             .store(in: &subscriptions)
@@ -177,8 +198,8 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
     /// Fetches recent glucose readings from CoreData, up to 288 results.
     /// - Returns: An array of `NSManagedObjectID`s for glucose readings.
-    private func fetchGlucose() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchGlucose() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.glucose,
@@ -187,109 +208,116 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             fetchLimit: 288
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [GlucoseStored] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
             return fetchedResults.map(\.objectID)
         }
     }
 
     /// Builds a `GarminWatchState` reflecting the latest glucose, trend, delta, eventual BG, ISF, IOB, and COB.
     /// - Returns: A `GarminWatchState` containing the most recent device- and therapy-related info.
-    func setupGarminWatchState() async -> GarminWatchState {
-        // Get Glucose IDs
-        let glucoseIds = await fetchGlucose()
+    func setupGarminWatchState() async throws -> GarminWatchState {
+        do {
+            // Get Glucose IDs
+            let glucoseIds = try await fetchGlucose()
 
-        // Fetch the latest OrefDetermination object if available
-        let determinationIds = await determinationStorage.fetchLastDeterminationObjectID(
-            predicate: NSPredicate.predicateFor30MinAgoForDetermination
-        )
-
-        // Turn those IDs into live NSManagedObjects
-        let glucoseObjects: [GlucoseStored] = await CoreDataStack.shared
-            .getNSManagedObject(with: glucoseIds, context: backgroundContext)
-        let determinationObjects: [OrefDetermination] = await CoreDataStack.shared
-            .getNSManagedObject(with: determinationIds, context: backgroundContext)
-
-        // Perform logic on the background context
-        return await backgroundContext.perform {
-            var watchState = GarminWatchState()
-
-            /// Pull `glucose`, `trendRaw`, `delta`, `lastLoopDateInterval`, `iob`, `cob`,  `isf`, and `eventualBGRaw` from the latest determination.
-            if let latestDetermination = determinationObjects.first {
-                watchState.lastLoopDateInterval = latestDetermination.timestamp.map {
-                    guard $0.timeIntervalSince1970 > 0 else { return 0 }
-                    return UInt64($0.timeIntervalSince1970)
-                }
-
-                let iobValue = latestDetermination.iob ?? 0
-                watchState.iob = Formatter.decimalFormatterWithTwoFractionDigits.string(from: iobValue)
-
-                let cobNumber = NSNumber(value: latestDetermination.cob)
-                watchState.cob = Formatter.integerFormatter.string(from: cobNumber)
-
-                let insulinSensitivity = latestDetermination.insulinSensitivity ?? 0
-                let eventualBG = latestDetermination.eventualBG ?? 0
-
-                if self.units == .mgdL {
-                    watchState.isf = insulinSensitivity.description
-                    watchState.eventualBGRaw = Formatter.glucoseFormatter(for: self.units)
-                        .string(from: eventualBG) ?? "0"
-                } else {
-                    let parsedIsf = Double(truncating: insulinSensitivity).asMmolL
-                    let parsedEventualBG = Double(truncating: eventualBG).asMmolL
-
-                    watchState.isf = parsedIsf.description
-                    watchState.eventualBGRaw = Formatter.glucoseFormatter(for: self.units)
-                        .string(from: parsedEventualBG as NSNumber) ?? "0"
-                }
-            }
-
-            // If no glucose data is present, just return partial watch state
-            guard let latestGlucose = glucoseObjects.first else {
-                return watchState
-            }
-
-            // Format the current glucose reading
-            if self.units == .mgdL {
-                watchState.glucose = "\(latestGlucose.glucose)"
-            } else {
-                let mgdlValue = Decimal(latestGlucose.glucose)
-                let latestGlucoseValue = Double(truncating: mgdlValue.asMmolL as NSNumber)
-                watchState.glucose = "\(latestGlucoseValue)"
-            }
-
-            // Convert direction to a textual trend
-            watchState.trendRaw = latestGlucose.direction ?? "--"
-
-            // Calculate a glucose delta if we have at least two readings
-            if glucoseObjects.count >= 2 {
-                var deltaValue = Decimal(glucoseObjects[0].glucose - glucoseObjects[1].glucose)
-
-                if self.units == .mmolL {
-                    deltaValue = Double(truncating: deltaValue as NSNumber).asMmolL
-                }
-
-                let formattedDelta = Formatter.glucoseFormatter(for: self.units)
-                    .string(from: deltaValue as NSNumber) ?? "0"
-                watchState.delta = deltaValue < 0 ? "\(formattedDelta)" : "+\(formattedDelta)"
-            }
-
-            debug(
-                .watchManager,
-                """
-                📱 Setup GarminWatchState - \
-                glucose: \(watchState.glucose ?? "nil"), \
-                trendRaw: \(watchState.trendRaw ?? "nil"), \
-                delta: \(watchState.delta ?? "nil"), \
-                eventualBGRaw: \(watchState.eventualBGRaw ?? "nil"), \
-                isf: \(watchState.isf ?? "nil"), \
-                cob: \(watchState.cob ?? "nil"), \
-                iob: \(watchState.iob ?? "nil"), \
-                lastLoopDateInterval: \(watchState.lastLoopDateInterval?.description ?? "nil")
-                """
+            // Fetch the latest OrefDetermination object if available
+            let determinationIds = try await determinationStorage.fetchLastDeterminationObjectID(
+                predicate: NSPredicate.predicateFor30MinAgoForDetermination
             )
 
-            return watchState
+            // Turn those IDs into live NSManagedObjects
+            let glucoseObjects: [GlucoseStored] = try await CoreDataStack.shared
+                .getNSManagedObject(with: glucoseIds, context: backgroundContext)
+            let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
+                .getNSManagedObject(with: determinationIds, context: backgroundContext)
+
+            // Perform logic on the background context
+            return await backgroundContext.perform {
+                var watchState = GarminWatchState()
+
+                /// Pull `glucose`, `trendRaw`, `delta`, `lastLoopDateInterval`, `iob`, `cob`,  `isf`, and `eventualBGRaw` from the latest determination.
+                if let latestDetermination = determinationObjects.first {
+                    watchState.lastLoopDateInterval = latestDetermination.timestamp.map {
+                        guard $0.timeIntervalSince1970 > 0 else { return 0 }
+                        return UInt64($0.timeIntervalSince1970)
+                    }
+
+                    let iobValue = latestDetermination.iob ?? 0
+                    watchState.iob = self.iobFormatterWithOneFractionDigit(iobValue as Decimal)
+
+                    let cobNumber = NSNumber(value: latestDetermination.cob)
+                    watchState.cob = Formatter.integerFormatter.string(from: cobNumber)
+
+                    let insulinSensitivity = latestDetermination.insulinSensitivity ?? 0
+                    let eventualBG = latestDetermination.eventualBG ?? 0
+
+                    if self.units == .mgdL {
+                        watchState.isf = insulinSensitivity.description
+                        watchState.eventualBGRaw = eventualBG.description
+                    } else {
+                        let parsedIsf = Double(truncating: insulinSensitivity).asMmolL
+                        let parsedEventualBG = Double(truncating: eventualBG).asMmolL
+
+                        watchState.isf = parsedIsf.description
+                        watchState.eventualBGRaw = parsedEventualBG.description
+                    }
+                }
+
+                // If no glucose data is present, just return partial watch state
+                guard let latestGlucose = glucoseObjects.first else {
+                    return watchState
+                }
+
+                // Format the current glucose reading
+                if self.units == .mgdL {
+                    watchState.glucose = "\(latestGlucose.glucose)"
+                } else {
+                    let mgdlValue = Decimal(latestGlucose.glucose)
+                    let latestGlucoseValue = Double(truncating: mgdlValue.asMmolL as NSNumber)
+                    watchState.glucose = "\(latestGlucoseValue)"
+                }
+
+                // Convert direction to a textual trend
+                watchState.trendRaw = latestGlucose.direction ?? "--"
+
+                // Calculate a glucose delta if we have at least two readings
+                if glucoseObjects.count >= 2 {
+                    var deltaValue = Decimal(glucoseObjects[0].glucose - glucoseObjects[1].glucose)
+
+                    if self.units == .mmolL {
+                        deltaValue = Double(truncating: deltaValue as NSNumber).asMmolL
+                    }
+
+                    let formattedDelta = deltaValue.description
+                    watchState.delta = deltaValue < 0 ? "\(formattedDelta)" : "+\(formattedDelta)"
+                }
+
+                debug(
+                    .watchManager,
+                    """
+                    📱 Setup GarminWatchState - \
+                    glucose: \(watchState.glucose ?? "nil"), \
+                    trendRaw: \(watchState.trendRaw ?? "nil"), \
+                    delta: \(watchState.delta ?? "nil"), \
+                    eventualBGRaw: \(watchState.eventualBGRaw ?? "nil"), \
+                    isf: \(watchState.isf ?? "nil"), \
+                    cob: \(watchState.cob ?? "nil"), \
+                    iob: \(watchState.iob ?? "nil"), \
+                    lastLoopDateInterval: \(watchState.lastLoopDateInterval?.description ?? "nil")
+                    """
+                )
+
+                return watchState
+            }
+        } catch {
+            debug(
+                .watchManager,
+                "\(DebuggingIdentifiers.failed) Error setting up Garmin watch state: \(error.localizedDescription)"
+            )
+            throw error
         }
     }
 
@@ -357,7 +385,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     }
 
     /// Subscribes to any watch-state dictionaries published via `watchStateSubject`, and throttles them
-    /// so updates aren’t sent too frequently. Each update triggers a broadcast to all watch apps.
+    /// so updates aren't sent too frequently. Each update triggers a broadcast to all watch apps.
     private func subscribeToWatchState() {
         watchStateSubject
             .throttle(for: .seconds(10), scheduler: DispatchQueue.main, latest: true)
@@ -419,7 +447,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         .eraseToAnyPublisher()
     }
 
-    /// Updates the manager’s list of devices, typically after user selection or manual changes.
+    /// Updates the manager's list of devices, typically after user selection or manual changes.
     /// - Parameter devices: The new array of `IQDevice` objects to track.
     func updateDeviceList(_ devices: [IQDevice]) {
         self.devices = devices
@@ -461,6 +489,21 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                 }
             }
         )
+    }
+
+    func iobFormatterWithOneFractionDigit(_ value: Decimal) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.decimalSeparator = "."
+        formatter.maximumFractionDigits = 1
+        formatter.minimumFractionDigits = 1
+
+        // Prevent small values from rounding to 0 by enforcing a minimum threshold
+        if value.magnitude < 0.1, value != 0 {
+            return value > 0 ? "0.1" : "-0.1"
+        }
+
+        return formatter.string(from: value as NSNumber) ?? "\(value)"
     }
 }
 
@@ -527,7 +570,7 @@ extension BaseGarminManager: IQUIOverrideDelegate, IQDeviceEventDelegate, IQAppM
 
             do {
                 // Fetch the latest watch state (async) and encode it to JSON data
-                let watchState = await self.setupGarminWatchState()
+                let watchState = try await self.setupGarminWatchState()
                 let watchStateData = try JSONEncoder().encode(watchState)
 
                 // Now send that JSON data to the watch
@@ -560,9 +603,16 @@ extension BaseGarminManager: SettingsObserver {
         units = settingsManager.settings.units
 
         Task {
-            let watchState = await setupGarminWatchState()
-            let watchStateData = try JSONEncoder().encode(watchState)
-            sendWatchStateData(watchStateData)
+            do {
+                let watchState = try await setupGarminWatchState()
+                let watchStateData = try JSONEncoder().encode(watchState)
+                sendWatchStateData(watchStateData)
+            } catch {
+                debug(
+                    .watchManager,
+                    "\(DebuggingIdentifiers.failed) failed to send watch state data: \(error.localizedDescription)"
+                )
+            }
         }
     }
 }

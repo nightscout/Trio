@@ -80,15 +80,16 @@ extension Treatments {
             HStack {
                 HStack {
                     Text("Protein")
-
                     TextFieldWithToolBar(
                         text: $state.protein,
                         placeholder: "0",
                         keyboardType: .numberPad,
                         numberFormatter: mealFormatter,
-                        previousTextField: { focusOnPreviousTextField(index: 2) },
-                        nextTextField: { focusOnNextTextField(index: 2) }
-                    ).focused($focusedField, equals: .protein)
+                        showArrows: true,
+                        previousTextField: { focusedField = previousField(from: .protein) },
+                        nextTextField: { focusedField = nextField(from: .protein) }
+                    )
+                    .focused($focusedField, equals: .protein)
                     Text("g").foregroundColor(.secondary)
                 }
 
@@ -101,9 +102,11 @@ extension Treatments {
                         placeholder: "0",
                         keyboardType: .numberPad,
                         numberFormatter: mealFormatter,
-                        previousTextField: { focusOnPreviousTextField(index: 3) },
-                        nextTextField: { focusOnNextTextField(index: 3) }
-                    ).focused($focusedField, equals: .fat)
+                        showArrows: true,
+                        previousTextField: { focusedField = previousField(from: .fat) },
+                        nextTextField: { focusedField = nextField(from: .fat) }
+                    )
+                    .focused($focusedField, equals: .fat)
                     Text("g").foregroundColor(.secondary)
                 }
             }
@@ -118,39 +121,60 @@ extension Treatments {
                     placeholder: "0",
                     keyboardType: .numberPad,
                     numberFormatter: mealFormatter,
-                    previousTextField: { focusOnPreviousTextField(index: 1) },
-                    nextTextField: { focusOnNextTextField(index: 1) }
-                ).focused($focusedField, equals: .carbs)
-                    .onChange(of: state.carbs) {
-                        handleDebouncedInput()
-                    }
+                    showArrows: true,
+                    previousTextField: { focusedField = previousField(from: .carbs) },
+                    nextTextField: { focusedField = nextField(from: .carbs) }
+                )
+                .focused($focusedField, equals: .carbs)
+                .onChange(of: state.carbs) {
+                    handleDebouncedInput()
+                }
                 Text("g").foregroundColor(.secondary)
             }
         }
 
-        func focusOnPreviousTextField(index: Int) {
-            switch index {
-            case 2:
-                focusedField = .carbs
-            case 3:
-                focusedField = .fat
-            case 4:
-                focusedField = .protein
-            default:
-                break
+        /// Determines the next field to focus on based on the current focused field.
+        ///
+        /// This function handles the tab order navigation between input fields,
+        /// taking into account whether fat/protein fields are visible based on user settings.
+        ///
+        /// - Parameter current: The currently focused field
+        /// - Returns: The next field that should receive focus, or nil if there is no next field
+        private func nextField(from current: FocusedField) -> FocusedField? {
+            // If fat/protein fields are hidden, skip them in navigation
+            let showFPU = state.useFPUconversion
+
+            switch current {
+            case .fat:
+                return .bolus
+            case .protein:
+                return .fat
+            case .carbs:
+                return showFPU ? .protein : .bolus
+            case .bolus:
+                return .carbs
             }
         }
 
-        func focusOnNextTextField(index: Int) {
-            switch index {
-            case 1:
-                focusedField = .fat
-            case 2:
-                focusedField = .protein
-            case 3:
-                focusedField = .bolus
-            default:
-                break
+        /// Determines the previous field to focus on based on the current focused field.
+        ///
+        /// This function handles the reverse tab order navigation between input fields,
+        /// taking into account whether fat/protein fields are visible based on user settings.
+        ///
+        /// - Parameter current: The currently focused field
+        /// - Returns: The previous field that should receive focus, or nil if there is no previous field
+        private func previousField(from current: FocusedField) -> FocusedField? {
+            let showFPU = state.useFPUconversion
+
+            switch current {
+            case .fat:
+                return .protein
+            case .protein:
+                return .carbs
+            case .carbs:
+                return .bolus
+            case .bolus:
+                return showFPU ? .fat : .carbs
             }
         }
 
@@ -266,7 +290,8 @@ extension Treatments {
                                         )
 
                                         Text(
-                                            NSLocalizedString(
+                                            String(
+                                                localized:
                                                 " U",
                                                 comment: "Unit in number of units delivered (keep the space character!)"
                                             )
@@ -286,8 +311,9 @@ extension Treatments {
                                     textColor: colorScheme == .dark ? .white : .blue,
                                     maxLength: 5,
                                     numberFormatter: formatter,
-                                    previousTextField: { focusOnPreviousTextField(index: 4) },
-                                    nextTextField: { focusOnNextTextField(index: 4) }
+                                    showArrows: true,
+                                    previousTextField: { focusedField = previousField(from: .bolus) },
+                                    nextTextField: { focusedField = nextField(from: .bolus) }
                                 ).focused($focusedField, equals: .bolus)
                                     .onChange(of: state.amount) {
                                         Task {
@@ -308,9 +334,9 @@ extension Treatments {
                     }
                     .listSectionSpacing(sectionSpacing)
                 }
-                .blur(radius: state.waitForSuggestion ? 5 : 0)
+                .blur(radius: state.isAwaitingDeterminationResult ? 5 : 0)
 
-                if state.waitForSuggestion {
+                if state.isAwaitingDeterminationResult {
                     CustomProgressView(text: progressText.rawValue)
                 }
             }
@@ -362,6 +388,13 @@ extension Treatments {
                 showPresetSheet = false
             }) {
                 MealPresetView(state: state)
+            }
+            .alert("Determination Failed", isPresented: $state.showDeterminationFailureAlert) {
+                Button("OK", role: .cancel) {
+                    state.hideModal()
+                }
+            } message: {
+                Text("Failed to update COB/IOB: \(state.determinationFailureMessage)")
             }
         }
 
@@ -505,19 +538,5 @@ extension Treatments {
                 .foregroundColor(.gray.opacity(0.65))
                 .padding(.vertical)
         }
-    }
-}
-
-// fix iOS 15 bug
-struct ActivityIndicator: UIViewRepresentable {
-    @Binding var isAnimating: Bool
-    let style: UIActivityIndicatorView.Style
-
-    func makeUIView(context _: UIViewRepresentableContext<ActivityIndicator>) -> UIActivityIndicatorView {
-        UIActivityIndicatorView(style: style)
-    }
-
-    func updateUIView(_ uiView: UIActivityIndicatorView, context _: UIViewRepresentableContext<ActivityIndicator>) {
-        isAnimating ? uiView.startAnimating() : uiView.stopAnimating()
     }
 }

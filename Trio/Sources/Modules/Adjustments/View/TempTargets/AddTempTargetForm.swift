@@ -249,10 +249,17 @@ struct AddTempTargetForm: View {
                 content: {
                     Button(action: {
                         Task {
-                            if noNameSpecified { state.tempTargetName = "Custom Target" }
-                            didPressSave.toggle()
-                            await state.invokeSaveOfCustomTempTargets()
-                            dismiss()
+                            do {
+                                if noNameSpecified { state.tempTargetName = "Custom Target" }
+                                didPressSave.toggle()
+
+                                /// We need to call dismiss() either before state.invokeSaveOfCustomTempTargets() or as a callback within the function BEFORE we await the Task, otherwise the sheet gets only closed when the scheduled Temp Target gets enacted
+                                dismiss()
+
+                                try await state.invokeSaveOfCustomTempTargets()
+                            } catch {
+                                debug(.default, "\(DebuggingIdentifiers.failed) failed to save custom temp target: \(error)")
+                            }
                         }
                     }, label: {
                         Text("Start Temp Target")
@@ -266,10 +273,14 @@ struct AddTempTargetForm: View {
             Section {
                 Button(action: {
                     Task {
-                        if noNameSpecified { state.tempTargetName = "Custom Target" }
-                        didPressSave.toggle()
-                        await state.saveTempTargetPreset()
-                        dismiss()
+                        do {
+                            if noNameSpecified { state.tempTargetName = "Custom Target" }
+                            didPressSave.toggle()
+                            try await state.saveTempTargetPreset()
+                            dismiss()
+                        } catch {
+                            debug(.default, "\(DebuggingIdentifiers.failed) failed to save temp target preset: \(error)")
+                        }
                     }
                 }, label: {
                     Text("Save as Preset")
