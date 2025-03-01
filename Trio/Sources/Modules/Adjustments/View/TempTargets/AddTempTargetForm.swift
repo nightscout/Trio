@@ -252,8 +252,11 @@ struct AddTempTargetForm: View {
                             do {
                                 if noNameSpecified { state.tempTargetName = "Custom Target" }
                                 didPressSave.toggle()
-                                try await state.invokeSaveOfCustomTempTargets()
+
+                                /// We need to call dismiss() either before state.invokeSaveOfCustomTempTargets() or as a callback within the function BEFORE we await the Task, otherwise the sheet gets only closed when the scheduled Temp Target gets enacted
                                 dismiss()
+
+                                try await state.invokeSaveOfCustomTempTargets()
                             } catch {
                                 debug(.default, "\(DebuggingIdentifiers.failed) failed to save custom temp target: \(error)")
                             }

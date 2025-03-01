@@ -57,5 +57,14 @@ struct AppShortcuts: AppShortcutsProvider {
             shortTitle: "Cancel Override",
             systemImageName: "xmark.circle.fill"
         )
+        AppShortcut(
+            intent: CancelTempPresetIntent(),
+            phrases: [
+                "Cancel \(.applicationName) temporary target",
+                "Cancels an active \(.applicationName) temporary target"
+            ],
+            shortTitle: "Cancel Temp Target",
+            systemImageName: "xmark.circle.fill"
+        )
     }
 }
