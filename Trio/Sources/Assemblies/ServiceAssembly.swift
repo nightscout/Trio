@@ -24,8 +24,8 @@ final class ServiceAssembly: Assembly {
         container.register(ContactImageManager.self) { r in BaseContactImageManager(resolver: r) }
         container.register(AlertPermissionsChecker.self) { r in AlertPermissionsChecker(resolver: r) }
         if #available(iOS 16.2, *) {
-            container.register(LiveActivityBridge.self) { r in
-                LiveActivityBridge(resolver: r)
+            container.register(LiveActivityManager.self) { r in
+                LiveActivityManager(resolver: r)
             }
         }
     }
