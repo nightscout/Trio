@@ -164,7 +164,7 @@ extension Stat.StateModel {
                 let glucosePercentage = (Double(totalGlucose) / maxLoopsPerDay) * 100
 
                 return [
-                    ("Loop Success Rate", successfulLoops, loopPercentage),
+                    ("Successful Loops", successfulLoops, loopPercentage),
                     ("Glucose Count", totalGlucose, glucosePercentage)
                 ]
 

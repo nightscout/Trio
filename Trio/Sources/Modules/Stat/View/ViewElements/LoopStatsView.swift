@@ -51,7 +51,7 @@ struct LoopStatsView: View {
     }
 
     private func annotationText(for data: (category: String, count: Int, percentage: Double)) -> String {
-        if data.category == "Loop Success Rate" {
+        if data.category == "Successful Loops" {
             switch selectedDuration {
             case .Day,
                  .Today:
