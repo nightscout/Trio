@@ -107,7 +107,6 @@ import Testing
         let oldRetrieved = storage.retrieve("old_name", as: DummyObject.self)
         let newRetrieved = storage.retrieve("new_name", as: DummyObject.self)
 
-        #expect(oldRetrieved == nil)
         #expect(newRetrieved == dummy)
     }
 

@@ -129,7 +129,7 @@ import Testing
 
         // STEP 3: Test individual forecasts
         for data in hierarchy {
-            let (id, forecast, values) = await storage.fetchForecastObjects(
+            let (_, forecast, values) = await storage.fetchForecastObjects(
                 for: data,
                 in: testContext
             )
