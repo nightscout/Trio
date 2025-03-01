@@ -447,7 +447,12 @@ struct PopupView: View {
 
             VStack(alignment: .leading) {
                 let iobAvailable: Decimal = state.maxIOB - state.iob
-                if state.factoredInsulin < 0 {
+                let isLoopStale = state.lastLoopDate == nil ||
+                    Date().timeIntervalSince(state.lastLoopDate!) > 15 * 60
+
+                if isLoopStale {
+                    Text("Last loop was > 15 mins ago.")
+                } else if state.factoredInsulin < 0 {
                     Text("No insulin recommended.")
                 } else if state.currentBG < 54 {
                     Text("Glucose is very low.")
@@ -462,6 +467,10 @@ struct PopupView: View {
                         .foregroundColor(.secondary)
                     Text("Max IOB - Current IOB")
                         .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                if state.insulinCalculated > 0 {
+                    Text("Rounded for pump.")
                         .foregroundColor(.secondary)
                 }
             }

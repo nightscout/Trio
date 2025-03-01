@@ -31,6 +31,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         var insulinRequired: Decimal
         var evBG: Decimal
         var minPredBG: Decimal
+        var lastLoopDate: Date?
         var insulin: Decimal
         var target: Decimal
         var isf: Decimal
@@ -247,6 +248,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
                 insulinRequired: 0,
                 evBG: 0,
                 minPredBG: 0,
+                lastLoopDate: nil,
                 insulin: 0,
                 target: currentBGTarget,
                 isf: currentISF,
@@ -262,6 +264,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             insulinRequired: (mostRecentDetermination.insulinReq ?? 0) as Decimal,
             evBG: (mostRecentDetermination.eventualBG ?? 0) as Decimal,
             minPredBG: (mostRecentDetermination.minPredBGFromReason ?? 0) as Decimal,
+            lastLoopDate: apsManager.lastLoopDate as Date?,
             insulin: (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal,
             target: (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal,
             isf: (mostRecentDetermination.insulinSensitivity ?? NSDecimalNumber(decimal: currentISF)) as Decimal,
@@ -402,15 +405,17 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
 
         // the final result for recommended insulin amount
         var insulinCalculated: Decimal
-        // don't recommend insulin when current glucose or minPredBG is < 54
-        if input.currentBG < 54 || input.minPredBG < 54 {
+        let isLoopStale = Date().timeIntervalSince(apsManager.lastLoopDate) > 15 * 60
+        
+        // don't recommend insulin when current glucose or minPredBG is < 54 or last sucessful loop was over 15 minutes ago
+        if input.currentBG < 54 || input.minPredBG < 54 || isLoopStale {
             insulinCalculated = 0
         } else {
             // no negative insulinCalculated
             insulinCalculated = max(factoredInsulin, 0)
             // don't exceed maxBolus
             insulinCalculated = min(insulinCalculated, input.maxBolus)
-            // dont exceed maxIOB
+            // don't exceed maxIOB
             insulinCalculated = min(insulinCalculated, input.maxIOB - input.iob)
             // round calculated recommendation to allowed bolus increment
             insulinCalculated = apsManager.roundBolus(amount: insulinCalculated)

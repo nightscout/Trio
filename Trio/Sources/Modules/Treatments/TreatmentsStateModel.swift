@@ -42,6 +42,7 @@ extension Treatments {
         var minDelta: Decimal = 0
         var expectedDelta: Decimal = 0
         var minPredBG: Decimal = 0
+        var lastLoopDate: Date?
         var isAwaitingDeterminationResult: Bool = false
         var carbRatio: Decimal = 0
 
@@ -804,6 +805,7 @@ extension Treatments.StateModel {
             insulinRequired = (mostRecentDetermination.insulinReq ?? 0) as Decimal
             evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
             minPredBG = (mostRecentDetermination.minPredBGFromReason ?? 0) as Decimal
+            lastLoopDate = apsManager.lastLoopDate as Date?
             insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
             target = (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal
             isf = (mostRecentDetermination.insulinSensitivity ?? currentISF as NSDecimalNumber) as Decimal
