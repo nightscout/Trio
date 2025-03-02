@@ -66,5 +66,14 @@ struct AppShortcuts: AppShortcutsProvider {
             shortTitle: "Cancel Temp Target",
             systemImageName: "xmark.circle.fill"
         )
+        AppShortcut(
+            intent: RestartLiveActivityIntent(),
+            phrases: [
+                "Restart \(.applicationName) Live Activity",
+                "Restarts the Live Activity for \(.applicationName)"
+            ],
+            shortTitle: "Restart Live Activity",
+            systemImageName: "arrow.clockwise.circle.fill"
+        )
     }
 }
