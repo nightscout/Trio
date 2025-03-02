@@ -352,14 +352,25 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
 
     /// Ends the current live activity and ensures that all unknown activities are terminated.
     private func endActivity() async {
+        debug(.default, "Ending all live activities...")
+
         if let currentActivity {
+            debug(.default, "Ending current activity: \(currentActivity.activity.id)")
             await currentActivity.activity.end(nil, dismissalPolicy: .immediate)
             self.currentActivity = nil
         }
 
+        for activity in Activity<LiveActivityAttributes>.activities {
+            debug(.default, "Ending lingering activity: \(activity.id)")
+            await activity.end(nil, dismissalPolicy: .immediate)
+        }
+
         for unknownActivity in Activity<LiveActivityAttributes>.activities {
+            debug(.default, "Ending unknown activity: \(unknownActivity.id)")
             await unknownActivity.end(nil, dismissalPolicy: .immediate)
         }
+
+        debug(.default, "All live activities ended.")
     }
 
     /// Restarts the live activity from a Live Activity Intent.
@@ -370,7 +381,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
         guard let latestGlucose = latestGlucose,
               let determination = determination
         else {
-            debug(.default, "Cannot restart live activity because required persistent state is not available")
+            debug(.default, "Cannot restart live activity because required persistent state is not available. Fetching data...")
             return
         }
 
@@ -389,6 +400,14 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
         }
 
         await endActivity()
+
+        while (currentActivity != nil && currentActivity!.activity.activityState != .ended) || Activity<LiveActivityAttributes>
+            .activities.contains(where: { $0.activityState != .ended })
+        {
+            debug(.default, "Waiting for Live Activity to end...")
+            try? await Task.sleep(nanoseconds: 200_000_000) // 0.2s sleep
+        }
+
         await pushUpdate(contentState)
         debug(.default, "Restarted Live Activity from LiveActivityIntent (via iOS Shortcut)")
     }
