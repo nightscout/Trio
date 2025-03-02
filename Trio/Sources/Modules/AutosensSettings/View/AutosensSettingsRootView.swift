@@ -174,7 +174,7 @@ extension AutosensSettings {
                     miniHint: "Lower limit of the Autosens Ratio.",
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: 80%").bold()
+                        Text("Default: 70%").bold()
                         Text(
                             "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
                         )
