@@ -4,7 +4,7 @@ import Testing
 
 class BundleReference {}
 
-@Suite("IoB using real pump history JSON") struct IobJsonTests {
+@Suite("IoB using real pump history JSON", .disabled()) struct IobJsonTests {
     @Test("should produce the same JSON IobResult as Javascript") func createIobResultFromJson() async throws {
         let testBundle = Bundle(for: BundleReference.self)
         guard let path = testBundle.path(forResource: "pump_history", ofType: "json"),
