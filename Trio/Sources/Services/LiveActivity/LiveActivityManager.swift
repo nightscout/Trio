@@ -34,7 +34,7 @@ import UIKit
 /// dependency injection, and user defaults to ensure that the live activity reflects the current app state.
 ///
 /// Additionally, it supports a restart functionality (via `restartActivityFromLiveActivityIntent()`)
-/// via iOS shortcuts, similar to other iOS apps like xDrip4iOS or Sweat Dreams.
+/// via iOS shortcuts, similar to other iOS apps like xDrip4iOS or Sweet Dreams.
 @available(iOS 16.2, *)
 final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver {
     @Injected() private var settingsManager: SettingsManager!
