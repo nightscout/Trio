@@ -69,7 +69,7 @@ extension Treatments {
         var fattyMealFactor: Decimal = 0
         var useFattyMealCorrectionFactor: Bool = false
         var displayPresets: Bool = true
-        var confirmBolus: ConfirmBolus = .veryLowGlucose
+        var confirmBolus: Bool = false
 
         var currentBasal: Decimal = 0
         var currentCarbRatio: Decimal = 0

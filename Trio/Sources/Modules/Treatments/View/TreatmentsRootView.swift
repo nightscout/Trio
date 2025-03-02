@@ -422,18 +422,11 @@ extension Treatments {
                 return (false, "")
             }
 
-            let warningMessage = switch (isGlucoseVeryLow, isForecastVeryLow) {
-            case (true, _): "Glucose is very low."
-            case (_, true): "Glucose forecast is very low."
-            default: ""
-            }
+            let warningMessage = isGlucoseVeryLow ? String(localized: "Glucose is very low.") :
+                isForecastVeryLow ? String(localized: "Glucose forecast is very low.") :
+                ""
 
-            let shouldConfirm = switch state.confirmBolus {
-            case .never: false
-            case .always: true
-            case .veryLowGlucose: isGlucoseVeryLow
-            case .veryLowForecast: isGlucoseVeryLow || isForecastVeryLow
-            }
+            let shouldConfirm = state.confirmBolus && (isGlucoseVeryLow || isForecastVeryLow)
 
             return (shouldConfirm, warningMessage)
         }

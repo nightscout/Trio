@@ -294,11 +294,11 @@
 		BD2FF1A02AE29D43005D1C5D /* CheckboxToggleStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */; };
 		BD3CC0722B0B89D50013189E /* MainChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3CC0712B0B89D50013189E /* MainChartView.swift */; };
 		BD4064D12C4ED26900582F43 /* CoreDataObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */; };
+		BD432CA12D2F4E3600D1EB79 /* WatchMessageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */; };
+		BD432CA22D2F4E4000D1EB79 /* WatchMessageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */; };
 		BD4D738D2D15A4080052227B /* TDDStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4D738B2D15A4080052227B /* TDDStored+CoreDataClass.swift */; };
 		BD4D738E2D15A4080052227B /* TDDStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4D738C2D15A4080052227B /* TDDStored+CoreDataProperties.swift */; };
 		BD4D73A22D15A42A0052227B /* TDDStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4D73A12D15A4220052227B /* TDDStorage.swift */; };
-		BD432CA12D2F4E3600D1EB79 /* WatchMessageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */; };
-		BD432CA22D2F4E4000D1EB79 /* WatchMessageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */; };
 		BD4E1A7A2D3681B700D21626 /* GlucoseTargetSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4E1A792D3681AD00D21626 /* GlucoseTargetSetup.swift */; };
 		BD4E1A7C2D3686D900D21626 /* StartEndMarkerSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4E1A7B2D3686D400D21626 /* StartEndMarkerSetup.swift */; };
 		BD4ED4FD2CF9D5E8000EDC9C /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4ED4FC2CF9D5E8000EDC9C /* AppState.swift */; };
@@ -366,7 +366,6 @@
 		BDFF7A892D25F97D0016C40C /* TrioWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A852D25F97D0016C40C /* TrioWatchApp.swift */; };
 		BDFF7A8B2D25F97D0016C40C /* Unit Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFF7A8A2D25F97D0016C40C /* Unit Tests.swift */; };
 		BF1667ADE69E4B5B111CECAE /* ManualTempBasalProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680C4420C9A345D46D90D06C /* ManualTempBasalProvider.swift */; };
-		C23B70E92D7159EB00A50DC7 /* ConfirmBolus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C23B70E82D7159EB00A50DC7 /* ConfirmBolus.swift */; };
 		C2A0A42F2CE03131003B98E8 /* ConstantValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */; };
 		C967DACD3B1E638F8B43BE06 /* ManualTempBasalStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCFE0781F9074C2917890E8 /* ManualTempBasalStateModel.swift */; };
 		CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */; };
@@ -998,10 +997,10 @@
 		BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckboxToggleStyle.swift; sourceTree = "<group>"; };
 		BD3CC0712B0B89D50013189E /* MainChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChartView.swift; sourceTree = "<group>"; };
 		BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataObserver.swift; sourceTree = "<group>"; };
+		BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchMessageKeys.swift; sourceTree = "<group>"; };
 		BD4D738B2D15A4080052227B /* TDDStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TDDStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		BD4D738C2D15A4080052227B /* TDDStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TDDStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		BD4D73A12D15A4220052227B /* TDDStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDDStorage.swift; sourceTree = "<group>"; };
-		BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchMessageKeys.swift; sourceTree = "<group>"; };
 		BD4E1A792D3681AD00D21626 /* GlucoseTargetSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseTargetSetup.swift; sourceTree = "<group>"; };
 		BD4E1A7B2D3686D400D21626 /* StartEndMarkerSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartEndMarkerSetup.swift; sourceTree = "<group>"; };
 		BD4ED4FC2CF9D5E8000EDC9C /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
@@ -1070,7 +1069,6 @@
 		BDFF7A922D25F97D0016C40C /* TrioWatchAppExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchAppExtension.swift; sourceTree = "<group>"; };
 		BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorRootView.swift; sourceTree = "<group>"; };
 		C19984D62EFC0035A9E9644D /* TreatmentsProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsProvider.swift; sourceTree = "<group>"; };
-		C23B70E82D7159EB00A50DC7 /* ConfirmBolus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmBolus.swift; sourceTree = "<group>"; };
 		C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstantValues.swift; sourceTree = "<group>"; };
 		C377490C77661D75E8C50649 /* ManualTempBasalRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualTempBasalRootView.swift; sourceTree = "<group>"; };
 		C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsDataFlow.swift; sourceTree = "<group>"; };
@@ -2105,7 +2103,6 @@
 				BDC2EA462C3045AD00E5BBD0 /* Override.swift */,
 				DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */,
 				DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */,
-				C23B70E82D7159EB00A50DC7 /* ConfirmBolus.swift */,
 				DD6B7CB52C7B748B00B75029 /* TotalInsulinDisplayType.swift */,
 				DD9ECB692CA99F6C00AA7C45 /* PushMessage.swift */,
 				DDD6D4D22CDE90720029439A /* HbA1cDisplayUnit.swift */,
@@ -2156,12 +2153,9 @@
 		38A0362725ECF05300FCBB52 /* Storage */ = {
 			isa = PBXGroup;
 			children = (
-				CE82E02428E867BA00473A9C /* AlertStorage.swift */,
 				38AEE75625F0F18E0013F05B /* CarbsStorage.swift */,
 				DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */,
-				5864E8582C42CFAE00294306 /* DeterminationStorage.swift */,
 				38A0363A25ECF07E00FCBB52 /* GlucoseStorage.swift */,
-				BDC2EA442C3043B000E5BBD0 /* OverrideStorage.swift */,
 				38FCF3FC25E997A80078B0D1 /* PumpHistoryStorage.swift */,
 				38F3B2EE25ED8E2A005C48AA /* TempTargetsStorage.swift */,
 				CE82E02428E867BA00473A9C /* AlertStorage.swift */,
@@ -4018,7 +4012,6 @@
 				DDF847E42C5C288F0049BB3B /* LiveActivitySettingsRootView.swift in Sources */,
 				DD88C8E22C50420800F2D558 /* DefinitionRow.swift in Sources */,
 				B7C465E9472624D8A2BE2A6A /* (null) in Sources */,
-				C23B70E92D7159EB00A50DC7 /* ConfirmBolus.swift in Sources */,
 				71D44AAB2CA5F5EA0036EE9E /* AlertPermissionsChecker.swift in Sources */,
 				320D030F724170A637F06D50 /* (null) in Sources */,
 				19E1F7E829D082D0005C8D20 /* IconConfigDataFlow.swift in Sources */,
