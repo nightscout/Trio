@@ -84,22 +84,7 @@ import UIKit
     @MainActor func enactOverride(_ preset: OverridePreset) async -> Bool {
         // Start background task
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Override Upload") {
-            guard backgroundTaskID != .invalid else { return }
-            Task {
-                UIApplication.shared.endBackgroundTask(backgroundTaskID)
-            }
-            backgroundTaskID = .invalid
-        }
-
-        defer {
-            if backgroundTaskID != .invalid {
-                Task {
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                }
-                backgroundTaskID = .invalid
-            }
-        }
+        backgroundTaskID = startBackgroundTask(withName: "Override Upload")
 
         do {
             // Get NSManagedObjectID of Preset
@@ -122,12 +107,18 @@ import UIKit
                 await awaitNotification(.didUpdateOverrideConfiguration)
                 return true
             }
+
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "Override Upload")
+
             return false
         } catch {
             debug(
                 .default,
                 "\(DebuggingIdentifiers.failed) Failed to enact override: \(error.localizedDescription)"
             )
+
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "Override Upload")
+
             return false
         }
     }
@@ -145,24 +136,7 @@ import UIKit
 
         if shouldStartBackgroundTask {
             // Start background task
-            backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Override Cancel") {
-                guard backgroundTaskID != .invalid else { return }
-                Task {
-                    // End background task when the time is about to expire
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                }
-                backgroundTaskID = .invalid
-            }
-        }
-
-        // Defer block to end background task when function exits, only if it was started
-        defer {
-            if shouldStartBackgroundTask, backgroundTaskID != .invalid {
-                Task {
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                }
-                backgroundTaskID = .invalid
-            }
+            backgroundTaskID = startBackgroundTask(withName: "Override Cancel")
         }
 
         do {
@@ -210,10 +184,13 @@ import UIKit
             await awaitNotification(.didUpdateOverrideConfiguration)
             print("Notification received, continuing...")
 
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "Override Cancel")
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Overrides with error: \(error.localizedDescription)"
             )
+
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "Override Cancel")
         }
     }
 }

@@ -87,24 +87,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
     @MainActor func enactTempTarget(_ preset: TempPreset) async -> Bool {
         // Start background task
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "TempTarget Upload") {
-            guard backgroundTaskID != .invalid else { return }
-            Task {
-                // End background task when the time is about to expire
-                UIApplication.shared.endBackgroundTask(backgroundTaskID)
-            }
-            backgroundTaskID = .invalid
-        }
-
-        // Defer block to end background task when function exits
-        defer {
-            if backgroundTaskID != .invalid {
-                Task {
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                }
-                backgroundTaskID = .invalid
-            }
-        }
+        backgroundTaskID = startBackgroundTask(withName: "TempTarget Upload")
 
         do {
             // Get NSManagedObjectID of Preset
@@ -155,11 +138,17 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                 await awaitNotification(.didUpdateTempTargetConfiguration)
                 print("Notification received, continuing...")
 
+                endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Upload")
+
                 return true
             }
         } catch {
             // Handle error and ensure background task is ended
             debugPrint("Failed to enact TempTarget: \(error.localizedDescription)")
+
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Upload")
+
+            return false
         }
 
         return false
@@ -179,24 +168,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
 
         if shouldStartBackgroundTask {
             // Start background task
-            backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "TempTarget Cancel") {
-                guard backgroundTaskID != .invalid else { return }
-                Task {
-                    // End background task when the time is about to expire
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                }
-                backgroundTaskID = .invalid
-            }
-        }
-
-        // Defer block to end background task when function exits, only if it was started
-        defer {
-            if shouldStartBackgroundTask, backgroundTaskID != .invalid {
-                Task {
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                }
-                backgroundTaskID = .invalid
-            }
+            backgroundTaskID = startBackgroundTask(withName: "TempTarget Cancel")
         }
 
         do {
@@ -246,10 +218,13 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             await awaitNotification(.didUpdateTempTargetConfiguration)
             print("Notification received, continuing...")
 
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Temp Targets with error: \(error.localizedDescription)"
             )
+
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
         }
     }
 }

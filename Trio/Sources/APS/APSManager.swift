@@ -81,7 +81,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private var lifetime = Lifetime()
 
-    private var backGroundTaskID: UIBackgroundTaskIdentifier?
+    private var backgroundTaskID: UIBackgroundTaskIdentifier?
 
     var pumpManager: PumpManagerUI? {
         get { deviceDataManager.pumpManager }
@@ -224,7 +224,7 @@ final class BaseAPSManager: APSManager, Injectable {
             // Cleanup background task
             if let backgroundTask = backgroundTask {
                 await UIApplication.shared.endBackgroundTask(backgroundTask)
-                self.backGroundTaskID = .invalid
+                self.backgroundTaskID = .invalid
             }
         }
     }
@@ -250,13 +250,13 @@ final class BaseAPSManager: APSManager, Injectable {
     private func setupLoop() async -> (LoopStats, UIBackgroundTaskIdentifier?) {
         // Start background task
         let backgroundTask = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") { [weak self] in
-            guard let self, let backgroundTask = self.backGroundTaskID else { return }
+            guard let self, let backgroundTask = self.backgroundTaskID else { return }
             Task {
                 UIApplication.shared.endBackgroundTask(backgroundTask)
             }
-            self.backGroundTaskID = .invalid
+            self.backgroundTaskID = .invalid
         }
-        backGroundTaskID = backgroundTask
+        backgroundTaskID = backgroundTask
 
         // Set loop start time
         lastLoopStartDate = Date()
@@ -325,9 +325,9 @@ final class BaseAPSManager: APSManager, Injectable {
 
         if let error = error {
             warning(.apsManager, "Loop failed with error: \(error.localizedDescription)")
-            if let backgroundTask = backGroundTaskID {
+            if let backgroundTask = backgroundTaskID {
                 await UIApplication.shared.endBackgroundTask(backgroundTask)
-                backGroundTaskID = .invalid
+                backgroundTaskID = .invalid
             }
             processError(error)
         } else {
@@ -343,9 +343,9 @@ final class BaseAPSManager: APSManager, Injectable {
         }
 
         // End of the BG tasks
-        if let backgroundTask = backGroundTaskID {
+        if let backgroundTask = backgroundTaskID {
             await UIApplication.shared.endBackgroundTask(backgroundTask)
-            backGroundTaskID = .invalid
+            backgroundTaskID = .invalid
         }
     }
 
