@@ -246,7 +246,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                     }
 
                     let iobValue = latestDetermination.iob ?? 0
-                    watchState.iob = Formatter.decimalFormatterWithTwoFractionDigits.string(from: iobValue)
+                    watchState.iob = self.iobFormatterWithOneFractionDigit(iobValue as Decimal)
 
                     let cobNumber = NSNumber(value: latestDetermination.cob)
                     watchState.cob = Formatter.integerFormatter.string(from: cobNumber)
@@ -256,15 +256,13 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
                     if self.units == .mgdL {
                         watchState.isf = insulinSensitivity.description
-                        watchState.eventualBGRaw = Formatter.glucoseFormatter(for: self.units)
-                            .string(from: eventualBG) ?? "0"
+                        watchState.eventualBGRaw = eventualBG.description
                     } else {
                         let parsedIsf = Double(truncating: insulinSensitivity).asMmolL
                         let parsedEventualBG = Double(truncating: eventualBG).asMmolL
 
                         watchState.isf = parsedIsf.description
-                        watchState.eventualBGRaw = Formatter.glucoseFormatter(for: self.units)
-                            .string(from: parsedEventualBG as NSNumber) ?? "0"
+                        watchState.eventualBGRaw = parsedEventualBG.description
                     }
                 }
 
@@ -293,8 +291,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                         deltaValue = Double(truncating: deltaValue as NSNumber).asMmolL
                     }
 
-                    let formattedDelta = Formatter.glucoseFormatter(for: self.units)
-                        .string(from: deltaValue as NSNumber) ?? "0"
+                    let formattedDelta = deltaValue.description
                     watchState.delta = deltaValue < 0 ? "\(formattedDelta)" : "+\(formattedDelta)"
                 }
 
@@ -492,6 +489,21 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                 }
             }
         )
+    }
+
+    func iobFormatterWithOneFractionDigit(_ value: Decimal) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.decimalSeparator = "."
+        formatter.maximumFractionDigits = 1
+        formatter.minimumFractionDigits = 1
+
+        // Prevent small values from rounding to 0 by enforcing a minimum threshold
+        if value.magnitude < 0.1, value != 0 {
+            return value > 0 ? "0.1" : "-0.1"
+        }
+
+        return formatter.string(from: value as NSNumber) ?? "\(value)"
     }
 }
 

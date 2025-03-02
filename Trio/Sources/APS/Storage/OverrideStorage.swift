@@ -25,9 +25,10 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
     @Injected() private var settingsManager: SettingsManager!
 
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-    private let backgroundContext = CoreDataStack.shared.newTaskContext()
+    private let context: NSManagedObjectContext
 
-    init(resolver: Resolver) {
+    init(resolver: Resolver, context: NSManagedObjectContext? = nil) {
+        self.context = context ?? CoreDataStack.shared.newTaskContext()
         injectServices(resolver)
     }
 
@@ -42,7 +43,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
     func fetchLastCreatedOverride() async throws -> [NSManagedObjectID] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate(
                 format: "date >= %@",
                 Date.oneDayAgo as NSDate
@@ -52,7 +53,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             fetchLimit: 1
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [OverrideStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -64,14 +65,14 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
     func loadLatestOverrideConfigurations(fetchLimit: Int) async throws -> [NSManagedObjectID] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.lastActiveOverride,
             key: "orderPosition",
             ascending: true,
             fetchLimit: fetchLimit
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [OverrideStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -84,13 +85,13 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
     func fetchForOverridePresets() async throws -> [NSManagedObjectID] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.allOverridePresets,
             key: "orderPosition",
             ascending: true
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [OverrideStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -113,8 +114,8 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             presetCount = presets.count
         }
 
-        try await backgroundContext.perform {
-            let newOverride = OverrideStored(context: self.backgroundContext)
+        try await context.perform {
+            let newOverride = OverrideStored(context: self.context)
 
             // override key meta data
             if !override.name.isEmpty {
@@ -162,8 +163,8 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
                 newOverride.smbIsScheduledOff = false
             }
 
-            guard self.backgroundContext.hasChanges else { return }
-            try self.backgroundContext.save()
+            guard self.context.hasChanges else { return }
+            try self.context.save()
         }
     }
 
@@ -205,22 +206,47 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         return newOverride.objectID
     }
 
-    /// marked as MainActor to be able to publish changes from the background
     /// - Parameter: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
-    @MainActor func deleteOverridePreset(_ objectID: NSManagedObjectID) async {
-        await CoreDataStack.shared.deleteObject(identifiedBy: objectID)
+    func deleteOverridePreset(_ objectID: NSManagedObjectID) async {
+        // Use injected context if available, otherwise create new task context
+        let taskContext = context != CoreDataStack.shared.newTaskContext()
+            ? context
+            : CoreDataStack.shared.newTaskContext()
+
+        taskContext.name = "deleteContext"
+        taskContext.transactionAuthor = "deleteOverride"
+
+        await taskContext.perform {
+            do {
+                guard let override = try taskContext.existingObject(with: objectID) as? OverrideStored else {
+                    debugPrint("Override for batch delete not found. \(DebuggingIdentifiers.failed)")
+                    return
+                }
+
+                taskContext.delete(override)
+
+                guard taskContext.hasChanges else { return }
+                try taskContext.save()
+
+                debugPrint(
+                    "OverrideStorage: \(#function) \(DebuggingIdentifiers.succeeded) deleted override from core data"
+                )
+            } catch {
+                debugPrint("\(DebuggingIdentifiers.failed) Error deleting override: \(error.localizedDescription)")
+            }
+        }
     }
 
     func getOverridesNotYetUploadedToNightscout() async throws -> [NightscoutExercise] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.lastActiveAdjustmentNotYetUploadedToNightscout,
             key: "date",
             ascending: false
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedOverrides = results as? [OverrideStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -242,7 +268,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
     func getOverrideRunsNotYetUploadedToNightscout() async throws -> [NightscoutExercise] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideRunStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate(
                 format: "startDate >= %@ AND isUploadedToNS == %@",
                 Date.oneDayAgo as NSDate,
@@ -252,7 +278,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             ascending: false
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedOverrideRuns = results as? [OverrideRunStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -331,13 +357,13 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
     func getPresetOverridesForNightscout() async throws -> [NightscoutPresetOverride] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.allOverridePresets,
             key: "orderPosition",
             ascending: true
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [OverrideStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -360,14 +386,14 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
     func fetchLatestActiveOverride() async throws -> NSManagedObjectID? {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: NSPredicate.lastActiveOverride,
             key: "date",
             ascending: false,
             fetchLimit: 1
         )
 
-        return try await backgroundContext.perform {
+        return try await context.perform {
             guard let fetchedResults = results as? [OverrideStored],
                   let latestOverride = fetchedResults.first
             else {

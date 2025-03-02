@@ -140,7 +140,7 @@ extension AutosensSettings {
                     units: state.units,
                     type: .decimal("autosensMax"),
                     label: String(localized: "Autosens Max", comment: "Autosens Max"),
-                    miniHint: "Upper limit of the Autosens Ratio.",
+                    miniHint: String(localized: "Upper limit of the Autosens Ratio."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 120%").bold()
@@ -171,10 +171,10 @@ extension AutosensSettings {
                     units: state.units,
                     type: .decimal("autosensMin"),
                     label: String(localized: "Autosens Min", comment: "Autosens Min"),
-                    miniHint: "Lower limit of the Autosens Ratio.",
+                    miniHint: String(localized: "Lower limit of the Autosens Ratio."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: 80%").bold()
+                        Text("Default: 70%").bold()
                         Text(
                             "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
                         )
@@ -201,7 +201,7 @@ extension AutosensSettings {
                     units: state.units,
                     type: .boolean,
                     label: String(localized: "Rewind Resets Autosens", comment: "Rewind Resets Autosens"),
-                    miniHint: "Pump rewind initiates a reset in Autosens Ratio.",
+                    miniHint: String(localized: "Pump rewind initiates a reset in Autosens Ratio."),
                     verboseHint: VStack(alignment: .leading, spacing: 5) {
                         Text("Default: ON").bold()
                         Text("Medtronic Users Only").bold()
