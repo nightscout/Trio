@@ -1,8 +1,15 @@
 import Foundation
 
 struct IobGenerator {
-    static func generate(history: [PumpHistoryEvent], profile: Profile, clock: Date, autosens: Autosens?) throws -> [IobResult] {
+    static func generate(
+        history: [PumpHistoryEvent],
+        profile: Profile,
+        clock: Date,
+        autosens: Autosens?,
+        fullOutput: Bool = false
+    ) throws -> [IobResult] {
         let pumpHistory = history.map { $0.computedEvent() }
+
         let treatments = try IobHistory.calcTempTreatments(
             history: pumpHistory,
             profile: profile,
@@ -25,7 +32,7 @@ struct IobGenerator {
         let lastTemp = treatments.filter({ $0.rate != nil && ($0.duration ?? 0) > 0 }).sorted(by: { $0.timestamp < $1.timestamp })
             .last
 
-        let iStop = 4 * 60 // look 4h into the future
+        let iStop = fullOutput ? 4 * 60 : 5 // look 4h into the future
         var iobArray = try stride(from: 0, to: iStop, by: 5).map { minutes in
             let time = clock + minutes.minutesToSeconds
             let iob = try IobCalculation.iobTotal(treatments: treatments, profile: profile, time: time)
