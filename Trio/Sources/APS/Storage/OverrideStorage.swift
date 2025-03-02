@@ -325,13 +325,13 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         let predicate = NSPredicate(format: "date >= %@ AND date <= %@", lowerBound as NSDate, upperBound as NSDate)
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OverrideStored.self,
-            onContext: backgroundContext,
+            onContext: context,
             predicate: predicate,
             key: "date",
             ascending: false
         )
 
-        let storedOverride: NightscoutExercise? = await backgroundContext.perform {
+        let storedOverride: NightscoutExercise? = await context.perform {
             guard let fetched = results as? [OverrideStored],
                   let record = fetched.first,
                   let recordDate = record.date else { return nil }
