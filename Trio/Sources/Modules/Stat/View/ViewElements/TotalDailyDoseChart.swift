@@ -21,6 +21,8 @@ struct TotalDailyDoseChart: View {
     @State private var currentAverage: Double = 0
     /// Timer to throttle updates when scrolling.
     @State private var updateTimer = Stat.UpdateTimer()
+    /// Sum of hourly doses for `Day` view
+    @State private var sumOfHourlyDoses: Double = 0
 
     /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
@@ -41,6 +43,14 @@ struct TotalDailyDoseChart: View {
         currentAverage = state.getCachedTDDAverages(for: visibleDateRange)
     }
 
+    /// Updates the total of hourly doses for `Day` view
+    private func updateTotalDoses() {
+        sumOfHourlyDoses = tddStats.filter({ $0.date >= visibleDateRange.start && $0.date <= visibleDateRange.end })
+            .reduce(0, { result, stat in
+                result + stat.amount
+            })
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             statsView.padding(.bottom)
@@ -49,16 +59,23 @@ struct TotalDailyDoseChart: View {
         .onAppear {
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedDuration)
             updateAverages()
+            updateTotalDoses()
         }
         .onChange(of: scrollPosition) {
             updateTimer.scheduleUpdate {
                 updateAverages()
+                if selectedDuration == .Day {
+                    updateTotalDoses()
+                }
             }
         }
         .onChange(of: selectedDuration) {
             Task {
                 scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedDuration)
                 updateAverages()
+                if selectedDuration == .Day {
+                    updateTotalDoses()
+                }
             }
         }
     }
@@ -71,7 +88,7 @@ struct TotalDailyDoseChart: View {
                     GridRow {
                         Text("Total:")
                             .font(.headline)
-                        Text("--")
+                        Text(sumOfHourlyDoses.formatted(.number.precision(.fractionLength(1))))
                             .font(.headline)
                         Text("U")
                             .font(.headline)
