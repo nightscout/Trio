@@ -84,13 +84,27 @@ extension Stat {
 
             if state.glucoseFromPersistence.isEmpty {
                 ContentUnavailableView(
-                    "No Glucose Data",
+                    String(localized: "No Glucose Data"),
                     systemImage: "chart.bar.fill",
                     description: Text("Glucose statistics will appear here once data is available.")
                 )
             } else {
                 timeInRangeCard
                 glucoseStatsCard
+
+                HStack {
+                    var hintText: String {
+                        switch state.selectedGlucoseChartType {
+                        case .percentile:
+                            String(localized: "Tap and hold the AGP graph or Time-in-Range ring for details.")
+                        case .distribution:
+                            String(localized: "Tap and hold the Time-in-Range ring to reveal more details.")
+                        }
+                    }
+                    Image(systemName: "hand.draw.fill").foregroundStyle(Color.primary)
+                    Text(hintText).foregroundStyle(Color.secondary)
+                    Spacer()
+                }.font(.footnote)
             }
         }
 
@@ -123,7 +137,7 @@ extension Stat {
         private var glucoseStatsCard: some View {
             StatCard {
                 VStack(spacing: Constants.spacing) {
-                    SectorChart(
+                    GlucoseSectorChart(
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
@@ -132,7 +146,7 @@ extension Stat {
 
                     Divider()
 
-                    BareStatisticsView.GlucoseMetricsView(
+                    GlucoseMetricsView(
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
@@ -169,12 +183,12 @@ extension Stat {
                 case .totalDailyDose:
                     if state.dailyTDDStats.isEmpty {
                         ContentUnavailableView(
-                            "No TDD Data",
+                            String(localized: "No TDD Data"),
                             systemImage: "chart.bar.xaxis",
                             description: Text("Total Daily Doses will appear here once data is available.")
                         )
                     } else {
-                        TDDChartView(
+                        TotalDailyDoseChart(
                             selectedDuration: $state.selectedDurationForInsulinStats,
                             tddStats: state.selectedDurationForInsulinStats == .Day ?
                                 state.hourlyTDDStats : state.dailyTDDStats,
@@ -191,7 +205,7 @@ extension Stat {
                     // TODO: -
                     if state.dailyBolusStats.isEmpty || !hasBolusData {
                         ContentUnavailableView(
-                            "No Bolus Data",
+                            String(localized: "No Bolus Data"),
                             systemImage: "cross.vial",
                             description: Text("Bolus statistics will appear here once data is available.")
                         )
@@ -205,6 +219,14 @@ extension Stat {
                     }
                 }
             }
+
+            HStack {
+                Image(systemName: "hand.draw.fill").foregroundStyle(Color.primary)
+                VStack(alignment: .leading) {
+                    Text("Swipe the chart to scroll through time.")
+                    Text("Tap and hold a bar to reveal more details.")
+                }.foregroundStyle(Color.secondary)
+            }.font(.footnote)
         }
 
         @ViewBuilder var loopingView: some View {
@@ -232,7 +254,7 @@ extension Stat {
             case .loopingPerformance:
                 if state.loopStatRecords.isEmpty {
                     ContentUnavailableView(
-                        "No Loop Data",
+                        String(localized: "No Loop Data"),
                         systemImage: "clock.arrow.2.circlepath",
                         description: Text("Loop statistics will appear here once data is available.")
                     )
@@ -241,16 +263,26 @@ extension Stat {
                     loopStats
                 }
             case .trioUpTime:
-                Text("Not yet implemented")
+                // TODO: Trio Up-Time Chart
+                ContentUnavailableView(
+                    String(localized: "Coming soon."),
+                    systemImage: "hourglass",
+                    description: Text("Trio Up-Time Chart")
+                )
             case .cgmConnectionTrace:
-                Text("Not yet implemented")
+                // TODO: CGM Connection Trace Chart
+                ContentUnavailableView(
+                    String(localized: "Coming soon."),
+                    systemImage: "hourglass",
+                    description: Text("CGM Connection Trace Chart")
+                )
             }
         }
 
         private var loopsCard: some View {
             StatCard {
                 VStack(spacing: Constants.spacing) {
-                    LoopStatsView(
+                    LoopBarChartView(
                         loopStatRecords: state.loopStatRecords,
                         selectedDuration: state.selectedDurationForLoopStats,
                         statsData: state.loopStats
@@ -262,7 +294,7 @@ extension Stat {
         private var loopStats: some View {
             StatCard {
                 VStack(spacing: Constants.spacing) {
-                    BareStatisticsView.LoopsView(
+                    LoopStatsView(
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
@@ -297,15 +329,13 @@ extension Stat {
             StatCard {
                 switch state.selectedMealChartType {
                 case .totalMeals:
-                    // TODO: -
                     var hasMealData: Bool {
                         state.dailyMealStats.contains { $0.carbs > 0 || $0.fat > 0 || $0.protein > 0 }
                     }
 
-                    // TODO: -
                     if state.dailyMealStats.isEmpty || !hasMealData {
                         ContentUnavailableView(
-                            "No Meal Data",
+                            String(localized: "No Meal Data"),
                             systemImage: "fork.knife",
                             description: Text("Meal statistics will appear here once data is available.")
                         )
@@ -318,9 +348,22 @@ extension Stat {
                         )
                     }
                 case .mealToHypoHyperDistribution:
-                    Text("TODO: Meal to Hypoglycemia/Hyperglycemia Distribution")
+                    // TODO: Meal to Hypoglycemia/Hyperglycemia Distribution
+                    ContentUnavailableView(
+                        String(localized: "Coming soon."),
+                        systemImage: "hourglass",
+                        description: Text("Meal to Hypoglycemia/Hyperglycemia Distribution Chart")
+                    )
                 }
             }
+
+            HStack {
+                Image(systemName: "hand.draw.fill").foregroundStyle(Color.primary)
+                VStack(alignment: .leading) {
+                    Text("Swipe the chart to scroll through time.")
+                    Text("Tap and hold a bar to reveal more details.")
+                }.foregroundStyle(Color.secondary)
+            }.font(.footnote)
         }
     }
 }

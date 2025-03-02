@@ -63,7 +63,7 @@ struct GlucosePercentileChart: View {
                         yEnd: .value("75th Percentile", stats.percentile75),
                         series: .value("25-75", "25-75")
                     )
-                    .foregroundStyle(.blue.opacity(stats.median > 0 ? 0.3 : 0))
+                    .foregroundStyle(.blue.opacity(stats.median > 0 ? 0.4 : 0))
 
                     // Median line
                     if stats.median > 0 {
@@ -130,37 +130,28 @@ struct GlucosePercentileChart: View {
                 }
             }
             .chartXSelection(value: $selection.animation(.easeInOut))
-            .frame(height: 200)
+            .frame(height: 180)
             legend
         }
     }
 
     /// A view displaying the legend for the chart.
     private var legend: some View {
-        HStack(spacing: 20) {
-            VStack {
-                legendItem(color: .blue.opacity(0.2), text: "10% - 90%")
-                legendItem(color: .blue.opacity(0.3), text: "25% - 75%")
-            }
-            legendItem(color: .blue, text: "Median")
-            VStack {
-                legendItem(color: .orange, text: "High Limit")
-                legendItem(color: .red, text: "Low Limit")
-            }
+        HStack {
+            legendItem(color: .blue.opacity(0.2), text: "10-90%", icon: "rectangle.fill")
+            legendItem(color: .blue.opacity(0.4), text: "25-75%", icon: "rectangle.fill")
+            legendItem(color: .blue, text: "Median", icon: "rectangle.fill")
         }
-        .padding(.horizontal)
     }
 
     /// Creates a legend item with a given color and text.
-    private func legendItem(color: Color, text: String) -> some View {
+    private func legendItem(color: Color, text: String, icon: String) -> some View {
         HStack(spacing: 8) {
-            Rectangle()
-                .frame(width: 20, height: 8)
+            Image(systemName: icon)
                 .foregroundStyle(color)
             Text(text)
-                .font(.caption)
                 .foregroundStyle(.secondary)
-        }
+        }.font(.caption)
     }
 }
 

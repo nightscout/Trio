@@ -24,7 +24,7 @@ struct BolusStatsView: View {
 
     /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
-        StatsHelper.visibleDateRange(from: scrollPosition, for: selectedDuration)
+        StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedDuration)
     }
 
     /// Retrieves the bolus statistic for a given date.
@@ -32,7 +32,7 @@ struct BolusStatsView: View {
     /// - Returns: The `BolusStats` object if available, otherwise `nil`.
     private func getBolusForDate(_ date: Date) -> BolusStats? {
         bolusStats.first { stat in
-            StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration)
+            StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedDuration)
         }
     }
 
@@ -66,10 +66,10 @@ struct BolusStatsView: View {
             Spacer()
 
             Text(
-                StatsHelper
+                StatChartUtils
                     .formatVisibleDateRange(from: visibleDateRange.start, to: visibleDateRange.end, for: selectedDuration)
             )
-            .font(.footnote)
+            .font(.callout)
             .foregroundStyle(.secondary)
         }
     }
@@ -80,7 +80,7 @@ struct BolusStatsView: View {
             chartsView
         }
         .onAppear {
-            scrollPosition = StatsHelper.getInitialScrollPosition(for: selectedDuration)
+            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedDuration)
             updateAverages()
         }
         .onChange(of: scrollPosition) {
@@ -90,7 +90,7 @@ struct BolusStatsView: View {
         }
         .onChange(of: selectedDuration) {
             Task {
-                scrollPosition = StatsHelper.getInitialScrollPosition(for: selectedDuration)
+                scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedDuration)
                 updateAverages()
             }
         }
@@ -109,7 +109,7 @@ struct BolusStatsView: View {
                 .position(by: .value("Type", "Boluses"))
                 .opacity(
                     selectedDate.map { date in
-                        StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
+                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
                     } ?? 1
                 )
 
@@ -122,7 +122,7 @@ struct BolusStatsView: View {
                 .position(by: .value("Type", "Boluses"))
                 .opacity(
                     selectedDate.map { date in
-                        StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
+                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
                     } ?? 1
                 )
                 // Correction Bolus Bar
@@ -134,7 +134,7 @@ struct BolusStatsView: View {
                 .position(by: .value("Type", "Boluses"))
                 .opacity(
                     selectedDate.map { date in
-                        StatsHelper.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
+                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
                     } ?? 1
                 )
             }
@@ -165,12 +165,18 @@ struct BolusStatsView: View {
             AxisMarks(position: .trailing) { value in
                 if let amount = value.as(Double.self) {
                     AxisValueLabel {
-                        Text(amount.formatted(.number.precision(.fractionLength(0))) + " U")
+                        Text(amount.formatted(.number.precision(.fractionLength(0))))
                             .font(.footnote)
                     }
                     AxisGridLine()
                 }
             }
+        }
+        .chartYAxisLabel(alignment: .trailing) {
+            Text("Bolus Insulin (U)")
+                .foregroundStyle(.primary)
+                .font(.footnote)
+                .padding(.vertical, 3)
         }
         .chartXAxis {
             AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .Day ? .hour : .day)) { value in
@@ -181,25 +187,25 @@ struct BolusStatsView: View {
                     switch selectedDuration {
                     case .Day:
                         if hour % 6 == 0 { // Show only every 6 hours
-                            AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
+                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .Month:
                         if day % 5 == 0 { // Only show every 5th day
-                            AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
+                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .Total:
                         // Only show January, April, July, October
                         if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
-                            AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
+                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     default:
-                        AxisValueLabel(format: StatsHelper.dateFormat(for: selectedDuration), centered: true)
+                        AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                             .font(.footnote)
                         AxisGridLine()
                     }
@@ -215,11 +221,11 @@ struct BolusStatsView: View {
                     DateComponents(minute: 0) : // Align to next hour for Day view
                     DateComponents(hour: 0), // Align to start of day for other views
                 majorAlignment: .matching(
-                    StatsHelper.alignmentComponents(for: selectedDuration)
+                    StatChartUtils.alignmentComponents(for: selectedDuration)
                 )
             )
         )
-        .chartXVisibleDomain(length: StatsHelper.visibleDomainLength(for: selectedDuration))
+        .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedDuration))
         .frame(height: 250)
     }
 }
