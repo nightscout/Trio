@@ -15,6 +15,7 @@ import Foundation
 ///
 ///  The current Javascript implementation is an approximation of IoB, but we have an issue
 ///  open to update to more accurate pump events: https://github.com/nightscout/Trio-dev/issues/325
+///  And to fix the suspend logic: https://github.com/nightscout/Trio-dev/issues/357
 ///
 ///  Also, the current Javascript implementation implements the approximate algorithm incorrectly in
 ///  a few corner cases:
@@ -29,6 +30,19 @@ struct IobHistory {
     struct PumpSuspended {
         let timestamp: Date
         let durationInMinutes: Decimal
+
+        // these two properties are used to mark the first resume
+        // and last suspend if the pump is suspended when the history
+        // begins or currently suspended respectively
+        let isSuspendedPrior: Bool
+        let isCurrentlySuspended: Bool
+
+        init(timestamp: Date, durationInMinutes: Decimal, isSuspendedPrior: Bool = false, isCurrentlySuspended: Bool = false) {
+            self.timestamp = timestamp
+            self.durationInMinutes = durationInMinutes
+            self.isSuspendedPrior = isSuspendedPrior
+            self.isCurrentlySuspended = isCurrentlySuspended
+        }
 
         var end: Date {
             timestamp + durationInMinutes.minutesToSeconds
@@ -117,76 +131,140 @@ struct IobHistory {
             }
         }
 
-        if let last = pumpSuspendResume.last, last.type == .pumpSuspend {
-            let duration = (clock + 1.minutesToSeconds).timeIntervalSince(last.timestamp).secondsToMinutes
-            suspends.append(PumpSuspended(timestamp: last.timestamp, durationInMinutes: duration))
+        // If our first suspend/resume event is a resume, the pump is suspended
+        // when our history begins
+
+        // this dia is hard-coded in Javascript, it doesn't use the profile
+        let maxDiaAgo = clock - 8.hoursToSeconds
+        if let first = pumpSuspendResume.first, first.type == .pumpResume, maxDiaAgo < first.timestamp {
+            let start = maxDiaAgo
+            let duration = first.timestamp.timeIntervalSince(start).secondsToMinutes
+            suspends.append(PumpSuspended(timestamp: start, durationInMinutes: duration, isSuspendedPrior: true))
         }
 
-        return suspends
+        // if our last suspend/resume is a suspend, the pump is currently suspended
+        if let last = pumpSuspendResume.last, last.type == .pumpSuspend {
+            let duration = clock.timeIntervalSince(last.timestamp).secondsToMinutes
+            suspends.append(PumpSuspended(timestamp: last.timestamp, durationInMinutes: duration, isCurrentlySuspended: true))
+        }
+
+        return suspends.sorted { $0.timestamp < $1.timestamp }
     }
 
     /// Modifies or removes tempBasals that overlap with suspension periods
     ///
     /// Truncate, move, or remove temp basal commands that overlap with suspension periods.
     ///
-    /// **Difference from Javascript**
-    /// One important note is that once a suspend happens, the pump doesn't go back to the temp basal's rate
-    /// (at least the omnipod doesn't). When you resume, it resumes at the scheduled basal rate and stays
-    /// there until you issue a new TempBasal command. Thus, we don't split `TempBasal` entries when
-    /// a suspend starts in the middle, we truncate them, which is different from the Javascript implementation.
-    ///
-    /// Dealing with `TempBasal` records that start while the pump is suspended is a bit more nuanced becase
-    /// theoretically this sholdn't be possible. For this case, we follow the Javascript implementation and
-    /// move the `TempBasal` to start after the resume happens.
-    ///
-    /// Finally it adds zero temp basal events for the suspend periods for the IoB calculation
+    /// This implementation matches the Javascript, which has some bugs. See this issue for details:
+    /// https://github.com/nightscout/Trio-dev/issues/357
     private static func modifyTempBasalDuringSuspend(
         tempBasal: ComputedPumpHistoryEvent,
         suspends: [PumpSuspended]
-    ) -> ComputedPumpHistoryEvent? {
-        for suspend in suspends {
+    ) -> [ComputedPumpHistoryEvent] {
+        guard let tempBasalDuration = tempBasal.duration, tempBasalDuration != 0 else {
+            return [tempBasal]
+        }
+
+        for (index, suspend) in suspends.enumerated() {
             if suspend.doesOverlap(with: tempBasal) {
-                let tempBasalEnd = tempBasal.timestamp + (tempBasal.duration ?? 0).minutesToSeconds
-                if tempBasal.timestamp <= suspend.timestamp {
-                    // truncate if the suspend starts during the temp basal
-                    let duration = suspend.timestamp.timeIntervalSince(tempBasal.timestamp).secondsToMinutes
-                    return tempBasal.copyWith(duration: duration)
-                } else if tempBasalEnd <= suspend.end {
-                    // tempBasal is completely within the suspend
-                    return nil
-                } else {
-                    // adjust start and duration to start after suspend ends
-                    let duration = tempBasalEnd.timeIntervalSince(suspend.end).secondsToMinutes
-                    return tempBasal.copyWith(duration: duration, timestamp: suspend.end)
+                let tempBasalStartsBeforeSuspend = tempBasal.timestamp < suspend.timestamp
+                let tempBasalEnd = tempBasal.timestamp + tempBasalDuration.minutesToSeconds
+                let tempBasalEndsAfterSuspend = tempBasalEnd > suspend.end
+
+                switch (tempBasalStartsBeforeSuspend, tempBasalEndsAfterSuspend) {
+                case (false, false):
+                    // the temp basal is completely within the suspend
+                    // just remove it, I think JS will give a negative duration
+                    return []
+                case (true, false):
+                    // the temp basal starts first but ends during the suspend, truncate it
+                    let newDuration = suspend.timestamp.timeIntervalSince(tempBasal.timestamp).secondsToMinutes
+                    return [tempBasal.copyWith(duration: newDuration)]
+                case (false, true):
+                    // the temp basal starts during the suspend but goes on
+                    // past, adjust the start date
+                    let newDuration = tempBasalEnd.timeIntervalSince(suspend.end).secondsToMinutes
+                    let newTempBasal = tempBasal.copyWith(duration: newDuration, timestamp: suspend.end)
+                    return modifyTempBasalDuringSuspend(tempBasal: newTempBasal, suspends: Array(suspends.dropFirst(index + 1)))
+                case (true, true):
+                    // the suspend is completely within the temp basal
+                    // so we need to split the temp basal
+                    let firstDuration = suspend.timestamp.timeIntervalSince(tempBasal.timestamp).secondsToMinutes
+                    let firstTempBasal = tempBasal.copyWith(duration: firstDuration)
+                    let secondDuration = tempBasalEnd.timeIntervalSince(suspend.end).secondsToMinutes
+                    let secondTempBasal = tempBasal.copyWith(duration: secondDuration, timestamp: suspend.end)
+                    return [firstTempBasal] +
+                        modifyTempBasalDuringSuspend(tempBasal: secondTempBasal, suspends: Array(suspends.dropFirst(index + 1)))
                 }
             }
         }
 
-        return tempBasal
+        return [tempBasal]
+    }
+
+    private static func adjustForCurrentlySuspended(
+        tempBasals: [ComputedPumpHistoryEvent],
+        suspends: [PumpSuspended]
+    ) -> [ComputedPumpHistoryEvent] {
+        guard let lastSuspend = suspends.last, lastSuspend.isCurrentlySuspended else {
+            return tempBasals
+        }
+
+        let lastSuspendTime = lastSuspend.timestamp
+        return tempBasals.map { event in
+            let duration = event.duration ?? 0
+            let eventEnd = event.timestamp + duration.minutesToSeconds
+            guard eventEnd <= lastSuspendTime else {
+                return event
+            }
+
+            if event.timestamp > lastSuspendTime {
+                return event.copyWith(duration: 0)
+            } else {
+                let newDuration = duration - lastSuspendTime.timeIntervalSince(event.timestamp).secondsToMinutes
+                return event.copyWith(duration: newDuration)
+            }
+        }
+    }
+
+    private static func adjustForSuspendedPrior(
+        tempBasals: [ComputedPumpHistoryEvent],
+        suspends: [PumpSuspended]
+    ) -> [ComputedPumpHistoryEvent] {
+        guard let firstSuspend = suspends.first, firstSuspend.isSuspendedPrior else {
+            return tempBasals
+        }
+
+        let firstResumeDate = firstSuspend.end
+        return tempBasals.map { event in
+            let eventStartsBeforeResume = event.timestamp < firstResumeDate
+            guard eventStartsBeforeResume else {
+                return event
+            }
+
+            let duration = event.duration ?? 0
+            let eventEnd = event.timestamp + duration.minutesToSeconds
+            if eventEnd < firstResumeDate {
+                return event.copyWith(duration: 0)
+            } else {
+                let newDuration = duration - eventEnd.timeIntervalSince(firstResumeDate).secondsToMinutes
+                return event.copyWith(duration: newDuration, timestamp: firstResumeDate)
+            }
+        }
     }
 
     private static func splitAroundSuspends(
         tempBasals: [ComputedPumpHistoryEvent],
         suspends: [PumpSuspended]
     ) -> [ComputedPumpHistoryEvent] {
-        let tempBasals = tempBasals.compactMap { modifyTempBasalDuringSuspend(tempBasal: $0, suspends: suspends) }
+        var tempBasals = adjustForSuspendedPrior(tempBasals: tempBasals, suspends: suspends)
+        tempBasals = adjustForCurrentlySuspended(tempBasals: tempBasals, suspends: suspends)
+        tempBasals = tempBasals.flatMap { modifyTempBasalDuringSuspend(tempBasal: $0, suspends: suspends) }
         let zeroTempBasals = suspends
             .map { ComputedPumpHistoryEvent.zeroTempBasal(timestamp: $0.timestamp, duration: $0.durationInMinutes) }
 
-        let tempHistory = (tempBasals + zeroTempBasals).sorted { $0.timestamp < $1.timestamp
+        return (tempBasals + zeroTempBasals).sorted { $0.timestamp < $1.timestamp
         }
-
-        let adjustedTempHistory = zip(tempHistory, tempHistory.dropFirst()).map { curr, next in
-            let end = curr.timestamp + (curr.duration ?? 0).minutesToSeconds
-            if end > next.timestamp {
-                let newDuration = next.timestamp.timeIntervalSince(end).secondsToMinutes
-                return curr.copyWith(duration: newDuration)
-            } else {
-                return curr
-            }
-        }
-
-        return adjustedTempHistory + (tempHistory.last.map { [$0] } ?? [])
     }
 
     private static func splitAtMinutesSinceMidnight(
@@ -196,6 +274,7 @@ struct IobHistory {
         // FIXME: bug in JS where they only use minute precision for startMinutes
         // The net effect is that it truncates the startMinutes. The differences should
         // be small but at least it matches
+        // the fix it to use minutesSinceMidnightWithPrecision
         guard let startMinutes = tempBasal.timestamp.minutesSinceMidnight.map({ Decimal($0) }) else {
             throw MinutesFromMidnightError.invalidCalendar
         }
