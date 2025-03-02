@@ -197,12 +197,10 @@ extension Stat {
                     }
 
                 case .bolusDistribution:
-                    // TODO: -
                     var hasBolusData: Bool {
                         state.dailyBolusStats.contains { $0.manualBolus > 0 || $0.smb > 0 || $0.external > 0 }
                     }
 
-                    // TODO: -
                     if state.dailyBolusStats.isEmpty || !hasBolusData {
                         ContentUnavailableView(
                             String(localized: "No Bolus Data"),

@@ -164,8 +164,8 @@ extension Stat.StateModel {
                 let glucosePercentage = (Double(totalGlucose) / maxLoopsPerDay) * 100
 
                 return [
-                    ("Successful Loops", successfulLoops, loopPercentage),
-                    ("Glucose Count", totalGlucose, glucosePercentage)
+                    (String(localized: "Successful Loops"), successfulLoops, loopPercentage),
+                    (String(localized: "Glucose Count"), totalGlucose, glucosePercentage)
                 ]
 
             case .Month,
@@ -182,8 +182,8 @@ extension Stat.StateModel {
                 let glucosePercentage = (averageGlucosePerDay / maxLoopsPerDay) * 100
 
                 return [
-                    ("Successful Loops", Int(round(averageLoopsPerDay)), loopPercentage),
-                    ("Glucose Count", Int(round(averageGlucosePerDay)), glucosePercentage)
+                    (String(localized: "Successful Loops"), Int(round(averageLoopsPerDay)), loopPercentage),
+                    (String(localized: "Glucose Count"), Int(round(averageGlucosePerDay)), glucosePercentage)
                 ]
             }
         }

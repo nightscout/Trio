@@ -55,24 +55,24 @@ struct LoopBarChartView: View {
             switch selectedDuration {
             case .Day,
                  .Today:
-                return "\(data.count) Loops"
+                return "\(data.count) " + String(localized: "Loops")
             case .Month,
                  .Total,
                  .Week:
                 let maxLoopsPerDay = 288.0
                 let averageLoopsPerDay = Double(data.count) / maxLoopsPerDay * 100
-                return "\(Int(round(averageLoopsPerDay))) Loops per day"
+                return "\(Int(round(averageLoopsPerDay))) " + String(localized: "Loops per day")
             }
         } else {
             // For Glucose Count, show different text based on duration
             switch selectedDuration {
             case .Day,
                  .Today:
-                return "\(data.count) Readings"
+                return "\(data.count) " + String(localized: "Readings")
             case .Month,
                  .Total,
                  .Week:
-                return "\(data.count) Readings per day"
+                return "\(data.count) " + String(localized: "Readings per Day")
             }
         }
     }

@@ -32,6 +32,38 @@ struct GlucoseDistributionChart: View {
                 "200-220": .orange.opacity(0.7),
                 ">220": .orange.opacity(0.8)
             ])
+            .chartLegend(position: .bottom) {
+                let legendItems: [(String, Color)] = [
+                    ("<\(units == .mgdL ? Decimal(54) : 54.asMmolL)", .purple.opacity(0.7)),
+                    (
+                        "\(units == .mgdL ? Decimal(54) : 54.asMmolL)-\(units == .mgdL ? Decimal(70) : 70.asMmolL)",
+                        .red.opacity(0.7)
+                    ),
+                    ("\(units == .mgdL ? Decimal(70) : 70.asMmolL)-\(units == .mgdL ? Decimal(140) : 140.asMmolL)", .green),
+                    (
+                        "\(units == .mgdL ? Decimal(140) : 140.asMmolL)-\(units == .mgdL ? Decimal(180) : 180.asMmolL)",
+                        .green.opacity(0.7)
+                    ),
+                    (
+                        "\(units == .mgdL ? Decimal(180) : 180.asMmolL)-\(units == .mgdL ? Decimal(200) : 200.asMmolL)",
+                        .yellow.opacity(0.7)
+                    ),
+                    (
+                        "\(units == .mgdL ? Decimal(200) : 200.asMmolL)-\(units == .mgdL ? Decimal(220) : 220.asMmolL)",
+                        .orange.opacity(0.7)
+                    ),
+                    (">\(units == .mgdL ? Decimal(220) : 220.asMmolL)", .orange.opacity(0.8))
+                ]
+
+                let columns = [GridItem(.adaptive(minimum: 65), spacing: 4)]
+
+                LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
+                    ForEach(legendItems, id: \.0) { item in
+                        legendItem(label: item.0, color: item.1)
+                    }
+                }
+            }
+
             .chartYAxis {
                 AxisMarks(position: .trailing) { value in
                     if let percentage = value.as(Double.self) {
@@ -58,5 +90,12 @@ struct GlucoseDistributionChart: View {
             }
             .frame(height: 200)
         }
+    }
+
+    @ViewBuilder func legendItem(label: String, color: Color) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: "circle.fill").foregroundStyle(color)
+            Text(label).foregroundStyle(Color.secondary)
+        }.font(.caption2)
     }
 }
