@@ -42,7 +42,7 @@ extension UnitsLimitsSettings {
                     units: state.units,
                     type: .decimal("maxIOB"),
                     label: String(localized: "Max IOB", comment: "Max IOB"),
-                    miniHint: "Maximum units of insulin allowed to be active.",
+                    miniHint: String(localized: "Maximum units of insulin allowed to be active."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 0 units").bold()

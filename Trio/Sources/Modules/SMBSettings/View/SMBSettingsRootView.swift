@@ -32,7 +32,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .boolean,
                     label: String(localized: "Enable SMB Always", comment: "Enable SMB Always"),
-                    miniHint: "Allow SMBs at all times except when a high Temp Target is set.",
+                    miniHint: String(localized: "Allow SMBs at all times except when a high Temp Target is set."),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
@@ -60,7 +60,7 @@ extension SMBSettings {
                         units: state.units,
                         type: .boolean,
                         label: String(localized: "Enable SMB With COB", comment: "Enable SMB With COB"),
-                        miniHint: "Allow SMB when carbs are on board.",
+                        miniHint: String(localized: "Allow SMB when carbs are on board."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -87,7 +87,9 @@ extension SMBSettings {
                         units: state.units,
                         type: .boolean,
                         label: String(localized: "Enable SMB With Temptarget", comment: "Enable SMB With Temptarget"),
-                        miniHint: "Allow SMB when a manual Temporary Target is set under \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue).",
+                        miniHint: String(
+                            localized: "Allow SMB when a manual Temporary Target is set under \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue)."
+                        ),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -114,7 +116,7 @@ extension SMBSettings {
                         units: state.units,
                         type: .boolean,
                         label: String(localized: "Enable SMB After Carbs", comment: "Enable SMB After Carbs"),
-                        miniHint: "Allow SMB for 6 hrs after a carb entry.",
+                        miniHint: String(localized: "Allow SMB for 6 hrs after a carb entry."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -142,7 +144,7 @@ extension SMBSettings {
                         type: .conditionalDecimal("enableSMB_high_bg_target"),
                         label: String(localized: "Enable SMB With High BG", comment: "Enable SMB With High BG"),
                         conditionalLabel: "High BG Target",
-                        miniHint: "Allow SMB when glucose is above the High BG Target value.",
+                        miniHint: String(localized: "Allow SMB when glucose is above the High BG Target value."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -178,7 +180,9 @@ extension SMBSettings {
                         "Allow SMB With High Temptarget",
                         comment: "Allow SMB With High Temptarget"
                     ),
-                    miniHint: "Allow SMB when a manual Temporary Target is set greater than \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue).",
+                    miniHint: String(
+                        localized: "Allow SMB when a manual Temporary Target is set greater than \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue)."
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -208,7 +212,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .boolean,
                     label: String(localized: "Enable UAM", comment: "Enable UAM"),
-                    miniHint: "Enable Unannounced Meals SMB.",
+                    miniHint: String(localized: "Enable Unannounced Meals SMB."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -238,7 +242,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("maxSMBBasalMinutes"),
                     label: String(localized: "Max SMB Basal Minutes", comment: "Max SMB Basal Minutes"),
-                    miniHint: "Limits the size of a single Super Micro Bolus (SMB) dose.",
+                    miniHint: String(localized: "Limits the size of a single Super Micro Bolus (SMB) dose."),
                     verboseHint: VStack(spacing: 10) {
                         VStack(alignment: .leading, spacing: 10) {
                             VStack(alignment: .leading, spacing: 1) {
@@ -284,7 +288,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("maxUAMSMBBasalMinutes"),
                     label: String(localized: "Max UAM Basal Minutes", comment: "Max UAM Basal Minutes"),
-                    miniHint: "Limits the size of a single Unannounced Meal (UAM) SMB dose.",
+                    miniHint: String(localized: "Limits the size of a single Unannounced Meal (UAM) SMB dose."),
                     verboseHint: VStack(spacing: 10) {
                         VStack(alignment: .leading, spacing: 10) {
                             VStack(alignment: .leading, spacing: 1) {
@@ -329,7 +333,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("maxDeltaBGthreshold"),
                     label: String(localized: "Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold"),
-                    miniHint: "Disables SMBs if last two glucose values differ by more than this percent.",
+                    miniHint: String(localized: "Disables SMBs if last two glucose values differ by more than this percent."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 20% increase").bold()
@@ -354,7 +358,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("smbDeliveryRatio"),
                     label: String(localized: "SMB Delivery Ratio", comment: "SMB Delivery Ratio"),
-                    miniHint: "Percentage of calculated insulin required that is given as SMB.",
+                    miniHint: String(localized: "Percentage of calculated insulin required that is given as SMB."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 50%").bold()
@@ -382,7 +386,7 @@ extension SMBSettings {
                     units: state.units,
                     type: .decimal("smbInterval"),
                     label: String(localized: "SMB Interval", comment: "SMB Interval"),
-                    miniHint: "Minimum minutes since the last SMB or manual bolus to allow an automated SMB.",
+                    miniHint: String(localized: "Minimum minutes since the last SMB or manual bolus to allow an automated SMB."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 3 min").bold()

@@ -47,7 +47,7 @@ extension BolusCalculatorConfig {
                     units: state.units,
                     type: .boolean,
                     label: String(localized: "Display Meal Presets"),
-                    miniHint: "Allow the creation of saved, preset meals.",
+                    miniHint: String(localized: "Allow the creation of saved, preset meals."),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: ON").bold()
                         Text("Enabling this feature allows you to create and save preset meals.")
