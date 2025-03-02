@@ -406,7 +406,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         // the final result for recommended insulin amount
         var insulinCalculated: Decimal
         let isLoopStale = Date().timeIntervalSince(apsManager.lastLoopDate) > 15 * 60
-        
+
         // don't recommend insulin when current glucose or minPredBG is < 54 or last sucessful loop was over 15 minutes ago
         if input.currentBG < 54 || input.minPredBG < 54 || isLoopStale {
             insulinCalculated = 0

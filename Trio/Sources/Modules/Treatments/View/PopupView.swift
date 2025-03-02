@@ -35,23 +35,23 @@ struct PopupView: View {
                         }
                     }
 
-                    if state.fat > 0 {
-                        GridRow {
-                            Text("Fat").foregroundColor(.secondary)
-                            Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
-                            HStack {
-                                Text(state.fat.formatted())
-                                Text("g").foregroundColor(.secondary)
-                            }.gridCellAnchor(.trailing)
-                        }
-                    }
-
                     if state.protein > 0 {
                         GridRow {
                             Text("Protein").foregroundColor(.secondary)
                             Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
                             HStack {
                                 Text(state.protein.formatted())
+                                Text("g").foregroundColor(.secondary)
+                            }.gridCellAnchor(.trailing)
+                        }
+                    }
+
+                    if state.fat > 0 {
+                        GridRow {
+                            Text("Fat").foregroundColor(.secondary)
+                            Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                            HStack {
+                                Text(state.fat.formatted())
                                 Text("g").foregroundColor(.secondary)
                             }.gridCellAnchor(.trailing)
                         }
@@ -109,16 +109,16 @@ struct PopupView: View {
                     }
                     limitsRow
                 }
-
-                Spacer()
-
-                Button { state.showInfo = false }
-                label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center) }
-                    .buttonStyle(.bordered)
-                    .padding(.top)
             }
             .padding([.horizontal, .bottom])
             .font(.subheadline)
+            .safeAreaInset(edge: .bottom) {
+                Button { state.showInfo = false }
+                label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center) }
+                    .buttonStyle(.bordered)
+                    .padding(.horizontal)
+                    .background(Color(UIColor.systemBackground))
+            }
         }
     }
 
