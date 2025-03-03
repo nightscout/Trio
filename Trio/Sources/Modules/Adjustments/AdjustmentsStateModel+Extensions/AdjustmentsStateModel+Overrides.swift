@@ -1,6 +1,7 @@
 import Combine
 import CoreData
 import Foundation
+import SwiftUICore
 
 extension Adjustments.StateModel {
     // MARK: - Enact Overrides
@@ -374,10 +375,18 @@ enum IsfAndOrCrOptions: String, CaseIterable {
     case isf = "ISF"
     case cr = "CR"
     case nothing = "None"
+
+    var localized: LocalizedStringKey {
+        LocalizedStringKey(rawValue)
+    }
 }
 
 enum DisableSmbOptions: String, CaseIterable {
     case dontDisable = "Don't Disable"
     case disable = "Disable"
     case disableOnSchedule = "Disable on Schedule"
+
+    var localized: LocalizedStringKey {
+        LocalizedStringKey(rawValue)
+    }
 }

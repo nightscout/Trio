@@ -187,7 +187,7 @@ struct EditOverrideForm: View {
                 // Picker for ISF/CR settings
                 Picker("Also Change", selection: $selectedIsfCrOption) {
                     ForEach(IsfAndOrCrOptions.allCases, id: \.self) { option in
-                        Text(option.rawValue).tag(option)
+                        Text(option.localized).tag(option)
                     }
                 }
                 .pickerStyle(MenuPickerStyle())
@@ -257,7 +257,7 @@ struct EditOverrideForm: View {
                 // Picker for Disable SMB settings
                 Picker("Disable SMBs", selection: $selectedDisableSmbOption) {
                     ForEach(DisableSmbOptions.allCases, id: \.self) { option in
-                        Text(option.rawValue).tag(option)
+                        Text(option.localized).tag(option)
                     }
                 }
                 .pickerStyle(MenuPickerStyle())
