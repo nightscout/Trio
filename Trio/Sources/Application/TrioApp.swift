@@ -117,11 +117,10 @@ import Swinject
                 {
                     AppVersionChecker.shared.checkAndNotifyVersionStatus(in: rootVC)
                 }
+
+                // Check if we need to perform a database cleaning
+                performCleanupIfNecessary()
             }
-        }
-        .backgroundTask(.appRefresh("com.trio.cleanup")) {
-            await scheduleDatabaseCleaning()
-            await cleanupOldData()
         }
     }
 
@@ -146,14 +145,12 @@ import Swinject
         }
     }
 
-    func scheduleDatabaseCleaning() {
-        let request = BGAppRefreshTaskRequest(identifier: "com.trio.cleanup")
-        request.earliestBeginDate = .now.addingTimeInterval(7 * 24 * 60 * 60) // 7 days
-        do {
-            try BGTaskScheduler.shared.submit(request)
-            debug(.coreData, "Task for cleaning database scheduled successfully")
-        } catch {
-            debug(.coreData, "Failed to schedule tasks for cleaning database: \(error.localizedDescription)")
+    private func performCleanupIfNecessary() {
+        if let lastCleanupDate = UserDefaults.standard.object(forKey: "lastCleanupDate") as? Date {
+            let sevenDaysAgo = Date().addingTimeInterval(-7 * 24 * 60 * 60)
+            if lastCleanupDate < sevenDaysAgo {
+                cleanupOldData()
+            }
         }
     }
 
@@ -164,6 +161,9 @@ import Swinject
 
             await cleanupTokens
             try await purgeData
+
+            // Update the last cleanup date
+            UserDefaults.standard.set(Date(), forKey: "lastCleanupDate")
         }
     }
 
