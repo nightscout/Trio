@@ -128,7 +128,7 @@ extension CarbRatioEditor {
                                 (
                                     self.rateFormatter
                                         .string(from: state.rateValues[i] as NSNumber) ?? ""
-                                ) + " g/U"
+                                ) + String(localized: " g/U")
                             ).tag(i)
                         }
                     }
@@ -163,7 +163,9 @@ extension CarbRatioEditor {
                         HStack {
                             Text("Ratio").foregroundColor(.secondary)
                             Text(
-                                "\(rateFormatter.string(from: state.rateValues[item.rateIndex] as NSNumber) ?? "0") g/U"
+                                String(
+                                    localized: "\(rateFormatter.string(from: state.rateValues[item.rateIndex] as NSNumber) ?? "0") g/U"
+                                )
                             )
                             Spacer()
                             Text("starts at").foregroundColor(.secondary)

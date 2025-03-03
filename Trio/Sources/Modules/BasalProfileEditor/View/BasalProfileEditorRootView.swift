@@ -198,7 +198,7 @@ extension BasalProfileEditor {
                                 (
                                     self.rateFormatter
                                         .string(from: state.rateValues[i] as NSNumber) ?? ""
-                                ) + " U/hr"
+                                ) + String(localized: " U/hr")
                             ).tag(i)
                         }
                     }
