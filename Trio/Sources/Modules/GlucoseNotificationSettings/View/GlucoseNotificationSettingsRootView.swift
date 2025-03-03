@@ -197,7 +197,7 @@ extension GlucoseNotificationSettings {
                             label: Text("Glucose Notifications")
                         ) {
                             ForEach(GlucoseNotificationsOption.allCases) { selection in
-                                Text(selection.localized).tag(selection)
+                                Text(selection.displayName).tag(selection)
                             }
                         }.padding(.top)
 
