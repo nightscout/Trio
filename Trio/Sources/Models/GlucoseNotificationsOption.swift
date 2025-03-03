@@ -5,18 +5,16 @@
 //  Created by Kimberlie Skandis on 1/18/25.
 //
 import Foundation
+import SwiftUI
 
 public enum GlucoseNotificationsOption: String, JSON, CaseIterable, Identifiable, Codable, Hashable {
-    public var id: String { rawValue }
-    case disabled
-    case alwaysEveryCGM
-    case onlyAlarmLimits
+    case disabled = "Disabled"
+    case alwaysEveryCGM = "Always"
+    case onlyAlarmLimits = "Only Alarm Limits"
 
-    var displayName: String {
-        switch self {
-        case .disabled: return "Disabled"
-        case .alwaysEveryCGM: return "Always"
-        case .onlyAlarmLimits: return "Only Alarm Limits"
-        }
+    public var id: String { rawValue }
+
+    var localized: LocalizedStringKey {
+        LocalizedStringKey(rawValue)
     }
 }
