@@ -264,7 +264,7 @@ extension AlgorithmAdvancedSettings {
                     units: state.units,
                     type: .decimal("min5mCarbimpact"),
                     label: String(localized: "Min 5m Carb Impact", comment: "Min 5m Carb Impact"),
-                    miniHint: "Default impact of carb absorption over a 5 minute interval.",
+                    miniHint: String(localized: "Default impact of carb absorption over a 5 minute interval."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text(

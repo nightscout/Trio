@@ -155,7 +155,7 @@ extension LiveActivitySettings {
                 }
             }
             .listSectionSpacing(sectionSpacing)
-            .onReceive(resolver.resolve(LiveActivityBridge.self)!.$systemEnabled, perform: {
+            .onReceive(resolver.resolve(LiveActivityManager.self)!.$systemEnabled, perform: {
                 self.systemLiveActivitySetting = $0
             })
             .sheet(isPresented: $shouldDisplayHint) {
