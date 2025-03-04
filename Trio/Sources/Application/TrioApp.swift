@@ -58,7 +58,7 @@ import Swinject
         _ = resolver.resolve(PluginManager.self)!
         _ = resolver.resolve(AlertPermissionsChecker.self)!
         if #available(iOS 16.2, *) {
-            _ = resolver.resolve(LiveActivityBridge.self)!
+            _ = resolver.resolve(LiveActivityManager.self)!
         }
     }
 
