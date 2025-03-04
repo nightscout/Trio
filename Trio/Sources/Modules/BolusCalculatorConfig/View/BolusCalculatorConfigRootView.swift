@@ -166,14 +166,20 @@ extension BolusCalculatorConfig {
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: String(localized: "Very Low Glucose Bolus Warning"),
+                    label: String(localized: "Very Low Glucose Warning"),
                     miniHint: String(
                         localized: "Warning when bolusing with a very low or forecasted very low glucose."
                     ),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "Triggers a confirmation dialog if you attempt to bolus when glucose or forecasted glucose is < \(state.units == .mgdL ? 54.description : 54.formattedAsMmolL) \(state.units.rawValue)."
+                            "Triggers a confirmation dialog if you attempt to bolus when glucose is < \(state.units == .mgdL ? 54.description : 54.formattedAsMmolL) \(state.units.rawValue)."
+                        )
+                        Text(
+                            "Also triggered when the lowest forecasted glucose (minPredBG) is < \(state.units == .mgdL ? 54.description : 54.formattedAsMmolL) \(state.units.rawValue)."
+                        )
+                        Text(
+                            "Note: The forecast used for this warning does not include carbs or insulin that have not yet been logged."
                         )
                     }
                 )

@@ -460,18 +460,20 @@ struct PopupView: View {
                     Text("Glucose forecast is very low.")
                 } else if state.maxBolus <= iobAvailable && state.factoredInsulin > state.maxBolus {
                     Text("Max Bolus = \(insulinFormatter(state.maxBolus)) U")
-                } else if state.factoredInsulin > iobAvailable {
-                    let iobFormatted = state.iob < 0 ? "(" + insulinFormatter(state.iob) + ")" : insulinFormatter(state.iob)
-                    Text("Available IOB = \(insulinFormatter(iobAvailable)) U")
-                    Text("\(insulinFormatter(state.maxIOB)) - \(iobFormatted)")
-                        .foregroundColor(.secondary)
-                    Text("Max IOB - Current IOB")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                if state.insulinCalculated > 0 {
-                    Text("Rounded for pump.")
-                        .foregroundColor(.secondary)
+                } else {
+                    if state.factoredInsulin > iobAvailable {
+                        let iobFormatted = state.iob < 0 ? "(" + insulinFormatter(state.iob) + ")" : insulinFormatter(state.iob)
+                        Text("Available IOB = \(insulinFormatter(iobAvailable)) U")
+                        Text("\(insulinFormatter(state.maxIOB)) - \(iobFormatted)")
+                            .foregroundColor(.secondary)
+                        Text("Max IOB - Current IOB")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    if state.insulinCalculated > 0 {
+                        Text("Rounded for pump.")
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
             .foregroundColor(Color.loopRed)
