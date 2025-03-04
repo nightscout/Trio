@@ -228,7 +228,11 @@ extension Treatments {
                             // Notes
                             HStack {
                                 Image(systemName: "square.and.pencil")
-                                TextFieldWithToolBarString(text: $state.note, placeholder: "Note...", maxLength: 25)
+                                TextFieldWithToolBarString(
+                                    text: $state.note,
+                                    placeholder: String(localized: "Note..."),
+                                    maxLength: 25
+                                )
                             }
                         }.listRowBackground(Color.chart)
 
@@ -457,7 +461,7 @@ extension Treatments {
             let hasInsulin = state.amount > 0
             let hasCarbs = state.carbs > 0
             let hasFatOrProtein = state.fat > 0 || state.protein > 0
-            let bolusString = state.externalInsulin ? "External Insulin" : "Enact Bolus"
+            let bolusString = state.externalInsulin ? String(localized: "External Insulin") : String(localized: "Enact Bolus")
 
             if state.isBolusInProgress && hasInsulin && !state.externalInsulin && (!hasCarbs || !hasFatOrProtein) {
                 return Text("Bolus In Progress...")
