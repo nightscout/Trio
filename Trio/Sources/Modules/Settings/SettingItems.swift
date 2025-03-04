@@ -233,7 +233,6 @@ enum SettingItems {
             title: "Trio Notifications",
             view: .glucoseNotificationSettings,
             searchContents: [
-                "Play Alarm Sound",
                 "Always Notify Pump",
                 "Always Notify CGM",
                 "Always Notify Carb",
