@@ -8,6 +8,8 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
         case noDurationDefined
     }
 
+    private var intentSuccess: Bool = false
+
     func fetchAndProcessTempTargets() async throws -> [TempPreset] {
         // Fetch all Temp Target Presets via TempTargetStorage
         let allTempTargetPresetsIDs = try await tempTargetsStorage.fetchForTempTargetPresets()
@@ -85,9 +87,12 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
     }
 
     @MainActor func enactTempTarget(_ preset: TempPreset) async -> Bool {
+        debug(.default, "Enacting Temp Target: \(preset.name)")
+        intentSuccess = false
+
         // Start background task
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-        backgroundTaskID = startBackgroundTask(withName: "TempTarget Upload")
+        backgroundTaskID = startBackgroundTask(withName: "TempTarget Enact")
 
         do {
             // Get NSManagedObjectID of Preset
@@ -108,13 +113,15 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             )
 
             if viewContext.hasChanges {
+                debug(.default, "Saving changes...")
+
                 try viewContext.save()
 
                 // Update State variables in TempTargetView
                 Foundation.NotificationCenter.default.post(name: .willUpdateTempTargetConfiguration, object: nil)
 
                 // Await the notification
-                print("Waiting for notification...")
+                debug(.default, "Waiting for notification...")
 
                 guard let tempTargetDate = tempTargetObject.date, let tempTarget = tempTargetObject.target,
                       let tempTargetDuration = tempTargetObject.duration else { return false }
@@ -136,22 +143,27 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                 tempTargetsStorage.saveTempTargetsToStorage([tempTargetToStoreAsJSON])
 
                 await awaitNotification(.didUpdateTempTargetConfiguration)
-                print("Notification received, continuing...")
 
-                endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Upload")
-
-                return true
+                debug(.default, "Notification received, continuing...")
+                intentSuccess = true
             }
+
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Enact")
+
+            debug(.default, "Finished. Temp Target enacted via Shortcut.")
+
+            return intentSuccess
         } catch {
             // Handle error and ensure background task is ended
-            debugPrint("Failed to enact TempTarget: \(error.localizedDescription)")
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Temp Targett with error: \(error.localizedDescription)"
+            )
 
-            endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Upload")
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Enact")
 
-            return false
+            intentSuccess = false
+            return intentSuccess
         }
-
-        return false
     }
 
     func cancelTempTarget() async {
@@ -164,10 +176,11 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
         createTempTargetRunEntry: Bool,
         shouldStartBackgroundTask: Bool = true
     ) async {
-        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+        var backgroundTaskID: UIBackgroundTaskIdentifier?
 
         if shouldStartBackgroundTask {
             // Start background task
+            backgroundTaskID = .invalid
             backgroundTaskID = startBackgroundTask(withName: "TempTarget Cancel")
         }
 
@@ -180,7 +193,15 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             }
 
             // Return early if no results
-            guard !results.isEmpty else { return }
+            guard !results.isEmpty else {
+                debug(.default, "No active temp targets to cancel... returning early")
+
+                if var backgroundTaskID = backgroundTaskID {
+                    debug(.default, "Ending background task for temp target cancel")
+                    endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
+                }
+                return
+            }
 
             // Create TempTargetRunStored entry if needed
             if createTempTargetRunEntry {
@@ -214,17 +235,26 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             }
 
             // Await the notification
-            print("Waiting for notification...")
-            await awaitNotification(.didUpdateTempTargetConfiguration)
-            print("Notification received, continuing...")
+            // Await the notification
+            debug(.default, "Waiting for notification...")
 
-            endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
+            await awaitNotification(.didUpdateOverrideConfiguration)
+
+            debug(.default, "Notification received, continuing...")
+
+            if var backgroundTaskID = backgroundTaskID {
+                debug(.default, "Ending background task for temp target cancel")
+                endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
+            }
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Temp Targets with error: \(error.localizedDescription)"
             )
 
-            endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
+            if var backgroundTaskID = backgroundTaskID {
+                debug(.default, "Ending background task for temp target cancel")
+                endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
+            }
         }
     }
 }
