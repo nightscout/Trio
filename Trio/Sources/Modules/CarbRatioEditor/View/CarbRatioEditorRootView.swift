@@ -125,10 +125,8 @@ extension CarbRatioEditor {
                     Picker(selection: $state.items[index].rateIndex, label: Text("Ratio")) {
                         ForEach(0 ..< state.rateValues.count, id: \.self) { i in
                             Text(
-                                (
-                                    self.rateFormatter
-                                        .string(from: state.rateValues[i] as NSNumber) ?? ""
-                                ) + String(localized: " g/U")
+                                (self.rateFormatter.string(from: state.rateValues[i] as NSNumber) ?? "") + " " +
+                                    String(localized: "g/U")
                             ).tag(i)
                         }
                     }
@@ -163,9 +161,8 @@ extension CarbRatioEditor {
                         HStack {
                             Text("Ratio").foregroundColor(.secondary)
                             Text(
-                                String(
-                                    localized: "\(rateFormatter.string(from: state.rateValues[item.rateIndex] as NSNumber) ?? "0") g/U"
-                                )
+                                (rateFormatter.string(from: state.rateValues[item.rateIndex] as NSNumber) ?? "0") + " " +
+                                    String(localized: "g/U")
                             )
                             Spacer()
                             Text("starts at").foregroundColor(.secondary)

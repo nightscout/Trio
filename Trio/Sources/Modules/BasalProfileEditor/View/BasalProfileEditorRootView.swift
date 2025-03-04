@@ -195,10 +195,8 @@ extension BasalProfileEditor {
                     Picker(selection: $state.items[index].rateIndex, label: Text("Rate")) {
                         ForEach(0 ..< state.rateValues.count, id: \.self) { i in
                             Text(
-                                (
-                                    self.rateFormatter
-                                        .string(from: state.rateValues[i] as NSNumber) ?? ""
-                                ) + String(localized: " U/hr")
+                                (self.rateFormatter.string(from: state.rateValues[i] as NSNumber) ?? "") + " " +
+                                    String(localized: "U/hr")
                             ).tag(i)
                         }
                     }

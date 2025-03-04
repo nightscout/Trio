@@ -228,7 +228,7 @@ struct AddTempTargetForm: View {
         }
 
         if isDateInFuture {
-            return (true, String(localized: "Presets can't be saved with a future date!"))
+            return (true, String(localized: "Presets cannot be saved with a future date!"))
         }
 
         return (false, nil)
