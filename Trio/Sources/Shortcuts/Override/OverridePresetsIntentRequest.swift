@@ -91,6 +91,9 @@ import UIKit
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
         backgroundTaskID = startBackgroundTask(withName: "Override Enact")
 
+        // Disable previous overrides if necessary
+        await disableAllActiveOverrides(shouldStartBackgroundTask: false)
+
         do {
             // Get NSManagedObjectID of Preset
             let overrideID = try await fetchOverrideID(preset)
@@ -102,9 +105,6 @@ import UIKit
             overrideObject.enabled = true
             overrideObject.date = Date()
             overrideObject.isUploadedToNS = false
-
-            // Disable previous overrides if necessary
-            await disableAllActiveOverrides(shouldStartBackgroundTask: false)
 
             if viewContext.hasChanges {
                 debug(.default, "Saving changes...")
@@ -142,9 +142,7 @@ import UIKit
         await disableAllActiveOverrides(shouldStartBackgroundTask: true)
     }
 
-    @MainActor func disableAllActiveOverrides(
-        shouldStartBackgroundTask: Bool = true
-    ) async {
+    @MainActor func disableAllActiveOverrides(shouldStartBackgroundTask: Bool = true) async {
         debug(.default, "Disabling all active overrides")
 
         var backgroundTaskID: UIBackgroundTaskIdentifier?

@@ -94,6 +94,9 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
         backgroundTaskID = startBackgroundTask(withName: "TempTarget Enact")
 
+        // Disable previous overrides if necessary, without starting a background task
+        await disableAllActiveTempTargets(shouldStartBackgroundTask: false)
+
         do {
             // Get NSManagedObjectID of Preset
             guard let tempTargetID = await fetchTempTargetID(preset),
@@ -104,13 +107,6 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             tempTargetObject.enabled = true
             tempTargetObject.date = Date()
             tempTargetObject.isUploadedToNS = false
-
-            // Disable previous overrides if necessary, without starting a background task
-            await disableAllActiveTempTargets(
-                except: tempTargetID,
-                createTempTargetRunEntry: true,
-                shouldStartBackgroundTask: false
-            )
 
             if viewContext.hasChanges {
                 debug(.default, "Saving changes...")
@@ -167,15 +163,11 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
     }
 
     func cancelTempTarget() async {
-        await disableAllActiveTempTargets(createTempTargetRunEntry: true, shouldStartBackgroundTask: true)
+        await disableAllActiveTempTargets(shouldStartBackgroundTask: true)
         tempTargetsStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date().addingTimeInterval(-1))])
     }
 
-    @MainActor func disableAllActiveTempTargets(
-        except tempTargetID: NSManagedObjectID? = nil,
-        createTempTargetRunEntry: Bool,
-        shouldStartBackgroundTask: Bool = true
-    ) async {
+    @MainActor func disableAllActiveTempTargets(shouldStartBackgroundTask: Bool = true) async {
         var backgroundTaskID: UIBackgroundTaskIdentifier?
 
         if shouldStartBackgroundTask {
@@ -203,28 +195,24 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                 return
             }
 
-            // Create TempTargetRunStored entry if needed
-            if createTempTargetRunEntry {
-                // Use the first temp target to create a new TempTargetRunStored entry
-                if let canceledTempTarget = results.first {
-                    let newTempTargetRunStored = TempTargetRunStored(context: viewContext)
-                    newTempTargetRunStored.id = UUID()
-                    newTempTargetRunStored.name = canceledTempTarget.name
-                    newTempTargetRunStored.startDate = canceledTempTarget.date ?? .distantPast
-                    newTempTargetRunStored.endDate = Date()
-                    newTempTargetRunStored
-                        .target = canceledTempTarget.target ?? 0
-                    newTempTargetRunStored.tempTarget = canceledTempTarget
-                    newTempTargetRunStored.isUploadedToNS = false
-                }
+            // Create TempTargetRunStored entry
+            // Use the first temp target to create a new TempTargetRunStored entry
+            if let canceledTempTarget = results.first {
+                let newTempTargetRunStored = TempTargetRunStored(context: viewContext)
+                newTempTargetRunStored.id = UUID()
+                newTempTargetRunStored.name = canceledTempTarget.name
+                newTempTargetRunStored.startDate = canceledTempTarget.date ?? .distantPast
+                newTempTargetRunStored.endDate = Date()
+                newTempTargetRunStored
+                    .target = canceledTempTarget.target ?? 0
+                newTempTargetRunStored.tempTarget = canceledTempTarget
+                newTempTargetRunStored.isUploadedToNS = false
             }
 
             // Disable all override except the one with overrideID
             for tempTargetToCancel in results {
-                if tempTargetToCancel.objectID != tempTargetID {
-                    tempTargetToCancel.enabled = false
-                    tempTargetToCancel.isUploadedToNS = false
-                }
+                tempTargetToCancel.enabled = false
+                tempTargetToCancel.isUploadedToNS = false
             }
 
             if viewContext.hasChanges {
