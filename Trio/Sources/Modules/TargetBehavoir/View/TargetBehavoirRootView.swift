@@ -200,9 +200,6 @@ extension TargetBehavoir {
             }
             .navigationTitle("Target Behavior")
             .navigationBarTitleDisplayMode(.automatic)
-            //            .onDisappear {
-            //                state.saveIfChanged()
-            //            }
         }
 
         private var effectiveLowTTLowersSensBinding: Binding<Bool> {
