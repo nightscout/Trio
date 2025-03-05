@@ -120,7 +120,10 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             // Get NSManagedObjectID of Preset
             guard let tempTargetID = await fetchTempTargetID(preset),
                   let tempTargetObject = try viewContext.existingObject(with: tempTargetID) as? TempTargetStored
-            else { return false }
+            else {
+                endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Enact")
+                throw TempPresetsError.noTempTargetFound
+            }
 
             // Enable TempTarget
             tempTargetObject.enabled = true
@@ -185,7 +188,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
     /// Disables all active temporary targets.
     ///
     /// - Parameter shouldStartBackgroundTask: A flag indicating whether a background task should be started.
-    @MainActor func disableAllActiveTempTargets(shouldStartBackgroundTask: Bool = true) async {
+    @MainActor func disableAllActiveTempTargets(shouldStartBackgroundTask: Bool) async {
         var backgroundTaskID: UIBackgroundTaskIdentifier?
 
         if shouldStartBackgroundTask {
@@ -233,7 +236,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                 try viewContext.save()
                 debug(.default, "Waiting for notification...")
                 Foundation.NotificationCenter.default.post(name: .willUpdateTempTargetConfiguration, object: nil)
-                await awaitNotification(.didUpdateOverrideConfiguration)
+                await awaitNotification(.didUpdateTempTargetConfiguration)
                 debug(.default, "Notification received, continuing...")
             }
 

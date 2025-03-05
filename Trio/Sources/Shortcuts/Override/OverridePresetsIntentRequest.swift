@@ -121,6 +121,7 @@ import UIKit
         do {
             let overrideID = try await fetchOverrideID(preset)
             guard let overrideObject = try viewContext.existingObject(with: overrideID) as? OverrideStored else {
+                endBackgroundTaskSafely(&backgroundTaskID, taskName: "Override Enact")
                 throw overridePresetsError.noTempOverrideFound
             }
 
@@ -163,7 +164,7 @@ import UIKit
 
      - Parameter shouldStartBackgroundTask: A boolean indicating whether to start a background task.
      */
-    @MainActor func disableAllActiveOverrides(shouldStartBackgroundTask: Bool = true) async {
+    @MainActor func disableAllActiveOverrides(shouldStartBackgroundTask: Bool) async {
         debug(.default, "Disabling all active overrides")
         var backgroundTaskID: UIBackgroundTaskIdentifier?
 

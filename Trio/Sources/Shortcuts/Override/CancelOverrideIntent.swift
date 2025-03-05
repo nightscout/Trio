@@ -14,11 +14,9 @@ struct CancelOverrideIntent: AppIntent {
     /// - Returns: A confirmation dialog indicating the override has been canceled.
     /// - Throws: An error if the cancellation process fails.
     @MainActor func perform() async throws -> some ProvidesDialog {
-        do {
-            await OverridePresetsIntentRequest().cancelOverride()
-            return .result(
-                dialog: IntentDialog(LocalizedStringResource("Override canceled", table: "ShortcutsDetail"))
-            )
-        }
+        await OverridePresetsIntentRequest().cancelOverride()
+        return .result(
+            dialog: IntentDialog(LocalizedStringResource("Override canceled", table: "ShortcutsDetail"))
+        )
     }
 }
