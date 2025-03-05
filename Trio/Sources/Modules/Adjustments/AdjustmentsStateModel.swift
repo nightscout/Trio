@@ -269,11 +269,6 @@ extension Adjustments.StateModel: SettingsObserver, PreferencesObserver {
         isExerciseModeActive = settingsManager.preferences.exerciseMode
         lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
         percentage = computeAdjustedPercentage()
-        // Force lowTTlowersSens off if autosensMax <= 1
-        if autosensMax <= 1, lowTTlowersSens == true {
-            lowTTlowersSens = false
-            settingsManager.preferences.lowTemptargetLowersSensitivity = false
-        }
         Task {
             await getCurrentGlucoseTarget()
         }
