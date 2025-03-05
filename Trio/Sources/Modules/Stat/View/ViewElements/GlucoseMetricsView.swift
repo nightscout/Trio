@@ -32,6 +32,8 @@ struct GlucoseMetricsView: View {
             : glucoseStats.ngsp.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
 
         let gmiString = glucoseStats.gmi.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
+        
+        // glucoseStats already parsed to units - only format decimals
         let standardDeviationString = units == .mgdL ? glucoseStats.sd.formatted(
             .number.grouping(.never).rounded().precision(.fractionLength(0))
         ) : glucoseStats.sd.formatted(
@@ -42,11 +44,15 @@ struct GlucoseMetricsView: View {
         let daysTrackedString = totalDays.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
 
         VStack(alignment: .leading) {
-            HStack(spacing: 40) {
+            HStack {
                 StatChartUtils.statView(title: String(localized: "eA1c"), value: eA1cString)
+                Spacer()
                 StatChartUtils.statView(title: String(localized: "GMI"), value: gmiString)
+                Spacer()
                 StatChartUtils.statView(title: String(localized: "SD"), value: standardDeviationString)
+                Spacer()
                 StatChartUtils.statView(title: String(localized: "CV"), value: coefficientOfVariationString)
+                Spacer()
                 StatChartUtils.statView(title: String(localized: "Days"), value: daysTrackedString)
             }
         }
@@ -67,7 +73,7 @@ struct GlucoseMetricsView: View {
         // Determine the date range of the glucose data
         let earliestDate = glucose.last?.date ?? Date()
         let latestDate = glucose.first?.date ?? Date()
-        let totalDays = (latestDate - earliestDate).timeInterval / 86400
+        let totalDays = latestDate.timeIntervalSince(earliestDate) / 86400
 
         // Ensure at least one day to avoid division by zero
         let daysCount = max(totalDays, 1)
@@ -75,8 +81,13 @@ struct GlucoseMetricsView: View {
         // Extract glucose values as an array of integers
         let glucoseValues = glucose.compactMap { Int($0.glucose as Int16) }
         let totalReadings = glucoseValues.count
-        let sumOfReadings = glucoseValues.reduce(0, +)
 
+        // Handle empty dataset case
+        guard totalReadings > 1 else {
+            return (ifcc: 0, ngsp: 0, gmi: 0, average: 0, median: 0, sd: 0, cv: 0, readingsPerDay: 0)
+        }
+
+        let sumOfReadings = glucoseValues.reduce(0, +)
         // Compute mean (average) glucose level
         let meanGlucose = Double(sumOfReadings) / Double(totalReadings)
         // Compute median glucose level
@@ -106,16 +117,16 @@ struct GlucoseMetricsView: View {
             sum + pow(Double(value) - meanGlucose, 2)
         }
 
-        let standardDeviation = sqrt(sumOfSquaredDifferences / Double(totalReadings))
+        let standardDeviation = sqrt(sumOfSquaredDifferences / Double(totalReadings - 1)) // Using N-1 for sample SD
         let coefficientOfVariation = (meanGlucose > 0) ? (standardDeviation / meanGlucose) * 100 : 0.0
 
         return (
             ifcc: eA1cIFCC, // eA1c in IFCC (mmol/mol)
             ngsp: eA1cNGSP, // eA1c in NGSP (%)
             gmi: gmiValue, // Glucose Management Index
-            average: Double(units == .mgdL ? meanGlucose.asMgdL : meanGlucose.asMmolL),
-            median: Double(units == .mgdL ? medianGlucose.asMgdL : medianGlucose.asMmolL),
-            sd: Double(units == .mgdL ? standardDeviation.asMgdL : standardDeviation.asMmolL),
+            average: Double(units == .mgdL ? Decimal(meanGlucose) : meanGlucose.asMmolL),
+            median: Double(units == .mgdL ? Decimal(medianGlucose) : medianGlucose.asMmolL),
+            sd: Double(units == .mgdL ? Decimal(standardDeviation) : standardDeviation.asMmolL),
             cv: coefficientOfVariation, // CV is already in percentage format
             readingsPerDay: Double(totalReadings) / Double(daysCount)
         )
