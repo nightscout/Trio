@@ -215,15 +215,15 @@ struct SettingInputSection<VerboseHint: View>: View {
             let displayValue = units == .mmolL ? decimalValue.asMmolL : decimalValue
             return Text("\(displayValue.description) \(units.rawValue)")
         case .factor:
-            return Text("\(decimalValue * 100) %")
+            return Text("\(decimalValue * 100) \(String(localized: "%", comment: "Percentage symbol"))")
         case .insulinUnit:
-            return Text("\(decimalValue) U")
+            return Text("\(decimalValue) \(String(localized: "U", comment: "Insulin unit abbreviation"))")
         case .gram:
-            return Text("\(decimalValue) g")
+            return Text("\(decimalValue) \(String(localized: "g", comment: "Gram abbreviation"))")
         case .minute:
-            return Text("\(decimalValue) min")
+            return Text("\(decimalValue) \(String(localized: "min", comment: "Minutes abbreviation"))")
         case .hour:
-            return Text("\(decimalValue) hr")
+            return Text("\(decimalValue) \(String(localized: "hr", comment: "Hours abbreviation"))")
         }
     }
 

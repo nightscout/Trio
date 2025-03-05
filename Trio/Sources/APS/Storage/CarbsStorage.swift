@@ -13,7 +13,6 @@ protocol CarbsStorage {
     func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async throws
     func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async
     func syncDate() -> Date
-    func recent() -> [CarbsEntry]
     func getCarbsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getFPUsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getCarbsNotYetUploadedToHealth() async throws -> [CarbsEntry]
@@ -26,15 +25,16 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settings: SettingsManager!
 
-    let coredataContext = CoreDataStack.shared.newTaskContext()
-
     private let updateSubject = PassthroughSubject<Void, Never>()
 
     var updatePublisher: AnyPublisher<Void, Never> {
         updateSubject.eraseToAnyPublisher()
     }
 
-    init(resolver: Resolver) {
+    private let context: NSManagedObjectContext
+
+    init(resolver: Resolver, context: NSManagedObjectContext? = nil) {
+        self.context = context ?? CoreDataStack.shared.newTaskContext()
         injectServices(resolver)
     }
 
@@ -75,7 +75,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         // Fetch only the date property from Core Data
         guard let existing24hCarbEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
-            onContext: coredataContext,
+            onContext: context,
             predicate: NSPredicate.predicateForOneDayAgo,
             key: "date",
             ascending: false,
@@ -217,8 +217,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     private func saveCarbsToCoreData(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
         guard let entry = entries.last else { return }
 
-        await coredataContext.perform {
-            let newItem = CarbEntryStored(context: self.coredataContext)
+        await context.perform {
+            let newItem = CarbEntryStored(context: self.context)
             newItem.date = entry.actualDate ?? entry.createdAt
             newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
             newItem.fat = Double(truncating: NSDecimalNumber(decimal: entry.fat ?? 0))
@@ -235,8 +235,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             }
 
             do {
-                guard self.coredataContext.hasChanges else { return }
-                try self.coredataContext.save()
+                guard self.context.hasChanges else { return }
+                try self.context.save()
             } catch {
                 print(error.localizedDescription)
             }
@@ -264,9 +264,9 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
             // do NOT set Health and Tidepool flags to ensure they will NOT be uploaded
             return false // return false to continue
         }
-        await coredataContext.perform {
+        await context.perform {
             do {
-                try self.coredataContext.execute(batchInsert)
+                try self.context.execute(batchInsert)
                 debugPrint("Carbs Storage: \(DebuggingIdentifiers.succeeded) saved fpus to core data")
 
                 // Notify subscriber in Home State Model to update the FPU Array
@@ -281,12 +281,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         Date().addingTimeInterval(-1.days.timeInterval)
     }
 
-    func recent() -> [CarbsEntry] {
-        storage.retrieve(OpenAPS.Monitor.carbHistory, as: [CarbsEntry].self)?.reversed() ?? []
-    }
-
     func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async {
-        let taskContext = CoreDataStack.shared.newTaskContext()
+        // Use injected context if available, otherwise create new task context
+        let taskContext = context != CoreDataStack.shared.newTaskContext()
+            ? context
+            : CoreDataStack.shared.newTaskContext()
+
         taskContext.name = "deleteContext"
         taskContext.transactionAuthor = "deleteCarbs"
 
@@ -342,13 +342,13 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     func getCarbsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
-            onContext: coredataContext,
+            onContext: context,
             predicate: NSPredicate.carbsNotYetUploadedToNightscout,
             key: "date",
             ascending: false
         )
 
-        return try await coredataContext.perform {
+        return try await context.perform {
             guard let carbEntries = results as? [CarbEntryStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -381,13 +381,13 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     func getFPUsNotYetUploadedToNightscout() async throws -> [NightscoutTreatment] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
-            onContext: coredataContext,
+            onContext: context,
             predicate: NSPredicate.fpusNotYetUploadedToNightscout,
             key: "date",
             ascending: false
         )
 
-        return try await coredataContext.perform {
+        return try await context.perform {
             guard let fpuEntries = results as? [CarbEntryStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -420,13 +420,13 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     func getCarbsNotYetUploadedToHealth() async throws -> [CarbsEntry] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
-            onContext: coredataContext,
+            onContext: context,
             predicate: NSPredicate.carbsNotYetUploadedToHealth,
             key: "date",
             ascending: false
         )
 
-        return try await coredataContext.perform {
+        return try await context.perform {
             guard let carbEntries = results as? [CarbEntryStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -451,13 +451,13 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     func getCarbsNotYetUploadedToTidepool() async throws -> [CarbsEntry] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
-            onContext: coredataContext,
+            onContext: context,
             predicate: NSPredicate.carbsNotYetUploadedToTidepool,
             key: "date",
             ascending: false
         )
 
-        return try await coredataContext.perform {
+        return try await context.perform {
             guard let carbEntries = results as? [CarbEntryStored] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }

@@ -32,7 +32,7 @@ struct GlucoseMetricsView: View {
             : glucoseStats.ngsp.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
 
         let gmiString = glucoseStats.gmi.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
-        
+
         // glucoseStats already parsed to units - only format decimals
         let standardDeviationString = units == .mgdL ? glucoseStats.sd.formatted(
             .number.grouping(.never).rounded().precision(.fractionLength(0))
