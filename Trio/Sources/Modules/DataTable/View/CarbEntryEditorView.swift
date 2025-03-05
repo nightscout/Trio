@@ -161,7 +161,7 @@ struct CarbEntryEditorView: View {
 
                     HStack {
                         Image(systemName: "square.and.pencil")
-                        TextFieldWithToolBarString(text: $editedNote, placeholder: "Note...", maxLength: 25)
+                        TextFieldWithToolBarString(text: $editedNote, placeholder: String(localized: "Note..."), maxLength: 25)
                     }
                 }.listRowBackground(Color.chart)
 
