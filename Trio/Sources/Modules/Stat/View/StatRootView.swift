@@ -96,14 +96,17 @@ extension Stat {
                     var hintText: String {
                         switch state.selectedGlucoseChartType {
                         case .percentile:
-                            String(localized: "Tap and hold the AGP graph or Time-in-Range ring for details.")
+                            String(localized: "Tap and hold the AGP graph or Time-in-Range ring to reveal more details.")
                         case .distribution:
                             String(localized: "Tap and hold the Time-in-Range ring to reveal more details.")
                         }
                     }
-                    Image(systemName: "hand.draw.fill").foregroundStyle(Color.primary)
-                    Text(hintText).foregroundStyle(Color.secondary)
-                    Spacer()
+                    Image(systemName: "hand.draw.fill")
+                        .foregroundStyle(Color.primary)
+                        .padding(.leading)
+                    Text(hintText)
+                        .foregroundStyle(Color.secondary)
+                        .padding(.trailing)
                 }.font(.footnote)
             }
         }

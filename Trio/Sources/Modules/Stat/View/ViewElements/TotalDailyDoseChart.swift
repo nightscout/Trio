@@ -54,7 +54,15 @@ struct TotalDailyDoseChart: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             statsView.padding(.bottom)
-            chartsView
+
+            VStack(alignment: .trailing) {
+                Text("Total Daily Dose (U)")
+                    .foregroundStyle(.secondary)
+                    .font(.footnote)
+                    .padding(.bottom, 4)
+
+                chartsView
+            }
         }
         .onAppear {
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedDuration)
@@ -165,12 +173,6 @@ struct TotalDailyDoseChart: View {
                     AxisGridLine()
                 }
             }
-        }
-        .chartYAxisLabel(alignment: .trailing) {
-            Text("Total Daily Dose (U)")
-                .foregroundStyle(.primary)
-                .font(.footnote)
-                .padding(.vertical, 3)
         }
         .chartXAxis {
             AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .Day ? .hour : .day)) { value in
