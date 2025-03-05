@@ -86,6 +86,7 @@ extension Home {
         var fpusFromPersistence: [CarbEntryStored] = []
         var determinationsFromPersistence: [OrefDetermination] = []
         var enactedAndNonEnactedDeterminations: [OrefDetermination] = []
+        var fetchedTDDs: [TDD] = []
         var insulinFromPersistence: [PumpEventStored] = []
         var tempBasals: [PumpEventStored] = []
         var suspensions: [PumpEventStored] = []
@@ -125,6 +126,7 @@ extension Home {
         let carbsFetchContext = CoreDataStack.shared.newTaskContext()
         let fpuFetchContext = CoreDataStack.shared.newTaskContext()
         let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+        let tddFetchContext = CoreDataStack.shared.newTaskContext()
         let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
         let overrideFetchContext = CoreDataStack.shared.newTaskContext()
         let tempTargetFetchContext = CoreDataStack.shared.newTaskContext()
@@ -177,6 +179,9 @@ extension Home {
                     }
                     group.addTask {
                         self.setupDeterminationsArray()
+                    }
+                    group.addTask {
+                        self.setupTDDArray()
                     }
                     group.addTask {
                         self.setupInsulinArray()
@@ -235,6 +240,11 @@ extension Home {
             coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupDeterminationsArray()
+            }.store(in: &subscriptions)
+
+            coreDataPublisher?.filteredByEntityName("TDDStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupTDDArray()
             }.store(in: &subscriptions)
 
             coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
