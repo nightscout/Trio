@@ -130,9 +130,28 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             if viewContext.hasChanges {
                 debug(.default, "Saving changes...")
                 try viewContext.save()
-
-                // Update state variables
+                debug(.default, "Waiting for notification...")
+                // Update State variables in TempTargetView
                 Foundation.NotificationCenter.default.post(name: .willUpdateTempTargetConfiguration, object: nil)
+
+                // Prepare JSON for oref
+                guard let tempTargetDate = tempTargetObject.date, let tempTarget = tempTargetObject.target,
+                      let tempTargetDuration = tempTargetObject.duration else { return false }
+
+                let tempTargetToStoreAsJSON = TempTarget(
+                    name: tempTargetObject.name,
+                    createdAt: tempTargetDate,
+                    targetTop: tempTarget as Decimal,
+                    targetBottom: tempTarget as Decimal,
+                    duration: tempTargetDuration as Decimal,
+                    enteredBy: TempTarget.local,
+                    reason: TempTarget.custom,
+                    isPreset: tempTargetObject.isPreset,
+                    enabled: tempTargetObject.enabled,
+                    halfBasalTarget: tempTargetObject.halfBasalTarget as Decimal?
+                )
+                // Save the temp targets to JSON so that they get used by oref
+                tempTargetsStorage.saveTempTargetsToStorage([tempTargetToStoreAsJSON])
 
                 await awaitNotification(.didUpdateTempTargetConfiguration)
 
@@ -170,6 +189,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
         var backgroundTaskID: UIBackgroundTaskIdentifier?
 
         if shouldStartBackgroundTask {
+            debug(.default, "Starting background task for temp target cancel")
             backgroundTaskID = .invalid
             backgroundTaskID = startBackgroundTask(withName: "TempTarget Cancel")
         }
@@ -185,6 +205,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                 debug(.default, "No active temp targets to cancel... returning early")
 
                 if var backgroundTaskID = backgroundTaskID {
+                    debug(.default, "Ending background task for temp target cancel")
                     endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
                 }
                 return
@@ -210,16 +231,24 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
 
             if viewContext.hasChanges {
                 try viewContext.save()
+                debug(.default, "Waiting for notification...")
                 Foundation.NotificationCenter.default.post(name: .willUpdateTempTargetConfiguration, object: nil)
+                await awaitNotification(.didUpdateOverrideConfiguration)
+                debug(.default, "Notification received, continuing...")
             }
 
-            await awaitNotification(.didUpdateOverrideConfiguration)
-
             if var backgroundTaskID = backgroundTaskID {
+                debug(.default, "Ending background task for temp target cancel")
                 endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
             }
         } catch {
-            debugPrint("Failed to disable active Temp Targets with error: \(error.localizedDescription)")
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Temp Targets with error: \(error.localizedDescription)"
+            )
+            if var backgroundTaskID = backgroundTaskID {
+                debug(.default, "Ending background task for temp target cancel")
+                endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
+            }
         }
     }
 }
