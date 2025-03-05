@@ -71,11 +71,6 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     private func getCurrentSettingValue(for type: SettingType) async -> Decimal {
         let now = Date()
         let calendar = Calendar.current
-        let dateFormatter = DateFormatter()
-        dateFormatter.timeZone = TimeZone.current
-
-        let regexWithSeconds = #"^\d{2}:\d{2}:\d{2}$"#
-
         let entries: [(start: String, value: Decimal)]
 
         switch type {
@@ -94,17 +89,10 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         }
 
         for (index, entry) in entries.enumerated() {
-            // Dynamically set the format based on whether it matches the regex
-            if entry.start.range(of: regexWithSeconds, options: .regularExpression) != nil {
-                dateFormatter.dateFormat = "HH:mm:ss"
-            } else {
-                dateFormatter.dateFormat = "HH:mm"
-            }
-
-            guard let entryTime = dateFormatter.date(from: entry.start) else {
-                print("Invalid entry start time: \(entry.start)")
-                continue
-            }
+            guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
+                                debug(.default, "Invalid entry start time: \(entry.start)")
+                                continue
+                            }
 
             let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
             let entryStartTime = calendar.date(
@@ -116,14 +104,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
 
             let entryEndTime: Date
             if index < entries.count - 1 {
-                // Dynamically set the format again for the next element
-                if entries[index + 1].start.range(of: regexWithSeconds, options: .regularExpression) != nil {
-                    dateFormatter.dateFormat = "HH:mm:ss"
-                } else {
-                    dateFormatter.dateFormat = "HH:mm"
-                }
-
-                if let nextEntryTime = dateFormatter.date(from: entries[index + 1].start) {
+                if let nextEntryTime = TherapySettingsUtil.parseTime(entries[index + 1].start) {
                     let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
                     entryEndTime = calendar.date(
                         bySettingHour: nextEntryComponents.hour!,

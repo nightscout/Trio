@@ -540,9 +540,6 @@ extension BaseTidepoolManager {
     private func getCurrentBasalRate() -> BasalProfileEntry? {
         let now = Date()
         let calendar = Calendar.current
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm"
-        dateFormatter.timeZone = TimeZone.current
 
         let basalEntries = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
             ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
@@ -551,10 +548,10 @@ extension BaseTidepoolManager {
         var currentRate: BasalProfileEntry = basalEntries[0]
 
         for (index, entry) in basalEntries.enumerated() {
-            guard let entryTime = dateFormatter.date(from: entry.start) else {
-                print("Invalid entry start time: \(entry.start)")
-                continue
-            }
+            guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
+                                debug(.default, "Invalid entry start time: \(entry.start)")
+                                continue
+                            }
 
             let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
             let entryStartTime = calendar.date(
@@ -566,8 +563,7 @@ extension BaseTidepoolManager {
 
             let entryEndTime: Date
             if index < basalEntries.count - 1,
-               let nextEntryTime = dateFormatter.date(from: basalEntries[index + 1].start)
-            {
+               let nextEntryTime = TherapySettingsUtil.parseTime(basalEntries[index + 1].start) {
                 let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
                 entryEndTime = calendar.date(
                     bySettingHour: nextEntryComponents.hour!,

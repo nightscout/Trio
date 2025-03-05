@@ -524,6 +524,7 @@
 		DDAA29852D2D1D9E006546A1 /* AdjustmentsRootView+TempTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAA29842D2D1D98006546A1 /* AdjustmentsRootView+TempTargets.swift */; };
 		DDB37CC52D05048F00D99BF4 /* ContactImageStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */; };
 		DDB37CC72D05127500D99BF4 /* FontExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC62D05127500D99BF4 /* FontExtensions.swift */; };
+		DDCAE8332D78D4A800B1BB51 /* TherapySettingsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */; };
 		DDCE790F2D6F97FC000A4D7A /* SubmodulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */; };
 		DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */; };
 		DDD163122C4C689900CD525A /* AdjustmentsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */; };
@@ -1235,6 +1236,7 @@
 		DDB37CC32D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageStorage.swift; sourceTree = "<group>"; };
 		DDB37CC62D05127500D99BF4 /* FontExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtensions.swift; sourceTree = "<group>"; };
+		DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingsUtil.swift; sourceTree = "<group>"; };
 		DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmodulesView.swift; sourceTree = "<group>"; };
 		DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LiveActivity+Helper.swift"; sourceTree = "<group>"; };
 		DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentsStateModel.swift; sourceTree = "<group>"; };
@@ -2121,6 +2123,8 @@
 		388E5A5A25B6F05F0019842D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */,
+				DD73FA0E2D74F57300D19D1E /* BackgroundTask+Helper.swift */,
 				CEF1ED6A2D58FB4600FAF41E /* CGMOptions.swift */,
 				C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */,
 				DD940BAB2CA75889000830A5 /* DynamicGlucoseColor.swift */,
@@ -3893,6 +3897,7 @@
 				DD9ECB712CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift in Sources */,
 				63E890B4D951EAA91C071D5C /* BasalProfileEditorStateModel.swift in Sources */,
 				38FEF3FA2737E42000574A46 /* BaseStateModel.swift in Sources */,
+				DDCAE8332D78D4A800B1BB51 /* TherapySettingsUtil.swift in Sources */,
 				BDA25EFD2D261C0000035F34 /* WatchState.swift in Sources */,
 				CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */,
 				385CEA8225F23DFD002D6D5B /* NightscoutStatus.swift in Sources */,

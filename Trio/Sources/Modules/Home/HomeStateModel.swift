@@ -600,15 +600,12 @@ extension Home {
         private func getCurrentGlucoseTarget() async {
             let now = Date()
             let calendar = Calendar.current
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "HH:mm"
-            dateFormatter.timeZone = TimeZone.current
 
             let entries: [(start: String, value: Decimal)] = bgTargets.targets.map { ($0.start, $0.low) }
 
             for (index, entry) in entries.enumerated() {
-                guard let entryTime = dateFormatter.date(from: entry.start) else {
-                    print("Invalid entry start time: \(entry.start)")
+                guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
+                    debug(.default, "Invalid entry start time: \(entry.start)")
                     continue
                 }
 
@@ -622,7 +619,7 @@ extension Home {
 
                 let entryEndTime: Date
                 if index < entries.count - 1,
-                   let nextEntryTime = dateFormatter.date(from: entries[index + 1].start)
+                   let nextEntryTime = TherapySettingsUtil.parseTime(entries[index + 1].start)
                 {
                     let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
                     entryEndTime = calendar.date(
