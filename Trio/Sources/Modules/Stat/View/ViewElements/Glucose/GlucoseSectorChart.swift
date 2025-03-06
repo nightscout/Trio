@@ -49,13 +49,13 @@ struct GlucoseSectorChart: View {
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("\(formatValue(lowLimit))-\(formatValue(highLimit))").font(.subheadline).foregroundStyle(Color.secondary)
-                    Text(inRangePercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + "%")
+                    Text(inRangePercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
                         .foregroundStyle(Color.loopGreen)
                 }
 
                 VStack(alignment: .leading, spacing: 5) {
                     Text("\(formatValue(lowLimit))-\(formatValue(140))").font(.subheadline).foregroundStyle(Color.secondary)
-                    Text(tightPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + "%")
+                    Text(tightPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
                         .foregroundStyle(Color.green)
                 }
             }.padding(.leading, 5)
@@ -63,13 +63,13 @@ struct GlucoseSectorChart: View {
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("> \(formatValue(highLimit))").font(.subheadline).foregroundStyle(Color.secondary)
-                    Text(highPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + "%")
+                    Text(highPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
                         .foregroundStyle(Color.orange)
                 }
 
                 VStack(alignment: .leading, spacing: 5) {
                     Text("< \(formatValue(lowLimit))").font(.subheadline).foregroundStyle(Color.secondary)
-                    Text(lowPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) + "%")
+                    Text(lowPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
                         .foregroundStyle(Color.loopRed)
                 }
             }
