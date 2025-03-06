@@ -11,18 +11,9 @@ import UIKit
     /// - Throws: An error if the restart process fails.
     /// - Returns: Void upon successful restart.
     @MainActor func performRestart() async throws {
-        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-
         // Start background task
-        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "Restart Live Activity") {
-            Task { @MainActor in
-                if backgroundTaskID != .invalid {
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                    backgroundTaskID = .invalid
-                    debug(.default, "Background task expired and ended.")
-                }
-            }
-        }
+        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+        backgroundTaskID = startBackgroundTask(withName: "Restart Live Activity")
 
         guard backgroundTaskID != .invalid else {
             debug(.default, "Failed to start background task.")
@@ -34,10 +25,6 @@ import UIKit
         await liveActivityManager.restartActivityFromLiveActivityIntent()
 
         // Ensure background task ends properly
-        if backgroundTaskID != .invalid {
-            UIApplication.shared.endBackgroundTask(backgroundTaskID)
-            debug(.default, "Background task ended successfully.")
-            backgroundTaskID = .invalid
-        }
+        endBackgroundTaskSafely(&backgroundTaskID, taskName: "Restart Live Activity")
     }
 }
