@@ -23,6 +23,18 @@ struct LoopStatsByPeriod: Identifiable {
     var id: Date { period }
 }
 
+enum LoopStatsDataType: String {
+    case successfulLoop
+    case glucoseCount
+
+    var displayName: String {
+        switch self {
+        case .successfulLoop: return String(localized: "Successful Loop")
+        case .glucoseCount: return String(localized: "Glucose Count")
+        }
+    }
+}
+
 extension Stat.StateModel {
     /// Initiates the process of fetching and processing loop statistics
     /// This function coordinates three main tasks:
@@ -62,9 +74,9 @@ extension Stat.StateModel {
         let startDate: Date
         switch duration {
         case .Day:
-            startDate = Calendar.current.startOfDay(for: now)
-        case .Today:
             startDate = now.addingTimeInterval(-24.hours.timeInterval)
+        case .Today:
+            startDate = Calendar.current.startOfDay(for: now)
         case .Week:
             startDate = now.addingTimeInterval(-7.days.timeInterval)
         case .Month:
@@ -127,15 +139,18 @@ extension Stat.StateModel {
         allLoopIds: [NSManagedObjectID],
         failedLoopIds: [NSManagedObjectID],
         duration: Duration
-    ) async throws -> [(category: String, count: Int, percentage: Double)] {
+//    ) async throws -> [(category: LoopStatusType, count: Int, percentage: Double)] {
+    ) async throws
+        -> [(category: LoopStatsDataType, count: Int, percentage: Double, medianDuration: Double, medianInterval: Double)]
+    {
         // Calculate the date range for glucose readings
         let now = Date()
         let startDate: Date
         switch duration {
         case .Day:
-            startDate = Calendar.current.startOfDay(for: now)
-        case .Today:
             startDate = now.addingTimeInterval(-24.hours.timeInterval)
+        case .Today:
+            startDate = Calendar.current.startOfDay(for: now)
         case .Week:
             startDate = now.addingTimeInterval(-7.days.timeInterval)
         case .Month:
@@ -148,8 +163,10 @@ extension Stat.StateModel {
         let totalGlucose = try await calculateGlucoseStats(from: startDate, to: now)
 
         // Get NSManagedObject
-        let allLoops = try await CoreDataStack.shared.getNSManagedObject(with: allLoopIds, context: loopTaskContext)
-        let failedLoops = try await CoreDataStack.shared.getNSManagedObject(with: failedLoopIds, context: loopTaskContext)
+        let allLoops = try await CoreDataStack.shared
+            .getNSManagedObject(with: allLoopIds, context: loopTaskContext) as? [LoopStatRecord] ?? []
+        let failedLoops = try await CoreDataStack.shared
+            .getNSManagedObject(with: failedLoopIds, context: loopTaskContext) as? [LoopStatRecord] ?? []
 
         return await loopTaskContext.perform {
             let totalLoopsCount = allLoops.count
@@ -157,35 +174,43 @@ extension Stat.StateModel {
             let successfulLoops = totalLoopsCount - failedLoopsCount
             let maxLoopsPerDay = 288.0 // Maximum possible loops per day (every 5 minutes)
 
-            switch duration {
-            case .Day:
-                // For Day view: Calculate percentage based on maximum possible loops per day
-                let loopPercentage = (Double(successfulLoops) / maxLoopsPerDay) * 100
-                let glucosePercentage = (Double(totalGlucose) / maxLoopsPerDay) * 100
+            let numberOfDays = max(1, Calendar.current.dateComponents([.day], from: startDate, to: now).day ?? 1)
+            let averageLoopsPerDay = Double(successfulLoops) / Double(numberOfDays)
+            let averageGlucosePerDay = Double(totalGlucose) / Double(numberOfDays)
 
-                return [
-                    (String(localized: "Successful Loops"), successfulLoops, loopPercentage),
-                    (String(localized: "Glucose Count"), totalGlucose, glucosePercentage)
-                ]
+            // Calculate median duration (time from start to end of each loop)
+            let sortedDurations: [TimeInterval] = allLoops.compactMap { loop in
+                guard let start = loop.start, let end = loop.end else { return nil }
+                return end.timeIntervalSince(start)
+            }.sorted()
+            let medianDuration = sortedDurations.isEmpty ? 0.0 : sortedDurations[sortedDurations.count / 2]
 
-            case .Month,
-                 .Today,
-                 .Total,
-                 .Week:
-                // For other views: Calculate average per day
-                let numberOfDays = max(1, Calendar.current.dateComponents([.day], from: startDate, to: now).day ?? 1)
+            // Calculate median interval (time between end of n-th loop and start of n+1th loop)
+            let sortedIntervals: [TimeInterval] = zip(allLoops.dropLast(), allLoops.dropFirst()).compactMap { previous, next in
+                guard let previousEnd = previous.end, let nextStart = next.start else { return nil }
+                return previousEnd.timeIntervalSince(nextStart)
+            }.sorted()
+            let medianInterval = sortedIntervals.isEmpty ? 0.0 : sortedIntervals[sortedIntervals.count / 2]
 
-                let averageLoopsPerDay = Double(successfulLoops) / Double(numberOfDays)
-                let averageGlucosePerDay = Double(totalGlucose) / Double(numberOfDays)
+            let loopPercentage = (averageLoopsPerDay / maxLoopsPerDay) * 100
+            let glucosePercentage = (averageGlucosePerDay / maxLoopsPerDay) * 100
 
-                let loopPercentage = (averageLoopsPerDay / maxLoopsPerDay) * 100
-                let glucosePercentage = (averageGlucosePerDay / maxLoopsPerDay) * 100
-
-                return [
-                    (String(localized: "Successful Loops"), Int(round(averageLoopsPerDay)), loopPercentage),
-                    (String(localized: "Glucose Count"), Int(round(averageGlucosePerDay)), glucosePercentage)
-                ]
-            }
+            return [
+                (
+                    LoopStatsDataType.successfulLoop,
+                    Int(round(averageLoopsPerDay)),
+                    loopPercentage,
+                    medianDuration,
+                    medianInterval
+                ),
+                (
+                    LoopStatsDataType.glucoseCount,
+                    Int(round(averageGlucosePerDay)),
+                    glucosePercentage,
+                    medianDuration,
+                    medianInterval
+                )
+            ]
         }
     }
 

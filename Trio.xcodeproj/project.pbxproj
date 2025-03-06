@@ -208,8 +208,6 @@
 		491D6FBE2D56741C00C49F67 /* TempTargetRunStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491D6FB92D56741C00C49F67 /* TempTargetRunStored+CoreDataClass.swift */; };
 		491D6FBF2D56741C00C49F67 /* TempTargetRunStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491D6FBA2D56741C00C49F67 /* TempTargetRunStored+CoreDataProperties.swift */; };
 		491D6FC02D56741C00C49F67 /* TempTargetStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491D6FBB2D56741C00C49F67 /* TempTargetStored+CoreDataClass.swift */; };
-		49249B1C2D46E45E000F4866 /* CurrentTDDSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49249B1B2D46E45E000F4866 /* CurrentTDDSetup.swift */; };
-		49249B382D46E76A000F4866 /* TDD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49249B372D46E76A000F4866 /* TDD.swift */; };
 		49B9B57F2D5768D2009C6B59 /* AdjustmentStored+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B9B57E2D5768D2009C6B59 /* AdjustmentStored+Helper.swift */; };
 		5075C1608E6249A51495C422 /* TargetsEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */; };
 		53F2382465BF74DB1A967C8B /* PumpConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8630D58BDAD6D9C650B9B39 /* PumpConfigProvider.swift */; };
@@ -502,9 +500,9 @@
 		DD498F2B2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
 		DD498F2C2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
 		DD498F2D2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
-		DD4C581F2D73C43D001BFF2C /* LoopStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4C581E2D73C43D001BFF2C /* LoopStatsView.swift */; };
 		DD4C57A82D73ADEA001BFF2C /* RestartLiveActivityIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4C57A72D73ADEA001BFF2C /* RestartLiveActivityIntent.swift */; };
 		DD4C57AA2D73B3E2001BFF2C /* RestartLiveActivityIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4C57A92D73B3D9001BFF2C /* RestartLiveActivityIntentRequest.swift */; };
+		DD4C581F2D73C43D001BFF2C /* LoopStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4C581E2D73C43D001BFF2C /* LoopStatsView.swift */; };
 		DD4FFF332D458EE600B6CFF9 /* GarminWatchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4FFF322D458EE600B6CFF9 /* GarminWatchState.swift */; };
 		DD5DC9F12CF3D97C00AB8703 /* AdjustmentsStateModel+Overrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F02CF3D96E00AB8703 /* AdjustmentsStateModel+Overrides.swift */; };
 		DD5DC9F32CF3D9DD00AB8703 /* AdjustmentsStateModel+TempTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F22CF3D9D600AB8703 /* AdjustmentsStateModel+TempTargets.swift */; };
@@ -931,8 +929,6 @@
 		491D6FBA2D56741C00C49F67 /* TempTargetRunStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetRunStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		491D6FBB2D56741C00C49F67 /* TempTargetStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		491D6FBC2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TempTargetStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		49249B1B2D46E45E000F4866 /* CurrentTDDSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentTDDSetup.swift; sourceTree = "<group>"; };
-		49249B372D46E76A000F4866 /* TDD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDD.swift; sourceTree = "<group>"; };
 		49B9B57E2D5768D2009C6B59 /* AdjustmentStored+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentStored+Helper.swift"; sourceTree = "<group>"; };
 		4DD795BA46B193644D48138C /* TargetsEditorRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorRootView.swift; sourceTree = "<group>"; };
 		505E09DC17A0C3D0AF4B66FE /* ISFEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorStateModel.swift; sourceTree = "<group>"; };
@@ -1226,9 +1222,9 @@
 		DD32CFA12CC824E1003686D6 /* TrioRemoteControl+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Helpers.swift"; sourceTree = "<group>"; };
 		DD3A3CE62D29C93F00AE478E /* Helper+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Helper+Extensions.swift"; sourceTree = "<group>"; };
 		DD3A3CE82D29C97800AE478E /* Helper+ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Helper+ButtonStyles.swift"; sourceTree = "<group>"; };
-		DD4C581E2D73C43D001BFF2C /* LoopStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStatsView.swift; sourceTree = "<group>"; };
 		DD4C57A72D73ADEA001BFF2C /* RestartLiveActivityIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartLiveActivityIntent.swift; sourceTree = "<group>"; };
 		DD4C57A92D73B3D9001BFF2C /* RestartLiveActivityIntentRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartLiveActivityIntentRequest.swift; sourceTree = "<group>"; };
+		DD4C581E2D73C43D001BFF2C /* LoopStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStatsView.swift; sourceTree = "<group>"; };
 		DD4FFF322D458EE600B6CFF9 /* GarminWatchState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminWatchState.swift; sourceTree = "<group>"; };
 		DD5DC9F02CF3D96E00AB8703 /* AdjustmentsStateModel+Overrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentsStateModel+Overrides.swift"; sourceTree = "<group>"; };
 		DD5DC9F22CF3D9D600AB8703 /* AdjustmentsStateModel+TempTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentsStateModel+TempTargets.swift"; sourceTree = "<group>"; };
@@ -2531,15 +2527,10 @@
 		BD249D842D42FBD200412DEB /* ViewElements */ = {
 			isa = PBXGroup;
 			children = (
-				DD4C581E2D73C43D001BFF2C /* LoopStatsView.swift */,
-				BD249D932D42FC5C00412DEB /* TotalDailyDoseChart.swift */,
-				BD249D912D42FC5000412DEB /* GlucoseSectorChart.swift */,
-				BD249D8F2D42FC4300412DEB /* MealStatsView.swift */,
-				BD249D8D2D42FC3600412DEB /* LoopBarChartView.swift */,
-				BD249D8B2D42FC2500412DEB /* GlucoseDistributionChart.swift */,
-				BD249D892D42FC0E00412DEB /* GlucosePercentileChart.swift */,
-				BD249D872D42FBFB00412DEB /* BolusStatsView.swift */,
-				BD249D852D42FBE600412DEB /* GlucoseMetricsView.swift */,
+				DDCAE97A2D79F99B00B1BB51 /* Glucose */,
+				DDCAE9792D79F99200B1BB51 /* Meal */,
+				DDCAE9782D79F98E00B1BB51 /* Insulin */,
+				DDCAE9772D79F98600B1BB51 /* Looping */,
 			);
 			path = ViewElements;
 			sourceTree = "<group>";
@@ -3086,6 +3077,43 @@
 				38FE826C25CC8461001FF17A /* NightscoutAPI.swift */,
 			);
 			path = Nightscout;
+			sourceTree = "<group>";
+		};
+		DDCAE9772D79F98600B1BB51 /* Looping */ = {
+			isa = PBXGroup;
+			children = (
+				DD4C581E2D73C43D001BFF2C /* LoopStatsView.swift */,
+				BD249D8D2D42FC3600412DEB /* LoopBarChartView.swift */,
+			);
+			path = Looping;
+			sourceTree = "<group>";
+		};
+		DDCAE9782D79F98E00B1BB51 /* Insulin */ = {
+			isa = PBXGroup;
+			children = (
+				BD249D932D42FC5C00412DEB /* TotalDailyDoseChart.swift */,
+				BD249D872D42FBFB00412DEB /* BolusStatsView.swift */,
+			);
+			path = Insulin;
+			sourceTree = "<group>";
+		};
+		DDCAE9792D79F99200B1BB51 /* Meal */ = {
+			isa = PBXGroup;
+			children = (
+				BD249D8F2D42FC4300412DEB /* MealStatsView.swift */,
+			);
+			path = Meal;
+			sourceTree = "<group>";
+		};
+		DDCAE97A2D79F99B00B1BB51 /* Glucose */ = {
+			isa = PBXGroup;
+			children = (
+				BD249D912D42FC5000412DEB /* GlucoseSectorChart.swift */,
+				BD249D8B2D42FC2500412DEB /* GlucoseDistributionChart.swift */,
+				BD249D892D42FC0E00412DEB /* GlucosePercentileChart.swift */,
+				BD249D852D42FBE600412DEB /* GlucoseMetricsView.swift */,
+			);
+			path = Glucose;
 			sourceTree = "<group>";
 		};
 		DDD163032C4C67B400CD525A /* Adjustments */ = {

@@ -296,11 +296,7 @@ extension Stat {
             StatCard {
                 VStack(spacing: Constants.spacing) {
                     LoopStatsView(
-                        highLimit: state.highLimit,
-                        lowLimit: state.lowLimit,
-                        units: state.units,
-                        eA1cDisplayUnit: state.eA1cDisplayUnit,
-                        loopStatRecords: state.loopStatRecords
+                        statsData: state.loopStats
                     )
                 }
             }
