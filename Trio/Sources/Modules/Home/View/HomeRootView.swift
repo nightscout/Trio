@@ -494,7 +494,7 @@ extension Home {
                         "TDD: " +
                             (
                                 Formatter.decimalFormatterWithTwoFractionDigits
-                                    .string(from: (state.determinationsFromPersistence.first?.totalDailyDose ?? 0) as NSNumber) ??
+                                    .string(from: (state.fetchedTDDs.first?.totalDailyDose ?? 0) as NSNumber) ??
                                     "0"
                             ) +
                             String(localized: " U", comment: "Insulin unit")

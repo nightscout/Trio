@@ -81,7 +81,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private var lifetime = Lifetime()
 
-    private var backGroundTaskID: UIBackgroundTaskIdentifier?
+    private var backgroundTaskID: UIBackgroundTaskIdentifier?
 
     var pumpManager: PumpManagerUI? {
         get { deviceDataManager.pumpManager }
@@ -224,7 +224,7 @@ final class BaseAPSManager: APSManager, Injectable {
             // Cleanup background task
             if let backgroundTask = backgroundTask {
                 await UIApplication.shared.endBackgroundTask(backgroundTask)
-                self.backGroundTaskID = .invalid
+                self.backgroundTaskID = .invalid
             }
         }
     }
@@ -250,13 +250,13 @@ final class BaseAPSManager: APSManager, Injectable {
     private func setupLoop() async -> (LoopStats, UIBackgroundTaskIdentifier?) {
         // Start background task
         let backgroundTask = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") { [weak self] in
-            guard let self, let backgroundTask = self.backGroundTaskID else { return }
+            guard let self, let backgroundTask = self.backgroundTaskID else { return }
             Task {
                 UIApplication.shared.endBackgroundTask(backgroundTask)
             }
-            self.backGroundTaskID = .invalid
+            self.backgroundTaskID = .invalid
         }
-        backGroundTaskID = backgroundTask
+        backgroundTaskID = backgroundTask
 
         // Set loop start time
         lastLoopStartDate = Date()
@@ -325,9 +325,9 @@ final class BaseAPSManager: APSManager, Injectable {
 
         if let error = error {
             warning(.apsManager, "Loop failed with error: \(error.localizedDescription)")
-            if let backgroundTask = backGroundTaskID {
+            if let backgroundTask = backgroundTaskID {
                 await UIApplication.shared.endBackgroundTask(backgroundTask)
-                backGroundTaskID = .invalid
+                backgroundTaskID = .invalid
             }
             processError(error)
         } else {
@@ -343,9 +343,9 @@ final class BaseAPSManager: APSManager, Injectable {
         }
 
         // End of the BG tasks
-        if let backgroundTask = backGroundTaskID {
+        if let backgroundTask = backgroundTaskID {
             await UIApplication.shared.endBackgroundTask(backgroundTask)
-            backGroundTaskID = .invalid
+            backgroundTaskID = .invalid
         }
     }
 
@@ -1115,41 +1115,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 )
             }
         }
-    }
-
-    private func tddForStats() async -> (currentTDD: Decimal, tddTotalAverage: Decimal) {
-        let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
-        let sort = NSSortDescriptor(key: "timestamp", ascending: false)
-        let daysOf14Ago = Date().addingTimeInterval(-14.days.timeInterval)
-        requestTDD.predicate = NSPredicate(format: "timestamp > %@", daysOf14Ago as NSDate)
-        requestTDD.sortDescriptors = [sort]
-        requestTDD.propertiesToFetch = ["timestamp", "totalDailyDose"]
-        requestTDD.resultType = .dictionaryResultType
-
-        var currentTDD: Decimal = 0
-        var tddTotalAverage: Decimal = 0
-
-        let results = await privateContext.perform {
-            do {
-                let fetchedResults = try self.privateContext.fetch(requestTDD) as? [[String: Any]]
-                return fetchedResults ?? []
-            } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to get TDD Data for Statistics Upload")
-                return []
-            }
-        }
-
-        if !results.isEmpty {
-            if let latestTDD = results.first?["totalDailyDose"] as? NSDecimalNumber {
-                currentTDD = latestTDD.decimalValue
-            }
-            let tddArray = results.compactMap { ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue }
-            if !tddArray.isEmpty {
-                tddTotalAverage = tddArray.reduce(0, +) / Decimal(tddArray.count)
-            }
-        }
-
-        return (currentTDD, tddTotalAverage)
     }
 
     private func glucoseForStats() async -> (
