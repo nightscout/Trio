@@ -1059,7 +1059,7 @@ extension BaseWatchManager {
             let entryStartTime = calendar.date(
                 bySettingHour: entryComponents.hour!,
                 minute: entryComponents.minute!,
-                second: entryComponents.secgiond!,
+                second: entryComponents.second!,
                 of: now
             )!
 
