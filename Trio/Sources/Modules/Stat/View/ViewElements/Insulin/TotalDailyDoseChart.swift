@@ -182,19 +182,20 @@ struct TotalDailyDoseChart: View {
 
                     switch selectedDuration {
                     case .Day:
-                        if hour % 6 == 0 {
+                        if hour % 6 == 0 { // Show only every 6 hours
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .Month:
-                        if day % 5 == 0 {
+                        if day % 3 == 0 { // Only show every 3rd day
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .Total:
-                        if day == 1 && Calendar.current.component(.month, from: date) % 3 == 1 {
+                        // Only show every other month
+                        if day == 1 && Calendar.current.component(.month, from: date) % 2 == 1 {
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
