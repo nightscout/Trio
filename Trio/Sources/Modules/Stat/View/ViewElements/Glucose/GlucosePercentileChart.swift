@@ -42,9 +42,6 @@ struct GlucosePercentileChart: View {
                 .font(.headline)
 
             Chart {
-                // TODO: ensure data is still correct
-                // TODO: ensure area marks and line mark take color of respective range
-
                 // Statistical view for longer periods
                 ForEach(hourlyStats, id: \.hour) { stats in
                     // 10-90 percentile area
@@ -54,7 +51,8 @@ struct GlucosePercentileChart: View {
                         yEnd: .value("90th Percentile", stats.percentile90),
                         series: .value("10-90", "10-90")
                     )
-                    .foregroundStyle(.blue.opacity(stats.median > 0 ? 0.2 : 0))
+                    .foregroundStyle(by: .value("Series", "10-90"))
+                    .opacity(stats.median > 0 ? 0.3 : 0)
 
                     // 25-75 percentile area
                     AreaMark(
@@ -63,7 +61,8 @@ struct GlucosePercentileChart: View {
                         yEnd: .value("75th Percentile", stats.percentile75),
                         series: .value("25-75", "25-75")
                     )
-                    .foregroundStyle(.blue.opacity(stats.median > 0 ? 0.4 : 0))
+                    .foregroundStyle(by: .value("Series", "25-75"))
+                    .opacity(stats.median > 0 ? 0.5 : 0)
 
                     // Median line
                     if stats.median > 0 {
@@ -73,18 +72,18 @@ struct GlucosePercentileChart: View {
                             series: .value("Median", "Median")
                         )
                         .lineStyle(StrokeStyle(lineWidth: 2))
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(by: .value("Series", "Median"))
                     }
                 }
 
                 // High/Low limit lines
                 RuleMark(y: .value("High Limit", Double(highLimit)))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(by: .value("Series", "High"))
 
                 RuleMark(y: .value("Low Limit", Double(lowLimit)))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                    .foregroundStyle(.red)
+                    .foregroundStyle(by: .value("Series", "Low"))
 
                 if let selectedStats, let selection {
                     RuleMark(x: .value("Selection", selection))
@@ -100,6 +99,30 @@ struct GlucosePercentileChart: View {
                                 units: units
                             )
                         }
+                }
+            }
+            .chartForegroundStyleScale([
+                "10-90": Color.blue.opacity(0.3),
+                "25-75": Color.blue.opacity(0.5),
+                "Median": Color.blue,
+                "High": Color.orange,
+                "Low": Color.red
+            ])
+            .chartLegend(position: .bottom, alignment: .leading, spacing: 12) {
+                let legendItems: [(String, Color)] = [
+                    ("10-90%", Color.blue.opacity(0.3)),
+                    ("20-75%", Color.blue.opacity(0.5)),
+                    (String(localized: "Median"), Color.blue),
+                    (String(localized: "High Threshold"), Color.orange),
+                    (String(localized: "Low Threshold"), Color.red)
+                ]
+
+                let columns = [GridItem(.adaptive(minimum: 100), spacing: 4)]
+
+                LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
+                    ForEach(legendItems, id: \.0) { item in
+                        StatChartUtils.legendItem(label: item.0, color: item.1)
+                    }
                 }
             }
             .chartYAxis {
@@ -130,28 +153,8 @@ struct GlucosePercentileChart: View {
                 }
             }
             .chartXSelection(value: $selection.animation(.easeInOut))
-            .frame(height: 180)
-            legend
+            .frame(height: 200)
         }
-    }
-
-    /// A view displaying the legend for the chart.
-    private var legend: some View {
-        HStack {
-            legendItem(color: .blue.opacity(0.2), text: "10-90%", icon: "rectangle.fill")
-            legendItem(color: .blue.opacity(0.4), text: "25-75%", icon: "rectangle.fill")
-            legendItem(color: .blue, text: "Median", icon: "rectangle.fill")
-        }
-    }
-
-    /// Creates a legend item with a given color and text.
-    private func legendItem(color: Color, text: String, icon: String) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .foregroundStyle(color)
-            Text(text)
-                .foregroundStyle(.secondary)
-        }.font(.caption)
     }
 }
 

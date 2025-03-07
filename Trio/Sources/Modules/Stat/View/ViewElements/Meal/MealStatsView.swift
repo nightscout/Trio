@@ -172,12 +172,26 @@ struct MealStatsView: View {
                 }
             }
         }
-        .chartForegroundStyleScale(state.useFPUconversion ? [
+        .chartForegroundStyleScale([
             "Carbs": Color.orange,
-            "Fat": Color.green,
-            "Protein": Color.blue
-        ] : ["Carbs": Color.orange])
-        .chartLegend(position: .bottom, alignment: .leading, spacing: 12)
+            "Protein": Color.blue,
+            "Fat": Color.purple
+        ])
+        .chartLegend(position: .bottom, alignment: .leading, spacing: 12) {
+            let legendItems: [(String, Color)] = state.useFPUconversion ? [
+                (String(localized: "Carbs"), Color.orange),
+                (String(localized: "Protein"), Color.blue),
+                (String(localized: "Fat"), Color.purple)
+            ] : [(String(localized: "Carbs"), Color.orange)]
+
+            let columns = [GridItem(.adaptive(minimum: 65), spacing: 4)]
+
+            LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
+                ForEach(legendItems, id: \.0) { item in
+                    StatChartUtils.legendItem(label: item.0, color: item.1)
+                }
+            }
+        }
         .chartYAxis {
             AxisMarks(position: .trailing) { value in
                 if let amount = value.as(Double.self) {

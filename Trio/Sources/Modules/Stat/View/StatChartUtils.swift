@@ -94,11 +94,11 @@ struct StatChartUtils {
 
         let formatDate: (Date) -> String = { date in
             if calendar.isDate(date, inSameDayAs: today) {
-                return "Today"
+                return String(localized: "Today")
             } else if calendar.isDate(date, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-                return "Yesterday"
+                return String(localized: "Yesterday")
             } else if calendar.isDate(date, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: today)!) {
-                return "Tomorrow"
+                return String(localized: "Tomorrow")
             } else {
                 return date.formatted(.dateTime.day().month())
             }
@@ -124,7 +124,11 @@ struct StatChartUtils {
             Text(value)
         }
     }
-
+    
+    /// Computes the median value of an array of integers.
+    ///
+    /// - Parameter array: An array of integers.
+    /// - Returns: The median value as a `Double`. Returns `0` if the array is empty.
     static func medianCalculation(array: [Int]) -> Double {
         guard !array.isEmpty else { return 0 }
         let sorted = array.sorted()
@@ -136,6 +140,10 @@ struct StatChartUtils {
         return Double(sorted[length / 2])
     }
 
+    /// Computes the median value of an array of doubles.
+    ///
+    /// - Parameter array: An array of `Double` values.
+    /// - Returns: The median value. Returns `0` if the array is empty.
     static func medianCalculationDouble(array: [Double]) -> Double {
         guard !array.isEmpty else { return 0 }
         let sorted = array.sorted()
@@ -145,5 +153,19 @@ struct StatChartUtils {
             return (sorted[length / 2 - 1] + sorted[length / 2]) / 2
         }
         return sorted[length / 2]
+    }
+
+    /// Creates a legend item view for use in a chart legend.
+    ///
+    /// - Parameters:
+    ///   - label: The text label for the legend item.
+    ///   - color: The color associated with the legend item.
+    /// - Returns: A SwiftUI view displaying a colored symbol and a label.
+    @ViewBuilder
+    static func legendItem(label: String, color: Color) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: "circle.fill").foregroundStyle(color)
+            Text(label).foregroundStyle(Color.secondary)
+        }.font(.caption)
     }
 }

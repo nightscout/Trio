@@ -204,14 +204,17 @@ struct GlucoseSectorChart: View {
             let (average, median, standardDeviation) = calculateDetailedStatistics(for: highGlucoseValuesAsInt)
 
             return RangeDetail(
-                title: "High Glucose",
+                title: String(localized: "High Glucose"),
                 color: .orange,
                 items: [
-                    ("Very High (>\(formatValue(250)))", formatPercentage(Decimal(veryHigh) / total * 100)),
-                    ("High (\(formatValue(highLimit))-\(formatValue(250)))", formatPercentage(Decimal(high) / total * 100)),
-                    ("Average", formatValue(average)),
-                    ("Median", formatValue(median)),
-                    ("SD", formatSD(standardDeviation))
+                    (String(localized: "Very High (>\(formatValue(250)))"), formatPercentage(Decimal(veryHigh) / total * 100)),
+                    (
+                        String(localized: "High (\(formatValue(highLimit))-\(formatValue(250)))"),
+                        formatPercentage(Decimal(high) / total * 100)
+                    ),
+                    (String(localized: "Average"), formatValue(average)),
+                    (String(localized: "Median"), formatValue(median)),
+                    (String(localized: "SD"), formatSD(standardDeviation))
                 ]
             )
 
@@ -222,17 +225,20 @@ struct GlucoseSectorChart: View {
             let (average, median, standardDeviation) = calculateDetailedStatistics(for: glucoseValuesAsInt)
 
             return RangeDetail(
-                title: "In Range",
+                title: String(localized: "In Range"),
                 color: .green,
                 items: [
                     (
-                        "Normal (\(formatValue(lowLimit))-\(formatValue(highLimit)))",
+                        String(localized: "Normal (\(formatValue(lowLimit))-\(formatValue(highLimit)))"),
                         formatPercentage(Decimal(glucoseValues.count) / total * 100)
                     ),
-                    ("Tight (\(formatValue(lowLimit))-\(formatValue(140)))", formatPercentage(Decimal(tight) / total * 100)),
-                    ("Average", formatValue(average)),
-                    ("Median", formatValue(median)),
-                    ("SD", formatSD(standardDeviation))
+                    (
+                        String(localized: "Tight (\(formatValue(lowLimit))-\(formatValue(140)))"),
+                        formatPercentage(Decimal(tight) / total * 100)
+                    ),
+                    (String(localized: "Average"), formatValue(average)),
+                    (String(localized: "Median"), formatValue(median)),
+                    (String(localized: "SD"), formatSD(standardDeviation))
                 ]
             )
 
@@ -245,14 +251,17 @@ struct GlucoseSectorChart: View {
             let (average, median, standardDeviation) = calculateDetailedStatistics(for: lowGlucoseValuesAsInt)
 
             return RangeDetail(
-                title: "Low Glucose",
+                title: String(localized: "Low Glucose"),
                 color: .red,
                 items: [
-                    ("Low (\(formatValue(54))-\(formatValue(lowLimit)))", formatPercentage(Decimal(low) / total * 100)),
-                    ("Very Low (<\(formatValue(54)))", formatPercentage(Decimal(veryLow) / total * 100)),
-                    ("Average", formatValue(average)),
-                    ("Median", formatValue(median)),
-                    ("SD", formatSD(standardDeviation))
+                    (
+                        String(localized: "Low (\(formatValue(54))-\(formatValue(lowLimit)))"),
+                        formatPercentage(Decimal(low) / total * 100)
+                    ),
+                    (String(localized: "Very Low (<\(formatValue(54)))"), formatPercentage(Decimal(veryLow) / total * 100)),
+                    (String(localized: "Average"), formatValue(average)),
+                    (String(localized: "Median"), formatValue(median)),
+                    (String(localized: "SD"), formatSD(standardDeviation))
                 ]
             )
         }

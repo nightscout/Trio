@@ -32,7 +32,7 @@ struct GlucoseDistributionChart: View {
                 "200-220": .orange.opacity(0.7),
                 ">220": .orange.opacity(0.8)
             ])
-            .chartLegend(position: .bottom) {
+            .chartLegend(position: .bottom, alignment: .leading, spacing: 12) {
                 let legendItems: [(String, Color)] = [
                     ("<\(units == .mgdL ? Decimal(54) : 54.asMmolL)", .purple.opacity(0.7)),
                     (
@@ -59,11 +59,10 @@ struct GlucoseDistributionChart: View {
 
                 LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
                     ForEach(legendItems, id: \.0) { item in
-                        legendItem(label: item.0, color: item.1)
+                        StatChartUtils.legendItem(label: item.0, color: item.1)
                     }
                 }
             }
-
             .chartYAxis {
                 AxisMarks(position: .trailing) { value in
                     if let percentage = value.as(Double.self) {
@@ -90,12 +89,5 @@ struct GlucoseDistributionChart: View {
             }
             .frame(height: 200)
         }
-    }
-
-    @ViewBuilder func legendItem(label: String, color: Color) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: "circle.fill").foregroundStyle(color)
-            Text(label).foregroundStyle(Color.secondary)
-        }.font(.caption2)
     }
 }

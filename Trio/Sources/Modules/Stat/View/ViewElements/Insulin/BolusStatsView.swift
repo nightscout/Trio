@@ -168,7 +168,21 @@ struct BolusStatsView: View {
             "Manual": Color.teal,
             "External": Color.purple
         ])
-        .chartLegend(position: .bottom, alignment: .leading, spacing: 12)
+        .chartLegend(position: .bottom, alignment: .leading, spacing: 12) {
+            let legendItems: [(String, Color)] = [
+                (String(localized: "SMB"), Color.blue),
+                (String(localized: "Manual"), Color.teal),
+                (String(localized: "External"), Color.purple)
+            ]
+
+            let columns = [GridItem(.adaptive(minimum: 65), spacing: 4)]
+
+            LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
+                ForEach(legendItems, id: \.0) { item in
+                    StatChartUtils.legendItem(label: item.0, color: item.1)
+                }
+            }
+        }
         .chartYAxis {
             AxisMarks(position: .trailing) { value in
                 if let amount = value.as(Double.self) {
