@@ -57,11 +57,16 @@ struct LoopView: View {
     }
 
     private var timeString: String {
-        let minAgo = Int((timerDate.timeIntervalSince(lastLoopDate) - Config.lag) / 60) + 1
-        if minAgo > 1440 {
+        let minutesAgo = -1 * lastLoopDate.timeIntervalSinceNow / 60
+        let minuteString = Formatter.timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
+
+        if minutesAgo > 1440 {
             return "--"
+        } else if minutesAgo <= 1 {
+            return "< 1 " + String(localized: "m", comment: "Abbreviation for Minutes")
+        } else {
+            return minuteString + " " + String(localized: "m", comment: "Abbreviation for Minutes")
         }
-        return "\(minAgo) " + String(localized: "min", comment: "Minutes ago since last loop")
     }
 
     private var color: Color {

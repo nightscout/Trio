@@ -86,6 +86,14 @@ extension Formatter {
         formatter.decimalSeparator = "."
         return formatter
     }()
+
+    static let timaAgoFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        formatter.negativePrefix = ""
+        return formatter
+    }()
 }
 
 extension JSONDecoder.DateDecodingStrategy {
