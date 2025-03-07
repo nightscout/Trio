@@ -292,7 +292,7 @@ extension Home {
                         Group {
                             if button.active {
                                 Text(
-                                    button.hours.description + " " +
+                                    button.hours.description + "\u{00A0}" +
                                         String(localized: "h", comment: "h")
                                 )
                             } else {
@@ -1120,18 +1120,19 @@ func is24HourFormat() -> Bool {
     return !dateString.contains("AM") && !dateString.contains("PM")
 }
 
-/// Converts a duration in minutes to a formatted string (e.g., "1 hr 30 min").
+/// Converts a duration in minutes to a formatted string (e.g., "1 h 30 m").
 func formatHrMin(_ durationInMinutes: Int) -> String {
     let hours = durationInMinutes / 60
     let minutes = durationInMinutes % 60
 
     switch (hours, minutes) {
     case let (0, m):
-        return "\(m) min"
+        return "\(m)\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
     case let (h, 0):
-        return "\(h) hr"
+        return "\(h)\u{00A0}" + String(localized: "h", comment: "h")
     default:
-        return "\(hours) hr \(minutes) min"
+        return hours.description + "\u{00A0}" + String(localized: "h", comment: "h") + "\u{00A0}" + minutes
+            .description + "\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
     }
 }
 

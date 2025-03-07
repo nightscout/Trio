@@ -86,9 +86,10 @@ struct CurrentGlucoseView: View {
                         var minutesAgoString: String {
                             if minutesAgo > 1 {
                                 let minuteString = Formatter.timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
-                                return minuteString + " " + String(localized: "m", comment: "Abbreviation for Minutes")
+                                return minuteString + "\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
                             } else {
-                                return "< 1 " + String(localized: "m", comment: "Abbreviation for Minutes")
+                                return "<" + "\u{00A0}" + "1" + "\u{00A0}" +
+                                    String(localized: "m", comment: "Abbreviation for Minutes")
                             }
                         }
 
