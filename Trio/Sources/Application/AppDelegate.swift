@@ -4,11 +4,11 @@ import UserNotifications
 
 class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNotificationCenterDelegate {
     func application(
-        _ application: UIApplication,
+        _: UIApplication,
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        application.registerForRemoteNotifications()
-        return true
+        // application.registerForRemoteNotifications()
+        true
     }
 
     func application(

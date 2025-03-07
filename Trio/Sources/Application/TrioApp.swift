@@ -5,6 +5,11 @@ import Foundation
 import SwiftUI
 import Swinject
 
+extension Notification.Name {
+    static let initializationCompleted = Notification.Name("initializationCompleted")
+    static let initializationError = Notification.Name("initializationError")
+}
+
 @main struct TrioApp: App {
     @Environment(\.scenePhase) var scenePhase
 
@@ -13,9 +18,17 @@ import Swinject
     // Read the color scheme preference from UserDefaults; defaults to system default setting
     @AppStorage("colorSchemePreference") private var colorSchemePreference: ColorSchemeOption = .systemDefault
 
-    let coreDataStack: CoreDataStack
+    let coreDataStack = CoreDataStack.shared
+    class InitState {
+        var complete = false
+        var error = false
+    }
+
+    let initState = InitState()
 
     @State private var appState = AppState()
+    @State private var showLoadingView = true
+    @State private var showLoadingError = false
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -72,36 +85,75 @@ import Swinject
             "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.default.buildDate()))] [buildExpires: \(String(describing: BuildDetails.default.calculateExpirationDate()))] [submodules: \(submodulesInfo)]"
         )
 
-        // Setup up the Core Data Stack
-        coreDataStack = CoreDataStack.shared
+        // Fix bug in iOS 18 related to the translucent tab bar
+        configureTabBarAppearance()
 
-        // Explicitly initialize Core Data Stack
-        do {
-            try coreDataStack.initializeStack()
+        deferredInitialization()
+    }
 
-            // Only load services after successful Core Data initialization
-            loadServices()
+    private func deferredInitialization() {
+        Task {
+            do {
+                try await coreDataStack.initializeStack()
 
-            // Fix bug in iOS 18 related to the translucent tab bar
-            configureTabBarAppearance()
+                await MainActor.run {
+                    // Only load services after successful Core Data initialization
+                    loadServices()
 
-            // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
-            cleanupOldData()
-        } catch {
-            debug(.coreData, "\(DebuggingIdentifiers.failed) Failed to initialize Core Data Stack: \(error.localizedDescription)")
+                    // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
+                    cleanupOldData()
 
-            fatalError("Core Data Stack initialization failed")
+                    self.initState.complete = true
+                    Foundation.NotificationCenter.default.post(name: .initializationCompleted, object: nil)
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
+            } catch {
+                debug(
+                    .coreData,
+                    "\(DebuggingIdentifiers.failed) Failed to initialize Core Data Stack: \(error.localizedDescription)"
+                )
+
+                await MainActor.run {
+                    self.initState.error = true
+                    Foundation.NotificationCenter.default.post(name: .initializationError, object: nil)
+                }
+            }
         }
+    }
+
+    private func retryCoreDataInitialization() {
+        showLoadingError = false
+        initState.error = false
+        deferredInitialization()
     }
 
     var body: some Scene {
         WindowGroup {
-            Main.RootView(resolver: resolver)
-                .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
-                .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
-                .environment(appState)
-                .environmentObject(Icons())
-                .onOpenURL(perform: handleURL)
+            if self.showLoadingView {
+                Main.LoadingView(showError: $showLoadingError, retry: retryCoreDataInitialization)
+                    .onAppear {
+                        if self.initState.complete {
+                            self.showLoadingView = false
+                        }
+                        if self.initState.error {
+                            self.showLoadingError = true
+                        }
+                    }
+                    .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationCompleted)) { _ in
+                        self.showLoadingView = false
+                    }
+                    .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
+                        self.showLoadingError = true
+                    }
+
+            } else {
+                Main.RootView(resolver: resolver)
+                    .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
+                    .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
+                    .environment(appState)
+                    .environmentObject(Icons())
+                    .onOpenURL(perform: handleURL)
+            }
         }
         .onChange(of: scenePhase) { _, newScenePhase in
             debug(.default, "APPLICATION PHASE: \(newScenePhase)")
@@ -117,9 +169,6 @@ import Swinject
                 {
                     AppVersionChecker.shared.checkAndNotifyVersionStatus(in: rootVC)
                 }
-
-                // Check if we need to perform a database cleaning
-                performCleanupIfNecessary()
             }
         }
     }

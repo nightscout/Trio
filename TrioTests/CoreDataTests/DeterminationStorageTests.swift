@@ -8,12 +8,13 @@ import Testing
 @Suite("Determination Storage Tests", .serialized) struct DeterminationStorageTests: Injectable {
     @Injected() var storage: DeterminationStorage!
     let resolver: Resolver
-    let coreDataStack = CoreDataStack.createForTests()
-    let testContext: NSManagedObjectContext
+    var coreDataStack: CoreDataStack!
+    var testContext: NSManagedObjectContext!
 
-    init() {
+    init() async throws {
         // Create test context
         // As we are only using this single test context to initialize our in-memory DeterminationStorage we need to perform the Unit Tests serialized
+        coreDataStack = try await CoreDataStack.createForTests()
         testContext = coreDataStack.newTaskContext()
 
         // Create assembler with test assembly
