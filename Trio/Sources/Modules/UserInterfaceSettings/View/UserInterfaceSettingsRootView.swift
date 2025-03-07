@@ -376,60 +376,6 @@ extension UserInterfaceSettings {
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
 
-                Section {
-                    VStack(alignment: .leading) {
-                        Picker(
-                            selection: $state.totalInsulinDisplayType,
-                            label: Text("Total Insulin Display Type").multilineTextAlignment(.leading)
-                        ) {
-                            ForEach(TotalInsulinDisplayType.allCases) { selection in
-                                Text(selection.displayName).tag(selection)
-                            }
-                        }.padding(.top)
-
-                        HStack(alignment: .center) {
-                            Text(
-                                "Choose which total insulin calculation is displayed on the home screen. See hint for more details."
-                            )
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(nil)
-                            Spacer()
-                            Button(
-                                action: {
-                                    hintLabel = String(localized: "Total Insulin Display Type")
-                                    selectedVerboseHint =
-                                        AnyView(
-                                            VStack(alignment: .leading, spacing: 10) {
-                                                Text(
-                                                    "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph. Descriptions for each option found below."
-                                                )
-                                                VStack(alignment: .leading, spacing: 5) {
-                                                    Text("Total Daily Dose:").bold()
-                                                    Text(
-                                                        "Displays the last 24 hours of total insulin administered, both basal and bolus."
-                                                    )
-                                                }
-                                                VStack(alignment: .leading, spacing: 5) {
-                                                    Text("Total Insulin in Scope:").bold()
-                                                    Text(
-                                                        "Displays the total amount of insulin given as a bolus (manual or SMB) and through temporary basal rates above zero during the selected timeframe of the main chart."
-                                                    )
-                                                }
-                                            }
-                                        )
-                                    shouldDisplayHint.toggle()
-                                },
-                                label: {
-                                    HStack {
-                                        Image(systemName: "questionmark.circle")
-                                    }
-                                }
-                            ).buttonStyle(BorderlessButtonStyle())
-                        }.padding(.top)
-                    }.padding(.bottom)
-                }.listRowBackground(Color.chart)
-
                 Section(
                     header: Text("Trio Statistics"),
                     content: {

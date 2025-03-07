@@ -488,37 +488,7 @@ extension Home {
                             .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                 }
-                if state.totalInsulinDisplayType == .totalDailyDose {
-                    Spacer()
-                    Text(
-                        "TDD: " +
-                            (
-                                Formatter.decimalFormatterWithTwoFractionDigits
-                                    .string(from: (state.fetchedTDDs.first?.totalDailyDose ?? 0) as NSNumber) ??
-                                    "0"
-                            ) +
-                            String(localized: " U", comment: "Insulin unit")
-                    )
-                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                } else {
-                    Spacer()
-                    HStack {
-                        Text(
-                            "TINS: \(state.roundedTotalBolus)" +
-                                String(localized: " U", comment: "Unit in number of units delivered (keep the space character!)")
-                        )
-                        .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                        .onChange(of: state.hours) {
-                            state.roundedTotalBolus = state.calculateTINS()
-                        }
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                state.roundedTotalBolus = state.calculateTINS()
-                            }
-                        }
-                    }
-                }
-            }.padding(.horizontal, 10)
+            }.padding(.horizontal)
         }
 
         @ViewBuilder func adjustmentsOverrideView(_ overrideString: String) -> some View {

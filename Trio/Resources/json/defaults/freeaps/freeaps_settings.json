@@ -21,7 +21,6 @@
   "carbsRequiredThreshold" : 10,
   "showCarbsRequiredBadge" : true,
   "useFPUconversion" : true,
-  "totalInsulinDisplayType": "totalDailyDose",
   "individualAdjustmentFactor" : 0.5,
   "timeCap" : 8,
   "minuteInterval" : 30,

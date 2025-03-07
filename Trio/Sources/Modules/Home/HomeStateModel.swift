@@ -76,7 +76,6 @@ extension Home {
         var totalBolus: Decimal = 0
         var isLoopStatusPresented: Bool = false
         var isLegendPresented: Bool = false
-        var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
         var roundedTotalBolus: String = ""
         var selectedTab: Int = 0
         var waitForSuggestion: Bool = false
@@ -389,7 +388,6 @@ extension Home {
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
-            totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
             showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
             forecastDisplayType = settingsManager.settings.forecastDisplayType
             isExerciseModeActive = settingsManager.preferences.exerciseMode
@@ -526,55 +524,6 @@ extension Home {
             }
         }
 
-        func calculateTINS() -> String {
-            let startTime = calculateStartTime(hours: Int(hours))
-
-            let totalBolus = calculateTotalBolus(from: insulinFromPersistence, since: startTime)
-            let totalBasal = calculateTotalBasal(from: insulinFromPersistence, since: startTime)
-
-            let totalInsulin = totalBolus + totalBasal
-
-            return formatInsulinAmount(totalInsulin)
-        }
-
-        private func calculateStartTime(hours: Int) -> Date {
-            let date = Date()
-            let calendar = Calendar.current
-            var offsetComponents = DateComponents()
-            offsetComponents.hour = -hours
-            return calendar.date(byAdding: offsetComponents, to: date)!
-        }
-
-        private func calculateTotalBolus(from events: [PumpEventStored], since startTime: Date) -> Double {
-            let bolusEvents = events.filter { $0.timestamp ?? .distantPast >= startTime && $0.type == PumpEvent.bolus.rawValue }
-            return bolusEvents.compactMap { $0.bolus?.amount?.doubleValue }.reduce(0, +)
-        }
-
-        private func calculateTotalBasal(from events: [PumpEventStored], since startTime: Date) -> Double {
-            let basalEvents = events
-                .filter { $0.timestamp ?? .distantPast >= startTime && $0.type == PumpEvent.tempBasal.rawValue }
-                .sorted { $0.timestamp ?? .distantPast < $1.timestamp ?? .distantPast }
-
-            var basalDurations: [Double] = []
-            for (index, basalEntry) in basalEvents.enumerated() {
-                if index + 1 < basalEvents.count {
-                    let nextEntry = basalEvents[index + 1]
-                    let durationInSeconds = nextEntry.timestamp?.timeIntervalSince(basalEntry.timestamp ?? Date()) ?? 0
-                    basalDurations.append(durationInSeconds / 3600) // Conversion to hours
-                }
-            }
-
-            return zip(basalEvents, basalDurations).map { entry, duration in
-                guard let rate = entry.tempBasal?.rate?.doubleValue else { return 0 }
-                return rate * duration
-            }.reduce(0, +)
-        }
-
-        private func formatInsulinAmount(_ amount: Double) -> String {
-            let roundedAmount = Decimal(round(100 * amount) / 100)
-            return roundedAmount.formatted()
-        }
-
         private func setupPumpSettings() async {
             let maxBasal = await provider.pumpSettings().maxBasal
             await MainActor.run {
@@ -687,7 +636,6 @@ extension Home.StateModel:
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks
-        totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
         showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
         forecastDisplayType = settingsManager.settings.forecastDisplayType
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
