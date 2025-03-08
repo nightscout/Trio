@@ -1,292 +1,174 @@
 import SwiftUI
 import UIKit
 
-public struct TextFieldWithToolBar: UIViewRepresentable {
+public struct TextFieldWithToolBar: View {
     @Binding var text: Decimal
     var placeholder: String
-    var textColor: UIColor
-    var textAlignment: NSTextAlignment
+    var textColor: Color
+    var textAlignment: TextAlignment
     var keyboardType: UIKeyboardType
-    var autocapitalizationType: UITextAutocapitalizationType
-    var autocorrectionType: UITextAutocorrectionType
-    var shouldBecomeFirstResponder: Bool
     var maxLength: Int?
     var isDismissible: Bool
     var textFieldDidBeginEditing: (() -> Void)?
+    var textDidChange: ((Decimal) -> Void)?
     var numberFormatter: NumberFormatter
     var allowDecimalSeparator: Bool
     var showArrows: Bool
     var previousTextField: (() -> Void)?
     var nextTextField: (() -> Void)?
+    var initialFocus: Bool
+
+    @FocusState private var isFocused: Bool
+    @State private var localText: String = ""
 
     public init(
         text: Binding<Decimal>,
         placeholder: String,
-        textColor: UIColor = .label,
-        textAlignment: NSTextAlignment = .right,
+        textColor: Color = .primary,
+        textAlignment: TextAlignment = .trailing,
         keyboardType: UIKeyboardType = .decimalPad,
-        autocapitalizationType: UITextAutocapitalizationType = .none,
-        autocorrectionType: UITextAutocorrectionType = .no,
-        shouldBecomeFirstResponder: Bool = false,
         maxLength: Int? = nil,
         isDismissible: Bool = true,
         textFieldDidBeginEditing: (() -> Void)? = nil,
+        textDidChange: ((Decimal) -> Void)? = nil,
         numberFormatter: NumberFormatter,
         allowDecimalSeparator: Bool = true,
         showArrows: Bool = false,
         previousTextField: (() -> Void)? = nil,
-        nextTextField: (() -> Void)? = nil
+        nextTextField: (() -> Void)? = nil,
+        initialFocus: Bool = false
     ) {
         _text = text
         self.placeholder = placeholder
         self.textColor = textColor
         self.textAlignment = textAlignment
         self.keyboardType = keyboardType
-        self.autocapitalizationType = autocapitalizationType
-        self.autocorrectionType = autocorrectionType
-        self.shouldBecomeFirstResponder = shouldBecomeFirstResponder
         self.maxLength = maxLength
         self.isDismissible = isDismissible
         self.textFieldDidBeginEditing = textFieldDidBeginEditing
+        self.textDidChange = textDidChange
         self.numberFormatter = numberFormatter
         self.numberFormatter.numberStyle = .decimal
         self.allowDecimalSeparator = allowDecimalSeparator
         self.showArrows = showArrows
         self.previousTextField = previousTextField
         self.nextTextField = nextTextField
+        self.initialFocus = initialFocus
     }
 
-    public func makeUIView(context: Context) -> UITextField {
-        let textField = UITextField()
-        context.coordinator.textField = textField
-        textField.inputAccessoryView = isDismissible ? createToolbar(for: textField, context: context) : nil
-        textField.addTarget(context.coordinator, action: #selector(Coordinator.editingDidBegin), for: .editingDidBegin)
-        textField.delegate = context.coordinator
-        if text == 0 { /// show no value initially, i.e. empty String
-            textField.text = ""
+    public var body: some View {
+        TextField(placeholder, text: $localText)
+            .focused($isFocused)
+            .multilineTextAlignment(textAlignment)
+            .foregroundColor(textColor)
+            .keyboardType(keyboardType)
+            .toolbar {
+                if isFocused {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        if showArrows {
+                            Button(action: { previousTextField?() }) {
+                                Image(systemName: "chevron.up")
+                            }
+                            Button(action: { nextTextField?() }) {
+                                Image(systemName: "chevron.down")
+                            }
+                        }
+
+                        Button(action: {
+                            localText = ""
+                            text = 0
+                            textDidChange?(0)
+                        }) {
+                            Image(systemName: "trash")
+                        }
+
+                        Spacer()
+
+                        if isDismissible {
+                            Button(action: { isFocused = false }) {
+                                Image(systemName: "keyboard.chevron.compact.down")
+                            }
+                        }
+                    }
+                }
+            }
+            .onChange(of: isFocused) { _, newValue in
+                if newValue {
+                    textFieldDidBeginEditing?()
+                } else {
+                    // Format when losing focus
+                    if let decimal = Decimal(string: localText, locale: numberFormatter.locale) {
+                        text = decimal
+                        localText = numberFormatter.string(from: decimal as NSNumber) ?? ""
+                    }
+                }
+            }
+            .onChange(of: localText) { _, newValue in
+                handleTextChange(newValue)
+            }
+            .onChange(of: text) { _, newValue in
+                if newValue == 0, localText.isEmpty {
+                    // Keep empty state
+                    return
+                }
+                let newText = numberFormatter.string(from: newValue as NSNumber) ?? ""
+                if localText != newText {
+                    localText = newText
+                }
+            }
+            .onAppear {
+                if text != 0 {
+                    localText = numberFormatter.string(from: text as NSNumber) ?? ""
+                }
+                // Set initial focus if requested
+                isFocused = initialFocus
+            }
+    }
+
+    private func handleTextChange(_ newValue: String) {
+        // Handle empty string
+        if newValue.isEmpty {
+            text = 0
+            textDidChange?(0)
+            return
+        }
+
+        let currentDecimalSeparator = numberFormatter.decimalSeparator ?? "."
+
+        // Prevent multiple decimal separators
+        let decimalSeparatorCount = newValue.filter { String($0) == currentDecimalSeparator }.count
+        if decimalSeparatorCount > 1 {
+            // If multiple separators, keep the old value
+            localText = numberFormatter.string(from: text as NSNumber) ?? ""
+            return
+        }
+
+        // Replace wrong decimal separator with the correct one
+        var processedText = newValue
+        if newValue.contains("."), currentDecimalSeparator != "." {
+            processedText = newValue.replacingOccurrences(of: ".", with: currentDecimalSeparator)
+        } else if newValue.contains(","), currentDecimalSeparator != "," {
+            processedText = newValue.replacingOccurrences(of: ",", with: currentDecimalSeparator)
+        }
+
+        // Handle leading decimal separator
+        if processedText.hasPrefix(currentDecimalSeparator) {
+            processedText = "0" + processedText
+        }
+
+        // Update if valid decimal
+        if let decimal = Decimal(string: processedText, locale: numberFormatter.locale) {
+            text = decimal
+            textDidChange?(decimal)
+
+            // If the processed text is different from the input, update the field
+            if processedText != newValue {
+                localText = processedText
+            }
         } else {
-            textField.text = numberFormatter.string(for: text)
+            // If not a valid decimal, keep the old value
+            localText = numberFormatter.string(from: text as NSNumber) ?? ""
         }
-        textField.placeholder = placeholder
-        return textField
-    }
-
-    /// Creates and configures a toolbar for the text field with navigation and action buttons.
-    /// - Parameters:
-    ///   - _: The text field for which the toolbar is being created (unused parameter).
-    ///   - context: The SwiftUI context that contains the coordinator for handling button actions.
-    /// - Returns: A configured UIToolbar with appropriate buttons based on the view's configuration.
-    private func createToolbar(for _: UITextField, context: Context) -> UIToolbar {
-        let toolbar = UIToolbar()
-        var items: [UIBarButtonItem] = []
-
-        // Add navigation arrows if enabled
-        if showArrows {
-            // Add clear button
-            items.append(
-                UIBarButtonItem(
-                    image: UIImage(systemName: "trash"),
-                    style: .plain,
-                    target: context.coordinator,
-                    action: #selector(Coordinator.clearText)
-                )
-            )
-
-            if previousTextField != nil {
-                let previousButton = UIBarButtonItem(
-                    image: UIImage(systemName: "chevron.up"),
-                    style: .plain,
-                    target: context.coordinator,
-                    action: #selector(Coordinator.previousTextField)
-                )
-                items.append(previousButton)
-            }
-
-            if nextTextField != nil {
-                let nextButton = UIBarButtonItem(
-                    image: UIImage(systemName: "chevron.down"),
-                    style: .plain,
-                    target: context.coordinator,
-                    action: #selector(Coordinator.nextTextField)
-                )
-                items.append(nextButton)
-            }
-        }
-
-        // Add flexible space
-        items.append(UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil))
-
-        // Add done button
-        items.append(
-            UIBarButtonItem(
-                barButtonSystemItem: .done,
-                target: UIApplication.shared,
-                action: #selector(UIApplication.endEditing)
-            )
-        )
-
-        toolbar.items = items
-        toolbar.sizeToFit()
-
-        return toolbar
-    }
-
-    public func updateUIView(_ textField: UITextField, context: Context) {
-        if text != 0 {
-            let newText = numberFormatter.string(for: text) ?? ""
-            if textField.text != newText {
-                textField.text = newText
-            }
-        }
-
-        textField.textColor = textColor
-        textField.textAlignment = textAlignment
-        textField.keyboardType = keyboardType
-        textField.autocapitalizationType = autocapitalizationType
-        textField.autocorrectionType = autocorrectionType
-
-        if shouldBecomeFirstResponder, !context.coordinator.didBecomeFirstResponder {
-            if textField.window != nil, textField.becomeFirstResponder() {
-                context.coordinator.didBecomeFirstResponder = true
-            }
-        } else if !shouldBecomeFirstResponder, context.coordinator.didBecomeFirstResponder {
-            context.coordinator.didBecomeFirstResponder = false
-        }
-    }
-
-    public func makeCoordinator() -> Coordinator {
-        Coordinator(self, maxLength: maxLength)
-    }
-
-    public final class Coordinator: NSObject {
-        var parent: TextFieldWithToolBar
-        var textField: UITextField?
-        let maxLength: Int?
-        var didBecomeFirstResponder = false
-        let decimalFormatter: NumberFormatter
-
-        init(_ parent: TextFieldWithToolBar, maxLength: Int?) {
-            self.parent = parent
-            self.maxLength = maxLength
-            decimalFormatter = NumberFormatter()
-            decimalFormatter.locale = Locale.current
-            decimalFormatter.numberStyle = .decimal
-        }
-
-        @objc fileprivate func clearText() {
-            parent.text = 0
-            textField?.text = ""
-        }
-
-        @objc fileprivate func editingDidBegin(_ textField: UITextField) {
-            DispatchQueue.main.async {
-                textField.moveCursorToEnd()
-            }
-        }
-
-        @objc fileprivate func previousTextField() {
-            parent.previousTextField?()
-        }
-
-        @objc fileprivate func nextTextField() {
-            parent.nextTextField?()
-        }
-
-        // Helper method to calculate the number of decimal places in a string
-        fileprivate func calculateDecimalPlaces(in string: String) -> Int {
-            guard let decimalSeparator = decimalFormatter.decimalSeparator else { return 0 }
-            if let range = string.range(of: decimalSeparator) {
-                let decimalPart = string[range.upperBound...]
-                return decimalPart.count
-            }
-            return 0
-        }
-
-        // Helper method to check if the cursor is after the decimal separator
-        fileprivate func isCursorAfterDecimal(in textField: UITextField, range: NSRange) -> Bool {
-            guard let text = textField.text, let decimalSeparator = decimalFormatter.decimalSeparator else { return false }
-            if let decimalSeparatorRange = text.range(of: decimalSeparator) {
-                let decimalSeparatorPosition = text.distance(from: text.startIndex, to: decimalSeparatorRange.lowerBound)
-                return range.location > decimalSeparatorPosition
-            }
-            return false
-        }
-    }
-}
-
-extension TextFieldWithToolBar.Coordinator: UITextFieldDelegate {
-    public func textFieldDidEndEditing(_ textField: UITextField) {
-        if let text = textField.text,
-           let decimal = Decimal(string: text, locale: parent.numberFormatter.locale)
-        {
-            // Format the number properly when editing ends
-            textField.text = parent.numberFormatter.string(from: decimal as NSNumber)
-            parent.text = decimal
-        }
-    }
-
-    public func textField(
-        _ textField: UITextField,
-        shouldChangeCharactersIn range: NSRange,
-        replacementString string: String
-    ) -> Bool {
-        // Check if the input is a number or the decimal separator
-        let isNumber = CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: string))
-
-        // Get the current locale's decimal separator
-        let currentDecimalSeparator = parent.numberFormatter.decimalSeparator ?? "."
-
-        // Check if input is a decimal separator (either . or ,)
-        let isInputDecimalSeparator = string == "." || string == ","
-
-        // Only allow the decimal separator configured in the locale
-        if isInputDecimalSeparator {
-            // If it's not the correct decimal separator for this locale, reject it
-            if string != currentDecimalSeparator {
-                return false
-            }
-            // Check if the field already contains a decimal separator
-            if textField.text?.contains(currentDecimalSeparator) == true {
-                return false
-            }
-        }
-
-        // Only proceed if the input is a valid number or the correct decimal separator
-        if isNumber || (string == currentDecimalSeparator && parent.allowDecimalSeparator),
-           let currentText = textField.text as NSString?
-        {
-            // Calculate the new text length
-            let newLength = currentText.length + string.count - range.length
-
-            // Check max length if specified
-            if let maxLength = parent.maxLength, newLength > maxLength {
-                return false
-            }
-
-            // Create the new text string
-            let newText = currentText.replacingCharacters(in: range, with: string)
-
-            // If text starts with decimal separator, add leading zero
-            if newText.hasPrefix(currentDecimalSeparator) {
-                textField.text = "0" + newText
-                parent.text = Decimal(string: textField.text ?? "0") ?? 0
-                return false
-            }
-
-            // Update the binding
-            if let decimal = Decimal(string: newText, locale: parent.numberFormatter.locale) {
-                parent.text = decimal
-            }
-
-            return true
-        }
-
-        // Allow the change if it's a valid number or the correct decimal separator
-        return isNumber || (string == currentDecimalSeparator && parent.allowDecimalSeparator)
-    }
-
-    public func textFieldDidBeginEditing(_: UITextField) {
-        parent.textFieldDidBeginEditing?()
     }
 }
 

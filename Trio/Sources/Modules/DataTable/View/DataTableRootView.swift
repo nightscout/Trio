@@ -433,8 +433,8 @@ extension DataTable {
                                 TextFieldWithToolBar(
                                     text: $state.manualGlucose,
                                     placeholder: " ... ",
-                                    shouldBecomeFirstResponder: true,
-                                    numberFormatter: manualGlucoseFormatter
+                                    numberFormatter: manualGlucoseFormatter,
+                                    initialFocus: true
                                 )
                                 Text(state.units.rawValue).foregroundStyle(.secondary)
                             }

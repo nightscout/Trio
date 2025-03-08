@@ -25,8 +25,8 @@ extension ManualTempBasal {
                         TextFieldWithToolBar(
                             text: $state.rate,
                             placeholder: "0",
-                            shouldBecomeFirstResponder: true,
-                            numberFormatter: formatter
+                            numberFormatter: formatter,
+                            initialFocus: true
                         )
                         Text("U/hr").foregroundColor(.secondary)
                     }
