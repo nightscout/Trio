@@ -146,10 +146,19 @@ struct GlucosePercentileChart: View {
                     .padding(.vertical, 3)
             }
             .chartXAxis {
-                AxisMarks(values: .stride(by: .hour, count: 3)) { _ in
-                    AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .narrow)), anchor: .top)
-                        .font(.footnote)
-                    AxisGridLine()
+                AxisMarks(values: .stride(by: .hour, count: 3)) { value in
+                    if let date = value.as(Date.self) {
+                        let hour = Calendar.current.component(.hour, from: date)
+                        switch hour {
+                        case 0,
+                             12:
+                            AxisValueLabel(format: .dateTime.hour())
+                        default:
+                            AxisValueLabel(format: .dateTime.hour(.defaultDigits(amPM: .omitted)))
+                        }
+
+                        AxisGridLine()
+                    }
                 }
             }
             .chartXSelection(value: $selection.animation(.easeInOut))
