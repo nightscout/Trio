@@ -32,7 +32,7 @@ extension Stat.StateModel {
                 }
 
                 // Initially calculate and cache daily averages
-                await calculateAndCacheBolusAverages()
+                await calculateAndCacheBolusAveragesAndTotals()
             } catch {
                 debug(.default, "\(DebuggingIdentifiers.failed) failed to setup bolus stats: \(error.localizedDescription)")
             }
@@ -154,7 +154,7 @@ extension Stat.StateModel {
     /// 3. Caches the results for later use
     ///
     /// This only needs to be called once during subscribe.
-    private func calculateAndCacheBolusAverages() async {
+    private func calculateAndCacheBolusAveragesAndTotals() async {
         let calendar = Calendar.current
 
         // Calculate averages in context
@@ -176,9 +176,27 @@ extension Stat.StateModel {
             return averages
         }
 
+        // Calculate averages in context
+        let dailyTotals = await bolusTaskContext.perform { [dailyBolusStats] in
+            // Group by days
+            let groupedByDay = Dictionary(grouping: dailyBolusStats) { stat in
+                calendar.startOfDay(for: stat.date)
+            }
+
+            // Calculate totals for each day
+            var totals: [(Date, Double)] = []
+            for (day, stats) in groupedByDay {
+                let total = stats.reduce(0.0) { _, stat in
+                    stat.manualBolus + stat.smb + stat.external
+                }
+            }
+            return totals
+        }
+
         // Update cache on main thread
         await MainActor.run {
             self.bolusAveragesCache = dailyAverages
+            self.bolusTotalsCache = dailyTotals
         }
     }
 
@@ -187,6 +205,13 @@ extension Stat.StateModel {
     /// - Returns: A tuple containing the average total, carb and correction bolus values for the date range
     func getCachedBolusAverages(for range: (start: Date, end: Date)) -> (manual: Double, smb: Double, external: Double) {
         return calculateBolusAveragesForDateRange(from: range.start, to: range.end)
+    }
+
+    /// Returns the total bolus values for the given date range from the cache
+    /// - Parameter range: A tuple containing the start and end dates to get averages for
+    /// - Returns: Totals for bolus (sum of manual, smb and external) for the date range
+    func getCachedBolusTotals(for range: (start: Date, end: Date)) -> Double {
+        calculateBolusTotalsForDateRange(from: range.start, to: range.end)
     }
 
     /// Calculates the average bolus values for a given date range
@@ -215,6 +240,29 @@ extension Stat.StateModel {
         let count = Double(relevantStats.count)
 
         return (total.0 / count, total.1 / count, total.2 / count)
+    }
+
+    /// Calculates the total bolus values for a given date range
+    /// - Parameters:
+    ///   - startDate: The start date of the range to calculate averages for
+    ///   - endDate: The end date of the range to calculate averages for
+    /// - Returns: A total bolus (sum of manual, smb and external) for the date range
+    func calculateBolusTotalsForDateRange(
+        from startDate: Date,
+        to endDate: Date
+    ) -> Double {
+        // Filter cached values to only include those within the date range
+        let relevantStats = bolusAveragesCache.filter { date, _ in
+            date >= startDate && date <= endDate
+        }
+
+        // Return zeros if no data exists for the range
+        guard !relevantStats.isEmpty else { return 0 }
+
+        // Calculate total bolus across all days
+        return relevantStats.values.reduce(0.0) { _, totalPerCategory in
+            totalPerCategory.0 + totalPerCategory.1 + totalPerCategory.2
+        }
     }
 }
 

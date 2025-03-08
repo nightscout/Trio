@@ -44,7 +44,7 @@ extension Stat.StateModel {
     func setupLoopStatRecords() {
         Task {
             do {
-                let (recordIDs, failedRecordIDs) = try await self.fetchLoopStatRecords(for: selectedDurationForLoopStats)
+                let (recordIDs, failedRecordIDs) = try await self.fetchLoopStatRecords(for: selectedIntervalForLoopStats)
 
                 // Update loop records for duration chart
                 await self.updateLoopStatRecords(allLoopIds: recordIDs)
@@ -53,7 +53,7 @@ extension Stat.StateModel {
                 let stats = try await self.getLoopStats(
                     allLoopIds: recordIDs,
                     failedLoopIds: failedRecordIDs,
-                    interval: selectedDurationForLoopStats
+                    interval: selectedIntervalForLoopStats
                 )
 
                 await MainActor.run {

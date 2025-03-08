@@ -41,22 +41,23 @@ extension Stat {
         var hourlyBolusStats: [BolusStats] = []
         var dailyBolusStats: [BolusStats] = []
         var bolusAveragesCache: [Date: (manual: Double, smb: Double, external: Double)] = [:]
+        var bolusTotalsCache: [(Date, total: Double)] = []
 
         // Selected Duration for Glucose Stats
-        var selectedDurationForGlucoseStats: StatsTimeIntervalWithToday = .today {
+        var selectedIntervalForGlucoseStats: StatsTimeIntervalWithToday = .today {
             didSet {
-                setupGlucoseArray(for: selectedDurationForGlucoseStats)
+                setupGlucoseArray(for: selectedIntervalForGlucoseStats)
             }
         }
 
         // Selected Duration for Insulin Stats
-        var selectedDurationForInsulinStats: StatsTimeInterval = .day
+        var selectedIntervalForInsulinStats: StatsTimeInterval = .day
 
         // Selected Duration for Meal Stats
-        var selectedDurationForMealStats: StatsTimeInterval = .day
+        var selectedIntervalForMealStats: StatsTimeInterval = .day
 
         // Selected Duration for Loop Stats
-        var selectedDurationForLoopStats: StatsTimeIntervalWithToday = .today {
+        var selectedIntervalForLoopStats: StatsTimeIntervalWithToday = .today {
             didSet {
                 setupLoopStatRecords()
             }
@@ -173,7 +174,7 @@ extension Stat {
             }
             workItem = newWorkItem
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: newWorkItem)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: newWorkItem)
         }
     }
 }

@@ -7,7 +7,7 @@ import SwiftUI
 /// allowing users to adjust the time interval and scroll through historical data.
 struct MealStatsView: View {
     /// The selected time interval for displaying statistics.
-    @Binding var selectedDuration: Stat.StateModel.StatsTimeInterval
+    @Binding var selectedInterval: Stat.StateModel.StatsTimeInterval
     /// The list of meal statistics data.
     let mealStats: [MealStats]
     /// The state model containing cached statistics data.
@@ -24,7 +24,7 @@ struct MealStatsView: View {
 
     /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
-        StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedDuration)
+        StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
     }
 
     /// Retrieves the meal statistic for a given date.
@@ -32,7 +32,7 @@ struct MealStatsView: View {
     /// - Returns: The `MealStats` object if available, otherwise `nil`.
     private func getMealForDate(_ date: Date) -> MealStats? {
         mealStats.first { stat in
-            StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedDuration)
+            StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval)
         }
     }
 
@@ -48,18 +48,18 @@ struct MealStatsView: View {
                 GridRow {
                     Text("Carbs:")
                     Text(currentAverages.carbs.formatted(.number.precision(.fractionLength(1))))
-                    Text("g")
+                        + Text("\u{00A0}") + Text("g")
                 }
                 if state.useFPUconversion {
                     GridRow {
                         Text("Fat:")
                         Text(currentAverages.fat.formatted(.number.precision(.fractionLength(1))))
-                        Text("g")
+                            + Text("\u{00A0}") + Text("g")
                     }
                     GridRow {
                         Text("Protein:")
                         Text(currentAverages.protein.formatted(.number.precision(.fractionLength(1))))
-                        Text("g")
+                            + Text("\u{00A0}") + Text("g")
                     }
                 }
             }
@@ -69,7 +69,7 @@ struct MealStatsView: View {
 
             Text(
                 StatChartUtils
-                    .formatVisibleDateRange(from: visibleDateRange.start, to: visibleDateRange.end, for: selectedDuration)
+                    .formatVisibleDateRange(from: visibleDateRange.start, to: visibleDateRange.end, for: selectedInterval)
             )
             .font(.callout)
             .foregroundStyle(.secondary)
@@ -90,7 +90,7 @@ struct MealStatsView: View {
             }
         }
         .onAppear {
-            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedDuration)
+            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
             updateAverages()
         }
         .onChange(of: scrollPosition) {
@@ -98,9 +98,9 @@ struct MealStatsView: View {
                 updateAverages()
             }
         }
-        .onChange(of: selectedDuration) {
+        .onChange(of: selectedInterval) {
             Task {
-                scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedDuration)
+                scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
                 updateAverages()
             }
         }
@@ -112,39 +112,39 @@ struct MealStatsView: View {
             ForEach(mealStats) { stat in
                 // Carbs Bar (bottom)
                 BarMark(
-                    x: .value("Date", stat.date, unit: selectedDuration == .day ? .hour : .day),
+                    x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                     y: .value("Amount", stat.carbs)
                 )
                 .foregroundStyle(by: .value("Type", "Carbs"))
                 .position(by: .value("Type", "Macros"))
                 .opacity(
                     selectedDate.map { date in
-                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
+                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
                     } ?? 1
                 )
                 if state.useFPUconversion {
                     // Fat Bar (middle)
                     BarMark(
-                        x: .value("Date", stat.date, unit: selectedDuration == .day ? .hour : .day),
+                        x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                         y: .value("Amount", stat.fat)
                     )
                     .foregroundStyle(by: .value("Type", "Fat"))
                     .position(by: .value("Type", "Macros"))
                     .opacity(
                         selectedDate.map { date in
-                            StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
+                            StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
                         } ?? 1
                     )
                     // Protein Bar (top)
                     BarMark(
-                        x: .value("Date", stat.date, unit: selectedDuration == .day ? .hour : .day),
+                        x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                         y: .value("Amount", stat.protein)
                     )
                     .foregroundStyle(by: .value("Type", "Protein"))
                     .position(by: .value("Type", "Macros"))
                     .opacity(
                         selectedDate.map { date in
-                            StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
+                            StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
                         } ?? 1
                     )
                 }
@@ -166,10 +166,24 @@ struct MealStatsView: View {
                     MealSelectionPopover(
                         date: selectedDate,
                         meal: selectedMeal,
-                        selectedDuration: selectedDuration,
+                        selectedInterval: selectedInterval,
                         isFpuEnabled: state.useFPUconversion
                     )
                 }
+            }
+
+            // Dummy PointMark to force SwiftCharts to render a visible domain of 00:00-23:59
+            // i.e. single day from midnight to midnight
+            if selectedInterval == .day {
+                let calendar = Calendar.current
+                let midnight = calendar.startOfDay(for: Date())
+                let nextMidnight = calendar.date(byAdding: .day, value: 1, to: midnight)!
+
+                PointMark(
+                    x: .value("Time", nextMidnight),
+                    y: .value("Dummy", 0)
+                )
+                .opacity(0) // ensures dummy ChartContent is hidden
             }
         }
         .chartForegroundStyleScale([
@@ -204,33 +218,33 @@ struct MealStatsView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .day ? .hour : .day)) { value in
+            AxisMarks(preset: .aligned, values: .stride(by: selectedInterval == .day ? .hour : .day)) { value in
                 if let date = value.as(Date.self) {
                     let day = Calendar.current.component(.day, from: date)
                     let hour = Calendar.current.component(.hour, from: date)
 
-                    switch selectedDuration {
+                    switch selectedInterval {
                     case .day:
                         if hour % 6 == 0 { // Show only every 6 hours
-                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
+                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .month:
                         if day % 3 == 0 { // Only show every 3rd day
-                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
+                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .total:
                         // Only show every other month
                         if day == 1 && Calendar.current.component(.month, from: date) % 2 == 1 {
-                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
+                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     default:
-                        AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
+                        AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                             .font(.footnote)
                         AxisGridLine()
                     }
@@ -242,13 +256,13 @@ struct MealStatsView: View {
         .chartScrollPosition(x: $scrollPosition)
         .chartScrollTargetBehavior(
             .valueAligned(
-                matching: selectedDuration == .day ?
+                matching: selectedInterval == .day ?
                     DateComponents(minute: 0) :
                     DateComponents(hour: 0),
-                majorAlignment: .matching(StatChartUtils.alignmentComponents(for: selectedDuration))
+                majorAlignment: .matching(StatChartUtils.alignmentComponents(for: selectedInterval))
             )
         )
-        .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedDuration))
+        .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval))
         .frame(height: 250)
     }
 }
@@ -266,12 +280,12 @@ private struct MealSelectionPopover: View {
     // The meal statistics to display
     let meal: MealStats
     // The selected duration in the time picker
-    let selectedDuration: Stat.StateModel.StatsTimeInterval
+    let selectedInterval: Stat.StateModel.StatsTimeInterval
     // Setting controlling whether to display fat and protein
     let isFpuEnabled: Bool
 
     private var timeText: String {
-        if selectedDuration == .day {
+        if selectedInterval == .day {
             let hour = Calendar.current.component(.hour, from: date)
             return "\(hour):00-\(hour + 1):00"
         } else {

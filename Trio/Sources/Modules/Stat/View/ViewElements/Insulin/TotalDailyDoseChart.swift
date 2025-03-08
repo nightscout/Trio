@@ -7,7 +7,7 @@ import SwiftUI
 /// and scroll through historical data.
 struct TotalDailyDoseChart: View {
     /// The selected time interval for displaying statistics.
-    @Binding var selectedDuration: Stat.StateModel.StatsTimeInterval
+    @Binding var selectedInterval: Stat.StateModel.StatsTimeInterval
     /// The list of TDD statistics data.
     let tddStats: [TDDStats]
     /// The state model containing cached statistics data.
@@ -26,7 +26,7 @@ struct TotalDailyDoseChart: View {
 
     /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
-        StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedDuration)
+        StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
     }
 
     /// Retrieves the TDD statistic for a given date.
@@ -34,7 +34,7 @@ struct TotalDailyDoseChart: View {
     /// - Returns: The `TDDStats` object if available, otherwise `nil`.
     private func getTDDForDate(_ date: Date) -> TDDStats? {
         tddStats.first { stat in
-            StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedDuration)
+            StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval)
         }
     }
 
@@ -65,23 +65,23 @@ struct TotalDailyDoseChart: View {
             }
         }
         .onAppear {
-            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedDuration)
+            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
             updateAverages()
             updateTotalDoses()
         }
         .onChange(of: scrollPosition) {
             updateTimer.scheduleUpdate {
                 updateAverages()
-                if selectedDuration == .day {
+                if selectedInterval == .day {
                     updateTotalDoses()
                 }
             }
         }
-        .onChange(of: selectedDuration) {
+        .onChange(of: selectedInterval) {
             Task {
-                scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedDuration)
+                scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
                 updateAverages()
-                if selectedDuration == .day {
+                if selectedInterval == .day {
                     updateTotalDoses()
                 }
             }
@@ -91,39 +91,33 @@ struct TotalDailyDoseChart: View {
     /// A view displaying the statistics summary including average TDD.
     private var statsView: some View {
         HStack {
-            if selectedDuration == .day {
+            if selectedInterval == .day {
                 Grid(alignment: .leading) {
                     GridRow {
-                        Text("Total:")
-                            .font(.headline)
-                        Text(sumOfHourlyDoses.formatted(.number.precision(.fractionLength(1))))
-                            .font(.headline)
-                        Text("U")
-                            .font(.headline)
+                        Text("Average:")
+                        Text(currentAverage.formatted(.number.precision(.fractionLength(1))))
+                            + Text("\u{00A0}") + Text("U")
                     }
                     GridRow {
-                        Text("Average:")
-                            .font(.headline)
-                        Text(currentAverage.formatted(.number.precision(.fractionLength(1))))
-                            .font(.headline)
-                        Text("U")
-                            .font(.headline)
+                        Text("Total:")
+                        Text(sumOfHourlyDoses.formatted(.number.precision(.fractionLength(1))))
+                            + Text("\u{00A0}") + Text("U")
                     }
                 }
                 .font(.headline)
             } else {
-                Text("Average:")
-                    .font(.headline)
-                Text(currentAverage.formatted(.number.precision(.fractionLength(1))))
-                    .font(.headline)
-                Text("U")
-                    .font(.headline)
+                Group {
+                    Text("Average:")
+                    Text(currentAverage.formatted(.number.precision(.fractionLength(1))))
+                        + Text("\u{00A0}") + Text("U")
+                }
+                .font(.headline)
             }
             Spacer()
 
             Text(
                 StatChartUtils
-                    .formatVisibleDateRange(from: visibleDateRange.start, to: visibleDateRange.end, for: selectedDuration)
+                    .formatVisibleDateRange(from: visibleDateRange.start, to: visibleDateRange.end, for: selectedInterval)
             )
             .font(.callout)
             .foregroundStyle(.secondary)
@@ -135,13 +129,13 @@ struct TotalDailyDoseChart: View {
         Chart {
             ForEach(tddStats) { stat in
                 BarMark(
-                    x: .value("Date", stat.date, unit: selectedDuration == .day ? .hour : .day),
+                    x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                     y: .value("Amount", stat.amount)
                 )
                 .foregroundStyle(Color.insulin)
                 .opacity(
                     selectedDate.map { date in
-                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedDuration) ? 1 : 0.3
+                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
                     } ?? 1
                 )
             }
@@ -159,8 +153,22 @@ struct TotalDailyDoseChart: View {
                     spacing: 0,
                     overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
                 ) {
-                    TDDSelectionPopover(date: selectedDate, tdd: selectedTDD, selectedDuration: selectedDuration)
+                    TDDSelectionPopover(date: selectedDate, tdd: selectedTDD, selectedInterval: selectedInterval)
                 }
+            }
+
+            // Dummy PointMark to force SwiftCharts to render a visible domain of 00:00-23:59
+            // i.e. single day from midnight to midnight
+            if selectedInterval == .day {
+                let calendar = Calendar.current
+                let midnight = calendar.startOfDay(for: Date())
+                let nextMidnight = calendar.date(byAdding: .day, value: 1, to: midnight)!
+
+                PointMark(
+                    x: .value("Time", nextMidnight),
+                    y: .value("Dummy", 0)
+                )
+                .opacity(0) // ensures dummy ChartContent is hidden
             }
         }
         .chartYAxis {
@@ -175,33 +183,33 @@ struct TotalDailyDoseChart: View {
             }
         }
         .chartXAxis {
-            AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .day ? .hour : .day)) { value in
+            AxisMarks(preset: .aligned, values: .stride(by: selectedInterval == .day ? .hour : .day)) { value in
                 if let date = value.as(Date.self) {
                     let day = Calendar.current.component(.day, from: date)
                     let hour = Calendar.current.component(.hour, from: date)
 
-                    switch selectedDuration {
+                    switch selectedInterval {
                     case .day:
                         if hour % 6 == 0 { // Show only every 6 hours
-                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
+                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .month:
                         if day % 3 == 0 { // Only show every 3rd day
-                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
+                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     case .total:
                         // Only show every other month
                         if day == 1 && Calendar.current.component(.month, from: date) % 2 == 1 {
-                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
+                            AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
                     default:
-                        AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
+                        AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedInterval), centered: true)
                             .font(.footnote)
                         AxisGridLine()
                     }
@@ -213,31 +221,31 @@ struct TotalDailyDoseChart: View {
         .chartScrollPosition(x: $scrollPosition)
         .chartScrollTargetBehavior(
             .valueAligned(
-                matching: selectedDuration == .day ?
+                matching: selectedInterval == .day ?
                     DateComponents(minute: 0) :
                     DateComponents(hour: 0),
-                majorAlignment: .matching(StatChartUtils.alignmentComponents(for: selectedDuration))
+                majorAlignment: .matching(StatChartUtils.alignmentComponents(for: selectedInterval))
             )
         )
-        .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedDuration))
+        .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval))
         .frame(height: 250)
     }
 }
 
 /// A popover view displaying TDD (Total Daily Dose) for a given time period.
-/// Shows the insulin amount in units (U) for an hourly or daily interval, depending on `selectedDuration`.
+/// Shows the insulin amount in units (U) for an hourly or daily interval, depending on `selectedInterval`.
 ///
 /// - Parameters:
 ///   - date: The reference date for determining the displayed time range.
 ///   - tdd: The TDDStats containing insulin usage data.
-///   - selectedDuration: The selected time interval (hourly or daily).
+///   - selectedInterval: The selected time interval (hourly or daily).
 private struct TDDSelectionPopover: View {
     let date: Date
     let tdd: TDDStats
-    let selectedDuration: Stat.StateModel.StatsTimeInterval
+    let selectedInterval: Stat.StateModel.StatsTimeInterval
 
     private var timeText: String {
-        if selectedDuration == .day {
+        if selectedInterval == .day {
             let hour = Calendar.current.component(.hour, from: date)
             return "\(hour):00-\(hour + 1):00"
         } else {

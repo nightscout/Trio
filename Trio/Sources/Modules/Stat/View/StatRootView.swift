@@ -75,7 +75,7 @@ extension Stat {
                 .pickerStyle(.menu)
             }.padding(.horizontal)
 
-            Picker("Duration", selection: $state.selectedDurationForGlucoseStats) {
+            Picker("Duration", selection: $state.selectedIntervalForGlucoseStats) {
                 ForEach(StateModel.StatsTimeIntervalWithToday.allCases, id: \.self) { timeInterval in
                     Text(timeInterval.displayName)
                 }
@@ -122,7 +122,7 @@ extension Stat {
                             lowLimit: state.lowLimit,
                             units: state.units,
                             hourlyStats: state.hourlyStats,
-                            isToday: state.selectedDurationForGlucoseStats == .today
+                            isToday: state.selectedIntervalForGlucoseStats == .today
                         )
                     case .distribution:
                         GlucoseDistributionChart(
@@ -174,7 +174,7 @@ extension Stat {
                 }.pickerStyle(.menu)
             }.padding(.horizontal)
 
-            Picker("Duration", selection: $state.selectedDurationForInsulinStats) {
+            Picker("Duration", selection: $state.selectedIntervalForInsulinStats) {
                 ForEach(StateModel.StatsTimeInterval.allCases) { timeInterval in
                     Text(timeInterval.rawValue).tag(timeInterval)
                 }
@@ -192,8 +192,8 @@ extension Stat {
                         )
                     } else {
                         TotalDailyDoseChart(
-                            selectedDuration: $state.selectedDurationForInsulinStats,
-                            tddStats: state.selectedDurationForInsulinStats == .day ?
+                            selectedInterval: $state.selectedIntervalForInsulinStats,
+                            tddStats: state.selectedIntervalForInsulinStats == .day ?
                                 state.hourlyTDDStats : state.dailyTDDStats,
                             state: state
                         )
@@ -212,8 +212,8 @@ extension Stat {
                         )
                     } else {
                         BolusStatsView(
-                            selectedDuration: $state.selectedDurationForInsulinStats,
-                            bolusStats: state.selectedDurationForInsulinStats == .day ?
+                            selectedInterval: $state.selectedIntervalForInsulinStats,
+                            bolusStats: state.selectedIntervalForInsulinStats == .day ?
                                 state.hourlyBolusStats : state.dailyBolusStats,
                             state: state
                         )
@@ -244,7 +244,7 @@ extension Stat {
                 }.pickerStyle(.menu)
             }.padding(.horizontal)
 
-            Picker("Duration", selection: $state.selectedDurationForLoopStats) {
+            Picker("Duration", selection: $state.selectedIntervalForLoopStats) {
                 ForEach(StateModel.StatsTimeIntervalWithToday.allCases, id: \.self) { interval in
                     Text(interval.displayName)
                 }
@@ -286,7 +286,7 @@ extension Stat {
             VStack(spacing: Constants.spacing) {
                 LoopBarChartView(
                     loopStatRecords: state.loopStatRecords,
-                    selectedDuration: state.selectedDurationForLoopStats,
+                    selectedInterval: state.selectedIntervalForLoopStats,
                     statsData: state.loopStats
                 )
             }
@@ -316,7 +316,7 @@ extension Stat {
                 }.pickerStyle(.menu)
             }.padding(.horizontal)
 
-            Picker("Duration", selection: $state.selectedDurationForMealStats) {
+            Picker("Duration", selection: $state.selectedIntervalForMealStats) {
                 ForEach(StateModel.StatsTimeInterval.allCases, id: \.self) { timeInterval in
                     Text(timeInterval.rawValue)
                 }
@@ -338,8 +338,8 @@ extension Stat {
                         )
                     } else {
                         MealStatsView(
-                            selectedDuration: $state.selectedDurationForMealStats,
-                            mealStats: state.selectedDurationForMealStats == .day ?
+                            selectedInterval: $state.selectedIntervalForMealStats,
+                            mealStats: state.selectedIntervalForMealStats == .day ?
                                 state.hourlyMealStats : state.dailyMealStats,
                             state: state
                         )
