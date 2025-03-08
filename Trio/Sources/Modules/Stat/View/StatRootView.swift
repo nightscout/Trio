@@ -22,7 +22,7 @@ extension Stat {
             VStack {
                 Picker("View", selection: $selectedView) {
                     ForEach(StateModel.StatisticViewType.allCases) { viewType in
-                        Text(viewType.title).tag(viewType)
+                        Text(viewType.displayName).tag(viewType)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -68,16 +68,16 @@ extension Stat {
                 Spacer()
 
                 Picker("Glucose Chart Type", selection: $state.selectedGlucoseChartType) {
-                    ForEach(GlucoseChartType.allCases, id: \.self) { type in
-                        Text(type.rawValue)
+                    ForEach(StateModel.GlucoseChartType.allCases, id: \.self) { type in
+                        Text(type.displayName)
                     }
                 }
                 .pickerStyle(.menu)
             }.padding(.horizontal)
 
             Picker("Duration", selection: $state.selectedDurationForGlucoseStats) {
-                ForEach(StateModel.Duration.allCases, id: \.self) { timeInterval in
-                    Text(timeInterval.rawValue)
+                ForEach(StateModel.StatsTimeIntervalWithToday.allCases, id: \.self) { timeInterval in
+                    Text(timeInterval.displayName)
                 }
             }
             .pickerStyle(.segmented)
@@ -122,7 +122,7 @@ extension Stat {
                             lowLimit: state.lowLimit,
                             units: state.units,
                             hourlyStats: state.hourlyStats,
-                            isToday: state.selectedDurationForGlucoseStats == .Today
+                            isToday: state.selectedDurationForGlucoseStats == .today
                         )
                     case .distribution:
                         GlucoseDistributionChart(
@@ -168,8 +168,8 @@ extension Stat {
                 Spacer()
 
                 Picker("Insulin Chart Type", selection: $state.selectedInsulinChartType) {
-                    ForEach(InsulinChartType.allCases, id: \.self) { type in
-                        Text(type.rawValue)
+                    ForEach(StateModel.InsulinChartType.allCases, id: \.self) { type in
+                        Text(type.displayName)
                     }
                 }.pickerStyle(.menu)
             }.padding(.horizontal)
@@ -193,7 +193,7 @@ extension Stat {
                     } else {
                         TotalDailyDoseChart(
                             selectedDuration: $state.selectedDurationForInsulinStats,
-                            tddStats: state.selectedDurationForInsulinStats == .Day ?
+                            tddStats: state.selectedDurationForInsulinStats == .day ?
                                 state.hourlyTDDStats : state.dailyTDDStats,
                             state: state
                         )
@@ -213,7 +213,7 @@ extension Stat {
                     } else {
                         BolusStatsView(
                             selectedDuration: $state.selectedDurationForInsulinStats,
-                            bolusStats: state.selectedDurationForInsulinStats == .Day ?
+                            bolusStats: state.selectedDurationForInsulinStats == .day ?
                                 state.hourlyBolusStats : state.dailyBolusStats,
                             state: state
                         )
@@ -238,57 +238,57 @@ extension Stat {
                 Spacer()
 
                 Picker("Looping Chart Type", selection: $state.selectedLoopingChartType) {
-                    ForEach(LoopingChartType.allCases, id: \.self) { type in
-                        Text(type.rawValue)
+                    ForEach(StateModel.LoopingChartType.allCases, id: \.self) { type in
+                        Text(type.displayName)
                     }
                 }.pickerStyle(.menu)
             }.padding(.horizontal)
 
             Picker("Duration", selection: $state.selectedDurationForLoopStats) {
-                ForEach(StateModel.Duration.allCases, id: \.self) { duration in
-                    Text(duration.rawValue)
+                ForEach(StateModel.StatsTimeIntervalWithToday.allCases, id: \.self) { interval in
+                    Text(interval.displayName)
                 }
             }
             .pickerStyle(.segmented)
 
-            switch state.selectedLoopingChartType {
-            case .loopingPerformance:
-                if state.loopStatRecords.isEmpty {
+            StatCard {
+                switch state.selectedLoopingChartType {
+                case .loopingPerformance:
+                    if state.loopStatRecords.isEmpty {
+                        ContentUnavailableView(
+                            String(localized: "No Loop Data"),
+                            systemImage: "clock.arrow.2.circlepath",
+                            description: Text("Loop statistics will appear here once data is available.")
+                        )
+                    } else {
+                        loopingChartView
+                        loopStats
+                    }
+                case .trioUpTime:
+                    // TODO: Trio Up-Time Chart
                     ContentUnavailableView(
-                        String(localized: "No Loop Data"),
-                        systemImage: "clock.arrow.2.circlepath",
-                        description: Text("Loop statistics will appear here once data is available.")
+                        String(localized: "Coming soon."),
+                        systemImage: "hourglass",
+                        description: Text("Trio Up-Time Chart")
                     )
-                } else {
-                    loopsCard
-                    loopStats
+                case .cgmConnectionTrace:
+                    // TODO: CGM Connection Trace Chart
+                    ContentUnavailableView(
+                        String(localized: "Coming soon."),
+                        systemImage: "hourglass",
+                        description: Text("CGM Connection Trace Chart")
+                    )
                 }
-            case .trioUpTime:
-                // TODO: Trio Up-Time Chart
-                ContentUnavailableView(
-                    String(localized: "Coming soon."),
-                    systemImage: "hourglass",
-                    description: Text("Trio Up-Time Chart")
-                )
-            case .cgmConnectionTrace:
-                // TODO: CGM Connection Trace Chart
-                ContentUnavailableView(
-                    String(localized: "Coming soon."),
-                    systemImage: "hourglass",
-                    description: Text("CGM Connection Trace Chart")
-                )
             }
         }
 
-        private var loopsCard: some View {
-            StatCard {
-                VStack(spacing: Constants.spacing) {
-                    LoopBarChartView(
-                        loopStatRecords: state.loopStatRecords,
-                        selectedDuration: state.selectedDurationForLoopStats,
-                        statsData: state.loopStats
-                    )
-                }
+        private var loopingChartView: some View {
+            VStack(spacing: Constants.spacing) {
+                LoopBarChartView(
+                    loopStatRecords: state.loopStatRecords,
+                    selectedDuration: state.selectedDurationForLoopStats,
+                    statsData: state.loopStats
+                )
             }
         }
 
@@ -310,8 +310,8 @@ extension Stat {
                 Spacer()
 
                 Picker("Meal Chart Type", selection: $state.selectedMealChartType) {
-                    ForEach(MealChartType.allCases, id: \.self) { type in
-                        Text(type.rawValue)
+                    ForEach(StateModel.MealChartType.allCases, id: \.self) { type in
+                        Text(type.displayName)
                     }
                 }.pickerStyle(.menu)
             }.padding(.horizontal)
@@ -339,7 +339,7 @@ extension Stat {
                     } else {
                         MealStatsView(
                             selectedDuration: $state.selectedDurationForMealStats,
-                            mealStats: state.selectedDurationForMealStats == .Day ?
+                            mealStats: state.selectedDurationForMealStats == .day ?
                                 state.hourlyMealStats : state.dailyMealStats,
                             state: state
                         )

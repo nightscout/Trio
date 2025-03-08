@@ -7,10 +7,10 @@ struct StatChartUtils {
     /// - Returns: The time interval in seconds.
     static func visibleDomainLength(for selectedDuration: Stat.StateModel.StatsTimeInterval) -> TimeInterval {
         switch selectedDuration {
-        case .Day: return 24 * 3600
-        case .Week: return 7 * 24 * 3600
-        case .Month: return 30 * 24 * 3600
-        case .Total: return 90 * 24 * 3600
+        case .day: return 24 * 3600
+        case .week: return 7 * 24 * 3600
+        case .month: return 30 * 24 * 3600
+        case .total: return 90 * 24 * 3600
         }
     }
 
@@ -32,10 +32,10 @@ struct StatChartUtils {
     /// - Returns: A Date.FormatStyle configured for the current time interval.
     static func dateFormat(for selectedDuration: Stat.StateModel.StatsTimeInterval) -> Date.FormatStyle {
         switch selectedDuration {
-        case .Day: return .dateTime.hour()
-        case .Week: return .dateTime.weekday(.abbreviated)
-        case .Month: return .dateTime.day()
-        case .Total: return .dateTime.month(.abbreviated)
+        case .day: return .dateTime.hour()
+        case .week: return .dateTime.weekday(.abbreviated)
+        case .month: return .dateTime.day()
+        case .total: return .dateTime.month(.abbreviated)
         }
     }
 
@@ -44,10 +44,10 @@ struct StatChartUtils {
     /// - Returns: DateComponents configured for the appropriate alignment.
     static func alignmentComponents(for selectedDuration: Stat.StateModel.StatsTimeInterval) -> DateComponents {
         switch selectedDuration {
-        case .Day: return DateComponents(hour: 0)
-        case .Week: return DateComponents(weekday: 2)
-        case .Month,
-             .Total: return DateComponents(day: 1)
+        case .day: return DateComponents(hour: 0)
+        case .week: return DateComponents(weekday: 2)
+        case .month,
+             .total: return DateComponents(day: 1)
         }
     }
 
@@ -59,10 +59,10 @@ struct StatChartUtils {
         let now = Date()
 
         switch selectedDuration {
-        case .Day: return calendar.date(byAdding: .day, value: -1, to: now)!
-        case .Week: return calendar.date(byAdding: .day, value: -7, to: now)!
-        case .Month: return calendar.date(byAdding: .month, value: -1, to: now)!
-        case .Total: return calendar.date(byAdding: .month, value: -3, to: now)!
+        case .day: return calendar.date(byAdding: .day, value: -1, to: now)!
+        case .week: return calendar.date(byAdding: .day, value: -7, to: now)!
+        case .month: return calendar.date(byAdding: .month, value: -1, to: now)!
+        case .total: return calendar.date(byAdding: .month, value: -3, to: now)!
         }
     }
 
@@ -75,7 +75,7 @@ struct StatChartUtils {
     static func isSameTimeUnit(_ date1: Date, _ date2: Date, for selectedDuration: Stat.StateModel.StatsTimeInterval) -> Bool {
         let calendar = Calendar.current
         switch selectedDuration {
-        case .Day:
+        case .day:
             return calendar.isDate(date1, equalTo: date2, toGranularity: .hour)
         default:
             return calendar.isDate(date1, inSameDayAs: date2)
@@ -124,7 +124,7 @@ struct StatChartUtils {
             Text(value)
         }
     }
-    
+
     /// Computes the median value of an array of integers.
     ///
     /// - Parameter array: An array of integers.
@@ -161,8 +161,7 @@ struct StatChartUtils {
     ///   - label: The text label for the legend item.
     ///   - color: The color associated with the legend item.
     /// - Returns: A SwiftUI view displaying a colored symbol and a label.
-    @ViewBuilder
-    static func legendItem(label: String, color: Color) -> some View {
+    @ViewBuilder static func legendItem(label: String, color: Color) -> some View {
         HStack(spacing: 4) {
             Image(systemName: "circle.fill").foregroundStyle(color)
             Text(label).foregroundStyle(Color.secondary)

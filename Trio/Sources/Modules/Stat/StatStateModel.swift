@@ -5,40 +5,6 @@ import SwiftUI
 import Swinject
 
 extension Stat {
-    /// Defines the available types of glucose charts
-    enum GlucoseChartType: String, CaseIterable {
-        /// Ambulatory Glucose Profile showing percentile ranges
-        case percentile = "Percentile"
-        /// Time-based distribution of glucose ranges
-        case distribution = "Distribution"
-    }
-
-    /// Defines the available types of insulin charts
-    enum InsulinChartType: String, CaseIterable {
-        /// Shows total daily insulin doses
-        case totalDailyDose = "Total Daily Dose"
-        /// Shows distribution of bolus types
-        case bolusDistribution = "Bolus Distribution"
-    }
-
-    /// Defines the available types of looping charts
-    enum LoopingChartType: String, CaseIterable {
-        /// Shows loop completion and success rates
-        case loopingPerformance = "Looping Performance"
-        /// Shows CGM connection status over time
-        case cgmConnectionTrace = "CGM Connection Trace"
-        /// Shows Trio pump uptime statistics
-        case trioUpTime = "Trio Up-Time"
-    }
-
-    /// Defines the available types of meal charts
-    enum MealChartType: String, CaseIterable {
-        /// Shows total meal statistics
-        case totalMeals = "Total Meals"
-        /// Shows correlation between meals and glucose excursions
-        case mealToHypoHyperDistribution = "Meal to Hypo/Hyper"
-    }
-
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var settings: SettingsManager!
         var highLimit: Decimal = 180
@@ -77,20 +43,20 @@ extension Stat {
         var bolusAveragesCache: [Date: (manual: Double, smb: Double, external: Double)] = [:]
 
         // Selected Duration for Glucose Stats
-        var selectedDurationForGlucoseStats: Duration = .Today {
+        var selectedDurationForGlucoseStats: StatsTimeIntervalWithToday = .today {
             didSet {
                 setupGlucoseArray(for: selectedDurationForGlucoseStats)
             }
         }
 
         // Selected Duration for Insulin Stats
-        var selectedDurationForInsulinStats: StatsTimeInterval = .Day
+        var selectedDurationForInsulinStats: StatsTimeInterval = .day
 
         // Selected Duration for Meal Stats
-        var selectedDurationForMealStats: StatsTimeInterval = .Day
+        var selectedDurationForMealStats: StatsTimeInterval = .day
 
         // Selected Duration for Loop Stats
-        var selectedDurationForLoopStats: Duration = .Today {
+        var selectedDurationForLoopStats: StatsTimeIntervalWithToday = .today {
             didSet {
                 setupLoopStatRecords()
             }
@@ -116,61 +82,8 @@ extension Stat {
         let mealTaskContext = CoreDataStack.shared.newTaskContext()
         let bolusTaskContext = CoreDataStack.shared.newTaskContext()
 
-        /// Defines the available time periods for duration-based statistics
-        enum Duration: String, CaseIterable, Identifiable {
-            /// Current day
-            case Today
-            /// Single day view
-            case Day = "D"
-            /// Week view
-            case Week = "W"
-            /// Month view
-            case Month = "M"
-            /// Three month view
-            case Total = "3 M"
-
-            var id: Self { self }
-        }
-
-        /// Defines the available time intervals for statistical analysis
-        enum StatsTimeInterval: String, CaseIterable, Identifiable {
-            /// Single day interval
-            case Day = "D"
-            /// Week interval
-            case Week = "W"
-            /// Month interval
-            case Month = "M"
-            /// Three month interval
-            case Total = "3 M"
-
-            var id: Self { self }
-        }
-
-        /// Defines the main categories of statistics available in the app
-        enum StatisticViewType: String, CaseIterable, Identifiable {
-            /// Glucose-related statistics including AGP and distributions
-            case glucose
-            /// Insulin delivery statistics including TDD and bolus distributions
-            case insulin
-            /// Loop performance and system status statistics
-            case looping
-            /// Meal-related statistics and correlations
-            case meals
-
-            var id: String { rawValue }
-
-            var title: String {
-                switch self {
-                case .glucose: return "Glucose"
-                case .insulin: return "Insulin"
-                case .looping: return "Looping"
-                case .meals: return "Meals"
-                }
-            }
-        }
-
         override func subscribe() {
-            setupGlucoseArray(for: .Today)
+            setupGlucoseArray(for: .today)
             setupTDDStats()
             setupBolusStats()
             setupLoopStatRecords()
@@ -181,9 +94,9 @@ extension Stat {
             useFPUconversion = settingsManager.settings.useFPUconversion
         }
 
-        func setupGlucoseArray(for duration: Duration) {
+        func setupGlucoseArray(for interval: StatsTimeIntervalWithToday) {
             Task {
-                let ids = await fetchGlucose(for: duration)
+                let ids = await fetchGlucose(for: interval)
                 await updateGlucoseArray(with: ids)
 
                 // Calculate hourly stats and glucose range stats asynchronously with fetched glucose IDs
@@ -193,20 +106,20 @@ extension Stat {
             }
         }
 
-        private func fetchGlucose(for duration: Duration) async -> [NSManagedObjectID] {
+        private func fetchGlucose(for interval: StatsTimeIntervalWithToday) async -> [NSManagedObjectID] {
             do {
                 let predicate: NSPredicate
 
-                switch duration {
-                case .Day:
+                switch interval {
+                case .day:
                     predicate = NSPredicate.glucoseForStatsDay
-                case .Week:
+                case .week:
                     predicate = NSPredicate.glucoseForStatsWeek
-                case .Today:
+                case .today:
                     predicate = NSPredicate.glucoseForStatsToday
-                case .Month:
+                case .month:
                     predicate = NSPredicate.glucoseForStatsMonth
-                case .Total:
+                case .total:
                     predicate = NSPredicate.glucoseForStatsTotal
                 }
 
@@ -261,6 +174,163 @@ extension Stat {
             workItem = newWorkItem
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: newWorkItem)
+        }
+    }
+}
+
+// MARK: Stats Types + Enums
+
+extension Stat.StateModel {
+    /// Defines the available types of glucose charts
+    enum GlucoseChartType: String, CaseIterable {
+        /// Ambulatory Glucose Profile showing percentile ranges
+        case percentile = "Percentile"
+        /// Time-based distribution of glucose ranges
+        case distribution = "Distribution"
+
+        var displayName: String {
+            switch self {
+            case .percentile:
+                return String(localized: "Percentile")
+            case .distribution:
+                return String(localized: "Distribution")
+            }
+        }
+    }
+
+    /// Defines the available types of insulin charts
+    enum InsulinChartType: String, CaseIterable {
+        /// Shows total daily insulin doses
+        case totalDailyDose = "Total Daily Dose"
+        /// Shows distribution of bolus types
+        case bolusDistribution = "Bolus Distribution"
+
+        var displayName: String {
+            switch self {
+            case .totalDailyDose:
+                return String(localized: "Total Daily Dose")
+            case .bolusDistribution:
+                return String(localized: "Bolus Distribution")
+            }
+        }
+    }
+
+    /// Defines the available types of looping charts
+    enum LoopingChartType: String, CaseIterable {
+        /// Shows loop completion and success rates
+        case loopingPerformance = "Looping Performance"
+        /// Shows CGM connection status over time
+        case cgmConnectionTrace = "CGM Connection Trace"
+        /// Shows Trio pump uptime statistics
+        case trioUpTime = "Trio Up-Time"
+
+        var displayName: String {
+            switch self {
+            case .loopingPerformance:
+                return String(localized: "Looping Performance")
+            case .cgmConnectionTrace:
+                return String(localized: "CGM Connection Trace")
+            case .trioUpTime:
+                return String(localized: "Trio Up-Time")
+            }
+        }
+    }
+
+    /// Defines the available types of meal charts
+    enum MealChartType: String, CaseIterable {
+        /// Shows total meal statistics
+        case totalMeals = "Total Meals"
+        /// Shows correlation between meals and glucose excursions
+        case mealToHypoHyperDistribution = "Meal to Hypo/Hyper"
+
+        var displayName: String {
+            switch self {
+            case .totalMeals:
+                return String(localized: "Total Meals")
+            case .mealToHypoHyperDistribution:
+                return String(localized: "Meal to Hypo/Hyper")
+            }
+        }
+    }
+
+    /// Defines the available time periods for duration-based statistics including 'Today' (time since midnight until now)
+    enum StatsTimeIntervalWithToday: String, CaseIterable, Identifiable {
+        /// Current day
+        case today
+        /// Single day view
+        case day = "D"
+        /// Week view
+        case week = "W"
+        /// Month view
+        case month = "M"
+        /// Three month view
+        case total = "3 M"
+
+        var id: Self { self }
+
+        var displayName: String {
+            switch self {
+            case .today:
+                return String(localized: "Today")
+            case .day:
+                return String(localized: "D", comment: "Abbreviation for day")
+            case .week:
+                return String(localized: "W", comment: "Abbreviation for week")
+            case .month:
+                return String(localized: "M", comment: "Abbreviation for month")
+            case .total:
+                return String(localized: "3 M", comment: "Abbreviation for three months")
+            }
+        }
+    }
+
+    /// Defines the available time periods for duration-based statistics
+    enum StatsTimeInterval: String, CaseIterable, Identifiable {
+        /// Single day interval
+        case day = "D"
+        /// Week interval
+        case week = "W"
+        /// Month interval
+        case month = "M"
+        /// Three month interval
+        case total = "3 M"
+
+        var id: Self { self }
+
+        var displayName: String {
+            switch self {
+            case .day:
+                return String(localized: "D", comment: "Abbreviation for day")
+            case .week:
+                return String(localized: "W", comment: "Abbreviation for week")
+            case .month:
+                return String(localized: "M", comment: "Abbreviation for month")
+            case .total:
+                return String(localized: "3 M", comment: "Abbreviation for three months")
+            }
+        }
+    }
+
+    /// Defines the main categories of statistics available in the app
+    enum StatisticViewType: String, CaseIterable, Identifiable {
+        /// Glucose-related statistics including AGP and distributions
+        case glucose
+        /// Insulin delivery statistics including TDD and bolus distributions
+        case insulin
+        /// Loop performance and system status statistics
+        case looping
+        /// Meal-related statistics and correlations
+        case meals
+
+        var id: String { rawValue }
+
+        var displayName: String {
+            switch self {
+            case .glucose: return "Glucose"
+            case .insulin: return "Insulin"
+            case .looping: return "Looping"
+            case .meals: return "Meals"
+            }
         }
     }
 }

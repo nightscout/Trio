@@ -53,7 +53,7 @@ extension Stat.StateModel {
                 let stats = try await self.getLoopStats(
                     allLoopIds: recordIDs,
                     failedLoopIds: failedRecordIDs,
-                    duration: selectedDurationForLoopStats
+                    interval: selectedDurationForLoopStats
                 )
 
                 await MainActor.run {
@@ -66,22 +66,24 @@ extension Stat.StateModel {
     }
 
     /// Fetches loop statistics records for the specified duration
-    /// - Parameter duration: The time period to fetch records for
+    /// - Parameter interval: The time period to fetch records for
     /// - Returns: A tuple containing arrays of NSManagedObjectIDs for (all loops, failed loops)
-    func fetchLoopStatRecords(for duration: Duration) async throws -> ([NSManagedObjectID], [NSManagedObjectID]) {
+    func fetchLoopStatRecords(for interval: StatsTimeIntervalWithToday) async throws
+        -> ([NSManagedObjectID], [NSManagedObjectID])
+    {
         // Calculate the date range based on selected duration
         let now = Date()
         let startDate: Date
-        switch duration {
-        case .Day:
+        switch interval {
+        case .day:
             startDate = now.addingTimeInterval(-24.hours.timeInterval)
-        case .Today:
+        case .today:
             startDate = Calendar.current.startOfDay(for: now)
-        case .Week:
+        case .week:
             startDate = now.addingTimeInterval(-7.days.timeInterval)
-        case .Month:
+        case .month:
             startDate = now.addingTimeInterval(-30.days.timeInterval)
-        case .Total:
+        case .total:
             startDate = now.addingTimeInterval(-90.days.timeInterval)
         }
 
@@ -133,29 +135,28 @@ extension Stat.StateModel {
     /// - Parameters:
     ///   - allLoopIds: Array of NSManagedObjectIDs for all loop records
     ///   - failedLoopIds: Array of NSManagedObjectIDs for failed loop records
-    ///   - duration: The time period for statistics calculation
+    ///   - interval: The time period for statistics calculation
     /// - Returns: Array of tuples containing category, count and percentage for each statistic
     func getLoopStats(
         allLoopIds: [NSManagedObjectID],
         failedLoopIds: [NSManagedObjectID],
-        duration: Duration
-//    ) async throws -> [(category: LoopStatusType, count: Int, percentage: Double)] {
+        interval: StatsTimeIntervalWithToday
     ) async throws
         -> [(category: LoopStatsDataType, count: Int, percentage: Double, medianDuration: Double, medianInterval: Double)]
     {
         // Calculate the date range for glucose readings
         let now = Date()
         let startDate: Date
-        switch duration {
-        case .Day:
+        switch interval {
+        case .day:
             startDate = now.addingTimeInterval(-24.hours.timeInterval)
-        case .Today:
+        case .today:
             startDate = Calendar.current.startOfDay(for: now)
-        case .Week:
+        case .week:
             startDate = now.addingTimeInterval(-7.days.timeInterval)
-        case .Month:
+        case .month:
             startDate = now.addingTimeInterval(-30.days.timeInterval)
-        case .Total:
+        case .total:
             startDate = now.addingTimeInterval(-90.days.timeInterval)
         }
 

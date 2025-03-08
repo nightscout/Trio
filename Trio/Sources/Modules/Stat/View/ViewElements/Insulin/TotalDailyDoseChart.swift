@@ -72,7 +72,7 @@ struct TotalDailyDoseChart: View {
         .onChange(of: scrollPosition) {
             updateTimer.scheduleUpdate {
                 updateAverages()
-                if selectedDuration == .Day {
+                if selectedDuration == .day {
                     updateTotalDoses()
                 }
             }
@@ -81,7 +81,7 @@ struct TotalDailyDoseChart: View {
             Task {
                 scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedDuration)
                 updateAverages()
-                if selectedDuration == .Day {
+                if selectedDuration == .day {
                     updateTotalDoses()
                 }
             }
@@ -91,7 +91,7 @@ struct TotalDailyDoseChart: View {
     /// A view displaying the statistics summary including average TDD.
     private var statsView: some View {
         HStack {
-            if selectedDuration == .Day {
+            if selectedDuration == .day {
                 Grid(alignment: .leading) {
                     GridRow {
                         Text("Total:")
@@ -135,7 +135,7 @@ struct TotalDailyDoseChart: View {
         Chart {
             ForEach(tddStats) { stat in
                 BarMark(
-                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                    x: .value("Date", stat.date, unit: selectedDuration == .day ? .hour : .day),
                     y: .value("Amount", stat.amount)
                 )
                 .foregroundStyle(Color.insulin)
@@ -175,25 +175,25 @@ struct TotalDailyDoseChart: View {
             }
         }
         .chartXAxis {
-            AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .Day ? .hour : .day)) { value in
+            AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .day ? .hour : .day)) { value in
                 if let date = value.as(Date.self) {
                     let day = Calendar.current.component(.day, from: date)
                     let hour = Calendar.current.component(.hour, from: date)
 
                     switch selectedDuration {
-                    case .Day:
+                    case .day:
                         if hour % 6 == 0 { // Show only every 6 hours
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
-                    case .Month:
+                    case .month:
                         if day % 3 == 0 { // Only show every 3rd day
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
-                    case .Total:
+                    case .total:
                         // Only show every other month
                         if day == 1 && Calendar.current.component(.month, from: date) % 2 == 1 {
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
@@ -213,7 +213,7 @@ struct TotalDailyDoseChart: View {
         .chartScrollPosition(x: $scrollPosition)
         .chartScrollTargetBehavior(
             .valueAligned(
-                matching: selectedDuration == .Day ?
+                matching: selectedDuration == .day ?
                     DateComponents(minute: 0) :
                     DateComponents(hour: 0),
                 majorAlignment: .matching(StatChartUtils.alignmentComponents(for: selectedDuration))
@@ -237,7 +237,7 @@ private struct TDDSelectionPopover: View {
     let selectedDuration: Stat.StateModel.StatsTimeInterval
 
     private var timeText: String {
-        if selectedDuration == .Day {
+        if selectedDuration == .day {
             let hour = Calendar.current.component(.hour, from: date)
             return "\(hour):00-\(hour + 1):00"
         } else {

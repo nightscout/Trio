@@ -110,7 +110,7 @@ struct BolusStatsView: View {
             ForEach(bolusStats) { stat in
                 // Total Bolus Bar
                 BarMark(
-                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                    x: .value("Date", stat.date, unit: selectedDuration == .day ? .hour : .day),
                     y: .value("Amount", stat.manualBolus)
                 )
                 .foregroundStyle(by: .value("Type", "Manual"))
@@ -123,7 +123,7 @@ struct BolusStatsView: View {
 
                 // Carb Bolus Bar
                 BarMark(
-                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                    x: .value("Date", stat.date, unit: selectedDuration == .day ? .hour : .day),
                     y: .value("Amount", stat.smb)
                 )
                 .foregroundStyle(by: .value("Type", "SMB"))
@@ -135,7 +135,7 @@ struct BolusStatsView: View {
                 )
                 // Correction Bolus Bar
                 BarMark(
-                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                    x: .value("Date", stat.date, unit: selectedDuration == .day ? .hour : .day),
                     y: .value("Amount", stat.external)
                 )
                 .foregroundStyle(by: .value("Type", "External"))
@@ -195,25 +195,25 @@ struct BolusStatsView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .Day ? .hour : .day)) { value in
+            AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .day ? .hour : .day)) { value in
                 if let date = value.as(Date.self) {
                     let day = Calendar.current.component(.day, from: date)
                     let hour = Calendar.current.component(.hour, from: date)
 
                     switch selectedDuration {
-                    case .Day:
+                    case .day:
                         if hour % 6 == 0 { // Show only every 6 hours
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
-                    case .Month:
+                    case .month:
                         if day % 3 == 0 { // Only show every 3rd day
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
-                    case .Total:
+                    case .total:
                         // Only show every other month
                         if day == 1 && Calendar.current.component(.month, from: date) % 2 == 1 {
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
@@ -233,7 +233,7 @@ struct BolusStatsView: View {
         .chartScrollPosition(x: $scrollPosition)
         .chartScrollTargetBehavior(
             .valueAligned(
-                matching: selectedDuration == .Day ?
+                matching: selectedDuration == .day ?
                     DateComponents(minute: 0) : // Align to next hour for Day view
                     DateComponents(hour: 0), // Align to start of day for other views
                 majorAlignment: .matching(
@@ -252,7 +252,7 @@ private struct BolusSelectionPopover: View {
     let selectedDuration: Stat.StateModel.StatsTimeInterval
 
     private var timeText: String {
-        if selectedDuration == .Day {
+        if selectedDuration == .day {
             let hour = Calendar.current.component(.hour, from: date)
             return "\(hour):00-\(hour + 1):00"
         } else {

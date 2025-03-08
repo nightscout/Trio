@@ -112,7 +112,7 @@ struct MealStatsView: View {
             ForEach(mealStats) { stat in
                 // Carbs Bar (bottom)
                 BarMark(
-                    x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                    x: .value("Date", stat.date, unit: selectedDuration == .day ? .hour : .day),
                     y: .value("Amount", stat.carbs)
                 )
                 .foregroundStyle(by: .value("Type", "Carbs"))
@@ -125,7 +125,7 @@ struct MealStatsView: View {
                 if state.useFPUconversion {
                     // Fat Bar (middle)
                     BarMark(
-                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                        x: .value("Date", stat.date, unit: selectedDuration == .day ? .hour : .day),
                         y: .value("Amount", stat.fat)
                     )
                     .foregroundStyle(by: .value("Type", "Fat"))
@@ -137,7 +137,7 @@ struct MealStatsView: View {
                     )
                     // Protein Bar (top)
                     BarMark(
-                        x: .value("Date", stat.date, unit: selectedDuration == .Day ? .hour : .day),
+                        x: .value("Date", stat.date, unit: selectedDuration == .day ? .hour : .day),
                         y: .value("Amount", stat.protein)
                     )
                     .foregroundStyle(by: .value("Type", "Protein"))
@@ -204,25 +204,25 @@ struct MealStatsView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .Day ? .hour : .day)) { value in
+            AxisMarks(preset: .aligned, values: .stride(by: selectedDuration == .day ? .hour : .day)) { value in
                 if let date = value.as(Date.self) {
                     let day = Calendar.current.component(.day, from: date)
                     let hour = Calendar.current.component(.hour, from: date)
 
                     switch selectedDuration {
-                    case .Day:
+                    case .day:
                         if hour % 6 == 0 { // Show only every 6 hours
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
-                    case .Month:
+                    case .month:
                         if day % 3 == 0 { // Only show every 3rd day
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
                                 .font(.footnote)
                             AxisGridLine()
                         }
-                    case .Total:
+                    case .total:
                         // Only show every other month
                         if day == 1 && Calendar.current.component(.month, from: date) % 2 == 1 {
                             AxisValueLabel(format: StatChartUtils.dateFormat(for: selectedDuration), centered: true)
@@ -242,7 +242,7 @@ struct MealStatsView: View {
         .chartScrollPosition(x: $scrollPosition)
         .chartScrollTargetBehavior(
             .valueAligned(
-                matching: selectedDuration == .Day ?
+                matching: selectedDuration == .day ?
                     DateComponents(minute: 0) :
                     DateComponents(hour: 0),
                 majorAlignment: .matching(StatChartUtils.alignmentComponents(for: selectedDuration))
@@ -271,7 +271,7 @@ private struct MealSelectionPopover: View {
     let isFpuEnabled: Bool
 
     private var timeText: String {
-        if selectedDuration == .Day {
+        if selectedDuration == .day {
             let hour = Calendar.current.component(.hour, from: date)
             return "\(hour):00-\(hour + 1):00"
         } else {

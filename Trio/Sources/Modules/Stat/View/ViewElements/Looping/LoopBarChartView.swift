@@ -3,7 +3,7 @@ import SwiftUI
 
 struct LoopBarChartView: View {
     let loopStatRecords: [LoopStatRecord]
-    let selectedDuration: Stat.StateModel.Duration
+    let selectedDuration: Stat.StateModel.StatsTimeIntervalWithToday
     let statsData: [(category: LoopStatsDataType, count: Int, percentage: Double, medianDuration: Double, medianInterval: Double)]
 
     var body: some View {
@@ -59,23 +59,23 @@ struct LoopBarChartView: View {
     )) -> String {
         if data.category == .successfulLoop {
             switch selectedDuration {
-            case .Day,
-                 .Today:
+            case .day,
+                 .today:
                 return "\(data.count) " + String(localized: "Loops")
-            case .Month,
-                 .Total,
-                 .Week:
+            case .month,
+                 .total,
+                 .week:
                 return "\(data.count) " + String(localized: "Loops per Day")
             }
         } else {
             // For Glucose Count, show different text based on duration
             switch selectedDuration {
-            case .Day,
-                 .Today:
+            case .day,
+                 .today:
                 return "\(data.count) " + String(localized: "Readings")
-            case .Month,
-                 .Total,
-                 .Week:
+            case .month,
+                 .total,
+                 .week:
                 return "\(data.count) " + String(localized: "Readings per Day")
             }
         }
