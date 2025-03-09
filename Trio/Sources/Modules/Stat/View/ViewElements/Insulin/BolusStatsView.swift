@@ -23,7 +23,7 @@ struct BolusStatsView: View {
     @State private var currentTotal: Double = 0
     /// Timer to throttle updates when scrolling.
     @State private var updateTimer = Stat.UpdateTimer()
-
+    /// The actual chart plot's width in pixel
     @State private var chartWidth: CGFloat = 0
 
     /// Computes the visible date range based on the current scroll position.
@@ -301,7 +301,7 @@ struct BolusStatsView: View {
             )
         )
         .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval))
-        .frame(height: 250)
+        .frame(height: 280)
     }
 }
 
@@ -314,12 +314,14 @@ private struct BolusSelectionPopover: View {
 
     @State private var popoverSize: CGSize = .zero
 
+    @Environment(\.colorScheme) var colorScheme
+
     private var timeText: String {
         if selectedInterval == .day {
             let hour = Calendar.current.component(.hour, from: selectedDate)
-            return "\(hour):00-\(hour + 1):00"
+            return selectedDate.formatted(.dateTime.month().day().weekday()) + "\n" + "\(hour):00-\(hour + 1):00"
         } else {
-            return selectedDate.formatted(.dateTime.month().day())
+            return selectedDate.formatted(.dateTime.month().day().weekday())
         }
     }
 
@@ -355,45 +357,51 @@ private struct BolusSelectionPopover: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(timeText)
-                .font(.footnote)
-                .fontWeight(.bold)
+                .font(.subheadline)
+                .bold()
+                .foregroundStyle(Color.secondary)
 
             Grid(alignment: .leading) {
+                Divider()
                 GridRow {
                     Text("Manual:")
                     Text(bolus.manualBolus.formatted(.number.precision(.fractionLength(1))))
-                        .gridColumnAlignment(.trailing)
-                    Text("U")
+                        .gridColumnAlignment(.trailing).bold()
+                    Text("U").foregroundStyle(Color.secondary)
                 }
                 GridRow {
                     Text("SMB:")
                     Text(bolus.smb.formatted(.number.precision(.fractionLength(1))))
-                        .gridColumnAlignment(.trailing)
-                    Text("U")
+                        .gridColumnAlignment(.trailing).bold()
+                    Text("U").foregroundStyle(Color.secondary)
                 }
                 GridRow {
                     Text("External:")
                     Text(bolus.external.formatted(.number.precision(.fractionLength(1))))
-                        .gridColumnAlignment(.trailing)
-                    Text("U")
+                        .gridColumnAlignment(.trailing).bold()
+                    Text("U").foregroundStyle(Color.secondary)
                 }
                 Divider()
                 GridRow {
                     Text("Total:")
                     Text(
                         (bolus.manualBolus + bolus.smb + bolus.external).formatted(.number.precision(.fractionLength(1)))
-                    )
-                    Text("U")
+                    ).bold()
+                    Text("U").foregroundStyle(Color.secondary)
                 }
             }
-            .font(.headline.bold())
+            .font(.headline)
         }
-        .foregroundStyle(.white)
         .padding(20)
-        .background(
+        .background {
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.insulin)
-        )
+                .fill(colorScheme == .dark ? Color.bgDarkBlue.opacity(0.9) : Color.white.opacity(0.95))
+                .shadow(color: Color.secondary, radius: 2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color.blue, lineWidth: 2)
+                )
+        }
         .frame(minWidth: 180, maxWidth: .infinity) // Ensures proper width
         .background(
             GeometryReader { geo in
