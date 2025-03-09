@@ -433,6 +433,7 @@ extension DataTable {
                                 TextFieldWithToolBar(
                                     text: $state.manualGlucose,
                                     placeholder: " ... ",
+                                    maxValue: state.units == .mmolL ? 400 / 18 : 400,
                                     numberFormatter: manualGlucoseFormatter,
                                     initialFocus: true
                                 )

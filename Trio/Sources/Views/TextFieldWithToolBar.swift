@@ -8,6 +8,7 @@ public struct TextFieldWithToolBar: View {
     var textAlignment: TextAlignment
     var keyboardType: UIKeyboardType
     var maxLength: Int?
+    var maxValue: Decimal?
     var isDismissible: Bool
     var textFieldDidBeginEditing: (() -> Void)?
     var textDidChange: ((Decimal) -> Void)?
@@ -28,6 +29,7 @@ public struct TextFieldWithToolBar: View {
         textAlignment: TextAlignment = .trailing,
         keyboardType: UIKeyboardType = .decimalPad,
         maxLength: Int? = nil,
+        maxValue: Decimal? = nil,
         isDismissible: Bool = true,
         textFieldDidBeginEditing: (() -> Void)? = nil,
         textDidChange: ((Decimal) -> Void)? = nil,
@@ -44,6 +46,7 @@ public struct TextFieldWithToolBar: View {
         self.textAlignment = textAlignment
         self.keyboardType = keyboardType
         self.maxLength = maxLength
+        self.maxValue = maxValue
         self.isDismissible = isDismissible
         self.textFieldDidBeginEditing = textFieldDidBeginEditing
         self.textDidChange = textDidChange
@@ -149,8 +152,15 @@ public struct TextFieldWithToolBar: View {
 
         // Update if valid decimal
         if let decimal = Decimal(string: processedText, locale: numberFormatter.locale) {
-            text = decimal
-            textDidChange?(decimal)
+            if let maxValue = maxValue, decimal > maxValue {
+                text = maxValue
+                localText = numberFormatter.string(from: maxValue as NSNumber) ?? ""
+            } else {
+                text = decimal
+                textDidChange?(decimal)
+            }
+//            text = decimal
+//            textDidChange?(decimal)
 
             // If the processed text is different from the input, update the field
             if processedText != newValue {
