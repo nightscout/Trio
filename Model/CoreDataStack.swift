@@ -182,7 +182,7 @@ class CoreDataStack: ObservableObject {
 
         debug(.coreData, "Set up persistent store change notifications")
     }
-    
+
     /// Loads the persistent stores asynchronously.
     ///
     /// Converts the synchronous NSPersistentContainer loading process into an async/await compatible
