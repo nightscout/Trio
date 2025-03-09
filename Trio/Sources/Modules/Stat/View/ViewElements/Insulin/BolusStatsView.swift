@@ -24,6 +24,8 @@ struct BolusStatsView: View {
     /// Timer to throttle updates when scrolling.
     @State private var updateTimer = Stat.UpdateTimer()
 
+    @State private var chartWidth: CGFloat = 0
+
     /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
         StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
@@ -108,6 +110,13 @@ struct BolusStatsView: View {
                     .padding(.bottom, 4)
 
                 chartsView
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear
+                                .onAppear { chartWidth = geo.size.width }
+                                .onChange(of: geo.size.width) { _, newValue in chartWidth = newValue }
+                        }
+                    )
             }
         }
         .onAppear {
@@ -191,12 +200,24 @@ struct BolusStatsView: View {
                     x: .value("Selected Date", selectedDate)
                 )
                 .foregroundStyle(.secondary.opacity(0.5))
+//                .annotation(
+//                    position: .top,
+//                    spacing: 0,
+//                    overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
+//                ) { context in
                 .annotation(
-                    position: .automatic,
+                    position: .overlay,
+                    alignment: .top,
                     spacing: 0,
                     overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
-                ) {
-                    BolusSelectionPopover(date: selectedDate, bolus: selectedBolus, selectedInterval: selectedInterval)
+                ) { _ in
+                    BolusSelectionPopover(
+                        selectedDate: selectedDate,
+                        bolus: selectedBolus,
+                        selectedInterval: selectedInterval,
+                        domain: visibleDateRange,
+                        chartWidth: chartWidth
+                    )
                 }
             }
         }
@@ -285,17 +306,50 @@ struct BolusStatsView: View {
 }
 
 private struct BolusSelectionPopover: View {
-    let date: Date
+    let selectedDate: Date
     let bolus: BolusStats
     let selectedInterval: Stat.StateModel.StatsTimeInterval
+    let domain: (start: Date, end: Date)
+    let chartWidth: CGFloat
+
+    @State private var popoverSize: CGSize = .zero
 
     private var timeText: String {
         if selectedInterval == .day {
-            let hour = Calendar.current.component(.hour, from: date)
+            let hour = Calendar.current.component(.hour, from: selectedDate)
             return "\(hour):00-\(hour + 1):00"
         } else {
-            return date.formatted(.dateTime.month().day())
+            return selectedDate.formatted(.dateTime.month().day())
         }
+    }
+
+    private func xOffset() -> CGFloat {
+        let domainDuration = domain.end.timeIntervalSince(domain.start)
+        guard domainDuration > 0, chartWidth > 0 else { return 0 }
+
+        let popoverWidth = popoverSize.width
+
+        // Convert dates to pixel'd x-condition
+        let dateFraction = selectedDate.timeIntervalSince(domain.start) / domainDuration
+        let x_selected = dateFraction * chartWidth
+
+        // TODO: this is semi hacky, can this be improved?
+        let x_left = x_selected - (popoverWidth / 2) // Left edge of popover
+        let x_right = x_selected + (popoverWidth / 2) // Right edge of popover
+
+        var offset: CGFloat = 0 // Default = no shift
+
+        // Push popover to right if its left edge is (nearing) out-of-bounds
+        if x_left < 0 {
+            offset = abs(x_left) // push to right
+        }
+
+        // Push popover to left if its right edge is (nearing) out-of-bounds)
+        if x_right > chartWidth {
+            offset = -(x_right - chartWidth) // push to left
+        }
+
+        return offset
     }
 
     var body: some View {
@@ -340,5 +394,15 @@ private struct BolusSelectionPopover: View {
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.insulin)
         )
+        .frame(minWidth: 180, maxWidth: .infinity) // Ensures proper width
+        .background(
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear { popoverSize = geo.size }
+                    .onChange(of: geo.size) { _, newValue in popoverSize = newValue }
+            }
+        )
+        // Apply calculated xOffset to keep within bounds
+        .offset(x: xOffset(), y: 0)
     }
 }
