@@ -156,7 +156,7 @@ struct TotalDailyDoseChart: View {
                 RuleMark(
                     x: .value("Selected Date", selectedDate)
                 )
-                .foregroundStyle(.secondary.opacity(0.5))
+                .foregroundStyle(Color.insulin.opacity(0.5))
                 .annotation(
                     position: .top,
                     spacing: 0,

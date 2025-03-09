@@ -199,12 +199,7 @@ struct BolusStatsView: View {
                 RuleMark(
                     x: .value("Selected Date", selectedDate)
                 )
-                .foregroundStyle(.secondary.opacity(0.5))
-//                .annotation(
-//                    position: .top,
-//                    spacing: 0,
-//                    overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
-//                ) { context in
+                .foregroundStyle(Color.insulin.opacity(0.5))
                 .annotation(
                     position: .overlay,
                     alignment: .top,

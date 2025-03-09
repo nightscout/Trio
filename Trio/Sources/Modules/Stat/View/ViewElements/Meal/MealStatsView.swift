@@ -21,6 +21,8 @@ struct MealStatsView: View {
     @State private var currentAverages: (carbs: Double, fat: Double, protein: Double) = (0, 0, 0)
     /// Timer to throttle updates when scrolling.
     @State private var updateTimer = Stat.UpdateTimer()
+    /// The actual chart plot's width in pixel
+    @State private var chartWidth: CGFloat = 0
 
     /// Computes the visible date range based on the current scroll position.
     private var visibleDateRange: (start: Date, end: Date) {
@@ -87,6 +89,13 @@ struct MealStatsView: View {
                     .padding(.bottom, 4)
 
                 chartsView
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear
+                                .onAppear { chartWidth = geo.size.width }
+                                .onChange(of: geo.size.width) { _, newValue in chartWidth = newValue }
+                        }
+                    )
             }
         }
         .onAppear {
@@ -157,17 +166,19 @@ struct MealStatsView: View {
                 RuleMark(
                     x: .value("Selected Date", selectedDate)
                 )
-                .foregroundStyle(.secondary.opacity(0.5))
+                .foregroundStyle(Color.orange.opacity(0.5))
                 .annotation(
                     position: .top,
                     spacing: 0,
                     overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
                 ) {
                     MealSelectionPopover(
-                        date: selectedDate,
-                        meal: selectedMeal,
+                        selectedDate: selectedDate,
+                        selectedMeal: selectedMeal,
                         selectedInterval: selectedInterval,
-                        isFpuEnabled: state.useFPUconversion
+                        isFpuEnabled: state.useFPUconversion,
+                        domain: visibleDateRange,
+                        chartWidth: chartWidth
                     )
                 }
             }
@@ -276,63 +287,114 @@ struct MealStatsView: View {
 /// - Protein in grams
 private struct MealSelectionPopover: View {
     // The date when the meal was logged
-    let date: Date
+    let selectedDate: Date
     // The meal statistics to display
-    let meal: MealStats
+    let selectedMeal: MealStats
     // The selected duration in the time picker
     let selectedInterval: Stat.StateModel.StatsTimeInterval
     // Setting controlling whether to display fat and protein
     let isFpuEnabled: Bool
+    let domain: (start: Date, end: Date)
+    let chartWidth: CGFloat
+
+    @State private var popoverSize: CGSize = .zero
+
+    @Environment(\.colorScheme) var colorScheme
 
     private var timeText: String {
         if selectedInterval == .day {
-            let hour = Calendar.current.component(.hour, from: date)
-            return "\(hour):00-\(hour + 1):00"
+            let hour = Calendar.current.component(.hour, from: selectedDate)
+            return selectedDate.formatted(.dateTime.month().day().weekday()) + "\n" + "\(hour):00-\(hour + 1):00"
         } else {
-            return date.formatted(.dateTime.month().day())
+            return selectedDate.formatted(.dateTime.month().day().weekday())
         }
+    }
+
+    private func xOffset() -> CGFloat {
+        let domainDuration = domain.end.timeIntervalSince(domain.start)
+        guard domainDuration > 0, chartWidth > 0 else { return 0 }
+
+        let popoverWidth = popoverSize.width
+
+        // Convert dates to pixel'd x-condition
+        let dateFraction = selectedDate.timeIntervalSince(domain.start) / domainDuration
+        let x_selected = dateFraction * chartWidth
+
+        // TODO: this is semi hacky, can this be improved?
+        let x_left = x_selected - (popoverWidth / 2) // Left edge of popover
+        let x_right = x_selected + (popoverWidth / 2) // Right edge of popover
+
+        var offset: CGFloat = 0 // Default = no shift
+
+        // Push popover to right if its left edge is (nearing) out-of-bounds
+        if x_left < 0 {
+            offset = abs(x_left) // push to right
+        }
+
+        // Push popover to left if its right edge is (nearing) out-of-bounds)
+        if x_right > chartWidth {
+            offset = -(x_right - chartWidth) // push to left
+        }
+
+        return offset
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            // Display formatted date header
             Text(timeText)
-                .font(.footnote)
-                .fontWeight(.bold)
+                .font(.subheadline)
+                .bold()
+                .foregroundStyle(Color.secondary)
+
+            Divider()
 
             // Grid layout for macronutrient values
             Grid(alignment: .leading) {
                 // Carbohydrates row
                 GridRow {
                     Text("Carbs:")
-                    Text(meal.carbs.formatted(.number.precision(.fractionLength(1))))
+                    Text(selectedMeal.carbs.formatted(.number.precision(.fractionLength(1))))
                         .gridColumnAlignment(.trailing)
-                    Text("g")
+                    Text("g").foregroundStyle(Color.secondary)
                 }
                 if isFpuEnabled {
                     // Fat row
                     GridRow {
                         Text("Fat:")
-                        Text(meal.fat.formatted(.number.precision(.fractionLength(1))))
+                        Text(selectedMeal.fat.formatted(.number.precision(.fractionLength(1))))
                             .gridColumnAlignment(.trailing)
-                        Text("g")
+                        Text("g").foregroundStyle(Color.secondary)
                     }
                     // Protein row
                     GridRow {
                         Text("Protein:")
-                        Text(meal.protein.formatted(.number.precision(.fractionLength(1))))
+                        Text(selectedMeal.protein.formatted(.number.precision(.fractionLength(1))))
                             .gridColumnAlignment(.trailing)
-                        Text("g")
+                        Text("g").foregroundStyle(Color.secondary)
                     }
                 }
             }
             .font(.headline.bold())
         }
-        .foregroundStyle(.white)
         .padding(20)
-        .background(
+        .background {
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.orange)
+                .fill(colorScheme == .dark ? Color.bgDarkBlue.opacity(0.9) : Color.white.opacity(0.95))
+                .shadow(color: Color.secondary, radius: 2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color.orange, lineWidth: 2)
+                )
+        }
+        .frame(minWidth: 100, maxWidth: .infinity) // Ensures proper width
+        .background(
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear { popoverSize = geo.size }
+                    .onChange(of: geo.size) { _, newValue in popoverSize = newValue }
+            }
         )
+        // Apply calculated xOffset to keep within bounds
+        .offset(x: xOffset(), y: 0)
     }
 }
