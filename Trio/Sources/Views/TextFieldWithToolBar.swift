@@ -106,16 +106,6 @@ public struct TextFieldWithToolBar: View {
             .onChange(of: localText) { _, newValue in
                 handleTextChange(newValue)
             }
-//            .onChange(of: text) { _, newValue in
-//                if newValue == 0, localText.isEmpty {
-//                    // Keep empty state
-//                    return
-//                }
-//                let newText = numberFormatter.string(from: newValue as NSNumber) ?? ""
-//                if localText != newText {
-//                    localText = newText
-//                }
-//            }
             .onAppear {
                 if text != 0 {
                     localText = numberFormatter.string(from: text as NSNumber) ?? ""
