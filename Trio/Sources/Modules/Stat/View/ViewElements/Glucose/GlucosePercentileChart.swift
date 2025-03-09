@@ -87,7 +87,7 @@ struct GlucosePercentileChart: View {
 
                 if let selectedStats, let selection {
                     RuleMark(x: .value("Selection", selection))
-                        .foregroundStyle(.secondary.opacity(0.5))
+                        .foregroundStyle(Color.blue.opacity(0.5))
                         .annotation(
                             position: .top,
                             spacing: 0,
