@@ -708,14 +708,11 @@ extension Treatments.StateModel {
             let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
                 .getNSManagedObject(with: determinationObjectIDs, context: determinationFetchContext)
 
-            return await determinationFetchContext.perform {
-                guard let determinationObject = determinationObjects.first else {
-                    return nil
-                }
+            let determination = await determinationFetchContext.perform {
+                let determinationObject = determinationObjects.first
+                let eventualBG = determinationObject?.eventualBG?.intValue
 
-                let eventualBG = determinationObject.eventualBG?.intValue
-
-                let forecastsSet = determinationObject.forecasts ?? []
+                let forecastsSet = determinationObject?.forecasts ?? []
                 let predictions = Predictions(
                     iob: forecastsSet.extractValues(for: "iob"),
                     zt: forecastsSet.extractValues(for: "zt"),
@@ -728,7 +725,6 @@ extension Treatments.StateModel {
                     reason: "",
                     units: 0,
                     insulinReq: 0,
-                    eventualBG: eventualBG,
                     sensitivityRatio: 0,
                     rate: 0,
                     duration: 0,
@@ -737,23 +733,19 @@ extension Treatments.StateModel {
                     predictions: predictions.isEmpty ? nil : predictions,
                     carbsReq: 0,
                     temp: nil,
-                    bg: 0,
                     reservoir: 0,
-                    isf: 0,
-                    tdd: 0,
-                    insulin: nil,
-                    current_target: 0,
                     insulinForManualBolus: 0,
                     manualBolusErrorString: 0,
-                    minDelta: 0,
-                    expectedDelta: 0,
-                    minGuardBG: 0,
-                    minPredBG: 0,
-                    threshold: 0,
                     carbRatio: 0,
                     received: false
                 )
             }
+
+            guard !determinationObjects.isEmpty else {
+                return nil
+            }
+
+            return determination
         } catch {
             debug(
                 .default,

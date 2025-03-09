@@ -255,7 +255,7 @@ extension Home {
             } else { halfBasalTarget = state.settingHalfBasalTarget }
             var showPercentage = false
             if target > 100, state.isExerciseModeActive || state.highTTraisesSens { showPercentage = true }
-            if target < 100, state.lowTTlowersSens { showPercentage = true }
+            if target < 100, state.lowTTlowersSens, state.autosensMax > 1 { showPercentage = true }
             if showPercentage {
                 percentageString =
                     " \(state.computeAdjustedPercentage(halfBasalTargetValue: halfBasalTarget, tempTargetValue: target))%" }
@@ -494,7 +494,7 @@ extension Home {
                         "TDD: " +
                             (
                                 Formatter.decimalFormatterWithTwoFractionDigits
-                                    .string(from: (state.determinationsFromPersistence.first?.totalDailyDose ?? 0) as NSNumber) ??
+                                    .string(from: (state.fetchedTDDs.first?.totalDailyDose ?? 0) as NSNumber) ??
                                     "0"
                             ) +
                             String(localized: " U", comment: "Insulin unit")

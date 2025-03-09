@@ -63,7 +63,7 @@ extension Home {
         var alarm: GlucoseAlarm?
         var manualTempBasal = false
         var isSmoothingEnabled = false
-        var maxValue: Decimal = 1.2
+        var autosensMax: Decimal = 1.2
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
         var currentGlucoseTarget: Decimal = 100
@@ -86,6 +86,7 @@ extension Home {
         var fpusFromPersistence: [CarbEntryStored] = []
         var determinationsFromPersistence: [OrefDetermination] = []
         var enactedAndNonEnactedDeterminations: [OrefDetermination] = []
+        var fetchedTDDs: [TDD] = []
         var insulinFromPersistence: [PumpEventStored] = []
         var tempBasals: [PumpEventStored] = []
         var suspensions: [PumpEventStored] = []
@@ -125,6 +126,7 @@ extension Home {
         let carbsFetchContext = CoreDataStack.shared.newTaskContext()
         let fpuFetchContext = CoreDataStack.shared.newTaskContext()
         let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+        let tddFetchContext = CoreDataStack.shared.newTaskContext()
         let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
         let overrideFetchContext = CoreDataStack.shared.newTaskContext()
         let tempTargetFetchContext = CoreDataStack.shared.newTaskContext()
@@ -177,6 +179,9 @@ extension Home {
                     }
                     group.addTask {
                         self.setupDeterminationsArray()
+                    }
+                    group.addTask {
+                        self.setupTDDArray()
                     }
                     group.addTask {
                         self.setupInsulinArray()
@@ -235,6 +240,11 @@ extension Home {
             coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupDeterminationsArray()
+            }.store(in: &subscriptions)
+
+            coreDataPublisher?.filteredByEntityName("TDDStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupTDDArray()
             }.store(in: &subscriptions)
 
             coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
@@ -372,7 +382,7 @@ extension Home {
             manualTempBasal = apsManager.isManualTempBasal
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
             glucoseColorScheme = settingsManager.settings.glucoseColorScheme
-            maxValue = settingsManager.preferences.autosensMax
+            autosensMax = settingsManager.preferences.autosensMax
             lowGlucose = settingsManager.settings.low
             highGlucose = settingsManager.settings.high
             hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
@@ -386,7 +396,6 @@ extension Home {
             highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
             lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
-            maxValue = settingsManager.preferences.autosensMax
         }
 
         @MainActor private func setupCGMSettings() async {
@@ -687,7 +696,7 @@ extension Home.StateModel:
     }
 
     func preferencesDidChange(_: Preferences) {
-        maxValue = settingsManager.preferences.autosensMax
+        autosensMax = settingsManager.preferences.autosensMax
         settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
         isExerciseModeActive = settingsManager.preferences.exerciseMode
