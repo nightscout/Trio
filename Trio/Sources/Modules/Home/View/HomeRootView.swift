@@ -292,7 +292,7 @@ extension Home {
                         Group {
                             if button.active {
                                 Text(
-                                    button.hours.description + " " +
+                                    button.hours.description + "\u{00A0}" +
                                         String(localized: "h", comment: "h")
                                 )
                             } else {
@@ -488,37 +488,7 @@ extension Home {
                             .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                 }
-                if state.totalInsulinDisplayType == .totalDailyDose {
-                    Spacer()
-                    Text(
-                        "TDD: " +
-                            (
-                                Formatter.decimalFormatterWithTwoFractionDigits
-                                    .string(from: (state.fetchedTDDs.first?.totalDailyDose ?? 0) as NSNumber) ??
-                                    "0"
-                            ) +
-                            String(localized: " U", comment: "Insulin unit")
-                    )
-                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                } else {
-                    Spacer()
-                    HStack {
-                        Text(
-                            "TINS: \(state.roundedTotalBolus)" +
-                                String(localized: " U", comment: "Unit in number of units delivered (keep the space character!)")
-                        )
-                        .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                        .onChange(of: state.hours) {
-                            state.roundedTotalBolus = state.calculateTINS()
-                        }
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                state.roundedTotalBolus = state.calculateTINS()
-                            }
-                        }
-                    }
-                }
-            }.padding(.horizontal, 10)
+            }.padding(.horizontal)
         }
 
         @ViewBuilder func adjustmentsOverrideView(_ overrideString: String) -> some View {
@@ -1150,18 +1120,19 @@ func is24HourFormat() -> Bool {
     return !dateString.contains("AM") && !dateString.contains("PM")
 }
 
-/// Converts a duration in minutes to a formatted string (e.g., "1 hr 30 min").
+/// Converts a duration in minutes to a formatted string (e.g., "1 h 30 m").
 func formatHrMin(_ durationInMinutes: Int) -> String {
     let hours = durationInMinutes / 60
     let minutes = durationInMinutes % 60
 
     switch (hours, minutes) {
     case let (0, m):
-        return "\(m) min"
+        return "\(m)\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
     case let (h, 0):
-        return "\(h) hr"
+        return "\(h)\u{00A0}" + String(localized: "h", comment: "h")
     default:
-        return "\(hours) hr \(minutes) min"
+        return hours.description + "\u{00A0}" + String(localized: "h", comment: "h") + "\u{00A0}" + minutes
+            .description + "\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
     }
 }
 

@@ -60,7 +60,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         // Observer for OrefDetermination and adjustments
         coreDataPublisher =
             changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
 

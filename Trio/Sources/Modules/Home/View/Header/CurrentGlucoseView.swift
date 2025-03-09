@@ -39,14 +39,6 @@ struct CurrentGlucoseView: View {
         return formatter
     }
 
-    private var timaAgoFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        formatter.negativePrefix = ""
-        return formatter
-    }
-
     var body: some View {
         let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
 
@@ -91,20 +83,24 @@ struct CurrentGlucoseView: View {
                     }
                     HStack {
                         let minutesAgo = -1 * (glucose.last?.date?.timeIntervalSinceNow ?? 0) / 60
-                        let text = timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
-                        Text(
-                            minutesAgo <= 1 ? "< 1 " + String(localized: "min", comment: "Short form for minutes") : (
-                                text + " " +
-                                    String(localized: "min", comment: "Short form for minutes") + " "
-                            )
-                        )
-                        .font(.caption2).foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+                        var minutesAgoString: String {
+                            if minutesAgo > 1 {
+                                let minuteString = Formatter.timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
+                                return minuteString + "\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
+                            } else {
+                                return "<" + "\u{00A0}" + "1" + "\u{00A0}" +
+                                    String(localized: "m", comment: "Abbreviation for Minutes")
+                            }
+                        }
 
-                        Text(
-                            delta
-                        )
-                        .font(.caption2).foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
-                    }.frame(alignment: .top)
+                        Group {
+                            Text(minutesAgoString)
+                            Text(delta)
+                        }
+                        .font(.callout).fontWeight(.bold)
+                        .foregroundStyle(colorScheme == .dark ? Color.white.opacity(0.9) : Color.secondary)
+                    }
+                    .frame(alignment: .top)
                 }
             }
             .onChange(of: glucose.last?.directionEnum) {

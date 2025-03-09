@@ -42,14 +42,13 @@ struct TrioSettings: JSON, Equatable {
     var carbsRequiredThreshold: Decimal = 10
     var showCarbsRequiredBadge: Bool = true
     var useFPUconversion: Bool = true
-    var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
     var individualAdjustmentFactor: Decimal = 0.5
     var timeCap: Int = 8
     var minuteInterval: Int = 30
     var delay: Int = 60
     var useAppleHealth: Bool = false
     var smoothGlucose: Bool = false
-    var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
+    var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
     var high: Decimal = 180
     var low: Decimal = 70
     var hours: Int = 6
@@ -142,10 +141,6 @@ extension TrioSettings: Decodable {
 
         if let useFPUconversion = try? container.decode(Bool.self, forKey: .useFPUconversion) {
             settings.useFPUconversion = useFPUconversion
-        }
-
-        if let totalInsulinDisplayType = try? container.decode(TotalInsulinDisplayType.self, forKey: .totalInsulinDisplayType) {
-            settings.totalInsulinDisplayType = totalInsulinDisplayType
         }
 
         if let individualAdjustmentFactor = try? container.decode(Decimal.self, forKey: .individualAdjustmentFactor) {
@@ -274,8 +269,8 @@ extension TrioSettings: Decodable {
             settings.forecastDisplayType = forecastDisplayType
         }
 
-        if let hbA1cDisplayUnit = try? container.decode(HbA1cDisplayUnit.self, forKey: .hbA1cDisplayUnit) {
-            settings.hbA1cDisplayUnit = hbA1cDisplayUnit
+        if let eA1cDisplayUnit = try? container.decode(EstimatedA1cDisplayUnit.self, forKey: .eA1cDisplayUnit) {
+            settings.eA1cDisplayUnit = eA1cDisplayUnit
         }
 
         if let maxCarbs = try? container.decode(Decimal.self, forKey: .maxCarbs) {

@@ -50,4 +50,9 @@ extension NSPredicate {
             true as NSNumber
         )
     }
+
+    static var determinationsForStats: NSPredicate {
+        let date = Date.threeMonthsAgo
+        return NSPredicate(format: "deliverAt >= %@", date as NSDate)
+    }
 }
