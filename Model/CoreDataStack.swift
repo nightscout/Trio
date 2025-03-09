@@ -12,6 +12,7 @@ class CoreDataStack: ObservableObject {
     let persistentContainer: NSPersistentContainer
 
     private let maxRetries = 3
+    private let initializationCoordinator = CoreDataInitializationCoordinator()
 
     private init(inMemory: Bool = false) {
         self.inMemory = inMemory
@@ -196,7 +197,13 @@ class CoreDataStack: ObservableObject {
         }
     }
 
-    func initializeStack(retryCount: Int = 0) async throws {
+    func initializeStack() async throws {
+        try await initializationCoordinator.ensureInitialized {
+            try await self.initializeStack(retryCount: 0)
+        }
+    }
+
+    private func initializeStack(retryCount: Int) async throws {
         do {
             // Load stores asynchronously
             try await loadPersistentStores()
