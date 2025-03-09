@@ -4,6 +4,13 @@ actor CoreDataInitializationCoordinator {
     private var isInitialized = false
     private var initializationTask: Task<Void, Error>?
 
+    /// Ensures that initialization only happens once and manages multiple concurrent initialization requests.
+    /// This actor provides synchronization for the CoreDataStack initialization process.
+    ///
+    /// - Parameters:
+    ///   - initialization: A closure that performs the actual initialization work.
+    /// - Throws: Any error that might occur during initialization.
+    /// - Returns: Void once initialization is complete.
     func ensureInitialized(perform initialization: @escaping () async throws -> Void) async throws {
         // If already initialized, return immediately
         if isInitialized {

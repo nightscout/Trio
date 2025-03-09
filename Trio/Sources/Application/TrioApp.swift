@@ -24,6 +24,10 @@ extension Notification.Name {
         var error = false
     }
 
+    // We use both InitState and @State variables to track coreDataStack
+    // initialization. We need both to handle the cases when the coreDataStack
+    // finishes before the UI and when it finishes after. SwiftUI doesn't have
+    // clean mechanisms for handling background thread updates, thus this solution.
     let initState = InitState()
 
     @State private var appState = AppState()
@@ -91,6 +95,10 @@ extension Notification.Name {
         deferredInitialization()
     }
 
+    /// Handles the deferred initialization of core components.
+    ///
+    /// Performs CoreDataStack initialization asynchronously and notifies the UI
+    /// of completion or errors via notifications.
     private func deferredInitialization() {
         Task {
             do {
@@ -121,6 +129,10 @@ extension Notification.Name {
         }
     }
 
+    /// Attempts to initialize the CoreDataStack again after a previous failure.
+    ///
+    /// Resets error states and triggers the initialization process from the beginning. Called in response
+    /// to a UI "retry" button press from the Main.LoadingView
     private func retryCoreDataInitialization() {
         showLoadingError = false
         initState.error = false
@@ -168,6 +180,9 @@ extension Notification.Name {
                    let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController
                 {
                     AppVersionChecker.shared.checkAndNotifyVersionStatus(in: rootVC)
+                }
+                if initState.complete {
+                    performCleanupIfNecessary()
                 }
             }
         }

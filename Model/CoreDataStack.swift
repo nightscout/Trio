@@ -182,7 +182,14 @@ class CoreDataStack: ObservableObject {
 
         debug(.coreData, "Set up persistent store change notifications")
     }
-
+    
+    /// Loads the persistent stores asynchronously.
+    ///
+    /// Converts the synchronous NSPersistentContainer loading process into an async/await compatible
+    /// function using a continuation.
+    ///
+    /// - Throws: Any errors encountered during the loading of persistent stores.
+    /// - Returns: Void once stores are loaded successfully
     private func loadPersistentStores() async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             persistentContainer.loadPersistentStores { storeDescription, error in
@@ -197,12 +204,28 @@ class CoreDataStack: ObservableObject {
         }
     }
 
+    /// Public entry point for initializing the CoreData stack.
+    ///
+    /// Uses the initialization coordinator to ensure initialization happens only once,
+    /// even with concurrent calls. Subsequent calls will wait for the original initialization
+    /// to complete.
+    ///
+    /// - Throws: Any errors that occur during initialization.
+    /// - Returns: Void once initialization is complete.
     func initializeStack() async throws {
         try await initializationCoordinator.ensureInitialized {
             try await self.initializeStack(retryCount: 0)
         }
     }
 
+    /// Private implementation of the initialization process with retry capability.
+    ///
+    /// Handles the actual initialization work including store loading, verification,
+    /// notification setup, and error handling with retry logic.
+    ///
+    /// - Parameter retryCount: The current retry attempt number, starting at 0.
+    /// - Throws: CoreDataError or any other error if initialization fails after all retries.
+    /// - Returns: Void when initialization completes successfully.
     private func initializeStack(retryCount: Int) async throws {
         do {
             // Load stores asynchronously
