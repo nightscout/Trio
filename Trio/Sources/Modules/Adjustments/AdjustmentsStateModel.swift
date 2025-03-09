@@ -59,7 +59,7 @@ extension Adjustments {
         var tempTargetPresets: [TempTargetStored] = []
         var scheduledTempTargets: [TempTargetStored] = []
         var percentage: Double = 100
-        var maxValue: Decimal = 1.2
+        var autosensMax: Decimal = 1.2
         var halfBasalTarget: Decimal = 160
         var settingHalfBasalTarget: Decimal = 160
         var highTTraisesSens: Bool = false
@@ -152,7 +152,7 @@ extension Adjustments {
             units = settingsManager.settings.units
             defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
             defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
-            maxValue = settingsManager.preferences.autosensMax
+            autosensMax = settingsManager.preferences.autosensMax
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
@@ -262,7 +262,7 @@ extension Adjustments.StateModel: SettingsObserver, PreferencesObserver {
     func preferencesDidChange(_: Preferences) {
         defaultSmbMinutes = settingsManager.preferences.maxSMBBasalMinutes
         defaultUamMinutes = settingsManager.preferences.maxUAMSMBBasalMinutes
-        maxValue = settingsManager.preferences.autosensMax
+        autosensMax = settingsManager.preferences.autosensMax
         settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         halfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity

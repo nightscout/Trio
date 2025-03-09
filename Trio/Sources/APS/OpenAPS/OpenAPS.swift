@@ -515,6 +515,11 @@ final class OpenAPS {
                 adjustedPreferences.halfBasalExerciseTarget = activeHBT
                 debug(.openAPS, "Updated halfBasalExerciseTarget to active Temp Target value: \(activeHBT)")
             }
+            // Overwrite the lowTTlowersSens if autosensMax does not support it
+            if preferences.lowTemptargetLowersSensitivity, preferences.autosensMax <= 1 {
+                adjustedPreferences.lowTemptargetLowersSensitivity = false
+                debug(.openAPS, "Setting lowTTlowersSens to false due to insufficient autosensMax: \(preferences.autosensMax)")
+            }
         }
 
         do {
