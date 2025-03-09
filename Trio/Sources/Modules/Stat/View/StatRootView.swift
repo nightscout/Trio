@@ -293,12 +293,10 @@ extension Stat {
         }
 
         private var loopStats: some View {
-            StatCard {
-                VStack(spacing: Constants.spacing) {
-                    LoopStatsView(
-                        statsData: state.loopStats
-                    )
-                }
+            VStack(spacing: Constants.spacing) {
+                LoopStatsView(
+                    statsData: state.loopStats
+                )
             }
         }
 
