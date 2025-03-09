@@ -65,6 +65,14 @@ public struct TextFieldWithToolBar: View {
             .toolbar {
                 if isFocused {
                     ToolbarItemGroup(placement: .keyboard) {
+                        Button(action: {
+                            localText = ""
+                            text = 0
+                            textDidChange?(0)
+                        }) {
+                            Image(systemName: "trash")
+                        }
+
                         if showArrows {
                             Button(action: { previousTextField?() }) {
                                 Image(systemName: "chevron.up")
@@ -72,14 +80,6 @@ public struct TextFieldWithToolBar: View {
                             Button(action: { nextTextField?() }) {
                                 Image(systemName: "chevron.down")
                             }
-                        }
-
-                        Button(action: {
-                            localText = ""
-                            text = 0
-                            textDidChange?(0)
-                        }) {
-                            Image(systemName: "trash")
                         }
 
                         Spacer()
@@ -106,16 +106,16 @@ public struct TextFieldWithToolBar: View {
             .onChange(of: localText) { _, newValue in
                 handleTextChange(newValue)
             }
-            .onChange(of: text) { _, newValue in
-                if newValue == 0, localText.isEmpty {
-                    // Keep empty state
-                    return
-                }
-                let newText = numberFormatter.string(from: newValue as NSNumber) ?? ""
-                if localText != newText {
-                    localText = newText
-                }
-            }
+//            .onChange(of: text) { _, newValue in
+//                if newValue == 0, localText.isEmpty {
+//                    // Keep empty state
+//                    return
+//                }
+//                let newText = numberFormatter.string(from: newValue as NSNumber) ?? ""
+//                if localText != newText {
+//                    localText = newText
+//                }
+//            }
             .onAppear {
                 if text != 0 {
                     localText = numberFormatter.string(from: text as NSNumber) ?? ""
@@ -138,8 +138,9 @@ public struct TextFieldWithToolBar: View {
         // Prevent multiple decimal separators
         let decimalSeparatorCount = newValue.filter { String($0) == currentDecimalSeparator }.count
         if decimalSeparatorCount > 1 {
-            // If multiple separators, keep the old value
-            localText = numberFormatter.string(from: text as NSNumber) ?? ""
+            // If there's already a decimal separator, prevent adding another one
+            // by removing the last character (which would be the second decimal separator)
+            localText = String(newValue.dropLast())
             return
         }
 
