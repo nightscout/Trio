@@ -304,7 +304,6 @@
 		BD249D9D2D42FCF500412DEB /* MealStatsSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD249D9C2D42FCF300412DEB /* MealStatsSetup.swift */; };
 		BD249D9F2D42FD0600412DEB /* StackedChartSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD249D9E2D42FD0200412DEB /* StackedChartSetup.swift */; };
 		BD249DA12D42FD1200412DEB /* TDDSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD249DA02D42FD1000412DEB /* TDDSetup.swift */; };
-		BD249DA52D42FD9700412DEB /* CustomDatePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD249DA42D42FD9500412DEB /* CustomDatePicker.swift */; };
 		BD249DA72D42FE4600412DEB /* Calendar+GlucoseStatsChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD249DA62D42FE3800412DEB /* Calendar+GlucoseStatsChart.swift */; };
 		BD2B464E0745FBE7B79913F4 /* NightscoutConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF768BD6264FF7D71D66767 /* NightscoutConfigProvider.swift */; };
 		BD2FF1A02AE29D43005D1C5D /* CheckboxToggleStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */; };
@@ -540,6 +539,7 @@
 		DDAA29852D2D1D9E006546A1 /* AdjustmentsRootView+TempTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAA29842D2D1D98006546A1 /* AdjustmentsRootView+TempTargets.swift */; };
 		DDB37CC52D05048F00D99BF4 /* ContactImageStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */; };
 		DDB37CC72D05127500D99BF4 /* FontExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC62D05127500D99BF4 /* FontExtensions.swift */; };
+		DDCAE8332D78D4A800B1BB51 /* TherapySettingsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */; };
 		DDCE790F2D6F97FC000A4D7A /* SubmodulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */; };
 		DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */; };
 		DDD163122C4C689900CD525A /* AdjustmentsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */; };
@@ -1028,7 +1028,6 @@
 		BD249D9C2D42FCF300412DEB /* MealStatsSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealStatsSetup.swift; sourceTree = "<group>"; };
 		BD249D9E2D42FD0200412DEB /* StackedChartSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackedChartSetup.swift; sourceTree = "<group>"; };
 		BD249DA02D42FD1000412DEB /* TDDSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDDSetup.swift; sourceTree = "<group>"; };
-		BD249DA42D42FD9500412DEB /* CustomDatePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDatePicker.swift; sourceTree = "<group>"; };
 		BD249DA62D42FE3800412DEB /* Calendar+GlucoseStatsChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Calendar+GlucoseStatsChart.swift"; sourceTree = "<group>"; };
 		BD2FF19F2AE29D43005D1C5D /* CheckboxToggleStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckboxToggleStyle.swift; sourceTree = "<group>"; };
 		BD3CC0712B0B89D50013189E /* MainChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChartView.swift; sourceTree = "<group>"; };
@@ -1267,6 +1266,7 @@
 		DDB37CC32D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageStorage.swift; sourceTree = "<group>"; };
 		DDB37CC62D05127500D99BF4 /* FontExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtensions.swift; sourceTree = "<group>"; };
+		DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingsUtil.swift; sourceTree = "<group>"; };
 		DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmodulesView.swift; sourceTree = "<group>"; };
 		DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LiveActivity+Helper.swift"; sourceTree = "<group>"; };
 		DDD163112C4C689900CD525A /* AdjustmentsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentsStateModel.swift; sourceTree = "<group>"; };
@@ -2154,8 +2154,8 @@
 		388E5A5A25B6F05F0019842D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */,
 				BD249DA62D42FE3800412DEB /* Calendar+GlucoseStatsChart.swift */,
-				BD249DA42D42FD9500412DEB /* CustomDatePicker.swift */,
 				DD73FA0E2D74F57300D19D1E /* BackgroundTask+Helper.swift */,
 				CEF1ED6A2D58FB4600FAF41E /* CGMOptions.swift */,
 				C2A0A42E2CE0312C003B98E8 /* ConstantValues.swift */,
@@ -3708,7 +3708,6 @@
 				38AEE75225F022080013F05B /* SettingsManager.swift in Sources */,
 				3894873A2614928B004DF424 /* DispatchTimer.swift in Sources */,
 				3895E4C625B9E00D00214B37 /* Preferences.swift in Sources */,
-				BD249DA52D42FD9700412DEB /* CustomDatePicker.swift in Sources */,
 				CE94598429E9E3E60047C9C6 /* WatchConfigStateModel.swift in Sources */,
 				DD6B7CB92C7BAC6900B75029 /* NightscoutImportResultView.swift in Sources */,
 				38DF1786276A73D400B3528F /* TagCloudView.swift in Sources */,
@@ -4002,6 +4001,7 @@
 				DD9ECB712CA9A0BA00AA7C45 /* RemoteControlConfigProvider.swift in Sources */,
 				63E890B4D951EAA91C071D5C /* BasalProfileEditorStateModel.swift in Sources */,
 				38FEF3FA2737E42000574A46 /* BaseStateModel.swift in Sources */,
+				DDCAE8332D78D4A800B1BB51 /* TherapySettingsUtil.swift in Sources */,
 				BDA25EFD2D261C0000035F34 /* WatchState.swift in Sources */,
 				CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */,
 				385CEA8225F23DFD002D6D5B /* NightscoutStatus.swift in Sources */,
