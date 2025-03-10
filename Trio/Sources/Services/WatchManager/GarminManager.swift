@@ -125,7 +125,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
         coreDataPublisher =
             changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
 

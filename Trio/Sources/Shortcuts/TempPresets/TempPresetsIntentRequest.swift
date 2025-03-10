@@ -2,12 +2,21 @@ import CoreData
 import Foundation
 import UIKit
 
+/// Handles intent requests related to temporary presets, such as fetching, enacting, and canceling temp targets.
 final class TempPresetsIntentRequest: BaseIntentsRequest {
+    /// Enum representing possible errors related to temporary presets.
     enum TempPresetsError: Error {
         case noTempTargetFound
         case noDurationDefined
     }
 
+    /// Tracks whether the intent execution was successful.
+    private var intentSuccess: Bool = false
+
+    /// Fetches and processes all available temporary target presets.
+    ///
+    /// - Returns: An array of `TempPreset` objects.
+    /// - Throws: An error if fetching or processing fails.
     func fetchAndProcessTempTargets() async throws -> [TempPreset] {
         // Fetch all Temp Target Presets via TempTargetStorage
         let allTempTargetPresetsIDs = try await tempTargetsStorage.fetchForTempTargetPresets()
@@ -38,6 +47,10 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
         }
     }
 
+    /// Fetches temporary target presets based on the given identifiers.
+    ///
+    /// - Parameter uuid: An array of preset IDs to fetch.
+    /// - Returns: An array of `TempPreset` objects.
     func fetchIDs(_ uuid: [TempPreset.ID]) async -> [TempPreset] {
         await coredataContext.perform {
             let fetchRequest: NSFetchRequest<TempTargetStored> = TempTargetStored.fetchRequest()
@@ -67,6 +80,10 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
         }
     }
 
+    /// Fetches the `NSManagedObjectID` for a given `TempPreset`.
+    ///
+    /// - Parameter preset: The `TempPreset` to find.
+    /// - Returns: The `NSManagedObjectID` of the temp target if found, otherwise `nil`.
     private func fetchTempTargetID(_ preset: TempPreset) async -> NSManagedObjectID? {
         let fetchRequest: NSFetchRequest<TempTargetStored> = TempTargetStored.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", preset.id.uuidString)
@@ -84,55 +101,43 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
         }
     }
 
+    /// Enacts a temporary target preset by updating Core Data and notifying relevant components.
+    ///
+    /// - Parameter preset: The `TempPreset` to apply.
+    /// - Returns: `true` if successfully enacted, otherwise `false`.
     @MainActor func enactTempTarget(_ preset: TempPreset) async -> Bool {
+        debug(.default, "Enacting Temp Target: \(preset.name)")
+        intentSuccess = false
+
         // Start background task
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "TempTarget Upload") {
-            guard backgroundTaskID != .invalid else { return }
-            Task {
-                // End background task when the time is about to expire
-                UIApplication.shared.endBackgroundTask(backgroundTaskID)
-            }
-            backgroundTaskID = .invalid
-        }
+        backgroundTaskID = startBackgroundTask(withName: "TempTarget Enact")
 
-        // Defer block to end background task when function exits
-        defer {
-            if backgroundTaskID != .invalid {
-                Task {
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                }
-                backgroundTaskID = .invalid
-            }
-        }
+        // Disable previous temp targets if necessary, without starting a background task
+        await disableAllActiveTempTargets(shouldStartBackgroundTask: false)
 
         do {
             // Get NSManagedObjectID of Preset
             guard let tempTargetID = await fetchTempTargetID(preset),
                   let tempTargetObject = try viewContext.existingObject(with: tempTargetID) as? TempTargetStored
-            else { return false }
+            else {
+                endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Enact")
+                throw TempPresetsError.noTempTargetFound
+            }
 
             // Enable TempTarget
             tempTargetObject.enabled = true
             tempTargetObject.date = Date()
             tempTargetObject.isUploadedToNS = false
 
-            // Disable previous overrides if necessary, without starting a background task
-            await disableAllActiveTempTargets(
-                except: tempTargetID,
-                createTempTargetRunEntry: true,
-                shouldStartBackgroundTask: false
-            )
-
             if viewContext.hasChanges {
+                debug(.default, "Saving changes...")
                 try viewContext.save()
-
+                debug(.default, "Waiting for notification...")
                 // Update State variables in TempTargetView
                 Foundation.NotificationCenter.default.post(name: .willUpdateTempTargetConfiguration, object: nil)
 
-                // Await the notification
-                print("Waiting for notification...")
-
+                // Prepare JSON for oref
                 guard let tempTargetDate = tempTargetObject.date, let tempTarget = tempTargetObject.target,
                       let tempTargetDuration = tempTargetObject.duration else { return false }
 
@@ -148,108 +153,105 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                     enabled: tempTargetObject.enabled,
                     halfBasalTarget: tempTargetObject.halfBasalTarget as Decimal?
                 )
-
                 // Save the temp targets to JSON so that they get used by oref
                 tempTargetsStorage.saveTempTargetsToStorage([tempTargetToStoreAsJSON])
 
                 await awaitNotification(.didUpdateTempTargetConfiguration)
-                print("Notification received, continuing...")
 
-                return true
+                debug(.default, "Notification received, continuing...")
+                intentSuccess = true
             }
-        } catch {
-            // Handle error and ensure background task is ended
-            debugPrint("Failed to enact TempTarget: \(error.localizedDescription)")
-        }
 
-        return false
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Enact")
+
+            debug(.default, "Finished. Temp Target enacted via Shortcut.")
+
+            return intentSuccess
+        } catch {
+            debugPrint(
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Temp Target with error: \(error.localizedDescription)"
+            )
+
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Enact")
+
+            intentSuccess = false
+            return intentSuccess
+        }
     }
 
+    /// Cancels an active temporary target.
     func cancelTempTarget() async {
-        await disableAllActiveTempTargets(createTempTargetRunEntry: true, shouldStartBackgroundTask: true)
+        await disableAllActiveTempTargets(shouldStartBackgroundTask: true)
         tempTargetsStorage.saveTempTargetsToStorage([TempTarget.cancel(at: Date().addingTimeInterval(-1))])
     }
 
-    @MainActor func disableAllActiveTempTargets(
-        except tempTargetID: NSManagedObjectID? = nil,
-        createTempTargetRunEntry: Bool,
-        shouldStartBackgroundTask: Bool = true
-    ) async {
-        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+    /// Disables all active temporary targets.
+    ///
+    /// - Parameter shouldStartBackgroundTask: A flag indicating whether a background task should be started.
+    @MainActor func disableAllActiveTempTargets(shouldStartBackgroundTask: Bool) async {
+        var backgroundTaskID: UIBackgroundTaskIdentifier?
 
         if shouldStartBackgroundTask {
-            // Start background task
-            backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "TempTarget Cancel") {
-                guard backgroundTaskID != .invalid else { return }
-                Task {
-                    // End background task when the time is about to expire
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                }
-                backgroundTaskID = .invalid
-            }
-        }
-
-        // Defer block to end background task when function exits, only if it was started
-        defer {
-            if shouldStartBackgroundTask, backgroundTaskID != .invalid {
-                Task {
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                }
-                backgroundTaskID = .invalid
-            }
+            debug(.default, "Starting background task for temp target cancel")
+            backgroundTaskID = .invalid
+            backgroundTaskID = startBackgroundTask(withName: "TempTarget Cancel")
         }
 
         do {
-            // Get NSManagedObjectID of all active temp Targets
+            // Fetch active temp targets
             let ids = try await tempTargetsStorage.loadLatestTempTargetConfigurations(fetchLimit: 0)
-            // Fetch existing OverrideStored objects
             let results = try ids.compactMap { id in
                 try self.viewContext.existingObject(with: id) as? TempTargetStored
             }
 
-            // Return early if no results
-            guard !results.isEmpty else { return }
+            guard !results.isEmpty else {
+                debug(.default, "No active temp targets to cancel... returning early")
 
-            // Create TempTargetRunStored entry if needed
-            if createTempTargetRunEntry {
-                // Use the first temp target to create a new TempTargetRunStored entry
-                if let canceledTempTarget = results.first {
-                    let newTempTargetRunStored = TempTargetRunStored(context: viewContext)
-                    newTempTargetRunStored.id = UUID()
-                    newTempTargetRunStored.name = canceledTempTarget.name
-                    newTempTargetRunStored.startDate = canceledTempTarget.date ?? .distantPast
-                    newTempTargetRunStored.endDate = Date()
-                    newTempTargetRunStored
-                        .target = canceledTempTarget.target ?? 0
-                    newTempTargetRunStored.tempTarget = canceledTempTarget
-                    newTempTargetRunStored.isUploadedToNS = false
+                if var backgroundTaskID = backgroundTaskID {
+                    debug(.default, "Ending background task for temp target cancel")
+                    endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
                 }
+                return
             }
 
-            // Disable all override except the one with overrideID
+            // Create a new `TempTargetRunStored` entry
+            if let canceledTempTarget = results.first {
+                let newTempTargetRunStored = TempTargetRunStored(context: viewContext)
+                newTempTargetRunStored.id = UUID()
+                newTempTargetRunStored.name = canceledTempTarget.name
+                newTempTargetRunStored.startDate = canceledTempTarget.date ?? .distantPast
+                newTempTargetRunStored.endDate = Date()
+                newTempTargetRunStored.target = canceledTempTarget.target ?? 0
+                newTempTargetRunStored.tempTarget = canceledTempTarget
+                newTempTargetRunStored.isUploadedToNS = false
+            }
+
+            // Disable all temp targets
             for tempTargetToCancel in results {
-                if tempTargetToCancel.objectID != tempTargetID {
-                    tempTargetToCancel.enabled = false
-                    tempTargetToCancel.isUploadedToNS = false
-                }
+                tempTargetToCancel.enabled = false
+                tempTargetToCancel.isUploadedToNS = false
             }
 
             if viewContext.hasChanges {
                 try viewContext.save()
-
-                // Update State variables in OverrideView
+                debug(.default, "Waiting for notification...")
                 Foundation.NotificationCenter.default.post(name: .willUpdateTempTargetConfiguration, object: nil)
+                await awaitNotification(.didUpdateTempTargetConfiguration)
+                debug(.default, "Notification received, continuing...")
             }
 
-            // Await the notification
-            print("Waiting for notification...")
-            await awaitNotification(.didUpdateTempTargetConfiguration)
-            print("Notification received, continuing...")
-
+            if var backgroundTaskID = backgroundTaskID {
+                debug(.default, "Ending background task for temp target cancel")
+                endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
+            }
         } catch {
             debugPrint(
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Temp Targets with error: \(error.localizedDescription)"
             )
+            if var backgroundTaskID = backgroundTaskID {
+                debug(.default, "Ending background task for temp target cancel")
+                endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel")
+            }
         }
     }
 }

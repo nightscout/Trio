@@ -350,6 +350,7 @@ import WatchConnectivity
                 // reset input amounts
                 self.bolusAmount = 0
                 self.carbsAmount = 0
+
                 // reset auth progress
                 self.confirmationProgress = 0
             }

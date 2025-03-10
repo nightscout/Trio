@@ -63,12 +63,12 @@ extension Home {
         var alarm: GlucoseAlarm?
         var manualTempBasal = false
         var isSmoothingEnabled = false
-        var maxValue: Decimal = 1.2
+        var autosensMax: Decimal = 1.2
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
         var currentGlucoseTarget: Decimal = 100
         var glucoseColorScheme: GlucoseColorScheme = .staticColor
-        var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
+        var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
         var displayXgridLines: Bool = false
         var displayYgridLines: Bool = false
         var thresholdLines: Bool = false
@@ -76,7 +76,6 @@ extension Home {
         var totalBolus: Decimal = 0
         var isLoopStatusPresented: Bool = false
         var isLegendPresented: Bool = false
-        var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
         var roundedTotalBolus: String = ""
         var selectedTab: Int = 0
         var waitForSuggestion: Bool = false
@@ -86,6 +85,7 @@ extension Home {
         var fpusFromPersistence: [CarbEntryStored] = []
         var determinationsFromPersistence: [OrefDetermination] = []
         var enactedAndNonEnactedDeterminations: [OrefDetermination] = []
+        var fetchedTDDs: [TDD] = []
         var insulinFromPersistence: [PumpEventStored] = []
         var tempBasals: [PumpEventStored] = []
         var suspensions: [PumpEventStored] = []
@@ -125,6 +125,7 @@ extension Home {
         let carbsFetchContext = CoreDataStack.shared.newTaskContext()
         let fpuFetchContext = CoreDataStack.shared.newTaskContext()
         let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+        let tddFetchContext = CoreDataStack.shared.newTaskContext()
         let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
         let overrideFetchContext = CoreDataStack.shared.newTaskContext()
         let tempTargetFetchContext = CoreDataStack.shared.newTaskContext()
@@ -177,6 +178,9 @@ extension Home {
                     }
                     group.addTask {
                         self.setupDeterminationsArray()
+                    }
+                    group.addTask {
+                        self.setupTDDArray()
                     }
                     group.addTask {
                         self.setupInsulinArray()
@@ -235,6 +239,11 @@ extension Home {
             coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupDeterminationsArray()
+            }.store(in: &subscriptions)
+
+            coreDataPublisher?.filteredByEntityName("TDDStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupTDDArray()
             }.store(in: &subscriptions)
 
             coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
@@ -372,21 +381,19 @@ extension Home {
             manualTempBasal = apsManager.isManualTempBasal
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
             glucoseColorScheme = settingsManager.settings.glucoseColorScheme
-            maxValue = settingsManager.preferences.autosensMax
+            autosensMax = settingsManager.preferences.autosensMax
             lowGlucose = settingsManager.settings.low
             highGlucose = settingsManager.settings.high
-            hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
+            eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
-            totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
             showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
             forecastDisplayType = settingsManager.settings.forecastDisplayType
             isExerciseModeActive = settingsManager.preferences.exerciseMode
             highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
             lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
-            maxValue = settingsManager.preferences.autosensMax
         }
 
         @MainActor private func setupCGMSettings() async {
@@ -516,55 +523,6 @@ extension Home {
             }
         }
 
-        func calculateTINS() -> String {
-            let startTime = calculateStartTime(hours: Int(hours))
-
-            let totalBolus = calculateTotalBolus(from: insulinFromPersistence, since: startTime)
-            let totalBasal = calculateTotalBasal(from: insulinFromPersistence, since: startTime)
-
-            let totalInsulin = totalBolus + totalBasal
-
-            return formatInsulinAmount(totalInsulin)
-        }
-
-        private func calculateStartTime(hours: Int) -> Date {
-            let date = Date()
-            let calendar = Calendar.current
-            var offsetComponents = DateComponents()
-            offsetComponents.hour = -hours
-            return calendar.date(byAdding: offsetComponents, to: date)!
-        }
-
-        private func calculateTotalBolus(from events: [PumpEventStored], since startTime: Date) -> Double {
-            let bolusEvents = events.filter { $0.timestamp ?? .distantPast >= startTime && $0.type == PumpEvent.bolus.rawValue }
-            return bolusEvents.compactMap { $0.bolus?.amount?.doubleValue }.reduce(0, +)
-        }
-
-        private func calculateTotalBasal(from events: [PumpEventStored], since startTime: Date) -> Double {
-            let basalEvents = events
-                .filter { $0.timestamp ?? .distantPast >= startTime && $0.type == PumpEvent.tempBasal.rawValue }
-                .sorted { $0.timestamp ?? .distantPast < $1.timestamp ?? .distantPast }
-
-            var basalDurations: [Double] = []
-            for (index, basalEntry) in basalEvents.enumerated() {
-                if index + 1 < basalEvents.count {
-                    let nextEntry = basalEvents[index + 1]
-                    let durationInSeconds = nextEntry.timestamp?.timeIntervalSince(basalEntry.timestamp ?? Date()) ?? 0
-                    basalDurations.append(durationInSeconds / 3600) // Conversion to hours
-                }
-            }
-
-            return zip(basalEvents, basalDurations).map { entry, duration in
-                guard let rate = entry.tempBasal?.rate?.doubleValue else { return 0 }
-                return rate * duration
-            }.reduce(0, +)
-        }
-
-        private func formatInsulinAmount(_ amount: Double) -> String {
-            let roundedAmount = Decimal(round(100 * amount) / 100)
-            return roundedAmount.formatted()
-        }
-
         private func setupPumpSettings() async {
             let maxBasal = await provider.pumpSettings().maxBasal
             await MainActor.run {
@@ -672,12 +630,11 @@ extension Home.StateModel:
             await getCurrentGlucoseTarget()
             await setupGlucoseTargets()
         }
-        hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
+        eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
         glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks
-        totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
         showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
         forecastDisplayType = settingsManager.settings.forecastDisplayType
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
@@ -690,7 +647,7 @@ extension Home.StateModel:
     }
 
     func preferencesDidChange(_: Preferences) {
-        maxValue = settingsManager.preferences.autosensMax
+        autosensMax = settingsManager.preferences.autosensMax
         settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
         isExerciseModeActive = settingsManager.preferences.exerciseMode

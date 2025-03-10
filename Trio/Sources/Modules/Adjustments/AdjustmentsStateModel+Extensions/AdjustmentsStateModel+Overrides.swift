@@ -1,6 +1,7 @@
 import Combine
 import CoreData
 import Foundation
+import SwiftUICore
 
 extension Adjustments.StateModel {
     // MARK: - Enact Overrides
@@ -370,14 +371,38 @@ extension Adjustments.StateModel {
 }
 
 enum IsfAndOrCrOptions: String, CaseIterable {
-    case isfAndCr = "ISF/CR"
-    case isf = "ISF"
-    case cr = "CR"
-    case nothing = "None"
+    case isfAndCr
+    case isf
+    case cr
+    case nothing
+
+    var displayName: String {
+        switch self {
+        case .isfAndCr:
+            return String(localized: "ISF/CR", comment: "Option for both ISF and CR")
+        case .isf:
+            return String(localized: "ISF", comment: "Option for Insulin Sensitivity Factor")
+        case .cr:
+            return String(localized: "CR", comment: "Option for Carb Ratio")
+        case .nothing:
+            return String(localized: "None", comment: "Option for no selection")
+        }
+    }
 }
 
 enum DisableSmbOptions: String, CaseIterable {
-    case dontDisable = "Don't Disable"
-    case disable = "Disable"
-    case disableOnSchedule = "Disable on Schedule"
+    case dontDisable
+    case disable
+    case disableOnSchedule
+
+    var displayName: String {
+        switch self {
+        case .dontDisable:
+            return String(localized: "Don't Disable", comment: "Option to keep SMB enabled")
+        case .disable:
+            return String(localized: "Disable", comment: "Option to disable SMB")
+        case .disableOnSchedule:
+            return String(localized: "Disable on Schedule", comment: "Option to disable SMB based on schedule")
+        }
+    }
 }

@@ -11,6 +11,7 @@ extension TargetBehavoir {
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
+        @State private var showAutosensMaxAlert = false
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
@@ -59,7 +60,7 @@ extension TargetBehavoir {
 
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.lowTemptargetLowersSensitivity,
+                    booleanValue: effectiveLowTTLowersSensBinding,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
@@ -86,7 +87,7 @@ extension TargetBehavoir {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "When this feature is enabled, setting a temporary target below \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) will increase the Autosens Ratio used for ISF and basal adjustments, resulting in more insulin delivered overall. This scales with the temporary target set; the lower the Temp Target, the higher the Autosens Ratio used."
+                            "When this feature is enabled, setting a temporary target below \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) will increase the Autosens Ratio used for ISF and basal adjustments, resulting in more insulin delivered overall. This scales with the temporary target set; the lower the Temp Target, the higher the Autosens Ratio used. It requires Algorithm Settings > Autosens > Autosens Max to be set to > 100% to work."
                         )
                         Text(
                             "If Half Basal Exercise Target is \(state.units == .mgdL ? "160" : 160.formattedAsMmolL) \(state.units.rawValue), a Temp Target of \(state.units == .mgdL ? "95" : 95.formattedAsMmolL) \(state.units.rawValue) uses an Autosens Ratio of 1.09. A Temp Target of \(state.units == .mgdL ? "85" : 85.formattedAsMmolL) \(state.units.rawValue) uses an Autosens Ratio of 1.33."
@@ -186,11 +187,32 @@ extension TargetBehavoir {
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
+            .alert(
+                "Cannot Enable This Setting",
+                isPresented: $showAutosensMaxAlert
+            ) {
+                // Alert button(s). For a single button:
+                Button("Got it!", role: .cancel) {}
+            } message: {
+                Text(
+                    "This feature cannot be enabled unless Algorithm Settings > Autosens > Autosens Max is set higher than 100%."
+                )
+            }
             .navigationTitle("Target Behavior")
             .navigationBarTitleDisplayMode(.automatic)
-//            .onDisappear {
-//                state.saveIfChanged()
-//            }
+        }
+
+        private var effectiveLowTTLowersSensBinding: Binding<Bool> {
+            Binding(
+                get: { state.autosensMax > 1 && state.lowTemptargetLowersSensitivity },
+                set: { newValue in
+                    if newValue, state.autosensMax <= 1 {
+                        showAutosensMaxAlert = true
+                    } else {
+                        state.lowTemptargetLowersSensitivity = newValue
+                    }
+                }
+            )
         }
     }
 }

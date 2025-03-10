@@ -23,8 +23,15 @@ struct OverrideView: ChartContent {
                 attribute: "duration",
                 context: viewContext
             ) ?? 0
-            let end: Date = duration != 0 ? start.addingTimeInterval(duration) : start
-                .addingTimeInterval(60 * 60 * 24 * 30) // handle infinite overrides -> 60s x 60m x 24h x 30d = 30 days duration
+            let end: Date = {
+                if override.indefinite {
+                    return start.addingTimeInterval(60 * 60 * 24 * 30)
+                } else if duration != 0 {
+                    return start.addingTimeInterval(duration)
+                } else {
+                    return start.addingTimeInterval(60 * 60 * 24 * 30)
+                }
+            }()
 
             let target = getOverrideTarget(override: override)
 
