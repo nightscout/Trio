@@ -9,12 +9,13 @@ import Testing
 @Suite("PumpHistoryStorage Tests", .serialized) struct PumpHistoryStorageTests: Injectable {
     @Injected() var storage: PumpHistoryStorage!
     let resolver: Resolver
-    let coreDataStack = CoreDataStack.createForTests()
-    let testContext: NSManagedObjectContext
+    var coreDataStack: CoreDataStack!
+    var testContext: NSManagedObjectContext!
     typealias PumpEvent = PumpEventStored.EventType
 
-    init() {
+    init() async throws {
         // Create test context
+        coreDataStack = try await CoreDataStack.createForTests()
         testContext = coreDataStack.newTaskContext()
 
         // Create assembler with test assembly

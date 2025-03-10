@@ -11,6 +11,9 @@ class CoreDataStack: ObservableObject {
 
     let persistentContainer: NSPersistentContainer
 
+    private let maxRetries = 3
+    private let initializationCoordinator = CoreDataInitializationCoordinator()
+
     private init(inMemory: Bool = false) {
         self.inMemory = inMemory
 
@@ -41,29 +44,12 @@ class CoreDataStack: ObservableObject {
         description.shouldMigrateStoreAutomatically = true
         description.shouldInferMappingModelAutomatically = true
 
-        persistentContainer.loadPersistentStores { _, error in
-            if let error = error as NSError? {
-                fatalError("Unresolved Error \(DebuggingIdentifiers.failed) \(error), \(error.userInfo)")
-            }
-        }
-
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = false
         persistentContainer.viewContext.name = "viewContext"
         /// - Tag: viewContextmergePolicy
         persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         persistentContainer.viewContext.undoManager = nil
         persistentContainer.viewContext.shouldDeleteInaccessibleFaults = true
-
-        // Observe Core Data remote change notifications on the queue where the changes were made
-        notificationToken = Foundation.NotificationCenter.default.addObserver(
-            forName: .NSPersistentStoreRemoteChange,
-            object: nil,
-            queue: nil
-        ) { _ in
-            Task {
-                await self.fetchPersistentHistory()
-            }
-        }
     }
 
     deinit {
@@ -84,19 +70,18 @@ class CoreDataStack: ObservableObject {
     }
 
     // Factory method for tests
-    static func createForTests() -> CoreDataStack {
-        CoreDataStack(inMemory: true)
+    static func createForTests() async throws -> CoreDataStack {
+        let stack = CoreDataStack(inMemory: true)
+        try await stack.initializeStack()
+        return stack
     }
 
     // Used for Canvas Preview
-    static var preview: CoreDataStack = {
+    static func preview() async throws -> CoreDataStack {
         let stack = CoreDataStack(inMemory: true)
-        let context = stack.persistentContainer.viewContext
-
-        let pumpHistory = PumpEventStored.makePreviewEvents(count: 10, provider: stack)
-
+        try await stack.initializeStack()
         return stack
-    }()
+    }
 
     // Shared managed object model
     static var managedObjectModel: NSManagedObjectModel = {
@@ -183,13 +168,96 @@ class CoreDataStack: ObservableObject {
         }
     }
 
-    func initializeStack() throws {
-        // Force initialization of persistent container
-        let container = persistentContainer
+    private func setupPersistentStoreChangeNotifications() {
+        // Observe Core Data remote change notifications on the queue where the changes were made
+        notificationToken = Foundation.NotificationCenter.default.addObserver(
+            forName: .NSPersistentStoreRemoteChange,
+            object: nil,
+            queue: nil
+        ) { _ in
+            Task {
+                await self.fetchPersistentHistory()
+            }
+        }
 
-        // Verify the store is loaded
-        guard container.persistentStoreCoordinator.persistentStores.isEmpty == false else {
-            throw CoreDataError.storeNotInitializedError(function: #function, file: #file)
+        debug(.coreData, "Set up persistent store change notifications")
+    }
+
+    /// Loads the persistent stores asynchronously.
+    ///
+    /// Converts the synchronous NSPersistentContainer loading process into an async/await compatible
+    /// function using a continuation.
+    ///
+    /// - Throws: Any errors encountered during the loading of persistent stores.
+    /// - Returns: Void once stores are loaded successfully
+    private func loadPersistentStores() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            persistentContainer.loadPersistentStores { storeDescription, error in
+                if let error = error {
+                    warning(.coreData, "Failed to load persistent stores: \(error.localizedDescription)")
+                    continuation.resume(throwing: error)
+                } else {
+                    debug(.coreData, "Successfully loaded persistent store: \(storeDescription.url?.absoluteString ?? "unknown")")
+                    continuation.resume(returning: ())
+                }
+            }
+        }
+    }
+
+    /// Public entry point for initializing the CoreData stack.
+    ///
+    /// Uses the initialization coordinator to ensure initialization happens only once,
+    /// even with concurrent calls. Subsequent calls will wait for the original initialization
+    /// to complete.
+    ///
+    /// - Throws: Any errors that occur during initialization.
+    /// - Returns: Void once initialization is complete.
+    func initializeStack() async throws {
+        try await initializationCoordinator.ensureInitialized {
+            try await self.initializeStack(retryCount: 0)
+        }
+    }
+
+    /// Private implementation of the initialization process with retry capability.
+    ///
+    /// Handles the actual initialization work including store loading, verification,
+    /// notification setup, and error handling with retry logic.
+    ///
+    /// - Parameter retryCount: The current retry attempt number, starting at 0.
+    /// - Throws: CoreDataError or any other error if initialization fails after all retries.
+    /// - Returns: Void when initialization completes successfully.
+    private func initializeStack(retryCount: Int) async throws {
+        do {
+            // Load stores asynchronously
+            try await loadPersistentStores()
+
+            // Verify the store is loaded
+            guard persistentContainer.persistentStoreCoordinator.persistentStores.isEmpty == false else {
+                let error = CoreDataError.storeNotInitializedError(function: #function, file: #file)
+                throw error
+            }
+
+            setupPersistentStoreChangeNotifications()
+
+            debug(.coreData, "Core Data stack initialized successfully")
+
+        } catch {
+            debug(.coreData, "Failed to initialize Core Data stack: \(error.localizedDescription)")
+
+            // If we still have retries left, try again after a delay
+            if retryCount < maxRetries {
+                debug(.coreData, "Retrying initialization (\(retryCount + 1)/\(maxRetries))")
+
+                // Wait before retrying
+                try await Task.sleep(for: .seconds(1))
+
+                // Retry the initialization
+                try await initializeStack(retryCount: retryCount + 1)
+            } else {
+                // We've exhausted our retries
+                debug(.coreData, "Core Data initialization failed after \(maxRetries) attempts")
+                throw error
+            }
         }
     }
 }

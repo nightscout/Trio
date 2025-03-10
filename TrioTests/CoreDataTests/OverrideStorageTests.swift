@@ -8,12 +8,13 @@ import Testing
 @Suite("Override Storage Tests", .serialized) struct OverrideStorageTests: Injectable {
     @Injected() var storage: OverrideStorage!
     let resolver: Resolver
-    let coreDataStack = CoreDataStack.createForTests()
-    let testContext: NSManagedObjectContext
+    var coreDataStack: CoreDataStack!
+    var testContext: NSManagedObjectContext!
 
-    init() {
+    init() async throws {
         // Create test context
         // As we are only using this single test context to initialize our in-memory DeterminationStorage we need to perform the Unit Tests serialized
+        coreDataStack = try await CoreDataStack.createForTests()
         testContext = coreDataStack.newTaskContext()
 
         // Create assembler with test assembly
@@ -68,7 +69,7 @@ import Testing
         try await storage.storeOverride(override: testOverride)
 
         // Then verify stored entries
-        let storedEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let storedEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "name == %@", "Test Override"),
@@ -158,7 +159,7 @@ import Testing
         try await storage.storeOverride(override: testPreset)
 
         // Get the stored preset's ObjectID
-        let storedEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let storedEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "name == %@", "Delete Test"),
@@ -174,7 +175,7 @@ import Testing
         await storage.deleteOverridePreset(objectID)
 
         // Then verify deletion
-        let remainingEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let remainingEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: OverrideStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "name == %@", "Delete Test"),
