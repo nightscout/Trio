@@ -105,53 +105,81 @@ extension PluginSource: CGMManagerDelegate {
     func recordRetractedAlert(_: LoopKit.Alert, at _: Date) {}
 
     func cgmManagerWantsDeletion(_ manager: CGMManager) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        debug(.deviceManager, " CGM Manager with identifier \(manager.pluginIdentifier) wants deletion")
-        glucoseManager?.deleteGlucoseSource()
+        processQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            dispatchPrecondition(condition: .onQueue(self.processQueue))
+
+            debug(.deviceManager, " CGM Manager with identifier \(manager.pluginIdentifier) wants deletion")
+            self.glucoseManager?.deleteGlucoseSource()
+        }
     }
 
     func cgmManager(_: CGMManager, hasNew readingResult: CGMReadingResult) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        promise?(readCGMResult(readingResult: readingResult))
-        debug(.deviceManager, "CGM PLUGIN - Direct return done")
+        processQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            dispatchPrecondition(condition: .onQueue(self.processQueue))
+
+            self.promise?(self.readCGMResult(readingResult: readingResult))
+            debug(.deviceManager, "CGM PLUGIN - Direct return done")
+        }
     }
 
     func cgmManager(_: LoopKit.CGMManager, hasNew events: [LoopKit.PersistedCgmEvent]) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        // TODO: Events in APS ?
-        // currently only display in log the date of the event
-        events.forEach { event in
-            debug(.deviceManager, "events from CGM at \(event.date)")
+        processQueue.async { [weak self] in
+            guard let self = self else { return }
 
-            if event.type == .sensorStart {
-                self.glucoseManager?.removeCalibrations()
+            dispatchPrecondition(condition: .onQueue(self.processQueue))
+
+            // TODO: Events in APS ?
+            // currently only display in log the date of the event
+            events.forEach { event in
+                debug(.deviceManager, "events from CGM at \(event.date)")
+
+                if event.type == .sensorStart {
+                    self.glucoseManager?.removeCalibrations()
+                }
             }
         }
     }
 
     func startDateToFilterNewData(for _: CGMManager) -> Date? {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        return glucoseStorage.lastGlucoseDate()
+        var date: Date?
+
+        processQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            dispatchPrecondition(condition: .onQueue(self.processQueue))
+
+            date = glucoseStorage.lastGlucoseDate()
+        }
+
+        return date
     }
 
     func cgmManagerDidUpdateState(_ cgmManager: CGMManager) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
+        processQueue.async { [weak self] in
+            guard let self = self else { return }
 
-        guard let fetchGlucoseManager = glucoseManager else {
-            debug(
-                .deviceManager,
-                "Could not gracefully unwrap FetchGlucoseManager upon observing LoopKit's cgmManagerDidUpdateState"
+            dispatchPrecondition(condition: .onQueue(self.processQueue))
+
+            guard let fetchGlucoseManager = self.glucoseManager else {
+                debug(
+                    .deviceManager,
+                    "Could not gracefully unwrap FetchGlucoseManager upon observing LoopKit's cgmManagerDidUpdateState"
+                )
+                return
+            }
+            // Adjust app-specific NS Upload setting value when CGM setting is changed
+            fetchGlucoseManager.settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
+
+            fetchGlucoseManager.updateGlucoseSource(
+                cgmGlucoseSourceType: fetchGlucoseManager.settingsManager.settings.cgm,
+                cgmGlucosePluginId: fetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier,
+                newManager: cgmManager as? CGMManagerUI
             )
-            return
         }
-        // Adjust app-specific NS Upload setting value when CGM setting is changed
-        fetchGlucoseManager.settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
-
-        fetchGlucoseManager.updateGlucoseSource(
-            cgmGlucoseSourceType: fetchGlucoseManager.settingsManager.settings.cgm,
-            cgmGlucosePluginId: fetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier,
-            newManager: cgmManager as? CGMManagerUI
-        )
     }
 
     func credentialStoragePrefix(for _: CGMManager) -> String {
@@ -162,7 +190,11 @@ extension PluginSource: CGMManagerDelegate {
     func cgmManager(_: CGMManager, didUpdate status: CGMManagerStatus) {
         debug(.deviceManager, "CGM Manager did update state to \(status)")
 
-        processQueue.async {
+        processQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            dispatchPrecondition(condition: .onQueue(self.processQueue))
+
             if self.cgmHasValidSensorSession != status.hasValidSensorSession {
                 self.cgmHasValidSensorSession = status.hasValidSensorSession
             }

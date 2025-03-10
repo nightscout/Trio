@@ -164,13 +164,9 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         debug(.apsManager, "plugin : \(String(describing: cgmManager?.pluginIdentifier))")
 
         if let manager = newManager {
-            // If the pointer to manager is the *same* as our current `cgmManager`, skip re-init
-            if manager !== cgmManager {
-                // or do a more thorough check to see if it is the same class & state
-                removeCalibrations()
-                cgmManager = manager
-                glucoseSource = nil
-            }
+            removeCalibrations()
+            cgmManager = manager
+            glucoseSource = nil
         } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
             cgmManager = cgmManagerFromRawValue(rawCGMManager)
             updateManagerUnits(cgmManager)
@@ -248,29 +244,22 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         var filteredByDate: [BloodGlucose] = []
         var filtered: [BloodGlucose] = []
 
-        // start background time extension
-        var backGroundFetchBGTaskID: UIBackgroundTaskIdentifier?
-        backGroundFetchBGTaskID = await UIApplication.shared.beginBackgroundTask(withName: "save BG starting") {
-            guard let bg = backGroundFetchBGTaskID else { return }
-            UIApplication.shared.endBackgroundTask(bg)
-            backGroundFetchBGTaskID = .invalid
-        }
+        // Start background task
+        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+        backgroundTaskID = startBackgroundTask(withName: "Glucose Store and Heartbeat Decision")
 
-        defer {
-            if let backgroundTask = backGroundFetchBGTaskID {
-                Task {
-                    await UIApplication.shared.endBackgroundTask(backgroundTask)
-                }
-                backGroundFetchBGTaskID = .invalid
-            }
+        guard newGlucose.isNotEmpty else {
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "Glucose Store and Heartbeat Decision")
+            return
         }
-
-        guard newGlucose.isNotEmpty else { return }
 
         filteredByDate = newGlucose.filter { $0.dateString > syncDate }
         filtered = glucoseStorage.filterTooFrequentGlucose(filteredByDate, at: syncDate)
 
-        guard filtered.isNotEmpty else { return }
+        guard filtered.isNotEmpty else {
+            endBackgroundTaskSafely(&backgroundTaskID, taskName: "Glucose Store and Heartbeat Decision")
+            return
+        }
         debug(.deviceManager, "New glucose found")
 
         // filter the data if it is the case
@@ -289,6 +278,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
         try await glucoseStorage.storeGlucose(filtered)
         deviceDataManager.heartbeat(date: Date())
+
+        endBackgroundTaskSafely(&backgroundTaskID, taskName: "Glucose Store and Heartbeat Decision")
     }
 
     func sourceInfo() -> [String: Any]? {

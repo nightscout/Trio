@@ -232,7 +232,7 @@ struct EditTempTargetForm: View {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        Text(state.formatHrMin(Int(duration)))
+                        Text(state.formatHoursAndMinutes(Int(duration)))
                             .foregroundColor(!displayPickerDuration ? (duration > 0 ? .primary : .secondary) : .accentColor)
                             .onTapGesture {
                                 displayPickerDuration = toggleScrollWheel(displayPickerDuration)

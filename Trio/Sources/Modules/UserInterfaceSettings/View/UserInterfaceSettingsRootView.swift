@@ -376,76 +376,22 @@ extension UserInterfaceSettings {
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
 
-                Section {
-                    VStack(alignment: .leading) {
-                        Picker(
-                            selection: $state.totalInsulinDisplayType,
-                            label: Text("Total Insulin Display Type").multilineTextAlignment(.leading)
-                        ) {
-                            ForEach(TotalInsulinDisplayType.allCases) { selection in
-                                Text(selection.displayName).tag(selection)
-                            }
-                        }.padding(.top)
-
-                        HStack(alignment: .center) {
-                            Text(
-                                "Choose which total insulin calculation is displayed on the home screen. See hint for more details."
-                            )
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(nil)
-                            Spacer()
-                            Button(
-                                action: {
-                                    hintLabel = String(localized: "Total Insulin Display Type")
-                                    selectedVerboseHint =
-                                        AnyView(
-                                            VStack(alignment: .leading, spacing: 10) {
-                                                Text(
-                                                    "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph. Descriptions for each option found below."
-                                                )
-                                                VStack(alignment: .leading, spacing: 5) {
-                                                    Text("Total Daily Dose:").bold()
-                                                    Text(
-                                                        "Displays the last 24 hours of total insulin administered, both basal and bolus."
-                                                    )
-                                                }
-                                                VStack(alignment: .leading, spacing: 5) {
-                                                    Text("Total Insulin in Scope:").bold()
-                                                    Text(
-                                                        "Displays the total amount of insulin given as a bolus (manual or SMB) and through temporary basal rates above zero during the selected timeframe of the main chart."
-                                                    )
-                                                }
-                                            }
-                                        )
-                                    shouldDisplayHint.toggle()
-                                },
-                                label: {
-                                    HStack {
-                                        Image(systemName: "questionmark.circle")
-                                    }
-                                }
-                            ).buttonStyle(BorderlessButtonStyle())
-                        }.padding(.top)
-                    }.padding(.bottom)
-                }.listRowBackground(Color.chart)
-
                 Section(
                     header: Text("Trio Statistics"),
                     content: {
                         VStack {
                             Picker(
-                                selection: $state.hbA1cDisplayUnit,
-                                label: Text("HbA1c Display Unit")
+                                selection: $state.eA1cDisplayUnit,
+                                label: Text("eA1c Display Unit")
                             ) {
-                                ForEach(HbA1cDisplayUnit.allCases) { selection in
+                                ForEach(EstimatedA1cDisplayUnit.allCases) { selection in
                                     Text(selection.displayName).tag(selection)
                                 }
                             }.padding(.top)
 
                             HStack(alignment: .center) {
                                 Text(
-                                    "Choose to display HbA1c in percent or mmol/mol."
+                                    "Choose to display eA1c in percent or mmol/mol."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -453,11 +399,11 @@ extension UserInterfaceSettings {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = String(localized: "HbA1c Display Unit")
+                                        hintLabel = String(localized: "eA1c Display Unit")
                                         selectedVerboseHint =
                                             AnyView(
                                                 Text(
-                                                    "Choose which format you'd prefer the HbA1c value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)."
+                                                    "Choose which format you'd prefer the eA1c (estimated A1c) value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)."
                                                 )
                                             )
                                         shouldDisplayHint.toggle()
