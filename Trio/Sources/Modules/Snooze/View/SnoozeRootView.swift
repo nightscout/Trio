@@ -90,7 +90,6 @@ extension Snooze {
                     state.snoozeUntilDate = untilDate < Date() ? .distantPast : untilDate
                     debug(.default, "will snooze for \(snoozeFor) until \(dateFormatter.string(from: untilDate))")
                     snoozeDescription = getSnoozeDescription()
-                    BaseUserNotificationsManager.stopSound()
                     state.hideModal()
                 } label: {
                     Text("Click to Snooze Alerts")

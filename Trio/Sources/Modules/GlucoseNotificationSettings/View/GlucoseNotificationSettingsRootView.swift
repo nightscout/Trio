@@ -42,28 +42,6 @@ extension GlucoseNotificationSettings {
             List {
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.useAlarmSound,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Play Alarm Sound")
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: String(localized: "Play Alarm Sound"),
-                    miniHint: String(localized: "Alarm with every Trio notification."),
-                    verboseHint: VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
-                        Text(
-                            "This will cause a sound to be triggered by Trio notifications for Carbs Required, and Glucose Low/High Alarms."
-                        )
-                    }
-                )
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
                     booleanValue: $state.notificationsPump,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
