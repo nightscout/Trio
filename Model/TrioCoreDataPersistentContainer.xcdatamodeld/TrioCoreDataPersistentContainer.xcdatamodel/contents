@@ -138,7 +138,6 @@
         <attribute name="threshold" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="timestampEnacted" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="totalDailyDose" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <relationship name="forecasts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Forecast" inverseName="orefDetermination" inverseEntity="Forecast"/>
         <fetchIndex name="byDate">
             <fetchIndexElement property="deliverAt" type="Binary" order="descending"/>

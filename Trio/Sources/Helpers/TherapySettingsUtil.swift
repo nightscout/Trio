@@ -1,7 +1,6 @@
 import Foundation
 
 enum TherapySettingsUtil {
-    
     /// Parses a time string of therapy setting entry into a `Date` object using either "HH:mm:ss" or "HH:mm" formats.
     /// This function ensures compatibility with time strings that may include or exclude seconds.
     ///

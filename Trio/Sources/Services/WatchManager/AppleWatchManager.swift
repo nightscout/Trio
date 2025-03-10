@@ -60,7 +60,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         // Observer for OrefDetermination and adjustments
         coreDataPublisher =
             changedObjectsOnManagedObjectContextDidSavePublisher()
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
 
@@ -1051,9 +1051,9 @@ extension BaseWatchManager {
 
         for (index, entry) in entries.enumerated() {
             guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
-                                debug(.default, "Invalid entry start time: \(entry.start)")
-                                continue
-                            }
+                debug(.default, "Invalid entry start time: \(entry.start)")
+                continue
+            }
 
             let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
             let entryStartTime = calendar.date(

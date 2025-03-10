@@ -2,6 +2,7 @@ import Foundation
 
 struct Oref2_variables: JSON, Equatable {
     var average_total_data: Decimal
+    var currentTDD: Decimal
     var weightedAverage: Decimal
     var past2hoursAverage: Decimal
     var date: Date
@@ -24,6 +25,7 @@ struct Oref2_variables: JSON, Equatable {
     init(
         average_total_data: Decimal,
         weightedAverage: Decimal,
+        currentTDD: Decimal,
         past2hoursAverage: Decimal,
         date: Date,
         overridePercentage: Decimal,
@@ -44,6 +46,7 @@ struct Oref2_variables: JSON, Equatable {
     ) {
         self.average_total_data = average_total_data
         self.weightedAverage = weightedAverage
+        self.currentTDD = currentTDD
         self.past2hoursAverage = past2hoursAverage
         self.date = date
         self.overridePercentage = overridePercentage
@@ -68,6 +71,7 @@ extension Oref2_variables {
     private enum CodingKeys: String, CodingKey {
         case average_total_data
         case weightedAverage
+        case currentTDD
         case past2hoursAverage
         case date
         case overridePercentage

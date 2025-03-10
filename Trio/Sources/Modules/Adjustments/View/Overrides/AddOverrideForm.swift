@@ -343,7 +343,7 @@ struct AddOverrideForm: View {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        Text(state.formatHrMin(Int(state.overrideDuration)))
+                        Text(state.formatHoursAndMinutes(Int(state.overrideDuration)))
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                             .onTapGesture {
                                 displayPickerDuration = toggleScrollWheel(displayPickerDuration)

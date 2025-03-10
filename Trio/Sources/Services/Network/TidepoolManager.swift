@@ -549,9 +549,9 @@ extension BaseTidepoolManager {
 
         for (index, entry) in basalEntries.enumerated() {
             guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
-                                debug(.default, "Invalid entry start time: \(entry.start)")
-                                continue
-                            }
+                debug(.default, "Invalid entry start time: \(entry.start)")
+                continue
+            }
 
             let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
             let entryStartTime = calendar.date(
@@ -563,7 +563,8 @@ extension BaseTidepoolManager {
 
             let entryEndTime: Date
             if index < basalEntries.count - 1,
-               let nextEntryTime = TherapySettingsUtil.parseTime(basalEntries[index + 1].start) {
+               let nextEntryTime = TherapySettingsUtil.parseTime(basalEntries[index + 1].start)
+            {
                 let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
                 entryEndTime = calendar.date(
                     bySettingHour: nextEntryComponents.hour!,

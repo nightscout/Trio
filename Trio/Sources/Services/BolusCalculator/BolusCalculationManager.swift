@@ -90,9 +90,9 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
 
         for (index, entry) in entries.enumerated() {
             guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
-                                debug(.default, "Invalid entry start time: \(entry.start)")
-                                continue
-                            }
+                debug(.default, "Invalid entry start time: \(entry.start)")
+                continue
+            }
 
             let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
             let entryStartTime = calendar.date(
