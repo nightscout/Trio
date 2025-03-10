@@ -421,8 +421,8 @@ extension DataTable {
         }
 
         @ViewBuilder private func addGlucoseView() -> some View {
-            let limitLow: Decimal = state.units == .mmolL ? 0.8 : 14
-            let limitHigh: Decimal = state.units == .mmolL ? 40 : 720
+            let limitLow: Decimal = state.units == .mgdL ? Decimal(14) : 14.asMmolL
+            let limitHigh: Decimal = state.units == .mgdL ? Decimal(720) : 720.asMmolL
 
             NavigationView {
                 VStack {
@@ -433,7 +433,7 @@ extension DataTable {
                                 TextFieldWithToolBar(
                                     text: $state.manualGlucose,
                                     placeholder: " ... ",
-                                    maxValue: state.units == .mmolL ? 400 / 18 : 400,
+                                    maxValue: limitHigh,
                                     numberFormatter: manualGlucoseFormatter,
                                     initialFocus: true
                                 )
