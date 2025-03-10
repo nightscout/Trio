@@ -34,21 +34,110 @@ final class PluginSource: GlucoseSource {
     /// - Parameter timer: An optional `DispatchTimer` (not used in the function but can be used to trigger fetch logic).
     /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if an error occurs or the timeout is reached.
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
-        Publishers.Merge(
-            callBLEFetch(),
+        debug(.deviceManager, "PluginSource: fetch() called - combining BLE fetch and fetchIfNeeded")
+
+        // Check if CGM manager is available
+        if cgmManager == nil {
+            debug(.deviceManager, "PluginSource: fetch() - No CGM manager available, returning empty array immediately")
+            return Just([]).eraseToAnyPublisher()
+        }
+
+        // Create a publisher that will emit a timeout event after 2 minutes
+        let timeoutPublisher = Just(())
+            .delay(for: .seconds(120), scheduler: processQueue)
+            .map { _ -> [BloodGlucose] in
+                debug(.deviceManager, "PluginSource: fetch() - Global timeout reached, returning empty array")
+                return []
+            }
+            .eraseToAnyPublisher()
+
+        // Combine the BLE fetch, fetchIfNeeded, and timeout publishers
+        return Publishers.Merge3(
+            callBLEFetch()
+                .handleEvents(receiveOutput: { values in
+                    if !values.isEmpty {
+                        debug(.deviceManager, "PluginSource: fetch() - callBLEFetch returned \(values.count) values")
+                    }
+                }),
             fetchIfNeeded()
+                .handleEvents(receiveOutput: { values in
+                    if !values.isEmpty {
+                        debug(.deviceManager, "PluginSource: fetch() - fetchIfNeeded returned \(values.count) values")
+                    }
+                }),
+            timeoutPublisher
         )
-        .filter { !$0.isEmpty }
+        .filter { values in
+            let isEmpty = values.isEmpty
+            debug(.deviceManager, "PluginSource: filter - received \(values.count) values, isEmpty: \(isEmpty)")
+            return !isEmpty
+        }
         .first()
-        .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
+        .handleEvents(
+            receiveSubscription: { _ in debug(.deviceManager, "PluginSource: fetch publisher received subscription") },
+            receiveOutput: { values in
+                debug(.deviceManager, "PluginSource: fetch publisher emitting \(values.count) values") },
+            receiveCompletion: { completion in
+                if case .finished = completion {
+                    debug(.deviceManager, "PluginSource: fetch publisher completed normally")
+                } else {
+                    debug(.deviceManager, "PluginSource: fetch publisher completed with error or cancellation")
+                }
+            },
+            receiveCancel: { debug(.deviceManager, "PluginSource: fetch publisher was cancelled") }
+        )
         .replaceError(with: [])
+        .replaceEmpty(with: [])
         .eraseToAnyPublisher()
     }
 
     func callBLEFetch() -> AnyPublisher<[BloodGlucose], Never> {
-        Future<[BloodGlucose], Error> { [weak self] promise in
-            self?.promise = promise
+        debug(.deviceManager, "PluginSource: callBLEFetch() called")
+        return Future<[BloodGlucose], Error> { [weak self] promise in
+            guard let self = self else {
+                debug(.deviceManager, "PluginSource: callBLEFetch - self is nil, returning empty array")
+                promise(.success([]))
+                return
+            }
+
+            debug(.deviceManager, "PluginSource: callBLEFetch - storing promise for future resolution")
+
+            // If there's already a promise, resolve it with an empty array to avoid memory leaks
+            if self.promise != nil {
+                debug(.deviceManager, "PluginSource: callBLEFetch - found existing promise, resolving it with empty array")
+                self.promise?(.success([]))
+            }
+
+            // Store the new promise
+            self.promise = promise
+
+            // Create a timeout work item
+            let timeoutWorkItem = DispatchWorkItem { [weak self] in
+                guard let self = self else { return }
+
+                // Check if we still have a promise (it hasn't been fulfilled yet)
+                if self.promise != nil {
+                    debug(.deviceManager, "PluginSource: callBLEFetch - timeout reached, resolving promise with empty array")
+                    self.promise?(.success([]))
+                    self.promise = nil
+                }
+            }
+
+            // Schedule the timeout
+            self.processQueue.asyncAfter(deadline: .now() + 60, execute: timeoutWorkItem)
         }
+        .handleEvents(
+            receiveSubscription: { _ in debug(.deviceManager, "PluginSource: callBLEFetch received subscription") },
+            receiveOutput: { values in
+                debug(.deviceManager, "PluginSource: callBLEFetch received output with \(values.count) values") },
+            receiveCompletion: { completion in
+                if case let .failure(error) = completion {
+                    debug(.deviceManager, "PluginSource: callBLEFetch completed with error: \(error.localizedDescription)")
+                } else {
+                    debug(.deviceManager, "PluginSource: callBLEFetch completed successfully")
+                }
+            }
+        )
         .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
         .replaceError(with: [])
         .replaceEmpty(with: [])
@@ -56,15 +145,103 @@ final class PluginSource: GlucoseSource {
     }
 
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
-        Future<[BloodGlucose], Error> { [weak self] promise in
-            guard let self = self else { return }
+        debug(.deviceManager, "PluginSource: fetchIfNeeded() called")
+        return Future<[BloodGlucose], Error> { [weak self] promise in
+            guard let self = self else {
+                debug(.deviceManager, "PluginSource: fetchIfNeeded - self is nil, returning empty array")
+                promise(.success([]))
+                return
+            }
+            debug(.deviceManager, "PluginSource: fetchIfNeeded - about to dispatch to processQueue")
             self.processQueue.async {
-                guard let cgmManager = self.cgmManager else { return }
-                cgmManager.fetchNewDataIfNeeded { result in
-                    promise(self.readCGMResult(readingResult: result))
+                guard let cgmManager = self.cgmManager else {
+                    debug(.deviceManager, "PluginSource: fetchIfNeeded - cgmManager is nil, returning empty array")
+                    promise(.success([]))
+                    return
+                }
+
+                // Log CGM manager details
+                debug(.deviceManager, "PluginSource: fetchIfNeeded - using CGM manager of type: \(type(of: cgmManager))")
+                debug(.deviceManager, "PluginSource: fetchIfNeeded - CGM manager identifier: \(cgmManager.pluginIdentifier)")
+                debug(
+                    .deviceManager,
+                    "PluginSource: fetchIfNeeded - CGM manager has valid sensor session: \(self.cgmHasValidSensorSession)"
+                )
+
+                // Set a timeout to ensure the promise is resolved
+                let timeoutWorkItem = DispatchWorkItem {
+                    debug(.deviceManager, "PluginSource: fetchIfNeeded - TIMEOUT reached, resolving promise with empty array")
+                    promise(.success([]))
+                }
+                self.processQueue.asyncAfter(deadline: .now() + 30, execute: timeoutWorkItem)
+
+                debug(.deviceManager, "PluginSource: fetchIfNeeded - calling fetchNewDataIfNeeded on cgmManager")
+
+                do {
+                    // Check if we have a valid sensor session
+                    if !self.cgmHasValidSensorSession {
+                        debug(
+                            .deviceManager,
+                            "PluginSource: fetchIfNeeded - WARNING: CGM does not have a valid sensor session"
+                        )
+                    }
+
+                    debug(.deviceManager, "PluginSource: fetchIfNeeded - about to call fetchNewDataIfNeeded")
+                    cgmManager.fetchNewDataIfNeeded { result in
+                        // Cancel the timeout since we got a response
+                        timeoutWorkItem.cancel()
+
+                        debug(
+                            .deviceManager,
+                            "PluginSource: fetchIfNeeded - received callback from fetchNewDataIfNeeded with result: \(result)"
+                        )
+                        let processedResult = self.readCGMResult(readingResult: result)
+                        if case let .success(values) = processedResult {
+                            debug(
+                                .deviceManager,
+                                "PluginSource: fetchIfNeeded - processed result contains \(values.count) values"
+                            )
+                            if !values.isEmpty, !values.isEmpty {
+                                let firstValue = values.first!
+                                debug(
+                                    .deviceManager,
+                                    "PluginSource: fetchIfNeeded - first glucose value: \(firstValue.glucose ?? 0) mg/dL at \(firstValue.dateString)"
+                                )
+                            } else {
+                                debug(.deviceManager, "PluginSource: fetchIfNeeded - processed result contains no values")
+                            }
+                        } else if case let .failure(error) = processedResult {
+                            debug(
+                                .deviceManager,
+                                "PluginSource: fetchIfNeeded - processed result contains error: \(error.localizedDescription)"
+                            )
+                        }
+                        promise(processedResult)
+                    }
+                } catch {
+                    // Cancel the timeout since we're resolving the promise now
+                    timeoutWorkItem.cancel()
+
+                    debug(
+                        .deviceManager,
+                        "PluginSource: fetchIfNeeded - exception thrown when calling fetchNewDataIfNeeded: \(error.localizedDescription)"
+                    )
+                    promise(.failure(error))
                 }
             }
         }
+        .handleEvents(
+            receiveSubscription: { _ in debug(.deviceManager, "PluginSource: fetchIfNeeded received subscription") },
+            receiveOutput: { values in
+                debug(.deviceManager, "PluginSource: fetchIfNeeded received output with \(values.count) values") },
+            receiveCompletion: { completion in
+                if case let .failure(error) = completion {
+                    debug(.deviceManager, "PluginSource: fetchIfNeeded completed with error: \(error.localizedDescription)")
+                } else {
+                    debug(.deviceManager, "PluginSource: fetchIfNeeded completed successfully")
+                }
+            }
+        )
         .replaceError(with: [])
         .replaceEmpty(with: [])
         .eraseToAnyPublisher()
@@ -105,53 +282,81 @@ extension PluginSource: CGMManagerDelegate {
     func recordRetractedAlert(_: LoopKit.Alert, at _: Date) {}
 
     func cgmManagerWantsDeletion(_ manager: CGMManager) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        debug(.deviceManager, " CGM Manager with identifier \(manager.pluginIdentifier) wants deletion")
-        glucoseManager?.deleteGlucoseSource()
+        processQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            dispatchPrecondition(condition: .onQueue(self.processQueue))
+
+            debug(.deviceManager, " CGM Manager with identifier \(manager.pluginIdentifier) wants deletion")
+            self.glucoseManager?.deleteGlucoseSource()
+        }
     }
 
     func cgmManager(_: CGMManager, hasNew readingResult: CGMReadingResult) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        promise?(readCGMResult(readingResult: readingResult))
-        debug(.deviceManager, "CGM PLUGIN - Direct return done")
+        processQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            dispatchPrecondition(condition: .onQueue(self.processQueue))
+
+            self.promise?(self.readCGMResult(readingResult: readingResult))
+            debug(.deviceManager, "CGM PLUGIN - Direct return done")
+        }
     }
 
     func cgmManager(_: LoopKit.CGMManager, hasNew events: [LoopKit.PersistedCgmEvent]) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        // TODO: Events in APS ?
-        // currently only display in log the date of the event
-        events.forEach { event in
-            debug(.deviceManager, "events from CGM at \(event.date)")
+        processQueue.async { [weak self] in
+            guard let self = self else { return }
 
-            if event.type == .sensorStart {
-                self.glucoseManager?.removeCalibrations()
+            dispatchPrecondition(condition: .onQueue(self.processQueue))
+
+            // TODO: Events in APS ?
+            // currently only display in log the date of the event
+            events.forEach { event in
+                debug(.deviceManager, "events from CGM at \(event.date)")
+
+                if event.type == .sensorStart {
+                    self.glucoseManager?.removeCalibrations()
+                }
             }
         }
     }
 
     func startDateToFilterNewData(for _: CGMManager) -> Date? {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        return glucoseStorage.lastGlucoseDate()
+        var date: Date?
+
+        processQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            dispatchPrecondition(condition: .onQueue(self.processQueue))
+
+            date = glucoseStorage.lastGlucoseDate()
+        }
+
+        return date
     }
 
     func cgmManagerDidUpdateState(_ cgmManager: CGMManager) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
+        processQueue.async { [weak self] in
+            guard let self = self else { return }
 
-        guard let fetchGlucoseManager = glucoseManager else {
-            debug(
-                .deviceManager,
-                "Could not gracefully unwrap FetchGlucoseManager upon observing LoopKit's cgmManagerDidUpdateState"
+            dispatchPrecondition(condition: .onQueue(self.processQueue))
+
+            guard let fetchGlucoseManager = self.glucoseManager else {
+                debug(
+                    .deviceManager,
+                    "Could not gracefully unwrap FetchGlucoseManager upon observing LoopKit's cgmManagerDidUpdateState"
+                )
+                return
+            }
+            // Adjust app-specific NS Upload setting value when CGM setting is changed
+            fetchGlucoseManager.settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
+
+            fetchGlucoseManager.updateGlucoseSource(
+                cgmGlucoseSourceType: fetchGlucoseManager.settingsManager.settings.cgm,
+                cgmGlucosePluginId: fetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier,
+                newManager: cgmManager as? CGMManagerUI
             )
-            return
         }
-        // Adjust app-specific NS Upload setting value when CGM setting is changed
-        fetchGlucoseManager.settingsManager.settings.uploadGlucose = cgmManager.shouldSyncToRemoteService
-
-        fetchGlucoseManager.updateGlucoseSource(
-            cgmGlucoseSourceType: fetchGlucoseManager.settingsManager.settings.cgm,
-            cgmGlucosePluginId: fetchGlucoseManager.settingsManager.settings.cgmPluginIdentifier,
-            newManager: cgmManager as? CGMManagerUI
-        )
     }
 
     func credentialStoragePrefix(for _: CGMManager) -> String {
@@ -162,7 +367,11 @@ extension PluginSource: CGMManagerDelegate {
     func cgmManager(_: CGMManager, didUpdate status: CGMManagerStatus) {
         debug(.deviceManager, "CGM Manager did update state to \(status)")
 
-        processQueue.async {
+        processQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            dispatchPrecondition(condition: .onQueue(self.processQueue))
+
             if self.cgmHasValidSensorSession != status.hasValidSensorSession {
                 self.cgmHasValidSensorSession = status.hasValidSensorSession
             }
