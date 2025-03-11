@@ -16,6 +16,21 @@ extension Calibrations {
             return formatter
         }
 
+        private var manualGlucoseFormatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            if state.units == .mgdL {
+                formatter.maximumIntegerDigits = 3
+                formatter.maximumFractionDigits = 0
+            } else {
+                formatter.maximumIntegerDigits = 2
+                formatter.minimumFractionDigits = 0
+                formatter.maximumFractionDigits = 1
+            }
+            formatter.roundingMode = .halfUp
+            return formatter
+        }
+
         private var dateFormatter: DateFormatter {
             let formatter = DateFormatter()
             formatter.timeStyle = .short
@@ -30,7 +45,11 @@ extension Calibrations {
                         HStack {
                             Text("Meter glucose")
                             Spacer()
-                            TextFieldWithToolBar(text: $state.newCalibration, placeholder: "0", numberFormatter: formatter)
+                            TextFieldWithToolBar(
+                                text: $state.newCalibration,
+                                placeholder: "0",
+                                numberFormatter: manualGlucoseFormatter
+                            )
                             Text(state.units.rawValue).foregroundColor(.secondary)
                         }
                         Button {

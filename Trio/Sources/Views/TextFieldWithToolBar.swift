@@ -106,8 +106,15 @@ public struct TextFieldWithToolBar: View {
                     }
                 }
             }
-            .onChange(of: localText) { _, newValue in
-                handleTextChange(newValue)
+            .onChange(of: localText) { oldValue, newValue in
+                handleTextChange(oldValue, newValue)
+            }
+            .onChange(of: text) {
+                if text != 0 {
+                    localText = numberFormatter.string(from: text as NSNumber) ?? ""
+                } else if localText != "" {
+                    localText = ""
+                }
             }
             .onAppear {
                 if text != 0 {
@@ -118,7 +125,7 @@ public struct TextFieldWithToolBar: View {
             }
     }
 
-    private func handleTextChange(_ newValue: String) {
+    private func handleTextChange(_ oldValue: String, _ newValue: String) {
         // Handle empty string
         if newValue.isEmpty {
             text = 0
@@ -133,7 +140,7 @@ public struct TextFieldWithToolBar: View {
         if decimalSeparatorCount > 1 {
             // If there's already a decimal separator, prevent adding another one
             // by removing the last character (which would be the second decimal separator)
-            localText = String(newValue.dropLast())
+            localText = oldValue
             return
         }
 
@@ -150,6 +157,24 @@ public struct TextFieldWithToolBar: View {
             processedText = "0" + processedText
         }
 
+        // Check if the new value exceeds digit limits
+        let components = processedText.components(separatedBy: currentDecimalSeparator)
+
+        // Count integer digits (before decimal separator)
+        let integerDigits = components[0].filter { $0.isNumber }.count
+
+        // Count fraction digits (after decimal separator)
+        let fractionDigits = components.count > 1 ? components[1].filter { $0.isNumber }.count : 0
+
+        // Check against the number formatter limits
+        if integerDigits > numberFormatter.maximumIntegerDigits ||
+            (allowDecimalSeparator && fractionDigits > numberFormatter.maximumFractionDigits)
+        {
+            // Exceeds limits, don't update the text
+            localText = oldValue
+            return
+        }
+
         // Update if valid decimal
         if let decimal = Decimal(string: processedText, locale: numberFormatter.locale) {
             if let maxValue = maxValue, decimal > maxValue {
@@ -159,8 +184,6 @@ public struct TextFieldWithToolBar: View {
                 text = decimal
                 textDidChange?(decimal)
             }
-//            text = decimal
-//            textDidChange?(decimal)
 
             // If the processed text is different from the input, update the field
             if processedText != newValue {
@@ -168,7 +191,7 @@ public struct TextFieldWithToolBar: View {
             }
         } else {
             // If not a valid decimal, keep the old value
-            localText = numberFormatter.string(from: text as NSNumber) ?? ""
+            localText = oldValue
         }
     }
 }

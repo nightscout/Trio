@@ -61,8 +61,11 @@ extension DataTable {
         private var manualGlucoseFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 0
-            if state.units == .mmolL {
+            if state.units == .mgdL {
+                formatter.maximumIntegerDigits = 3
+                formatter.maximumFractionDigits = 0
+            } else {
+                formatter.maximumIntegerDigits = 2
                 formatter.minimumFractionDigits = 0
                 formatter.maximumFractionDigits = 1
             }
@@ -433,7 +436,7 @@ extension DataTable {
                                 TextFieldWithToolBar(
                                     text: $state.manualGlucose,
                                     placeholder: " ... ",
-                                    maxValue: limitHigh,
+                                    keyboardType: state.units == .mgdL ? .numberPad : .decimalPad,
                                     numberFormatter: manualGlucoseFormatter,
                                     initialFocus: true
                                 )
