@@ -145,14 +145,20 @@ extension Notification.Name {
                 Main.LoadingView(showError: $showLoadingError, retry: retryCoreDataInitialization)
                     .onAppear {
                         if self.initState.complete {
-                            self.showLoadingView = false
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .seconds(1.8))
+                                self.showLoadingView = false
+                            }
                         }
                         if self.initState.error {
                             self.showLoadingError = true
                         }
                     }
                     .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationCompleted)) { _ in
-                        self.showLoadingView = false
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .seconds(1.8))
+                            self.showLoadingView = false
+                        }
                     }
                     .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
                         self.showLoadingError = true
