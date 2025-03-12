@@ -32,7 +32,7 @@ struct CustomProgressView: View {
                         .frame(width: 80, height: 3)
                         .offset(x: self.animate ? 180 : -180, y: 0)
                         .animation(
-                            Animation.linear(duration: 2)
+                            Animation.linear(duration: 1)
                                 .repeatForever(autoreverses: false), value: UUID()
                         )
                 )

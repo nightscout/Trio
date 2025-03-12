@@ -61,8 +61,11 @@ extension DataTable {
         private var manualGlucoseFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 0
-            if state.units == .mmolL {
+            if state.units == .mgdL {
+                formatter.maximumIntegerDigits = 3
+                formatter.maximumFractionDigits = 0
+            } else {
+                formatter.maximumIntegerDigits = 2
                 formatter.minimumFractionDigits = 0
                 formatter.maximumFractionDigits = 1
             }
@@ -421,8 +424,8 @@ extension DataTable {
         }
 
         @ViewBuilder private func addGlucoseView() -> some View {
-            let limitLow: Decimal = state.units == .mmolL ? 0.8 : 14
-            let limitHigh: Decimal = state.units == .mmolL ? 40 : 720
+            let limitLow: Decimal = state.units == .mgdL ? Decimal(14) : 14.asMmolL
+            let limitHigh: Decimal = state.units == .mgdL ? Decimal(720) : 720.asMmolL
 
             NavigationView {
                 VStack {
@@ -433,8 +436,9 @@ extension DataTable {
                                 TextFieldWithToolBar(
                                     text: $state.manualGlucose,
                                     placeholder: " ... ",
-                                    shouldBecomeFirstResponder: true,
-                                    numberFormatter: manualGlucoseFormatter
+                                    keyboardType: state.units == .mgdL ? .numberPad : .decimalPad,
+                                    numberFormatter: manualGlucoseFormatter,
+                                    initialFocus: true
                                 )
                                 Text(state.units.rawValue).foregroundStyle(.secondary)
                             }
