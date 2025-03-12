@@ -36,6 +36,7 @@ extension Treatments {
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
+            formatter.maximumIntegerDigits = 2
             formatter.maximumFractionDigits = 2
             return formatter
         }
@@ -43,7 +44,8 @@ extension Treatments {
         private var mealFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 1
+            formatter.maximumIntegerDigits = 3
+            formatter.maximumFractionDigits = 0
             return formatter
         }
 
@@ -51,8 +53,12 @@ extension Treatments {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
             if state.units == .mmolL {
+                formatter.maximumIntegerDigits = 2
                 formatter.maximumFractionDigits = 1
-            } else { formatter.maximumFractionDigits = 0 }
+            } else {
+                formatter.maximumIntegerDigits = 3
+                formatter.maximumFractionDigits = 0
+            }
             return formatter
         }
 
@@ -84,7 +90,6 @@ extension Treatments {
                         text: $state.protein,
                         placeholder: "0",
                         keyboardType: .numberPad,
-                        maxValue: state.maxProtein,
                         numberFormatter: mealFormatter,
                         showArrows: true,
                         previousTextField: { focusedField = previousField(from: .protein) },
@@ -102,7 +107,6 @@ extension Treatments {
                         text: $state.fat,
                         placeholder: "0",
                         keyboardType: .numberPad,
-                        maxValue: state.maxFat,
                         numberFormatter: mealFormatter,
                         showArrows: true,
                         previousTextField: { focusedField = previousField(from: .fat) },
@@ -122,7 +126,6 @@ extension Treatments {
                     text: $state.carbs,
                     placeholder: "0",
                     keyboardType: .numberPad,
-                    maxValue: state.maxCarbs,
                     numberFormatter: mealFormatter,
                     showArrows: true,
                     previousTextField: { focusedField = previousField(from: .carbs) },
@@ -317,7 +320,6 @@ extension Treatments {
                                     placeholder: "0",
                                     textColor: colorScheme == .dark ? .white : .blue,
                                     maxLength: 5,
-                                    maxValue: state.maxExternal,
                                     numberFormatter: formatter,
                                     showArrows: true,
                                     previousTextField: { focusedField = previousField(from: .bolus) },
