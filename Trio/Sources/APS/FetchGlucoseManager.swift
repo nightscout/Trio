@@ -149,7 +149,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                 .store(in: &self.lifetime)
             }
             .store(in: &lifetime)
-        debug(.deviceManager, "FetchGlucoseManager: timer.fire() and timer.resume() called")
+//        debug(.deviceManager, "FetchGlucoseManager: timer.fire() and timer.resume() called")
         timer.fire()
         timer.resume()
     }
@@ -221,7 +221,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             // If the pointer to manager is the *same* as our current `cgmManager`, skip re-init
             if manager !== cgmManager {
                 debug(.deviceManager, "FetchGlucoseManager: New manager is different from current manager, reinitializing")
-                // or do a more thorough check to see if it is the same class & state
                 removeCalibrations()
                 cgmManager = manager
                 glucoseSource = nil
@@ -252,22 +251,16 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         }
 
         if glucoseSource == nil {
-            debug(.deviceManager, "FetchGlucoseManager: Creating new glucose source for type: \(self.cgmGlucoseSourceType)")
             switch self.cgmGlucoseSourceType {
             case .none:
-                debug(.deviceManager, "FetchGlucoseManager: Setting glucose source to nil for type .none")
                 glucoseSource = nil
             case .xdrip:
-                debug(.deviceManager, "FetchGlucoseManager: Creating AppGroupSource for xDrip")
                 glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
             case .nightscout:
-                debug(.deviceManager, "FetchGlucoseManager: Using nightscoutManager as glucose source")
                 glucoseSource = nightscoutManager
             case .simulator:
-                debug(.deviceManager, "FetchGlucoseManager: Creating simulator source")
                 glucoseSource = simulatorSource
             case .enlite:
-                debug(.deviceManager, "FetchGlucoseManager: Using deviceDataManager as glucose source")
                 glucoseSource = deviceDataManager
             case .plugin:
                 debug(.deviceManager, "FetchGlucoseManager: Creating PluginSource with current CGM manager")
