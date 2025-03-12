@@ -26,9 +26,10 @@ final class PluginSource: GlucoseSource {
         cgmManager?.cgmManagerDelegate = self
     }
 
-    /// Function that fetches blood glucose data
-    /// This function combines two data fetching mechanisms (`callBLEFetch` and `fetchIfNeeded`) into a single publisher.
-    /// It returns the first non-empty result from either of the sources within a 5-minute timeout period.
+    /// Fetches blood glucose data from available sources.
+    ///
+    /// This function combines two fetching mechanisms (`callBLEFetch` and `fetchIfNeeded`) into a single publisher.
+    /// It returns the first non-empty result from either of the sources within a 2-minute timeout period.
     /// If no valid data is fetched within the timeout, it returns an empty array.
     ///
     /// - Parameter timer: An optional `DispatchTimer` (not used in the function but can be used to trigger fetch logic).
@@ -91,6 +92,12 @@ final class PluginSource: GlucoseSource {
         .eraseToAnyPublisher()
     }
 
+    /// Initiates a BLE-based blood glucose data fetch.
+    ///
+    /// This function returns a future-based publisher that will wait for a response from the BLE device.
+    /// If a response is not received within 60 seconds, the fetch operation times out and returns an empty array.
+    ///
+    /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if the fetch fails or times out.
     func callBLEFetch() -> AnyPublisher<[BloodGlucose], Never> {
         debug(.deviceManager, "PluginSource: callBLEFetch() called")
         return Future<[BloodGlucose], Error> { [weak self] promise in
@@ -144,6 +151,12 @@ final class PluginSource: GlucoseSource {
         .eraseToAnyPublisher()
     }
 
+    /// Fetches new blood glucose data from the CGM if needed.
+    ///
+    /// This function communicates with the CGM manager to request new data, if available.
+    /// If the CGM manager is unavailable or no new data is provided within 30 seconds, an empty array is returned.
+    ///
+    /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if no new data is available or the operation times out.
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
         debug(.deviceManager, "PluginSource: fetchIfNeeded() called")
         return Future<[BloodGlucose], Error> { [weak self] promise in
@@ -177,56 +190,43 @@ final class PluginSource: GlucoseSource {
 
                 debug(.deviceManager, "PluginSource: fetchIfNeeded - calling fetchNewDataIfNeeded on cgmManager")
 
-                do {
-                    // Check if we have a valid sensor session
-                    if !self.cgmHasValidSensorSession {
-                        debug(
-                            .deviceManager,
-                            "PluginSource: fetchIfNeeded - WARNING: CGM does not have a valid sensor session"
-                        )
-                    }
+                // Check if we have a valid sensor session
+                if !self.cgmHasValidSensorSession {
+                    debug(
+                        .deviceManager,
+                        "PluginSource: fetchIfNeeded - WARNING: CGM does not have a valid sensor session"
+                    )
+                }
 
-                    debug(.deviceManager, "PluginSource: fetchIfNeeded - about to call fetchNewDataIfNeeded")
-                    cgmManager.fetchNewDataIfNeeded { result in
-                        // Cancel the timeout since we got a response
-                        timeoutWorkItem.cancel()
-
-                        debug(
-                            .deviceManager,
-                            "PluginSource: fetchIfNeeded - received callback from fetchNewDataIfNeeded with result: \(result)"
-                        )
-                        let processedResult = self.readCGMResult(readingResult: result)
-                        if case let .success(values) = processedResult {
-                            debug(
-                                .deviceManager,
-                                "PluginSource: fetchIfNeeded - processed result contains \(values.count) values"
-                            )
-                            if !values.isEmpty, !values.isEmpty {
-                                let firstValue = values.first!
-                                debug(
-                                    .deviceManager,
-                                    "PluginSource: fetchIfNeeded - first glucose value: \(firstValue.glucose ?? 0) mg/dL at \(firstValue.dateString)"
-                                )
-                            } else {
-                                debug(.deviceManager, "PluginSource: fetchIfNeeded - processed result contains no values")
-                            }
-                        } else if case let .failure(error) = processedResult {
-                            debug(
-                                .deviceManager,
-                                "PluginSource: fetchIfNeeded - processed result contains error: \(error.localizedDescription)"
-                            )
-                        }
-                        promise(processedResult)
-                    }
-                } catch {
-                    // Cancel the timeout since we're resolving the promise now
+                debug(.deviceManager, "PluginSource: fetchIfNeeded - about to call fetchNewDataIfNeeded")
+                cgmManager.fetchNewDataIfNeeded { result in
+                    // Cancel the timeout since we got a response
                     timeoutWorkItem.cancel()
 
                     debug(
                         .deviceManager,
-                        "PluginSource: fetchIfNeeded - exception thrown when calling fetchNewDataIfNeeded: \(error.localizedDescription)"
+                        "PluginSource: fetchIfNeeded - received callback from fetchNewDataIfNeeded with result: \(result)"
                     )
-                    promise(.failure(error))
+
+                    let processedResult = self.readCGMResult(readingResult: result)
+                    if case let .success(values) = processedResult {
+                        debug(.deviceManager, "PluginSource: fetchIfNeeded - processed result contains \(values.count) values")
+                        if !values.isEmpty {
+                            let firstValue = values.first!
+                            debug(
+                                .deviceManager,
+                                "PluginSource: fetchIfNeeded - first glucose value: \(firstValue.glucose ?? 0) mg/dL at \(firstValue.dateString)"
+                            )
+                        } else {
+                            debug(.deviceManager, "PluginSource: fetchIfNeeded - processed result contains no values")
+                        }
+                    } else if case let .failure(error) = processedResult {
+                        debug(
+                            .deviceManager,
+                            "PluginSource: fetchIfNeeded - processed result contains error: \(error.localizedDescription)"
+                        )
+                    }
+                    promise(processedResult)
                 }
             }
         }
