@@ -149,7 +149,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                 .store(in: &self.lifetime)
             }
             .store(in: &lifetime)
-//        debug(.deviceManager, "FetchGlucoseManager: timer.fire() and timer.resume() called")
         timer.fire()
         timer.resume()
     }
@@ -218,18 +217,9 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
         if let manager = newManager {
             debug(.deviceManager, "FetchGlucoseManager: New manager provided of type: \(type(of: manager))")
-            // If the pointer to manager is the *same* as our current `cgmManager`, skip re-init
-            if manager !== cgmManager {
-                debug(.deviceManager, "FetchGlucoseManager: New manager is different from current manager, reinitializing")
-                removeCalibrations()
-                cgmManager = manager
-                glucoseSource = nil
-            } else {
-                debug(
-                    .deviceManager,
-                    "FetchGlucoseManager: New manager is the same instance as current manager, skipping reinitialization"
-                )
-            }
+            removeCalibrations()
+            cgmManager = manager
+            glucoseSource = nil
         } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
             debug(
                 .deviceManager,
