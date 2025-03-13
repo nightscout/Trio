@@ -164,9 +164,9 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         debug(.apsManager, "plugin : \(String(describing: cgmManager?.pluginIdentifier))")
 
         if let manager = newManager {
-            removeCalibrations()
             cgmManager = manager
-            glucoseSource = nil
+            removeCalibrations()
+//            glucoseSource = nil
         } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
             cgmManager = cgmManagerFromRawValue(rawCGMManager)
             updateManagerUnits(cgmManager)
