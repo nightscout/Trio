@@ -81,7 +81,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private var lifetime = Lifetime()
 
-    private var backGroundTaskID: UIBackgroundTaskIdentifier?
+    private var backgroundTaskID: UIBackgroundTaskIdentifier?
 
     var pumpManager: PumpManagerUI? {
         get { deviceDataManager.pumpManager }
@@ -224,7 +224,7 @@ final class BaseAPSManager: APSManager, Injectable {
             // Cleanup background task
             if let backgroundTask = backgroundTask {
                 await UIApplication.shared.endBackgroundTask(backgroundTask)
-                self.backGroundTaskID = .invalid
+                self.backgroundTaskID = .invalid
             }
         }
     }
@@ -250,13 +250,13 @@ final class BaseAPSManager: APSManager, Injectable {
     private func setupLoop() async -> (LoopStats, UIBackgroundTaskIdentifier?) {
         // Start background task
         let backgroundTask = await UIApplication.shared.beginBackgroundTask(withName: "Loop starting") { [weak self] in
-            guard let self, let backgroundTask = self.backGroundTaskID else { return }
+            guard let self, let backgroundTask = self.backgroundTaskID else { return }
             Task {
                 UIApplication.shared.endBackgroundTask(backgroundTask)
             }
-            self.backGroundTaskID = .invalid
+            self.backgroundTaskID = .invalid
         }
-        backGroundTaskID = backgroundTask
+        backgroundTaskID = backgroundTask
 
         // Set loop start time
         lastLoopStartDate = Date()
@@ -325,9 +325,9 @@ final class BaseAPSManager: APSManager, Injectable {
 
         if let error = error {
             warning(.apsManager, "Loop failed with error: \(error.localizedDescription)")
-            if let backgroundTask = backGroundTaskID {
+            if let backgroundTask = backgroundTaskID {
                 await UIApplication.shared.endBackgroundTask(backgroundTask)
-                backGroundTaskID = .invalid
+                backgroundTaskID = .invalid
             }
             processError(error)
         } else {
@@ -343,9 +343,9 @@ final class BaseAPSManager: APSManager, Injectable {
         }
 
         // End of the BG tasks
-        if let backgroundTask = backGroundTaskID {
+        if let backgroundTask = backgroundTaskID {
             await UIApplication.shared.endBackgroundTask(backgroundTask)
-            backGroundTaskID = .invalid
+            backgroundTaskID = .invalid
         }
     }
 
@@ -973,7 +973,8 @@ final class BaseAPSManager: APSManager, Injectable {
                 total_average: 0
             )
             guard let processedGlucoseStats = await glucoseStats else { return }
-            let hbA1cDisplayUnit = processedGlucoseStats.hbA1cDisplayUnit
+
+            let eA1cDisplayUnit = processedGlucoseStats.eA1cDisplayUnit
 
             let dailystat = await Statistics(
                 created_at: Date(),
@@ -995,8 +996,8 @@ final class BaseAPSManager: APSManager, Injectable {
                 Statistics: Stats(
                     Distribution: processedGlucoseStats.TimeInRange,
                     Glucose: processedGlucoseStats.avg,
-                    HbA1c: processedGlucoseStats.hbs,
-                    Units: Units(Glucose: units.rawValue, HbA1c: hbA1cDisplayUnit.rawValue),
+                    EstimatedA1c: processedGlucoseStats.hbs,
+                    Units: Units(Glucose: units.rawValue, EstimatedA1c: eA1cDisplayUnit.rawValue),
                     LoopCycles: loopStats,
                     Insulin: insulin,
                     Variance: processedGlucoseStats.variance
@@ -1116,44 +1117,9 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    private func tddForStats() async -> (currentTDD: Decimal, tddTotalAverage: Decimal) {
-        let requestTDD = OrefDetermination.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
-        let sort = NSSortDescriptor(key: "timestamp", ascending: false)
-        let daysOf14Ago = Date().addingTimeInterval(-14.days.timeInterval)
-        requestTDD.predicate = NSPredicate(format: "timestamp > %@", daysOf14Ago as NSDate)
-        requestTDD.sortDescriptors = [sort]
-        requestTDD.propertiesToFetch = ["timestamp", "totalDailyDose"]
-        requestTDD.resultType = .dictionaryResultType
-
-        var currentTDD: Decimal = 0
-        var tddTotalAverage: Decimal = 0
-
-        let results = await privateContext.perform {
-            do {
-                let fetchedResults = try self.privateContext.fetch(requestTDD) as? [[String: Any]]
-                return fetchedResults ?? []
-            } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to get TDD Data for Statistics Upload")
-                return []
-            }
-        }
-
-        if !results.isEmpty {
-            if let latestTDD = results.first?["totalDailyDose"] as? NSDecimalNumber {
-                currentTDD = latestTDD.decimalValue
-            }
-            let tddArray = results.compactMap { ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue }
-            if !tddArray.isEmpty {
-                tddTotalAverage = tddArray.reduce(0, +) / Decimal(tddArray.count)
-            }
-        }
-
-        return (currentTDD, tddTotalAverage)
-    }
-
     private func glucoseForStats() async -> (
         oneDayGlucose: (ifcc: Double, ngsp: Double, average: Double, median: Double, sd: Double, cv: Double, readings: Double),
-        hbA1cDisplayUnit: HbA1cDisplayUnit,
+        eA1cDisplayUnit: EstimatedA1cDisplayUnit,
         numberofDays: Double,
         TimeInRange: TIRs,
         avg: Averages,
@@ -1202,19 +1168,19 @@ final class BaseAPSManager: APSManager, Injectable {
                     total: self.roundDecimal(Decimal(totalDaysGlucose.median), 1)
                 )
 
-                let hbA1cDisplayUnit = self.settingsManager.settings.hbA1cDisplayUnit
+                let eA1cDisplayUnit = self.settingsManager.settings.eA1cDisplayUnit
 
                 let hbs = Durations(
-                    day: hbA1cDisplayUnit == .mmolMol ?
+                    day: eA1cDisplayUnit == .mmolMol ?
                         self.roundDecimal(Decimal(oneDayGlucose.ifcc), 1) :
                         self.roundDecimal(Decimal(oneDayGlucose.ngsp), 1),
-                    week: hbA1cDisplayUnit == .mmolMol ?
+                    week: eA1cDisplayUnit == .mmolMol ?
                         self.roundDecimal(Decimal(sevenDaysGlucose.ifcc), 1) :
                         self.roundDecimal(Decimal(sevenDaysGlucose.ngsp), 1),
-                    month: hbA1cDisplayUnit == .mmolMol ?
+                    month: eA1cDisplayUnit == .mmolMol ?
                         self.roundDecimal(Decimal(thirtyDaysGlucose.ifcc), 1) :
                         self.roundDecimal(Decimal(thirtyDaysGlucose.ngsp), 1),
-                    total: hbA1cDisplayUnit == .mmolMol ?
+                    total: eA1cDisplayUnit == .mmolMol ?
                         self.roundDecimal(Decimal(totalDaysGlucose.ifcc), 1) :
                         self.roundDecimal(Decimal(totalDaysGlucose.ngsp), 1)
                 )
@@ -1289,7 +1255,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 )
                 let variance = Variance(SD: standardDeviations, CV: cvs)
 
-                return (oneDayGlucose, hbA1cDisplayUnit, numberOfDays, TimeInRange, avg, hbs, variance)
+                return (oneDayGlucose, eA1cDisplayUnit, numberOfDays, TimeInRange, avg, hbs, variance)
             }
         } catch {
             debug(

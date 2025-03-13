@@ -25,6 +25,7 @@ extension LiveActivityManager {
         }
     }
 
+    // TODO: extract logic or at least rename function appropiately
     func fetchAndMapDetermination() async throws -> DeterminationData? {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
@@ -33,23 +34,37 @@ extension LiveActivityManager {
             key: "deliverAt",
             ascending: false,
             fetchLimit: 1,
-            propertiesToFetch: ["iob", "cob", "totalDailyDose", "currentTarget", "deliverAt"]
+            propertiesToFetch: ["iob", "cob", "currentTarget", "deliverAt"]
+        )
+
+        let tddResults = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TDDStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateFor30MinAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 1,
+            propertiesToFetch: ["total"]
         )
 
         return try await context.perform {
-            guard let determinationResults = results as? [[String: Any]] else {
+            guard let determinationResults = results as? [[String: Any]], let tddResults = tddResults as? [[String: Any]] else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
-            return determinationResults.first.map {
-                DeterminationData(
-                    cob: ($0["cob"] as? Int) ?? 0,
-                    iob: ($0["iob"] as? NSDecimalNumber)?.decimalValue ?? 0,
-                    tdd: ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue ?? 0,
-                    target: ($0["currentTarget"] as? NSDecimalNumber)?.decimalValue ?? 0,
-                    date: $0["deliverAt"] as? Date ?? nil
-                )
+            guard let determination = determinationResults.first else {
+                return nil
             }
+
+            let tddValue = (tddResults.first?["total"] as? NSDecimalNumber)?.decimalValue ?? 0
+
+            return DeterminationData(
+                cob: (determination["cob"] as? Int) ?? 0,
+                iob: (determination["iob"] as? NSDecimalNumber)?.decimalValue ?? 0,
+                tdd: tddValue,
+                target: (determination["currentTarget"] as? NSDecimalNumber)?.decimalValue ?? 0,
+                date: determination["deliverAt"] as? Date ?? nil
+            )
         }
     }
 

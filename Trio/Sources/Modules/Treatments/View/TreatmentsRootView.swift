@@ -36,6 +36,7 @@ extension Treatments {
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
+            formatter.maximumIntegerDigits = 2
             formatter.maximumFractionDigits = 2
             return formatter
         }
@@ -43,7 +44,8 @@ extension Treatments {
         private var mealFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 1
+            formatter.maximumIntegerDigits = 3
+            formatter.maximumFractionDigits = 0
             return formatter
         }
 
@@ -51,8 +53,12 @@ extension Treatments {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
             if state.units == .mmolL {
+                formatter.maximumIntegerDigits = 2
                 formatter.maximumFractionDigits = 1
-            } else { formatter.maximumFractionDigits = 0 }
+            } else {
+                formatter.maximumIntegerDigits = 3
+                formatter.maximumFractionDigits = 0
+            }
             return formatter
         }
 
@@ -228,7 +234,11 @@ extension Treatments {
                             // Notes
                             HStack {
                                 Image(systemName: "square.and.pencil")
-                                TextFieldWithToolBarString(text: $state.note, placeholder: "Note...", maxLength: 25)
+                                TextFieldWithToolBarString(
+                                    text: $state.note,
+                                    placeholder: String(localized: "Note..."),
+                                    maxLength: 25
+                                )
                             }
                         }.listRowBackground(Color.chart)
 
@@ -457,7 +467,7 @@ extension Treatments {
             let hasInsulin = state.amount > 0
             let hasCarbs = state.carbs > 0
             let hasFatOrProtein = state.fat > 0 || state.protein > 0
-            let bolusString = state.externalInsulin ? "External Insulin" : "Enact Bolus"
+            let bolusString = state.externalInsulin ? String(localized: "External Insulin") : String(localized: "Enact Bolus")
 
             if state.isBolusInProgress && hasInsulin && !state.externalInsulin && (!hasCarbs || !hasFatOrProtein) {
                 return Text("Bolus In Progress...")

@@ -1090,12 +1090,30 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
 
         do {
-            for chunk in overrides.chunks(ofCount: 100) {
+            var processedOverrides: [NightscoutExercise] = []
+
+            for override in overrides {
+                guard let createdAtString = override.created_at as? String else {
+                    continue
+                }
+
+                /// Check for an existing stored override and delete if needed
+                /// This is neccessary to delete original entry in NS when a running override gets customized with a new duration.
+                try await overridesStorage.checkIfShouldDeleteNightscoutOverrideEntry(
+                    forCreatedAt: createdAtString,
+                    newDuration: override.duration,
+                    using: nightscout
+                )
+
+                processedOverrides.append(override)
+            }
+
+            for chunk in processedOverrides.chunks(ofCount: 100) {
                 try await nightscout.uploadOverrides(Array(chunk))
             }
 
             // If successful, update the isUploadedToNS property of the OverrideStored objects
-            await updateOverridesAsUploaded(overrides)
+            await updateOverridesAsUploaded(processedOverrides)
 
             debug(.nightscout, "Overrides uploaded")
         } catch {
@@ -1131,7 +1149,24 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
 
         do {
-            for chunk in overrideRuns.chunks(ofCount: 100) {
+            var processedOverrideRuns: [NightscoutExercise] = []
+            for overrideRun in overrideRuns {
+                guard let createdAtString = overrideRun.created_at as? String else {
+                    continue
+                }
+
+                /// Check for an existing stored override and delete if needed
+                /// This is neccessary when a running override is cancelled, or replaced with a new override, before its duration is over.
+                try await overridesStorage.checkIfShouldDeleteNightscoutOverrideEntry(
+                    forCreatedAt: createdAtString,
+                    newDuration: overrideRun.duration,
+                    using: nightscout
+                )
+
+                processedOverrideRuns.append(overrideRun)
+            }
+
+            for chunk in processedOverrideRuns.chunks(ofCount: 100) {
                 try await nightscout.uploadOverrides(Array(chunk))
             }
 

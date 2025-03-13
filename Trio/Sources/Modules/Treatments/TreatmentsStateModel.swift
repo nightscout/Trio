@@ -286,11 +286,6 @@ extension Treatments {
         private func getCurrentSettingValue(for type: SettingType) async {
             let now = Date()
             let calendar = Calendar.current
-            let dateFormatter = DateFormatter()
-            dateFormatter.timeZone = TimeZone.current
-
-            let regexWithSeconds = #"^\d{2}:\d{2}:\d{2}$"#
-
             let entries: [(start: String, value: Decimal)]
 
             switch type {
@@ -309,15 +304,8 @@ extension Treatments {
             }
 
             for (index, entry) in entries.enumerated() {
-                // Dynamically set the format based on whether it matches the regex
-                if entry.start.range(of: regexWithSeconds, options: .regularExpression) != nil {
-                    dateFormatter.dateFormat = "HH:mm:ss"
-                } else {
-                    dateFormatter.dateFormat = "HH:mm"
-                }
-
-                guard let entryTime = dateFormatter.date(from: entry.start) else {
-                    print("Invalid entry start time: \(entry.start)")
+                guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
+                    debug(.default, "Invalid entry start time: \(entry.start)")
                     continue
                 }
 
@@ -331,14 +319,7 @@ extension Treatments {
 
                 let entryEndTime: Date
                 if index < entries.count - 1 {
-                    // Dynamically set the format again for the next element
-                    if entries[index + 1].start.range(of: regexWithSeconds, options: .regularExpression) != nil {
-                        dateFormatter.dateFormat = "HH:mm:ss"
-                    } else {
-                        dateFormatter.dateFormat = "HH:mm"
-                    }
-
-                    if let nextEntryTime = dateFormatter.date(from: entries[index + 1].start) {
+                    if let nextEntryTime = TherapySettingsUtil.parseTime(entries[index + 1].start) {
                         let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
                         entryEndTime = calendar.date(
                             bySettingHour: nextEntryComponents.hour!,
@@ -727,14 +708,11 @@ extension Treatments.StateModel {
             let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared
                 .getNSManagedObject(with: determinationObjectIDs, context: determinationFetchContext)
 
-            return await determinationFetchContext.perform {
-                guard let determinationObject = determinationObjects.first else {
-                    return nil
-                }
+            let determination = await determinationFetchContext.perform {
+                let determinationObject = determinationObjects.first
+                let eventualBG = determinationObject?.eventualBG?.intValue
 
-                let eventualBG = determinationObject.eventualBG?.intValue
-
-                let forecastsSet = determinationObject.forecasts ?? []
+                let forecastsSet = determinationObject?.forecasts ?? []
                 let predictions = Predictions(
                     iob: forecastsSet.extractValues(for: "iob"),
                     zt: forecastsSet.extractValues(for: "zt"),
@@ -747,7 +725,6 @@ extension Treatments.StateModel {
                     reason: "",
                     units: 0,
                     insulinReq: 0,
-                    eventualBG: eventualBG,
                     sensitivityRatio: 0,
                     rate: 0,
                     duration: 0,
@@ -756,23 +733,19 @@ extension Treatments.StateModel {
                     predictions: predictions.isEmpty ? nil : predictions,
                     carbsReq: 0,
                     temp: nil,
-                    bg: 0,
                     reservoir: 0,
-                    isf: 0,
-                    tdd: 0,
-                    insulin: nil,
-                    current_target: 0,
                     insulinForManualBolus: 0,
                     manualBolusErrorString: 0,
-                    minDelta: 0,
-                    expectedDelta: 0,
-                    minGuardBG: 0,
-                    minPredBG: 0,
-                    threshold: 0,
                     carbRatio: 0,
                     received: false
                 )
             }
+
+            guard !determinationObjects.isEmpty else {
+                return nil
+            }
+
+            return determination
         } catch {
             debug(
                 .default,

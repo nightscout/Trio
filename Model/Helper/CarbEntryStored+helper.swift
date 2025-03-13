@@ -12,6 +12,11 @@ extension NSPredicate {
         return NSPredicate(format: "isFPU == false AND date >= %@ AND carbs > 0", date as NSDate)
     }
 
+    static var carbsForStats: NSPredicate {
+        let date = Date.threeMonthsAgo
+        return NSPredicate(format: "date >= %@", date as NSDate)
+    }
+
     static var carbsNotYetUploadedToNightscout: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(

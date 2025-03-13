@@ -8,12 +8,13 @@ import Testing
 @Suite("GlucoseStorage Tests", .serialized) struct GlucoseStorageTests: Injectable {
     @Injected() var storage: GlucoseStorage!
     let resolver: Resolver
-    let coreDataStack = CoreDataStack.createForTests()
-    let testContext: NSManagedObjectContext
+    var coreDataStack: CoreDataStack!
+    var testContext: NSManagedObjectContext!
 
-    init() {
+    init() async throws {
         // Create test context
         // As we are only using this single test context to initialize our in-memory DeterminationStorage we need to perform the Unit Tests serialized
+        coreDataStack = try await CoreDataStack.createForTests()
         testContext = coreDataStack.newTaskContext()
 
         // Create assembler with test assembly
@@ -49,7 +50,7 @@ import Testing
         try await storage.storeGlucose(testGlucose)
 
         // Then verify stored entries
-        let storedEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let storedEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "glucose == 126"),
@@ -71,7 +72,7 @@ import Testing
         try await storage.storeGlucose(testGlucose)
 
         // Get the stored entry's ObjectID
-        let storedEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let storedEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "glucose == 140"),
@@ -89,7 +90,7 @@ import Testing
         await storage.deleteGlucose(objectID)
 
         // Then verify deletion
-        let remainingEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let remainingEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "glucose == 140"),
@@ -144,7 +145,7 @@ import Testing
 
         // When - Test low glucose
         try await storage.storeGlucose(lowGlucose)
-        var storedEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        var storedEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "glucose == 55"),
@@ -158,7 +159,7 @@ import Testing
 
         // When - Test high glucose
         try await storage.storeGlucose(highGlucose)
-        storedEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        storedEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "glucose == 271"),
@@ -172,7 +173,7 @@ import Testing
 
         // When - Test normal glucose
         try await storage.storeGlucose(normalGlucose)
-        storedEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        storedEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "glucose == 100"),

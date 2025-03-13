@@ -78,23 +78,48 @@ struct GlucoseChartView: ChartContent {
 }
 
 #Preview {
-    let previewStack = CoreDataStack.preview
-    return NavigationView {
-        VStack {
-            Chart {
-                GlucoseChartView(
-                    glucoseData: GlucoseStored.makePreviewGlucose(count: 24, provider: previewStack),
-                    units: .mgdL,
-                    highGlucose: 180,
-                    lowGlucose: 70,
-                    currentGlucoseTarget: 100,
-                    isSmoothingEnabled: false,
-                    glucoseColorScheme: .dynamicColor
-                )
+    struct PreviewWrapper: View {
+        @State private var previewStack: CoreDataStack? = nil
+        @State private var glucoseData: [GlucoseStored] = []
+        @State private var isLoading = true
+
+        var body: some View {
+            NavigationView {
+                Group {
+                    if isLoading {
+                        ProgressView("Loading data...")
+                    } else {
+                        VStack {
+                            Chart {
+                                GlucoseChartView(
+                                    glucoseData: glucoseData,
+                                    units: .mgdL,
+                                    highGlucose: 180,
+                                    lowGlucose: 70,
+                                    currentGlucoseTarget: 100,
+                                    isSmoothingEnabled: false,
+                                    glucoseColorScheme: .dynamicColor
+                                )
+                            }
+                            .frame(height: 200)
+                            .padding()
+                        }
+                    }
+                }
+                .navigationTitle("Glucose Chart")
+                .task {
+                    // Use the preview stack that's initialized asynchronously in CoreDataStack
+                    previewStack = try? await CoreDataStack.preview()
+
+                    // Now you can safely create preview data
+                    if let stack = previewStack {
+                        glucoseData = GlucoseStored.makePreviewGlucose(count: 24, provider: stack)
+                        isLoading = false
+                    }
+                }
             }
-            .frame(height: 200)
-            .padding()
         }
-        .navigationTitle("Glucose Chart")
     }
+
+    return PreviewWrapper()
 }
