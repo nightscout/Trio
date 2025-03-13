@@ -125,6 +125,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             cgmGlucoseSourceType: CGMType.none,
             cgmGlucosePluginId: ""
         )
+        settingsManager.settings.cgm = .none
+        settingsManager.settings.cgmPluginIdentifier = ""
     }
 
     func saveConfigManager() {
