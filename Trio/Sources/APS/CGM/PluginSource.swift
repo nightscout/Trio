@@ -26,45 +26,222 @@ final class PluginSource: GlucoseSource {
         cgmManager?.cgmManagerDelegate = self
     }
 
-    /// Function that fetches blood glucose data
-    /// This function combines two data fetching mechanisms (`callBLEFetch` and `fetchIfNeeded`) into a single publisher.
-    /// It returns the first non-empty result from either of the sources within a 5-minute timeout period.
+    /// Fetches blood glucose data from available sources.
+    ///
+    /// This function combines two fetching mechanisms (`callBLEFetch` and `fetchIfNeeded`) into a single publisher.
+    /// It returns the first non-empty result from either of the sources within a 2-minute timeout period.
     /// If no valid data is fetched within the timeout, it returns an empty array.
     ///
     /// - Parameter timer: An optional `DispatchTimer` (not used in the function but can be used to trigger fetch logic).
     /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if an error occurs or the timeout is reached.
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
-        Publishers.Merge(
-            callBLEFetch(),
+        debug(.deviceManager, "PluginSource: fetch() called - combining BLE fetch and fetchIfNeeded")
+
+        // Check if CGM manager is available
+        if cgmManager == nil {
+            debug(.deviceManager, "PluginSource: fetch() - No CGM manager available, returning empty array immediately")
+            return Just([]).eraseToAnyPublisher()
+        }
+
+        // Create a publisher that will emit a timeout event after 2 minutes
+        let timeoutPublisher = Just(())
+            .delay(for: .seconds(120), scheduler: processQueue)
+            .map { _ -> [BloodGlucose] in
+                debug(.deviceManager, "PluginSource: fetch() - Global timeout reached, returning empty array")
+                return []
+            }
+            .eraseToAnyPublisher()
+
+        // Combine the BLE fetch, fetchIfNeeded, and timeout publishers
+        return Publishers.Merge3(
+            callBLEFetch()
+                .handleEvents(receiveOutput: { values in
+                    if !values.isEmpty {
+                        debug(.deviceManager, "PluginSource: fetch() - callBLEFetch returned \(values.count) values")
+                    }
+                }),
             fetchIfNeeded()
+                .handleEvents(receiveOutput: { values in
+                    if !values.isEmpty {
+                        debug(.deviceManager, "PluginSource: fetch() - fetchIfNeeded returned \(values.count) values")
+                    }
+                }),
+            timeoutPublisher
         )
-        .filter { !$0.isEmpty }
+        .filter { values in
+            let isEmpty = values.isEmpty
+            debug(.deviceManager, "PluginSource: filter - received \(values.count) values, isEmpty: \(isEmpty)")
+            return !isEmpty
+        }
         .first()
-        .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
+        .handleEvents(
+            receiveSubscription: { _ in debug(.deviceManager, "PluginSource: fetch publisher received subscription") },
+            receiveOutput: { values in
+                debug(.deviceManager, "PluginSource: fetch publisher emitting \(values.count) values") },
+            receiveCompletion: { completion in
+                if case .finished = completion {
+                    debug(.deviceManager, "PluginSource: fetch publisher completed normally")
+                } else {
+                    debug(.deviceManager, "PluginSource: fetch publisher completed with error or cancellation")
+                }
+            },
+            receiveCancel: { debug(.deviceManager, "PluginSource: fetch publisher was cancelled") }
+        )
         .replaceError(with: [])
+        .replaceEmpty(with: [])
         .eraseToAnyPublisher()
     }
 
+    /// Initiates a BLE-based blood glucose data fetch.
+    ///
+    /// This function returns a future-based publisher that will wait for a response from the BLE device.
+    /// If a response is not received within 60 seconds, the fetch operation times out and returns an empty array.
+    ///
+    /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if the fetch fails or times out.
     func callBLEFetch() -> AnyPublisher<[BloodGlucose], Never> {
-        Future<[BloodGlucose], Error> { [weak self] promise in
-            self?.promise = promise
+        debug(.deviceManager, "PluginSource: callBLEFetch() called")
+        return Future<[BloodGlucose], Error> { [weak self] promise in
+            guard let self = self else {
+                debug(.deviceManager, "PluginSource: callBLEFetch - self is nil, returning empty array")
+                promise(.success([]))
+                return
+            }
+
+            debug(.deviceManager, "PluginSource: callBLEFetch - storing promise for future resolution")
+
+            // If there's already a promise, resolve it with an empty array to avoid memory leaks
+            if self.promise != nil {
+                debug(.deviceManager, "PluginSource: callBLEFetch - found existing promise, resolving it with empty array")
+                self.promise?(.success([]))
+            }
+
+            // Store the new promise
+            self.promise = promise
+
+            // Create a timeout work item
+            let timeoutWorkItem = DispatchWorkItem { [weak self] in
+                guard let self = self else { return }
+
+                // Check if we still have a promise (it hasn't been fulfilled yet)
+                if self.promise != nil {
+                    debug(.deviceManager, "PluginSource: callBLEFetch - timeout reached, resolving promise with empty array")
+                    self.promise?(.success([]))
+                    self.promise = nil
+                }
+            }
+
+            // Schedule the timeout
+            self.processQueue.asyncAfter(deadline: .now() + 60, execute: timeoutWorkItem)
         }
+        .handleEvents(
+            receiveSubscription: { _ in debug(.deviceManager, "PluginSource: callBLEFetch received subscription") },
+            receiveOutput: { values in
+                debug(.deviceManager, "PluginSource: callBLEFetch received output with \(values.count) values") },
+            receiveCompletion: { completion in
+                if case let .failure(error) = completion {
+                    debug(.deviceManager, "PluginSource: callBLEFetch completed with error: \(error.localizedDescription)")
+                } else {
+                    debug(.deviceManager, "PluginSource: callBLEFetch completed successfully")
+                }
+            }
+        )
         .timeout(60 * 5, scheduler: processQueue, options: nil, customError: nil)
         .replaceError(with: [])
         .replaceEmpty(with: [])
         .eraseToAnyPublisher()
     }
 
+    /// Fetches new blood glucose data from the CGM if needed.
+    ///
+    /// This function communicates with the CGM manager to request new data, if available.
+    /// If the CGM manager is unavailable or no new data is provided within 30 seconds, an empty array is returned.
+    ///
+    /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if no new data is available or the operation times out.
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> {
-        Future<[BloodGlucose], Error> { [weak self] promise in
-            guard let self = self else { return }
+        debug(.deviceManager, "PluginSource: fetchIfNeeded() called")
+        return Future<[BloodGlucose], Error> { [weak self] promise in
+            guard let self = self else {
+                debug(.deviceManager, "PluginSource: fetchIfNeeded - self is nil, returning empty array")
+                promise(.success([]))
+                return
+            }
+            debug(.deviceManager, "PluginSource: fetchIfNeeded - about to dispatch to processQueue")
             self.processQueue.async {
-                guard let cgmManager = self.cgmManager else { return }
+                guard let cgmManager = self.cgmManager else {
+                    debug(.deviceManager, "PluginSource: fetchIfNeeded - cgmManager is nil, returning empty array")
+                    promise(.success([]))
+                    return
+                }
+
+                // Log CGM manager details
+                debug(.deviceManager, "PluginSource: fetchIfNeeded - using CGM manager of type: \(type(of: cgmManager))")
+                debug(.deviceManager, "PluginSource: fetchIfNeeded - CGM manager identifier: \(cgmManager.pluginIdentifier)")
+                debug(
+                    .deviceManager,
+                    "PluginSource: fetchIfNeeded - CGM manager has valid sensor session: \(self.cgmHasValidSensorSession)"
+                )
+
+                // Set a timeout to ensure the promise is resolved
+                let timeoutWorkItem = DispatchWorkItem {
+                    debug(.deviceManager, "PluginSource: fetchIfNeeded - TIMEOUT reached, resolving promise with empty array")
+                    promise(.success([]))
+                }
+                self.processQueue.asyncAfter(deadline: .now() + 30, execute: timeoutWorkItem)
+
+                debug(.deviceManager, "PluginSource: fetchIfNeeded - calling fetchNewDataIfNeeded on cgmManager")
+
+                // Check if we have a valid sensor session
+                if !self.cgmHasValidSensorSession {
+                    debug(
+                        .deviceManager,
+                        "PluginSource: fetchIfNeeded - WARNING: CGM does not have a valid sensor session"
+                    )
+                }
+
+                debug(.deviceManager, "PluginSource: fetchIfNeeded - about to call fetchNewDataIfNeeded")
                 cgmManager.fetchNewDataIfNeeded { result in
-                    promise(self.readCGMResult(readingResult: result))
+                    // Cancel the timeout since we got a response
+                    timeoutWorkItem.cancel()
+
+                    debug(
+                        .deviceManager,
+                        "PluginSource: fetchIfNeeded - received callback from fetchNewDataIfNeeded with result: \(result)"
+                    )
+
+                    let processedResult = self.readCGMResult(readingResult: result)
+                    if case let .success(values) = processedResult {
+                        debug(.deviceManager, "PluginSource: fetchIfNeeded - processed result contains \(values.count) values")
+                        if !values.isEmpty {
+                            let firstValue = values.first!
+                            debug(
+                                .deviceManager,
+                                "PluginSource: fetchIfNeeded - first glucose value: \(firstValue.glucose ?? 0) mg/dL at \(firstValue.dateString)"
+                            )
+                        } else {
+                            debug(.deviceManager, "PluginSource: fetchIfNeeded - processed result contains no values")
+                        }
+                    } else if case let .failure(error) = processedResult {
+                        debug(
+                            .deviceManager,
+                            "PluginSource: fetchIfNeeded - processed result contains error: \(error.localizedDescription)"
+                        )
+                    }
+                    promise(processedResult)
                 }
             }
         }
+        .handleEvents(
+            receiveSubscription: { _ in debug(.deviceManager, "PluginSource: fetchIfNeeded received subscription") },
+            receiveOutput: { values in
+                debug(.deviceManager, "PluginSource: fetchIfNeeded received output with \(values.count) values") },
+            receiveCompletion: { completion in
+                if case let .failure(error) = completion {
+                    debug(.deviceManager, "PluginSource: fetchIfNeeded completed with error: \(error.localizedDescription)")
+                } else {
+                    debug(.deviceManager, "PluginSource: fetchIfNeeded completed successfully")
+                }
+            }
+        )
         .replaceError(with: [])
         .replaceEmpty(with: [])
         .eraseToAnyPublisher()
