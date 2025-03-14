@@ -382,7 +382,7 @@ extension UserInterfaceSettings {
                         VStack {
                             Picker(
                                 selection: $state.eA1cDisplayUnit,
-                                label: Text("eA1c Display Unit")
+                                label: Text("eA1c/GMI Display Unit")
                             ) {
                                 ForEach(EstimatedA1cDisplayUnit.allCases) { selection in
                                     Text(selection.displayName).tag(selection)
@@ -391,7 +391,7 @@ extension UserInterfaceSettings {
 
                             HStack(alignment: .center) {
                                 Text(
-                                    "Choose to display eA1c in percent or mmol/mol."
+                                    "Choose to display eA1c and GMI in percent or mmol/mol."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -399,11 +399,11 @@ extension UserInterfaceSettings {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = String(localized: "eA1c Display Unit")
+                                        hintLabel = String(localized: "eA1c/GMI Display Unit")
                                         selectedVerboseHint =
                                             AnyView(
                                                 Text(
-                                                    "Choose which format you'd prefer the eA1c (estimated A1c) value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)."
+                                                    "Choose which format you'd prefer the eA1c (estimated A1c) and GMI (Glucose Management Index) value in the statistics view as a percentage (Example: eA1c: 6.5%) or mmol/mol (Example: eA1c: 48 mmol/mol)."
                                                 )
                                             )
                                         shouldDisplayHint.toggle()
