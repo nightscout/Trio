@@ -286,7 +286,7 @@ extension UserInterfaceSettings {
 
                             HStack(alignment: .center) {
                                 Text(
-                                    "Set low and high glucose values for the main screen glucose graph and statistics."
+                                    "Set low and high glucose values for the main screen, watch app and live activity glucose graph."
                                 )
                                 .lineLimit(nil)
                                 .font(.footnote)
