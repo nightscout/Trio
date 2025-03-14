@@ -463,7 +463,9 @@ extension Home {
         func deleteCGM() {
             fetchGlucoseManager.performOnCGMManagerQueue {
                 // Call plugin functionality on the manager queue (or at least attempt to)
-                self.fetchGlucoseManager?.deleteGlucoseSource()
+                Task {
+                    await self.fetchGlucoseManager?.deleteGlucoseSource()
+                }
 
                 // UI updates go back to Main
                 DispatchQueue.main.async {
@@ -698,7 +700,9 @@ extension Home.StateModel: CompletionDelegate {
                 cgmCurrent = cgmDefaultModel
                 settingsManager.settings.cgm = cgmDefaultModel.type
                 settingsManager.settings.cgmPluginIdentifier = cgmDefaultModel.id
-                fetchGlucoseManager.deleteGlucoseSource()
+                Task {
+                    await fetchGlucoseManager.deleteGlucoseSource()
+                }
             } else {
                 debug(.service, "CGMSetupCompletionNotifying: CGM Setup Completed")
 
