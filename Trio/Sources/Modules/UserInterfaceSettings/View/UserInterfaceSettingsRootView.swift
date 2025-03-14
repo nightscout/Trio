@@ -419,46 +419,6 @@ extension UserInterfaceSettings {
                     }
                 ).listRowBackground(Color.chart)
 
-                Section {
-                    VStack(alignment: .leading) {
-                        Picker(
-                            selection: $state.timeInRangeChartStyle,
-                            label: Text("Time in Range Chart Style").multilineTextAlignment(.leading)
-                        ) {
-                            ForEach(TimeInRangeChartStyle.allCases) { selection in
-                                Text(selection.displayName).tag(selection)
-                            }
-                        }.padding(.top)
-
-                        HStack(alignment: .center) {
-                            Text(
-                                "Choose the orientation of the Time in Range Chart."
-                            )
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(nil)
-                            Spacer()
-                            Button(
-                                action: {
-                                    hintLabel = String(localized: "Time in Range Chart Style")
-                                    selectedVerboseHint =
-                                        AnyView(
-                                            Text(
-                                                "Choose which style for the time in range chart you'd prefer: a standing, i.e., vertical, bar chart or a laying, i.e., horizontal, line chart."
-                                            )
-                                        )
-                                    shouldDisplayHint.toggle()
-                                },
-                                label: {
-                                    HStack {
-                                        Image(systemName: "questionmark.circle")
-                                    }
-                                }
-                            ).buttonStyle(BorderlessButtonStyle())
-                        }.padding(.top)
-                    }.padding(.bottom)
-                }.listRowBackground(Color.chart)
-
                 SettingInputSection(
                     decimalValue: $state.carbsRequiredThreshold,
                     booleanValue: $state.showCarbsRequiredBadge,

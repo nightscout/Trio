@@ -54,7 +54,6 @@ struct TrioSettings: JSON, Equatable {
     var glucoseColorScheme: GlucoseColorScheme = .staticColor
     var xGridLines: Bool = true
     var yGridLines: Bool = true
-    var timeInRangeChartStyle: TimeInRangeChartStyle = .vertical
     var rulerMarks: Bool = true
     var forecastDisplayType: ForecastDisplayType = .cone
     var maxCarbs: Decimal = 250
@@ -250,10 +249,6 @@ extension TrioSettings: Decodable {
 
         if let yGridLines = try? container.decode(Bool.self, forKey: .yGridLines) {
             settings.yGridLines = yGridLines
-        }
-
-        if let timeInRangeChartStyle = try? container.decode(TimeInRangeChartStyle.self, forKey: .timeInRangeChartStyle) {
-            settings.timeInRangeChartStyle = timeInRangeChartStyle
         }
 
         if let rulerMarks = try? container.decode(Bool.self, forKey: .rulerMarks) {
