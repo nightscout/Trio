@@ -9,7 +9,7 @@ import UIKit
 
 protocol FetchGlucoseManager: SourceInfoProvider {
     func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?)
-    func deleteGlucoseSource()
+    func deleteGlucoseSource() async
     func removeCalibrations()
     var glucoseSource: GlucoseSource! { get }
     var cgmManager: CGMManagerUI? { get }
@@ -80,67 +80,27 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         timer.publisher
             .receive(on: processQueue)
             .flatMap { [self] _ -> AnyPublisher<[BloodGlucose], Never> in
-                debug(.nightscout, "FetchGlucoseManager timer heartbeat triggered")
-
-                // Check if the glucose source is still available
+                debug(.nightscout, "FetchGlucoseManager timer heartbeat")
                 if let glucoseSource = self.glucoseSource {
-                    debug(
-                        .deviceManager,
-                        "FetchGlucoseManager: glucoseSource exists, calling fetch() on source type: \(type(of: glucoseSource))"
-                    )
-
-                    // Check if we have a CGM manager when using a plugin source
-                    if let pluginSource = glucoseSource as? PluginSource {
-                        if pluginSource.cgmManager == nil {
-                            debug(.deviceManager, "FetchGlucoseManager: WARNING - PluginSource has no CGM manager")
-                        } else {
-                            debug(
-                                .deviceManager,
-                                "FetchGlucoseManager: PluginSource has CGM manager of type: \(type(of: pluginSource.cgmManager!))"
-                            )
-                        }
-                    }
-
-                    return glucoseSource.fetch(self.timer)
-                        .handleEvents(
-                            receiveOutput: { values in
-                                debug(.deviceManager, "FetchGlucoseManager: fetch() returned \(values.count) glucose values")
-                                if !values.isEmpty {
-                                    let firstValue = values.first!
-                                    debug(
-                                        .deviceManager,
-                                        "FetchGlucoseManager: First glucose value: \(firstValue.glucose ?? 0) mg/dL at \(firstValue.dateString)"
-                                    )
-                                }
-                            }
-                        )
-                        .eraseToAnyPublisher()
+                    return glucoseSource.fetch(self.timer).eraseToAnyPublisher()
                 } else {
-                    debug(.deviceManager, "FetchGlucoseManager: No glucoseSource available, returning empty publisher")
                     return Empty(completeImmediately: false).eraseToAnyPublisher()
                 }
             }
             .sink { glucose in
-                debug(.nightscout, "FetchGlucoseManager callback received \(glucose.count) glucose values")
-                let date = self.glucoseStorage.syncDate()
-                debug(.deviceManager, "FetchGlucoseManager: sync date is \(date)")
+                debug(.nightscout, "FetchGlucoseManager callback sensor")
                 Publishers.CombineLatest(
                     Just(glucose),
-                    Just(date)
+                    Just(self.glucoseStorage.syncDate())
                 )
                 .eraseToAnyPublisher()
                 .sink { newGlucose, syncDate in
-                    debug(
-                        .deviceManager,
-                        "FetchGlucoseManager: starting new task to invoke glucoseStoreAndHeartDecision with \(newGlucose.count) glucose values"
-                    )
                     Task {
                         do {
                             try await self.glucoseStoreAndHeartDecision(
                                 syncDate: syncDate,
                                 glucose: newGlucose
                             )
-                            debugPrint("\(#file) \(#function) glucoseStoreAndHeartDecision did complete")
                         } catch {
                             debug(.deviceManager, "Failed to store glucose: \(error.localizedDescription)")
                         }
@@ -149,7 +109,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                 .store(in: &self.lifetime)
             }
             .store(in: &lifetime)
-//        debug(.deviceManager, "FetchGlucoseManager: timer.fire() and timer.resume() called")
         timer.fire()
         timer.resume()
     }
@@ -160,12 +119,15 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         calibrationService.removeAllCalibrations()
     }
 
-    func deleteGlucoseSource() {
+    @MainActor func deleteGlucoseSource() async {
         cgmManager = nil
+        glucoseSource = nil
         updateGlucoseSource(
-            cgmGlucoseSourceType: CGMType.none,
-            cgmGlucosePluginId: ""
+            cgmGlucoseSourceType: cgmDefaultModel.type,
+            cgmGlucosePluginId: cgmDefaultModel.id
         )
+        settingsManager.settings.cgm = cgmDefaultModel.type
+        settingsManager.settings.cgmPluginIdentifier = cgmDefaultModel.id
     }
 
     func saveConfigManager() {
@@ -188,17 +150,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     }
 
     func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?) {
-        debug(
-            .deviceManager,
-            "FetchGlucoseManager: updateGlucoseSource called with type: \(cgmGlucoseSourceType), pluginId: \(cgmGlucosePluginId), newManager: \(newManager != nil ? "provided" : "nil")"
-        )
-
         // if changed, remove all calibrations
         if self.cgmGlucoseSourceType != cgmGlucoseSourceType || self.cgmGlucosePluginId != cgmGlucosePluginId {
-            debug(
-                .deviceManager,
-                "FetchGlucoseManager: CGM type or plugin ID changed, removing calibrations and resetting managers"
-            )
             removeCalibrations()
             cgmManager = nil
             glucoseSource = nil
@@ -211,42 +164,17 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         // if plugin, if the same pluginID, no change required because the manager is available
         // if plugin, if not the same pluginID, need to reset the cgmManager
         // if plugin and newManager provides, update cgmManager
-        debug(
-            .deviceManager,
-            "FetchGlucoseManager: Current plugin identifier: \(String(describing: cgmManager?.pluginIdentifier))"
-        )
+        debug(.apsManager, "plugin : \(String(describing: cgmManager?.pluginIdentifier))")
 
         if let manager = newManager {
-            debug(.deviceManager, "FetchGlucoseManager: New manager provided of type: \(type(of: manager))")
-            // If the pointer to manager is the *same* as our current `cgmManager`, skip re-init
-            if manager !== cgmManager {
-                debug(.deviceManager, "FetchGlucoseManager: New manager is different from current manager, reinitializing")
-                removeCalibrations()
-                cgmManager = manager
-                glucoseSource = nil
-            } else {
-                debug(
-                    .deviceManager,
-                    "FetchGlucoseManager: New manager is the same instance as current manager, skipping reinitialization"
-                )
-            }
+            cgmManager = manager
+            removeCalibrations()
+//            glucoseSource = nil
         } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
-            debug(
-                .deviceManager,
-                "FetchGlucoseManager: Plugin type with no manager but raw state available, initializing from raw state"
-            )
             cgmManager = cgmManagerFromRawValue(rawCGMManager)
-            if cgmManager != nil {
-                debug(
-                    .deviceManager,
-                    "FetchGlucoseManager: Successfully initialized CGM manager from raw state: \(type(of: cgmManager!))"
-                )
-            } else {
-                debug(.deviceManager, "FetchGlucoseManager: Failed to initialize CGM manager from raw state")
-            }
             updateManagerUnits(cgmManager)
+
         } else {
-            debug(.deviceManager, "FetchGlucoseManager: No new manager provided, saving current configuration")
             saveConfigManager()
         }
 
@@ -263,17 +191,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             case .enlite:
                 glucoseSource = deviceDataManager
             case .plugin:
-                debug(.deviceManager, "FetchGlucoseManager: Creating PluginSource with current CGM manager")
                 glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
             }
-
-            if let source = glucoseSource {
-                debug(.deviceManager, "FetchGlucoseManager: Successfully created glucose source of type: \(type(of: source))")
-            } else {
-                debug(.deviceManager, "FetchGlucoseManager: No glucose source created, source is nil")
-            }
-        } else {
-            debug(.deviceManager, "FetchGlucoseManager: Keeping existing glucose source of type: \(type(of: glucoseSource!))")
         }
     }
 
