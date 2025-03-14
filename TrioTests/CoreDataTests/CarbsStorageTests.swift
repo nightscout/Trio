@@ -8,11 +8,12 @@ import Testing
 @Suite("CarbsStorage Tests", .serialized) struct CarbsStorageTests: Injectable {
     @Injected() var storage: CarbsStorage!
     let resolver: Resolver
-    let coreDataStack = CoreDataStack.createForTests()
-    let testContext: NSManagedObjectContext
+    var coreDataStack: CoreDataStack!
+    var testContext: NSManagedObjectContext!
 
-    init() {
+    init() async throws {
         // Create test context
+        coreDataStack = try await CoreDataStack.createForTests()
         testContext = coreDataStack.newTaskContext()
 
         // Create assembler with test assembly
@@ -55,7 +56,7 @@ import Testing
 
         // When
         try await storage.storeCarbs(testEntries, areFetchedFromRemote: false)
-        let recentEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let recentEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "TRUEPREDICATE"),
@@ -95,7 +96,7 @@ import Testing
         try await storage.storeCarbs([testEntry], areFetchedFromRemote: false)
 
         // Get the stored entry's ObjectID
-        let storedEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let storedEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "carbs == 30"),
@@ -111,7 +112,7 @@ import Testing
         await storage.deleteCarbsEntryStored(objectID)
 
         // Then - verify deletion
-        let remainingEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let remainingEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "carbs == 30"),
@@ -166,7 +167,7 @@ import Testing
         try await storage.storeCarbs([testEntry], areFetchedFromRemote: false)
 
         // First verify all stored entries
-        let allStoredEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let allStoredEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "fpuID == %@", fpuID),

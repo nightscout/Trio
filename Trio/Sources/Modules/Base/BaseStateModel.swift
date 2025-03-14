@@ -11,10 +11,6 @@ protocol StateModel: ObservableObject {
     func view(for screen: Screen) -> AnyView
 }
 
-protocol CGMStateModel: StateModel {
-    var cgmCurrent: CGMType { get }
-}
-
 class BaseStateModel<Provider>: StateModel, Injectable where Provider: Trio.Provider {
     @Injected() var router: Router!
     @Injected() var settingsManager: SettingsManager!

@@ -169,7 +169,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             return
         }
         content.sound = .default
-        playSoundIfNeeded()
 
         titles.append(String(format: String(localized: "Carbs required: %d g", comment: "Carbs required"), carbs))
 
@@ -309,7 +308,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 content.body = body
 
                 if notificationAlarm {
-                    playSoundIfNeeded()
                     content.sound = .default
                     content.userInfo[NotificationAction.key] = NotificationAction.snooze.rawValue
                 }
@@ -450,30 +448,6 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 debug(.service, "Sending \(identifier) notification for \(request.content.title)")
             }
         }
-    }
-
-    private func playSoundIfNeeded() {
-        guard settingsManager.settings.useAlarmSound, snoozeUntilDate < Date() else { return }
-        Self.stopPlaying = false
-        playSound()
-    }
-
-    static let soundID: UInt32 = 1336
-    private static var stopPlaying = false
-
-    private func playSound(times: Int = 1) {
-        guard times > 0, !Self.stopPlaying else {
-            return
-        }
-
-        AudioServicesPlaySystemSoundWithCompletion(Self.soundID) {
-            self.playSound(times: times - 1)
-        }
-    }
-
-    static func stopSound() {
-        stopPlaying = true
-        AudioServicesDisposeSystemSoundID(soundID)
     }
 
     private var glucoseFormatter: NumberFormatter {

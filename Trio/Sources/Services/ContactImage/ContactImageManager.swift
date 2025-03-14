@@ -129,33 +129,29 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     private func getCurrentGlucoseTarget() async -> Decimal? {
         let now = Date()
         let calendar = Calendar.current
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm"
-        dateFormatter.timeZone = TimeZone.current
 
         let bgTargets = await fileStorage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
             ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
             ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
-        let entries: [(start: String, value: Decimal)] = bgTargets.targets.map { ($0.start, $0.low) }
+        let entries: [(start: String, value: Decimal)] = bgTargets.targets
+            .map { ($0.start.trimmingCharacters(in: .whitespacesAndNewlines), $0.low) }
 
         for (index, entry) in entries.enumerated() {
-            guard let entryTime = dateFormatter.date(from: entry.start) else {
-                print("Invalid entry start time: \(entry.start)")
+            guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
+                debug(.default, "Invalid entry start time: \(entry.start)")
                 continue
             }
 
             let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
-            let entryStartTime = calendar.date(
+            guard let entryStartTime = calendar.date(
                 bySettingHour: entryComponents.hour!,
                 minute: entryComponents.minute!,
                 second: entryComponents.second!,
                 of: now
-            )!
+            ) else { continue }
 
             let entryEndTime: Date
-            if index < entries.count - 1,
-               let nextEntryTime = dateFormatter.date(from: entries[index + 1].start)
-            {
+            if index < entries.count - 1, let nextEntryTime = TherapySettingsUtil.parseTime(entries[index + 1].start) {
                 let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
                 entryEndTime = calendar.date(
                     bySettingHour: nextEntryComponents.hour!,
@@ -239,12 +235,11 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             let isDynamicColorScheme = settingsManager.settings.glucoseColorScheme == .dynamicColor
             let highGlucoseColorValue = isDynamicColorScheme ? hardCodedHigh : settingsManager.settings.highGlucose
             let lowGlucoseColorValue = isDynamicColorScheme ? hardCodedLow : settingsManager.settings.lowGlucose
+            let fetchedTarget = await getCurrentGlucoseTarget() // ⚠️ this value is mg/dL
 
             state.highGlucoseColorValue = units == .mgdL ? highGlucoseColorValue : highGlucoseColorValue.asMmolL
             state.lowGlucoseColorValue = units == .mgdL ? lowGlucoseColorValue : lowGlucoseColorValue.asMmolL
-            state
-                .targetGlucose = await getCurrentGlucoseTarget() ??
-                (settingsManager.settings.units == .mgdL ? Decimal(100) : 100.asMmolL)
+            state.targetGlucose = units == .mgdL ? fetchedTarget ?? Decimal(100) : fetchedTarget?.asMmolL ?? 100.asMmolL
             state.glucoseColorScheme = settingsManager.settings.glucoseColorScheme
 
             // Notify delegate about state update on main thread
