@@ -9,7 +9,7 @@ import UIKit
 
 protocol FetchGlucoseManager: SourceInfoProvider {
     func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?)
-    func deleteGlucoseSource()
+    func deleteGlucoseSource() async
     func removeCalibrations()
     var glucoseSource: GlucoseSource! { get }
     var cgmManager: CGMManagerUI? { get }
@@ -119,12 +119,15 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         calibrationService.removeAllCalibrations()
     }
 
-    func deleteGlucoseSource() {
+    @MainActor func deleteGlucoseSource() async {
         cgmManager = nil
+        glucoseSource = nil
         updateGlucoseSource(
-            cgmGlucoseSourceType: CGMType.none,
-            cgmGlucosePluginId: ""
+            cgmGlucoseSourceType: cgmDefaultModel.type,
+            cgmGlucosePluginId: cgmDefaultModel.id
         )
+        settingsManager.settings.cgm = cgmDefaultModel.type
+        settingsManager.settings.cgmPluginIdentifier = cgmDefaultModel.id
     }
 
     func saveConfigManager() {
