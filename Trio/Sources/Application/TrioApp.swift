@@ -97,7 +97,7 @@ import Swinject
             do {
                 try await BuildDetails.shared.handleExpireDateChange()
             } catch {
-                debug(.nightscout, "Failed to handle expire date change: \(error)")
+                debug(.default, "Failed to handle expire date change: \(error)")
             }
         }
     }
