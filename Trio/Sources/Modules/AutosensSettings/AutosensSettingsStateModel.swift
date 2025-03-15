@@ -41,10 +41,17 @@ extension AutosensSettings {
 
         private func setupDeterminationsArray() {
             Task {
-                let ids = await determinationStorage.fetchLastDeterminationObjectID(
-                    predicate: NSPredicate.enactedDetermination
-                )
-                await updateDeterminationsArray(with: ids)
+                do {
+                    let ids = try await determinationStorage.fetchLastDeterminationObjectID(
+                        predicate: NSPredicate.enactedDetermination
+                    )
+                    await updateDeterminationsArray(with: ids)
+                } catch {
+                    debug(
+                        .default,
+                        "\(DebuggingIdentifiers.failed) Error fetching determination IDs: \(error.localizedDescription)"
+                    )
+                }
             }
         }
 

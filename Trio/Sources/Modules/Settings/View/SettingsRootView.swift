@@ -5,6 +5,12 @@ import SwiftUI
 import Swinject
 
 extension Settings {
+    struct VersionInfo: Equatable {
+        var latestVersion: String?
+        var isUpdateAvailable: Bool
+        var isBlacklisted: Bool
+    }
+
     struct RootView: BaseView {
         let resolver: Resolver
         @StateObject var state = StateModel()
@@ -18,6 +24,11 @@ extension Settings {
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
+        @State private var versionInfo = VersionInfo(
+            latestVersion: nil,
+            isUpdateAvailable: false,
+            isBlacklisted: false
+        )
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
@@ -25,6 +36,37 @@ extension Settings {
 
         private var filteredItems: [FilteredSettingItem] {
             SettingItems.filteredItems(searchText: searchText)
+        }
+
+        @ViewBuilder var versionInfoView: some View {
+            let latestVersion = versionInfo.latestVersion
+            if let version = latestVersion {
+                let updateColor: Color = versionInfo.isUpdateAvailable ? .orange : .green
+                let versionIconName = versionInfo.isUpdateAvailable ? "exclamationmark.triangle.fill" : "checkmark.circle.fill"
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Latest version: \(version)")
+                            .font(.footnote)
+                            .foregroundColor(updateColor)
+                        Image(systemName: versionIconName)
+                            .foregroundColor(updateColor)
+                    }
+                    if versionInfo.isBlacklisted {
+                        HStack {
+                            Text("Warning: Known issues. Update now.")
+                                .font(.footnote)
+                                .foregroundColor(.red)
+                            Image(systemName: "exclamationmark.octagon.fill")
+                                .foregroundColor(.red)
+                        }
+                    }
+                }
+            } else {
+                Text("Latest version: Fetching...")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            }
         }
 
         var body: some View {
@@ -35,10 +77,10 @@ extension Settings {
                     Section(
                         header: Text("BRANCH: \(buildDetails.branchAndSha)").textCase(nil),
                         content: {
-                            let versionNumber = Bundle.main.releaseVersionNumber ?? "Unknown"
-                            let buildNumber = Bundle.main.buildVersionNumber ?? "Unknown"
+                            let versionNumber = Bundle.main.releaseVersionNumber ?? String(localized: "Unknown")
+                            let buildNumber = Bundle.main.buildVersionNumber ?? String(localized: "Unknown")
 
-                            Group {
+                            NavigationLink(destination: SubmodulesView(buildDetails: buildDetails)) {
                                 HStack {
                                     Image(appIcons.appIcon.rawValue)
                                         .resizable()
@@ -46,7 +88,7 @@ extension Settings {
                                         .frame(width: 50, height: 50)
                                         .cornerRadius(10)
                                         .padding(.trailing, 10)
-                                    VStack(alignment: .leading) {
+                                    VStack(alignment: .leading, spacing: 4) {
                                         Text("Trio v\(versionNumber) (\(buildNumber))")
                                             .font(.headline)
                                         if let expirationDate = buildDetails.calculateExpirationDate() {
@@ -63,6 +105,8 @@ extension Settings {
                                                 .font(.footnote)
                                                 .foregroundColor(.secondary)
                                         }
+
+                                        versionInfoView
                                     }
                                 }
                             }
@@ -77,13 +121,13 @@ extension Settings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Closed Loop"
+                                hintLabel = String(localized: "Closed Loop")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: "Closed Loop",
-                        miniHint: "Enable automated insulin delivery.",
+                        label: String(localized: "Closed Loop"),
+                        miniHint: String(localized: "Enable automated insulin delivery."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Running Trio in closed loop mode requires an active CGM sensor session and a connected pump. This enables automated insulin delivery."
@@ -92,7 +136,7 @@ extension Settings {
                                 "Before enabling, dial in your settings (basal / insulin sensitivity / carb ratio), and familiarize yourself with the app."
                             )
                         },
-                        headerText: "Automated Insulin Delivery"
+                        headerText: String(localized: "Automated Insulin Delivery")
                     )
 
                     Section(
@@ -284,7 +328,7 @@ extension Settings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .sheet(isPresented: $showShareSheet) {
@@ -312,6 +356,18 @@ extension Settings {
             }
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
             .screenNavigation(self)
+            .onAppear {
+                AppVersionChecker.shared.refreshVersionInfo { _, latestVersion, isNewer, isBlacklisted in
+                    let updateAvailable = isNewer
+                    DispatchQueue.main.async {
+                        versionInfo = VersionInfo(
+                            latestVersion: latestVersion,
+                            isUpdateAvailable: updateAvailable,
+                            isBlacklisted: isBlacklisted
+                        )
+                    }
+                }
+            }
         }
     }
 }

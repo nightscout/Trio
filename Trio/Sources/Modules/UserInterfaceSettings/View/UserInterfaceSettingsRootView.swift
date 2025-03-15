@@ -64,7 +64,7 @@ extension UserInterfaceSettings {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = "Color Scheme Preference"
+                                        hintLabel = String(localized: "Color Scheme Preference")
                                         selectedVerboseHint =
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 10) {
@@ -119,7 +119,7 @@ extension UserInterfaceSettings {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = "Glucose Color Scheme"
+                                    hintLabel = String(localized: "Glucose Color Scheme")
                                     selectedVerboseHint =
                                         AnyView(
                                             VStack(alignment: .leading, spacing: 10) {
@@ -173,7 +173,7 @@ extension UserInterfaceSettings {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = "Show Main Chart X- and Y-Axis Grid Lines"
+                                        hintLabel = String(localized: "Show Main Chart X- and Y-Axis Grid Lines")
                                         selectedVerboseHint =
                                             AnyView(
                                                 Text("Choose whether or not to display one or both X- and Y-Axis grid lines.")
@@ -199,13 +199,13 @@ extension UserInterfaceSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Show Low and High Thresholds"
+                            hintLabel = String(localized: "Show Low and High Thresholds")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Show Low and High Thresholds",
-                    miniHint: "Display the Low and High glucose thresholds set below.",
+                    label: String(localized: "Show Low and High Thresholds"),
+                    miniHint: String(localized: "Display the Low and High glucose thresholds set below."),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("This setting displays the upper and lower values for your glucose target range.")
                         Text("This range is for display and statistical purposes only and does not influence insulin dosing.")
@@ -295,7 +295,7 @@ extension UserInterfaceSettings {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = "Low and High Thresholds"
+                                        hintLabel = String(localized: "Low and High Thresholds")
                                         selectedVerboseHint =
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 10) {
@@ -343,7 +343,7 @@ extension UserInterfaceSettings {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = "Forecast Display Type"
+                                    hintLabel = String(localized: "Forecast Display Type")
                                     selectedVerboseHint =
                                         AnyView(
                                             VStack(alignment: .leading, spacing: 10) {
@@ -376,76 +376,22 @@ extension UserInterfaceSettings {
                     }.padding(.bottom)
                 }.listRowBackground(Color.chart)
 
-                Section {
-                    VStack(alignment: .leading) {
-                        Picker(
-                            selection: $state.totalInsulinDisplayType,
-                            label: Text("Total Insulin Display Type").multilineTextAlignment(.leading)
-                        ) {
-                            ForEach(TotalInsulinDisplayType.allCases) { selection in
-                                Text(selection.displayName).tag(selection)
-                            }
-                        }.padding(.top)
-
-                        HStack(alignment: .center) {
-                            Text(
-                                "Choose which total insulin calculation is displayed on the home screen. See hint for more details."
-                            )
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(nil)
-                            Spacer()
-                            Button(
-                                action: {
-                                    hintLabel = "Total Insulin Display Type"
-                                    selectedVerboseHint =
-                                        AnyView(
-                                            VStack(alignment: .leading, spacing: 10) {
-                                                Text(
-                                                    "Choose between Total Daily Dose (TDD) or Total Insulin in Scope (TINS) to be displayed above the main glucose graph. Descriptions for each option found below."
-                                                )
-                                                VStack(alignment: .leading, spacing: 5) {
-                                                    Text("Total Daily Dose:").bold()
-                                                    Text(
-                                                        "Displays the last 24 hours of total insulin administered, both basal and bolus."
-                                                    )
-                                                }
-                                                VStack(alignment: .leading, spacing: 5) {
-                                                    Text("Total Insulin in Scope:").bold()
-                                                    Text(
-                                                        "Displays the total amount of insulin given as a bolus (manual or SMB) and through temporary basal rates above zero during the selected timeframe of the main chart."
-                                                    )
-                                                }
-                                            }
-                                        )
-                                    shouldDisplayHint.toggle()
-                                },
-                                label: {
-                                    HStack {
-                                        Image(systemName: "questionmark.circle")
-                                    }
-                                }
-                            ).buttonStyle(BorderlessButtonStyle())
-                        }.padding(.top)
-                    }.padding(.bottom)
-                }.listRowBackground(Color.chart)
-
                 Section(
                     header: Text("Trio Statistics"),
                     content: {
                         VStack {
                             Picker(
-                                selection: $state.hbA1cDisplayUnit,
-                                label: Text("HbA1c Display Unit")
+                                selection: $state.eA1cDisplayUnit,
+                                label: Text("eA1c Display Unit")
                             ) {
-                                ForEach(HbA1cDisplayUnit.allCases) { selection in
+                                ForEach(EstimatedA1cDisplayUnit.allCases) { selection in
                                     Text(selection.displayName).tag(selection)
                                 }
                             }.padding(.top)
 
                             HStack(alignment: .center) {
                                 Text(
-                                    "Choose to display HbA1c in percent or mmol/mol."
+                                    "Choose to display eA1c in percent or mmol/mol."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -453,11 +399,11 @@ extension UserInterfaceSettings {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = "HbA1c Display Unit"
+                                        hintLabel = String(localized: "eA1c Display Unit")
                                         selectedVerboseHint =
                                             AnyView(
                                                 Text(
-                                                    "Choose which format you'd prefer the HbA1c value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)."
+                                                    "Choose which format you'd prefer the eA1c (estimated A1c) value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)."
                                                 )
                                             )
                                         shouldDisplayHint.toggle()
@@ -494,7 +440,7 @@ extension UserInterfaceSettings {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = "Time in Range Chart Style"
+                                    hintLabel = String(localized: "Time in Range Chart Style")
                                     selectedVerboseHint =
                                         AnyView(
                                             Text(
@@ -521,18 +467,18 @@ extension UserInterfaceSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Show Carbs Required Badge"
+                            hintLabel = String(localized: "Show Carbs Required Badge")
                         }
                     ),
                     units: state.units,
                     type: .conditionalDecimal("carbsRequiredThreshold"),
-                    label: "Show Carbs Required Badge",
-                    conditionalLabel: "Carbs Required Threshold",
-                    miniHint: "Show carbs required as a red icon on the main graph icon.",
+                    label: String(localized: "Show Carbs Required Badge"),
+                    conditionalLabel: String(localized: "Carbs Required Threshold"),
+                    miniHint: String(localized: "Show carbs required as a red icon on the main graph icon."),
                     verboseHint: Text(
                         "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
                     ),
-                    headerText: "Carbs Required Badge"
+                    headerText: String(localized: "Carbs Required Badge")
                 )
             }
             .listSectionSpacing(sectionSpacing)
@@ -542,7 +488,7 @@ extension UserInterfaceSettings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden)

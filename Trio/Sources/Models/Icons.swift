@@ -7,6 +7,7 @@ enum Icon_: String, CaseIterable, Identifiable {
     case trioWhiteShadow
     case trioColorBG
     case trioWhite
+    case trioCircledNoBackground
     case trio3D
     case wilford = "diabeetus"
     case catWithPod

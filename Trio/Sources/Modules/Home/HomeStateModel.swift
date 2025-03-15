@@ -63,12 +63,12 @@ extension Home {
         var alarm: GlucoseAlarm?
         var manualTempBasal = false
         var isSmoothingEnabled = false
-        var maxValue: Decimal = 1.2
+        var autosensMax: Decimal = 1.2
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
         var currentGlucoseTarget: Decimal = 100
         var glucoseColorScheme: GlucoseColorScheme = .staticColor
-        var hbA1cDisplayUnit: HbA1cDisplayUnit = .percent
+        var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
         var displayXgridLines: Bool = false
         var displayYgridLines: Bool = false
         var thresholdLines: Bool = false
@@ -76,7 +76,6 @@ extension Home {
         var totalBolus: Decimal = 0
         var isLoopStatusPresented: Bool = false
         var isLegendPresented: Bool = false
-        var totalInsulinDisplayType: TotalInsulinDisplayType = .totalDailyDose
         var roundedTotalBolus: String = ""
         var selectedTab: Int = 0
         var waitForSuggestion: Bool = false
@@ -86,6 +85,7 @@ extension Home {
         var fpusFromPersistence: [CarbEntryStored] = []
         var determinationsFromPersistence: [OrefDetermination] = []
         var enactedAndNonEnactedDeterminations: [OrefDetermination] = []
+        var fetchedTDDs: [TDD] = []
         var insulinFromPersistence: [PumpEventStored] = []
         var tempBasals: [PumpEventStored] = []
         var suspensions: [PumpEventStored] = []
@@ -125,6 +125,7 @@ extension Home {
         let carbsFetchContext = CoreDataStack.shared.newTaskContext()
         let fpuFetchContext = CoreDataStack.shared.newTaskContext()
         let determinationFetchContext = CoreDataStack.shared.newTaskContext()
+        let tddFetchContext = CoreDataStack.shared.newTaskContext()
         let pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()
         let overrideFetchContext = CoreDataStack.shared.newTaskContext()
         let tempTargetFetchContext = CoreDataStack.shared.newTaskContext()
@@ -179,6 +180,9 @@ extension Home {
                         self.setupDeterminationsArray()
                     }
                     group.addTask {
+                        self.setupTDDArray()
+                    }
+                    group.addTask {
                         self.setupInsulinArray()
                     }
                     group.addTask {
@@ -215,7 +219,7 @@ extension Home {
         // These combine subscribers are only necessary due to the batch inserts of glucose/FPUs which do not trigger a ManagedObjectContext change notification
         private func registerSubscribers() {
             glucoseStorage.updatePublisher
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .sink { [weak self] _ in
                     guard let self = self else { return }
                     self.setupGlucoseArray()
@@ -223,7 +227,7 @@ extension Home {
                 .store(in: &subscriptions)
 
             carbsStorage.updatePublisher
-                .receive(on: DispatchQueue.global(qos: .background))
+                .receive(on: queue)
                 .sink { [weak self] _ in
                     guard let self = self else { return }
                     self.setupFPUsArray()
@@ -232,22 +236,27 @@ extension Home {
         }
 
         private func registerHandlers() {
-            coreDataPublisher?.filterByEntityName("OrefDetermination").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupDeterminationsArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("TDDStored").sink { [weak self] _ in
+                guard let self = self else { return }
+                self.setupTDDArray()
+            }.store(in: &subscriptions)
+
+            coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupGlucoseArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("CarbEntryStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupCarbsArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("PumpEventStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupInsulinArray()
                 self.setupLastBolus()
@@ -255,27 +264,27 @@ extension Home {
                 self.displayPumpStatusBadge()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("OpenAPS_Battery").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("OpenAPS_Battery").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupBatteryArray()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("OverrideStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("OverrideStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupOverrides()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("OverrideRunStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("OverrideRunStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupOverrideRunStored()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("TempTargetStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("TempTargetStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupTempTargetsStored()
             }.store(in: &subscriptions)
 
-            coreDataPublisher?.filterByEntityName("TempTargetRunStored").sink { [weak self] _ in
+            coreDataPublisher?.filteredByEntityName("TempTargetRunStored").sink { [weak self] _ in
                 guard let self = self else { return }
                 self.setupTempTargetsRunStored()
             }.store(in: &subscriptions)
@@ -372,21 +381,19 @@ extension Home {
             manualTempBasal = apsManager.isManualTempBasal
             isSmoothingEnabled = settingsManager.settings.smoothGlucose
             glucoseColorScheme = settingsManager.settings.glucoseColorScheme
-            maxValue = settingsManager.preferences.autosensMax
+            autosensMax = settingsManager.preferences.autosensMax
             lowGlucose = settingsManager.settings.low
             highGlucose = settingsManager.settings.high
-            hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
+            eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
             displayXgridLines = settingsManager.settings.xGridLines
             displayYgridLines = settingsManager.settings.yGridLines
             thresholdLines = settingsManager.settings.rulerMarks
-            totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
             showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
             forecastDisplayType = settingsManager.settings.forecastDisplayType
             isExerciseModeActive = settingsManager.preferences.exerciseMode
             highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
             lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
-            maxValue = settingsManager.preferences.autosensMax
         }
 
         @MainActor private func setupCGMSettings() async {
@@ -456,7 +463,9 @@ extension Home {
         func deleteCGM() {
             fetchGlucoseManager.performOnCGMManagerQueue {
                 // Call plugin functionality on the manager queue (or at least attempt to)
-                self.fetchGlucoseManager?.deleteGlucoseSource()
+                Task {
+                    await self.fetchGlucoseManager?.deleteGlucoseSource()
+                }
 
                 // UI updates go back to Main
                 DispatchQueue.main.async {
@@ -512,57 +521,8 @@ extension Home {
                 await apsManager.cancelBolus(nil)
 
                 // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
-                await apsManager.determineBasalSync()
+                try await apsManager.determineBasalSync()
             }
-        }
-
-        func calculateTINS() -> String {
-            let startTime = calculateStartTime(hours: Int(hours))
-
-            let totalBolus = calculateTotalBolus(from: insulinFromPersistence, since: startTime)
-            let totalBasal = calculateTotalBasal(from: insulinFromPersistence, since: startTime)
-
-            let totalInsulin = totalBolus + totalBasal
-
-            return formatInsulinAmount(totalInsulin)
-        }
-
-        private func calculateStartTime(hours: Int) -> Date {
-            let date = Date()
-            let calendar = Calendar.current
-            var offsetComponents = DateComponents()
-            offsetComponents.hour = -hours
-            return calendar.date(byAdding: offsetComponents, to: date)!
-        }
-
-        private func calculateTotalBolus(from events: [PumpEventStored], since startTime: Date) -> Double {
-            let bolusEvents = events.filter { $0.timestamp ?? .distantPast >= startTime && $0.type == PumpEvent.bolus.rawValue }
-            return bolusEvents.compactMap { $0.bolus?.amount?.doubleValue }.reduce(0, +)
-        }
-
-        private func calculateTotalBasal(from events: [PumpEventStored], since startTime: Date) -> Double {
-            let basalEvents = events
-                .filter { $0.timestamp ?? .distantPast >= startTime && $0.type == PumpEvent.tempBasal.rawValue }
-                .sorted { $0.timestamp ?? .distantPast < $1.timestamp ?? .distantPast }
-
-            var basalDurations: [Double] = []
-            for (index, basalEntry) in basalEvents.enumerated() {
-                if index + 1 < basalEvents.count {
-                    let nextEntry = basalEvents[index + 1]
-                    let durationInSeconds = nextEntry.timestamp?.timeIntervalSince(basalEntry.timestamp ?? Date()) ?? 0
-                    basalDurations.append(durationInSeconds / 3600) // Conversion to hours
-                }
-            }
-
-            return zip(basalEvents, basalDurations).map { entry, duration in
-                guard let rate = entry.tempBasal?.rate?.doubleValue else { return 0 }
-                return rate * duration
-            }.reduce(0, +)
-        }
-
-        private func formatInsulinAmount(_ amount: Double) -> String {
-            let roundedAmount = Decimal(round(100 * amount) / 100)
-            return roundedAmount.formatted()
         }
 
         private func setupPumpSettings() async {
@@ -600,15 +560,12 @@ extension Home {
         private func getCurrentGlucoseTarget() async {
             let now = Date()
             let calendar = Calendar.current
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "HH:mm"
-            dateFormatter.timeZone = TimeZone.current
 
             let entries: [(start: String, value: Decimal)] = bgTargets.targets.map { ($0.start, $0.low) }
 
             for (index, entry) in entries.enumerated() {
-                guard let entryTime = dateFormatter.date(from: entry.start) else {
-                    print("Invalid entry start time: \(entry.start)")
+                guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
+                    debug(.default, "Invalid entry start time: \(entry.start)")
                     continue
                 }
 
@@ -622,7 +579,7 @@ extension Home {
 
                 let entryEndTime: Date
                 if index < entries.count - 1,
-                   let nextEntryTime = dateFormatter.date(from: entries[index + 1].start)
+                   let nextEntryTime = TherapySettingsUtil.parseTime(entries[index + 1].start)
                 {
                     let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
                     entryEndTime = calendar.date(
@@ -672,12 +629,11 @@ extension Home.StateModel:
             await getCurrentGlucoseTarget()
             await setupGlucoseTargets()
         }
-        hbA1cDisplayUnit = settingsManager.settings.hbA1cDisplayUnit
+        eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
         glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         displayXgridLines = settingsManager.settings.xGridLines
         displayYgridLines = settingsManager.settings.yGridLines
         thresholdLines = settingsManager.settings.rulerMarks
-        totalInsulinDisplayType = settingsManager.settings.totalInsulinDisplayType
         showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
         forecastDisplayType = settingsManager.settings.forecastDisplayType
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
@@ -690,7 +646,7 @@ extension Home.StateModel:
     }
 
     func preferencesDidChange(_: Preferences) {
-        maxValue = settingsManager.preferences.autosensMax
+        autosensMax = settingsManager.preferences.autosensMax
         settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
         highTTraisesSens = settingsManager.preferences.highTemptargetRaisesSensitivity
         isExerciseModeActive = settingsManager.preferences.exerciseMode
@@ -744,7 +700,9 @@ extension Home.StateModel: CompletionDelegate {
                 cgmCurrent = cgmDefaultModel
                 settingsManager.settings.cgm = cgmDefaultModel.type
                 settingsManager.settings.cgmPluginIdentifier = cgmDefaultModel.id
-                fetchGlucoseManager.deleteGlucoseSource()
+                Task {
+                    await fetchGlucoseManager.deleteGlucoseSource()
+                }
             } else {
                 debug(.service, "CGMSetupCompletionNotifying: CGM Setup Completed")
 

@@ -435,6 +435,39 @@ extension NightscoutAPI {
         }
     }
 
+    /// The delete func is needed to force re-rendering of overrides with changed durations in Nightscout main chart
+    /// since just updating durations in existing entries doesn't trigger re-rendering.
+    func deleteNightscoutOverride(withCreatedAt createdAt: String) async throws {
+        var components = URLComponents()
+        components.scheme = url.scheme
+        components.host = url.host
+        components.port = url.port
+        components.path = Config.treatmentsPath
+        components.queryItems = [
+            URLQueryItem(name: "find[created_at][$eq]", value: createdAt)
+        ]
+
+        guard let url = components.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.timeoutInterval = Config.timeout
+        request.httpMethod = "DELETE"
+
+        if let secret = secret {
+            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
+        }
+
+        let (_, response) = try await URLSession.shared.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) {
+        } else {
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+            debug(.nightscout, "Failed to delete override with created_at: \(createdAt). HTTP status code: \(statusCode)")
+            throw URLError(.badServerResponse)
+        }
+    }
+
     func uploadOverrides(_ overrides: [NightscoutExercise]) async throws {
         var components = URLComponents()
         components.scheme = url.scheme

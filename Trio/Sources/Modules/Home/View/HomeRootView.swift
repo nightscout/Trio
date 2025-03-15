@@ -86,7 +86,7 @@ extension Home {
                 Image(uiImage: badgeImage.withRenderingMode(.alwaysTemplate))
                     .font(.system(size: 14))
                     .colorMultiply(badgeColor)
-                Text(NSLocalizedString("Time Change Detected", comment: ""))
+                Text(String(localized: "Time Change Detected", comment: ""))
                     .bold()
                     .font(.system(size: 14))
                     .foregroundStyle(badgeColor)
@@ -170,13 +170,14 @@ extension Home {
             var manualBasalString = ""
 
             if let apsManager = state.apsManager, apsManager.isManualTempBasal {
-                manualBasalString = NSLocalizedString(
+                manualBasalString = String(
+                    localized:
                     " - Manual Basal ⚠️",
                     comment: "Manual Temp basal"
                 )
             }
 
-            return rateString + " " + NSLocalizedString(" U/hr", comment: "Unit per hour with space") + manualBasalString
+            return rateString + " " + String(localized: " U/hr", comment: "Unit per hour with space") + manualBasalString
         }
 
         var overrideString: String? {
@@ -254,7 +255,7 @@ extension Home {
             } else { halfBasalTarget = state.settingHalfBasalTarget }
             var showPercentage = false
             if target > 100, state.isExerciseModeActive || state.highTTraisesSens { showPercentage = true }
-            if target < 100, state.lowTTlowersSens { showPercentage = true }
+            if target < 100, state.lowTTlowersSens, state.autosensMax > 1 { showPercentage = true }
             if showPercentage {
                 percentageString =
                     " \(state.computeAdjustedPercentage(halfBasalTargetValue: halfBasalTarget, tempTargetValue: target))%" }
@@ -291,11 +292,11 @@ extension Home {
                         Group {
                             if button.active {
                                 Text(
-                                    NSLocalizedString(button.hours.description, comment: "") + " " +
-                                        NSLocalizedString("h", comment: "h")
+                                    button.hours.description + "\u{00A0}" +
+                                        String(localized: "h", comment: "h")
                                 )
                             } else {
-                                Text(NSLocalizedString(button.hours.description, comment: ""))
+                                Text(button.hours.description)
                             }
                         }
                         .font(.footnote)
@@ -435,7 +436,7 @@ extension Home {
                             Formatter.decimalFormatterWithTwoFractionDigits
                                 .string(from: (state.enactedAndNonEnactedDeterminations.first?.iob ?? 0) as NSNumber) ?? "0"
                         ) +
-                            NSLocalizedString(" U", comment: "Insulin unit")
+                            String(localized: " U", comment: "Insulin unit")
                     )
                     .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
@@ -452,7 +453,7 @@ extension Home {
                                 from: NSNumber(value: state.enactedAndNonEnactedDeterminations.first?.cob ?? 0)
                             ) ?? "0"
                         ) +
-                            NSLocalizedString(" g", comment: "gram of carbs")
+                            String(localized: " g", comment: "gram of carbs")
                     )
                     .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
@@ -487,37 +488,7 @@ extension Home {
                             .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                 }
-                if state.totalInsulinDisplayType == .totalDailyDose {
-                    Spacer()
-                    Text(
-                        "TDD: " +
-                            (
-                                Formatter.decimalFormatterWithTwoFractionDigits
-                                    .string(from: (state.determinationsFromPersistence.first?.totalDailyDose ?? 0) as NSNumber) ??
-                                    "0"
-                            ) +
-                            NSLocalizedString(" U", comment: "Insulin unit")
-                    )
-                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                } else {
-                    Spacer()
-                    HStack {
-                        Text(
-                            "TINS: \(state.roundedTotalBolus)" +
-                                NSLocalizedString(" U", comment: "Unit in number of units delivered (keep the space character!)")
-                        )
-                        .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                        .onChange(of: state.hours) {
-                            state.roundedTotalBolus = state.calculateTINS()
-                        }
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                state.roundedTotalBolus = state.calculateTINS()
-                            }
-                        }
-                    }
-                }
-            }.padding(.horizontal, 10)
+            }.padding(.horizontal)
         }
 
         @ViewBuilder func adjustmentsOverrideView(_ overrideString: String) -> some View {
@@ -526,7 +497,7 @@ extension Home {
                     .font(.title2)
                     .foregroundStyle(Color.primary, Color.purple)
                 VStack(alignment: .leading) {
-                    Text(latestOverride.first?.name ?? "Custom Override")
+                    Text(latestOverride.first?.name ?? String(localized: "Custom Override"))
                         .font(.subheadline)
                         .frame(alignment: .leading)
 
@@ -545,7 +516,7 @@ extension Home {
                     .font(.title2)
                     .foregroundStyle(Color.loopGreen)
                 VStack(alignment: .leading) {
-                    Text(latestTempTarget.first?.name ?? "Temp Target")
+                    Text(latestTempTarget.first?.name ?? String(localized: "Temp Target"))
                         .font(.subheadline)
                     Text(tempTargetString)
                         .font(.caption)
@@ -757,9 +728,9 @@ extension Home {
                 let bolusFraction = progress * (bolusTotal as Decimal)
                 let bolusString =
                     (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
-                        + " of " +
+                        + String(localized: " of ", comment: "Bolus string partial message: 'x U of y U' in home view") +
                         (Formatter.decimalFormatterWithTwoFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
-                        + NSLocalizedString(" U", comment: "Insulin unit")
+                        + String(localized: " U", comment: "Insulin unit")
 
                 ZStack {
                     /// rectangle as background
@@ -898,7 +869,7 @@ extension Home {
                 HStack {
                     tappableButton(
                         buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
-                        label: "Stats",
+                        label: String(localized: "Stats", comment: "Stats icon in main view"),
                         iconString: statsIconString,
                         action: { state.showModal(for: .statistics) }
                     )
@@ -912,7 +883,7 @@ extension Home {
 
                     tappableButton(
                         buttonColor: (colorScheme == .dark ? Color.white : Color.black).opacity(0.8),
-                        label: "Info",
+                        label: String(localized: "Info", comment: "Info icon in main view"),
                         iconString: "info",
                         action: { state.isLegendPresented.toggle() }
                     )
@@ -1098,7 +1069,7 @@ extension Home {
                 tabBar()
 
                 if state.waitForSuggestion {
-                    CustomProgressView(text: "Updating IOB...")
+                    CustomProgressView(text: String(localized: "Updating IOB...", comment: "Progress text when updating IOB"))
                 }
             }
         }
@@ -1149,18 +1120,19 @@ func is24HourFormat() -> Bool {
     return !dateString.contains("AM") && !dateString.contains("PM")
 }
 
-/// Converts a duration in minutes to a formatted string (e.g., "1 hr 30 min").
+/// Converts a duration in minutes to a formatted string (e.g., "1 h 30 m").
 func formatHrMin(_ durationInMinutes: Int) -> String {
     let hours = durationInMinutes / 60
     let minutes = durationInMinutes % 60
 
     switch (hours, minutes) {
     case let (0, m):
-        return "\(m) min"
+        return "\(m)\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
     case let (h, 0):
-        return "\(h) hr"
+        return "\(h)\u{00A0}" + String(localized: "h", comment: "h")
     default:
-        return "\(hours) hr \(minutes) min"
+        return hours.description + "\u{00A0}" + String(localized: "h", comment: "h") + "\u{00A0}" + minutes
+            .description + "\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
     }
 }
 

@@ -29,13 +29,13 @@ extension RemoteControlConfig {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Enable Remote Command"
+                            hintLabel = String(localized: "Enable Remote Command")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Enable Remote Control",
-                    miniHint: "Allow Trio to receive commands from Loop Follow remotely.",
+                    label: String(localized: "Enable Remote Control"),
+                    miniHint: String(localized: "Allow Trio to receive commands from Loop Follow remotely."),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
@@ -45,7 +45,7 @@ extension RemoteControlConfig {
                             "To ensure security, these commands are protected by a shared secret, which must be entered in the Loop Follow app."
                         )
                     },
-                    headerText: "Trio Remote Control"
+                    headerText: String(localized: "Trio Remote Control")
                 )
 
                 Section(
@@ -94,7 +94,7 @@ extension RemoteControlConfig {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

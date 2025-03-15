@@ -130,23 +130,23 @@ enum ContactImageValue: String, JSON, CaseIterable, Identifiable, Codable {
     var displayName: String {
         switch self {
         case .none:
-            return NSLocalizedString("None", comment: "")
+            return String(localized: "None", comment: "")
         case .glucose:
-            return NSLocalizedString("Glucose Reading", comment: "")
+            return String(localized: "Glucose Reading", comment: "")
         case .eventualBG:
-            return NSLocalizedString("Eventual Glucose", comment: "")
+            return String(localized: "Eventual Glucose", comment: "")
         case .delta:
-            return NSLocalizedString("Glucose Delta", comment: "")
+            return String(localized: "Glucose Delta", comment: "")
         case .trend:
-            return NSLocalizedString("Glucose Trend", comment: "")
+            return String(localized: "Glucose Trend", comment: "")
         case .lastLoopDate:
-            return NSLocalizedString("Last Loop Time", comment: "")
+            return String(localized: "Last Loop Time", comment: "")
         case .cob:
-            return NSLocalizedString("COB", comment: "")
+            return String(localized: "COB", comment: "")
         case .iob:
-            return NSLocalizedString("IOB", comment: "")
+            return String(localized: "IOB", comment: "")
         case .ring:
-            return NSLocalizedString("Loop Status", comment: "")
+            return String(localized: "Loop Status", comment: "")
         }
     }
 }
@@ -159,9 +159,9 @@ enum ContactImageLayout: String, JSON, CaseIterable, Identifiable, Codable {
     var displayName: String {
         switch self {
         case .default:
-            return NSLocalizedString("Default", comment: "")
+            return String(localized: "Default", comment: "")
         case .split:
-            return NSLocalizedString("Split", comment: "")
+            return String(localized: "Split", comment: "")
         }
     }
 }
@@ -178,15 +178,15 @@ enum ContactImageLargeRing: String, JSON, CaseIterable, Identifiable, Codable {
     var displayName: String {
         switch self {
         case .none:
-            return NSLocalizedString("Hidden", comment: "")
+            return String(localized: "Hidden", comment: "")
         case .loop:
-            return NSLocalizedString("Loop Status", comment: "")
+            return String(localized: "Loop Status", comment: "")
 //        case .iob:
-//            return NSLocalizedString("Insulin on Board (IOB)", comment: "")
+//            return String(localized: "Insulin on Board (IOB)", comment: "")
 //        case .cob:
-//            return NSLocalizedString("Carbs on Board (COB)", comment: "")
+//            return String(localized: "Carbs on Board (COB)", comment: "")
 //        case .iobcob:
-//            return NSLocalizedString("IOB + COB", comment: "")
+//            return String(localized: "IOB + COB", comment: "")
         }
     }
 }

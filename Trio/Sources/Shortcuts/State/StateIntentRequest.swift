@@ -61,7 +61,7 @@ final class StateIntentRequest: BaseIntentsRequest {
         -> (dateGlucose: Date, glucose: String, trend: String, delta: String)
     {
         do {
-            let results = CoreDataStack.shared.fetchEntities(
+            let results = try CoreDataStack.shared.fetchEntities(
                 ofType: GlucoseStored.self,
                 onContext: onContext,
                 predicate: NSPredicate.predicateFor30MinAgo,
@@ -83,7 +83,7 @@ final class StateIntentRequest: BaseIntentsRequest {
                     .asMmolL : Decimal(lastGlucose)
             ) as NSNumber)!
 
-            let directionAsString = lastValue.direction ?? "none"
+            let directionAsString = lastValue.direction ?? String(localized: "none")
 
             let deltaAsString = delta
                 .map {
@@ -102,7 +102,7 @@ final class StateIntentRequest: BaseIntentsRequest {
     }
 
     func getIobAndCob(onContext: NSManagedObjectContext) throws -> (iob: Double, cob: Double) {
-        let results = CoreDataStack.shared.fetchEntities(
+        let results = try CoreDataStack.shared.fetchEntities(
             ofType: OrefDetermination.self,
             onContext: onContext,
             predicate: NSPredicate.enactedDetermination,

@@ -26,13 +26,13 @@ extension SMBSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Enable SMB Always", comment: "Enable SMB Always")
+                            hintLabel = String(localized: "Enable SMB Always", comment: "Enable SMB Always")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: NSLocalizedString("Enable SMB Always", comment: "Enable SMB Always"),
-                    miniHint: "Allow SMBs at all times except when a high Temp Target is set.",
+                    label: String(localized: "Enable SMB Always", comment: "Enable SMB Always"),
+                    miniHint: String(localized: "Allow SMBs at all times except when a high Temp Target is set."),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
@@ -42,7 +42,7 @@ extension SMBSettings {
                             "Note: If you would like to allow SMBs when a high Temp Target is set, enable the \"Allow SMBs with High Temptarget\" setting."
                         )
                     },
-                    headerText: "Super-Micro-Bolus"
+                    headerText: String(localized: "Super-Micro-Bolus")
                 )
 
                 if !state.enableSMBAlways {
@@ -54,13 +54,13 @@ extension SMBSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = NSLocalizedString("Enable SMB With COB", comment: "Enable SMB With COB")
+                                hintLabel = String(localized: "Enable SMB With COB", comment: "Enable SMB With COB")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: NSLocalizedString("Enable SMB With COB", comment: "Enable SMB With COB"),
-                        miniHint: "Allow SMB when carbs are on board.",
+                        label: String(localized: "Enable SMB With COB", comment: "Enable SMB With COB"),
+                        miniHint: String(localized: "Allow SMB when carbs are on board."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -81,13 +81,15 @@ extension SMBSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = NSLocalizedString("Enable SMB With Temptarget", comment: "Enable SMB With Temptarget")
+                                hintLabel = String(localized: "Enable SMB With Temptarget", comment: "Enable SMB With Temptarget")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: NSLocalizedString("Enable SMB With Temptarget", comment: "Enable SMB With Temptarget"),
-                        miniHint: "Allow SMB when a manual Temporary Target is set under \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue).",
+                        label: String(localized: "Enable SMB With Temptarget", comment: "Enable SMB With Temptarget"),
+                        miniHint: String(
+                            localized: "Allow SMB when a manual Temporary Target is set under \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue)."
+                        ),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -108,13 +110,13 @@ extension SMBSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = NSLocalizedString("Enable SMB After Carbs", comment: "Enable SMB After Carbs")
+                                hintLabel = String(localized: "Enable SMB After Carbs", comment: "Enable SMB After Carbs")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: NSLocalizedString("Enable SMB After Carbs", comment: "Enable SMB After Carbs"),
-                        miniHint: "Allow SMB for 6 hrs after a carb entry.",
+                        label: String(localized: "Enable SMB After Carbs", comment: "Enable SMB After Carbs"),
+                        miniHint: String(localized: "Allow SMB for 6 hrs after a carb entry."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -135,14 +137,14 @@ extension SMBSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = NSLocalizedString("Enable SMB With High BG", comment: "Enable SMB With High BG")
+                                hintLabel = String(localized: "Enable SMB With High BG", comment: "Enable SMB With High BG")
                             }
                         ),
                         units: state.units,
                         type: .conditionalDecimal("enableSMB_high_bg_target"),
-                        label: NSLocalizedString("Enable SMB With High BG", comment: "Enable SMB With High BG"),
+                        label: String(localized: "Enable SMB With High BG", comment: "Enable SMB With High BG"),
                         conditionalLabel: "High BG Target",
-                        miniHint: "Allow SMB when glucose is above the High BG Target value.",
+                        miniHint: String(localized: "Allow SMB when glucose is above the High BG Target value."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -164,7 +166,8 @@ extension SMBSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString(
+                            hintLabel = String(
+                                localized:
                                 "Allow SMB With High Temptarget",
                                 comment: "Allow SMB With High Temptarget"
                             )
@@ -172,11 +175,14 @@ extension SMBSettings {
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: NSLocalizedString(
+                    label: String(
+                        localized:
                         "Allow SMB With High Temptarget",
                         comment: "Allow SMB With High Temptarget"
                     ),
-                    miniHint: "Allow SMB when a manual Temporary Target is set greater than \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue).",
+                    miniHint: String(
+                        localized: "Allow SMB when a manual Temporary Target is set greater than \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue)."
+                    ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -200,13 +206,13 @@ extension SMBSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Enable UAM", comment: "Enable UAM")
+                            hintLabel = String(localized: "Enable UAM", comment: "Enable UAM")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: NSLocalizedString("Enable UAM", comment: "Enable UAM"),
-                    miniHint: "Enable Unannounced Meals SMB.",
+                    label: String(localized: "Enable UAM", comment: "Enable UAM"),
+                    miniHint: String(localized: "Enable Unannounced Meals SMB."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -230,13 +236,13 @@ extension SMBSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes")
+                            hintLabel = String(localized: "Max SMB Basal Minutes", comment: "Max SMB Basal Minutes")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxSMBBasalMinutes"),
-                    label: NSLocalizedString("Max SMB Basal Minutes", comment: "Max SMB Basal Minutes"),
-                    miniHint: "Limits the size of a single Super Micro Bolus (SMB) dose.",
+                    label: String(localized: "Max SMB Basal Minutes", comment: "Max SMB Basal Minutes"),
+                    miniHint: String(localized: "Limits the size of a single Super Micro Bolus (SMB) dose."),
                     verboseHint: VStack(spacing: 10) {
                         VStack(alignment: .leading, spacing: 10) {
                             VStack(alignment: .leading, spacing: 1) {
@@ -276,13 +282,13 @@ extension SMBSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Max UAM Basal Minutes", comment: "Max UAM Basal Minutes")
+                            hintLabel = String(localized: "Max UAM Basal Minutes", comment: "Max UAM Basal Minutes")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxUAMSMBBasalMinutes"),
-                    label: NSLocalizedString("Max UAM Basal Minutes", comment: "Max UAM Basal Minutes"),
-                    miniHint: "Limits the size of a single Unannounced Meal (UAM) SMB dose.",
+                    label: String(localized: "Max UAM Basal Minutes", comment: "Max UAM Basal Minutes"),
+                    miniHint: String(localized: "Limits the size of a single Unannounced Meal (UAM) SMB dose."),
                     verboseHint: VStack(spacing: 10) {
                         VStack(alignment: .leading, spacing: 10) {
                             VStack(alignment: .leading, spacing: 1) {
@@ -321,13 +327,13 @@ extension SMBSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold")
+                            hintLabel = String(localized: "Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxDeltaBGthreshold"),
-                    label: NSLocalizedString("Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold"),
-                    miniHint: "Disables SMBs if last two glucose values differ by more than this percent.",
+                    label: String(localized: "Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold"),
+                    miniHint: String(localized: "Disables SMBs if last two glucose values differ by more than this percent."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 20% increase").bold()
@@ -346,13 +352,13 @@ extension SMBSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("SMB Delivery Ratio", comment: "SMB Delivery Ratio")
+                            hintLabel = String(localized: "SMB Delivery Ratio", comment: "SMB Delivery Ratio")
                         }
                     ),
                     units: state.units,
                     type: .decimal("smbDeliveryRatio"),
-                    label: NSLocalizedString("SMB Delivery Ratio", comment: "SMB Delivery Ratio"),
-                    miniHint: "Percentage of calculated insulin required that is given as SMB.",
+                    label: String(localized: "SMB Delivery Ratio", comment: "SMB Delivery Ratio"),
+                    miniHint: String(localized: "Percentage of calculated insulin required that is given as SMB."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 50%").bold()
@@ -374,13 +380,13 @@ extension SMBSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = NSLocalizedString("SMB Interval", comment: "SMB Interval")
+                            hintLabel = String(localized: "SMB Interval", comment: "SMB Interval")
                         }
                     ),
                     units: state.units,
                     type: .decimal("smbInterval"),
-                    label: NSLocalizedString("SMB Interval", comment: "SMB Interval"),
-                    miniHint: "Minimum minutes since the last SMB or manual bolus to allow an automated SMB.",
+                    label: String(localized: "SMB Interval", comment: "SMB Interval"),
+                    miniHint: String(localized: "Minimum minutes since the last SMB or manual bolus to allow an automated SMB."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 3 min").bold()
@@ -397,7 +403,7 @@ extension SMBSettings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

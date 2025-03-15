@@ -98,15 +98,17 @@ struct ChartsView: View {
 
         let data: [ShapeModel] = [
             .init(
-                type: NSLocalizedString(
+                type: String(
+                    localized:
                     "Low",
                     comment: ""
                 ) + " (<\(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))",
                 percent: fetched[0].decimal
             ),
-            .init(type: NSLocalizedString("In Range", comment: ""), percent: fetched[1].decimal),
+            .init(type: String(localized: "In Range", comment: ""), percent: fetched[1].decimal),
             .init(
-                type: NSLocalizedString(
+                type: String(
+                    localized:
                     "High",
                     comment: ""
                 ) + " (>\(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))",
@@ -127,12 +129,14 @@ struct ChartsView: View {
             }
             .chartXAxis(.hidden)
             .chartForegroundStyleScale([
-                NSLocalizedString(
+                String(
+                    localized:
                     "Low",
                     comment: ""
                 ) + " (<\(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))": .red,
-                NSLocalizedString("In Range", comment: ""): .green,
-                NSLocalizedString(
+                String(localized: "In Range", comment: ""): .green,
+                String(
+                    localized:
                     "High",
                     comment: ""
                 ) + " (>\(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))": .orange
@@ -149,7 +153,8 @@ struct ChartsView: View {
         let fraction = units == .mmolL ? 1 : 0
         let data: [ShapeModel] = [
             .init(
-                type: NSLocalizedString(
+                type: String(
+                    localized:
                     "Low",
                     comment: ""
                 ) + " (< \(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))",
@@ -160,7 +165,8 @@ struct ChartsView: View {
                 percent: fetched[1].decimal
             ),
             .init(
-                type: NSLocalizedString(
+                type: String(
+                    localized:
                     "High",
                     comment: ""
                 ) + " (> \(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))",
@@ -184,12 +190,14 @@ struct ChartsView: View {
             )
         }
         .chartForegroundStyleScale([
-            NSLocalizedString(
+            String(
+                localized:
                 "Low",
                 comment: ""
             ) + " (< \(low.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))": .red,
             "\(low.formatted(.number.precision(.fractionLength(fraction)))) - \(high.formatted(.number.precision(.fractionLength(fraction))))": .green,
-            NSLocalizedString(
+            String(
+                localized:
                 "High",
                 comment: ""
             ) + " (> \(high.formatted(.number.grouping(.never).rounded().precision(.fractionLength(fraction)))))": .orange

@@ -50,7 +50,7 @@ private let staticPumpManagersByIdentifier: [String: PumpManagerUI.Type] = [
 private let accessLock = NSRecursiveLock(label: "BaseDeviceDataManager.accessLock")
 
 final class BaseDeviceDataManager: DeviceDataManager, Injectable {
-    private let processQueue = DispatchQueue.markedQueue(label: "BaseDeviceDataManager.processQueue")
+    private let processQueue = DispatchQueue.markedQueue(label: "BaseDeviceDataManager.processQueue", qos: .userInitiated)
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() var alertHistoryStorage: AlertHistoryStorage!
     @Injected() private var storage: FileStorage!
@@ -512,15 +512,21 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     ) {
         dispatchPrecondition(condition: .onQueue(processQueue))
 
-        // filter buggy TBRs > maxBasal from MDT
-        let events = events.filter {
-            // type is optional...
-            guard let type = $0.type, type == .tempBasal else { return true }
-            return $0.dose?.unitsPerHour ?? 0 <= Double(settingsManager.pumpSettings.maxBasal)
+        Task {
+            do {
+                // filter buggy TBRs > maxBasal from MDT
+                let events = events.filter {
+                    // type is optional...
+                    guard let type = $0.type, type == .tempBasal else { return true }
+                    return $0.dose?.unitsPerHour ?? 0 <= Double(settingsManager.pumpSettings.maxBasal)
+                }
+                try await pumpHistoryStorage.storePumpEvents(events)
+                lastEventDate = events.last?.date
+                completion(nil)
+            } catch {
+                debug(.deviceManager, "\(DebuggingIdentifiers.failed) Failed to store pump events: \(error)")
+            }
         }
-        pumpHistoryStorage.storePumpEvents(events)
-        lastEventDate = events.last?.date
-        completion(nil)
     }
 
     func pumpManager(

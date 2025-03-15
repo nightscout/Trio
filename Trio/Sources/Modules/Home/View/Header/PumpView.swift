@@ -46,14 +46,14 @@ struct PumpView: View {
                             .font(.callout)
 
                         if reservoir == 0xDEAD_BEEF {
-                            Text("50+ " + NSLocalizedString("U", comment: "Insulin unit"))
+                            Text("50+ " + String(localized: "U", comment: "Insulin unit"))
                                 .font(.callout)
                                 .fontWeight(.bold)
                                 .fontDesign(.rounded)
                         } else {
                             Text(
                                 Formatter.integerFormatter
-                                    .string(from: reservoir as NSNumber)! + NSLocalizedString(" U", comment: "Insulin unit")
+                                    .string(from: reservoir as NSNumber)! + String(localized: " U", comment: "Insulin unit")
                             )
                             .font(.callout)
                             .fontWeight(.bold)
@@ -109,7 +109,7 @@ struct PumpView: View {
 
     private func remainingTimeString(time: TimeInterval) -> String {
         guard time > 0 else {
-            return NSLocalizedString("Replace pod", comment: "View/Header when pod expired")
+            return String(localized: "Replace pod", comment: "View/Header when pod expired")
         }
 
         var time = time
@@ -120,15 +120,15 @@ struct PumpView: View {
         let minutes = Int(time / 1.minutes.timeInterval)
 
         if days >= 1 {
-            return "\(days)" + NSLocalizedString("d", comment: "abbreviation for days") + " \(hours)" +
-                NSLocalizedString("h", comment: "abbreviation for hours")
+            return "\(days)" + String(localized: "d", comment: "abbreviation for days") + " \(hours)" +
+                String(localized: "h", comment: "abbreviation for hours")
         }
 
         if hours >= 1 {
-            return "\(hours)" + NSLocalizedString("h", comment: "abbreviation for hours")
+            return "\(hours)" + String(localized: "h", comment: "abbreviation for hours")
         }
 
-        return "\(minutes)" + NSLocalizedString("m", comment: "abbreviation for minutes")
+        return "\(minutes)" + String(localized: "m", comment: "abbreviation for minutes")
     }
 
     private var batteryColor: Color {

@@ -155,7 +155,7 @@ extension Main {
 
             view.configureContent(
                 title: "title",
-                body: NSLocalizedString(message.content, comment: "Info message"),
+                body: message.content,
                 iconImage: nil,
                 iconText: nil,
                 buttonImage: nil,
@@ -177,15 +177,15 @@ extension Main {
             case .info,
                  .other:
                 config.duration = .seconds(seconds: 5)
-                titleContent = message.title != "" ? message.title : NSLocalizedString("Info", comment: "Info title")
+                titleContent = message.title != "" ? message.title : String(localized: "Info", comment: "Info title")
             case .warning:
                 config.duration = .forever
                 titleContent = message.title != "" ? message
-                    .title : NSLocalizedString("Warning", comment: "Warning title")
+                    .title : String(localized: "Warning", comment: "Warning title")
             case .error:
                 config.duration = .forever
                 titleContent = message.title != "" ? message
-                    .title : NSLocalizedString("Error", comment: "Error title")
+                    .title : String(localized: "Error", comment: "Error title")
             }
 
             view.titleLabel?.text = titleContent
@@ -199,6 +199,37 @@ extension Main {
             guard message.type == .error || message.action != .pumpConfig, message.trigger == nil, !view.isHidden else { return }
 
             SwiftMessages.show(config: config, view: view)
+        }
+
+        /*
+          Reclassification is needed for Medtronic pumps for 'Pump error:' RileyLink related messages.
+          For details, see https://discord.com/channels/1020905149037813862/1338245444186279946/1343469793013141525.
+          Reclassification of Info type messages is based on APSManager.APSError enum values.
+          Currently, we only re-classify APSError.pumpError 'Pump error:' type to MessageType.error.
+          MessageType.error messagges are always displayed to the user and the user cannot disable them.
+          Other APSManager.APSError remain as MessageType.info which allows users to disable them
+          using the 'Trio Notification' -> 'Always Notify Algorithm' setting.
+         */
+        func reclassifyInfoNotification(_ message: inout MessageContent) {
+            if message.title == "" {
+                switch message.type {
+                case .info:
+                    if let errorIndex = message.content.range(of: "error", options: .caseInsensitive) {
+                        message.title = String(localized: "Error", comment: "Error title")
+                        if let errorPumpIndex = message.content.range(of: "Pump error:", options: .caseInsensitive) {
+                            message.type = .error
+                        }
+                    } else {
+                        message.title = String(localized: "Info", comment: "Info title")
+                    }
+                case .warning:
+                    message.title = String(localized: "Warning", comment: "Warning title")
+                case .error:
+                    message.title = String(localized: "Error", comment: "Error title")
+                case .other:
+                    message.title = String(localized: "Info", comment: "Info title")
+                }
+            }
         }
 
         override func subscribe() {
@@ -223,8 +254,10 @@ extension Main {
                 .receive(on: DispatchQueue.main)
                 .sink { message in
                     guard !self.isApnPumpConfigAction(message) else { return }
-                    guard self.router.allowNotify(message, self.settingsManager.settings) else { return }
-                    self.showAlertMessage(message)
+                    var reclassifyMessage = message
+                    self.reclassifyInfoNotification(&reclassifyMessage)
+                    guard self.router.allowNotify(reclassifyMessage, self.settingsManager.settings) else { return }
+                    self.showAlertMessage(reclassifyMessage)
                 }
                 .store(in: &lifetime)
 

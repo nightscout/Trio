@@ -232,7 +232,7 @@ struct EditTempTargetForm: View {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        Text(state.formatHrMin(Int(duration)))
+                        Text(state.formatHoursAndMinutes(Int(duration)))
                             .foregroundColor(!displayPickerDuration ? (duration > 0 ? .primary : .secondary) : .accentColor)
                             .onTapGesture {
                                 displayPickerDuration = toggleScrollWheel(displayPickerDuration)
@@ -312,9 +312,9 @@ struct EditTempTargetForm: View {
                         Task {
                             // TODO: - Creating a Run entry is probably needed for Overrides as well and the reason for "jumping" Overrides?
                             // Disable previous active Temp Targets
-                            await state.disableAllActiveOverrides(
+                            await state.disableAllActiveTempTargets(
                                 except: currentActiveTempTarget.objectID,
-                                createOverrideRunEntry: false
+                                createTempTargetRunEntry: false
                             )
 
                             // If the temp target which currently gets edited is enabled, then store it to the Temp Target JSON so that oref uses it

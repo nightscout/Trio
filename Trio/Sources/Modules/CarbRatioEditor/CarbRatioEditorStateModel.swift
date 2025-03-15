@@ -70,8 +70,12 @@ extension CarbRatioEditor {
             provider.saveProfile(profile)
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
             Task.detached(priority: .low) {
-                debug(.nightscout, "Attempting to upload CRs to Nightscout")
-                await self.nightscout.uploadProfiles()
+                do {
+                    debug(.nightscout, "Attempting to upload CRs to Nightscout")
+                    try await self.nightscout.uploadProfiles()
+                } catch {
+                    debug(.default, "Failed to upload CRs to Nightscout: \(error.localizedDescription)")
+                }
             }
         }
 

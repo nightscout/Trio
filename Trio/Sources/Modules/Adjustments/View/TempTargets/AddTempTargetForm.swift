@@ -84,7 +84,7 @@ struct AddTempTargetForm: View {
                 let settingsProvider = PickerSettingsProvider.shared
                 let glucoseSetting = PickerSetting(value: 0, step: targetStep, min: 80, max: 200, type: .glucose)
                 TargetPicker(
-                    label: "Target Glucose",
+                    label: String(localized: "Target Glucose"),
                     selection: Binding(
                         get: { state.tempTargetTarget },
                         set: { state.tempTargetTarget = $0 }
@@ -160,7 +160,7 @@ struct AddTempTargetForm: View {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        Text(state.formatHrMin(Int(state.tempTargetDuration)))
+                        Text(state.formatHoursAndMinutes(Int(state.tempTargetDuration)))
                             .foregroundColor(
                                 !displayPickerDuration ?
                                     (state.tempTargetDuration > 0 ? .primary : .secondary) : .accentColor
@@ -205,13 +205,14 @@ struct AddTempTargetForm: View {
         let targetZero = state.tempTargetTarget < 80
 
         if noDurationSpecified {
-            return (true, "Set a duration!")
+            return (true, String(localized: "Set a duration!"))
         }
 
         if targetZero {
             return (
                 true,
-                "\(state.units == .mgdL ? "80 " : "4.4 ")" + state.units.rawValue + " needed as min. Glucose Target!"
+                "\(state.units == .mgdL ? "80 " : "4.4 ")" + state.units
+                    .rawValue + String(localized: " needed as min. Glucose Target)!")
             )
         }
 
@@ -227,7 +228,7 @@ struct AddTempTargetForm: View {
         }
 
         if isDateInFuture {
-            return (true, "Presets can't be saved with a future date!")
+            return (true, String(localized: "Presets cannot be saved with a future date!"))
         }
 
         return (false, nil)
@@ -249,10 +250,17 @@ struct AddTempTargetForm: View {
                 content: {
                     Button(action: {
                         Task {
-                            if noNameSpecified { state.tempTargetName = "Custom Target" }
-                            didPressSave.toggle()
-                            await state.invokeSaveOfCustomTempTargets()
-                            dismiss()
+                            do {
+                                if noNameSpecified { state.tempTargetName = "Custom Target" }
+                                didPressSave.toggle()
+
+                                /// We need to call dismiss() either before state.invokeSaveOfCustomTempTargets() or as a callback within the function BEFORE we await the Task, otherwise the sheet gets only closed when the scheduled Temp Target gets enacted
+                                dismiss()
+
+                                try await state.invokeSaveOfCustomTempTargets()
+                            } catch {
+                                debug(.default, "\(DebuggingIdentifiers.failed) failed to save custom temp target: \(error)")
+                            }
                         }
                     }, label: {
                         Text("Start Temp Target")
@@ -266,10 +274,14 @@ struct AddTempTargetForm: View {
             Section {
                 Button(action: {
                     Task {
-                        if noNameSpecified { state.tempTargetName = "Custom Target" }
-                        didPressSave.toggle()
-                        await state.saveTempTargetPreset()
-                        dismiss()
+                        do {
+                            if noNameSpecified { state.tempTargetName = "Custom Target" }
+                            didPressSave.toggle()
+                            try await state.saveTempTargetPreset()
+                            dismiss()
+                        } catch {
+                            debug(.default, "\(DebuggingIdentifiers.failed) failed to save temp target preset: \(error)")
+                        }
                     }
                 }, label: {
                     Text("Save as Preset")

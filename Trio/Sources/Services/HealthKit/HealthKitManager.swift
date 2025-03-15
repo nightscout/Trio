@@ -94,7 +94,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     }
 
     private func registerHandlers() {
-        coreDataPublisher?.filterByEntityName("PumpEventStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("PumpEventStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task { [weak self] in
                 guard let self = self else { return }
@@ -102,7 +102,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             }
         }.store(in: &subscriptions)
 
-        coreDataPublisher?.filterByEntityName("CarbEntryStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("CarbEntryStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task { [weak self] in
                 guard let self = self else { return }
@@ -111,7 +111,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         }.store(in: &subscriptions)
 
         // This works only for manual Glucose
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task { [weak self] in
                 guard let self = self else { return }
@@ -156,8 +156,18 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     // Glucose Upload
 
     func uploadGlucose() async {
-        await uploadGlucose(glucoseStorage.getGlucoseNotYetUploadedToHealth())
-        await uploadGlucose(glucoseStorage.getManualGlucoseNotYetUploadedToHealth())
+        do {
+            let glucose = try await glucoseStorage.getGlucoseNotYetUploadedToHealth()
+            await uploadGlucose(glucose)
+
+            let manualGlucose = try await glucoseStorage.getManualGlucoseNotYetUploadedToHealth()
+            await uploadGlucose(manualGlucose)
+        } catch {
+            debug(
+                .service,
+                "\(DebuggingIdentifiers.failed) Error fetching glucose for health upload: \(error.localizedDescription)"
+            )
+        }
     }
 
     func uploadGlucose(_ glucose: [BloodGlucose]) async {
@@ -228,7 +238,15 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     // Carbs Upload
 
     func uploadCarbs() async {
-        await uploadCarbs(carbsStorage.getCarbsNotYetUploadedToHealth())
+        do {
+            let carbs = try await carbsStorage.getCarbsNotYetUploadedToHealth()
+            await uploadCarbs(carbs)
+        } catch {
+            debug(
+                .service,
+                "\(DebuggingIdentifiers.failed) Error fetching carbs for health upload: \(error.localizedDescription)"
+            )
+        }
     }
 
     func uploadCarbs(_ carbs: [CarbsEntry]) async {
@@ -341,7 +359,15 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
     // Insulin Upload
 
     func uploadInsulin() async {
-        await uploadInsulin(pumpHistoryStorage.getPumpHistoryNotYetUploadedToHealth())
+        do {
+            let events = try await pumpHistoryStorage.getPumpHistoryNotYetUploadedToHealth()
+            await uploadInsulin(events)
+        } catch {
+            debug(
+                .service,
+                "\(DebuggingIdentifiers.failed) Error fetching insulin events for health upload: \(error.localizedDescription)"
+            )
+        }
     }
 
     func uploadInsulin(_ insulinEvents: [PumpHistoryEvent]) async {
@@ -350,87 +376,92 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
               checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType),
               insulinEvents.isNotEmpty else { return }
 
-        // Fetch existing temp basal entries from Core Data for the last 24 hours
-        let fetchedInsulinEntries = await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: PumpEventStored.self,
-            onContext: backgroundContext,
-            predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
-                NSPredicate.pumpHistoryLast24h,
-                NSPredicate(format: "tempBasal != nil")
-            ]),
-            key: "timestamp",
-            ascending: true,
-            batchSize: 50
-        )
+        do {
+            let fetchedInsulinEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+                ofType: PumpEventStored.self,
+                onContext: backgroundContext,
+                predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
+                    NSPredicate.pumpHistoryLast24h,
+                    NSPredicate(format: "tempBasal != nil")
+                ]),
+                key: "timestamp",
+                ascending: true,
+                batchSize: 50
+            )
 
-        var insulinSamples: [HKQuantitySample] = []
+            var insulinSamples: [HKQuantitySample] = []
 
-        await backgroundContext.perform {
-            guard let existingTempBasalEntries = fetchedInsulinEntries as? [PumpEventStored] else { return }
+            try await backgroundContext.perform {
+                guard let existingTempBasalEntries = fetchedInsulinEntries as? [PumpEventStored] else {
+                    throw CoreDataError.fetchError(function: #function, file: #file)
+                }
 
-            for event in insulinEvents {
-                switch event.type {
-                case .bolus:
-                    // For bolus events, create a HealthKit sample directly
-                    if let sample = self.createSample(for: event, sampleType: sampleType) {
-                        debug(.service, "Created HealthKit sample for bolus entry: \(sample)")
-                        insulinSamples.append(sample)
-                    }
-                case .tempBasal:
-                    // For temp basal events, process them and adjust overlapping durations if necessary
-                    guard let duration = event.duration, let amount = event.amount else { continue }
+                for event in insulinEvents {
+                    switch event.type {
+                    case .bolus:
+                        // For bolus events, create a HealthKit sample directly
+                        if let sample = self.createSample(for: event, sampleType: sampleType) {
+                            debug(.service, "Created HealthKit sample for bolus entry: \(sample)")
+                            insulinSamples.append(sample)
+                        }
+                    case .tempBasal:
+                        // For temp basal events, process them and adjust overlapping durations if necessary
+                        guard let duration = event.duration, let amount = event.amount else { continue }
 
-                    let value = (Decimal(duration) / 60.0) * amount
-                    let valueRounded = self.deviceDataManager?.pumpManager?
-                        .roundToSupportedBolusVolume(units: Double(value)) ?? Double(value)
+                        let value = (Decimal(duration) / 60.0) * amount
+                        let valueRounded = self.deviceDataManager?.pumpManager?
+                            .roundToSupportedBolusVolume(units: Double(value)) ?? Double(value)
 
-                    // Use binary search for efficient lookup of matching entry
-                    if let matchingIndex = self.binarySearch(entries: existingTempBasalEntries, timestamp: event.timestamp) {
-                        let predecessorIndex = matchingIndex - 1
+                        // Use binary search for efficient lookup of matching entry
+                        if let matchingIndex = self.binarySearch(entries: existingTempBasalEntries, timestamp: event.timestamp) {
+                            let predecessorIndex = matchingIndex - 1
 
-                        if predecessorIndex >= 0 {
-                            let predecessorEntry = existingTempBasalEntries[predecessorIndex]
+                            if predecessorIndex >= 0 {
+                                let predecessorEntry = existingTempBasalEntries[predecessorIndex]
 
-                            if let adjustedSample = self.processPredecessorEntry(
-                                predecessorEntry,
-                                nextEventTimestamp: event.timestamp,
-                                sampleType: sampleType
-                            ) {
-                                insulinSamples.append(adjustedSample)
+                                if let adjustedSample = self.processPredecessorEntry(
+                                    predecessorEntry,
+                                    nextEventTimestamp: event.timestamp,
+                                    sampleType: sampleType
+                                ) {
+                                    insulinSamples.append(adjustedSample)
+                                }
+                            }
+
+                            let newEvent = PumpHistoryEvent(
+                                id: event.id,
+                                type: .tempBasal,
+                                timestamp: event.timestamp,
+                                amount: Decimal(valueRounded),
+                                duration: event.duration
+                            )
+
+                            if let sample = self.createSample(for: newEvent, sampleType: sampleType) {
+                                debug(.service, "Created HealthKit sample for initial temp basal entry: \(sample)")
+                                insulinSamples.append(sample)
                             }
                         }
 
-                        let newEvent = PumpHistoryEvent(
-                            id: event.id,
-                            type: .tempBasal,
-                            timestamp: event.timestamp,
-                            amount: Decimal(valueRounded),
-                            duration: event.duration
-                        )
-
-                        if let sample = self.createSample(for: newEvent, sampleType: sampleType) {
-                            debug(.service, "Created HealthKit sample for initial temp basal entry: \(sample)")
-                            insulinSamples.append(sample)
-                        }
+                    default:
+                        break
                     }
-
-                default:
-                    break
                 }
             }
-        }
 
-        do {
-            guard insulinSamples.isNotEmpty else {
-                debug(.service, "No insulin samples available for upload.")
-                return
+            do {
+                guard insulinSamples.isNotEmpty else {
+                    debug(.service, "No insulin samples available for upload.")
+                    return
+                }
+
+                try await healthKitStore.save(insulinSamples)
+                debug(.service, "Successfully stored \(insulinSamples.count) insulin samples in HealthKit.")
+                await updateInsulinAsUploaded(insulinEvents)
+            } catch {
+                debug(.service, "Failed to upload insulin samples to HealthKit: \(error.localizedDescription)")
             }
-
-            try await healthKitStore.save(insulinSamples)
-            debug(.service, "Successfully stored \(insulinSamples.count) insulin samples in HealthKit.")
-            await updateInsulinAsUploaded(insulinEvents)
         } catch {
-            debug(.service, "Failed to upload insulin samples to HealthKit: \(error.localizedDescription)")
+            debug(.service, "\(DebuggingIdentifiers.failed) Error fetching temp basal entries: \(error.localizedDescription)")
         }
     }
 

@@ -186,9 +186,6 @@ extension MainChartView {
                 }
             }
             .id("MainChart")
-            .onChange(of: state.insulinFromPersistence) {
-                state.roundedTotalBolus = state.calculateTINS()
-            }
             .frame(
                 minHeight: geo.size.height * (0.28 - safeAreaSize)
             )

@@ -16,6 +16,8 @@ extension NightscoutConfig {
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
+        @State var backfillAlert: Alert?
+        @State var isBackfillAlertPresented = false
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
@@ -97,7 +99,7 @@ extension NightscoutConfig {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = "Import Settings from Nightscout"
+                                        hintLabel = String(localized: "Import Settings from Nightscout")
                                         selectedVerboseHint =
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 10) {
@@ -132,6 +134,16 @@ extension NightscoutConfig {
                                 Button {
                                     Task {
                                         await state.backfillGlucose()
+                                        if !state.message.isEmpty && state.message.hasPrefix("Error:") {
+                                            DispatchQueue.main.async {
+                                                backfillAlert = Alert(
+                                                    title: Text("Backfill Failed"),
+                                                    message: Text(state.message),
+                                                    dismissButton: .default(Text("OK"))
+                                                )
+                                                isBackfillAlertPresented = true
+                                            }
+                                        }
                                     }
                                 } label: {
                                     Text("Backfill Glucose")
@@ -150,7 +162,7 @@ extension NightscoutConfig {
                                     Spacer()
                                     Button(
                                         action: {
-                                            hintLabel = "Backfill Glucose from Nightscout"
+                                            hintLabel = String(localized: "Backfill Glucose from Nightscout")
                                             selectedVerboseHint =
                                                 AnyView(
                                                     Text(
@@ -174,7 +186,10 @@ extension NightscoutConfig {
                 .blur(radius: state.importStatus == .running ? 5 : 0)
 
                 if state.importStatus == .running {
-                    CustomProgressView(text: "Importing Profile...")
+                    CustomProgressView(text: String(
+                        localized: "Importing Profile...",
+                        comment: "Progress text when importing profile via Nightscout"
+                    ))
                 }
             }
             .fullScreenCover(isPresented: $state.isImportResultReviewPresented, content: {
@@ -186,13 +201,16 @@ extension NightscoutConfig {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .navigationBarTitle("Nightscout")
             .navigationBarTitleDisplayMode(.automatic)
             .alert(isPresented: $isImportAlertPresented) {
                 importAlert ?? Alert(title: Text("Unknown Error"))
+            }
+            .alert(isPresented: $isBackfillAlertPresented) {
+                backfillAlert ?? Alert(title: Text("Unknown Error"))
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)

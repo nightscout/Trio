@@ -12,21 +12,35 @@ extension TrioRemoteControl {
     }
 
     @MainActor internal func handleStartOverrideCommand(_ pushMessage: PushMessage) async {
-        guard let overrideName = pushMessage.overrideName, !overrideName.isEmpty else {
-            await logError("Command rejected: override name is missing.", pushMessage: pushMessage)
-            return
-        }
+        do {
+            guard let overrideName = pushMessage.overrideName, !overrideName.isEmpty else {
+                await logError("Command rejected: override name is missing.", pushMessage: pushMessage)
+                return
+            }
 
-        let presetIDs = await overrideStorage.fetchForOverridePresets()
+            let presetIDs = try await overrideStorage.fetchForOverridePresets()
 
-        let presets = presetIDs.compactMap { id in
-            try? viewContext.existingObject(with: id) as? OverrideStored
-        }
+            let presets = try presetIDs.compactMap { id in
+                try viewContext.existingObject(with: id) as? OverrideStored
+            }
 
-        if let preset = presets.first(where: { $0.name == overrideName }) {
-            await enactOverridePreset(preset: preset, pushMessage: pushMessage)
-        } else {
-            await logError("Command rejected: override preset '\(overrideName)' not found.", pushMessage: pushMessage)
+            if let preset = presets.first(where: { $0.name == overrideName }) {
+                await enactOverridePreset(preset: preset, pushMessage: pushMessage)
+            } else {
+                await logError(
+                    "Command rejected: override preset '\(overrideName)' not found.",
+                    pushMessage: pushMessage
+                )
+            }
+        } catch {
+            debug(
+                .remoteControl,
+                "\(DebuggingIdentifiers.failed) Failed to handle start override command: \(error.localizedDescription)"
+            )
+            await logError(
+                "Command failed: \(error.localizedDescription)",
+                pushMessage: pushMessage
+            )
         }
     }
 
@@ -52,10 +66,10 @@ extension TrioRemoteControl {
     }
 
     @MainActor private func disableAllActiveOverrides(except overrideID: NSManagedObjectID? = nil) async {
-        let ids = await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 0) // 0 = no fetch limit
+        do {
+            let ids = try await overrideStorage.loadLatestOverrideConfigurations(fetchLimit: 0) // 0 = no fetch limit
 
-        let didPostNotification = await viewContext.perform { () -> Bool in
-            do {
+            let didPostNotification = try await viewContext.perform { () -> Bool in
                 let results = try ids.compactMap { id in
                     try self.viewContext.existingObject(with: id) as? OverrideStored
                 }
@@ -89,16 +103,16 @@ extension TrioRemoteControl {
                 } else {
                     return false
                 }
-            } catch {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Overrides with error: \(error.localizedDescription)"
-                )
-                return false
             }
-        }
 
-        if didPostNotification {
-            await awaitNotification(.didUpdateOverrideConfiguration)
+            if didPostNotification {
+                await awaitNotification(.didUpdateOverrideConfiguration)
+            }
+        } catch {
+            debug(
+                .remoteControl,
+                "\(DebuggingIdentifiers.failed) Failed to disable active overrides: \(error.localizedDescription)"
+            )
         }
     }
 }

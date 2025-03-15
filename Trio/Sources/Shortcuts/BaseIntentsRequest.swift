@@ -14,6 +14,7 @@ import Swinject
     @Injected() var glucoseStorage: GlucoseStorage!
     @Injected() var apsManager: APSManager!
     @Injected() var overrideStorage: OverrideStorage!
+    @Injected() var liveActivityManager: LiveActivityManager!
 
     let resolver: Resolver
 

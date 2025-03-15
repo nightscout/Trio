@@ -40,6 +40,14 @@ struct CarbEntryEditorView: View {
         _editedDate = State(initialValue: Date())
     }
 
+    private var mealFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumIntegerDigits = 3
+        formatter.maximumFractionDigits = 0
+        return formatter
+    }
+
     private var carbLimitExceeded: Bool {
         editedCarbs > state.settingsManager.settings.maxCarbs
     }
@@ -130,7 +138,7 @@ struct CarbEntryEditorView: View {
                             text: $editedCarbs,
                             placeholder: "0",
                             keyboardType: .numberPad,
-                            numberFormatter: Formatter.decimalFormatterWithOneFractionDigit
+                            numberFormatter: mealFormatter
                         )
                         Text("g").foregroundStyle(.secondary)
                     }
@@ -142,7 +150,7 @@ struct CarbEntryEditorView: View {
                                 text: $editedProtein,
                                 placeholder: "0",
                                 keyboardType: .numberPad,
-                                numberFormatter: Formatter.decimalFormatterWithOneFractionDigit
+                                numberFormatter: mealFormatter
                             )
                             Text("g").foregroundStyle(.secondary)
                         }
@@ -153,7 +161,7 @@ struct CarbEntryEditorView: View {
                                 text: $editedFat,
                                 placeholder: "0",
                                 keyboardType: .numberPad,
-                                numberFormatter: Formatter.decimalFormatterWithOneFractionDigit
+                                numberFormatter: mealFormatter
                             )
                             Text("g").foregroundStyle(.secondary)
                         }
@@ -161,7 +169,7 @@ struct CarbEntryEditorView: View {
 
                     HStack {
                         Image(systemName: "square.and.pencil")
-                        TextFieldWithToolBarString(text: $editedNote, placeholder: "Note...", maxLength: 25)
+                        TextFieldWithToolBarString(text: $editedNote, placeholder: String(localized: "Note..."), maxLength: 25)
                     }
                 }.listRowBackground(Color.chart)
 

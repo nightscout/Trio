@@ -23,10 +23,14 @@ final class BaseFileStorage: FileStorage {
 
     func save<Value: JSON>(_ value: Value, as name: String) {
         processQueue.safeSync {
-            if let value = value as? RawJSON, let data = value.data(using: .utf8) {
-                try? Disk.save(data, to: .documents, as: name)
-            } else {
-                try? Disk.save(value, to: .documents, as: name, encoder: JSONCoding.encoder)
+            do {
+                if let value = value as? RawJSON, let data = value.data(using: .utf8) {
+                    try Disk.save(data, to: .documents, as: name)
+                } else {
+                    try Disk.save(value, to: .documents, as: name, encoder: JSONCoding.encoder)
+                }
+            } catch {
+                debug(.storage, "Failed to save file '\(name)': \(error.localizedDescription)")
             }
         }
     }
@@ -34,10 +38,14 @@ final class BaseFileStorage: FileStorage {
     func saveAsync<Value: JSON>(_ value: Value, as name: String) async {
         await withCheckedContinuation { continuation in
             processQueue.safeSync {
-                if let value = value as? RawJSON, let data = value.data(using: .utf8) {
-                    try? Disk.save(data, to: .documents, as: name)
-                } else {
-                    try? Disk.save(value, to: .documents, as: name, encoder: JSONCoding.encoder)
+                do {
+                    if let value = value as? RawJSON, let data = value.data(using: .utf8) {
+                        try Disk.save(data, to: .documents, as: name)
+                    } else {
+                        try Disk.save(value, to: .documents, as: name, encoder: JSONCoding.encoder)
+                    }
+                } catch {
+                    debug(.storage, "Failed to save file '\(name)': \(error.localizedDescription)")
                 }
                 continuation.resume()
             }
@@ -46,49 +54,81 @@ final class BaseFileStorage: FileStorage {
 
     func retrieve<Value: JSON>(_ name: String, as type: Value.Type) -> Value? {
         processQueue.safeSync {
-            try? Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
+            do {
+                return try Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
+            } catch {
+                debug(.storage, "Failed to retrieve file '\(name)': \(error.localizedDescription)")
+                return nil
+            }
         }
     }
 
     func retrieveAsync<Value: JSON>(_ name: String, as type: Value.Type) async -> Value? {
         await withCheckedContinuation { continuation in
             processQueue.safeSync {
-                let result = try? Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
-                continuation.resume(returning: result)
+                do {
+                    let result = try Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
+                    continuation.resume(returning: result)
+                } catch {
+                    debug(.storage, "Failed to retrieve file '\(name)': \(error.localizedDescription)")
+                    continuation.resume(returning: nil)
+                }
             }
         }
     }
 
     func retrieveRaw(_ name: String) -> RawJSON? {
         processQueue.safeSync {
-            guard let data = try? Disk.retrieve(name, from: .documents, as: Data.self) else {
+            do {
+                let data = try Disk.retrieve(name, from: .documents, as: Data.self)
+                guard let string = String(data: data, encoding: .utf8) else {
+                    debug(.storage, "Failed to decode data as UTF-8 string for file '\(name)'")
+                    return nil
+                }
+                return string
+            } catch {
+                debug(.storage, "Failed to retrieve file '\(name)': \(error.localizedDescription)")
                 return nil
             }
-            return String(data: data, encoding: .utf8)
         }
     }
 
     func retrieveRawAsync(_ name: String) async -> RawJSON? {
         await withCheckedContinuation { continuation in
             processQueue.safeSync {
-                guard let data = try? Disk.retrieve(name, from: .documents, as: Data.self) else {
+                do {
+                    let data = try Disk.retrieve(name, from: .documents, as: Data.self)
+                    guard let string = String(data: data, encoding: .utf8) else {
+                        debug(.storage, "Failed to decode data as UTF-8 string for file '\(name)'")
+                        continuation.resume(returning: nil)
+                        return
+                    }
+                    continuation.resume(returning: string)
+                } catch {
+                    debug(.storage, "Failed to retrieve file '\(name)': \(error.localizedDescription)")
                     continuation.resume(returning: nil)
-                    return
                 }
-                continuation.resume(returning: String(data: data, encoding: .utf8))
             }
         }
     }
 
     func append<Value: JSON>(_ newValue: Value, to name: String) {
         processQueue.safeSync {
-            try? Disk.append(newValue, to: name, in: .documents, decoder: JSONCoding.decoder, encoder: JSONCoding.encoder)
+            do {
+                try Disk.append(newValue, to: name, in: .documents, decoder: JSONCoding.decoder, encoder: JSONCoding.encoder)
+            } catch {
+                debug(.storage, "Failed to append to file '\(name)': \(error.localizedDescription)")
+            }
         }
     }
 
     func append<Value: JSON>(_ newValues: [Value], to name: String) {
         processQueue.safeSync {
-            try? Disk.append(newValues, to: name, in: .documents, decoder: JSONCoding.decoder, encoder: JSONCoding.encoder)
+            do {
+                try Disk.append(newValues, to: name, in: .documents, decoder: JSONCoding.decoder, encoder: JSONCoding.encoder)
+            } catch {
+                debug(.storage, "Failed to append to file '\(name)': \(error.localizedDescription)")
+            }
         }
     }
 
@@ -130,13 +170,21 @@ final class BaseFileStorage: FileStorage {
 
     func remove(_ name: String) {
         processQueue.safeSync {
-            try? Disk.remove(name, from: .documents)
+            do {
+                try Disk.remove(name, from: .documents)
+            } catch {
+                debug(.storage, "Failed to remove file '\(name)': \(error.localizedDescription)")
+            }
         }
     }
 
     func rename(_ name: String, to newName: String) {
         processQueue.safeSync {
-            try? Disk.rename(name, in: .documents, to: newName)
+            do {
+                try Disk.rename(name, in: .documents, to: newName)
+            } catch {
+                debug(.storage, "Failed to rename file '\(name)' to '\(newName)': \(error.localizedDescription)")
+            }
         }
     }
 
@@ -147,7 +195,12 @@ final class BaseFileStorage: FileStorage {
     }
 
     func urlFor(file: String) -> URL? {
-        try? Disk.url(for: file, in: .documents)
+        do {
+            return try Disk.url(for: file, in: .documents)
+        } catch {
+            debug(.storage, "Failed to get URL for file '\(file)': \(error.localizedDescription)")
+            return nil
+        }
     }
 }
 

@@ -1,6 +1,8 @@
-oref0 branch: maxAbsorptionTime - git version: a542ed3
+oref0 branch: removeTDDCalc - git version: 73d6d6c
 
 Last commits:
+73d6d6c webpack for Trio-dev
+5c6ce4b remove TDD calculation
 a542ed3 use guarded maxAbsorptionTime
 4c77757 Revert "reduce dynISF logging"
 1567c76 use variable name maxMealAbsorptionTime

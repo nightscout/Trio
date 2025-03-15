@@ -110,13 +110,11 @@ import WatchConnectivity
             acknowledgmentMessage = "\(message)"
         } else {
             print("⌚️ Acknowledgment failed: \(message)")
+            DispatchQueue.main.async {
+                self.showCommsAnimation = false // Hide progress animation
+            }
             acknowledgementStatus = .failure
             acknowledgmentMessage = "\(message)"
-        }
-
-        DispatchQueue.main.async {
-            self.showCommsAnimation = false // Hide progress animation
-            self.showSyncingAnimation = false // Just ensure this is 100% set to false
         }
 
         if isFinal {
@@ -352,6 +350,7 @@ import WatchConnectivity
                 // reset input amounts
                 self.bolusAmount = 0
                 self.carbsAmount = 0
+
                 // reset auth progress
                 self.confirmationProgress = 0
             }

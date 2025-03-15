@@ -89,7 +89,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     }
 
     private func registerHandlers() {
-        coreDataPublisher?.filterByEntityName("GlucoseStored").sink { [weak self] _ in
+        coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
             Task {
                 await self.createEvent()
@@ -175,8 +175,8 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         EKEventStore().calendars(for: .event).map(\.title)
     }
 
-    private func getLastDetermination() async -> NSManagedObjectID? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func getLastDetermination() async throws -> NSManagedObjectID? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OrefDetermination.self,
             onContext: backgroundContext,
             predicate: NSPredicate.predicateFor30MinAgoForDetermination,
@@ -186,15 +186,17 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             propertiesToFetch: ["timestamp", "cob", "iob", "objectID"]
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [[String: Any]] else { return nil }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [[String: Any]] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.first?["objectID"] as? NSManagedObjectID
         }
     }
 
-    private func fetchGlucose() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchGlucose() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: backgroundContext,
             predicate: NSPredicate.predicateFor30MinAgo,
@@ -203,27 +205,29 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             propertiesToFetch: ["objectID", "glucose"]
         )
 
-        return await backgroundContext.perform {
-            guard let fetchedResults = results as? [[String: Any]] else { return [] }
+        return try await backgroundContext.perform {
+            guard let fetchedResults = results as? [[String: Any]] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
 
             return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
         }
     }
 
     @MainActor func createEvent() async {
-        guard settingsManager.settings.useCalendar, let calendar = currentCalendar,
-              let determinationId = await getLastDetermination() else { return }
-
-        // Ignore the update if the determinationId is the same as it was at last update
-        if determinationId == previousDeterminationId {
-            return
-        }
-
-        let glucoseIds = await fetchGlucose()
-
-        deleteAllEvents(in: calendar)
-
         do {
+            guard settingsManager.settings.useCalendar, let calendar = currentCalendar,
+                  let determinationId = try await getLastDetermination() else { return }
+
+            // Ignore the update if the determinationId is the same as it was at last update
+            if determinationId == previousDeterminationId {
+                return
+            }
+
+            let glucoseIds = try await fetchGlucose()
+
+            deleteAllEvents(in: calendar)
+
             guard let determinationObject = try viewContext.existingObject(with: determinationId) as? OrefDetermination
             else { return }
 

@@ -11,15 +11,12 @@ enum Adjustments {
         var id: String { rawValue }
 
         var name: String {
-            var name: String = ""
             switch self {
             case .overrides:
-                name = "Overrides"
+                return String(localized: "Overrides", comment: "Selected Tab")
             case .tempTargets:
-                name = "Temp Targets"
+                return String(localized: "Temp Targets", comment: "Selected Tab")
             }
-
-            return NSLocalizedString(name, comment: "Selected Tab")
         }
     }
 }
