@@ -42,41 +42,19 @@ extension GlucoseNotificationSettings {
             List {
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.useAlarmSound,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Play Alarm Sound"
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: "Play Alarm Sound",
-                    miniHint: "Alarm with every Trio notification.",
-                    verboseHint: VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
-                        Text(
-                            "This will cause a sound to be triggered by Trio notifications for Carbs Required, and Glucose Low/High Alarms."
-                        )
-                    }
-                )
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
                     booleanValue: $state.notificationsPump,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Always Notify Pump"
+                            hintLabel = String(localized: "Always Notify Pump")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Always Notify Pump",
-                    miniHint: "Always Notify Pump Warnings.",
+                    label: String(localized: "Always Notify Pump"),
+                    miniHint: String(localized: "Always Notify Pump Warnings."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: ON").bold()
@@ -86,7 +64,7 @@ extension GlucoseNotificationSettings {
                         Text("If iOS Trio Notifications is disabled, Trio will display these messages in-app as a banner only.")
                         Text("An example of a Pump Warning is 'Pod Expiration Reminder'")
                     },
-                    headerText: "Trio Information Notifications"
+                    headerText: String(localized: "Trio Information Notifications")
                 )
                 SettingInputSection(
                     decimalValue: $decimalPlaceholder,
@@ -96,13 +74,13 @@ extension GlucoseNotificationSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Always Notify CGM"
+                            hintLabel = String(localized: "Always Notify CGM")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Always Notify CGM",
-                    miniHint: "Always Notify CGM Warnings.",
+                    label: String(localized: "Always Notify CGM"),
+                    miniHint: String(localized: "Always Notify CGM Warnings."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: ON").bold()
@@ -121,13 +99,13 @@ extension GlucoseNotificationSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Always Notify Carb"
+                            hintLabel = String(localized: "Always Notify Carb")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Always Notify Carb",
-                    miniHint: "Always Notify Carb Warnings.",
+                    label: String(localized: "Always Notify Carb"),
+                    miniHint: String(localized: "Always Notify Carb Warnings."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: ON").bold()
@@ -146,13 +124,13 @@ extension GlucoseNotificationSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Always Notify Algorithm"
+                            hintLabel = String(localized: "Always Notify Algorithm")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Always Notify Algorithm",
-                    miniHint: "Always Notify Algorithm Warnings.",
+                    label: String(localized: "Always Notify Algorithm"),
+                    miniHint: String(localized: "Always Notify Algorithm Warnings."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: ON").bold()
@@ -174,20 +152,20 @@ extension GlucoseNotificationSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Show Glucose App Badge"
+                            hintLabel = String(localized: "Show Glucose App Badge")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Show Glucose App Badge",
-                    miniHint: "Show your current glucose on Trio app icon.",
+                    label: String(localized: "Show Glucose App Badge"),
+                    miniHint: String(localized: "Show your current glucose on Trio app icon."),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
                             "This will add your current glucose on the top right of your Trio icon as a red notification badge. Changing setting takes effect on next Glucose reading."
                         )
                     },
-                    headerText: "Various Glucose Notifications"
+                    headerText: String(localized: "Various Glucose Notifications")
                 )
 
                 Section {
@@ -211,7 +189,7 @@ extension GlucoseNotificationSettings {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = "Glucose Notifications"
+                                    hintLabel = String(localized: "Glucose Notifications")
                                     selectedVerboseHint =
                                         AnyView(
                                             VStack(alignment: .leading, spacing: 10) {
@@ -258,13 +236,13 @@ extension GlucoseNotificationSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Add Glucose Source to Alarm"
+                                hintLabel = String(localized: "Add Glucose Source to Alarm")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: "Add Glucose Source to Alarm",
-                        miniHint: "Source of the glucose reading will be added to the notification.",
+                        label: String(localized: "Add Glucose Source to Alarm"),
+                        miniHint: String(localized: "Source of the glucose reading will be added to the notification."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text("The source of the glucose reading will be added to the notification.")
@@ -279,7 +257,7 @@ extension GlucoseNotificationSettings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
@@ -374,7 +352,7 @@ extension GlucoseNotificationSettings {
                         Spacer()
                         Button(
                             action: {
-                                hintLabel = "Low and High Glucose Alarm Limits"
+                                hintLabel = String(localized: "Low and High Glucose Alarm Limits")
                                 selectedVerboseHint =
                                     AnyView(VStack(alignment: .leading, spacing: 10) {
                                         let low: Decimal = 70

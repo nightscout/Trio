@@ -30,17 +30,17 @@ struct WatchConfigAppleWatchView: BaseView {
                     get: { selectedVerboseHint },
                     set: {
                         selectedVerboseHint = $0.map { AnyView($0) }
-                        hintLabel = "Confirm Bolus Faster"
+                        hintLabel = String(localized: "Confirm Bolus Faster")
                     }
                 ),
                 units: state.units,
                 type: .boolean,
-                label: "Confirm Bolus Faster",
-                miniHint: "Reduce the number of crown rotations required for bolus confirmation.",
+                label: String(localized: "Confirm Bolus Faster"),
+                miniHint: String(localized: "Reduce the number of crown rotations required for bolus confirmation."),
                 verboseHint: Text(
                     "Enabling this feature lowers the number of turns on the crown dial required when confirming a bolus."
                 ),
-                headerText: "Apple Watch Configuration"
+                headerText: String(localized: "Apple Watch Configuration")
             )
 
             Section(
@@ -63,7 +63,7 @@ struct WatchConfigAppleWatchView: BaseView {
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
                 hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                sheetTitle: "Help"
+                sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
         }
         .navigationTitle("Apple Watch")

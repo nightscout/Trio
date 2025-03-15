@@ -163,7 +163,7 @@ extension Adjustments.RootView {
 
         let targetString = target.isEmpty ? "" : "\(target) \(state.units.rawValue)"
 
-        let durationString = indefinite ? "" : "\(state.formatHrMin(Int(duration)))"
+        let durationString = indefinite ? "" : "\(state.formatHoursAndMinutes(Int(duration)))"
 
         let scheduledSMBString: String = {
             guard preset.smbIsScheduledOff, preset.start != preset.end else { return "" }

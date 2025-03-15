@@ -99,13 +99,13 @@ extension CGMSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Smooth Glucose Value"
+                                hintLabel = String(localized: "Smooth Glucose Value")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: "Smooth Glucose Value",
-                        miniHint: "Smooth CGM readings using Savitzky-Golay filtering.",
+                        label: String(localized: "Smooth Glucose Value"),
+                        miniHint: String(localized: "Smooth CGM readings using Savitzky-Golay filtering."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
@@ -192,7 +192,7 @@ extension CGMSettings {
                                 )
                             }
                         ),
-                        sheetTitle: "Help"
+                        sheetTitle: String(localized: "Help", comment: "Help sheet title")
                     )
                 }
                 .confirmationDialog("CGM Model", isPresented: $showCGMSelection) {

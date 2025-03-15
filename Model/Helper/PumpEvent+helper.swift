@@ -12,6 +12,32 @@ extension PumpEventStored {
         }
         return request
     }
+
+    // Preview
+    @discardableResult static func makePreviewEvents(count: Int, provider: CoreDataStack) -> [PumpEventStored] {
+        let context = provider.persistentContainer.viewContext
+        let events = (0 ..< count).map { index -> PumpEventStored in
+            let event = PumpEventStored(context: context)
+            event.id = UUID().uuidString
+            event.timestamp = Date.now.addingTimeInterval(Double(index) * -300) // Every 5 minutes
+            event.type = EventType.bolus.rawValue
+            event.isUploadedToNS = false
+            event.isUploadedToHealth = false
+            event.isUploadedToTidepool = false
+
+            // Add a bolus
+            let bolus = BolusStored(context: context)
+            bolus.amount = 2.5 as NSDecimalNumber
+            bolus.isExternal = false
+            bolus.isSMB = false
+            bolus.pumpEvent = event
+
+            return event
+        }
+
+        try? context.save()
+        return events
+    }
 }
 
 public extension PumpEventStored {
@@ -63,9 +89,18 @@ extension NSPredicate {
         return NSPredicate(format: "timestamp >= %@", date as NSDate)
     }
 
+    static var pumpHistoryForStats: NSPredicate {
+        let date = Date.threeMonthsAgo
+        return NSPredicate(format: "pumpEvent.timestamp >= %@", date as NSDate)
+    }
+
     static var recentPumpHistory: NSPredicate {
         let date = Date.twentyMinutesAgo
-        return NSPredicate(format: "timestamp >= %@", date as NSDate)
+        return NSPredicate(
+            format: "type == %@ AND timestamp <= %@",
+            PumpEventStored.EventType.tempBasal.rawValue,
+            date as NSDate
+        )
     }
 
     static var lastPumpBolus: NSPredicate {

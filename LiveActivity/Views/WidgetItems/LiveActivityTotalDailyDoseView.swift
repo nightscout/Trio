@@ -24,7 +24,7 @@ struct LiveActivityTotalDailyDoseView: View {
                 .foregroundStyle(context.isStale ? .secondary : .primary)
                 .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
 
-                Text("U")
+                Text(String(localized: "U", comment: "Insulin unit"))
                     .font(.headline).fontWeight(.bold)
                     .foregroundStyle(context.isStale ? .secondary : .primary)
                     .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))

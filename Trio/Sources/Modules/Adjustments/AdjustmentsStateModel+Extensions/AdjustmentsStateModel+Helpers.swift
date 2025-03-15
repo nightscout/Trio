@@ -47,18 +47,19 @@ extension Adjustments.StateModel {
         String(format: "%02d", hour)
     }
 
-    /// Converts a duration in minutes to a formatted string (e.g., "1 hr 30 min").
-    func formatHrMin(_ durationInMinutes: Int) -> String {
+    /// Converts a duration in minutes to a formatted string (e.g., "1 h 30 m").
+    func formatHoursAndMinutes(_ durationInMinutes: Int) -> String {
         let hours = durationInMinutes / 60
         let minutes = durationInMinutes % 60
 
         switch (hours, minutes) {
         case let (0, m):
-            return "\(m) min"
+            return "\(m)\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
         case let (h, 0):
-            return "\(h) hr"
+            return "\(h)\u{00A0}" + String(localized: "h", comment: "h")
         default:
-            return "\(hours) hr \(minutes) min"
+            return hours.description + "\u{00A0}" + String(localized: "h", comment: "h") + "\u{00A0}" + minutes
+                .description + "\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
         }
     }
 

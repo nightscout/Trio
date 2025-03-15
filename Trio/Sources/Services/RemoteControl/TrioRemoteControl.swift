@@ -22,7 +22,7 @@ class TrioRemoteControl: Injectable {
         injectServices(TrioApp.resolver)
     }
 
-    func handleRemoteNotification(pushMessage: PushMessage) async {
+    func handleRemoteNotification(pushMessage: PushMessage) async throws {
         let isTrioRemoteControlEnabled = UserDefaults.standard.bool(forKey: "isTrioRemoteControlEnabled")
         guard isTrioRemoteControlEnabled else {
             await logError("Remote command received, but remote control is disabled in settings. Ignoring the command.")
@@ -67,16 +67,16 @@ class TrioRemoteControl: Injectable {
 
         switch pushMessage.commandType {
         case .bolus:
-            await handleBolusCommand(pushMessage)
+            try await handleBolusCommand(pushMessage)
         case .tempTarget:
-            await handleTempTargetCommand(pushMessage)
+            try await handleTempTargetCommand(pushMessage)
         case .cancelTempTarget:
             await cancelTempTarget(pushMessage)
         case .meal:
-            await handleMealCommand(pushMessage)
+            try await handleMealCommand(pushMessage)
 
             if pushMessage.bolusAmount != nil {
-                await handleBolusCommand(pushMessage)
+                try await handleBolusCommand(pushMessage)
             }
         case .startOverride:
             await handleStartOverrideCommand(pushMessage)

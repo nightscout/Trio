@@ -10,9 +10,9 @@ public enum GlucoseColorScheme: String, JSON, CaseIterable, Identifiable, Codabl
     var displayName: String {
         switch self {
         case .staticColor:
-            return "Static"
+            return String(localized: "Static")
         case .dynamicColor:
-            return "Dynamic"
+            return String(localized: "Dynamic")
         }
     }
 }

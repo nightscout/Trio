@@ -48,13 +48,13 @@ extension ShortcutsConfig {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Allow Bolusing with Shortcuts"
+                            hintLabel = String(localized: "Allow Bolusing with Shortcuts")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Allow Bolusing with Shortcuts",
-                    miniHint: "Automate boluses using the iOS Shortcuts App.",
+                    label: String(localized: "Allow Bolusing with Shortcuts"),
+                    miniHint: String(localized: "Automate boluses using the iOS Shortcuts App."),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         VStack(alignment: .leading, spacing: 10) {
@@ -73,7 +73,7 @@ extension ShortcutsConfig {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

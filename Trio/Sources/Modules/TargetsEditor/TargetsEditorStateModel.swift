@@ -83,8 +83,15 @@ extension TargetsEditor {
             }
 
             Task.detached(priority: .low) {
-                debug(.nightscout, "Attempting to upload targets to Nightscout")
-                await self.nightscout.uploadProfiles()
+                do {
+                    debug(.nightscout, "Attempting to upload targets to Nightscout")
+                    try await self.nightscout.uploadProfiles()
+                } catch {
+                    debug(
+                        .default,
+                        "\(DebuggingIdentifiers.failed) failed to upload targets to Nightscout: \(error.localizedDescription)"
+                    )
+                }
             }
         }
 

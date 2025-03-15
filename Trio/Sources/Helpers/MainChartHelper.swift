@@ -50,7 +50,7 @@ enum MainChartHelper {
     }
 
     static func bolusOffset(units: GlucoseUnits) -> Decimal {
-        units == .mgdL ? 30 : 1.66
+        units == .mgdL ? 20 : (20 / 18)
     }
 
     static func calculateDuration(

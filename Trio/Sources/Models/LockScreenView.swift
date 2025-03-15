@@ -7,9 +7,9 @@ enum LockScreenView: String, JSON, CaseIterable, Identifiable, Codable, Hashable
     var displayName: String {
         switch self {
         case .simple:
-            return NSLocalizedString("Simple", comment: "")
+            return String(localized: "Simple", comment: "")
         case .detailed:
-            return NSLocalizedString("Detailed", comment: "")
+            return String(localized: "Detailed", comment: "")
         }
     }
 }

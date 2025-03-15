@@ -34,7 +34,6 @@ final class OpenAPS {
         await context.perform {
             let newOrefDetermination = OrefDetermination(context: self.context)
             newOrefDetermination.id = UUID()
-            newOrefDetermination.totalDailyDose = self.decimalToNSDecimalNumber(determination.tdd)
             newOrefDetermination.insulinSensitivity = self.decimalToNSDecimalNumber(determination.isf)
             newOrefDetermination.currentTarget = self.decimalToNSDecimalNumber(determination.current_target)
             newOrefDetermination.eventualBG = determination.eventualBG.map(NSDecimalNumber.init)
@@ -55,9 +54,6 @@ final class OpenAPS {
             newOrefDetermination.expectedDelta = self.decimalToNSDecimalNumber(determination.expectedDelta)
             newOrefDetermination.cob = Int16(Int(determination.cob ?? 0))
             newOrefDetermination.manualBolusErrorString = self.decimalToNSDecimalNumber(determination.manualBolusErrorString)
-            newOrefDetermination.tempBasal = determination.insulin?.temp_basal.map { NSDecimalNumber(decimal: $0) }
-            newOrefDetermination.scheduledBasal = determination.insulin?.scheduled_basal.map { NSDecimalNumber(decimal: $0) }
-            newOrefDetermination.bolus = determination.insulin?.bolus.map { NSDecimalNumber(decimal: $0) }
             newOrefDetermination.smbToDeliver = determination.units.map { NSDecimalNumber(decimal: $0) }
             newOrefDetermination.carbsRequired = Int16(Int(determination.carbsReq ?? 0))
             newOrefDetermination.isUploadedToNS = false
@@ -100,8 +96,8 @@ final class OpenAPS {
     }
 
     // fetch glucose to pass it to the meal function and to determine basal
-    private func fetchAndProcessGlucose() async -> String {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchAndProcessGlucose() async throws -> String {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgoInMinutes,
@@ -111,9 +107,9 @@ final class OpenAPS {
             batchSize: 24
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let glucoseResults = results as? [GlucoseStored] else {
-                return ""
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             // convert to JSON
@@ -121,8 +117,8 @@ final class OpenAPS {
         }
     }
 
-    private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil) async -> String {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil) async throws -> String {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgo,
@@ -130,9 +126,9 @@ final class OpenAPS {
             ascending: false
         )
 
-        let json = await context.perform {
+        let json = try await context.perform {
             guard let carbResults = results as? [CarbEntryStored] else {
-                return ""
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             var jsonArray = self.jsonConverter.convertToJSON(carbResults)
@@ -170,8 +166,8 @@ final class OpenAPS {
         return json
     }
 
-    private func fetchPumpHistoryObjectIDs() async -> [NSManagedObjectID]? {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchPumpHistoryObjectIDs() async throws -> [NSManagedObjectID]? {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: NSPredicate.pumpHistoryLast1440Minutes,
@@ -180,9 +176,9 @@ final class OpenAPS {
             batchSize: 50
         )
 
-        return await context.perform {
+        return try await context.perform {
             guard let pumpEventResults = results as? [PumpEventStored] else {
-                return nil
+                throw CoreDataError.fetchError(function: #function, file: #file)
             }
 
             return pumpEventResults.map(\.objectID)
@@ -302,10 +298,10 @@ final class OpenAPS {
             reservoir,
             preferences
         ) = await (
-            parsePumpHistory(await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
-            carbs,
-            glucose,
-            oref2,
+            try parsePumpHistory(await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
+            try carbs,
+            try glucose,
+            try oref2,
             profileAsync,
             basalAsync,
             autosenseAsync,
@@ -366,12 +362,12 @@ final class OpenAPS {
 
             return determination
         } else {
-            return nil
+            throw APSError.apsError(message: "Determination is nil")
         }
     }
 
-    func oref2() async -> RawJSON {
-        await context.perform {
+    func oref2() async throws -> RawJSON {
+        try await context.perform {
             // Retrieve user preferences
             let userPreferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
             let weightPercentage = userPreferences?.weightPercentage ?? 1.0
@@ -381,10 +377,10 @@ final class OpenAPS {
             // Fetch historical events for Total Daily Dose (TDD) calculation
             let tenDaysAgo = Date().addingTimeInterval(-10.days.timeInterval)
             let twoHoursAgo = Date().addingTimeInterval(-2.hours.timeInterval)
-            let historicalTDDData = self.fetchHistoricalTDDData(from: tenDaysAgo)
+            let historicalTDDData = try self.fetchHistoricalTDDData(from: tenDaysAgo)
 
             // Fetch the last active Override
-            let activeOverrides = self.fetchActiveOverrides()
+            let activeOverrides = try self.fetchActiveOverrides()
             let isOverrideActive = activeOverrides.first?.enabled ?? false
             let overridePercentage = Decimal(activeOverrides.first?.percentage ?? 100)
             let isOverrideIndefinite = activeOverrides.first?.indefinite ?? true
@@ -392,16 +388,16 @@ final class OpenAPS {
             let overrideTargetBG = activeOverrides.first?.target?.decimalValue ?? 0
 
             // Calculate averages for Total Daily Dose (TDD)
-            let totalTDD = historicalTDDData.compactMap { ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue }.reduce(0, +)
+            let totalTDD = historicalTDDData.compactMap { ($0["total"] as? NSDecimalNumber)?.decimalValue }.reduce(0, +)
             let totalDaysCount = max(historicalTDDData.count, 1)
 
             // Fetch recent TDD data for the past two hours
-            let recentTDDData = historicalTDDData.filter { ($0["timestamp"] as? Date ?? Date()) >= twoHoursAgo }
+            let recentTDDData = historicalTDDData.filter { ($0["date"] as? Date ?? Date()) >= twoHoursAgo }
             let recentDataCount = max(recentTDDData.count, 1)
-            let recentTotalTDD = recentTDDData.compactMap { ($0["totalDailyDose"] as? NSDecimalNumber)?.decimalValue }
+            let recentTotalTDD = recentTDDData.compactMap { ($0["total"] as? NSDecimalNumber)?.decimalValue }
                 .reduce(0, +)
 
-            let currentTDD = historicalTDDData.last?["totalDailyDose"] as? Decimal ?? 0
+            let currentTDD = historicalTDDData.last?["total"] as? Decimal ?? 0
             let averageTDDLastTwoHours = recentTotalTDD / Decimal(recentDataCount)
             let averageTDDLastTenDays = totalTDD / Decimal(totalDaysCount)
             let weightedTDD = weightPercentage * averageTDDLastTwoHours + (1 - weightPercentage) * averageTDDLastTenDays
@@ -410,6 +406,7 @@ final class OpenAPS {
             let oref2Data = Oref2_variables(
                 average_total_data: currentTDD > 0 ? averageTDDLastTenDays : 0,
                 weightedAverage: currentTDD > 0 ? weightedTDD : 1,
+                currentTDD: currentTDD,
                 past2hoursAverage: currentTDD > 0 ? averageTDDLastTwoHours : 0,
                 date: Date(),
                 overridePercentage: overridePercentage,
@@ -448,9 +445,9 @@ final class OpenAPS {
 
         // Await the results of asynchronous tasks
         let (pumpHistoryJSON, carbsAsJSON, glucoseAsJSON, profile, basalProfile, tempTargets) = await (
-            parsePumpHistory(await pumpHistoryObjectIDs),
-            carbs,
-            glucose,
+            try parsePumpHistory(await pumpHistoryObjectIDs),
+            try carbs,
+            try glucose,
             getProfile,
             getBasalProfile,
             getTempTargets
@@ -477,7 +474,7 @@ final class OpenAPS {
         }
     }
 
-    func createProfiles(useSwiftOref: Bool) async {
+    func createProfiles(useSwiftOref: Bool) async throws {
         debug(.openAPS, "Start creating pump profile and user profile")
 
         // Load required settings and profiles asynchronously
@@ -507,9 +504,9 @@ final class OpenAPS {
         var adjustedPreferences = preferences
 
         // Check for active Temp Targets and adjust HBT if necessary
-        await context.perform {
+        try await context.perform {
             // Check if a Temp Target is active and if its HBT differs from user preferences
-            if let activeTempTarget = self.fetchActiveTempTargets().first,
+            if let activeTempTarget = try self.fetchActiveTempTargets().first,
                activeTempTarget.enabled,
                let activeHBT = activeTempTarget.halfBasalTarget?.decimalValue,
                activeHBT != defaultHalfBasalTarget
@@ -517,6 +514,11 @@ final class OpenAPS {
                 // Overwrite the HBT in preferences
                 adjustedPreferences.halfBasalExerciseTarget = activeHBT
                 debug(.openAPS, "Updated halfBasalExerciseTarget to active Temp Target value: \(activeHBT)")
+            }
+            // Overwrite the lowTTlowersSens if autosensMax does not support it
+            if preferences.lowTemptargetLowersSensitivity, preferences.autosensMax <= 1 {
+                adjustedPreferences.lowTemptargetLowersSensitivity = false
+                debug(.openAPS, "Setting lowTTlowersSens to false due to insufficient autosensMax: \(preferences.autosensMax)")
             }
         }
 
@@ -557,11 +559,12 @@ final class OpenAPS {
                 .apsManager,
                 "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to create pump profile and normal profile: \(error)"
             )
+            throw error
         }
     }
 
     private func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async throws -> RawJSON {
-        await withCheckedContinuation { continuation in
+        try await withCheckedThrowingContinuation { continuation in
             jsWorker.inCommonContext { worker in
                 worker.evaluateBatch(scripts: [
                     Script(name: Prepare.log),
@@ -820,7 +823,12 @@ final class OpenAPS {
         }
 
         if let url = Foundation.Bundle.main.url(forResource: "javascript/\(name)", withExtension: "") {
-            return Script(name: name, body: try! String(contentsOf: url))
+            do {
+                let body = try String(contentsOf: url)
+                return Script(name: name, body: body)
+            } catch {
+                debug(.openAPS, "Failed to load script \(name): \(error)")
+            }
         }
 
         return nil
@@ -868,8 +876,8 @@ final class OpenAPS {
 
 // Non-Async fetch methods for oref2
 extension OpenAPS {
-    func fetchActiveTempTargets() -> [TempTargetStored] {
-        CoreDataStack.shared.fetchEntities(
+    func fetchActiveTempTargets() throws -> [TempTargetStored] {
+        try CoreDataStack.shared.fetchEntities(
             ofType: TempTargetStored.self,
             onContext: context,
             predicate: NSPredicate.lastActiveTempTarget,
@@ -879,8 +887,8 @@ extension OpenAPS {
         ) as? [TempTargetStored] ?? []
     }
 
-    func fetchActiveOverrides() -> [OverrideStored] {
-        CoreDataStack.shared.fetchEntities(
+    func fetchActiveOverrides() throws -> [OverrideStored] {
+        try CoreDataStack.shared.fetchEntities(
             ofType: OverrideStored.self,
             onContext: context,
             predicate: NSPredicate.lastActiveOverride,
@@ -890,14 +898,14 @@ extension OpenAPS {
         ) as? [OverrideStored] ?? []
     }
 
-    func fetchHistoricalTDDData(from date: Date) -> [[String: Any]] {
-        CoreDataStack.shared.fetchEntities(
-            ofType: OrefDetermination.self,
+    func fetchHistoricalTDDData(from date: Date) throws -> [[String: Any]] {
+        try CoreDataStack.shared.fetchEntities(
+            ofType: TDDStored.self,
             onContext: context,
-            predicate: NSPredicate(format: "timestamp > %@ AND totalDailyDose > 0", date as NSDate),
-            key: "timestamp",
+            predicate: NSPredicate(format: "date > %@ AND total > 0", date as NSDate),
+            key: "date",
             ascending: true,
-            propertiesToFetch: ["timestamp", "totalDailyDose"]
+            propertiesToFetch: ["date", "total"]
         ) as? [[String: Any]] ?? []
     }
 }

@@ -25,7 +25,7 @@ struct NotificationsView: BaseView {
             )
         }
     )
-    @State var hintLabel: String? = "Manage iOS Preferences"
+    @State var hintLabel: String? = String(localized: "Manage iOS Preferences")
 
     @Environment(\.colorScheme) var colorScheme
     @Environment(AppState.self) var appState
@@ -50,7 +50,7 @@ struct NotificationsView: BaseView {
                         Spacer()
                         Button(
                             action: {
-                                hintLabel = "Manage iOS Preferences"
+                                hintLabel = String(localized: "Manage iOS Preferences")
                                 selectedVerboseHint = AnyView(
                                     VStack(alignment: .leading, spacing: 10) {
                                         Text(
@@ -109,7 +109,7 @@ struct NotificationsView: BaseView {
                 shouldDisplayHint: $shouldDisplayHint,
                 hintLabel: hintLabel ?? "",
                 hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                sheetTitle: "Help"
+                sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
         }
         .scrollContentBackground(.hidden)
@@ -132,11 +132,11 @@ extension NotificationsView {
 
     @ViewBuilder private func onOff(_ val: Bool) -> some View {
         if val {
-            Text(NSLocalizedString("On", comment: "Notification Setting Status is On"))
+            Text(String(localized: "On", comment: "Notification Setting Status is On"))
         } else {
             HStack {
                 Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.critical)
-                Text(NSLocalizedString("Off", comment: "Notification Setting Status is Off"))
+                Text(String(localized: "Off", comment: "Notification Setting Status is Off"))
             }
         }
     }
@@ -144,7 +144,7 @@ extension NotificationsView {
     private var manageNotifications: some View {
         Button(action: { UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!) }) {
             HStack {
-                Text(NSLocalizedString("Open iOS Settings", comment: "Manage Permissions in Settings button text"))
+                Text(String(localized: "Open iOS Settings", comment: "Manage Permissions in Settings button text"))
                 Spacer()
                 Image(systemName: "chevron.right").foregroundColor(.gray).font(.footnote)
             }
@@ -154,7 +154,7 @@ extension NotificationsView {
 
     private var notificationsEnabledStatus: some View {
         HStack {
-            Text(NSLocalizedString("Notifications", comment: "Notifications Status text"))
+            Text(String(localized: "Notifications", comment: "Notifications Status text"))
             Spacer()
             onOff(!notificationsDisabled)
         }

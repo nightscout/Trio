@@ -117,7 +117,7 @@ struct Durations: JSON, Equatable {
 
 struct Units: JSON, Equatable {
     var Glucose: String
-    var HbA1c: String
+    var EstimatedA1c: String
 }
 
 struct Threshold: JSON, Equatable {
@@ -149,7 +149,7 @@ struct Variance: JSON, Equatable {
 struct Stats: JSON, Equatable {
     var Distribution: TIRs
     var Glucose: Averages
-    var HbA1c: Durations
+    var EstimatedA1c: Durations
     var Units: Units
     var LoopCycles: LoopCycles
     var Insulin: Ins
@@ -211,7 +211,7 @@ extension Stats {
     private enum CodingKeys: String, CodingKey {
         case Distribution
         case Glucose
-        case HbA1c
+        case EstimatedA1c
         case Units
         case LoopCycles
         case Insulin

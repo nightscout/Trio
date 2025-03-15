@@ -18,7 +18,7 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
         case .xdrip:
             return "xDrip4iOS"
         case .simulator:
-            return NSLocalizedString("Glucose Simulator", comment: "Glucose Simulator CGM type")
+            return String(localized: "Glucose Simulator", comment: "Glucose Simulator CGM type")
         case .enlite:
             return "Medtronic Enlite"
         case .plugin:
@@ -52,20 +52,21 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
     var subtitle: String {
         switch self {
         case .none:
-            return NSLocalizedString("None", comment: "No CGM selected")
+            return String(localized: "None", comment: "No CGM selected")
         case .nightscout:
-            return NSLocalizedString("Uses your Nightscout as CGM", comment: "Online or internal server")
+            return String(localized: "Uses your Nightscout as CGM", comment: "Online or internal server")
         case .xdrip:
-            return NSLocalizedString(
+            return String(
+                localized:
                 "Using shared app group with external CGM app xDrip4iOS",
                 comment: "Shared app group xDrip4iOS"
             )
         case .simulator:
-            return NSLocalizedString("Glucose Simulator for Demo Only", comment: "Simple simulator")
+            return String(localized: "Glucose Simulator for Demo Only", comment: "Simple simulator")
         case .enlite:
-            return NSLocalizedString("Minilink transmitter", comment: "Minilink transmitter")
+            return String(localized: "Minilink transmitter", comment: "Minilink transmitter")
         case .plugin:
-            return NSLocalizedString("Plugin CGM", comment: "Plugin CGM")
+            return String(localized: "Plugin CGM", comment: "Plugin CGM")
         }
     }
 }

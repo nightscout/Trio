@@ -38,7 +38,7 @@ struct SelectionPopoverView: ChartContent {
             .annotation(
                 position: .top,
                 alignment: .center,
-                overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))
+                overflowResolution: .init(x: .fit(to: .chart), y: .disabled)
             ) {
                 selectionPopover
             }
@@ -67,7 +67,7 @@ struct SelectionPopoverView: ChartContent {
                 Text(selectedGlucose.date?.formatted(.dateTime.hour().minute(.twoDigits)) ?? "")
                     .font(.body).bold()
             }
-            .font(.body).padding(.bottom, 5)
+            .font(.body).padding(.bottom, 2)
 
             HStack {
                 Text(glucoseToDisplay.description).bold() + Text(" \(units.rawValue)")
@@ -80,7 +80,7 @@ struct SelectionPopoverView: ChartContent {
                     Image(systemName: "syringe.fill").frame(width: 15)
                     Text(Formatter.bolusFormatter.string(from: iob) ?? "")
                         .bold()
-                        + Text(NSLocalizedString(" U", comment: "Insulin unit"))
+                        + Text(String(localized: " U", comment: "Insulin unit"))
                 }
                 .foregroundStyle(Color.insulin).font(.body)
             }
@@ -90,12 +90,13 @@ struct SelectionPopoverView: ChartContent {
                     Image(systemName: "fork.knife").frame(width: 15)
                     Text(Formatter.integerFormatter.string(from: selectedCOBValue.cob as NSNumber) ?? "")
                         .bold()
-                        + Text(NSLocalizedString(" g", comment: "gram of carbs"))
+                        + Text(String(localized: " g", comment: "gram of carbs"))
                 }
                 .foregroundStyle(Color.orange).font(.body)
             }
         }
-        .padding()
+        .padding(.horizontal)
+        .padding(.vertical, 2)
         .background {
             RoundedRectangle(cornerRadius: 4)
                 .fill(Color.chart.opacity(0.85))

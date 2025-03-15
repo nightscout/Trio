@@ -124,7 +124,7 @@ extension ISFEditor {
                         ForEach(0 ..< state.rateValues.count, id: \.self) { i in
                             Text(
                                 state.units == .mgdL ? state.rateValues[i].description : state.rateValues[i]
-                                    .formattedAsMmolL + " \(state.units.rawValue)/U"
+                                    .formattedAsMmolL + String(localized: " \(state.units.rawValue)/U")
                             ).tag(i)
                         }
                     }
@@ -162,7 +162,7 @@ extension ISFEditor {
                             Text("Rate").foregroundColor(.secondary)
 
                             Text(
-                                displayValue + " \(state.units.rawValue)/U"
+                                displayValue + String(localized: " \(state.units.rawValue)/U")
                             )
                             Spacer()
                             Text("starts at").foregroundColor(.secondary)

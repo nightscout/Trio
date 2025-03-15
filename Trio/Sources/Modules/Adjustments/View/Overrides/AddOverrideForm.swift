@@ -124,7 +124,7 @@ struct AddOverrideForm: View {
                 // Picker for ISF/CR settings
                 Picker("Also Inversely Change", selection: $selectedIsfCrOption) {
                     ForEach(IsfAndOrCrOptions.allCases, id: \.self) { option in
-                        Text(option.rawValue).tag(option)
+                        Text(option.displayName).tag(option)
                     }
                 }
                 .pickerStyle(MenuPickerStyle())
@@ -188,7 +188,7 @@ struct AddOverrideForm: View {
                 // Picker for ISF/CR settings
                 Picker("Disable SMBs", selection: $selectedDisableSmbOption) {
                     ForEach(DisableSmbOptions.allCases, id: \.self) { option in
-                        Text(option.rawValue).tag(option)
+                        Text(option.displayName).tag(option)
                     }
                 }
                 .pickerStyle(MenuPickerStyle())
@@ -343,7 +343,7 @@ struct AddOverrideForm: View {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        Text(state.formatHrMin(Int(state.overrideDuration)))
+                        Text(state.formatHoursAndMinutes(Int(state.overrideDuration)))
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                             .onTapGesture {
                                 displayPickerDuration = toggleScrollWheel(displayPickerDuration)
@@ -448,15 +448,15 @@ struct AddOverrideForm: View {
             !state.advancedSettings && !state.smbIsOff && !state.smbIsScheduledOff
 
         if noDurationSpecified {
-            return (true, "Enable indefinitely or set a duration.")
+            return (true, String(localized: "Enable indefinitely or set a duration."))
         }
 
         if targetZeroWithOverride {
-            return (true, "Target glucose is out of range (\(state.units == .mgdL ? "72-270" : "4-14")).")
+            return (true, String(localized: "Target glucose is out of range (\(state.units == .mgdL ? "72-270" : "4-14"))."))
         }
 
         if allSettingsDefault {
-            return (true, "All settings are at default values.")
+            return (true, String(localized: "All settings are at default values."))
         }
 
         return (false, nil)

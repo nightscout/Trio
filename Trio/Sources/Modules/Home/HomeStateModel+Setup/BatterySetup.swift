@@ -4,14 +4,22 @@ import Foundation
 extension Home.StateModel {
     func setupBatteryArray() {
         Task {
-            let ids = await self.fetchBattery()
-            let batteryObjects: [OpenAPS_Battery] = await CoreDataStack.shared.getNSManagedObject(with: ids, context: viewContext)
-            await updateBatteryArray(with: batteryObjects)
+            do {
+                let ids = try await self.fetchBattery()
+                let batteryObjects: [OpenAPS_Battery] = try await CoreDataStack.shared
+                    .getNSManagedObject(with: ids, context: viewContext)
+                await updateBatteryArray(with: batteryObjects)
+            } catch {
+                debug(
+                    .default,
+                    "\(DebuggingIdentifiers.failed) Error setting up battery array: \(error.localizedDescription)"
+                )
+            }
         }
     }
 
-    private func fetchBattery() async -> [NSManagedObjectID] {
-        let results = await CoreDataStack.shared.fetchEntitiesAsync(
+    private func fetchBattery() async throws -> [NSManagedObjectID] {
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: OpenAPS_Battery.self,
             onContext: batteryFetchContext,
             predicate: NSPredicate.predicateFor30MinAgo,
@@ -19,9 +27,10 @@ extension Home.StateModel {
             ascending: false
         )
 
-        return await batteryFetchContext.perform {
-            guard let fetchedResults = results as? [OpenAPS_Battery] else { return [] }
-
+        return try await batteryFetchContext.perform {
+            guard let fetchedResults = results as? [OpenAPS_Battery] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
             return fetchedResults.map(\.objectID)
         }
     }

@@ -41,16 +41,6 @@ struct LoopStatusView: View {
                         }
                     )
                 }.padding(.top, 20)
-//                Text("Current Loop Status").bold().padding(.top, 20)
-//
-//                Text(statusTitle)
-//                    .font(.headline)
-//                    .bold()
-//                    .padding(.horizontal, 12)
-//                    .padding(.vertical, 6)
-//                    .foregroundColor(statusBadgeTextColor)
-//                    .background(statusBadgeColor)
-//                    .clipShape(Capsule())
 
                 if let errorMessage = state.errorMessage, let date = state.errorDate {
                     Group {
@@ -85,10 +75,8 @@ struct LoopStatusView: View {
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
 
-                        let tags = !state.isSmoothingEnabled ? determination.reasonParts : determination
-                            .reasonParts + ["Smoothing: On"]
                         TagCloudView(
-                            tags: tags,
+                            tags: getComputedTags(determination),
                             shouldParseToMmolL: state.units == .mmolL
                         )
 
@@ -273,6 +261,20 @@ struct LoopStatusView: View {
         }
 
         return updatedConclusion.capitalizingFirstLetter()
+    }
+
+    private func getComputedTags(_ determination: OrefDetermination) -> [String] {
+        var tags: [String] = determination.reasonParts
+
+        if state.isSmoothingEnabled {
+            tags.append("Smoothing: On")
+        }
+
+        if let currentTDD = state.fetchedTDDs.first?.totalDailyDose, currentTDD != 0 {
+            tags.append("TDD: \(currentTDD)")
+        }
+
+        return tags
     }
 }
 

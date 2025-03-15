@@ -79,7 +79,7 @@ struct WatchConfigGarminView: View {
                 hintText: Text(
                     "Add Garmin Device to Trio. Please look at the docs to see which devices are supported."
                 ),
-                sheetTitle: "Help"
+                sheetTitle: String(localized: "Help", comment: "Help sheet title")
             )
         }
         .navigationTitle("Garmin")

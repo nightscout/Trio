@@ -78,7 +78,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
         VStack {
             Group {
                 VStack(alignment: .trailing, spacing: 0) {
-                    Text("Live Activity Personalization".uppercased())
+                    Text(String(localized: "Live Activity Personalization").uppercased())
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .foregroundColor(.secondary)
                         .font(.footnote)

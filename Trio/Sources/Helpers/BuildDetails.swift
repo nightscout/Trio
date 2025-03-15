@@ -1,9 +1,3 @@
-//
-//  BuildDetails.swift
-//  Trio
-//
-//  Created by Jonas Björkert on 2024-05-09.
-//
 import Foundation
 
 class BuildDetails {
@@ -14,7 +8,7 @@ class BuildDetails {
     init() {
         guard let url = Bundle.main.url(forResource: "BuildDetails", withExtension: "plist"),
               let data = try? Data(contentsOf: url),
-              let parsed = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+              let parsed = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any]
         else {
             dict = [:]
             return
@@ -27,9 +21,24 @@ class BuildDetails {
     }
 
     var branchAndSha: String {
-        let branch = dict["com-trio-branch"] as? String ?? "Unknown"
-        let sha = dict["com-trio-commit-sha"] as? String ?? "Unknown"
+        let branch = dict["com-trio-branch"] as? String ?? String(localized: "Unknown")
+        let sha = dict["com-trio-commit-sha"] as? String ?? String(localized: "Unknown")
         return "\(branch) \(sha)"
+    }
+
+    /// Returns a dictionary of submodule details.
+    /// The keys are the submodule names, and the values are tuples (branch, commitSHA).
+    var submodules: [String: (branch: String, commitSHA: String)] {
+        guard let subs = dict["com-trio-submodules"] as? [String: [String: Any]] else {
+            return [:]
+        }
+        var result = [String: (branch: String, commitSHA: String)]()
+        for (name, info) in subs {
+            let branch = info["branch"] as? String ?? String(localized: "Unknown")
+            let commitSHA = info["commit_sha"] as? String ?? String(localized: "Unknown")
+            result[name] = (branch: branch, commitSHA: commitSHA)
+        }
+        return result
     }
 
     // Determine if the build is from TestFlight
@@ -75,9 +84,9 @@ class BuildDetails {
     // Expiration header based on build type
     var expirationHeaderString: String {
         if isTestFlightBuild() {
-            return "Beta (TestFlight) Expires"
+            return String(localized: "Beta (TestFlight) Expires")
         } else {
-            return "App Expires"
+            return String(localized: "App Expires")
         }
     }
 }

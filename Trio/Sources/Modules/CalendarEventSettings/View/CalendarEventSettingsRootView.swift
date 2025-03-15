@@ -26,13 +26,13 @@ extension CalendarEventSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = "Create Events in Calendar"
+                            hintLabel = String(localized: "Create Events in Calendar")
                         }
                     ),
                     units: state.units,
                     type: .boolean,
-                    label: "Create Events in Calendar",
-                    miniHint: "Use calendar events to display current data.",
+                    label: String(localized: "Create Events in Calendar"),
+                    miniHint: String(localized: "Use calendar events to display current data."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
@@ -47,7 +47,7 @@ extension CalendarEventSettings {
                         )
                         Text("Note: Once a new calendar event is created, the previous event will be deleted.")
                     },
-                    headerText: "Diabetes Data as Calendar Event"
+                    headerText: String(localized: "Diabetes Data as Calendar Event")
                 )
 
                 if state.calendarIDs.isNotEmpty, state.useCalendar {
@@ -69,13 +69,13 @@ extension CalendarEventSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Display Emojis as Labels"
+                                hintLabel = String(localized: "Display Emojis as Labels")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: "Display Emojis as Labels",
-                        miniHint: "Use emojis for calendar events. See hint for more details.",
+                        label: String(localized: "Display Emojis as Labels"),
+                        miniHint: String(localized: "Use emojis for calendar events. See hint for more details."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             VStack(alignment: .leading, spacing: 5) {
@@ -104,13 +104,13 @@ extension CalendarEventSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = "Display IOB and COB"
+                                hintLabel = String(localized: "Display IOB and COB")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: "Display IOB and COB",
-                        miniHint: "Include IOB & COB in the calendar event data.",
+                        label: String(localized: "Display IOB and COB"),
+                        miniHint: String(localized: "Include IOB & COB in the calendar event data."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
@@ -140,7 +140,7 @@ extension CalendarEventSettings {
                     shouldDisplayHint: $shouldDisplayHint,
                     hintLabel: hintLabel ?? "",
                     hintText: selectedVerboseHint ?? AnyView(EmptyView()),
-                    sheetTitle: "Help"
+                    sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
