@@ -786,6 +786,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 let isAPNSProduction = UserDefaults.standard.bool(forKey: "isAPNSProduction")
                 let presetOverrides = try await overridesStorage.getPresetOverridesForNightscout()
                 let teamID = Bundle.main.object(forInfoDictionaryKey: "TeamID") as? String ?? ""
+                let expireDate = BuildDetails.shared.calculateExpirationDate()
 
                 let profileStore = NightscoutProfileStore(
                     defaultProfile: defaultProfile,
@@ -798,7 +799,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     deviceToken: deviceToken,
                     isAPNSProduction: isAPNSProduction,
                     overridePresets: presetOverrides,
-                    teamID: teamID
+                    teamID: teamID,
+                    expirationDate: expireDate
                 )
 
                 guard let nightscout = nightscoutAPI, isNetworkReachable else {
@@ -810,6 +812,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 }
 
                 try await nightscout.uploadProfile(profileStore)
+
+                BuildDetails.shared.recordUploadedExpireDate(expireDate: expireDate)
+
                 debug(.nightscout, "Profile uploaded")
             } catch {
                 debug(.nightscout, "NightscoutManager uploadProfile: \(error.localizedDescription)")

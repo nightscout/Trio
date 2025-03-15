@@ -63,13 +63,13 @@ import Swinject
     }
 
     init() {
-        let submodulesInfo = BuildDetails.default.submodules.map { key, value in
+        let submodulesInfo = BuildDetails.shared.submodules.map { key, value in
             "\(key): \(value.branch) \(value.commitSHA)"
         }.joined(separator: ", ")
 
         debug(
             .default,
-            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.default.buildDate()))] [buildExpires: \(String(describing: BuildDetails.default.calculateExpirationDate()))] [submodules: \(submodulesInfo)]"
+            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.shared.buildDate()))] [buildExpires: \(String(describing: BuildDetails.shared.calculateExpirationDate()))] [submodules: \(submodulesInfo)]"
         )
 
         // Setup up the Core Data Stack
@@ -91,6 +91,14 @@ import Swinject
             debug(.coreData, "\(DebuggingIdentifiers.failed) Failed to initialize Core Data Stack: \(error.localizedDescription)")
 
             fatalError("Core Data Stack initialization failed")
+        }
+
+        Task {
+            do {
+                try await BuildDetails.shared.handleExpireDateChange()
+            } catch {
+                debug(.nightscout, "Failed to handle expire date change: \(error)")
+            }
         }
     }
 

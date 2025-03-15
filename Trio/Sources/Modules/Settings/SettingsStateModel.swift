@@ -33,7 +33,7 @@ extension Settings {
 
             versionNumber = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
 
-            branch = BuildDetails.default.branchAndSha
+            branch = BuildDetails.shared.branchAndSha
 
             copyrightNotice = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? ""
 

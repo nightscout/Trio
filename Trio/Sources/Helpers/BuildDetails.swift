@@ -1,9 +1,12 @@
 import Foundation
+import Swinject
 
-class BuildDetails {
-    static var `default` = BuildDetails()
+class BuildDetails: Injectable {
+    static var shared = BuildDetails()
+    @Injected() internal var nightscoutManager: NightscoutManager!
 
     let dict: [String: Any]
+    let previousExpireDateKey = "previousExpireDate"
 
     init() {
         guard let url = Bundle.main.url(forResource: "BuildDetails", withExtension: "plist"),
@@ -14,6 +17,7 @@ class BuildDetails {
             return
         }
         dict = parsed
+        injectServices(TrioApp.resolver)
     }
 
     var buildDateString: String? {
@@ -87,6 +91,27 @@ class BuildDetails {
             return String(localized: "Beta (TestFlight) Expires")
         } else {
             return String(localized: "App Expires")
+        }
+    }
+
+    // Upload new profile if expire date has changed
+    func handleExpireDateChange() async throws
+    {
+        let previousExpireDate = UserDefaults.standard.object(forKey: previousExpireDateKey) as? Date
+        let expireDate = calculateExpirationDate()
+
+        if previousExpireDate != expireDate {
+            debug(.nightscout, "New build expire date detected, uploading profile")
+            try await nightscoutManager.uploadProfiles()
+        }
+    }
+
+    // Store the uploaded expire date
+    func recordUploadedExpireDate(expireDate: Date?) {
+        if let expireDate = expireDate {
+            UserDefaults.standard.set(expireDate, forKey: previousExpireDateKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: previousExpireDateKey)
         }
     }
 }
