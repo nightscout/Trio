@@ -206,6 +206,23 @@
 		38FEF3FC2737E53800574A46 /* MainStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF3FB2737E53800574A46 /* MainStateModel.swift */; };
 		38FEF3FE2738083E00574A46 /* CGMSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF3FD2738083E00574A46 /* CGMSettingsProvider.swift */; };
 		38FEF413273B317A00574A46 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF412273B317A00574A46 /* HKUnit.swift */; };
+		3B1C5C292D68E1E3004E9273 /* IobCalculation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C242D68E1E3004E9273 /* IobCalculation.swift */; };
+		3B1C5C2A2D68E1E3004E9273 /* IobGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C262D68E1E3004E9273 /* IobGenerator.swift */; };
+		3B1C5C2B2D68E1E3004E9273 /* IobHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C272D68E1E3004E9273 /* IobHistory.swift */; };
+		3B1C5C2C2D68E1E3004E9273 /* IobError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C252D68E1E3004E9273 /* IobError.swift */; };
+		3B1C5C2F2D68E220004E9273 /* IobResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C2E2D68E220004E9273 /* IobResult.swift */; };
+		3B1C5C302D68E220004E9273 /* ComputedPumpHistoryEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C2D2D68E220004E9273 /* ComputedPumpHistoryEvent.swift */; };
+		3B1C5C332D68E233004E9273 /* PumpHistory+copy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C312D68E233004E9273 /* PumpHistory+copy.swift */; };
+		3B1C5C342D68E233004E9273 /* TimeExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C322D68E233004E9273 /* TimeExtensions.swift */; };
+		3B1C5C402D68E269004E9273 /* iob_result.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B1C5C3A2D68E269004E9273 /* iob_result.json */; };
+		3B1C5C412D68E269004E9273 /* iob_history.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B1C5C392D68E269004E9273 /* iob_history.json */; };
+		3B1C5C422D68E269004E9273 /* pump_history.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B1C5C3B2D68E269004E9273 /* pump_history.json */; };
+		3B1C5C432D68E269004E9273 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C3D2D68E269004E9273 /* Extensions.swift */; };
+		3B1C5C442D68E269004E9273 /* IobJsonTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C3E2D68E269004E9273 /* IobJsonTypes.swift */; };
+		3B1C5C452D68E269004E9273 /* IobTotalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C382D68E269004E9273 /* IobTotalTests.swift */; };
+		3B1C5C462D68E269004E9273 /* IobJsonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C372D68E269004E9273 /* IobJsonTests.swift */; };
+		3B1C5C472D68E269004E9273 /* IobCalculateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C352D68E269004E9273 /* IobCalculateTests.swift */; };
+		3B1C5C482D68E269004E9273 /* IobHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C362D68E269004E9273 /* IobHistoryTests.swift */; };
 		3B5CD1EC2D4912A600CE213C /* OpenAPSSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD1E92D4912A600CE213C /* OpenAPSSwift.swift */; };
 		3B5CD1ED2D4912A600CE213C /* JSONBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD1EA2D4912A600CE213C /* JSONBridge.swift */; };
 		3B5CD2982D4AEA3C00CE213C /* Carbs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2922D4AEA3C00CE213C /* Carbs.swift */; };
@@ -959,6 +976,23 @@
 		38FEF3FB2737E53800574A46 /* MainStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainStateModel.swift; sourceTree = "<group>"; };
 		38FEF3FD2738083E00574A46 /* CGMSettingsProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGMSettingsProvider.swift; sourceTree = "<group>"; };
 		38FEF412273B317A00574A46 /* HKUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HKUnit.swift; sourceTree = "<group>"; };
+		3B1C5C242D68E1E3004E9273 /* IobCalculation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobCalculation.swift; sourceTree = "<group>"; };
+		3B1C5C252D68E1E3004E9273 /* IobError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobError.swift; sourceTree = "<group>"; };
+		3B1C5C262D68E1E3004E9273 /* IobGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobGenerator.swift; sourceTree = "<group>"; };
+		3B1C5C272D68E1E3004E9273 /* IobHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobHistory.swift; sourceTree = "<group>"; };
+		3B1C5C2D2D68E220004E9273 /* ComputedPumpHistoryEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputedPumpHistoryEvent.swift; sourceTree = "<group>"; };
+		3B1C5C2E2D68E220004E9273 /* IobResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobResult.swift; sourceTree = "<group>"; };
+		3B1C5C312D68E233004E9273 /* PumpHistory+copy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpHistory+copy.swift"; sourceTree = "<group>"; };
+		3B1C5C322D68E233004E9273 /* TimeExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeExtensions.swift; sourceTree = "<group>"; };
+		3B1C5C352D68E269004E9273 /* IobCalculateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobCalculateTests.swift; sourceTree = "<group>"; };
+		3B1C5C362D68E269004E9273 /* IobHistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobHistoryTests.swift; sourceTree = "<group>"; };
+		3B1C5C372D68E269004E9273 /* IobJsonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobJsonTests.swift; sourceTree = "<group>"; };
+		3B1C5C382D68E269004E9273 /* IobTotalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobTotalTests.swift; sourceTree = "<group>"; };
+		3B1C5C392D68E269004E9273 /* iob_history.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = iob_history.json; sourceTree = "<group>"; };
+		3B1C5C3A2D68E269004E9273 /* iob_result.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = iob_result.json; sourceTree = "<group>"; };
+		3B1C5C3B2D68E269004E9273 /* pump_history.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pump_history.json; sourceTree = "<group>"; };
+		3B1C5C3D2D68E269004E9273 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		3B1C5C3E2D68E269004E9273 /* IobJsonTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobJsonTypes.swift; sourceTree = "<group>"; };
 		3B5CD1E92D4912A600CE213C /* OpenAPSSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSSwift.swift; sourceTree = "<group>"; };
 		3B5CD1EA2D4912A600CE213C /* JSONBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONBridge.swift; sourceTree = "<group>"; };
 		3B5CD2912D4AEA3C00CE213C /* Basal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Basal.swift; sourceTree = "<group>"; };
@@ -2358,10 +2392,41 @@
 			path = TrioTests;
 			sourceTree = "<group>";
 		};
+		3B1C5C282D68E1E3004E9273 /* Iob */ = {
+			isa = PBXGroup;
+			children = (
+				3B1C5C242D68E1E3004E9273 /* IobCalculation.swift */,
+				3B1C5C252D68E1E3004E9273 /* IobError.swift */,
+				3B1C5C262D68E1E3004E9273 /* IobGenerator.swift */,
+				3B1C5C272D68E1E3004E9273 /* IobHistory.swift */,
+			);
+			path = Iob;
+			sourceTree = "<group>";
+		};
+		3B1C5C3C2D68E269004E9273 /* json */ = {
+			isa = PBXGroup;
+			children = (
+				3B1C5C392D68E269004E9273 /* iob_history.json */,
+				3B1C5C3A2D68E269004E9273 /* iob_result.json */,
+				3B1C5C3B2D68E269004E9273 /* pump_history.json */,
+			);
+			path = json;
+			sourceTree = "<group>";
+		};
+		3B1C5C3F2D68E269004E9273 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				3B1C5C3D2D68E269004E9273 /* Extensions.swift */,
+				3B1C5C3E2D68E269004E9273 /* IobJsonTypes.swift */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
 		3B5CD1EB2D4912A600CE213C /* OpenAPSSwift */ = {
 			isa = PBXGroup;
 			children = (
 				3B5CD2A42D4AEA5D00CE213C /* Extensions */,
+				3B1C5C282D68E1E3004E9273 /* Iob */,
 				3BEA3ADF2D58F79700A67A1D /* Logging */,
 				3B5CD2B22D4AEA6600CE213C /* Models */,
 				3B5CD2972D4AEA3C00CE213C /* Profile */,
@@ -2399,6 +2464,8 @@
 				3B5CD2A32D4AEA5D00CE213C /* Date+MinutesFromMidnight.swift */,
 				3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */,
 				3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */,
+				3B1C5C312D68E233004E9273 /* PumpHistory+copy.swift */,
+				3B1C5C322D68E233004E9273 /* TimeExtensions.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -2408,6 +2475,8 @@
 			children = (
 				3B5CD2A72D4AEA6600CE213C /* ComputedBGTargets.swift */,
 				3B5CD2AD2D4AEA6600CE213C /* ComputedInsulinSensitivities.swift */,
+				3B1C5C2D2D68E220004E9273 /* ComputedPumpHistoryEvent.swift */,
+				3B1C5C2E2D68E220004E9273 /* IobResult.swift */,
 				3B5CD2AF2D4AEA6600CE213C /* Profile.swift */,
 			);
 			path = Models;
@@ -2416,6 +2485,12 @@
 		3B5CD2C72D4AECD500CE213C /* OpenAPSSwiftTests */ = {
 			isa = PBXGroup;
 			children = (
+				3B1C5C3C2D68E269004E9273 /* json */,
+				3B1C5C3F2D68E269004E9273 /* utils */,
+				3B1C5C352D68E269004E9273 /* IobCalculateTests.swift */,
+				3B1C5C362D68E269004E9273 /* IobHistoryTests.swift */,
+				3B1C5C372D68E269004E9273 /* IobJsonTests.swift */,
+				3B1C5C382D68E269004E9273 /* IobTotalTests.swift */,
 				3BF8D14A2D530397001B3F84 /* JSONCompareTests.swift */,
 				3BF8D0C02D5175B3001B3F84 /* ProfileJsNativeCompareTests.swift */,
 				3B5CD2C12D4AECD500CE213C /* ProfileBasalTests.swift */,
@@ -3563,6 +3638,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B1C5C402D68E269004E9273 /* iob_result.json in Resources */,
+				3B1C5C412D68E269004E9273 /* iob_history.json in Resources */,
+				3B1C5C422D68E269004E9273 /* pump_history.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3728,6 +3806,10 @@
 				DD1745262C55526F00211FAC /* SMBSettingsRootView.swift in Sources */,
 				3811DE3025C9D49500A708ED /* HomeStateModel.swift in Sources */,
 				38BF021725E7CBBC00579895 /* PumpManagerExtensions.swift in Sources */,
+				3B1C5C292D68E1E3004E9273 /* IobCalculation.swift in Sources */,
+				3B1C5C2A2D68E1E3004E9273 /* IobGenerator.swift in Sources */,
+				3B1C5C2B2D68E1E3004E9273 /* IobHistory.swift in Sources */,
+				3B1C5C2C2D68E1E3004E9273 /* IobError.swift in Sources */,
 				118DF76E2C5ECBC60067FEB7 /* OverridePresetsIntentRequest.swift in Sources */,
 				CEE9A6552BBB418300EB5194 /* CalibrationsProvider.swift in Sources */,
 				19F95FF529F10FCF00314DDC /* StatProvider.swift in Sources */,
@@ -4033,6 +4115,8 @@
 				DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */,
 				BDF34EBE2C0A31D100D51995 /* CustomNotification.swift in Sources */,
 				BDC2EA472C3045AD00E5BBD0 /* Override.swift in Sources */,
+				3B1C5C332D68E233004E9273 /* PumpHistory+copy.swift in Sources */,
+				3B1C5C342D68E233004E9273 /* TimeExtensions.swift in Sources */,
 				1BBB001DAD60F3B8CEA4B1C7 /* ISFEditorStateModel.swift in Sources */,
 				DDB37CC72D05127500D99BF4 /* FontExtensions.swift in Sources */,
 				582DF9772C8CDBE7001F516D /* InsulinView.swift in Sources */,
@@ -4188,6 +4272,8 @@
 				DDE179672C910127003CDDB7 /* OpenAPS_Battery+CoreDataProperties.swift in Sources */,
 				DDE179682C910127003CDDB7 /* TempBasalStored+CoreDataClass.swift in Sources */,
 				DDE179692C910127003CDDB7 /* TempBasalStored+CoreDataProperties.swift in Sources */,
+				3B1C5C2F2D68E220004E9273 /* IobResult.swift in Sources */,
+				3B1C5C302D68E220004E9273 /* ComputedPumpHistoryEvent.swift in Sources */,
 				DDE1796C2C910127003CDDB7 /* OverrideRunStored+CoreDataClass.swift in Sources */,
 				DDE1796D2C910127003CDDB7 /* OverrideRunStored+CoreDataProperties.swift in Sources */,
 				DDE1796E2C910127003CDDB7 /* OrefDetermination+CoreDataClass.swift in Sources */,
@@ -4220,6 +4306,12 @@
 				3BF8D14B2D530397001B3F84 /* JSONCompareTests.swift in Sources */,
 				3BF8D0C12D5175BE001B3F84 /* ProfileJsNativeCompareTests.swift in Sources */,
 				CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */,
+				3B1C5C432D68E269004E9273 /* Extensions.swift in Sources */,
+				3B1C5C442D68E269004E9273 /* IobJsonTypes.swift in Sources */,
+				3B1C5C452D68E269004E9273 /* IobTotalTests.swift in Sources */,
+				3B1C5C462D68E269004E9273 /* IobJsonTests.swift in Sources */,
+				3B1C5C472D68E269004E9273 /* IobCalculateTests.swift in Sources */,
+				3B1C5C482D68E269004E9273 /* IobHistoryTests.swift in Sources */,
 				38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

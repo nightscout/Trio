@@ -16,4 +16,14 @@ extension Decimal {
     func rounded() -> Decimal {
         rounded(scale: 0)
     }
+
+    func clamp(lowerBound: Decimal, upperBound: Decimal) -> Decimal {
+        if self < lowerBound {
+            return lowerBound
+        } else if self > upperBound {
+            return upperBound
+        } else {
+            return self
+        }
+    }
 }
