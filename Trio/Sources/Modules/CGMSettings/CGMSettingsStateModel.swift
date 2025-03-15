@@ -157,6 +157,9 @@ extension CGMSettings {
 
 extension CGMSettings.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
+        if fetchGlucoseManager.cgmGlucoseSourceType == .none {
+            cgmCurrent = cgmDefaultModel
+        }
         shouldDisplayCGMSetupSheet = false
     }
 }
