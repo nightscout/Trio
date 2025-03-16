@@ -833,26 +833,6 @@ struct PopupView: View {
         }
     }
 
-    func valueLabelView(title: String, value: String, unit: String? = nil, valueColor: Color? = nil) -> some View {
-        Grid(alignment: .center, verticalSpacing: 4) {
-            GridRow {
-                Text(title).secondaryLabel()
-            }
-
-            GridRow {
-                Text(value)
-                    .valueStyle()
-                    .foregroundStyle(valueColor ?? .primary)
-            }
-
-            if let unit = unit {
-                GridRow {
-                    Text(unit).unitStyle()
-                }
-            }
-        }.multilineTextAlignment(.center)
-    }
-
     func limitWarning(_ text: String) -> some View {
         HStack {
             Image(systemName: "exclamationmark.triangle.fill")
