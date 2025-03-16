@@ -111,7 +111,9 @@ extension PluginSource: CGMManagerDelegate {
             dispatchPrecondition(condition: .onQueue(self.processQueue))
 
             debug(.deviceManager, " CGM Manager with identifier \(manager.pluginIdentifier) wants deletion")
-            self.glucoseManager?.deleteGlucoseSource()
+            Task {
+                await self.glucoseManager?.deleteGlucoseSource()
+            }
         }
     }
 

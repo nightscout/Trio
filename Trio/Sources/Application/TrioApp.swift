@@ -5,6 +5,11 @@ import Foundation
 import SwiftUI
 import Swinject
 
+extension Notification.Name {
+    static let initializationCompleted = Notification.Name("initializationCompleted")
+    static let initializationError = Notification.Name("initializationError")
+}
+
 @main struct TrioApp: App {
     @Environment(\.scenePhase) var scenePhase
 
@@ -13,9 +18,21 @@ import Swinject
     // Read the color scheme preference from UserDefaults; defaults to system default setting
     @AppStorage("colorSchemePreference") private var colorSchemePreference: ColorSchemeOption = .systemDefault
 
-    let coreDataStack: CoreDataStack
+    let coreDataStack = CoreDataStack.shared
+    class InitState {
+        var complete = false
+        var error = false
+    }
+
+    // We use both InitState and @State variables to track coreDataStack
+    // initialization. We need both to handle the cases when the coreDataStack
+    // finishes before the UI and when it finishes after. SwiftUI doesn't have
+    // clean mechanisms for handling background thread updates, thus this solution.
+    let initState = InitState()
 
     @State private var appState = AppState()
+    @State private var showLoadingView = true
+    @State private var showLoadingError = false
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -72,25 +89,43 @@ import Swinject
             "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.shared.buildDate()))] [buildExpires: \(String(describing: BuildDetails.shared.calculateExpirationDate()))] [submodules: \(submodulesInfo)]"
         )
 
-        // Setup up the Core Data Stack
-        coreDataStack = CoreDataStack.shared
+        // Fix bug in iOS 18 related to the translucent tab bar
+        configureTabBarAppearance()
 
-        // Explicitly initialize Core Data Stack
-        do {
-            try coreDataStack.initializeStack()
+        deferredInitialization()
+    }
 
-            // Only load services after successful Core Data initialization
-            loadServices()
+    /// Handles the deferred initialization of core components.
+    ///
+    /// Performs CoreDataStack initialization asynchronously and notifies the UI
+    /// of completion or errors via notifications.
+    private func deferredInitialization() {
+        Task {
+            do {
+                try await coreDataStack.initializeStack()
 
-            // Fix bug in iOS 18 related to the translucent tab bar
-            configureTabBarAppearance()
+                await MainActor.run {
+                    // Only load services after successful Core Data initialization
+                    loadServices()
 
-            // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
-            cleanupOldData()
-        } catch {
-            debug(.coreData, "\(DebuggingIdentifiers.failed) Failed to initialize Core Data Stack: \(error.localizedDescription)")
+                    // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
+                    cleanupOldData()
 
-            fatalError("Core Data Stack initialization failed")
+                    self.initState.complete = true
+                    Foundation.NotificationCenter.default.post(name: .initializationCompleted, object: nil)
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
+            } catch {
+                debug(
+                    .coreData,
+                    "\(DebuggingIdentifiers.failed) Failed to initialize Core Data Stack: \(error.localizedDescription)"
+                )
+
+                await MainActor.run {
+                    self.initState.error = true
+                    Foundation.NotificationCenter.default.post(name: .initializationError, object: nil)
+                }
+            }
         }
 
         Task {
@@ -102,14 +137,49 @@ import Swinject
         }
     }
 
+    /// Attempts to initialize the CoreDataStack again after a previous failure.
+    ///
+    /// Resets error states and triggers the initialization process from the beginning. Called in response
+    /// to a UI "retry" button press from the Main.LoadingView
+    private func retryCoreDataInitialization() {
+        showLoadingError = false
+        initState.error = false
+        deferredInitialization()
+    }
+
     var body: some Scene {
         WindowGroup {
-            Main.RootView(resolver: resolver)
-                .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
-                .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
-                .environment(appState)
-                .environmentObject(Icons())
-                .onOpenURL(perform: handleURL)
+            if self.showLoadingView {
+                Main.LoadingView(showError: $showLoadingError, retry: retryCoreDataInitialization)
+                    .onAppear {
+                        if self.initState.complete {
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .seconds(1.8))
+                                self.showLoadingView = false
+                            }
+                        }
+                        if self.initState.error {
+                            self.showLoadingError = true
+                        }
+                    }
+                    .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationCompleted)) { _ in
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .seconds(1.8))
+                            self.showLoadingView = false
+                        }
+                    }
+                    .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
+                        self.showLoadingError = true
+                    }
+
+            } else {
+                Main.RootView(resolver: resolver)
+                    .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
+                    .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
+                    .environment(appState)
+                    .environmentObject(Icons())
+                    .onOpenURL(perform: handleURL)
+            }
         }
         .onChange(of: scenePhase) { _, newScenePhase in
             debug(.default, "APPLICATION PHASE: \(newScenePhase)")
@@ -125,9 +195,9 @@ import Swinject
                 {
                     AppVersionChecker.shared.checkAndNotifyVersionStatus(in: rootVC)
                 }
-
-                // Check if we need to perform a database cleaning
-                performCleanupIfNecessary()
+                if initState.complete {
+                    performCleanupIfNecessary()
+                }
             }
         }
     }

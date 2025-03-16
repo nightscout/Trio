@@ -36,6 +36,7 @@ extension Treatments {
         private var formatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
+            formatter.maximumIntegerDigits = 2
             formatter.maximumFractionDigits = 2
             return formatter
         }
@@ -43,7 +44,8 @@ extension Treatments {
         private var mealFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 1
+            formatter.maximumIntegerDigits = 3
+            formatter.maximumFractionDigits = 0
             return formatter
         }
 
@@ -51,8 +53,12 @@ extension Treatments {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
             if state.units == .mmolL {
+                formatter.maximumIntegerDigits = 2
                 formatter.maximumFractionDigits = 1
-            } else { formatter.maximumFractionDigits = 0 }
+            } else {
+                formatter.maximumIntegerDigits = 3
+                formatter.maximumFractionDigits = 0
+            }
             return formatter
         }
 

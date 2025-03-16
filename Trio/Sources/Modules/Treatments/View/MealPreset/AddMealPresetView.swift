@@ -18,15 +18,24 @@ struct AddMealPresetView: View {
     private var mealFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
+        formatter.maximumIntegerDigits = 3
+        formatter.maximumFractionDigits = 0
         return formatter
+    }
+
+    private var isFormValid: Bool {
+        !dish.isEmpty && (presetCarbs > 0 || presetProtein > 0 || presetFat > 0)
     }
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Name Of Dish", text: $dish)
+                    TextFieldWithToolBarString(
+                        text: $dish,
+                        placeholder: String(localized: "Name Of Dish"),
+                        maxLength: 25
+                    )
                 } header: {
                     Text("New Preset")
                 }
@@ -107,8 +116,9 @@ struct AddMealPresetView: View {
                 .foregroundStyle(Color.white)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
-        .listRowBackground(Color(.systemBlue))
+        .listRowBackground(isFormValid ? Color(.systemBlue) : Color(.systemGray))
         .shadow(radius: 3)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .disabled(!isFormValid)
     }
 }

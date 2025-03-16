@@ -8,11 +8,12 @@ import Testing
 @Suite("TempTargetStorage Tests", .serialized) struct TempTargetsStorageTests: Injectable {
     @Injected() var storage: TempTargetsStorage!
     let resolver: Resolver
-    let coreDataStack = CoreDataStack.createForTests()
-    let testContext: NSManagedObjectContext
+    var coreDataStack: CoreDataStack!
+    var testContext: NSManagedObjectContext!
 
-    init() {
+    init() async throws {
         // Create test context
+        coreDataStack = try await CoreDataStack.createForTests()
         testContext = coreDataStack.newTaskContext()
 
         // Create assembler with test assembly
@@ -58,7 +59,7 @@ import Testing
         try await storage.storeTempTarget(tempTarget: testTarget)
 
         // Then verify stored entries
-        let storedEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let storedEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "name == %@", "Test Target"),
@@ -91,7 +92,7 @@ import Testing
         try await storage.storeTempTarget(tempTarget: testTarget)
 
         // Get the stored target's ObjectID
-        let storedEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let storedEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "name == %@", "Delete Test"),
@@ -107,7 +108,7 @@ import Testing
         await storage.deleteTempTargetPreset(objectID)
 
         // Then verify deletion
-        let remainingEntries = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let remainingEntries = try await coreDataStack.fetchEntitiesAsync(
             ofType: TempTargetStored.self,
             onContext: testContext,
             predicate: NSPredicate(format: "name == %@", "Delete Test"),

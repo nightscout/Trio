@@ -4,7 +4,6 @@ extension GlucoseNotificationSettings {
     final class StateModel: BaseStateModel<Provider> {
         @Published var glucoseBadge = false
         @Published var glucoseNotificationsOption: GlucoseNotificationsOption = .onlyAlarmLimits
-        @Published var useAlarmSound = false
         @Published var addSourceInfoToGlucoseNotifications = false
         @Published var lowGlucose: Decimal = 0
         @Published var highGlucose: Decimal = 0
@@ -27,7 +26,6 @@ extension GlucoseNotificationSettings {
 
             subscribeSetting(\.glucoseBadge, on: $glucoseBadge) { glucoseBadge = $0 }
             subscribeSetting(\.glucoseNotificationsOption, on: $glucoseNotificationsOption) { glucoseNotificationsOption = $0 }
-            subscribeSetting(\.useAlarmSound, on: $useAlarmSound) { useAlarmSound = $0 }
             subscribeSetting(\.addSourceInfoToGlucoseNotifications, on: $addSourceInfoToGlucoseNotifications) {
                 addSourceInfoToGlucoseNotifications = $0 }
 
