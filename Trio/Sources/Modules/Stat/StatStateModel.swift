@@ -327,10 +327,14 @@ extension Stat.StateModel {
 
         var displayName: String {
             switch self {
-            case .glucose: return "Glucose"
-            case .insulin: return "Insulin"
-            case .looping: return "Looping"
-            case .meals: return "Meals"
+            case .glucose:
+                return String(localized: "Glucose", comment: "Title for glucose-related statistics")
+            case .insulin:
+                return String(localized: "Insulin", comment: "Title for insulin-related statistics")
+            case .looping:
+                return String(localized: "Looping", comment: "Title for looping and system statistics")
+            case .meals:
+                return String(localized: "Meals", comment: "Title for meal-related statistics")
             }
         }
     }
