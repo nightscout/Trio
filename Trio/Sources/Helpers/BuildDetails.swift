@@ -17,7 +17,6 @@ class BuildDetails: Injectable {
             return
         }
         dict = parsed
-        injectServices(TrioApp.resolver)
     }
 
     var buildDateString: String? {
@@ -97,6 +96,10 @@ class BuildDetails: Injectable {
     // Upload new profile if expire date has changed
     func handleExpireDateChange() async throws
     {
+        if nightscoutManager == nil {
+            await injectServices(TrioApp.resolver)
+        }
+
         let previousExpireDate = UserDefaults.standard.object(forKey: previousExpireDateKey) as? Date
         let expireDate = calculateExpirationDate()
 
