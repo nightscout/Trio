@@ -80,13 +80,13 @@ extension Notification.Name {
     }
 
     init() {
-        let submodulesInfo = BuildDetails.default.submodules.map { key, value in
+        let submodulesInfo = BuildDetails.shared.submodules.map { key, value in
             "\(key): \(value.branch) \(value.commitSHA)"
         }.joined(separator: ", ")
 
         debug(
             .default,
-            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.default.buildDate()))] [buildExpires: \(String(describing: BuildDetails.default.calculateExpirationDate()))] [submodules: \(submodulesInfo)]"
+            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.shared.buildDate()))] [buildExpires: \(String(describing: BuildDetails.shared.calculateExpirationDate()))] [submodules: \(submodulesInfo)]"
         )
 
         // Fix bug in iOS 18 related to the translucent tab bar
@@ -125,6 +125,14 @@ extension Notification.Name {
                     self.initState.error = true
                     Foundation.NotificationCenter.default.post(name: .initializationError, object: nil)
                 }
+            }
+        }
+
+        Task {
+            do {
+                try await BuildDetails.shared.handleExpireDateChange()
+            } catch {
+                debug(.default, "Failed to handle expire date change: \(error)")
             }
         }
     }
