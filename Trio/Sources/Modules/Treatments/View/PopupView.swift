@@ -724,18 +724,12 @@ struct PopupView: View {
                                 limitWarning("Glucose is very low.")
                             } else if state.minPredBG < 54 {
                                 limitWarning("Glucose forecast is very low.")
-                            } else if state.maxBolus <= iobAvailable, state.factoredInsulin > state.maxBolus {
+                            } else if state.factoredInsulin > state.maxBolus, state.maxBolus <= iobAvailable {
                                 limitWarning("Max Bolus = \(insulinFormatter(state.maxBolus)) U")
-                            }
-
-                            // Conditional rows that only appear in certain states
-                            if !isLoopStale, state.factoredInsulin >= 0, state.currentBG >= 54, state.minPredBG >= 54 {
-                                if !(state.maxBolus <= iobAvailable && state.factoredInsulin > state.maxBolus) {
-                                    if state.factoredInsulin > iobAvailable {
-                                        // Available IOB row
-
-                                        limitWarning("Available IOB:")
-                                    }
+                            } else if state.factoredInsulin > 0 {
+                                if state.factoredInsulin > iobAvailable {
+                                    // Available IOB row
+                                    limitWarning("Available IOB:")
 
                                     // Formula row with simplified alignment
                                     HStack(alignment: .center) {
@@ -791,8 +785,13 @@ struct PopupView: View {
                                 }
 
                                 // Pump rounding note (only shown when appropriate)
-                                if (state.factoredInsulin > iobAvailable && state.insulinCalculated != iobAvailable) ||
-                                    state.insulinCalculated > 0
+                                if (
+                                    state.factoredInsulin > iobAvailable &&
+                                        insulinFormatter(state.insulinCalculated) != insulinFormatter(iobAvailable)
+                                ) || (
+                                    state.factoredInsulin <= iobAvailable &&
+                                        insulinFormatter(state.insulinCalculated) != insulinFormatter(state.factoredInsulin)
+                                )
                                 {
                                     Text("Rounded for pump")
                                         .secondaryLabel()
