@@ -23,7 +23,7 @@ struct Determination: JSON, Equatable {
     /// `tdd` (Total Daily Dose) is included so it can be part of the
     /// enacted and suggested devicestatus data that gets uploaded to Nightscout.
     var tdd: Decimal?
-    
+
     var current_target: Decimal?
     let insulinForManualBolus: Decimal?
     let manualBolusErrorString: Decimal?
@@ -64,7 +64,7 @@ extension Determination {
         case timestamp
         case isf = "ISF"
         case current_target
-        case tdd
+        case tdd = "TDD"
         case insulinForManualBolus
         case manualBolusErrorString
         case minDelta

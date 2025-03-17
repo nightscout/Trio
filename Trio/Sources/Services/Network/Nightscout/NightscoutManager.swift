@@ -1483,20 +1483,17 @@ extension BaseNightscoutManager {
     ///   - tdd: The total daily dose of insulin.
     /// - Returns: A modified reason string that includes "TDD: x U" appended
     ///   after the last matched prediction term, or at the end if no match is found.
-        func injectTDD(into reason: String, tdd: Decimal?) -> String {
+    func injectTDD(into reason: String, tdd: Decimal?) -> String {
         guard let tdd = tdd else {
             return reason
         }
 
-        let tddString = "TDD: \(tdd) U"
+        let tddString = ", TDD: \(tdd) U"
 
-        // Define the regex pattern to match prediction terms followed by their values
-        // The pattern matches any of the terms, followed by optional non-digit characters,
-        // and then a number (integer or decimal)
-        let pattern = "(minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG)[^\\d]*\\d+(\\.\\d+)?"
+        let pattern = "(minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG)[^\\d]*\\d+(\\.\\d+)?([<>]\\d+(\\.\\d+)?)?"
 
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
-            return reason + ", \(tddString)"
+            return reason + tddString
         }
 
         let range = NSRange(location: 0, length: reason.utf16.count)
@@ -1508,9 +1505,10 @@ extension BaseNightscoutManager {
             let insertionIndex = reason.index(reason.startIndex, offsetBy: lastMatch.range.upperBound)
 
             let newReason = String(reason[..<insertionIndex]) + tddString + String(reason[insertionIndex...])
+
             return newReason
         } else {
-            return reason + ", \(tddString)"
+            return reason + tddString
         }
     }
 }
