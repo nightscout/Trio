@@ -5,7 +5,7 @@ import SwiftUI
 private extension View {
     /// Applies secondary label styling
     func secondaryLabel() -> some View {
-        font(.subheadline)
+        font(.footnote)
             .foregroundStyle(.secondary)
             .minimumScaleFactor(0.5)
     }
@@ -19,39 +19,33 @@ private extension View {
 
     /// Applies value styling
     func valueStyle() -> some View {
-        font(.system(.title2, design: .rounded, weight: .semibold))
+        font(.system(.subheadline, weight: .semibold))
             .minimumScaleFactor(0.5)
     }
 
     /// Applies large value styling
     func largeValueStyle() -> some View {
-        font(.system(.largeTitle, design: .rounded, weight: .bold))
+        font(.system(.title3, weight: .bold))
             .minimumScaleFactor(0.5)
     }
 
     /// Applies section title styling
     func sectionTitle() -> some View {
-        font(.headline)
+        font(.system(.subheadline, weight: .semibold))
             .foregroundStyle(.secondary)
             .minimumScaleFactor(0.5)
     }
 
     /// Applies unit text styling
     func unitStyle() -> some View {
-        font(.subheadline)
+        font(.footnote)
             .foregroundStyle(.secondary)
-            .minimumScaleFactor(0.5)
-    }
-
-    /// Applies unit text styling
-    func percentStyle() -> some View {
-        font(.subheadline)
             .minimumScaleFactor(0.5)
     }
 
     /// Applies to mathematical operators
     func operatorStyle() -> some View {
-        font(.system(size: 24, weight: .regular))
+        font(.system(.body, weight: .regular))
             .foregroundStyle(.secondary)
     }
 
@@ -80,7 +74,7 @@ private struct CalculationCardModifier: ViewModifier {
                 .fill(Color(.secondarySystemGroupedBackground))
 
             content
-                .padding(16)
+                .padding(10)
         }
         .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 2)
     }
@@ -97,6 +91,7 @@ private extension View {
 struct PopupView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) var dynamicTypeSize
 
     var state: Treatments.StateModel
 
@@ -108,11 +103,21 @@ struct PopupView: View {
         } else { return 0 }
     }
 
+    private var isDeviceSmallOrTextEnlarged: Bool {
+        // Check for SE-sized devices (screen width of 375 points)
+        let isSmallDevice = UIScreen.main.bounds.width <= 375
+
+        // Check if text size is larger than default (> 100%)
+        let isLargeText = dynamicTypeSize > .large
+
+        return isSmallDevice || isLargeText
+    }
+
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
                 ScrollView {
-                    VStack(spacing: 24) {
+                    VStack(spacing: 20) {
                         Text(
                             "The bolus calculator uses various inputs to determine the recommended insulin dosage. Find the detailed calculations below."
                         )
@@ -144,7 +149,7 @@ struct PopupView: View {
     // MARK: - Calculation Cards
 
     var calculationCards: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             glucoseCard
             iobCard
             cobCard
@@ -172,7 +177,8 @@ struct PopupView: View {
                     Text("Current").secondaryLabel()
                     Text("") // Placeholder for minus sign
                     Text("Target").secondaryLabel()
-                    Text("") // Placeholder for right bracket and division
+                    Text("") // Placeholder for right bracket
+                    Text("") // Placeholder for division sign
                     Text("ISF").secondaryLabel()
                     Spacer(minLength: 0)
                     Text("") // Placeholder for equals sign
@@ -181,19 +187,14 @@ struct PopupView: View {
 
                 // Row 2: Values
                 GridRow {
-                    Text("(")
-                        .font(.system(.title, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                    Text("(").operatorStyle()
                     Text(state.units == .mmolL ? state.currentBG.formattedAsMmolL : state.currentBG.description)
                         .valueStyle()
-                    Text("−")
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                    Text("−").operatorStyle()
                     Text(state.units == .mmolL ? state.target.formattedAsMmolL : state.target.description)
                         .valueStyle()
-                    Text(")/")
-                        .font(.system(.title, design: .rounded, weight: .medium))
-                        .foregroundStyle(.secondary)
+                    Text(")").operatorStyle()
+                    Text("/").operatorStyle()
                     Text(state.units == .mmolL ? state.isf.formattedAsMmolL : state.isf.description)
                         .valueStyle()
                     Spacer(minLength: 0)
@@ -209,7 +210,8 @@ struct PopupView: View {
                     Text(state.units.rawValue).unitStyle()
                     Text("") // Placeholder for minus sign
                     Text(state.units.rawValue).unitStyle()
-                    Text("") // Placeholder for right bracket and division
+                    Text("") // Placeholder for right bracket
+                    Text("") // Placeholder for division sign
                     Text("\(state.units.rawValue)/U").unitStyle()
                     Spacer(minLength: 0)
                     Text("") // Placeholder for equals sign
@@ -282,27 +284,18 @@ struct PopupView: View {
                 // Row 2: COB breakdown values
                 GridRow {
                     Text("(")
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                        .operatorStyle()
                     Text(
                         Decimal(state.cob)
                             .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
-                    )
-                    .valueStyle()
-                    Text("+")
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                    ).valueStyle()
+                    Text("+").operatorStyle()
                     Text(
                         state.carbs
                             .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
-                    )
-                    .valueStyle()
-                    Text(")")
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Text("/")
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                    ).valueStyle()
+                    Text(")").operatorStyle()
+                    Text("/").operatorStyle()
                     Text(state.carbRatio.formatted()).valueStyle()
                     Spacer()
                     Text("=").operatorStyle()
@@ -313,15 +306,15 @@ struct PopupView: View {
 
                 // Row 3: Units
                 GridRow(alignment: .top) {
-                    Text("").unitStyle() // Empty for opening bracket
+                    Text("") // Empty for opening bracket
                     Text("g").unitStyle()
-                    Text("").unitStyle() // Empty for plus sign
+                    Text("") // Empty for plus sign
                     Text("g").unitStyle()
-                    Text("").unitStyle() // Empty for closing bracket
-                    Text("").unitStyle() // Empty for division sign
+                    Text("") // Empty for closing bracket
+                    Text("") // Empty for division sign
                     Text("g/U").unitStyle()
                     Spacer()
-                    Text("").unitStyle() // Empty for equals sign
+                    Text("") // Empty for equals sign
                     Text(exceededMaxCOB ? "" : "U").unitStyle()
                 }
 
@@ -354,9 +347,7 @@ struct PopupView: View {
                         .foregroundStyle(.red)
                         .gridCellColumns(3)
                         Text(")").operatorStyle()
-                        Text("/")
-                            .font(.system(.title2, design: .rounded, weight: .semibold))
-                            .foregroundStyle(.secondary)
+                        Text("/").operatorStyle()
                         Text(state.carbRatio.formatted()).valueStyle()
                         Spacer(minLength: 0)
                         Text("=").operatorStyle()
@@ -400,9 +391,7 @@ struct PopupView: View {
                 GridRow {
                     Text(state.units == .mmolL ? state.deltaBG.formattedAsMmolL : state.deltaBG.description)
                         .valueStyle()
-                    Text("/")
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                    Text("/").operatorStyle()
                     Text(state.units == .mmolL ? state.isf.formattedAsMmolL : state.isf.description)
                         .valueStyle()
                     Spacer(minLength: 0)
@@ -430,82 +419,107 @@ struct PopupView: View {
     var fullBolusCard: some View {
         calculationCardView("Full Bolus") {
             Grid {
-                // Row 1: Titles
-                GridRow(alignment: .bottom) {
-                    Text("Glucose").secondaryLabel()
-                    Text("") // Placeholder for first plus sign
-                    Text("IOB").secondaryLabel()
-                    Text("") // Placeholder for second plus sign
-                    Text("COB").secondaryLabel()
-                    Text("") // Placeholder for third plus sign
-                    Text("Delta").secondaryLabel()
-                }
-
-                // Row 2: Values
-                GridRow {
-                    Text(insulinFormatter(state.targetDifferenceInsulin))
-                        .valueStyle()
-                        .foregroundStyle(addendColor(state.targetDifferenceInsulin) ?? .primary)
-                    Text("+")
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Text(insulinFormatter(-1 * state.iob, .plain))
-                        .valueStyle()
-                        .foregroundStyle(addendColor(-1 * state.iob) ?? .primary)
-                    Text("+")
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Text(insulinFormatter(state.wholeCobInsulin))
-                        .valueStyle()
-                        .foregroundStyle(addendColor(state.wholeCobInsulin) ?? .primary)
-                    Text("+")
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Text(insulinFormatter(state.fifteenMinInsulin))
-                        .valueStyle()
-                        .foregroundStyle(addendColor(state.fifteenMinInsulin) ?? .primary)
-                }
-
-                // Row 3: Units
-                GridRow(alignment: .top) {
-                    Text("U").unitStyle()
-                    Text("") // Placeholder for first plus sign
-                    Text("U").unitStyle()
-                    Text("") // Placeholder for second plus sign
-                    Text("U").unitStyle()
-                    Text("") // Placeholder for third plus sign
-                    Text("U").unitStyle()
-                }
-
-                // Divider row
-                GridRow {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 1)
-                        .gridCellColumns(7)
-                }
-
-                // Total value row
-                GridRow {
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text("=")
-                            .font(.title2)
-                            .foregroundStyle(.secondary)
-                            .minimumScaleFactor(0.5)
-
-                        Text(insulinFormatter(state.wholeCalc))
-                            .largeValueStyle()
-                            .foregroundStyle(addendColor(state.wholeCalc) ?? .secondary)
-
-                        Text("U")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                            .minimumScaleFactor(0.5)
+                if isDeviceSmallOrTextEnlarged {
+                    // Row 1: Titles
+                    GridRow(alignment: .bottom) {
+                        Text("Glucose").secondaryLabel()
+                        Text("") // Placeholder for first plus sign
+                        Text("IOB").secondaryLabel()
+                        Text("") // Placeholder for second plus sign
+                        Text("COB").secondaryLabel()
+                        Text("") // Placeholder for third plus sign
+                        Text("Delta").secondaryLabel()
                     }
-                    .gridCellColumns(7)
-                    .gridCellAnchor(.trailing)
+
+                    // Row 2: Values
+                    GridRow {
+                        Text(wrapNegative(state.targetDifferenceInsulin))
+                            .valueStyle()
+                        Text("+").operatorStyle()
+                        Text(wrapNegative(-1 * state.iob, .plain))
+                            .valueStyle()
+                        Text("+").operatorStyle()
+                        Text(wrapNegative(state.wholeCobInsulin))
+                            .valueStyle()
+                        Text("+").operatorStyle()
+                        Text(wrapNegative(state.fifteenMinInsulin))
+                            .valueStyle()
+                    }
+
+                    // Row 3: Units
+                    GridRow(alignment: .top) {
+                        Text("U").unitStyle()
+                        Text("") // Placeholder for first plus sign
+                        Text("U").unitStyle()
+                        Text("") // Placeholder for second plus sign
+                        Text("U").unitStyle()
+                        Text("") // Placeholder for third plus sign
+                        Text("U").unitStyle()
+                    }
+
+                    Divider()
+
+                    // Row 4: Sum
+                    GridRow {
+                        HStack {
+                            Text("=").operatorStyle()
+                            Text(insulinFormatter(state.wholeCalc))
+                                .valueStyle()
+                                .foregroundStyle(addendColor(state.wholeCalc) ?? .secondary)
+                            Text("U").unitStyle()
+                        }
+                        .gridCellColumns(7)
+                        .trailingFullWidth()
+                    }
+                } else {
+                    // Row 1: Titles
+                    GridRow(alignment: .bottom) {
+                        Text("Glucose").secondaryLabel()
+                        Text("") // Placeholder for first plus sign
+                        Text("IOB").secondaryLabel()
+                        Text("") // Placeholder for second plus sign
+                        Text("COB").secondaryLabel()
+                        Text("") // Placeholder for third plus sign
+                        Text("Delta").secondaryLabel()
+                        Spacer(minLength: 0)
+                        Text("") // Placeholder for equals sign
+                        Text("Sum").secondaryLabel()
+                    }
+
+                    // Row 2: Values
+                    GridRow {
+                        Text(wrapNegative(state.targetDifferenceInsulin))
+                            .valueStyle()
+                        Text("+").operatorStyle()
+                        Text(wrapNegative(-1 * state.iob, .plain))
+                            .valueStyle()
+                        Text("+").operatorStyle()
+                        Text(wrapNegative(state.wholeCobInsulin))
+                            .valueStyle()
+                        Text("+").operatorStyle()
+                        Text(wrapNegative(state.fifteenMinInsulin))
+                            .valueStyle()
+                        Spacer(minLength: 0)
+                        Text("=").operatorStyle()
+                        Text(insulinFormatter(state.wholeCalc))
+                            .valueStyle()
+                            .foregroundStyle(addendColor(state.wholeCalc) ?? .secondary)
+                    }
+
+                    // Row 3: Units
+                    GridRow(alignment: .top) {
+                        Text("U").unitStyle()
+                        Text("") // Placeholder for first plus sign
+                        Text("U").unitStyle()
+                        Text("") // Placeholder for second plus sign
+                        Text("U").unitStyle()
+                        Text("") // Placeholder for third plus sign
+                        Text("U").unitStyle()
+                        Spacer(minLength: 0)
+                        Text("") // Placeholder for equals sign
+                        Text("U").unitStyle()
+                    }
                 }
-                .trailingFullWidth()
             }
             .multilineTextAlignment(.center)
         }
@@ -527,10 +541,8 @@ struct PopupView: View {
                 // Row 2: Values
                 GridRow {
                     Text("\(state.currentBasal)").valueStyle()
-                    Text("×")
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Text((100 * state.sweetMealFactor).formatted()).valueStyle()
+                    Text("×").operatorStyle()
+                    Text((100 * state.sweetMealFactor).formatted() + " %").valueStyle()
                     Spacer(minLength: 0)
                     Text("=").operatorStyle()
                     Text(insulinFormatter(state.superBolusInsulin))
@@ -542,7 +554,7 @@ struct PopupView: View {
                 GridRow(alignment: .top) {
                     Text("U/hr").unitStyle()
                     Text("") // Placeholder for multiplication sign
-                    Text("/100").percentStyle()
+                    Text("") // Placeholder for percent sign
                     Spacer(minLength: 0)
                     Text("") // Placeholder for equals sign
                     Text("U").unitStyle()
@@ -564,19 +576,17 @@ struct PopupView: View {
                     // Simple case: just Full Bolus × Rec. Bolus %
                     GridRow(alignment: .bottom) {
                         Text("Full Bolus").secondaryLabel()
-                        Text("").secondaryLabel() // Placeholder for multiplication sign
+                        Text("") // Placeholder for multiplication sign
                         Text("Rec. Bolus %").secondaryLabel()
                         Spacer(minLength: 0)
-                        Text("").secondaryLabel() // Placeholder for equals sign
+                        Text("") // Placeholder for equals sign
                         Text("Result").secondaryLabel()
                     }
 
                     GridRow {
                         Text(insulinFormatter(state.wholeCalc)).valueStyle()
-                        Text("×")
-                            .font(.system(.title2, design: .rounded, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                        Text((100 * state.fraction).formatted()).valueStyle()
+                        Text("×").operatorStyle()
+                        Text((100 * state.fraction).formatted() + " %").valueStyle()
                         Spacer(minLength: 0)
                         Text("=").operatorStyle()
                         Text(insulinFormatter(state.factoredInsulin))
@@ -586,10 +596,10 @@ struct PopupView: View {
 
                     GridRow(alignment: .top) {
                         Text("U").unitStyle()
-                        Text("").unitStyle() // Placeholder for multiplication sign
-                        Text("/100").percentStyle()
+                        Text("") // Placeholder for multiplication sign
+                        Text("") // Placeholder for percent sign
                         Spacer(minLength: 0)
-                        Text("").unitStyle() // Placeholder for equals sign
+                        Text("") // Placeholder for equals sign
                         Text("U").unitStyle()
                     }
 
@@ -597,25 +607,21 @@ struct PopupView: View {
                     // Case: Full Bolus × Rec. Bolus % × Fatty Meal %
                     GridRow(alignment: .bottom) {
                         Text("Full Bolus").secondaryLabel()
-                        Text("").secondaryLabel() // Placeholder for first multiplication sign
+                        Text("") // Placeholder for first multiplication sign
                         Text("Rec. Bolus %").secondaryLabel()
-                        Text("").secondaryLabel() // Placeholder for second multiplication sign
+                        Text("") // Placeholder for second multiplication sign
                         Text("Fatty %").secondaryLabel()
                         Spacer(minLength: 0)
-                        Text("").secondaryLabel() // Placeholder for equals sign
+                        Text("") // Placeholder for equals sign
                         Text("Result").secondaryLabel()
                     }
 
                     GridRow {
                         Text(insulinFormatter(state.wholeCalc)).valueStyle()
-                        Text("×")
-                            .font(.system(.title2, design: .rounded, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                        Text((100 * state.fraction).formatted()).valueStyle()
-                        Text("×")
-                            .font(.system(.title2, design: .rounded, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                        Text((100 * state.fattyMealFactor).formatted()).valueStyle()
+                        Text("×").operatorStyle()
+                        Text((100 * state.fraction).formatted() + " %").valueStyle()
+                        Text("×").operatorStyle()
+                        Text((100 * state.fattyMealFactor).formatted() + " %").valueStyle()
                         Spacer(minLength: 0)
                         Text("=").operatorStyle()
                         Text(insulinFormatter(state.factoredInsulin))
@@ -625,45 +631,37 @@ struct PopupView: View {
 
                     GridRow(alignment: .top) {
                         Text("U").unitStyle()
-                        Text("").unitStyle() // Placeholder for first multiplication sign
-                        Text("/100").percentStyle()
-                        Text("").unitStyle() // Placeholder for second multiplication sign
-                        Text("/100").percentStyle()
+                        Text("") // Placeholder for first multiplication sign
+                        Text("") // Placeholder for percent sign
+                        Text("") // Placeholder for second multiplication sign
+                        Text("") // Placeholder for percent sign
                         Spacer(minLength: 0)
-                        Text("").unitStyle() // Placeholder for equals sign
+                        Text("") // Placeholder for equals sign
                         Text("U").unitStyle()
                     }
 
                 case (true, false):
                     // Case: (Full Bolus × Rec. Bolus %) + Super Bolus
                     GridRow(alignment: .bottom) {
-                        Text("").secondaryLabel() // Placeholder for opening parenthesis
+                        Text("") // Placeholder for opening parenthesis
                         Text("Full Bolus").secondaryLabel()
-                        Text("").secondaryLabel() // Placeholder for multiplication sign
+                        Text("") // Placeholder for multiplication sign
                         Text("Rec. %").secondaryLabel()
-                        Text("").secondaryLabel() // Placeholder for closing parenthesis
-                        Text("").secondaryLabel() // Placeholder for plus sign
+                        Text("") // Placeholder for closing parenthesis
+                        Text("") // Placeholder for plus sign
                         Text("Super Bolus").secondaryLabel()
                         Spacer(minLength: 0)
-                        Text("").secondaryLabel() // Placeholder for equals sign
+                        Text("") // Placeholder for equals sign
                         Text("Result").secondaryLabel()
                     }
 
                     GridRow {
-                        Text("(")
-                            .font(.system(.title, design: .rounded, weight: .semibold))
-                            .foregroundStyle(.secondary)
+                        Text("(").operatorStyle()
                         Text(insulinFormatter(state.wholeCalc)).valueStyle()
-                        Text("×")
-                            .font(.system(.title2, design: .rounded, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                        Text((100 * state.fraction).formatted()).valueStyle()
-                        Text(")")
-                            .font(.system(.title, design: .rounded, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                        Text("+")
-                            .font(.system(.title2, design: .rounded, weight: .semibold))
-                            .foregroundStyle(.secondary)
+                        Text("×").operatorStyle()
+                        Text((100 * state.fraction).formatted() + " %").valueStyle()
+                        Text(")").operatorStyle()
+                        Text("+").operatorStyle()
                         Text(insulinFormatter(state.superBolusInsulin)).valueStyle()
                         Spacer(minLength: 0)
                         Text("=").operatorStyle()
@@ -673,15 +671,15 @@ struct PopupView: View {
                     }
 
                     GridRow(alignment: .top) {
-                        Text("").unitStyle() // Placeholder for opening parenthesis
+                        Text("") // Placeholder for opening parenthesis
                         Text("U").unitStyle()
-                        Text("").unitStyle() // Placeholder for multiplication sign
-                        Text("/100").percentStyle()
-                        Text("").unitStyle() // Placeholder for closing parenthesis
-                        Text("").unitStyle() // Placeholder for plus sign
+                        Text("") // Placeholder for multiplication sign
+                        Text("") // Placeholder for percent sign
+                        Text("") // Placeholder for closing parenthesis
+                        Text("") // Placeholder for plus sign
                         Text("U").unitStyle()
                         Spacer(minLength: 0)
-                        Text("").unitStyle() // Placeholder for equals sign
+                        Text("") // Placeholder for equals sign
                         Text("U").unitStyle()
                     }
 
@@ -700,7 +698,7 @@ struct PopupView: View {
     var recommendedBolusCard: some View {
         VStack {
             Text("Recommended Bolus")
-                .font(.title2)
+                .font(.headline)
                 .fontWeight(.bold)
                 .minimumScaleFactor(0.5)
                 .padding(.bottom, 4)
@@ -733,28 +731,16 @@ struct PopupView: View {
 
                                     // Formula row with simplified alignment
                                     HStack(alignment: .center) {
-                                        let iobFormatted = state
-                                            .iob < 0 ? "(\(insulinFormatter(state.iob)))" : insulinFormatter(state.iob)
+                                        let iobFormatted = state.iob < 0 ?
+                                            "(\(insulinFormatter(state.iob)))" : insulinFormatter(state.iob)
 
-                                        Text("\(insulinFormatter(state.maxIOB))")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                            .minimumScaleFactor(0.5)
+                                        Text("\(insulinFormatter(state.maxIOB))").valueStyle()
 
-                                        Text("-")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                            .minimumScaleFactor(0.5)
+                                        Text("-").operatorStyle()
 
-                                        Text("\(iobFormatted)")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                            .minimumScaleFactor(0.5)
+                                        Text("\(iobFormatted)").valueStyle()
 
-                                        Text("=")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                            .minimumScaleFactor(0.5)
+                                        Text("=").operatorStyle()
 
                                         Text("\(insulinFormatter(iobAvailable)) U")
                                             .font(.subheadline)
@@ -827,7 +813,7 @@ struct PopupView: View {
     // MARK: - Helper Views
 
     func calculationCardView<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(title).sectionTitle()
             content().calculationCardStyle()
         }
@@ -880,5 +866,9 @@ struct PopupView: View {
         default:
             return .green
         }
+    }
+
+    func wrapNegative(_ value: Decimal, _ roundingMode: NSDecimalNumber.RoundingMode = .down) -> String {
+        value < 0 ? "(" + insulinFormatter(value, roundingMode) + ")" : insulinFormatter(value, roundingMode)
     }
 }
