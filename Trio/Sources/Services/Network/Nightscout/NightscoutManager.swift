@@ -565,26 +565,21 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
         }
 
-        if let fetchedEnacted = fetchedEnactedDetermination, settingsManager.settings.units == .mmolL {
-            var modifiedFetchedEnactedDetermination = fetchedEnactedDetermination
-            modifiedFetchedEnactedDetermination?
-                .reason = parseReasonGlucoseValuesToMmolL(fetchedEnacted.reason)
-            // TODO: verify that these parsings are needed for 3rd party apps, e.g., LoopFollow
-            modifiedFetchedEnactedDetermination?.current_target = fetchedEnacted.current_target?.asMmolL
-            modifiedFetchedEnactedDetermination?.minGuardBG = fetchedEnacted.minGuardBG?.asMmolL
-            modifiedFetchedEnactedDetermination?.minPredBG = fetchedEnacted.minPredBG?.asMmolL
-            modifiedFetchedEnactedDetermination?.threshold = fetchedEnacted.threshold?.asMmolL
+        if var enacted = fetchedEnactedDetermination {
 
-            fetchedEnactedDetermination = modifiedFetchedEnactedDetermination
-        }
+            if settingsManager.settings.units == .mmolL {
+                enacted.reason = parseReasonGlucoseValuesToMmolL(enacted.reason)
+                // TODO: verify that these parsings are needed for 3rd party apps, e.g., LoopFollow
+                enacted.current_target = enacted.current_target?.asMmolL
+                enacted.minGuardBG = enacted.minGuardBG?.asMmolL
+                enacted.minPredBG = enacted.minPredBG?.asMmolL
+                enacted.threshold = enacted.threshold?.asMmolL
+            }
 
-        if let fetchedEnacted = fetchedEnactedDetermination {
-            var modifiedFetchedEnactedDetermination = fetchedEnacted
-            modifiedFetchedEnactedDetermination.tdd = tdd
+            enacted.reason = injectTDD(into: enacted.reason, tdd: tdd)
+            enacted.tdd = tdd
 
-            modifiedFetchedEnactedDetermination.reason = injectTDD(into: modifiedFetchedEnactedDetermination.reason, tdd: tdd)
-
-            fetchedEnactedDetermination = modifiedFetchedEnactedDetermination
+            fetchedEnactedDetermination = enacted
         }
 
         // Gather all relevant data for OpenAPS Status
@@ -1479,36 +1474,38 @@ extension BaseNightscoutManager {
     /// Injects TDD into the provided `reason` string if TDD is available.
     ///
     /// - Parameters:
-    ///   - reason: The raw reason string (e.g., "minPredBG=5.2, IOBpredBG=6.1").
+    ///   - reason: The raw reason string (e.g., "minPredBG=5.2, IOBpredBG=102").
     ///   - tdd: The total daily dose of insulin.
     /// - Returns: A modified reason string that includes "TDD: x U" appended
     ///   after the last matched prediction term, or at the end if no match is found.
     func injectTDD(into reason: String, tdd: Decimal?) -> String {
-        guard let tdd = tdd else {
-            return reason
-        }
+        guard let tdd = tdd else { return reason }
 
         let tddString = ", TDD: \(tdd) U"
 
-        let pattern = "(minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG)[^\\d]*\\d+(\\.\\d+)?([<>]\\d+(\\.\\d+)?)?"
-
+        // Regex that matches any of the keywords followed by an optional colon, whitespace, then a number.
+        let pattern = "(minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG):?\\s*(-?\\d+(?:\\.\\d+)?)"
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
             return reason + tddString
         }
 
-        let range = NSRange(location: 0, length: reason.utf16.count)
+        // Split the reason at the first semicolon (if present)
+        let components = reason.split(separator: ";", maxSplits: 1, omittingEmptySubsequences: false)
+        let mainPart = String(components[0])
+        let tailPart = components.count > 1 ? ";" + components[1] : ""
 
-        let matches = regex.matches(in: reason, options: [], range: range)
+        // Search only in the main part for the keywords
+        let nsRange = NSRange(mainPart.startIndex ..< mainPart.endIndex, in: mainPart)
+        let matches = regex.matches(in: mainPart, options: [], range: nsRange)
 
-        if let lastMatch = matches.last {
-            // Get the insertion point, which is the end of the last match
-            let insertionIndex = reason.index(reason.startIndex, offsetBy: lastMatch.range.upperBound)
-
-            let newReason = String(reason[..<insertionIndex]) + tddString + String(reason[insertionIndex...])
-
-            return newReason
-        } else {
-            return reason + tddString
+        // If found, insert TDD after the last occurrence in the main part.
+        if let lastMatch = matches.last, let matchRange = Range(lastMatch.range, in: mainPart) {
+            var modifiedMainPart = mainPart
+            modifiedMainPart.insert(contentsOf: tddString, at: matchRange.upperBound)
+            return modifiedMainPart + tailPart
         }
+
+        // If no match is found, append TDD at the end of the original reason string.
+        return reason + tddString
     }
 }
