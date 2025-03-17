@@ -138,7 +138,7 @@ struct PopupView: View {
                 .padding(.top)
             }
             .padding([.horizontal, .bottom])
-            .navigationBarTitle("Detailed Bolus Calculations", displayMode: .inline)
+            .navigationBarTitle(String(localized: "Bolus Calculator Details"), displayMode: .inline)
             .presentationDetents(
                 [.fraction(0.9), .large],
                 selection: $calcPopupDetent
@@ -169,7 +169,7 @@ struct PopupView: View {
     // MARK: - Individual Cards
 
     var glucoseCard: some View {
-        calculationCardView("Glucose Calculation") {
+        calculationCardView(String(localized: "Glucose Calculation")) {
             Grid {
                 // Row 1: Titles
                 GridRow(alignment: .bottom) {
@@ -224,7 +224,7 @@ struct PopupView: View {
     }
 
     var iobCard: some View {
-        calculationCardView("Insulin On Board (IOB)") {
+        calculationCardView(String(localized: "Insulin On Board (IOB)")) {
             Grid {
                 // Row 1: Titles
                 GridRow(alignment: .bottom) {
@@ -264,7 +264,7 @@ struct PopupView: View {
     }
 
     var cobCard: some View {
-        calculationCardView("Carbs On Board (COB)") {
+        calculationCardView(String(localized: "Carbs On Board (COB)")) {
             let exceededMaxCOB: Bool = Decimal(state.cob) + state.carbs > state.maxCOB
             Grid {
                 // Row 1: COB breakdown calculation title
@@ -375,7 +375,7 @@ struct PopupView: View {
     }
 
     var deltaCard: some View {
-        calculationCardView("Glucose Trend (15 min)") {
+        calculationCardView(String(localized: "Glucose Trend (15 min)")) {
             Grid {
                 // Row 1: Titles
                 GridRow(alignment: .bottom) {
@@ -417,7 +417,7 @@ struct PopupView: View {
     }
 
     var fullBolusCard: some View {
-        calculationCardView("Full Bolus") {
+        calculationCardView(String(localized: "Full Bolus")) {
             Grid {
                 if isDeviceSmallOrTextEnlarged {
                     // Row 1: Titles
@@ -526,7 +526,7 @@ struct PopupView: View {
     }
 
     var superBolusCard: some View {
-        calculationCardView("Super Bolus") {
+        calculationCardView(String(localized: "Super Bolus")) {
             Grid {
                 // Row 1: Titles
                 GridRow(alignment: .bottom) {
@@ -568,7 +568,7 @@ struct PopupView: View {
     // MARK: - Refactored Factors Card
 
     var factorsCard: some View {
-        calculationCardView("Applied Factors") {
+        calculationCardView(String(localized: "Applied Factors")) {
             Grid {
                 // Choose the layout based on which factors are active
                 switch (state.useSuperBolus, state.useFattyMealCorrectionFactor) {
@@ -717,17 +717,17 @@ struct PopupView: View {
                         // Left column
                         VStack {
                             if isLoopStale {
-                                limitWarning("Last loop was > 15 mins ago.")
+                                limitWarning(String(localized: "Last loop was > 15 mins ago."))
                             } else if state.currentBG < 54 {
-                                limitWarning("Glucose is very low.")
+                                limitWarning(String(localized: "Glucose is very low."))
                             } else if state.minPredBG < 54 {
-                                limitWarning("Glucose forecast is very low.")
+                                limitWarning(String(localized: "Glucose forecast is very low."))
                             } else if state.factoredInsulin > state.maxBolus, state.maxBolus <= iobAvailable {
-                                limitWarning("Max Bolus = \(insulinFormatter(state.maxBolus)) U")
+                                limitWarning(String(localized: "Max Bolus = \(insulinFormatter(state.maxBolus)) U"))
                             } else if state.factoredInsulin > 0 {
                                 if state.factoredInsulin > iobAvailable {
                                     // Available IOB row
-                                    limitWarning("Available IOB:")
+                                    limitWarning(String(localized: "Available IOB:"))
 
                                     // Formula row with simplified alignment
                                     HStack(alignment: .center) {
@@ -735,36 +735,24 @@ struct PopupView: View {
                                             "(\(insulinFormatter(state.iob)))" : insulinFormatter(state.iob)
 
                                         Text("\(insulinFormatter(state.maxIOB))").valueStyle()
-
                                         Text("-").operatorStyle()
-
                                         Text("\(iobFormatted)").valueStyle()
-
                                         Text("=").operatorStyle()
-
                                         Text("\(insulinFormatter(iobAvailable)) U")
                                             .font(.subheadline)
                                             .foregroundStyle(.red)
                                             .minimumScaleFactor(0.5)
-
                                         Spacer()
                                     }
                                     .multilineTextAlignment(.center)
 
                                     // Description row with simplified alignment
                                     HStack(alignment: .center) {
-                                        Text("Max IOB")
-                                            .tertiaryLabel()
-
+                                        Text("Max IOB").tertiaryLabel()
                                         Text("")
-
-                                        Text("IOB")
-                                            .tertiaryLabel()
-
+                                        Text("IOB").tertiaryLabel()
                                         Text("")
-
                                         Text("")
-
                                         Spacer()
                                     }
                                     .multilineTextAlignment(.center)
