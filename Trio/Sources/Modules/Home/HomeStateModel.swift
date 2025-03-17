@@ -688,7 +688,7 @@ extension Home.StateModel:
 extension Home.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_ notifying: CompletionNotifying) {
         debug(.service, "Completion fired by: \(type(of: notifying))")
-        shouldDisplayCGMSetupSheet = false
+        var wasDeleted: Bool = false
 
         if notifying is CGMSetupCompletionNotifying || notifying is CGMDeletionCompletionNotifying ||
             notifying is CGMManagerSettingsNavigationViewController || notifying is any SetupTableViewControllerDelegate ||
@@ -703,6 +703,7 @@ extension Home.StateModel: CompletionDelegate {
                 Task {
                     await fetchGlucoseManager.deleteGlucoseSource()
                 }
+                wasDeleted = false
             } else {
                 debug(.service, "CGMSetupCompletionNotifying: CGM Setup Completed")
 
@@ -716,6 +717,9 @@ extension Home.StateModel: CompletionDelegate {
 
             // update glucose source if required
             DispatchQueue.main.async {
+                if wasDeleted {
+                    self.shouldDisplayCGMSetupSheet = false
+                }
                 self.broadcaster.notify(GlucoseObserver.self, on: .main) {
                     $0.glucoseDidUpdate([])
                 }
