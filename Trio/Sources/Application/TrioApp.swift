@@ -1,4 +1,3 @@
-import ActivityKit
 import BackgroundTasks
 import CoreData
 import Foundation
@@ -33,6 +32,9 @@ extension Notification.Name {
     @State private var appState = AppState()
     @State private var showLoadingView = true
     @State private var showLoadingError = false
+
+    // Onboarding manager to handle the onboarding flow
+    private let onboardingManager: OnboardingManager
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -69,6 +71,7 @@ extension Notification.Name {
         _ = resolver.resolve(ContactImageManager.self)!
         _ = resolver.resolve(HealthKitManager.self)!
         _ = resolver.resolve(WatchManager.self)!
+        _ = resolver.resolve(OnboardingManager.self)!
         _ = resolver.resolve(GarminManager.self)!
         _ = resolver.resolve(ContactImageManager.self)!
         _ = resolver.resolve(BluetoothStateManager.self)!
@@ -80,6 +83,25 @@ extension Notification.Name {
     }
 
     init() {
+        // Initialize onboardingManager in the initializer declaration
+        onboardingManager = OnboardingManager(resolver: TrioApp.assembler.resolver)
+
+        let notificationCenter = Foundation.NotificationCenter.default
+        notificationCenter.addObserver(
+            forName: .initializationCompleted,
+            object: nil,
+            queue: .main
+        ) { [self] _ in
+            showLoadingView = false
+        }
+        notificationCenter.addObserver(
+            forName: .initializationError,
+            object: nil,
+            queue: .main
+        ) { [self] _ in
+            showLoadingError = true
+        }
+
         let submodulesInfo = BuildDetails.shared.submodules.map { key, value in
             "\(key): \(value.branch) \(value.commitSHA)"
         }.joined(separator: ", ")
@@ -171,7 +193,11 @@ extension Notification.Name {
                     .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
                         self.showLoadingError = true
                     }
-
+            } else if onboardingManager.shouldShowOnboarding {
+                // Show onboarding if needed
+                OnboardingView(manager: onboardingManager)
+                    .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
+                    .transition(.opacity)
             } else {
                 Main.RootView(resolver: resolver)
                     .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)

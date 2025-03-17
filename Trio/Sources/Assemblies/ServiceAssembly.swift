@@ -23,6 +23,7 @@ final class ServiceAssembly: Assembly {
         container.register(GarminManager.self) { r in BaseGarminManager(resolver: r) }
         container.register(ContactImageManager.self) { r in BaseContactImageManager(resolver: r) }
         container.register(AlertPermissionsChecker.self) { r in AlertPermissionsChecker(resolver: r) }
+        container.register(OnboardingManager.self) { r in OnboardingManager(resolver: r) }
         if #available(iOS 16.2, *) {
             container.register(LiveActivityManager.self) { r in
                 LiveActivityManager(resolver: r)
