@@ -1476,8 +1476,14 @@ extension BaseNightscoutManager {
 }
 
 extension BaseNightscoutManager {
-    /// Injects TDD into the reason string
-    func injectTDD(into reason: String, tdd: Decimal?) -> String {
+    /// Injects TDD into the provided `reason` string if TDD is available.
+    ///
+    /// - Parameters:
+    ///   - reason: The raw reason string (e.g., "minPredBG=5.2, IOBpredBG=6.1").
+    ///   - tdd: The total daily dose of insulin.
+    /// - Returns: A modified reason string that includes "TDD: x U" appended
+    ///   after the last matched prediction term, or at the end if no match is found.
+        func injectTDD(into reason: String, tdd: Decimal?) -> String {
         guard let tdd = tdd else {
             return reason
         }

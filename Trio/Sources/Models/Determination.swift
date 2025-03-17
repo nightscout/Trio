@@ -19,7 +19,11 @@ struct Determination: JSON, Equatable {
     let reservoir: Decimal?
     var isf: Decimal?
     var timestamp: Date?
+
+    /// `tdd` (Total Daily Dose) is included so it can be part of the
+    /// enacted and suggested devicestatus data that gets uploaded to Nightscout.
     var tdd: Decimal?
+    
     var current_target: Decimal?
     let insulinForManualBolus: Decimal?
     let manualBolusErrorString: Decimal?
