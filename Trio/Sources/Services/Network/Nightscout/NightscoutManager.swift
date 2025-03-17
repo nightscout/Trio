@@ -504,6 +504,14 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             return
         }
 
+        // Fetch the latest TDD from Core Data
+        let tdd: Decimal? = await backgroundContext.perform {
+            let request: NSFetchRequest<TDDStored> = TDDStored.fetchRequest()
+            request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+            request.fetchLimit = 1
+            return (try? self.backgroundContext.fetch(request).first)?.total as? Decimal
+        }
+
         // Suggested / Enacted
         async let enactedDeterminationID = determinationStorage
             .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDeterminationsNotYetUploadedToNightscout)
@@ -543,6 +551,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 suggestion.minPredBG = suggestion.minPredBG?.asMmolL
                 suggestion.threshold = suggestion.threshold?.asMmolL
             }
+
+            suggestion.reason = injectTDD(into: suggestion.reason, tdd: tdd)
+            suggestion.tdd = tdd
+
             // Check whether the last suggestion that was uploaded is the same that is fetched again when we are attempting to upload the enacted determination
             // Apparently we are too fast; so the flag update is not fast enough to have the predicate filter last suggestion out
             // If this check is truthy, set suggestion to nil so it's not uploaded again
@@ -562,6 +574,15 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             modifiedFetchedEnactedDetermination?.minGuardBG = fetchedEnacted.minGuardBG?.asMmolL
             modifiedFetchedEnactedDetermination?.minPredBG = fetchedEnacted.minPredBG?.asMmolL
             modifiedFetchedEnactedDetermination?.threshold = fetchedEnacted.threshold?.asMmolL
+
+            fetchedEnactedDetermination = modifiedFetchedEnactedDetermination
+        }
+
+        if let fetchedEnacted = fetchedEnactedDetermination {
+            var modifiedFetchedEnactedDetermination = fetchedEnacted
+            modifiedFetchedEnactedDetermination.tdd = tdd
+
+            modifiedFetchedEnactedDetermination.reason = injectTDD(into: modifiedFetchedEnactedDetermination.reason, tdd: tdd)
 
             fetchedEnactedDetermination = modifiedFetchedEnactedDetermination
         }
@@ -1451,5 +1472,39 @@ extension BaseNightscoutManager {
         }
 
         return updatedReason
+    }
+}
+
+extension BaseNightscoutManager {
+    /// Injects TDD into the reason string
+    func injectTDD(into reason: String, tdd: Decimal?) -> String {
+        guard let tdd = tdd else {
+            return reason
+        }
+
+        let tddString = "TDD: \(tdd) U"
+
+        // Define the regex pattern to match prediction terms followed by their values
+        // The pattern matches any of the terms, followed by optional non-digit characters,
+        // and then a number (integer or decimal)
+        let pattern = "(minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG)[^\\d]*\\d+(\\.\\d+)?"
+
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+            return reason + ", \(tddString)"
+        }
+
+        let range = NSRange(location: 0, length: reason.utf16.count)
+
+        let matches = regex.matches(in: reason, options: [], range: range)
+
+        if let lastMatch = matches.last {
+            // Get the insertion point, which is the end of the last match
+            let insertionIndex = reason.index(reason.startIndex, offsetBy: lastMatch.range.upperBound)
+
+            let newReason = String(reason[..<insertionIndex]) + tddString + String(reason[insertionIndex...])
+            return newReason
+        } else {
+            return reason + ", \(tddString)"
+        }
     }
 }

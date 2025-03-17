@@ -19,6 +19,7 @@ struct Determination: JSON, Equatable {
     let reservoir: Decimal?
     var isf: Decimal?
     var timestamp: Date?
+    var tdd: Decimal?
     var current_target: Decimal?
     let insulinForManualBolus: Decimal?
     let manualBolusErrorString: Decimal?
@@ -59,6 +60,7 @@ extension Determination {
         case timestamp
         case isf = "ISF"
         case current_target
+        case tdd
         case insulinForManualBolus
         case manualBolusErrorString
         case minDelta
