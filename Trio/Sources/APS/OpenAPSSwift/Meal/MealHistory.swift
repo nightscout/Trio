@@ -107,7 +107,7 @@ enum MealHistory {
                     duplicates += 1
                 }
             }
-            
+
             // Trio will never send any pump history contents of the following types to oref
             // Ignoring for JavaScript -> Swift port.
             // .bolusWizard

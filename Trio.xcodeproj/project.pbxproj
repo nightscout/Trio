@@ -290,6 +290,8 @@
 		3BC0AA412DA8B900000DF7B7 /* iob-history-prepare.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA402DA8B8F7000DF7B7 /* iob-history-prepare.js */; };
 		3BC26E552D7418830066ACD6 /* IobSuspendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC26E542D7418830066ACD6 /* IobSuspendTests.swift */; };
 		3BC4053B2D931620006A03E9 /* IobJsonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC4053A2D931620006A03E9 /* IobJsonTests.swift */; };
+		3BAD36B22D7CDC1A00CC298D /* MainLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */; };
+		3BAD36CC2D7D420E00CC298D /* CoreDataInitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */; };
 		3BCE75B32D4B38AE009E9453 /* InsulinSensitivities+Convert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */; };
 		3BCE75B52D4B391F009E9453 /* Decimal+rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */; };
 		3BCA5F7C2DC7B16400A7EAC7 /* pumphistory-with-external.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */; };
@@ -1164,6 +1166,8 @@
 		3BC0AA402DA8B8F7000DF7B7 /* iob-history-prepare.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-history-prepare.js"; sourceTree = "<group>"; };
 		3BC26E542D7418830066ACD6 /* IobSuspendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobSuspendTests.swift; sourceTree = "<group>"; };
 		3BC4053A2D931620006A03E9 /* IobJsonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobJsonTests.swift; sourceTree = "<group>"; };
+		3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainLoadingView.swift; sourceTree = "<group>"; };
+		3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataInitializationCoordinator.swift; sourceTree = "<group>"; };
 		3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InsulinSensitivities+Convert.swift"; sourceTree = "<group>"; };
 		3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Decimal+rounding.swift"; sourceTree = "<group>"; };
 		3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-with-external.json"; sourceTree = "<group>"; };
@@ -2740,10 +2744,10 @@
 		3B5CD1EB2D4912A600CE213C /* OpenAPSSwift */ = {
 			isa = PBXGroup;
 			children = (
-				DD9E6DA02D59A11200514CEC /* Meal */,
 				3B5CD2A42D4AEA5D00CE213C /* Extensions */,
 				3B1C5C282D68E1E3004E9273 /* Iob */,
 				3BEA3ADF2D58F79700A67A1D /* Logging */,
+				DD9E6DA02D59A11200514CEC /* Meal */,
 				3B5CD2B22D4AEA6600CE213C /* Models */,
 				3B5CD2972D4AEA3C00CE213C /* Profile */,
 				3B5CD2A02D4AEA5100CE213C /* Utils */,
