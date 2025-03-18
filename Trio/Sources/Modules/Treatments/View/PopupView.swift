@@ -24,7 +24,7 @@ private extension View {
     }
 
     /// Applies large value styling
-    func largeValueStyle() -> some View {
+    func solutionStyle() -> some View {
         font(.system(.title3, weight: .bold))
             .minimumScaleFactor(0.5)
     }
@@ -182,7 +182,7 @@ struct PopupView: View {
                     Text("ISF").secondaryLabel()
                     Spacer(minLength: 0)
                     Text("") // Placeholder for equals sign
-                    Text("Addend").secondaryLabel()
+                    Text("") // Placeholder for solution
                 }
 
                 // Row 2: Values
@@ -199,9 +199,13 @@ struct PopupView: View {
                         .valueStyle()
                     Spacer(minLength: 0)
                     Text("=").operatorStyle()
-                    Text(insulinFormatter(state.targetDifferenceInsulin))
-                        .valueStyle()
-                        .foregroundStyle(addendColor(state.targetDifferenceInsulin) ?? .primary)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(insulinFormatter(state.targetDifferenceInsulin))
+                            .valueStyle()
+                            .foregroundStyle(solutionColor(state.targetDifferenceInsulin) ?? .primary)
+                        Text("U")
+                            .unitStyle()
+                    }
                 }
 
                 // Row 3: Units
@@ -215,7 +219,7 @@ struct PopupView: View {
                     Text("\(state.units.rawValue)/U").unitStyle()
                     Spacer(minLength: 0)
                     Text("") // Placeholder for equals sign
-                    Text("U").unitStyle()
+                    Text("") // Placeholder for solution
                 }
             }
             .multilineTextAlignment(.center)
@@ -228,12 +232,12 @@ struct PopupView: View {
             Grid {
                 // Row 1: Titles
                 GridRow(alignment: .bottom) {
-                    Text("Subtract").secondaryLabel()
+                    Text("") // Placeholder for negative one
                     Text("") // Placeholder for multiplication sign
                     Text("IOB").secondaryLabel()
                     Spacer(minLength: 0)
                     Text("") // Placeholder for equals sign
-                    Text("Addend").secondaryLabel()
+                    Text("") // Placeholder for solution
                 }
 
                 // Row 2: Values
@@ -243,19 +247,23 @@ struct PopupView: View {
                     Text(insulinFormatter(state.iob, .plain)).valueStyle()
                     Spacer(minLength: 0)
                     Text("=").operatorStyle()
-                    Text(insulinFormatter(-1 * state.iob, .plain))
-                        .valueStyle()
-                        .foregroundStyle(addendColor(-1 * state.iob) ?? .primary)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(insulinFormatter(-1 * state.iob, .plain))
+                            .valueStyle()
+                            .foregroundStyle(solutionColor(-1 * state.iob) ?? .primary)
+                        Text("U")
+                            .unitStyle()
+                    }
                 }
 
                 // Row 3: Units
                 GridRow(alignment: .top) {
-                    Text("") // Placeholder for subtract
+                    Text("") // Placeholder for negative one
                     Text("") // Placeholder for multiplication sign
                     Text("U").unitStyle()
                     Spacer(minLength: 0)
                     Text("") // Placeholder for equals sign
-                    Text("U").unitStyle()
+                    Text("") // Placeholder for solution
                 }
             }
             .multilineTextAlignment(.center)
@@ -278,7 +286,7 @@ struct PopupView: View {
                     Text("CR").secondaryLabel()
                     Spacer()
                     Text("") // Placeholder for equals sign
-                    Text(exceededMaxCOB ? "" : "Addend").secondaryLabel()
+                    Text("") // Placeholder for solution
                 }
 
                 // Row 2: COB breakdown values
@@ -299,9 +307,13 @@ struct PopupView: View {
                     Text(state.carbRatio.formatted()).valueStyle()
                     Spacer()
                     Text("=").operatorStyle()
-                    Text(exceededMaxCOB ? "" : insulinFormatter(state.wholeCobInsulin))
-                        .valueStyle()
-                        .foregroundStyle(addendColor(state.wholeCobInsulin) ?? .primary)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(exceededMaxCOB ? "" : insulinFormatter(state.wholeCobInsulin))
+                            .valueStyle()
+                            .foregroundStyle(solutionColor(state.wholeCobInsulin) ?? .primary)
+                        Text("U")
+                            .unitStyle()
+                    }
                 }
 
                 // Row 3: Units
@@ -315,7 +327,7 @@ struct PopupView: View {
                     Text("g/U").unitStyle()
                     Spacer()
                     Text("") // Empty for equals sign
-                    Text(exceededMaxCOB ? "" : "U").unitStyle()
+                    Text("") // Empty for solution
                 }
 
                 //
@@ -333,7 +345,7 @@ struct PopupView: View {
                         Text("CR").secondaryLabel()
                         Spacer(minLength: 0)
                         Text("") // Placeholder for equals sign
-                        Text("Addend").secondaryLabel()
+                        Text("") // Placeholder for solution
                     }
 
                     // Row 5: Values
@@ -351,9 +363,13 @@ struct PopupView: View {
                         Text(state.carbRatio.formatted()).valueStyle()
                         Spacer(minLength: 0)
                         Text("=").operatorStyle()
-                        Text(insulinFormatter(state.wholeCobInsulin))
-                            .valueStyle()
-                            .foregroundStyle(addendColor(state.wholeCobInsulin) ?? .primary)
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text(insulinFormatter(state.wholeCobInsulin))
+                                .valueStyle()
+                                .foregroundStyle(solutionColor(state.wholeCobInsulin) ?? .primary)
+                            Text("U")
+                                .unitStyle()
+                        }
                     }
 
                     // Row 6: Units
@@ -365,7 +381,7 @@ struct PopupView: View {
                         Text("g/U").unitStyle()
                         Spacer(minLength: 0)
                         Text("") // Placeholder for equals sign
-                        Text("U").unitStyle()
+                        Text("") // Placeholder for solution
                     }
                 }
             }
@@ -384,7 +400,7 @@ struct PopupView: View {
                     Text("ISF").secondaryLabel()
                     Spacer(minLength: 0)
                     Text("") // Placeholder for equals sign
-                    Text("Addend").secondaryLabel()
+                    Text("") // Placeholder for solution
                 }
 
                 // Row 2: Values
@@ -396,9 +412,13 @@ struct PopupView: View {
                         .valueStyle()
                     Spacer(minLength: 0)
                     Text("=").operatorStyle()
-                    Text(insulinFormatter(state.fifteenMinInsulin))
-                        .valueStyle()
-                        .foregroundStyle(addendColor(state.fifteenMinInsulin) ?? .primary)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(insulinFormatter(state.fifteenMinInsulin))
+                            .valueStyle()
+                            .foregroundStyle(solutionColor(state.fifteenMinInsulin) ?? .primary)
+                        Text("U")
+                            .unitStyle()
+                    }
                 }
 
                 // Row 3: Units
@@ -408,7 +428,7 @@ struct PopupView: View {
                     Text("\(state.units.rawValue)/U").unitStyle()
                     Spacer(minLength: 0)
                     Text("") // Placeholder for equals sign
-                    Text("U").unitStyle()
+                    Text("")
                 }
             }
             .multilineTextAlignment(.center)
@@ -461,11 +481,11 @@ struct PopupView: View {
 
                     // Row 4: Sum
                     GridRow {
-                        HStack {
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text("=").operatorStyle()
                             Text(insulinFormatter(state.wholeCalc))
-                                .valueStyle()
-                                .foregroundStyle(addendColor(state.wholeCalc) ?? .secondary)
+                                .solutionStyle()
+                                .foregroundStyle(solutionColor(state.wholeCalc) ?? .secondary)
                             Text("U").unitStyle()
                         }
                         .gridCellColumns(7)
@@ -483,7 +503,7 @@ struct PopupView: View {
                         Text("Delta").secondaryLabel()
                         Spacer(minLength: 0)
                         Text("") // Placeholder for equals sign
-                        Text("Sum").secondaryLabel()
+                        Text("") // Placeholder for solution
                     }
 
                     // Row 2: Values
@@ -501,9 +521,13 @@ struct PopupView: View {
                             .valueStyle()
                         Spacer(minLength: 0)
                         Text("=").operatorStyle()
-                        Text(insulinFormatter(state.wholeCalc))
-                            .valueStyle()
-                            .foregroundStyle(addendColor(state.wholeCalc) ?? .secondary)
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text(insulinFormatter(state.wholeCalc))
+                                .valueStyle()
+                                .foregroundStyle(solutionColor(state.wholeCalc) ?? .secondary)
+                            Text("U")
+                                .unitStyle()
+                        }
                     }
 
                     // Row 3: Units
@@ -517,7 +541,7 @@ struct PopupView: View {
                         Text("U").unitStyle()
                         Spacer(minLength: 0)
                         Text("") // Placeholder for equals sign
-                        Text("U").unitStyle()
+                        Text("") // Placeholder for solution
                     }
                 }
             }
@@ -535,7 +559,7 @@ struct PopupView: View {
                     Text("Super Bolus %").secondaryLabel()
                     Spacer(minLength: 0)
                     Text("") // Placeholder for equals sign
-                    Text("Addend").secondaryLabel()
+                    Text("") // Placeholder for solution
                 }
 
                 // Row 2: Values
@@ -545,9 +569,13 @@ struct PopupView: View {
                     Text((100 * state.sweetMealFactor).formatted() + " %").valueStyle()
                     Spacer(minLength: 0)
                     Text("=").operatorStyle()
-                    Text(insulinFormatter(state.superBolusInsulin))
-                        .valueStyle()
-                        .foregroundStyle(addendColor(state.superBolusInsulin) ?? .primary)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(insulinFormatter(state.superBolusInsulin))
+                            .valueStyle()
+                            .foregroundStyle(solutionColor(state.superBolusInsulin) ?? .primary)
+                        Text("U")
+                            .unitStyle()
+                    }
                 }
 
                 // Row 3: Units
@@ -557,7 +585,7 @@ struct PopupView: View {
                     Text("") // Placeholder for percent sign
                     Spacer(minLength: 0)
                     Text("") // Placeholder for equals sign
-                    Text("U").unitStyle()
+                    Text("") // Placeholder for solution
                 }
             }
             .multilineTextAlignment(.center)
@@ -580,7 +608,7 @@ struct PopupView: View {
                         Text("Rec. Bolus %").secondaryLabel()
                         Spacer(minLength: 0)
                         Text("") // Placeholder for equals sign
-                        Text("Result").secondaryLabel()
+                        Text("") // Placeholder for solution
                     }
 
                     GridRow {
@@ -589,9 +617,13 @@ struct PopupView: View {
                         Text((100 * state.fraction).formatted() + " %").valueStyle()
                         Spacer(minLength: 0)
                         Text("=").operatorStyle()
-                        Text(insulinFormatter(state.factoredInsulin))
-                            .valueStyle()
-                            .foregroundStyle(addendColor(state.factoredInsulin) ?? .primary)
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text(insulinFormatter(state.factoredInsulin))
+                                .valueStyle()
+                                .foregroundStyle(solutionColor(state.factoredInsulin) ?? .primary)
+                            Text("U")
+                                .unitStyle()
+                        }
                     }
 
                     GridRow(alignment: .top) {
@@ -600,7 +632,7 @@ struct PopupView: View {
                         Text("") // Placeholder for percent sign
                         Spacer(minLength: 0)
                         Text("") // Placeholder for equals sign
-                        Text("U").unitStyle()
+                        Text("") // Placeholder for solution
                     }
 
                 case (false, true):
@@ -613,7 +645,7 @@ struct PopupView: View {
                         Text("Fatty %").secondaryLabel()
                         Spacer(minLength: 0)
                         Text("") // Placeholder for equals sign
-                        Text("Result").secondaryLabel()
+                        Text("") // Placeholder for solution
                     }
 
                     GridRow {
@@ -624,9 +656,13 @@ struct PopupView: View {
                         Text((100 * state.fattyMealFactor).formatted() + " %").valueStyle()
                         Spacer(minLength: 0)
                         Text("=").operatorStyle()
-                        Text(insulinFormatter(state.factoredInsulin))
-                            .valueStyle()
-                            .foregroundStyle(addendColor(state.factoredInsulin) ?? .primary)
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text(insulinFormatter(state.factoredInsulin))
+                                .valueStyle()
+                                .foregroundStyle(solutionColor(state.factoredInsulin) ?? .primary)
+                            Text("U")
+                                .unitStyle()
+                        }
                     }
 
                     GridRow(alignment: .top) {
@@ -637,7 +673,7 @@ struct PopupView: View {
                         Text("") // Placeholder for percent sign
                         Spacer(minLength: 0)
                         Text("") // Placeholder for equals sign
-                        Text("U").unitStyle()
+                        Text("") // Placeholder for solution
                     }
 
                 case (true, false):
@@ -652,7 +688,7 @@ struct PopupView: View {
                         Text("Super Bolus").secondaryLabel()
                         Spacer(minLength: 0)
                         Text("") // Placeholder for equals sign
-                        Text("Result").secondaryLabel()
+                        Text("") // Placeholder for solution
                     }
 
                     GridRow {
@@ -665,9 +701,13 @@ struct PopupView: View {
                         Text(insulinFormatter(state.superBolusInsulin)).valueStyle()
                         Spacer(minLength: 0)
                         Text("=").operatorStyle()
-                        Text(insulinFormatter(state.factoredInsulin))
-                            .valueStyle()
-                            .foregroundStyle(addendColor(state.factoredInsulin) ?? .primary)
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text(insulinFormatter(state.factoredInsulin))
+                                .valueStyle()
+                                .foregroundStyle(solutionColor(state.factoredInsulin) ?? .primary)
+                            Text("U")
+                                .unitStyle()
+                        }
                     }
 
                     GridRow(alignment: .top) {
@@ -680,7 +720,7 @@ struct PopupView: View {
                         Text("U").unitStyle()
                         Spacer(minLength: 0)
                         Text("") // Placeholder for equals sign
-                        Text("U").unitStyle()
+                        Text("") // Placeholder for solution
                     }
 
                 case (true, true):
@@ -739,7 +779,7 @@ struct PopupView: View {
                                         Text("\(iobFormatted)").valueStyle()
                                         Text("=").operatorStyle()
                                         Text("\(insulinFormatter(iobAvailable)) U")
-                                            .font(.subheadline)
+                                            .font(.title3)
                                             .foregroundStyle(.red)
                                             .minimumScaleFactor(0.5)
                                         Spacer()
@@ -779,11 +819,11 @@ struct PopupView: View {
                         // Right column - the insulin calculation
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text(insulinFormatter(state.insulinCalculated))
-                                .largeValueStyle()
+                                .solutionStyle()
                                 .foregroundStyle(state.insulinCalculated > 0 ? Color.accentColor : .primary)
 
                             Text("U")
-                                .font(.title3)
+                                .font(.subheadline)
                                 .foregroundStyle(.secondary)
                                 .minimumScaleFactor(0.5)
                         }
@@ -845,7 +885,7 @@ struct PopupView: View {
         return formatter.string(from: roundedValue) ?? "\(value)"
     }
 
-    func addendColor(_ value: Decimal) -> Color? {
+    func solutionColor(_ value: Decimal) -> Color? {
         switch value {
         case ..<0:
             return .red
