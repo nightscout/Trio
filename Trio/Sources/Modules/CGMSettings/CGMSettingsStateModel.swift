@@ -26,14 +26,6 @@ let cgmDefaultModel = CGMModel(
     subtitle: CGMType.none.subtitle
 )
 
-class CGMSetupCompletionNotifying: CompletionNotifying {
-    var completionDelegate: (any LoopKitUI.CompletionDelegate)?
-}
-
-class CGMDeletionCompletionNotifying: CompletionNotifying {
-    var completionDelegate: (any LoopKitUI.CompletionDelegate)?
-}
-
 extension CGMSettings {
     final class StateModel: BaseStateModel<Provider> {
         // Singleton implementation
@@ -165,7 +157,7 @@ extension CGMSettings.StateModel: CompletionDelegate {
         Task {
             // this sleep is because this event and cgmManagerWantsDeletion
             // are called in parallel.
-            try await Task.sleep(for: .seconds(0.1))
+            try await Task.sleep(for: .seconds(0.2))
             await MainActor.run {
                 if fetchGlucoseManager.cgmGlucoseSourceType == .none {
                     cgmCurrent = cgmDefaultModel

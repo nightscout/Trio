@@ -141,6 +141,7 @@ extension Home {
         var cgmAvailable: Bool = false
         var listOfCGM: [CGMModel] = []
         var cgmCurrent = cgmDefaultModel
+        var shouldRunDeleteOnSettingsChange = true
 
         var showCarbsRequiredBadge: Bool = true
         private(set) var setupPumpType: PumpConfig.PumpType = .minimed
@@ -493,8 +494,13 @@ extension Home {
             case .plugin:
                 shouldDisplayCGMSetupSheet = true
             default:
-                fetchGlucoseManager.cgmGlucoseSourceType = cgmCurrent.type
-                completionNotifyingDidComplete(CGMSetupCompletionNotifying())
+                shouldDisplayCGMSetupSheet = true
+                settingsManager.settings.cgm = cgmCurrent.type
+                settingsManager.settings.cgmPluginIdentifier = ""
+                fetchGlucoseManager.updateGlucoseSource(cgmGlucoseSourceType: cgmCurrent.type, cgmGlucosePluginId: cgmCurrent.id)
+                broadcaster.notify(GlucoseObserver.self, on: .main) {
+                    $0.glucoseDidUpdate([])
+                }
             }
         }
 
@@ -503,12 +509,14 @@ extension Home {
                 // Call plugin functionality on the manager queue (or at least attempt to)
                 Task {
                     await self.fetchGlucoseManager?.deleteGlucoseSource()
-                }
 
-                // UI updates go back to Main
-                DispatchQueue.main.async {
-                    self.shouldDisplayCGMSetupSheet = false
-                    self.completionNotifyingDidComplete(CGMDeletionCompletionNotifying())
+                    // UI updates go back to Main
+                    await MainActor.run {
+                        self.shouldDisplayCGMSetupSheet = false
+                        self.broadcaster.notify(GlucoseObserver.self, on: .main) {
+                            $0.glucoseDidUpdate([])
+                        }
+                    }
                 }
             }
         }
@@ -681,6 +689,17 @@ extension Home.StateModel:
         Task {
             await setupCGMSettings()
         }
+        if settingsManager.settings.cgm == .none, shouldRunDeleteOnSettingsChange {
+            shouldRunDeleteOnSettingsChange = false
+            cgmCurrent = cgmDefaultModel
+            DispatchQueue.main.async {
+                self.broadcaster.notify(GlucoseObserver.self, on: .main) {
+                    $0.glucoseDidUpdate([])
+                }
+            }
+        } else {
+            shouldRunDeleteOnSettingsChange = true
+        }
     }
 
     func preferencesDidChange(_: Preferences) {
@@ -726,46 +745,17 @@ extension Home.StateModel:
 extension Home.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_ notifying: CompletionNotifying) {
         debug(.service, "Completion fired by: \(type(of: notifying))")
-        var wasDeleted: Bool = false
-
-        if notifying is CGMSetupCompletionNotifying || notifying is CGMDeletionCompletionNotifying ||
-            notifying is CGMManagerSettingsNavigationViewController || notifying is any SetupTableViewControllerDelegate ||
-            notifying is any CGMManagerOnboarding
-        {
-            if fetchGlucoseManager.cgmGlucoseSourceType == .none {
-                debug(.service, "CGMDeletionCompletionNotifying: CGM Deletion Completed")
-
-                cgmCurrent = cgmDefaultModel
-                settingsManager.settings.cgm = cgmDefaultModel.type
-                settingsManager.settings.cgmPluginIdentifier = cgmDefaultModel.id
-                Task {
-                    await fetchGlucoseManager.deleteGlucoseSource()
-                }
-                wasDeleted = false
-            } else {
-                debug(.service, "CGMSetupCompletionNotifying: CGM Setup Completed")
-
-                settingsManager.settings.cgm = cgmCurrent.type
-                settingsManager.settings.cgmPluginIdentifier = cgmCurrent.id
-                fetchGlucoseManager.updateGlucoseSource(cgmGlucoseSourceType: cgmCurrent.type, cgmGlucosePluginId: cgmCurrent.id)
-
-                shouldDisplayCGMSetupSheet = cgmCurrent.type == .simulator || cgmCurrent.type == .nightscout || cgmCurrent
-                    .type == .xdrip || cgmCurrent.type == .enlite
-            }
-
-            // update glucose source if required
-            DispatchQueue.main.async {
-                if wasDeleted {
-                    self.shouldDisplayCGMSetupSheet = false
-                }
-                self.broadcaster.notify(GlucoseObserver.self, on: .main) {
-                    $0.glucoseDidUpdate([])
+        Task {
+            // this sleep is because this event and cgmManagerWantsDeletion
+            // are called in parallel.
+            try await Task.sleep(for: .seconds(0.2))
+            await MainActor.run {
+                if fetchGlucoseManager.cgmGlucoseSourceType == .none {
+                    cgmCurrent = cgmDefaultModel
                 }
             }
-        } else {
-            // pump related handling
-            shouldDisplayPumpSetupSheet = false // hides sheet
         }
+        shouldDisplayCGMSetupSheet = false
     }
 }
 
@@ -788,12 +778,18 @@ extension Home.StateModel: PumpManagerOnboardingDelegate {
 
 extension Home.StateModel: CGMManagerOnboardingDelegate {
     func cgmManagerOnboarding(didCreateCGMManager manager: LoopKitUI.CGMManagerUI) {
-        // update the glucose source
+        settingsManager.settings.cgm = cgmCurrent.type
+        settingsManager.settings.cgmPluginIdentifier = cgmCurrent.id
         fetchGlucoseManager.updateGlucoseSource(
             cgmGlucoseSourceType: cgmCurrent.type,
             cgmGlucosePluginId: cgmCurrent.id,
             newManager: manager
         )
+        DispatchQueue.main.async {
+            self.broadcaster.notify(GlucoseObserver.self, on: .main) {
+                $0.glucoseDidUpdate([])
+            }
+        }
     }
 
     func cgmManagerOnboarding(didOnboardCGMManager _: LoopKitUI.CGMManagerUI) {
