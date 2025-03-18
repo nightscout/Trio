@@ -235,7 +235,7 @@ struct AnimationPlaceholder: View {
                     .rotationEffect(.degrees(animationValue * Double.random(in: -30 ... 30)))
             }
 
-            Image(systemName: "waveform.path.ecg.rectangle.fill")
+            Image(systemName: "syringe.fill")
                 .font(.system(size: 80))
                 .foregroundColor(step.accentColor)
                 .scaleEffect(1.0 + animationValue * 0.2)

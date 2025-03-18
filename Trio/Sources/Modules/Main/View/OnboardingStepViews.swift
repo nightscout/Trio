@@ -19,7 +19,7 @@ struct WelcomeStepView: View {
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
 
-            Image("trio-logo")
+            Image("trioCircledNoBackground")
                 .resizable()
                 .scaledToFit()
                 .frame(height: 100)
@@ -138,8 +138,8 @@ struct GlucoseTargetStepView: View {
                                 get: { Double(truncating: onboardingData.targetHigh as NSNumber) },
                                 set: { onboardingData.targetHigh = Decimal($0) }
                             ),
-                            in: onboardingData.units == .mgdL ? 
-                                Double(truncating: onboardingData.targetLow as NSNumber) + 10 ... 200 : 
+                            in: onboardingData.units == .mgdL ?
+                                Double(truncating: onboardingData.targetLow as NSNumber) + 10 ... 200 :
                                 Double(truncating: onboardingData.targetLow as NSNumber) + 0.6 ... 11.1,
                             step: onboardingData.units == .mgdL ? 1 : 0.1
                         )
