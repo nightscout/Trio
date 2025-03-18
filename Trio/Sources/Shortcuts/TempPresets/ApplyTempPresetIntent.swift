@@ -80,8 +80,7 @@ struct ApplyTempPresetIntent: AppIntent {
                 return .result(
                     dialog: IntentDialog(
                         LocalizedStringResource(
-                            "Temporary Target '\(presetToApply.name)' applied",
-                            table: "ShortcutsDetail"
+                            "Temporary Target '\(presetToApply.name)' applied"
                         )
                     )
                 )
@@ -89,8 +88,7 @@ struct ApplyTempPresetIntent: AppIntent {
                 return .result(
                     dialog: IntentDialog(
                         LocalizedStringResource(
-                            "Temporary Target '\(presetToApply.name)' failed",
-                            table: "ShortcutsDetail"
+                            "Temporary Target '\(presetToApply.name)' failed"
                         )
                     )
                 )

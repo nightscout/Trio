@@ -945,11 +945,11 @@ final class BaseAPSManager: APSManager, Injectable {
             }
             let af = pref.adjustmentFactor
             let insulin_type = pref.curve
-            let buildDate = BuildDetails.default.buildDate()
+            let buildDate = BuildDetails.shared.buildDate()
             let version = Bundle.main.releaseVersionNumber
             let build = Bundle.main.buildVersionNumber
 
-            var branch = BuildDetails.default.branchAndSha
+            var branch = BuildDetails.shared.branchAndSha
 
             let copyrightNotice_ = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? ""
             let pump_ = pumpManager?.localizedTitle ?? ""

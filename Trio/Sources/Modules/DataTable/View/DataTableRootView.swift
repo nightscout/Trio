@@ -101,7 +101,7 @@ extension DataTable {
                 // Show custom progress view
                 /// don't show it if glucose is stale as it will block the UI
                 if state.waitForSuggestion && state.isGlucoseDataFresh(glucoseStored.first?.date) {
-                    CustomProgressView(text: progressText.rawValue)
+                    CustomProgressView(text: progressText.displayName)
                 }
             })
                 .background(appState.trioBackgroundColor(for: colorScheme))
