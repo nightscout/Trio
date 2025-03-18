@@ -4,6 +4,9 @@ import G7SensorKit
 import LoopKitUI
 import SwiftUI
 
+/// For a full description of the events that can happen for the CGM lifecycle, see comment at the top
+/// of HomeStateModel since these are the same events
+
 struct CGMModel: Identifiable, Hashable {
     var id: String
     var type: CGMType
@@ -55,6 +58,8 @@ extension CGMSettings {
         @Published var cgmTransmitterDeviceAddress: String? = nil
         @Published var listOfCGM: [CGMModel] = []
         @Published var url: URL?
+
+        var shouldRunDeleteOnSettingsChange = true
 
         override func subscribe() {
             units = settingsManager.settings.units
@@ -157,8 +162,15 @@ extension CGMSettings {
 
 extension CGMSettings.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
-        if fetchGlucoseManager.cgmGlucoseSourceType == .none {
-            cgmCurrent = cgmDefaultModel
+        Task {
+            // this sleep is because this event and cgmManagerWantsDeletion
+            // are called in parallel.
+            try await Task.sleep(for: .seconds(0.1))
+            await MainActor.run {
+                if fetchGlucoseManager.cgmGlucoseSourceType == .none {
+                    cgmCurrent = cgmDefaultModel
+                }
+            }
         }
         shouldDisplayCGMSetupSheet = false
     }
@@ -194,13 +206,16 @@ extension CGMSettings.StateModel: SettingsObserver {
         // but both will call deleteGlucoseSource on the fetchGlucoseManager
         // so we listen for changes to the cgm setting and update our internal
         // state accordingly
-        if settingsManager.settings.cgm == .none {
+        if settingsManager.settings.cgm == .none, shouldRunDeleteOnSettingsChange {
+            shouldRunDeleteOnSettingsChange = false
             cgmCurrent = cgmDefaultModel
             DispatchQueue.main.async {
                 self.broadcaster.notify(GlucoseObserver.self, on: .main) {
                     $0.glucoseDidUpdate([])
                 }
             }
+        } else {
+            shouldRunDeleteOnSettingsChange = true
         }
     }
 }
