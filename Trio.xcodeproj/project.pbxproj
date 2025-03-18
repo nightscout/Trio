@@ -1752,6 +1752,8 @@
 		3811DE1F25C9D48300A708ED /* View */ = {
 			isa = PBXGroup;
 			children = (
+				BD47FD182D88AAF90043966B /* OnboardingView.swift */,
+				BD47FD162D88AAEF0043966B /* OnboardingStepViews.swift */,
 				3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */,
 				3811DE2025C9D48300A708ED /* MainRootView.swift */,
 			);
@@ -2590,8 +2592,6 @@
 		BD47FD152D88AAD80043966B /* View */ = {
 			isa = PBXGroup;
 			children = (
-				BD47FD182D88AAF90043966B /* OnboardingView.swift */,
-				BD47FD162D88AAEF0043966B /* OnboardingStepViews.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";

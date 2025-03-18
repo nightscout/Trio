@@ -16,21 +16,22 @@ extension UserDefaults {
 
 /// Manages the app's onboarding experience, ensuring it's only shown to new users.
 /// Coordinates the display of onboarding screens when the app is launched for the first time.
-final class OnboardingManager: Injectable, ObservableObject {
-    @Injected() var settingsManager: SettingsManager!
+final class OnboardingManager: ObservableObject {
+    /// Shared singleton instance.
+    static let shared = OnboardingManager()
 
     /// Indicates whether the onboarding flow should be presented.
     @Published var shouldShowOnboarding: Bool = false
 
     /// Initialize the OnboardingManager with the required dependencies.
-    init(resolver: Resolver) {
-        injectServices(resolver)
+    private init() {
         checkOnboardingStatus()
     }
 
     /// Checks if onboarding has been completed and updates the shouldShowOnboarding flag accordingly.
     private func checkOnboardingStatus() {
-        shouldShowOnboarding = !UserDefaults.standard.onboardingCompleted
+//        shouldShowOnboarding = !UserDefaults.standard.onboardingCompleted
+        shouldShowOnboarding = true
     }
 
     /// Marks onboarding as completed and updates the shouldShowOnboarding flag.

@@ -138,8 +138,9 @@ struct GlucoseTargetStepView: View {
                                 get: { Double(truncating: onboardingData.targetHigh as NSNumber) },
                                 set: { onboardingData.targetHigh = Decimal($0) }
                             ),
-                            in: onboardingData.units == .mgdL ? onboardingData
-                                .targetLow as! Double + 10 ... 200 : (onboardingData.targetLow as! Double) + 0.6 ... 11.1,
+                            in: onboardingData.units == .mgdL ? 
+                                Double(truncating: onboardingData.targetLow as NSNumber) + 10 ... 200 : 
+                                Double(truncating: onboardingData.targetLow as NSNumber) + 0.6 ... 11.1,
                             step: onboardingData.units == .mgdL ? 1 : 0.1
                         )
                         .accentColor(.green)

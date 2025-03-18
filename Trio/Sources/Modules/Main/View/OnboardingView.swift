@@ -2,7 +2,7 @@ import SwiftUI
 
 /// The main onboarding view that manages navigation between onboarding steps.
 struct OnboardingView: View {
-    @ObservedObject var manager: OnboardingManager
+    let manager: OnboardingManager
     @State private var onboardingData = OnboardingData()
     @State private var currentStep: OnboardingStep = .welcome
 
@@ -126,7 +126,7 @@ struct OnboardingView: View {
                             withAnimation {
                                 if currentStep == .completed {
                                     // Apply settings and complete onboarding
-                                    onboardingData.applyToSettings(settingsManager: manager.settingsManager)
+//                                    onboardingData.applyToSettings(settingsManager: manager.settingsManager)
                                     manager.completeOnboarding()
                                 } else if let next = currentStep.next {
                                     currentStep = next

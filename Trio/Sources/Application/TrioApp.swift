@@ -18,6 +18,8 @@ extension Notification.Name {
     @AppStorage("colorSchemePreference") private var colorSchemePreference: ColorSchemeOption = .systemDefault
 
     let coreDataStack = CoreDataStack.shared
+    let onboardingManager = OnboardingManager.shared
+
     class InitState {
         var complete = false
         var error = false
@@ -32,9 +34,6 @@ extension Notification.Name {
     @State private var appState = AppState()
     @State private var showLoadingView = true
     @State private var showLoadingError = false
-
-    // Onboarding manager to handle the onboarding flow
-    private let onboardingManager: OnboardingManager
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -71,7 +70,6 @@ extension Notification.Name {
         _ = resolver.resolve(ContactImageManager.self)!
         _ = resolver.resolve(HealthKitManager.self)!
         _ = resolver.resolve(WatchManager.self)!
-        _ = resolver.resolve(OnboardingManager.self)!
         _ = resolver.resolve(GarminManager.self)!
         _ = resolver.resolve(ContactImageManager.self)!
         _ = resolver.resolve(BluetoothStateManager.self)!
@@ -83,9 +81,6 @@ extension Notification.Name {
     }
 
     init() {
-        // Initialize onboardingManager in the initializer declaration
-        onboardingManager = OnboardingManager(resolver: TrioApp.assembler.resolver)
-
         let notificationCenter = Foundation.NotificationCenter.default
         notificationCenter.addObserver(
             forName: .initializationCompleted,
