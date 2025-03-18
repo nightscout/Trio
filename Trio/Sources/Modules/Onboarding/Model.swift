@@ -104,8 +104,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 /// Model that holds the data collected during onboarding.
 @Observable class OnboardingData {
     // Glucose Target
-    var targetLow: Decimal = 80
-    var targetHigh: Decimal = 120
+    var targetLow: Decimal = 70
+    var targetHigh: Decimal = 180
 
     // Basal Profile
     var basalRates: [BasalRateEntry] = [BasalRateEntry(startTime: 0, rate: 1.0)]
