@@ -123,10 +123,18 @@ extension Bolus {
             }
             .navigationTitle("Enact Bolus")
             .navigationBarTitleDisplayMode(.automatic)
-            .navigationBarItems(leading: Button("Close", action: state.hideModal))
+            .navigationBarItems(leading: Section {
+                // Only show close nav bar button if not following the Add Carbs screen,
+                // otherwise force use of the "Continue without bolus" button to close.
+                if !waitForSuggestion { Button("Close", action: state.hideModal) }
+            })
             .popup(isPresented: presentInfo, alignment: .center, direction: .bottom) {
                 bolusInfo
             }
+            // Only allow drag to dismiss if not following the Add Carbs screen,
+            // otherwise force use of the "Continue without bolus" button to close.
+            // Note that this is broken in iOS 18.1: https://developer.apple.com/forums/thread/767475
+            .interactiveDismissDisabled(waitForSuggestion)
         }
 
         var bolusInfo: some View {
