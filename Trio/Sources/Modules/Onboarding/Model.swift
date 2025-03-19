@@ -104,7 +104,14 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 /// Model that holds the data collected during onboarding.
 @Observable class OnboardingData: Injectable {
     @ObservationIgnored @Injected() var settingsManager: SettingsManager!
-
+    @ObservationIgnored @Injected() var storage: FileStorage!
+    
+    // Carb Ratio related
+    var items: [CarbRatioEditor.Item] = []
+    var initialItems: [CarbRatioEditor.Item] = []
+    let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+    let rateValues = stride(from: 30.0, to: 501.0, by: 1.0).map { ($0.decimal ?? .zero) / 10 }
+    
     // Glucose Target
     var targetLow: Decimal = 70
     var targetHigh: Decimal = 180
@@ -145,12 +152,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
         // Apply glucose units
         settingsCopy.units = units
 
-        // Apply carb ratio (if the property exists in TrioSettings)
-        if let carbRatioValue = Double(exactly: NSDecimalNumber(decimal: carbRatio)) {
-            // Assuming there is a related property for carb ratio in TrioSettings
-            // This might need to be adjusted based on the actual property name
-            // settingsCopy.carbRatio = carbRatioValue
-        }
+        // Apply carb ratio
+        saveCarbRatios()
 
         // Apply ISF (if the property exists in TrioSettings)
         if let isfValue = Double(exactly: NSDecimalNumber(decimal: isf)) {
@@ -162,5 +165,67 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
         // Instead of using updateSettings which doesn't exist,
         // we'll directly set the settings property which will trigger the didSet observer
         settingsManager.settings = settingsCopy
+    }
+}
+
+// MARK: - Setup Carb Ratios
+extension OnboardingData {
+    var hasChanges: Bool {
+        if initialItems.count != items.count {
+            return true
+        }
+
+        for (initialItem, currentItem) in zip(initialItems, items) {
+            if initialItem.rateIndex != currentItem.rateIndex || initialItem.timeIndex != currentItem.timeIndex {
+                return true
+            }
+        }
+
+        return false
+    }
+    
+    func addCarbRatio() {
+        var time = 0
+        var rate = 0
+        if let last = items.last {
+            time = last.timeIndex + 1
+            rate = last.rateIndex
+        }
+
+        let newItem = CarbRatioEditor.Item(rateIndex: rate, timeIndex: time)
+
+        items.append(newItem)
+    }
+
+    func saveCarbRatios() {
+        guard hasChanges else { return }
+
+        let schedule = items.enumerated().map { _, item -> CarbRatioEntry in
+            let fotmatter = DateFormatter()
+            fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
+            fotmatter.dateFormat = "HH:mm:ss"
+            let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
+            let minutes = Int(date.timeIntervalSince1970 / 60)
+            let rate = self.rateValues[item.rateIndex]
+            return CarbRatioEntry(start: fotmatter.string(from: date), offset: minutes, ratio: rate)
+        }
+        let profile = CarbRatios(units: .grams, schedule: schedule)
+        saveProfile(profile)
+        initialItems = items.map { CarbRatioEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+    }
+
+//    func validate() {
+//        DispatchQueue.main.async {
+//            let uniq = Array(Set(self.items))
+//            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+//            sorted.first?.timeIndex = 0
+//            if self.items != sorted {
+//                self.items = sorted
+//            }
+//        }
+//    }
+    
+    func saveProfile(_ profile: CarbRatios) {
+        storage.save(profile, as: OpenAPS.Settings.carbRatios)
     }
 }
