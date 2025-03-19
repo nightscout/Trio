@@ -72,7 +72,7 @@ extension Settings {
         var body: some View {
             List {
                 if searchText.isEmpty {
-                    let buildDetails = BuildDetails.default
+                    let buildDetails = BuildDetails.shared
 
                     Section(
                         header: Text("BRANCH: \(buildDetails.branchAndSha)").textCase(nil),
