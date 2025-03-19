@@ -16,7 +16,7 @@ struct OnboardingView: View {
             ZStack {
                 // Background gradient
                 LinearGradient(
-                    gradient: Gradient(colors: [Color(UIColor.systemBackground), currentStep.accentColor.opacity(0.1)]),
+                    gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
                     startPoint: .top,
                     endPoint: .bottom
                 )
