@@ -16,7 +16,7 @@ extension UserDefaults {
 
 /// Manages the app's onboarding experience, ensuring it's only shown to new users.
 /// Coordinates the display of onboarding screens when the app is launched for the first time.
-final class OnboardingManager: ObservableObject {
+final class OnboardingManager: ObservableObject, Injectable {
     /// Shared singleton instance.
     static let shared = OnboardingManager()
 

@@ -126,7 +126,7 @@ struct OnboardingView: View {
                             withAnimation {
                                 if currentStep == .completed {
                                     // Apply settings and complete onboarding
-//                                    onboardingData.applyToSettings(settingsManager: manager.settingsManager)
+                                    onboardingData.applyToSettings()
                                     manager.completeOnboarding()
                                 } else if let next = currentStep.next {
                                     currentStep = next

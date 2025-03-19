@@ -102,7 +102,9 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 }
 
 /// Model that holds the data collected during onboarding.
-@Observable class OnboardingData {
+@Observable class OnboardingData: Injectable {
+    @ObservationIgnored @Injected() var settingsManager: SettingsManager!
+
     // Glucose Target
     var targetLow: Decimal = 70
     var targetHigh: Decimal = 180
@@ -132,7 +134,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
     }
 
     /// Applies the onboarding data to the app's settings.
-    func applyToSettings(settingsManager: SettingsManager) {
+    func applyToSettings() {
         // Make a copy of the current settings that we can mutate
         var settingsCopy = settingsManager.settings
 
