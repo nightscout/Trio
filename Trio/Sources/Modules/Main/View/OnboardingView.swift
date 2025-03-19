@@ -419,3 +419,17 @@ struct AnimationPlaceholder: View {
         }
     }
 }
+
+struct Onboarding_Preview: PreviewProvider {
+    static var previews: some View {
+        Group {
+            let onboardingManager = OnboardingManager()
+            OnboardingView(manager: onboardingManager)
+                .previewDisplayName("Onboarding Flow")
+
+            OnboardingView(manager: onboardingManager)
+                .environment(\.colorScheme, .dark)
+                .previewDisplayName("Onboarding Flow (Dark)")
+        }
+    }
+}

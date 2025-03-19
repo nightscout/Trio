@@ -24,7 +24,7 @@ final class OnboardingManager: ObservableObject, Injectable {
     @Published var shouldShowOnboarding: Bool = false
 
     /// Initialize the OnboardingManager with the required dependencies.
-    private init() {
+    init() {
         checkOnboardingStatus()
     }
 
