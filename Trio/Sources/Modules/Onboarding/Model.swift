@@ -1,5 +1,7 @@
 import Foundation
+import Combine
 import SwiftUI
+import LoopKit
 
 /// Represents the different steps in the onboarding process.
 enum OnboardingStep: Int, CaseIterable, Identifiable {
@@ -105,12 +107,19 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 @Observable class OnboardingData: Injectable {
     @ObservationIgnored @Injected() var settingsManager: SettingsManager!
     @ObservationIgnored @Injected() var storage: FileStorage!
+    @ObservationIgnored @Injected() var deviceManager: DeviceDataManager!
 
     // Carb Ratio related
-    var items: [CarbRatioEditor.Item] = []
-    var initialItems: [CarbRatioEditor.Item] = []
-    let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
-    let rateValues = stride(from: 30.0, to: 501.0, by: 1.0).map { ($0.decimal ?? .zero) / 10 }
+    var carbRatioItems: [CarbRatioEditor.Item] = []
+    var initialCarbRatioItems: [CarbRatioEditor.Item] = []
+    let carbRatioTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+    let carbRatioRateValues = stride(from: 30.0, to: 501.0, by: 1.0).map { ($0.decimal ?? .zero) / 10 }
+    
+    // Basal Profile related
+    var initialBasalProfileItems: [BasalProfileEditor.Item] = []
+    var basalProfileItems: [BasalProfileEditor.Item] = []
+    let basalProfileTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+    private(set) var basalProfileRateValues: [Decimal] = []
 
     // Glucose Target
     var targetLow: Decimal = 70
@@ -153,6 +162,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
         settingsCopy.units = units
 
         // Apply basal profile
+        // TODO: - should we use the return value or modify the function to not return anything?
+        _ = saveBasalProfile()
 
         // Apply carb ratio
         saveCarbRatios()
@@ -169,11 +180,11 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 
 extension OnboardingData {
     var hasChanges: Bool {
-        if initialItems.count != items.count {
+        if initialCarbRatioItems.count != carbRatioItems.count {
             return true
         }
 
-        for (initialItem, currentItem) in zip(initialItems, items) {
+        for (initialItem, currentItem) in zip(initialCarbRatioItems, carbRatioItems) {
             if initialItem.rateIndex != currentItem.rateIndex || initialItem.timeIndex != currentItem.timeIndex {
                 return true
             }
@@ -185,31 +196,31 @@ extension OnboardingData {
     func addCarbRatio() {
         var time = 0
         var rate = 0
-        if let last = items.last {
+        if let last = carbRatioItems.last {
             time = last.timeIndex + 1
             rate = last.rateIndex
         }
 
         let newItem = CarbRatioEditor.Item(rateIndex: rate, timeIndex: time)
 
-        items.append(newItem)
+        carbRatioItems.append(newItem)
     }
 
     func saveCarbRatios() {
         guard hasChanges else { return }
 
-        let schedule = items.enumerated().map { _, item -> CarbRatioEntry in
+        let schedule = carbRatioItems.enumerated().map { _, item -> CarbRatioEntry in
             let fotmatter = DateFormatter()
             fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
             fotmatter.dateFormat = "HH:mm:ss"
-            let date = Date(timeIntervalSince1970: self.timeValues[item.timeIndex])
+            let date = Date(timeIntervalSince1970: self.carbRatioTimeValues[item.timeIndex])
             let minutes = Int(date.timeIntervalSince1970 / 60)
-            let rate = self.rateValues[item.rateIndex]
+            let rate = self.carbRatioRateValues[item.rateIndex]
             return CarbRatioEntry(start: fotmatter.string(from: date), offset: minutes, ratio: rate)
         }
         let profile = CarbRatios(units: .grams, schedule: schedule)
         saveProfile(profile)
-        initialItems = items.map { CarbRatioEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+        initialCarbRatioItems = carbRatioItems.map { CarbRatioEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
     }
 
 //    func validate() {
@@ -225,5 +236,41 @@ extension OnboardingData {
 
     func saveProfile(_ profile: CarbRatios) {
         storage.save(profile, as: OpenAPS.Settings.carbRatios)
+    }
+}
+
+//MARK: - Setup Basal Profile
+extension OnboardingData {
+    func saveBasalProfile() -> AnyPublisher<Void, Error> {
+        let profile = basalProfileItems.map { item -> BasalProfileEntry in
+            let formatter = DateFormatter()
+            formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            formatter.dateFormat = "HH:mm:ss"
+            let date = Date(timeIntervalSince1970: self.basalProfileTimeValues[item.timeIndex])
+            let minutes = Int(date.timeIntervalSince1970 / 60)
+            let rate = self.basalProfileRateValues[item.rateIndex]
+            return BasalProfileEntry(start: formatter.string(from: date), minutes: minutes, rate: rate)
+        }
+            
+        guard let pump = deviceManager?.pumpManager else {
+            debugPrint("\(DebuggingIdentifiers.failed) No pump found; cannot save basal profile!")
+            return Fail(error: NSError()).eraseToAnyPublisher()
+        }
+
+        let syncValues = profile.map {
+            RepeatingScheduleValue(startTime: TimeInterval($0.minutes * 60), value: Double($0.rate))
+        }
+
+        return Future { promise in
+            pump.syncBasalRateSchedule(items: syncValues) { result in
+                switch result {
+                case .success:
+                    self.storage.save(profile, as: OpenAPS.Settings.basalProfile)
+                    promise(.success(()))
+                case let .failure(error):
+                    promise(.failure(error))
+                }
+            }
+        }.eraseToAnyPublisher()
     }
 }
