@@ -121,7 +121,7 @@ extension Notification.Name {
             do {
                 try await coreDataStack.initializeStack()
 
-                await MainActor.run {
+                await Task { @MainActor in
                     // Only load services after successful Core Data initialization
                     loadServices()
 
@@ -131,7 +131,12 @@ extension Notification.Name {
                     self.initState.complete = true
                     Foundation.NotificationCenter.default.post(name: .initializationCompleted, object: nil)
                     UIApplication.shared.registerForRemoteNotifications()
-                }
+                    do {
+                        try await BuildDetails.shared.handleExpireDateChange()
+                    } catch {
+                        debug(.default, "Failed to handle expire date change: \(error)")
+                    }
+                }.value
             } catch {
                 debug(
                     .coreData,
@@ -142,14 +147,6 @@ extension Notification.Name {
                     self.initState.error = true
                     Foundation.NotificationCenter.default.post(name: .initializationError, object: nil)
                 }
-            }
-        }
-
-        Task {
-            do {
-                try await BuildDetails.shared.handleExpireDateChange()
-            } catch {
-                debug(.default, "Failed to handle expire date change: \(error)")
             }
         }
     }
