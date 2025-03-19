@@ -1,7 +1,7 @@
-import Foundation
 import Combine
-import SwiftUI
+import Foundation
 import LoopKit
+import SwiftUI
 
 /// Represents the different steps in the onboarding process.
 enum OnboardingStep: Int, CaseIterable, Identifiable {
@@ -114,7 +114,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
     var initialCarbRatioItems: [CarbRatioEditor.Item] = []
     let carbRatioTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
     let carbRatioRateValues = stride(from: 30.0, to: 501.0, by: 1.0).map { ($0.decimal ?? .zero) / 10 }
-    
+
     // Basal Profile related
     var initialBasalProfileItems: [BasalProfileEditor.Item] = []
     var basalProfileItems: [BasalProfileEditor.Item] = []
@@ -239,7 +239,8 @@ extension OnboardingData {
     }
 }
 
-//MARK: - Setup Basal Profile
+// MARK: - Setup Basal Profile
+
 extension OnboardingData {
     func saveBasalProfile() -> AnyPublisher<Void, Error> {
         let profile = basalProfileItems.map { item -> BasalProfileEntry in
@@ -251,7 +252,7 @@ extension OnboardingData {
             let rate = self.basalProfileRateValues[item.rateIndex]
             return BasalProfileEntry(start: formatter.string(from: date), minutes: minutes, rate: rate)
         }
-            
+
         guard let pump = deviceManager?.pumpManager else {
             debugPrint("\(DebuggingIdentifiers.failed) No pump found; cannot save basal profile!")
             return Fail(error: NSError()).eraseToAnyPublisher()
