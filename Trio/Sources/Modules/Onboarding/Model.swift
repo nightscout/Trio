@@ -242,6 +242,33 @@ extension OnboardingData {
 // MARK: - Setup Basal Profile
 
 extension OnboardingData {
+    var hasBasalProfileChanges: Bool {
+        if initialBasalProfileItems.count != basalProfileItems.count {
+            return true
+        }
+
+        for (initialItem, currentItem) in zip(initialBasalProfileItems, basalProfileItems) {
+            if initialItem.rateIndex != currentItem.rateIndex || initialItem.timeIndex != currentItem.timeIndex {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    func addBasalRate() {
+        var time = 0
+        var rate = 20 // Default to 1.0 U/h (index 20 if basalProfileRateValues starts at 0.05 and increments by 0.05)
+
+        if let last = basalProfileItems.last {
+            time = last.timeIndex + 1
+            rate = last.rateIndex
+        }
+
+        let newItem = BasalProfileEditor.Item(rateIndex: rate, timeIndex: time)
+        basalProfileItems.append(newItem)
+    }
+
     func saveBasalProfile() -> AnyPublisher<Void, Error> {
         let profile = basalProfileItems.map { item -> BasalProfileEntry in
             let formatter = DateFormatter()
