@@ -317,6 +317,7 @@
 		BD47FD172D88AAF50043966B /* OnboardingStepViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD162D88AAEF0043966B /* OnboardingStepViews.swift */; };
 		BD47FD192D88AAFE0043966B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD182D88AAF90043966B /* OnboardingView.swift */; };
 		BD47FD1B2D88AB4F0043966B /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD1A2D88AB4A0043966B /* Model.swift */; };
+		BD47FDD72D8B64D20043966B /* CarbRatioStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FDD62D8B64CC0043966B /* CarbRatioStepView.swift */; };
 		BD4D738D2D15A4080052227B /* TDDStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4D738B2D15A4080052227B /* TDDStored+CoreDataClass.swift */; };
 		BD4D738E2D15A4080052227B /* TDDStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4D738C2D15A4080052227B /* TDDStored+CoreDataProperties.swift */; };
 		BD4D73A22D15A42A0052227B /* TDDStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4D73A12D15A4220052227B /* TDDStorage.swift */; };
@@ -1045,6 +1046,7 @@
 		BD47FD162D88AAEF0043966B /* OnboardingStepViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStepViews.swift; sourceTree = "<group>"; };
 		BD47FD182D88AAF90043966B /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		BD47FD1A2D88AB4A0043966B /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
+		BD47FDD62D8B64CC0043966B /* CarbRatioStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbRatioStepView.swift; sourceTree = "<group>"; };
 		BD4D738B2D15A4080052227B /* TDDStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TDDStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		BD4D738C2D15A4080052227B /* TDDStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TDDStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		BD4D73A12D15A4220052227B /* TDDStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDDStorage.swift; sourceTree = "<group>"; };
@@ -1752,6 +1754,7 @@
 		3811DE1F25C9D48300A708ED /* View */ = {
 			isa = PBXGroup;
 			children = (
+				BD47FDD52D8B64AE0043966B /* Setup */,
 				BD47FD182D88AAF90043966B /* OnboardingView.swift */,
 				BD47FD162D88AAEF0043966B /* OnboardingStepViews.swift */,
 				3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */,
@@ -2594,6 +2597,14 @@
 			children = (
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		BD47FDD52D8B64AE0043966B /* Setup */ = {
+			isa = PBXGroup;
+			children = (
+				BD47FDD62D8B64CC0043966B /* CarbRatioStepView.swift */,
+			);
+			path = Setup;
 			sourceTree = "<group>";
 		};
 		BD793CAD2CE7660C00D669AC /* Overrides */ = {
@@ -4170,6 +4181,7 @@
 				38E44534274E411700EC9A94 /* Disk+InternalHelpers.swift in Sources */,
 				38A00B2325FC2B55006BC0B0 /* LRUCache.swift in Sources */,
 				DDD163122C4C689900CD525A /* AdjustmentsStateModel.swift in Sources */,
+				BD47FDD72D8B64D20043966B /* CarbRatioStepView.swift in Sources */,
 				3B2F77862D7E52ED005ED9FA /* TDD.swift in Sources */,
 				DD1745132C54169400211FAC /* DevicesView.swift in Sources */,
 				7F7B756BE8543965D9FDF1A2 /* DataTableDataFlow.swift in Sources */,

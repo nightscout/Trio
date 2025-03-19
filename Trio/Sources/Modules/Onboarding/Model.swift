@@ -105,13 +105,13 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 @Observable class OnboardingData: Injectable {
     @ObservationIgnored @Injected() var settingsManager: SettingsManager!
     @ObservationIgnored @Injected() var storage: FileStorage!
-    
+
     // Carb Ratio related
     var items: [CarbRatioEditor.Item] = []
     var initialItems: [CarbRatioEditor.Item] = []
     let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
     let rateValues = stride(from: 30.0, to: 501.0, by: 1.0).map { ($0.decimal ?? .zero) / 10 }
-    
+
     // Glucose Target
     var targetLow: Decimal = 70
     var targetHigh: Decimal = 180
@@ -152,15 +152,12 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
         // Apply glucose units
         settingsCopy.units = units
 
+        // Apply basal profile
+
         // Apply carb ratio
         saveCarbRatios()
 
-        // Apply ISF (if the property exists in TrioSettings)
-        if let isfValue = Double(exactly: NSDecimalNumber(decimal: isf)) {
-            // Assuming there is a related property for insulin sensitivity factor in TrioSettings
-            // This might need to be adjusted based on the actual property name
-            // settingsCopy.insulinSensitivityFactor = isfValue
-        }
+        // Apply ISF values
 
         // Instead of using updateSettings which doesn't exist,
         // we'll directly set the settings property which will trigger the didSet observer
@@ -169,6 +166,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 }
 
 // MARK: - Setup Carb Ratios
+
 extension OnboardingData {
     var hasChanges: Bool {
         if initialItems.count != items.count {
@@ -183,7 +181,7 @@ extension OnboardingData {
 
         return false
     }
-    
+
     func addCarbRatio() {
         var time = 0
         var rate = 0
@@ -224,7 +222,7 @@ extension OnboardingData {
 //            }
 //        }
 //    }
-    
+
     func saveProfile(_ profile: CarbRatios) {
         storage.save(profile, as: OpenAPS.Settings.carbRatios)
     }
