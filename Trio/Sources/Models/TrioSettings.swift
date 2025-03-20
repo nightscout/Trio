@@ -8,9 +8,9 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .notAllowed:
-            return String(localized: "Not allowed", table: "ShortcutsDetail")
+            return String(localized: "Not allowed")
         case .limitBolusMax:
-            return String(localized: "Max bolus", table: "ShortcutsDetail")
+            return String(localized: "Max bolus")
         }
     }
 }
