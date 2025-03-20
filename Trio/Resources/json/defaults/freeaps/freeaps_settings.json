@@ -47,5 +47,6 @@
   "lockScreenView": "simple",
   "useCalendar": false,
   "displayCalendarIOBandCOB": false,
-  "displayCalendarEmojis": false
+  "displayCalendarEmojis": false,
+  "timeInRangeType": "timeInTightRange"
 }

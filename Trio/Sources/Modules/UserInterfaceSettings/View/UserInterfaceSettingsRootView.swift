@@ -419,6 +419,75 @@ extension UserInterfaceSettings {
                     }
                 ).listRowBackground(Color.chart)
 
+                Section {
+                    VStack(alignment: .leading) {
+                        Picker(
+                            selection: $state.timeInRangeType,
+                            label: Text("Time in Range Type").multilineTextAlignment(.leading)
+                        ) {
+                            ForEach(TimeInRangeType.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
+                            }
+                        }.padding(.top)
+
+                        HStack(alignment: .center) {
+                            Text(
+                                "Choose type type of time in range to be used for Trio's statistics."
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = String(localized: "Time in Range Type")
+                                    selectedVerboseHint =
+                                        AnyView(
+                                            VStack(
+                                                alignment: .leading,
+                                                spacing: 10
+                                            ) {
+                                                Text(
+                                                    "Choose which type of time in range type want Trio to adopt for all its statistical charts and displays:"
+                                                )
+                                                VStack(
+                                                    alignment: .leading,
+                                                    spacing: 5
+                                                ) {
+                                                    Text(
+                                                        "Time in Tight Range (TITR):"
+                                                    )
+                                                    .bold()
+                                                    Text(
+                                                        "Uses the fairly established Time in Tight Range definition, which is defined as time between \(state.units == .mgdL ? Decimal(70) : 70.asMmolL) and \(state.units == .mgdL ? Decimal(140) : 140.asMmolL) \(state.units.rawValue)."
+                                                    )
+                                                }
+                                                VStack(
+                                                    alignment: .leading,
+                                                    spacing: 5
+                                                ) {
+                                                    Text(
+                                                        "Time in Normoglycemia (TING):"
+                                                    )
+                                                    .bold()
+                                                    Text(
+                                                        "Uses the very new – first discussed at ATTD 2025 in Amsterdam, NL – Time in Normoglycemia definition, which adopts the normoglycemic minimum threshold (\(state.units == .mgdL ? Decimal(63) : 53.asMmolL) \(state.units.rawValue)) and \(state.units == .mgdL ? Decimal(140) : 140.asMmolL) \(state.units.rawValue)."
+                                                    )
+                                                }
+                                            }
+                                        )
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle")
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+                }.listRowBackground(Color.chart)
+
                 SettingInputSection(
                     decimalValue: $state.carbsRequiredThreshold,
                     booleanValue: $state.showCarbsRequiredBadge,
