@@ -97,13 +97,7 @@ extension Adjustments.RootView {
 
     private var deleteConfirmationTitle: String {
         let presetName = selectedTempTarget?.name ?? ""
-        return String(
-            format: NSLocalizedString(
-                "Delete the Temp Target Preset \"%@\"?",
-                comment: "Delete confirmation title for temporary target presets"
-            ),
-            presetName
-        )
+        return String(localized: "Delete the Temp Target Preset \"\(presetName)\"?", comment: "Delete confirmation title for temporary target presets")
     }
 
     private func deleteConfirmationButtons() -> some View {
