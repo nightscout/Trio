@@ -5,7 +5,7 @@ import LoopKitUI
 import SwiftUI
 
 /// For a full description of the events that can happen for the CGM lifecycle, see comment at the top
-/// of HomeStateModel since these are the same events
+/// of HomeStateModel+CGM since these are the same events
 
 struct CGMModel: Identifiable, Hashable {
     var id: String
