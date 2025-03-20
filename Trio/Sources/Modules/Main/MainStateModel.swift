@@ -6,6 +6,7 @@ import Swinject
 
 extension Main {
     final class StateModel: BaseStateModel<Provider> {
+        @Injected() private var apsManager: APSManager!
         @Injected() var alertPermissionsChecker: AlertPermissionsChecker!
         @Injected() var broadcaster: Broadcaster!
         private(set) var modal: Modal?
@@ -212,17 +213,22 @@ extension Main {
           Other APSManager.APSError remain as MessageType.info which allows users to disable them
           using the 'Trio Notification' -> 'Always Notify Algorithm' setting.
          */
+
         func reclassifyInfoNotification(_ message: inout MessageContent) {
             if message.title == "" {
                 switch message.type {
                 case .info:
-                    if let errorIndex = message.content.range(of: "error", options: .caseInsensitive) {
+                    if message.content.range(of: "error", options: .caseInsensitive) != nil {
                         message.title = String(localized: "Error", comment: "Error title")
-                        if APSError.pumpMatches(message: message.content) {
-                            message.subtype = .pump
-                        }
                     } else {
                         message.title = String(localized: "Info", comment: "Info title")
+                    }
+                    if APSError.pumpMatches(message: message.content) {
+                        message.subtype = .pump
+                        let lastLoopMinutes = Int((Date().timeIntervalSince(apsManager.lastLoopDate) - 30) / 60) + 1
+                        if lastLoopMinutes > 10 {
+                            message.type = .error
+                        }
                     }
                 case .warning:
                     message.title = String(localized: "Warning", comment: "Warning title")

@@ -492,7 +492,7 @@ extension BaseUserNotificationsManager: alertMessageNotificationObserver {
         }
         switch message.subtype {
         case .pump:
-            if message.type == .info {
+            if message.type == .info || message.type == .error {
                 identifier = Identifier.alertMessageNotification
             } else {
                 identifier = .pumpNotification
