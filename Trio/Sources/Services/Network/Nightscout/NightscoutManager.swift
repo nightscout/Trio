@@ -504,12 +504,17 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             return
         }
 
-        // Fetch the latest TDD from Core Data
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TDDStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate.predicateFor30MinAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 1
+        )
+
         let tdd: Decimal? = await backgroundContext.perform {
-            let request: NSFetchRequest<TDDStored> = TDDStored.fetchRequest()
-            request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
-            request.fetchLimit = 1
-            return (try? self.backgroundContext.fetch(request).first)?.total as? Decimal
+            (results as? [TDDStored])?.first?.total as? Decimal
         }
 
         // Suggested / Enacted
@@ -566,7 +571,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
 
         if var enacted = fetchedEnactedDetermination {
-
             if settingsManager.settings.units == .mmolL {
                 enacted.reason = parseReasonGlucoseValuesToMmolL(enacted.reason)
                 // TODO: verify that these parsings are needed for 3rd party apps, e.g., LoopFollow
