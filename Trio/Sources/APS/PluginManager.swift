@@ -6,7 +6,6 @@ import LibreTransmitter
 import LibreTransmitterUI
 import LoopKit
 import LoopKitUI
-import MinimedKit
 import Swinject
 
 protocol PluginManager {
