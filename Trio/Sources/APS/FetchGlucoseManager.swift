@@ -122,12 +122,12 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     @MainActor func deleteGlucoseSource() async {
         cgmManager = nil
         glucoseSource = nil
+        settingsManager.settings.cgm = cgmDefaultModel.type
+        settingsManager.settings.cgmPluginIdentifier = cgmDefaultModel.id
         updateGlucoseSource(
             cgmGlucoseSourceType: cgmDefaultModel.type,
             cgmGlucosePluginId: cgmDefaultModel.id
         )
-        settingsManager.settings.cgm = cgmDefaultModel.type
-        settingsManager.settings.cgmPluginIdentifier = cgmDefaultModel.id
     }
 
     func saveConfigManager() {
