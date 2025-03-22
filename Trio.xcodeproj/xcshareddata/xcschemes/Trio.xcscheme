@@ -104,6 +104,48 @@
                ReferencedContainer = "container:Trio.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "NO"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "38FCF3EC25E9028E0078B0D1"
+               BuildableName = "TrioTests.xctest"
+               BlueprintName = "TrioTests"
+               ReferencedContainer = "container:Trio.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "NO"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "43D8FDD41C728FDF0073BE78"
+               BuildableName = "LoopKitTests.xctest"
+               BlueprintName = "LoopKitTests"
+               ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "NO"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "84752E8A26ED0FFE009FD801"
+               BuildableName = "OmniBLETests.xctest"
+               BlueprintName = "OmniBLETests"
+               ReferencedContainer = "container:OmniBLE/OmniBLE.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -112,16 +154,6 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "38FCF3EC25E9028E0078B0D1"
-               BuildableName = "TrioTests.xctest"
-               BlueprintName = "TrioTests"
-               ReferencedContainer = "container:Trio.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
          <TestableReference
             skipped = "NO">
             <BuildableReference
@@ -146,16 +178,6 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "43D8FDD41C728FDF0073BE78"
-               BuildableName = "LoopKitTests.xctest"
-               BlueprintName = "LoopKitTests"
-               ReferencedContainer = "container:LoopKit/LoopKit.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
                BlueprintIdentifier = "B4CEE2DF257129780093111B"
                BuildableName = "MockKitTests.xctest"
                BlueprintName = "MockKitTests"
@@ -170,16 +192,6 @@
                BuildableName = "MinimedKitTests.xctest"
                BlueprintName = "MinimedKitTests"
                ReferencedContainer = "container:MinimedKit/MinimedKit.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "84752E8A26ED0FFE009FD801"
-               BuildableName = "OmniBLETests.xctest"
-               BlueprintName = "OmniBLETests"
-               ReferencedContainer = "container:OmniBLE/OmniBLE.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
