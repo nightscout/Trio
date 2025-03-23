@@ -5,7 +5,7 @@ import Swinject
 extension Onboarding {
     struct RootView: BaseView {
         let resolver: Resolver
-        @State var state = StateModel()
+        @StateObject var state = StateModel()
         let onboardingManager: OnboardingManager
         @State private var currentStep: OnboardingStep = .welcome
 
@@ -169,6 +169,7 @@ extension Onboarding {
                     isAnimating = true
                 }
             }
+            .onAppear(perform: configureView)
         }
     }
 }
