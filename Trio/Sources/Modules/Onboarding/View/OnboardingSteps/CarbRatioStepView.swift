@@ -10,7 +10,7 @@ import UIKit
 
 /// Carb ratio step view for setting insulin-to-carb ratio.
 struct CarbRatioStepView: View {
-    @State var onboardingData: OnboardingData
+    @Bindable var state: Onboarding.StateModel
     @State private var showTimeSelector = false
     @State private var selectedRatioIndex: Int?
     @State private var refreshUI = UUID() // to update chart when slider value changes
@@ -42,7 +42,7 @@ struct CarbRatioStepView: View {
                     .padding(.horizontal)
 
                 // Chart visualization
-                if !onboardingData.carbRatioItems.isEmpty {
+                if !state.carbRatioItems.isEmpty {
                     VStack(alignment: .leading) {
                         Text("Carb Ratio Profile")
                             .font(.headline)
@@ -66,7 +66,7 @@ struct CarbRatioStepView: View {
                         Spacer()
 
                         // Add new carb ratio button
-                        if onboardingData.carbRatioItems.count < 24 {
+                        if state.carbRatioItems.count < 24 {
                             Button(action: {
                                 showTimeSelector = true
                             }) {
@@ -83,13 +83,13 @@ struct CarbRatioStepView: View {
 
                     // List of carb ratios
                     VStack(spacing: 2) {
-                        ForEach(Array(onboardingData.carbRatioItems.enumerated()), id: \.element.id) { index, item in
+                        ForEach(Array(state.carbRatioItems.enumerated()), id: \.element.id) { index, item in
                             HStack {
                                 // Time display
                                 Text(
                                     dateFormatter
                                         .string(from: Date(
-                                            timeIntervalSince1970: onboardingData
+                                            timeIntervalSince1970: state
                                                 .carbRatioTimeValues[item.timeIndex]
                                         ))
                                 )
@@ -101,32 +101,32 @@ struct CarbRatioStepView: View {
                                     value: Binding(
                                         get: {
                                             Double(
-                                                truncating: onboardingData
+                                                truncating: state
                                                     .carbRatioRateValues[item.rateIndex] as NSNumber
                                             ) },
                                         set: { newValue in
                                             // Find closest match in rateValues array
-                                            let newIndex = onboardingData.carbRatioRateValues
+                                            let newIndex = state.carbRatioRateValues
                                                 .firstIndex { abs(Double($0) - newValue) < 0.05 } ?? item.rateIndex
-                                            onboardingData.carbRatioItems[index].rateIndex = newIndex
+                                            state.carbRatioItems[index].rateIndex = newIndex
                                             // Force refresh when slider changes
                                             refreshUI = UUID()
                                         }
                                     ),
-                                    in: Double(truncating: onboardingData.carbRatioRateValues.first! as NSNumber) ...
-                                        Double(truncating: onboardingData.carbRatioRateValues.last! as NSNumber),
+                                    in: Double(truncating: state.carbRatioRateValues.first! as NSNumber) ...
+                                        Double(truncating: state.carbRatioRateValues.last! as NSNumber),
                                     step: 0.5
                                 )
                                 .accentColor(.orange)
                                 .padding(.horizontal, 5)
-                                .onChange(of: onboardingData.carbRatioItems[index].rateIndex) { _, _ in
+                                .onChange(of: state.carbRatioItems[index].rateIndex) { _, _ in
                                     let impact = UIImpactFeedbackGenerator(style: .light)
                                     impact.impactOccurred()
                                 }
 
                                 // Display the current value
                                 Text(
-                                    "\(formatter.string(from: onboardingData.carbRatioRateValues[item.rateIndex] as NSNumber) ?? "--") g/U"
+                                    "\(formatter.string(from: state.carbRatioRateValues[item.rateIndex] as NSNumber) ?? "--") g/U"
                                 )
                                 .frame(width: 80, alignment: .trailing)
                                 .lineLimit(1)
@@ -135,7 +135,7 @@ struct CarbRatioStepView: View {
                                 // Delete button (not for the first entry at 00:00)
                                 if index > 0 {
                                     Button(action: {
-                                        onboardingData.carbRatioItems.remove(at: index)
+                                        state.carbRatioItems.remove(at: index)
                                     }) {
                                         Image(systemName: "trash")
                                             .foregroundColor(.red)
@@ -156,14 +156,14 @@ struct CarbRatioStepView: View {
                     .cornerRadius(10)
                     .padding(.horizontal)
                     .onAppear {
-                        if onboardingData.carbRatioItems.isEmpty {
-                            onboardingData.addCarbRatio()
+                        if state.carbRatioItems.isEmpty {
+                            state.addCarbRatio()
                         }
                     }
                 }
 
                 // Example calculation based on first carb ratio
-                if !onboardingData.carbRatioItems.isEmpty {
+                if !state.carbRatioItems.isEmpty {
                     Divider()
                         .padding(.horizontal)
 
@@ -179,11 +179,11 @@ struct CarbRatioStepView: View {
 
                             let insulinNeeded = 45 /
                                 Double(
-                                    truncating: onboardingData
-                                        .carbRatioRateValues[onboardingData.carbRatioItems.first!.rateIndex] as NSNumber
+                                    truncating: state
+                                        .carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber
                                 )
                             Text(
-                                "45g ÷ \(formatter.string(from: onboardingData.carbRatioRateValues[onboardingData.carbRatioItems.first!.rateIndex] as NSNumber) ?? "--") = \(String(format: "%.1f", insulinNeeded)) units of insulin"
+                                "45g ÷ \(formatter.string(from: state.carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber) ?? "--") = \(String(format: "%.1f", insulinNeeded)) units of insulin"
                             )
                             .font(.system(.body, design: .monospaced))
                             .foregroundColor(.orange)
@@ -224,18 +224,18 @@ struct CarbRatioStepView: View {
             for hour in 0 ..< 24 {
                 let hourInMinutes = hour * 60
                 // Calculate timeIndex for this hour
-                let timeIndex = onboardingData.carbRatioTimeValues.firstIndex { abs($0 - Double(hourInMinutes * 60)) < 10 } ?? 0
+                let timeIndex = state.carbRatioTimeValues.firstIndex { abs($0 - Double(hourInMinutes * 60)) < 10 } ?? 0
 
                 // Check if this hour is already in the profile
-                if !onboardingData.carbRatioItems.contains(where: { $0.timeIndex == timeIndex }) {
+                if !state.carbRatioItems.contains(where: { $0.timeIndex == timeIndex }) {
                     buttons.append(.default(Text("\(String(format: "%02d:00", hour))")) {
                         // Get the current ratio from the last item
-                        let rateIndex = onboardingData.carbRatioItems.last?.rateIndex ?? 0
+                        let rateIndex = state.carbRatioItems.last?.rateIndex ?? 0
                         // Create new item with the specified time
                         let newItem = CarbRatioEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
                         // Add the new item and sort the list
-                        onboardingData.carbRatioItems.append(newItem)
-                        onboardingData.carbRatioItems.sort(by: { $0.timeIndex < $1.timeIndex })
+                        state.carbRatioItems.append(newItem)
+                        state.carbRatioItems.sort(by: { $0.timeIndex < $1.timeIndex })
                     })
                 }
             }
@@ -252,26 +252,26 @@ struct CarbRatioStepView: View {
 
     // Computed property to check if we can add more carb ratios
     private var canAddRatio: Bool {
-        guard let lastItem = onboardingData.carbRatioItems.last else { return true }
-        return lastItem.timeIndex < onboardingData.carbRatioTimeValues.count - 1
+        guard let lastItem = state.carbRatioItems.last else { return true }
+        return lastItem.timeIndex < state.carbRatioTimeValues.count - 1
     }
 
     // Chart for visualizing carb ratios
     private var carbRatioChart: some View {
         Chart {
-            ForEach(Array(onboardingData.carbRatioItems.enumerated()), id: \.element.id) { index, item in
-                let displayValue = onboardingData.carbRatioRateValues[item.rateIndex]
+            ForEach(Array(state.carbRatioItems.enumerated()), id: \.element.id) { index, item in
+                let displayValue = state.carbRatioRateValues[item.rateIndex]
 
                 let tzOffset = TimeZone.current.secondsFromGMT() * -1
-                let startDate = Date(timeIntervalSinceReferenceDate: onboardingData.carbRatioTimeValues[item.timeIndex])
+                let startDate = Date(timeIntervalSinceReferenceDate: state.carbRatioTimeValues[item.timeIndex])
                     .addingTimeInterval(TimeInterval(tzOffset))
-                let endDate = onboardingData.carbRatioItems.count > index + 1 ?
+                let endDate = state.carbRatioItems.count > index + 1 ?
                     Date(
-                        timeIntervalSinceReferenceDate: onboardingData
-                            .carbRatioTimeValues[onboardingData.carbRatioItems[index + 1].timeIndex]
+                        timeIntervalSinceReferenceDate: state
+                            .carbRatioTimeValues[state.carbRatioItems[index + 1].timeIndex]
                     )
                     .addingTimeInterval(TimeInterval(tzOffset)) :
-                    Date(timeIntervalSinceReferenceDate: onboardingData.carbRatioTimeValues.last!).addingTimeInterval(30 * 60)
+                    Date(timeIntervalSinceReferenceDate: state.carbRatioTimeValues.last!).addingTimeInterval(30 * 60)
                     .addingTimeInterval(TimeInterval(tzOffset))
 
                 RectangleMark(

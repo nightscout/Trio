@@ -10,7 +10,7 @@ import UIKit
 
 /// Glucose target step view for setting target glucose range.
 struct GlucoseTargetStepView: View {
-    @State var onboardingData: OnboardingData
+    @Bindable var state: Onboarding.StateModel
     @State private var showUnitPicker = false
     @State private var showTimeSelector = false
     @State private var selectedTargetIndex: Int?
@@ -22,7 +22,7 @@ struct GlucoseTargetStepView: View {
     private var numberFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = onboardingData.units == .mmolL ? 1 : 0
+        formatter.maximumFractionDigits = state.units == .mmolL ? 1 : 0
         return formatter
     }
 
@@ -51,7 +51,7 @@ struct GlucoseTargetStepView: View {
                         showUnitPicker.toggle()
                     }) {
                         HStack {
-                            Text(onboardingData.units == .mgdL ? "mg/dL" : "mmol/L")
+                            Text(state.units == .mgdL ? "mg/dL" : "mmol/L")
                             Image(systemName: "chevron.down")
                         }
                         .padding(.horizontal, 12)
@@ -62,27 +62,27 @@ struct GlucoseTargetStepView: View {
                     .actionSheet(isPresented: $showUnitPicker) {
                         let mgdlAction = ActionSheet.Button.default(Text("mg/dL")) {
                             // Store current unit
-                            let oldUnit = onboardingData.units
+                            let oldUnit = state.units
                             // Change to new unit
-                            onboardingData.units = .mgdL
+                            state.units = .mgdL
                             // Adjust values for unit change, only if unit actually changed
                             if oldUnit != .mgdL {
-                                onboardingData.targetLow = max(70, onboardingData.targetLow * 18)
-                                onboardingData.targetHigh = max(120, onboardingData.targetHigh * 18)
-                                onboardingData.isf = max(30, onboardingData.isf * 18)
+                                state.targetLow = max(70, state.targetLow * 18)
+                                state.targetHigh = max(120, state.targetHigh * 18)
+                                state.isf = max(30, state.isf * 18)
                             }
                         }
 
                         let mmolAction = ActionSheet.Button.default(Text("mmol/L")) {
                             // Store current unit
-                            let oldUnit = onboardingData.units
+                            let oldUnit = state.units
                             // Change to new unit
-                            onboardingData.units = .mmolL
+                            state.units = .mmolL
                             // Adjust values for unit change, only if unit actually changed
                             if oldUnit != .mmolL {
-                                onboardingData.targetLow = max(3.9, onboardingData.targetLow / 18)
-                                onboardingData.targetHigh = max(6.7, onboardingData.targetHigh / 18)
-                                onboardingData.isf = max(1.7, onboardingData.isf / 18)
+                                state.targetLow = max(3.9, state.targetLow / 18)
+                                state.targetHigh = max(6.7, state.targetHigh / 18)
+                                state.isf = max(1.7, state.isf / 18)
                             }
                         }
 
@@ -114,16 +114,16 @@ struct GlucoseTargetStepView: View {
                         HStack {
                             Slider(
                                 value: Binding(
-                                    get: { Double(truncating: onboardingData.targetLow as NSNumber) },
-                                    set: { onboardingData.targetLow = Decimal($0) }
+                                    get: { Double(truncating: state.targetLow as NSNumber) },
+                                    set: { state.targetLow = Decimal($0) }
                                 ),
-                                in: onboardingData.units == .mgdL ? 70 ... 120 : 3.9 ... 6.7,
-                                step: onboardingData.units == .mgdL ? 1 : 0.1
+                                in: state.units == .mgdL ? 70 ... 120 : 3.9 ... 6.7,
+                                step: state.units == .mgdL ? 1 : 0.1
                             )
                             .accentColor(.green)
 
                             Text(
-                                "\(numberFormatter.string(from: onboardingData.targetLow as NSNumber) ?? "--") \(onboardingData.units == .mgdL ? "mg/dL" : "mmol/L")"
+                                "\(numberFormatter.string(from: state.targetLow as NSNumber) ?? "--") \(state.units == .mgdL ? "mg/dL" : "mmol/L")"
                             )
                             .frame(width: 80, alignment: .trailing)
                         }
@@ -138,18 +138,18 @@ struct GlucoseTargetStepView: View {
                         HStack {
                             Slider(
                                 value: Binding(
-                                    get: { Double(truncating: onboardingData.targetHigh as NSNumber) },
-                                    set: { onboardingData.targetHigh = Decimal($0) }
+                                    get: { Double(truncating: state.targetHigh as NSNumber) },
+                                    set: { state.targetHigh = Decimal($0) }
                                 ),
-                                in: onboardingData.units == .mgdL ?
-                                    Double(truncating: onboardingData.targetLow as NSNumber) + 10 ... 200 :
-                                    Double(truncating: onboardingData.targetLow as NSNumber) + 0.6 ... 11.1,
-                                step: onboardingData.units == .mgdL ? 1 : 0.1
+                                in: state.units == .mgdL ?
+                                    Double(truncating: state.targetLow as NSNumber) + 10 ... 200 :
+                                    Double(truncating: state.targetLow as NSNumber) + 0.6 ... 11.1,
+                                step: state.units == .mgdL ? 1 : 0.1
                             )
                             .accentColor(.green)
 
                             Text(
-                                "\(numberFormatter.string(from: onboardingData.targetHigh as NSNumber) ?? "--") \(onboardingData.units == .mgdL ? "mg/dL" : "mmol/L")"
+                                "\(numberFormatter.string(from: state.targetHigh as NSNumber) ?? "--") \(state.units == .mgdL ? "mg/dL" : "mmol/L")"
                             )
                             .frame(width: 80, alignment: .trailing)
                         }
@@ -160,7 +160,7 @@ struct GlucoseTargetStepView: View {
                 Divider()
 
                 // Chart visualization
-                if !onboardingData.targetItems.isEmpty {
+                if !state.targetItems.isEmpty {
                     VStack(alignment: .leading) {
                         Text("Glucose Targets")
                             .font(.headline)
@@ -184,7 +184,7 @@ struct GlucoseTargetStepView: View {
                         Spacer()
 
                         // Add new target button
-                        if onboardingData.targetItems.count < 24 {
+                        if state.targetItems.count < 24 {
                             Button(action: {
                                 showTimeSelector = true
                             }) {
@@ -201,14 +201,14 @@ struct GlucoseTargetStepView: View {
 
                     // List of targets
                     VStack(spacing: 2) {
-                        ForEach(onboardingData.targetItems.indices, id: \.self) { index in
-                            let item = onboardingData.targetItems[index]
+                        ForEach(state.targetItems.indices, id: \.self) { index in
+                            let item = state.targetItems[index]
                             HStack {
                                 // Time display
                                 Text(
                                     dateFormatter
                                         .string(from: Date(
-                                            timeIntervalSince1970: onboardingData
+                                            timeIntervalSince1970: state
                                                 .targetTimeValues[item.timeIndex]
                                         ))
                                 )
@@ -220,38 +220,38 @@ struct GlucoseTargetStepView: View {
                                     value: Binding(
                                         get: {
                                             Double(
-                                                truncating: onboardingData
+                                                truncating: state
                                                     .targetRateValues[item.lowIndex] as NSNumber
                                             ) },
                                         set: { newValue in
                                             // Find closest match in rateValues array
-                                            let newIndex = onboardingData.targetRateValues
+                                            let newIndex = state.targetRateValues
                                                 .firstIndex { abs(Double($0) - newValue) < 0.05 } ?? item.lowIndex
-                                            onboardingData.targetItems[index].lowIndex = newIndex
+                                            state.targetItems[index].lowIndex = newIndex
 
                                             // Ensure high target is at least as high as low target
-                                            if onboardingData.targetItems[index].highIndex < newIndex {
-                                                onboardingData.targetItems[index].highIndex = newIndex
+                                            if state.targetItems[index].highIndex < newIndex {
+                                                state.targetItems[index].highIndex = newIndex
                                             }
 
                                             // Force refresh when slider changes
                                             refreshUI = UUID()
                                         }
                                     ),
-                                    in: Double(truncating: onboardingData.targetRateValues.first! as NSNumber) ...
-                                        Double(truncating: onboardingData.targetRateValues.last! as NSNumber),
-                                    step: onboardingData.units == .mgdL ? 1 : 0.1
+                                    in: Double(truncating: state.targetRateValues.first! as NSNumber) ...
+                                        Double(truncating: state.targetRateValues.last! as NSNumber),
+                                    step: state.units == .mgdL ? 1 : 0.1
                                 )
                                 .accentColor(.blue)
                                 .padding(.horizontal, 5)
-                                .onChange(of: onboardingData.targetItems[index].lowIndex) { _, _ in
+                                .onChange(of: state.targetItems[index].lowIndex) { _, _ in
                                     let impact = UIImpactFeedbackGenerator(style: .light)
                                     impact.impactOccurred()
                                 }
 
                                 // Display the current value
                                 Text(
-                                    "\(numberFormatter.string(from: onboardingData.targetRateValues[item.lowIndex] as NSNumber) ?? "--") \(onboardingData.units == .mgdL ? "mg/dL" : "mmol/L")"
+                                    "\(numberFormatter.string(from: state.targetRateValues[item.lowIndex] as NSNumber) ?? "--") \(state.units == .mgdL ? "mg/dL" : "mmol/L")"
                                 )
                                 .frame(width: 80, alignment: .trailing)
                                 .lineLimit(1)
@@ -260,7 +260,7 @@ struct GlucoseTargetStepView: View {
                                 // Delete button (not for the first entry at 00:00)
                                 if index > 0 {
                                     Button(action: {
-                                        onboardingData.targetItems.remove(at: index)
+                                        state.targetItems.remove(at: index)
                                     }) {
                                         Image(systemName: "trash")
                                             .foregroundColor(.red)
@@ -281,8 +281,8 @@ struct GlucoseTargetStepView: View {
                     .cornerRadius(10)
                     .padding(.horizontal)
                     .onAppear {
-                        if onboardingData.targetItems.isEmpty {
-                            onboardingData.addTarget()
+                        if state.targetItems.isEmpty {
+                            state.addTarget()
                         }
                     }
                 }
@@ -327,14 +327,14 @@ struct GlucoseTargetStepView: View {
 
                     // Range values
                     HStack(spacing: 0) {
-                        Text("\(numberFormatter.string(from: onboardingData.targetLow as NSNumber) ?? "--")")
+                        Text("\(numberFormatter.string(from: state.targetLow as NSNumber) ?? "--")")
                             .font(.caption)
                             .frame(width: 50, alignment: .center)
 
                         Spacer()
                             .frame(width: 100)
 
-                        Text("\(numberFormatter.string(from: onboardingData.targetHigh as NSNumber) ?? "--")")
+                        Text("\(numberFormatter.string(from: state.targetHigh as NSNumber) ?? "--")")
                             .font(.caption)
                             .frame(width: 50, alignment: .center)
                     }
@@ -354,21 +354,21 @@ struct GlucoseTargetStepView: View {
             for hour in 0 ..< 24 {
                 let hourInMinutes = hour * 60
                 // Calculate timeIndex for this hour
-                let timeIndex = onboardingData.targetTimeValues.firstIndex { abs($0 - Double(hourInMinutes * 60)) < 10 } ?? 0
+                let timeIndex = state.targetTimeValues.firstIndex { abs($0 - Double(hourInMinutes * 60)) < 10 } ?? 0
 
                 // Check if this hour is already in the profile
-                if !onboardingData.targetItems.contains(where: { $0.timeIndex == timeIndex }) {
+                if !state.targetItems.contains(where: { $0.timeIndex == timeIndex }) {
                     buttons.append(.default(Text("\(String(format: "%02d:00", hour))")) {
                         // Get the current low and high values from the last item
-                        let lowIndex = onboardingData.targetItems.last?.lowIndex ?? 0
-                        let highIndex = onboardingData.targetItems.last?.highIndex ?? lowIndex
+                        let lowIndex = state.targetItems.last?.lowIndex ?? 0
+                        let highIndex = state.targetItems.last?.highIndex ?? lowIndex
 
                         // Create new item with the specified time
                         let newItem = TargetsEditor.Item(lowIndex: lowIndex, highIndex: highIndex, timeIndex: timeIndex)
 
                         // Add the new item and sort the list by timeIndex
-                        onboardingData.targetItems.append(newItem)
-                        onboardingData.targetItems.sort(by: { $0.timeIndex < $1.timeIndex })
+                        state.targetItems.append(newItem)
+                        state.targetItems.sort(by: { $0.timeIndex < $1.timeIndex })
                     })
                 }
             }
@@ -385,26 +385,26 @@ struct GlucoseTargetStepView: View {
 
     // Computed property to check if we can add more targets
     private var canAddTarget: Bool {
-        guard let lastItem = onboardingData.targetItems.last else { return true }
-        return lastItem.timeIndex < onboardingData.targetTimeValues.count - 1
+        guard let lastItem = state.targetItems.last else { return true }
+        return lastItem.timeIndex < state.targetTimeValues.count - 1
     }
 
     // Chart for visualizing glucose targets
     private var glucoseTargetChart: some View {
         Chart {
-            ForEach(Array(onboardingData.targetItems.enumerated()), id: \.element.id) { index, item in
-                let displayValue = onboardingData.targetRateValues[item.lowIndex]
+            ForEach(Array(state.targetItems.enumerated()), id: \.element.id) { index, item in
+                let displayValue = state.targetRateValues[item.lowIndex]
 
                 let tzOffset = TimeZone.current.secondsFromGMT() * -1
-                let startDate = Date(timeIntervalSinceReferenceDate: onboardingData.targetTimeValues[item.timeIndex])
+                let startDate = Date(timeIntervalSinceReferenceDate: state.targetTimeValues[item.timeIndex])
                     .addingTimeInterval(TimeInterval(tzOffset))
-                let endDate = onboardingData.targetItems.count > index + 1 ?
+                let endDate = state.targetItems.count > index + 1 ?
                     Date(
-                        timeIntervalSinceReferenceDate: onboardingData
-                            .targetTimeValues[onboardingData.targetItems[index + 1].timeIndex]
+                        timeIntervalSinceReferenceDate: state
+                            .targetTimeValues[state.targetItems[index + 1].timeIndex]
                     )
                     .addingTimeInterval(TimeInterval(tzOffset)) :
-                    Date(timeIntervalSinceReferenceDate: onboardingData.targetTimeValues.last!).addingTimeInterval(30 * 60)
+                    Date(timeIntervalSinceReferenceDate: state.targetTimeValues.last!).addingTimeInterval(30 * 60)
                     .addingTimeInterval(TimeInterval(tzOffset))
 
                 RectangleMark(

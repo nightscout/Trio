@@ -10,7 +10,7 @@ import UIKit
 
 /// Basal profile step view for setting basal insulin rates.
 struct BasalProfileStepView: View {
-    @State var onboardingData: OnboardingData
+    @Bindable var state: Onboarding.StateModel
     @State private var showTimeSelector = false
     @State private var selectedBasalIndex: Int?
     @State private var showAlert = false
@@ -44,7 +44,7 @@ struct BasalProfileStepView: View {
                     .padding(.horizontal)
 
                 // Chart visualization
-                if !onboardingData.basalProfileItems.isEmpty {
+                if !state.basalProfileItems.isEmpty {
                     VStack(alignment: .leading) {
                         Text("Basal Profile")
                             .font(.headline)
@@ -68,7 +68,7 @@ struct BasalProfileStepView: View {
                         Spacer()
 
                         // Add new basal rate button
-                        if onboardingData.basalProfileItems.count < 24 {
+                        if state.basalProfileItems.count < 24 {
                             Button(action: {
                                 showTimeSelector = true
                             }) {
@@ -85,13 +85,13 @@ struct BasalProfileStepView: View {
 
                     // List of basal rates
                     VStack(spacing: 2) {
-                        ForEach(Array(onboardingData.basalProfileItems.enumerated()), id: \.element.id) { index, item in
+                        ForEach(Array(state.basalProfileItems.enumerated()), id: \.element.id) { index, item in
                             HStack {
                                 // Time display
                                 Text(
                                     dateFormatter
                                         .string(from: Date(
-                                            timeIntervalSince1970: onboardingData
+                                            timeIntervalSince1970: state
                                                 .basalProfileTimeValues[item.timeIndex]
                                         ))
                                 )
@@ -102,41 +102,41 @@ struct BasalProfileStepView: View {
                                 Slider(
                                     value: Binding(
                                         get: {
-                                            guard !onboardingData.basalProfileRateValues.isEmpty,
-                                                  item.rateIndex < onboardingData.basalProfileRateValues.count
+                                            guard !state.basalProfileRateValues.isEmpty,
+                                                  item.rateIndex < state.basalProfileRateValues.count
                                             else {
                                                 return 0.0
                                             }
                                             return Double(
-                                                truncating: onboardingData
+                                                truncating: state
                                                     .basalProfileRateValues[item.rateIndex] as NSNumber
                                             )
                                         },
                                         set: { newValue in
-                                            guard !onboardingData.basalProfileRateValues.isEmpty else { return }
+                                            guard !state.basalProfileRateValues.isEmpty else { return }
 
                                             // Find closest match in rateValues array
-                                            let newIndex = onboardingData.basalProfileRateValues
+                                            let newIndex = state.basalProfileRateValues
                                                 .firstIndex { abs(Double($0) - newValue) < 0.005 } ?? item.rateIndex
 
                                             // Ensure index is valid before updating
-                                            if newIndex < onboardingData.basalProfileRateValues.count,
-                                               index < onboardingData.basalProfileItems.count
+                                            if newIndex < state.basalProfileRateValues.count,
+                                               index < state.basalProfileItems.count
                                             {
-                                                onboardingData.basalProfileItems[index].rateIndex = newIndex
+                                                state.basalProfileItems[index].rateIndex = newIndex
                                                 // Force refresh when slider changes
                                                 refreshUI = UUID()
                                             }
                                         }
                                     ),
-                                    in: onboardingData.basalProfileRateValues.isEmpty ? 0 ... 1 :
-                                        Double(truncating: onboardingData.basalProfileRateValues.first! as NSNumber) ...
-                                        Double(truncating: onboardingData.basalProfileRateValues.last! as NSNumber),
+                                    in: state.basalProfileRateValues.isEmpty ? 0 ... 1 :
+                                        Double(truncating: state.basalProfileRateValues.first! as NSNumber) ...
+                                        Double(truncating: state.basalProfileRateValues.last! as NSNumber),
                                     step: 0.05
                                 )
                                 .accentColor(.purple)
                                 .padding(.horizontal, 5)
-                                .onChange(of: onboardingData.basalProfileItems[index].rateIndex) { _, _ in
+                                .onChange(of: state.basalProfileItems[index].rateIndex) { _, _ in
                                     // Trigger immediate UI update when slider value changes
                                     let impact = UIImpactFeedbackGenerator(style: .light)
                                     impact.impactOccurred()
@@ -144,7 +144,7 @@ struct BasalProfileStepView: View {
 
                                 // Display the current value
                                 Text(
-                                    "\(onboardingData.basalProfileRateValues.isEmpty || item.rateIndex >= onboardingData.basalProfileRateValues.count ? "--" : formatter.string(from: onboardingData.basalProfileRateValues[item.rateIndex] as NSNumber) ?? "--") U/h"
+                                    "\(state.basalProfileRateValues.isEmpty || item.rateIndex >= state.basalProfileRateValues.count ? "--" : formatter.string(from: state.basalProfileRateValues[item.rateIndex] as NSNumber) ?? "--") U/h"
                                 )
                                 .frame(width: 80, alignment: .trailing)
                                 .lineLimit(1)
@@ -153,7 +153,7 @@ struct BasalProfileStepView: View {
                                 // Delete button (not for the first entry at 00:00)
                                 if index > 0 {
                                     Button(action: {
-                                        onboardingData.basalProfileItems.remove(at: index)
+                                        state.basalProfileItems.remove(at: index)
                                     }) {
                                         Image(systemName: "trash")
                                             .foregroundColor(.red)
@@ -174,14 +174,14 @@ struct BasalProfileStepView: View {
                     .cornerRadius(10)
                     .padding(.horizontal)
                     .onAppear {
-                        if onboardingData.basalProfileItems.isEmpty {
+                        if state.basalProfileItems.isEmpty {
                             addBasalRate()
                         }
                     }
                 }
 
                 // Total daily basal calculation
-                if !onboardingData.basalProfileItems.isEmpty {
+                if !state.basalProfileItems.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text("Total Daily Basal")
@@ -225,19 +225,19 @@ struct BasalProfileStepView: View {
             for hour in 0 ..< 24 {
                 let hourInMinutes = hour * 60
                 // Calculate timeIndex for this hour
-                let timeIndex = onboardingData.basalProfileTimeValues
+                let timeIndex = state.basalProfileTimeValues
                     .firstIndex { abs($0 - Double(hourInMinutes * 60)) < 10 } ?? 0
 
                 // Check if this hour is already in the profile
-                if !onboardingData.basalProfileItems.contains(where: { $0.timeIndex == timeIndex }) {
+                if !state.basalProfileItems.contains(where: { $0.timeIndex == timeIndex }) {
                     buttons.append(.default(Text("\(String(format: "%02d:00", hour))")) {
                         // Get the current rate from the last item
-                        let rateIndex = onboardingData.basalProfileItems.last?.rateIndex ?? 20 // 1.0 U/h as default
+                        let rateIndex = state.basalProfileItems.last?.rateIndex ?? 20 // 1.0 U/h as default
                         // Create new item with the specified time
                         let newItem = BasalProfileEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
                         // Add the new item and sort the list
-                        onboardingData.basalProfileItems.append(newItem)
-                        onboardingData.basalProfileItems.sort(by: { $0.timeIndex < $1.timeIndex })
+                        state.basalProfileItems.append(newItem)
+                        state.basalProfileItems.sort(by: { $0.timeIndex < $1.timeIndex })
                     })
                 }
             }
@@ -262,22 +262,22 @@ struct BasalProfileStepView: View {
     // Add initial basal rate
     private func addBasalRate() {
         // Default to midnight (00:00) and 1.0 U/h rate
-        let timeIndex = onboardingData.basalProfileTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
-        let rateIndex = onboardingData.basalProfileRateValues.firstIndex { abs(Double($0) - 1.0) < 0.05 } ?? 20
+        let timeIndex = state.basalProfileTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
+        let rateIndex = state.basalProfileRateValues.firstIndex { abs(Double($0) - 1.0) < 0.05 } ?? 20
 
         let newItem = BasalProfileEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
-        onboardingData.basalProfileItems.append(newItem)
+        state.basalProfileItems.append(newItem)
     }
 
     // Computed property to check if we can add more basal rates
     private var canAddBasalRate: Bool {
-        guard let lastItem = onboardingData.basalProfileItems.last else { return true }
-        return lastItem.timeIndex < onboardingData.basalProfileTimeValues.count - 1
+        guard let lastItem = state.basalProfileItems.last else { return true }
+        return lastItem.timeIndex < state.basalProfileTimeValues.count - 1
     }
 
     // Calculate the total daily basal insulin
     private func calculateTotalDailyBasal() -> Double {
-        let items = onboardingData.basalProfileItems
+        let items = state.basalProfileItems
 
         // If there are no items, return 0
         if items.isEmpty {
@@ -289,14 +289,14 @@ struct BasalProfileStepView: View {
         // Safely create profile items with proper error checking
         let profileItems = items.compactMap { item -> (timeIndex: Int, rate: Decimal)? in
             // Safety check - make sure indices are within bounds
-            guard item.timeIndex >= 0 && item.timeIndex < onboardingData.basalProfileTimeValues.count,
-                  item.rateIndex >= 0 && item.rateIndex < onboardingData.basalProfileRateValues.count
+            guard item.timeIndex >= 0 && item.timeIndex < state.basalProfileTimeValues.count,
+                  item.rateIndex >= 0 && item.rateIndex < state.basalProfileRateValues.count
             else {
                 return nil
             }
 
-            let timeValue = onboardingData.basalProfileTimeValues[item.timeIndex]
-            let rate = onboardingData.basalProfileRateValues[item.rateIndex]
+            let timeValue = state.basalProfileTimeValues[item.timeIndex]
+            let rate = state.basalProfileRateValues[item.rateIndex]
             return (Int(timeValue / 60), rate)
         }.sorted(by: { $0.timeIndex < $1.timeIndex })
 
@@ -332,19 +332,19 @@ struct BasalProfileStepView: View {
     // Chart for visualizing basal profile
     private var basalProfileChart: some View {
         Chart {
-            ForEach(Array(onboardingData.basalProfileItems.enumerated()), id: \.element.id) { index, item in
-                let displayValue = onboardingData.basalProfileRateValues[item.rateIndex]
+            ForEach(Array(state.basalProfileItems.enumerated()), id: \.element.id) { index, item in
+                let displayValue = state.basalProfileRateValues[item.rateIndex]
 
                 let tzOffset = TimeZone.current.secondsFromGMT() * -1
-                let startDate = Date(timeIntervalSinceReferenceDate: onboardingData.basalProfileTimeValues[item.timeIndex])
+                let startDate = Date(timeIntervalSinceReferenceDate: state.basalProfileTimeValues[item.timeIndex])
                     .addingTimeInterval(TimeInterval(tzOffset))
-                let endDate = onboardingData.basalProfileItems.count > index + 1 ?
+                let endDate = state.basalProfileItems.count > index + 1 ?
                     Date(
-                        timeIntervalSinceReferenceDate: onboardingData
-                            .basalProfileTimeValues[onboardingData.basalProfileItems[index + 1].timeIndex]
+                        timeIntervalSinceReferenceDate: state
+                            .basalProfileTimeValues[state.basalProfileItems[index + 1].timeIndex]
                     )
                     .addingTimeInterval(TimeInterval(tzOffset)) :
-                    Date(timeIntervalSinceReferenceDate: onboardingData.basalProfileTimeValues.last!).addingTimeInterval(30 * 60)
+                    Date(timeIntervalSinceReferenceDate: state.basalProfileTimeValues.last!).addingTimeInterval(30 * 60)
                     .addingTimeInterval(TimeInterval(tzOffset))
 
                 RectangleMark(

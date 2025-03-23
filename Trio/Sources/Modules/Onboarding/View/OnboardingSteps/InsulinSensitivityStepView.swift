@@ -10,7 +10,7 @@ import UIKit
 
 /// Insulin sensitivity step view for setting insulin sensitivity factor.
 struct InsulinSensitivityStepView: View {
-    @State var onboardingData: OnboardingData
+    @Bindable var state: Onboarding.StateModel
     @State private var showTimeSelector = false
     @State private var selectedISFIndex: Int?
     @State private var showAlert = false
@@ -24,7 +24,7 @@ struct InsulinSensitivityStepView: View {
     private var numberFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = onboardingData.units == .mmolL ? 1 : 0
+        formatter.maximumFractionDigits = state.units == .mmolL ? 1 : 0
         return formatter
     }
 
@@ -46,7 +46,7 @@ struct InsulinSensitivityStepView: View {
                 .padding(.horizontal)
 
                 // Chart visualization
-                if !onboardingData.isfItems.isEmpty {
+                if !state.isfItems.isEmpty {
                     VStack(alignment: .leading) {
                         Text("ISF Profile")
                             .font(.headline)
@@ -70,7 +70,7 @@ struct InsulinSensitivityStepView: View {
                         Spacer()
 
                         // Add new ISF button
-                        if onboardingData.isfItems.count < 24 {
+                        if state.isfItems.count < 24 {
                             Button(action: {
                                 showTimeSelector = true
                             }) {
@@ -87,13 +87,13 @@ struct InsulinSensitivityStepView: View {
 
                     // List of ISF values
                     VStack(spacing: 2) {
-                        ForEach(Array(onboardingData.isfItems.enumerated()), id: \.element.id) { index, item in
+                        ForEach(Array(state.isfItems.enumerated()), id: \.element.id) { index, item in
                             HStack {
                                 // Time display
                                 Text(
                                     dateFormatter
                                         .string(from: Date(
-                                            timeIntervalSince1970: onboardingData
+                                            timeIntervalSince1970: state
                                                 .isfTimeValues[item.timeIndex]
                                         ))
                                 )
@@ -104,41 +104,41 @@ struct InsulinSensitivityStepView: View {
                                 Slider(
                                     value: Binding(
                                         get: {
-                                            guard !onboardingData.rateValues.isEmpty,
-                                                  item.rateIndex < onboardingData.rateValues.count
+                                            guard !state.rateValues.isEmpty,
+                                                  item.rateIndex < state.rateValues.count
                                             else {
                                                 return 0.0
                                             }
                                             return Double(
-                                                truncating: onboardingData
+                                                truncating: state
                                                     .rateValues[item.rateIndex] as NSNumber
                                             )
                                         },
                                         set: { newValue in
-                                            guard !onboardingData.rateValues.isEmpty else { return }
+                                            guard !state.rateValues.isEmpty else { return }
 
                                             // Find closest match in rateValues array
-                                            let newIndex = onboardingData.rateValues
+                                            let newIndex = state.rateValues
                                                 .firstIndex { abs(Double($0) - newValue) < 0.5 } ?? item.rateIndex
 
                                             // Ensure index is valid before updating
-                                            if newIndex < onboardingData.rateValues.count,
-                                               index < onboardingData.isfItems.count
+                                            if newIndex < state.rateValues.count,
+                                               index < state.isfItems.count
                                             {
-                                                onboardingData.isfItems[index].rateIndex = newIndex
+                                                state.isfItems[index].rateIndex = newIndex
                                                 // Force refresh when slider changes
                                                 refreshUI = UUID()
                                             }
                                         }
                                     ),
-                                    in: onboardingData.rateValues.isEmpty ? 0 ... 1 :
-                                        Double(truncating: onboardingData.rateValues.first! as NSNumber) ...
-                                        Double(truncating: onboardingData.rateValues.last! as NSNumber),
-                                    step: onboardingData.units == .mgdL ? 1 : 0.1
+                                    in: state.rateValues.isEmpty ? 0 ... 1 :
+                                        Double(truncating: state.rateValues.first! as NSNumber) ...
+                                        Double(truncating: state.rateValues.last! as NSNumber),
+                                    step: state.units == .mgdL ? 1 : 0.1
                                 )
                                 .accentColor(.red)
                                 .padding(.horizontal, 5)
-                                .onChange(of: onboardingData.isfItems[index].rateIndex) { _, _ in
+                                .onChange(of: state.isfItems[index].rateIndex) { _, _ in
                                     // Trigger immediate UI update when slider value changes
                                     let impact = UIImpactFeedbackGenerator(style: .light)
                                     impact.impactOccurred()
@@ -146,7 +146,7 @@ struct InsulinSensitivityStepView: View {
 
                                 // Display the current value
                                 Text(
-                                    "\(onboardingData.rateValues.isEmpty || item.rateIndex >= onboardingData.rateValues.count ? "--" : numberFormatter.string(from: onboardingData.rateValues[item.rateIndex] as NSNumber) ?? "--") \(onboardingData.units == .mgdL ? "mg/dL" : "mmol/L")"
+                                    "\(state.rateValues.isEmpty || item.rateIndex >= state.rateValues.count ? "--" : numberFormatter.string(from: state.rateValues[item.rateIndex] as NSNumber) ?? "--") \(state.units == .mgdL ? "mg/dL" : "mmol/L")"
                                 )
                                 .frame(width: 90, alignment: .trailing)
                                 .lineLimit(1)
@@ -155,7 +155,7 @@ struct InsulinSensitivityStepView: View {
                                 // Delete button (not for the first entry at 00:00)
                                 if index > 0 {
                                     Button(action: {
-                                        onboardingData.isfItems.remove(at: index)
+                                        state.isfItems.remove(at: index)
                                     }) {
                                         Image(systemName: "trash")
                                             .foregroundColor(.red)
@@ -176,14 +176,14 @@ struct InsulinSensitivityStepView: View {
                     .cornerRadius(10)
                     .padding(.horizontal)
                     .onAppear {
-                        if onboardingData.isfItems.isEmpty {
-                            onboardingData.addISFValue()
+                        if state.isfItems.isEmpty {
+                            state.addISFValue()
                         }
                     }
                 }
 
                 // Example calculation based on first ISF
-                if !onboardingData.isfItems.isEmpty {
+                if !state.isfItems.isEmpty {
                     Divider()
                         .padding(.horizontal)
 
@@ -194,19 +194,19 @@ struct InsulinSensitivityStepView: View {
 
                         VStack(alignment: .leading, spacing: 4) {
                             // Current glucose is 40 mg/dL or 2.2 mmol/L above target
-                            let aboveTarget = onboardingData.units == .mgdL ? 40.0 : 2.2
+                            let aboveTarget = state.units == .mgdL ? 40.0 : 2.2
 
-                            let isfValue = onboardingData.rateValues.isEmpty || onboardingData.isfItems.isEmpty ?
-                                Double(truncating: onboardingData.isf as NSNumber) :
+                            let isfValue = state.rateValues.isEmpty || state.isfItems.isEmpty ?
+                                Double(truncating: state.isf as NSNumber) :
                                 Double(
-                                    truncating: onboardingData
-                                        .rateValues[onboardingData.isfItems.first!.rateIndex] as NSNumber
+                                    truncating: state
+                                        .rateValues[state.isfItems.first!.rateIndex] as NSNumber
                                 )
 
                             let insulinNeeded = aboveTarget / isfValue
 
                             Text(
-                                "If you are \(numberFormatter.string(from: NSNumber(value: aboveTarget)) ?? "--") \(onboardingData.units == .mgdL ? "mg/dL" : "mmol/L") above target:"
+                                "If you are \(numberFormatter.string(from: NSNumber(value: aboveTarget)) ?? "--") \(state.units == .mgdL ? "mg/dL" : "mmol/L") above target:"
                             )
                             .font(.subheadline)
                             .padding(.horizontal)
@@ -233,7 +233,7 @@ struct InsulinSensitivityStepView: View {
                             .padding(.horizontal)
 
                         VStack(alignment: .leading, spacing: 4) {
-                            if onboardingData.units == .mgdL {
+                            if state.units == .mgdL {
                                 Text("• An ISF of 50 mg/dL means 1 unit of insulin lowers your BG by 50 mg/dL")
                                 Text("• A lower number means you're more sensitive to insulin")
                                 Text("• A higher number means you're less sensitive to insulin")
@@ -260,19 +260,19 @@ struct InsulinSensitivityStepView: View {
             for hour in 0 ..< 24 {
                 let hourInMinutes = hour * 60
                 // Calculate timeIndex for this hour
-                let timeIndex = onboardingData.isfTimeValues
+                let timeIndex = state.isfTimeValues
                     .firstIndex { abs($0 - Double(hourInMinutes * 60)) < 10 } ?? 0
 
                 // Check if this hour is already in the profile
-                if !onboardingData.isfItems.contains(where: { $0.timeIndex == timeIndex }) {
+                if !state.isfItems.contains(where: { $0.timeIndex == timeIndex }) {
                     buttons.append(.default(Text("\(String(format: "%02d:00", hour))")) {
                         // Get the current rate from the last item
-                        let rateIndex = onboardingData.isfItems.last?.rateIndex ?? 45 // Default to 45 mg/dL
+                        let rateIndex = state.isfItems.last?.rateIndex ?? 45 // Default to 45 mg/dL
                         // Create new item with the specified time
                         let newItem = ISFEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
                         // Add the new item and sort the list
-                        onboardingData.isfItems.append(newItem)
-                        onboardingData.isfItems.sort(by: { $0.timeIndex < $1.timeIndex })
+                        state.isfItems.append(newItem)
+                        state.isfItems.sort(by: { $0.timeIndex < $1.timeIndex })
                     })
                 }
             }
@@ -297,36 +297,36 @@ struct InsulinSensitivityStepView: View {
     // Add initial ISF value
     private func addInitialISF() {
         // Default to midnight (00:00) and 50 mg/dL (or 2.8 mmol/L)
-        let timeIndex = onboardingData.isfTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
-        let defaultISF = onboardingData.units == .mgdL ? 50.0 : 2.8
-        let rateIndex = onboardingData.rateValues.firstIndex { abs(Double($0) - defaultISF) < 0.5 } ?? 45
+        let timeIndex = state.isfTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
+        let defaultISF = state.units == .mgdL ? 50.0 : 2.8
+        let rateIndex = state.rateValues.firstIndex { abs(Double($0) - defaultISF) < 0.5 } ?? 45
 
         let newItem = ISFEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
-        onboardingData.isfItems.append(newItem)
+        state.isfItems.append(newItem)
     }
 
     // Computed property to check if we can add more ISF values
     private var canAddISF: Bool {
-        guard let lastItem = onboardingData.isfItems.last else { return true }
-        return lastItem.timeIndex < onboardingData.isfTimeValues.count - 1
+        guard let lastItem = state.isfItems.last else { return true }
+        return lastItem.timeIndex < state.isfTimeValues.count - 1
     }
 
     // Chart for visualizing ISF profile
     private var isfChart: some View {
         Chart {
-            ForEach(Array(onboardingData.isfItems.enumerated()), id: \.element.id) { index, item in
-                let displayValue = onboardingData.rateValues[item.rateIndex]
+            ForEach(Array(state.isfItems.enumerated()), id: \.element.id) { index, item in
+                let displayValue = state.rateValues[item.rateIndex]
 
                 let tzOffset = TimeZone.current.secondsFromGMT() * -1
-                let startDate = Date(timeIntervalSinceReferenceDate: onboardingData.isfTimeValues[item.timeIndex])
+                let startDate = Date(timeIntervalSinceReferenceDate: state.isfTimeValues[item.timeIndex])
                     .addingTimeInterval(TimeInterval(tzOffset))
-                let endDate = onboardingData.isfItems.count > index + 1 ?
+                let endDate = state.isfItems.count > index + 1 ?
                     Date(
-                        timeIntervalSinceReferenceDate: onboardingData
-                            .isfTimeValues[onboardingData.isfItems[index + 1].timeIndex]
+                        timeIntervalSinceReferenceDate: state
+                            .isfTimeValues[state.isfItems[index + 1].timeIndex]
                     )
                     .addingTimeInterval(TimeInterval(tzOffset)) :
-                    Date(timeIntervalSinceReferenceDate: onboardingData.isfTimeValues.last!).addingTimeInterval(30 * 60)
+                    Date(timeIntervalSinceReferenceDate: state.isfTimeValues.last!).addingTimeInterval(30 * 60)
                     .addingTimeInterval(TimeInterval(tzOffset))
 
                 RectangleMark(

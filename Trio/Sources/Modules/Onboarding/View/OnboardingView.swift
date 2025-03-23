@@ -1,169 +1,173 @@
 import SwiftUI
+import Swinject
 
 /// The main onboarding view that manages navigation between onboarding steps.
-struct OnboardingView: View {
-    let manager: OnboardingManager
-    @State private var onboardingData = OnboardingData()
-    @State private var currentStep: OnboardingStep = .welcome
+extension Onboarding {
+    struct RootView: BaseView {
+        let resolver: Resolver
+        @State var state = StateModel()
+        let onboardingManager: OnboardingManager
+        @State private var currentStep: OnboardingStep = .welcome
 
-    // Animation states
-    @State private var animationScale: CGFloat = 1.0
-    @State private var animationOpacity: Double = 0
-    @State private var isAnimating = false
+        // Animation states
+        @State private var animationScale: CGFloat = 1.0
+        @State private var animationOpacity: Double = 0
+        @State private var isAnimating = false
 
-    var body: some View {
-        NavigationView {
-            ZStack {
-                // Background gradient
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    // Progress bar
-                    OnboardingProgressBar(
-                        currentStep: OnboardingStep.allCases.firstIndex(of: currentStep) ?? 0,
-                        totalSteps: OnboardingStep.allCases.count - 1
+        var body: some View {
+            NavigationView {
+                ZStack {
+                    // Background gradient
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
+                        startPoint: .top,
+                        endPoint: .bottom
                     )
-                    .padding(.top)
+                    .ignoresSafeArea()
 
-                    // Step content
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 20) {
-                            // Header
-                            HStack {
-                                Image(systemName: currentStep.iconName)
-                                    .font(.system(size: 40))
-                                    .foregroundColor(currentStep.accentColor)
-                                    .frame(width: 60, height: 60)
-                                    .background(
-                                        Circle()
-                                            .fill(currentStep.accentColor.opacity(0.2))
-                                    )
+                    VStack(spacing: 0) {
+                        // Progress bar
+                        OnboardingProgressBar(
+                            currentStep: OnboardingStep.allCases.firstIndex(of: currentStep) ?? 0,
+                            totalSteps: OnboardingStep.allCases.count - 1
+                        )
+                        .padding(.top)
 
-                                VStack(alignment: .leading) {
-                                    Text(currentStep.title)
-                                        .font(.largeTitle)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.primary)
-
-                                    Text(currentStep.description)
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                            }
-                            .padding(.horizontal)
-                            .padding(.top)
-
-                            // Animation container (for steps that include animations)
-                            AnimationPlaceholder(for: currentStep)
-                                .padding()
-                                .scaleEffect(animationScale)
-                                .opacity(animationOpacity)
-                                .onAppear {
-                                    withAnimation(.easeInOut(duration: 0.7)) {
-                                        animationOpacity = 1
-                                        animationScale = 1.0
-                                    }
-                                    // Start pulse animation
-                                    isAnimating = true
-                                }
-
-                            // Step-specific content
-                            Group {
-                                switch currentStep {
-                                case .welcome:
-                                    WelcomeStepView()
-                                case .glucoseTarget:
-                                    GlucoseTargetStepView(onboardingData: onboardingData)
-                                case .basalProfile:
-                                    BasalProfileStepView(onboardingData: onboardingData)
-                                case .carbRatio:
-                                    CarbRatioStepView(onboardingData: onboardingData)
-                                case .insulinSensitivity:
-                                    InsulinSensitivityStepView(onboardingData: onboardingData)
-                                case .completed:
-                                    CompletedStepView()
-                                }
-                            }
-                            .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
-                            .padding(.horizontal)
-                            .id(currentStep.id) // Force view recreation when step changes
-                        }
-                        .padding(.bottom, 80) // Make room for buttons at bottom
-                    }
-
-                    Spacer()
-
-                    // Navigation buttons
-                    HStack {
-                        // Back button
-                        if currentStep != .welcome {
-                            Button(action: {
-                                withAnimation {
-                                    if let previous = currentStep.previous {
-                                        currentStep = previous
-                                    }
-                                }
-                            }) {
+                        // Step content
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 20) {
+                                // Header
                                 HStack {
-                                    Image(systemName: "chevron.left")
-                                    Text("Back")
+                                    Image(systemName: currentStep.iconName)
+                                        .font(.system(size: 40))
+                                        .foregroundColor(currentStep.accentColor)
+                                        .frame(width: 60, height: 60)
+                                        .background(
+                                            Circle()
+                                                .fill(currentStep.accentColor.opacity(0.2))
+                                        )
+
+                                    VStack(alignment: .leading) {
+                                        Text(currentStep.title)
+                                            .font(.largeTitle)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.primary)
+
+                                        Text(currentStep.description)
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
                                 }
-                                .padding()
-                                .foregroundColor(.primary)
+                                .padding(.horizontal)
+                                .padding(.top)
+
+                                // Animation container (for steps that include animations)
+                                AnimationPlaceholder(for: currentStep)
+                                    .padding()
+                                    .scaleEffect(animationScale)
+                                    .opacity(animationOpacity)
+                                    .onAppear {
+                                        withAnimation(.easeInOut(duration: 0.7)) {
+                                            animationOpacity = 1
+                                            animationScale = 1.0
+                                        }
+                                        // Start pulse animation
+                                        isAnimating = true
+                                    }
+
+                                // Step-specific content
+                                Group {
+                                    switch currentStep {
+                                    case .welcome:
+                                        WelcomeStepView()
+                                    case .glucoseTarget:
+                                        GlucoseTargetStepView(state: state)
+                                    case .basalProfile:
+                                        BasalProfileStepView(state: state)
+                                    case .carbRatio:
+                                        CarbRatioStepView(state: state)
+                                    case .insulinSensitivity:
+                                        InsulinSensitivityStepView(state: state)
+                                    case .completed:
+                                        CompletedStepView()
+                                    }
+                                }
+                                .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                                .padding(.horizontal)
+                                .id(currentStep.id) // Force view recreation when step changes
                             }
+                            .padding(.bottom, 80) // Make room for buttons at bottom
                         }
 
                         Spacer()
 
-                        // Next/Finish button
-                        Button(action: {
-                            withAnimation {
-                                if currentStep == .completed {
-                                    // Apply settings and complete onboarding
-                                    onboardingData.applyToSettings()
-                                    manager.completeOnboarding()
-                                } else if let next = currentStep.next {
-                                    currentStep = next
+                        // Navigation buttons
+                        HStack {
+                            // Back button
+                            if currentStep != .welcome {
+                                Button(action: {
+                                    withAnimation {
+                                        if let previous = currentStep.previous {
+                                            currentStep = previous
+                                        }
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "chevron.left")
+                                        Text("Back")
+                                    }
+                                    .padding()
+                                    .foregroundColor(.primary)
                                 }
                             }
-                        }) {
-                            HStack {
-                                Text(currentStep == .completed ? "Get Started" : "Next")
-                                Image(systemName: "chevron.right")
-                            }
-                            .padding()
-                            .foregroundColor(.white)
-                            .background(
-                                Capsule()
-                                    .fill(currentStep.accentColor)
-                            )
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom)
-                }
-            }
-            .navigationBarHidden(true)
-        }
-        .onChange(of: currentStep) { _, _ in
-            // Reset animation when step changes
-            animationScale = 0.9
-            animationOpacity = 0
-            isAnimating = false
 
-            // Start new animation
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.easeInOut(duration: 0.7)) {
-                    animationOpacity = 1
-                    animationScale = 1.0
+                            Spacer()
+
+                            // Next/Finish button
+                            Button(action: {
+                                withAnimation {
+                                    if currentStep == .completed {
+                                        // Apply settings and complete onboarding
+                                        state.applyToSettings()
+                                        onboardingManager.completeOnboarding()
+                                    } else if let next = currentStep.next {
+                                        currentStep = next
+                                    }
+                                }
+                            }) {
+                                HStack {
+                                    Text(currentStep == .completed ? "Get Started" : "Next")
+                                    Image(systemName: "chevron.right")
+                                }
+                                .padding()
+                                .foregroundColor(.white)
+                                .background(
+                                    Capsule()
+                                        .fill(currentStep.accentColor)
+                                )
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom)
+                    }
                 }
-                isAnimating = true
+                .navigationBarHidden(true)
+            }
+            .onChange(of: currentStep) { _, _ in
+                // Reset animation when step changes
+                animationScale = 0.9
+                animationOpacity = 0
+                isAnimating = false
+
+                // Start new animation
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    withAnimation(.easeInOut(duration: 0.7)) {
+                        animationOpacity = 1
+                        animationScale = 1.0
+                    }
+                    isAnimating = true
+                }
             }
         }
     }
@@ -423,13 +427,10 @@ struct AnimationPlaceholder: View {
 struct Onboarding_Preview: PreviewProvider {
     static var previews: some View {
         Group {
+            let resolver = TrioApp.resolver
             let onboardingManager = OnboardingManager()
-            OnboardingView(manager: onboardingManager)
+            Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
                 .previewDisplayName("Onboarding Flow")
-
-            OnboardingView(manager: onboardingManager)
-                .environment(\.colorScheme, .dark)
-                .previewDisplayName("Onboarding Flow (Dark)")
         }
     }
 }

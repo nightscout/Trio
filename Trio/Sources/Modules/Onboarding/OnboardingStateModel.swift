@@ -104,106 +104,110 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 }
 
 /// Model that holds the data collected during onboarding.
-@Observable class OnboardingData: Injectable {
-    @ObservationIgnored @Injected() var settingsManager: SettingsManager!
-    @ObservationIgnored @Injected() var storage: FileStorage!
-    @ObservationIgnored @Injected() var deviceManager: DeviceDataManager!
+extension Onboarding {
+    @Observable final class StateModel: BaseStateModel<Provider> {
+        @ObservationIgnored @Injected() var settingsManager: SettingsManager!
+        @ObservationIgnored @Injected() var storage: FileStorage!
+        @ObservationIgnored @Injected() var deviceManager: DeviceDataManager!
 
-    // Carb Ratio related
-    var carbRatioItems: [CarbRatioEditor.Item] = []
-    var initialCarbRatioItems: [CarbRatioEditor.Item] = []
-    let carbRatioTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
-    let carbRatioRateValues = stride(from: 30.0, to: 501.0, by: 1.0).map { ($0.decimal ?? .zero) / 10 }
+        // Carb Ratio related
+        var carbRatioItems: [CarbRatioEditor.Item] = []
+        var initialCarbRatioItems: [CarbRatioEditor.Item] = []
+        let carbRatioTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+        let carbRatioRateValues = stride(from: 30.0, to: 501.0, by: 1.0).map { ($0.decimal ?? .zero) / 10 }
 
-    // Basal Profile related
-    var initialBasalProfileItems: [BasalProfileEditor.Item] = []
-    var basalProfileItems: [BasalProfileEditor.Item] = []
-    let basalProfileTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
-    var basalProfileRateValues: [Decimal] = stride(from: 0.05, to: 3.05, by: 0.05).map { Decimal($0) }
+        // Basal Profile related
+        var initialBasalProfileItems: [BasalProfileEditor.Item] = []
+        var basalProfileItems: [BasalProfileEditor.Item] = []
+        let basalProfileTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+        var basalProfileRateValues: [Decimal] = stride(from: 0.05, to: 3.05, by: 0.05).map { Decimal($0) }
 
-    // ISF related
-    var isfItems: [ISFEditor.Item] = []
-    var initialISFItems: [ISFEditor.Item] = []
-    let isfTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
-    var rateValues: [Decimal] {
-        var values = stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
+        // ISF related
+        var isfItems: [ISFEditor.Item] = []
+        var initialISFItems: [ISFEditor.Item] = []
+        let isfTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+        var rateValues: [Decimal] {
+            var values = stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
 
-        if units == .mmolL {
-            values = values.filter { Int(truncating: $0 as NSNumber) % 2 == 0 }
+            if units == .mmolL {
+                values = values.filter { Int(truncating: $0 as NSNumber) % 2 == 0 }
+            }
+
+            return values
         }
 
-        return values
-    }
+        // Target related
+        var targetItems: [TargetsEditor.Item] = []
+        var initialTargetItems: [TargetsEditor.Item] = []
+        let targetTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
-    // Target related
-    var targetItems: [TargetsEditor.Item] = []
-    var initialTargetItems: [TargetsEditor.Item] = []
-    let targetTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
-
-    var targetRateValues: [Decimal] {
-        let settingsProvider = PickerSettingsProvider.shared
-        let glucoseSetting = PickerSetting(value: 0, step: 1, min: 72, max: 180, type: .glucose)
-        return settingsProvider.generatePickerValues(from: glucoseSetting, units: units)
-    }
-
-    // Glucose Target
-    var targetLow: Decimal = 70
-    var targetHigh: Decimal = 180
-
-    // Basal Profile
-    var basalRates: [BasalRateEntry] = [BasalRateEntry(startTime: 0, rate: 1.0)]
-
-    // Carb Ratio
-    var carbRatio: Decimal = 10
-
-    // Insulin Sensitivity Factor
-    var isf: Decimal = 40
-
-    // Blood Glucose Units
-    var units: GlucoseUnits = .mgdL
-
-    struct BasalRateEntry: Identifiable {
-        var id = UUID()
-        var startTime: Int // Minutes from midnight
-        var rate: Decimal
-
-        var timeFormatted: String {
-            let hours = startTime / 60
-            let minutes = startTime % 60
-            return String(format: "%02d:%02d", hours, minutes)
+        var targetRateValues: [Decimal] {
+            let settingsProvider = PickerSettingsProvider.shared
+            let glucoseSetting = PickerSetting(value: 0, step: 1, min: 72, max: 180, type: .glucose)
+            return settingsProvider.generatePickerValues(from: glucoseSetting, units: units)
         }
-    }
 
-    /// Applies the onboarding data to the app's settings.
-    func applyToSettings() {
-        // Make a copy of the current settings that we can mutate
-        var settingsCopy = settingsManager.settings
+        // Glucose Target
+        var targetLow: Decimal = 70
+        var targetHigh: Decimal = 180
 
-        // Apply glucose target - We'll use lowGlucose and highGlucose properties
-        settingsCopy.lowGlucose = targetLow
-        settingsCopy.highGlucose = targetHigh
+        // Basal Profile
+        var basalRates: [BasalRateEntry] = [BasalRateEntry(startTime: 0, rate: 1.0)]
 
-        // Apply glucose units
-        settingsCopy.units = units
+        // Carb Ratio
+        var carbRatio: Decimal = 10
 
-        // Apply basal profile
-        // TODO: - should we use the return value or modify the function to not return anything?
-        _ = saveBasalProfile()
+        // Insulin Sensitivity Factor
+        var isf: Decimal = 40
 
-        // Apply carb ratio
-        saveCarbRatios()
+        // Blood Glucose Units
+        var units: GlucoseUnits = .mgdL
 
-        // Apply ISF values
+        struct BasalRateEntry: Identifiable {
+            var id = UUID()
+            var startTime: Int // Minutes from midnight
+            var rate: Decimal
 
-        // Instead of using updateSettings which doesn't exist,
-        // we'll directly set the settings property which will trigger the didSet observer
-        settingsManager.settings = settingsCopy
+            var timeFormatted: String {
+                let hours = startTime / 60
+                let minutes = startTime % 60
+                return String(format: "%02d:%02d", hours, minutes)
+            }
+        }
+
+        override func subscribe() {}
+
+        /// Applies the onboarding data to the app's settings.
+        func applyToSettings() {
+            // Make a copy of the current settings that we can mutate
+            var settingsCopy = settingsManager.settings
+
+            // Apply glucose target - We'll use lowGlucose and highGlucose properties
+            settingsCopy.lowGlucose = targetLow
+            settingsCopy.highGlucose = targetHigh
+
+            // Apply glucose units
+            settingsCopy.units = units
+
+            // Apply basal profile
+            // TODO: - should we use the return value or modify the function to not return anything?
+            _ = saveBasalProfile()
+
+            // Apply carb ratio
+            saveCarbRatios()
+
+            // Apply ISF values
+
+            // Instead of using updateSettings which doesn't exist,
+            // we'll directly set the settings property which will trigger the didSet observer
+            settingsManager.settings = settingsCopy
+        }
     }
 }
 
 // MARK: - Setup Carb Ratios
 
-extension OnboardingData {
+extension Onboarding.StateModel {
     var carbRatiosHaveChanges: Bool {
         if initialCarbRatioItems.count != carbRatioItems.count {
             return true
@@ -266,7 +270,7 @@ extension OnboardingData {
 
 // MARK: - Setup glucose targets
 
-extension OnboardingData {
+extension Onboarding.StateModel {
     var targetsHaveChanged: Bool {
         initialTargetItems != targetItems
     }
@@ -328,7 +332,7 @@ extension OnboardingData {
 
 // MARK: - Setup ISF values
 
-extension OnboardingData {
+extension Onboarding.StateModel {
     var isfValuesHaveChanges: Bool {
         initialISFItems != isfItems
     }
@@ -390,7 +394,7 @@ extension OnboardingData {
 
 // MARK: - Setup Basal Profile
 
-extension OnboardingData {
+extension Onboarding.StateModel {
     var hasBasalProfileChanges: Bool {
         if initialBasalProfileItems.count != basalProfileItems.count {
             return true

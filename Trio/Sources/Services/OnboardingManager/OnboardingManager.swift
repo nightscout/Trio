@@ -2,18 +2,6 @@ import Foundation
 import SwiftUI
 import Swinject
 
-extension UserDefaults {
-    /// Flag that indicates if onboarding has been completed.
-    var onboardingCompleted: Bool {
-        get {
-            bool(forKey: "onboardingCompleted")
-        }
-        set {
-            set(newValue, forKey: "onboardingCompleted")
-        }
-    }
-}
-
 /// Manages the app's onboarding experience, ensuring it's only shown to new users.
 /// Coordinates the display of onboarding screens when the app is launched for the first time.
 final class OnboardingManager: ObservableObject, Injectable {
@@ -44,5 +32,17 @@ final class OnboardingManager: ObservableObject, Injectable {
     func resetOnboarding() {
         UserDefaults.standard.onboardingCompleted = false
         shouldShowOnboarding = true
+    }
+}
+
+extension UserDefaults {
+    /// Flag that indicates if onboarding has been completed.
+    var onboardingCompleted: Bool {
+        get {
+            bool(forKey: "onboardingCompleted")
+        }
+        set {
+            set(newValue, forKey: "onboardingCompleted")
+        }
     }
 }

@@ -187,7 +187,7 @@ extension Notification.Name {
                     }
             } else if onboardingManager.shouldShowOnboarding {
                 // Show onboarding if needed
-                OnboardingView(manager: onboardingManager)
+                Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
                     .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
                     .transition(.opacity)
             } else {
