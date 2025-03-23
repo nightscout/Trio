@@ -2,142 +2,182 @@ import SwiftUI
 
 // MARK: - Style Extensions
 
+// View modifiers that provide consistent styling across calculation components.
+// These extensions establish a visual hierarchy through font sizing, coloring, and layout priorities.
+
 private extension View {
-    /// Applies secondary label styling
-    func secondaryLabel() -> some View {
+    /// Applies secondary label styling for descriptive text elements.
+    /// Uses a smaller font with secondary color to visually distinguish labels from values.
+    /// Layout priority ensures these elements maintain appropriate space.
+    func secondaryStyle() -> some View {
         font(.footnote)
             .foregroundStyle(.secondary)
+            .allowsTightening(true)
             .minimumScaleFactor(0.5)
+            .layoutPriority(1)
     }
 
-    /// Applies tertiary label styling
-    func tertiaryLabel() -> some View {
-        font(.caption)
-            .foregroundStyle(.tertiary)
-            .minimumScaleFactor(0.5)
-    }
-
-    /// Applies value styling
-    func valueStyle() -> some View {
-        font(.system(.subheadline, weight: .semibold))
-            .minimumScaleFactor(0.5)
-    }
-
-    /// Applies large value styling
-    func solutionStyle() -> some View {
-        font(.system(.title3, weight: .bold))
-            .minimumScaleFactor(0.5)
-    }
-
-    /// Applies section title styling
-    func sectionTitle() -> some View {
-        font(.system(.subheadline, weight: .semibold))
-            .foregroundStyle(.secondary)
-            .minimumScaleFactor(0.5)
-    }
-
-    /// Applies unit text styling
+    /// Applies unit label styling for measurement units (mg/dL, mmol/L, U, g, etc.)
+    /// Uses the smallest font size with secondary color to de-emphasize units.
+    /// Low layout priority ensures units don't compete for space with values.
     func unitStyle() -> some View {
-        font(.footnote)
+        font(.caption2)
             .foregroundStyle(.secondary)
+            .allowsTightening(true)
             .minimumScaleFactor(0.5)
+            .layoutPriority(-1)
     }
 
-    /// Applies to mathematical operators
+    /// Applies mathematical operator label styling (+, -, ×, ÷, =, etc.)
+    /// Medium priority ensures operators maintain proper spacing between values
+    /// while allowing compression when space is limited.
     func operatorStyle() -> some View {
-        font(.system(.body, weight: .regular))
+        font(.body)
             .foregroundStyle(.secondary)
+            .allowsTightening(true)
+            .minimumScaleFactor(0.5)
+            .layoutPriority(3)
     }
 
-    /// Applies leading alignment with full width
-    func leadingFullWidth() -> some View {
-        frame(maxWidth: .infinity, alignment: .leading)
+    /// Applies styling for numeric values in calculations.
+    /// Higher layout priority (5) ensures values maintain visibility when space is constrained.
+    /// Minimum width prevents values from becoming too compressed.
+    func valueStyle() -> some View {
+        font(.headline)
+            .frame(minWidth: 50)
+            .allowsTightening(true)
+            .minimumScaleFactor(0.5)
+            .lineLimit(1)
+            .layoutPriority(5)
     }
 
-    /// Applies trailing alignment with full width
-    func trailingFullWidth() -> some View {
-        frame(maxWidth: .infinity, alignment: .trailing)
-    }
-
-    /// Applies center alignment with full width
-    func centerFullWidth() -> some View {
-        frame(maxWidth: .infinity, alignment: .center)
-    }
-}
-
-// MARK: - Card Modifier
-
-private struct CalculationCardModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemGroupedBackground))
-
-            content
-                .padding(10)
+    /// Applies styling for calculation results with dynamic coloring based on value.
+    /// - Parameter value: The numeric value to display, which determines color:
+    ///   - Negative values: Red (indicating insulin reduction)
+    ///   - Zero: Primary color
+    ///   - Positive values: Green (indicating insulin addition)
+    /// Highest layout priority (10) ensures results remain visible even in constrained layouts.
+    func solutionStyle(_ value: Decimal = 0) -> some View {
+        let solutionColor: Color
+        switch value {
+        case ..<0:
+            solutionColor = .red
+        case 0:
+            solutionColor = .primary
+        default:
+            solutionColor = .green
         }
-        .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 2)
+
+        return font(.system(.headline, weight: .bold))
+            .frame(minWidth: 50)
+            .foregroundStyle(solutionColor)
+            .allowsTightening(true)
+            .fixedSize(horizontal: true, vertical: true)
+            .minimumScaleFactor(0.5)
+            .layoutPriority(10)
+            .lineLimit(1)
+    }
+
+    /// Applies styling for the final recommendation value.
+    /// Uses larger font size than regular solutions to emphasize the final result.
+    /// Maintains highest layout priority to ensure visibility.
+    func largeSolutionStyle() -> some View {
+        font(.system(.title3, weight: .bold))
+            .allowsTightening(true)
+            .fixedSize(horizontal: true, vertical: true)
+            .minimumScaleFactor(0.5)
+            .layoutPriority(10)
+            .lineLimit(1)
+    }
+
+    /// Reduces the default inset padding of List Sections for more compact presentation.
+    /// Creates tighter spacing in the calculation cards.
+    func listRowStyle() -> some View {
+        listRowInsets(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
     }
 }
 
-private extension View {
-    func calculationCardStyle() -> some View {
-        modifier(CalculationCardModifier())
-    }
-}
+// MARK: - Main PopupView
 
-// MARK: - Main Code Example
+// A detailed view presenting all components of the bolus calculation.
+// Displays breakdown of calculations in separate cards within a scrollable list,
+// with a sticky recommendation card at the bottom.
 
 struct PopupView: View {
-    @Environment(\.colorScheme) var colorScheme
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) var dynamicTypeSize
-
+    /// State model containing all calculation parameters and results.
     var state: Treatments.StateModel
 
-    @State var calcPopupDetent = PresentationDetent.large
+    /// Controls the preferred presentation size of the popup.
+    @State private var calcPopupDetent = PresentationDetent.large
 
-    private var fractionDigits: Int {
-        if state.units == .mmolL {
-            return 1
-        } else { return 0 }
-    }
-
-    private var isDeviceSmallOrTextEnlarged: Bool {
-        // Check for SE-sized devices (screen width of 375 points)
-        let isSmallDevice = UIScreen.main.bounds.width <= 375
-
-        // Check if text size is larger than default (> 100%)
-        let isLargeText = dynamicTypeSize > .large
-
-        return isSmallDevice || isLargeText
-    }
+    /// Trigger for flashing scroll indicators when view appears.
+    /// Helps users discover scrollable content.
+    @State private var shouldFlashScroll = false
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading) {
-                ScrollView {
-                    VStack(spacing: 20) {
-                        Text(
-                            "The bolus calculator uses various inputs to determine the recommended insulin dosage. Find the detailed calculations below."
-                        )
-                        .secondaryLabel()
+            VStack(alignment: .center) {
+                // List of calculation cards organized in sections.
+                // Each section represents a component of the final calculation.
+                List {
+                    Section("Glucose Calculation") {
+                        glucoseCardContent.listRowStyle()
+                    }
+                    Section("Insulin On Board (IOB)") {
+                        iobCardContent.listRowStyle()
+                    }
+                    Section("Carbs On Board (COB)") {
+                        cobCardContent.listRowStyle()
+                    }
+                    Section("Glucose Trend (15 min)") {
+                        deltaCardContent.listRowStyle()
+                    }
+                    Section("Full Bolus") {
+                        fullBolusCardContent.listRowStyle()
+                    }
 
-                        calculationCards
+                    // Conditional sections based on user's selection of the "Super Bolus" option.
+                    if state.useSuperBolus {
+                        Section("Super Bolus") {
+                            superBolusCardContent.listRowStyle()
+                        }
+                    }
+
+                    // If the solution of this card does not recommend any insulin,
+                    // there's no point in showing it
+                    if state.factoredInsulin > 0 {
+                        Section("Applied Factors") {
+                            factorsCardContent.listRowStyle()
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .listStyle(InsetGroupedListStyle())
+                .listSectionSpacing(0)
+                .scrollIndicatorsFlash(trigger: shouldFlashScroll)
+                .onAppear {
+                    // Flash scroll indicators after a short delay to help users discover scrollable content.
+                    // The delay allows the sheet presentation animation to complete first.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        shouldFlashScroll = true
                     }
                 }
 
-                recommendedBolusCard
+                // Sticky footer with recommendation and dismiss button.
+                // Remains visible regardless of scroll position.
+                VStack(alignment: .center, spacing: 10) {
+                    recommendedBolusCard
 
-                Button {
-                    state.showInfo = false
-                } label: {
-                    Text("Got it!").bold().centerFullWidth().frame(minHeight: 30)
+                    Button {
+                        state.showInfo = false
+                    } label: {
+                        Text("Got it!").bold()
+                            .frame(maxWidth: .infinity, minHeight: 30)
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .buttonStyle(.bordered)
-                .padding(.top)
+                .padding([.horizontal, .bottom])
             }
-            .padding([.horizontal, .bottom])
             .navigationBarTitle(String(localized: "Bolus Calculator Details"), displayMode: .inline)
             .presentationDetents(
                 [.fraction(0.9), .large],
@@ -146,708 +186,651 @@ struct PopupView: View {
         }
     }
 
-    // MARK: - Calculation Cards
+    // MARK: - Calculation Card Contents
 
-    var calculationCards: some View {
-        VStack(spacing: 12) {
-            glucoseCard
-            iobCard
-            cobCard
-            deltaCard
-            fullBolusCard
+    // Each card visualizes a specific component of the bolus calculation.
+    // The cards use Grid layout to show mathematical formulas with proper alignment
+    // of the variable's name as the header and the units used as the footer.
+    // Inifinity frame on "=" operator aligns the formula to the left and the solution to the right of the row.
 
-            if state.useSuperBolus {
-                superBolusCard
+    /// Card showing insulin required to get current glucose to the target glucose based on insulin sensitivity.
+    /// Formula: (Current Glucose - Target Glucose) / ISF = Glucose Correction Dose
+    private var glucoseCardContent: some View {
+        Grid(alignment: .center) {
+            // Row 1: Column headers for the calculation components
+            GridRow(alignment: .lastTextBaseline) {
+                Text("Current")
+                    .gridCellColumns(3) // Allows label to expand above operators.
+                Text("Target")
+                Text("")
+                    .layoutPriority(-15)
+                    .gridCellColumns(2)
+                Text("ISF")
+            }
+            .secondaryStyle()
+
+            // Row 2: The calculation formula with values and operators
+            GridRow {
+                Text("(")
+                    .operatorStyle()
+                Text(state.units == .mmolL ? state.currentBG.formattedAsMmolL : state.currentBG.description)
+                    .valueStyle()
+                Text("−")
+                    .operatorStyle()
+                Text(state.units == .mmolL ? state.target.formattedAsMmolL : state.target.description)
+                    .valueStyle()
+                Text(")")
+                    .operatorStyle()
+                Text("/")
+                    .operatorStyle()
+                Text(state.units == .mmolL ? state.isf.formattedAsMmolL : state.isf.description)
+                    .valueStyle()
+                Text("=")
+                    .operatorStyle()
+                    .frame(idealWidth: 10, maxWidth: .infinity, alignment: .trailing)
+                    .layoutPriority(-15)
+                Text(insulinFormatter(state.targetDifferenceInsulin))
+                    .solutionStyle(state.targetDifferenceInsulin)
             }
 
-            if state.factoredInsulin > 0 {
-                factorsCard
+            // Row 3: Units for each value
+            GridRow(alignment: .firstTextBaseline) {
+                Text(state.units.rawValue)
+                    .gridCellColumns(3) // Allows cell to expand below operators.
+                Text(state.units.rawValue)
+                Text("")
+                    .layoutPriority(-15)
+                    .gridCellColumns(2)
+                Text("\(state.units.rawValue)/U")
+                Text("")
+                    .layoutPriority(-15)
+                Text("U")
             }
+            .unitStyle()
         }
+        .multilineTextAlignment(.center)
     }
 
-    // MARK: - Individual Cards
-
-    var glucoseCard: some View {
-        calculationCardView(String(localized: "Glucose Calculation")) {
-            Grid {
-                // Row 1: Titles
-                GridRow(alignment: .bottom) {
-                    Text("") // Placeholder for left bracket
-                    Text("Current").secondaryLabel()
-                    Text("") // Placeholder for minus sign
-                    Text("Target").secondaryLabel()
-                    Text("") // Placeholder for right bracket
-                    Text("") // Placeholder for division sign
-                    Text("ISF").secondaryLabel()
-                    Spacer(minLength: 0)
-                    Text("") // Placeholder for equals sign
-                    Text("") // Placeholder for solution
-                }
-
-                // Row 2: Values
-                GridRow {
-                    Text("(").operatorStyle()
-                    Text(state.units == .mmolL ? state.currentBG.formattedAsMmolL : state.currentBG.description)
-                        .valueStyle()
-                    Text("−").operatorStyle()
-                    Text(state.units == .mmolL ? state.target.formattedAsMmolL : state.target.description)
-                        .valueStyle()
-                    Text(")").operatorStyle()
-                    Text("/").operatorStyle()
-                    Text(state.units == .mmolL ? state.isf.formattedAsMmolL : state.isf.description)
-                        .valueStyle()
-                    Spacer(minLength: 0)
-                    Text("=").operatorStyle()
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(insulinFormatter(state.targetDifferenceInsulin))
-                            .valueStyle()
-                            .foregroundStyle(solutionColor(state.targetDifferenceInsulin) ?? .primary)
-                        Text("U")
-                            .unitStyle()
-                    }
-                }
-
-                // Row 3: Units
-                GridRow(alignment: .top) {
-                    Text("") // Placeholder for left bracket
-                    Text(state.units.rawValue).unitStyle()
-                    Text("") // Placeholder for minus sign
-                    Text(state.units.rawValue).unitStyle()
-                    Text("") // Placeholder for right bracket
-                    Text("") // Placeholder for division sign
-                    Text("\(state.units.rawValue)/U").unitStyle()
-                    Spacer(minLength: 0)
-                    Text("") // Placeholder for equals sign
-                    Text("") // Placeholder for solution
-                }
+    /// Card showing offset of current insulin on board (IOB).
+    /// If current IOB is already positive, reduce the insulin recommendation,
+    /// but if negative then increase the insulin recommendation.
+    /// Formula: -1 × Current IOB = IOB Correction Dose
+    private var iobCardContent: some View {
+        Grid(alignment: .center) {
+            // Row 1: Column header
+            GridRow(alignment: .lastTextBaseline) {
+                Text("")
+                    .layoutPriority(-15)
+                    .gridCellColumns(2)
+                Text("IOB")
             }
-            .multilineTextAlignment(.center)
-            .leadingFullWidth()
+            .secondaryStyle()
+
+            // Row 2: The IOB calculation formula
+            GridRow {
+                Text("-1")
+                    .valueStyle()
+                Text("×")
+                    .operatorStyle()
+                Text(insulinFormatter(state.iob, .plain)) // Use .plain rounding to match inverted value.
+                    .valueStyle()
+                Text("=").operatorStyle()
+                    .frame(idealWidth: 10, maxWidth: .infinity, alignment: .trailing)
+                    .layoutPriority(-15)
+                Text(insulinFormatter(-1 * state.iob, .plain)) // Use .plain rounding to match inverted value.
+                    .solutionStyle(-1 * state.iob)
+            }
+
+            // Row 3: Units
+            GridRow(alignment: .firstTextBaseline) {
+                Text("")
+                    .layoutPriority(-15)
+                    .gridCellColumns(2)
+                Text("U")
+                Text("")
+                    .layoutPriority(-15)
+                Text("U")
+            }
+            .unitStyle()
         }
+        .multilineTextAlignment(.center)
     }
 
-    var iobCard: some View {
-        calculationCardView(String(localized: "Insulin On Board (IOB)")) {
-            Grid {
-                // Row 1: Titles
-                GridRow(alignment: .bottom) {
-                    Text("") // Placeholder for negative one
-                    Text("") // Placeholder for multiplication sign
-                    Text("IOB").secondaryLabel()
-                    Spacer(minLength: 0)
-                    Text("") // Placeholder for equals sign
-                    Text("") // Placeholder for solution
+    /// Card showing insulin required to offset meals. Combine current carbs on board (COB)
+    /// with new carbs entered in the Treatment view and divide by the carb ratio.
+    /// Don't allow total carbs to exceed Max IOB setting.
+    /// Formula: (Current COB + New Carbs) / Carb Ratio = COB Correction Dose
+    private var cobCardContent: some View {
+        let hasExceededMaxCOB: Bool = Decimal(state.cob) + state.carbs > state.maxCOB
+        return Group {
+            Grid(alignment: .center) {
+                // Row 1: Column headers for the COB calculation
+                GridRow(alignment: .lastTextBaseline) {
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("COB")
+                    Text("Carbs")
+                        .gridCellColumns(3) // Allows label to expand above operators.
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("CR")
                 }
+                .secondaryStyle()
 
-                // Row 2: Values
-                GridRow {
-                    Text("-1").valueStyle()
-                    Text("×").operatorStyle()
-                    Text(insulinFormatter(state.iob, .plain)).valueStyle()
-                    Spacer(minLength: 0)
-                    Text("=").operatorStyle()
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(insulinFormatter(-1 * state.iob, .plain))
-                            .valueStyle()
-                            .foregroundStyle(solutionColor(-1 * state.iob) ?? .primary)
-                        Text("U")
-                            .unitStyle()
-                    }
-                }
-
-                // Row 3: Units
-                GridRow(alignment: .top) {
-                    Text("") // Placeholder for negative one
-                    Text("") // Placeholder for multiplication sign
-                    Text("U").unitStyle()
-                    Spacer(minLength: 0)
-                    Text("") // Placeholder for equals sign
-                    Text("") // Placeholder for solution
-                }
-            }
-            .multilineTextAlignment(.center)
-            .leadingFullWidth()
-        }
-    }
-
-    var cobCard: some View {
-        calculationCardView(String(localized: "Carbs On Board (COB)")) {
-            let exceededMaxCOB: Bool = Decimal(state.cob) + state.carbs > state.maxCOB
-            Grid {
-                // Row 1: COB breakdown calculation title
-                GridRow(alignment: .bottom) {
-                    Text("") // Placeholder for opening bracket
-                    Text("COB").secondaryLabel()
-                    Text("") // Placeholder for plus sign
-                    Text("Carbs").secondaryLabel()
-                    Text("") // Placeholder for closing bracket
-                    Text("") // Placeholder for division sign
-                    Text("CR").secondaryLabel()
-                    Spacer()
-                    Text("") // Placeholder for equals sign
-                    Text("") // Placeholder for solution
-                }
-
-                // Row 2: COB breakdown values
+                // Row 2: The full COB calculation formula
+                // Don't include solution when Max IOB has been exceeded
                 GridRow {
                     Text("(")
                         .operatorStyle()
-                    Text(
-                        Decimal(state.cob)
-                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
-                    ).valueStyle()
-                    Text("+").operatorStyle()
-                    Text(
-                        state.carbs
-                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
-                    ).valueStyle()
-                    Text(")").operatorStyle()
-                    Text("/").operatorStyle()
-                    Text(state.carbRatio.formatted()).valueStyle()
-                    Spacer()
-                    Text("=").operatorStyle()
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(exceededMaxCOB ? "" : insulinFormatter(state.wholeCobInsulin))
-                            .valueStyle()
-                            .foregroundStyle(solutionColor(state.wholeCobInsulin) ?? .primary)
-                        Text("U")
-                            .unitStyle()
-                    }
-                }
-
-                // Row 3: Units
-                GridRow(alignment: .top) {
-                    Text("") // Empty for opening bracket
-                    Text("g").unitStyle()
-                    Text("") // Empty for plus sign
-                    Text("g").unitStyle()
-                    Text("") // Empty for closing bracket
-                    Text("") // Empty for division sign
-                    Text("g/U").unitStyle()
-                    Spacer()
-                    Text("") // Empty for equals sign
-                    Text("") // Empty for solution
-                }
-
-                //
-                if exceededMaxCOB {
-                    Divider()
-                        .padding(.vertical, 4)
-                        .gridCellColumns(9)
-
-                    // Row 4: Calculation titles
-                    GridRow(alignment: .bottom) {
-                        Text("") // Placeholder for open bracket
-                        Text("Max COB").secondaryLabel().gridCellColumns(3)
-                        Text("") // Placeholder for closed bracket
-                        Text("") // Placeholder for division sign
-                        Text("CR").secondaryLabel()
-                        Spacer(minLength: 0)
-                        Text("") // Placeholder for equals sign
-                        Text("") // Placeholder for solution
-                    }
-
-                    // Row 5: Values
-                    GridRow {
-                        Text("(").operatorStyle()
-                        Text(
-                            state.wholeCob
-                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(fractionDigits)))
-                        )
+                    Text(Int(state.cob).description)
                         .valueStyle()
-                        .foregroundStyle(.red)
+                    Text("+")
+                        .operatorStyle()
+                    Text(Int(state.carbs).description)
+                        .valueStyle()
+                    Text(")")
+                        .operatorStyle()
+                    Text("/")
+                        .operatorStyle()
+                    Text(state.carbRatio.formatted())
+                        .valueStyle()
+                    Text("=")
+                        .operatorStyle()
+                        .frame(idealWidth: 10, maxWidth: .infinity, alignment: .trailing)
+                        .layoutPriority(-15)
+                    if !hasExceededMaxCOB {
+                        Text(insulinFormatter(state.wholeCobInsulin))
+                            .solutionStyle(state.wholeCobInsulin)
+                    }
+                }
+
+                // Row 3: Units for each component
+                // Don't show solution's unit if Max COB has been exceeded
+                GridRow(alignment: .firstTextBaseline) {
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("g")
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("g")
+                    Text("")
+                        .layoutPriority(-15)
+                        .gridCellColumns(2)
+                    Text("g/U")
+                    if !hasExceededMaxCOB {
+                        Text("")
+                            .layoutPriority(-15)
+                        Text("U")
+                    }
+                }
+                .unitStyle()
+            }
+            .multilineTextAlignment(.center)
+
+            // Additional grid only displayed when Max COB limit has been exceeded
+            if hasExceededMaxCOB {
+                Grid(alignment: .center) {
+                    // Row 4: Alternative calculation headers (max COB)
+                    GridRow(alignment: .lastTextBaseline) {
+                        Text("Max COB")
+                        Text("")
+                            .layoutPriority(-15)
+                        Text("CR")
+                    }
+                    .secondaryStyle()
+
+                    // Row 5: Alternative calculation with max COB
+                    // Shows: Max COB / Carb Ratio = Limited COB Insulin
+                    GridRow {
+                        Text(Int(state.wholeCob).description)
+                            .valueStyle()
+                            .foregroundStyle(.red)
+                        Text("/")
+                            .operatorStyle()
+                        Text(state.carbRatio.formatted())
+                            .valueStyle()
+                        Text("=").operatorStyle()
+                            .frame(idealWidth: 10, maxWidth: .infinity, alignment: .trailing)
+                            .layoutPriority(-15)
+                        Text(insulinFormatter(state.wholeCobInsulin))
+                            .solutionStyle(state.wholeCobInsulin)
+                    }
+
+                    // Row 6: Units for max COB calculation
+                    GridRow(alignment: .firstTextBaseline) {
+                        Text("g")
+                        Text("")
+                            .layoutPriority(-15)
+                        Text("g/U")
+                        Text("")
+                            .layoutPriority(-15)
+                        Text("U")
+                    }
+                    .unitStyle()
+                }
+                .multilineTextAlignment(.center)
+            }
+        }
+    }
+
+    /// Card showing inslin required to offset glucose trend from past 15 minutes
+    /// Formula: Change in Glucose / ISF = Glucose Trend Correction Dose
+    private var deltaCardContent: some View {
+        Grid(alignment: .center) {
+            // Row 1: Column headers
+            GridRow(alignment: .lastTextBaseline) {
+                Text("Delta")
+                Text("")
+                    .layoutPriority(-15)
+                Text("ISF")
+            }
+            .secondaryStyle()
+
+            // Row 2: The delta calculation formula
+            GridRow {
+                Text(state.units == .mmolL ? state.deltaBG.formattedAsMmolL : state.deltaBG.description)
+                    .valueStyle()
+                Text("/")
+                    .operatorStyle()
+                Text(state.units == .mmolL ? state.isf.formattedAsMmolL : state.isf.description)
+                    .valueStyle()
+                Text("=")
+                    .operatorStyle()
+                    .frame(idealWidth: 10, maxWidth: .infinity, alignment: .trailing)
+                    .layoutPriority(-15)
+                Text(insulinFormatter(state.fifteenMinInsulin))
+                    .solutionStyle(state.fifteenMinInsulin)
+            }
+
+            // Row 3: Units for each component
+            GridRow(alignment: .firstTextBaseline) {
+                Text(state.units.rawValue)
+                Text("")
+                    .layoutPriority(-15)
+                Text("\(state.units.rawValue)/U")
+                Text("")
+                    .layoutPriority(-15)
+                Text("U")
+            }
+            .unitStyle()
+        }
+        .multilineTextAlignment(.center)
+    }
+
+    /// Card showing combined calculation for full bolus (before factors)
+    /// Combines all four individual components into a single dose.
+    /// Formula: Glucose Dose + IOB Dose + COB Dose + Delta Dose = Full Bolus
+    private var fullBolusCardContent: some View {
+        Group {
+            Grid(alignment: .center, horizontalSpacing: 1) {
+                // Row 1: Column headers
+                GridRow(alignment: .lastTextBaseline) {
+                    Text("Glucose")
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("IOB")
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("COB")
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("Delta")
+                }
+                .secondaryStyle()
+
+                // Row 2: The full bolus calculation formula components. (Values only.)
+                // Infinity frames on operators distributes the formula across the entire row.
+                GridRow {
+                    Text(wrapNegative(state.targetDifferenceInsulin))
+                        .valueStyle()
+                    Text("+")
+                        .operatorStyle()
+                        .frame(maxWidth: .infinity)
+                    Text(wrapNegative(-1 * state.iob, .plain))
+                        .valueStyle()
+                    Text("+")
+                        .operatorStyle()
+                        .frame(maxWidth: .infinity)
+                    Text(wrapNegative(state.wholeCobInsulin))
+                        .valueStyle()
+                    Text("+")
+                        .operatorStyle()
+                        .frame(maxWidth: .infinity)
+                    Text(wrapNegative(state.fifteenMinInsulin))
+                        .valueStyle()
+                }
+
+                // Row 3: Units for each component.
+                GridRow(alignment: .firstTextBaseline) {
+                    Text("U")
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("U")
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("U")
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("U")
+                }
+                .unitStyle()
+            }
+            .multilineTextAlignment(.center)
+
+            // Row 4: Sum/total of all components, aligned right.
+            HStack(alignment: .center, spacing: 4) {
+                Spacer()
+                Text("=")
+                    .operatorStyle()
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(insulinFormatter(state.wholeCalc))
+                        .solutionStyle(state.wholeCalc)
+                    Text("U")
+                        .secondaryStyle()
+                }
+            }
+        }
+    }
+
+    /// Card showing Super Bolus calculation (if selected by user).
+    /// Converts a portion of basal insulin into immediate bolus for stronger bolus recommendation.
+    /// Formula: Basal Rate × Super Bolus % = Super Bolus Insulin
+    private var superBolusCardContent: some View {
+        Grid(alignment: .center) {
+            // Row 1: Column headers.
+            GridRow(alignment: .lastTextBaseline) {
+                Text("Basal Rate")
+                Text("")
+                    .layoutPriority(-15)
+                Text("Super Bolus %")
+                    .frame(minWidth: 90) // Discourages wrapping this cell into multiple lines.
+            }
+            .secondaryStyle()
+
+            // Row 2: The super bolus calculation formula.
+            GridRow {
+                Text("\(state.currentBasal)")
+                    .valueStyle()
+                Text("×")
+                    .operatorStyle()
+                Text((100 * state.sweetMealFactor).formatted() + " %")
+                    .valueStyle()
+                Text("=").operatorStyle()
+                    .frame(idealWidth: 10, maxWidth: .infinity, alignment: .trailing)
+                    .layoutPriority(-15)
+                Text(insulinFormatter(state.superBolusInsulin))
+                    .solutionStyle(state.superBolusInsulin)
+            }
+
+            // Row 3: Units for each component.
+            GridRow(alignment: .firstTextBaseline) {
+                Text("U/hr")
+                Text("")
+                    .layoutPriority(-15)
+                    .gridCellColumns(3)
+                Text("U")
+            }
+            .unitStyle()
+        }
+        .multilineTextAlignment(.center)
+    }
+
+    /// Card showing applied factors to the final insulin calculation.
+    /// Dynamically changes card based on user's selection in the Treatment view.
+    /// User can choose Fatty Meal, Super Bolus, or neither, but not both.
+    private var factorsCardContent: some View {
+        Grid(alignment: .center) {
+            // Choose the layout based on which options are selected
+            switch (state.useSuperBolus, state.useFattyMealCorrectionFactor) {
+            // Simple case: just Full Bolus × Rec. Bolus %
+            case (false, false):
+                // Row 1: Header.
+                GridRow(alignment: .lastTextBaseline) {
+                    Text("Full Bolus")
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("Rec. Bolus %")
+                }
+                .secondaryStyle()
+
+                // Row 2: Formula.
+                GridRow {
+                    Text(insulinFormatter(state.wholeCalc))
+                        .valueStyle()
+                    Text("×")
+                        .operatorStyle()
+                    Text((100 * state.fraction).formatted() + " %")
+                        .valueStyle()
+                    Text("=")
+                        .operatorStyle()
+                        .frame(idealWidth: 10, maxWidth: .infinity, alignment: .trailing)
+                        .layoutPriority(-15)
+                    Text(insulinFormatter(state.factoredInsulin))
+                        .solutionStyle(state.factoredInsulin)
+                }
+
+                // Row 3: Units.
+                GridRow(alignment: .firstTextBaseline) {
+                    Text("U")
+                    Text("")
+                        .layoutPriority(-15)
                         .gridCellColumns(3)
-                        Text(")").operatorStyle()
-                        Text("/").operatorStyle()
-                        Text(state.carbRatio.formatted()).valueStyle()
-                        Spacer(minLength: 0)
-                        Text("=").operatorStyle()
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(insulinFormatter(state.wholeCobInsulin))
-                                .valueStyle()
-                                .foregroundStyle(solutionColor(state.wholeCobInsulin) ?? .primary)
-                            Text("U")
-                                .unitStyle()
-                        }
-                    }
-
-                    // Row 6: Units
-                    GridRow(alignment: .top) {
-                        Text("") // Placeholder for open bracket
-                        Text("g").unitStyle().gridCellColumns(3)
-                        Text("") // Placeholder for closed bracket
-                        Text("") // Placeholder for division sign
-                        Text("g/U").unitStyle()
-                        Spacer(minLength: 0)
-                        Text("") // Placeholder for equals sign
-                        Text("") // Placeholder for solution
-                    }
+                    Text("U")
                 }
-            }
-            .multilineTextAlignment(.center)
-            .leadingFullWidth()
-        }
-    }
+                .unitStyle()
 
-    var deltaCard: some View {
-        calculationCardView(String(localized: "Glucose Trend (15 min)")) {
-            Grid {
-                // Row 1: Titles
-                GridRow(alignment: .bottom) {
-                    Text("Delta").secondaryLabel()
-                    Text("") // Placeholder for division sign
-                    Text("ISF").secondaryLabel()
-                    Spacer(minLength: 0)
-                    Text("") // Placeholder for equals sign
-                    Text("") // Placeholder for solution
-                }
-
-                // Row 2: Values
-                GridRow {
-                    Text(state.units == .mmolL ? state.deltaBG.formattedAsMmolL : state.deltaBG.description)
-                        .valueStyle()
-                    Text("/").operatorStyle()
-                    Text(state.units == .mmolL ? state.isf.formattedAsMmolL : state.isf.description)
-                        .valueStyle()
-                    Spacer(minLength: 0)
-                    Text("=").operatorStyle()
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(insulinFormatter(state.fifteenMinInsulin))
-                            .valueStyle()
-                            .foregroundStyle(solutionColor(state.fifteenMinInsulin) ?? .primary)
-                        Text("U")
-                            .unitStyle()
-                    }
-                }
-
-                // Row 3: Units
-                GridRow(alignment: .top) {
-                    Text(state.units.rawValue).unitStyle()
-                    Text("") // Placeholder for division sign
-                    Text("\(state.units.rawValue)/U").unitStyle()
-                    Spacer(minLength: 0)
-                    Text("") // Placeholder for equals sign
+            // Case: Full Bolus × Rec. Bolus % × Fatty Meal %
+            case (false, true):
+                // Row 1: Header.
+                GridRow(alignment: .lastTextBaseline) {
+                    Text("Full Bolus")
                     Text("")
-                }
-            }
-            .multilineTextAlignment(.center)
-            .leadingFullWidth()
-        }
-    }
-
-    var fullBolusCard: some View {
-        calculationCardView(String(localized: "Full Bolus")) {
-            Grid {
-                if isDeviceSmallOrTextEnlarged {
-                    // Row 1: Titles
-                    GridRow(alignment: .bottom) {
-                        Text("Glucose").secondaryLabel()
-                        Text("") // Placeholder for first plus sign
-                        Text("IOB").secondaryLabel()
-                        Text("") // Placeholder for second plus sign
-                        Text("COB").secondaryLabel()
-                        Text("") // Placeholder for third plus sign
-                        Text("Delta").secondaryLabel()
-                    }
-
-                    // Row 2: Values
-                    GridRow {
-                        Text(wrapNegative(state.targetDifferenceInsulin))
-                            .valueStyle()
-                        Text("+").operatorStyle()
-                        Text(wrapNegative(-1 * state.iob, .plain))
-                            .valueStyle()
-                        Text("+").operatorStyle()
-                        Text(wrapNegative(state.wholeCobInsulin))
-                            .valueStyle()
-                        Text("+").operatorStyle()
-                        Text(wrapNegative(state.fifteenMinInsulin))
-                            .valueStyle()
-                    }
-
-                    // Row 3: Units
-                    GridRow(alignment: .top) {
-                        Text("U").unitStyle()
-                        Text("") // Placeholder for first plus sign
-                        Text("U").unitStyle()
-                        Text("") // Placeholder for second plus sign
-                        Text("U").unitStyle()
-                        Text("") // Placeholder for third plus sign
-                        Text("U").unitStyle()
-                    }
-
-                    Divider()
-
-                    // Row 4: Sum
-                    GridRow {
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text("=").operatorStyle()
-                            Text(insulinFormatter(state.wholeCalc))
-                                .solutionStyle()
-                                .foregroundStyle(solutionColor(state.wholeCalc) ?? .secondary)
-                            Text("U").unitStyle()
-                        }
-                        .gridCellColumns(7)
-                        .trailingFullWidth()
-                    }
-                } else {
-                    // Row 1: Titles
-                    GridRow(alignment: .bottom) {
-                        Text("Glucose").secondaryLabel()
-                        Text("") // Placeholder for first plus sign
-                        Text("IOB").secondaryLabel()
-                        Text("") // Placeholder for second plus sign
-                        Text("COB").secondaryLabel()
-                        Text("") // Placeholder for third plus sign
-                        Text("Delta").secondaryLabel()
-                        Spacer(minLength: 0)
-                        Text("") // Placeholder for equals sign
-                        Text("") // Placeholder for solution
-                    }
-
-                    // Row 2: Values
-                    GridRow {
-                        Text(wrapNegative(state.targetDifferenceInsulin))
-                            .valueStyle()
-                        Text("+").operatorStyle()
-                        Text(wrapNegative(-1 * state.iob, .plain))
-                            .valueStyle()
-                        Text("+").operatorStyle()
-                        Text(wrapNegative(state.wholeCobInsulin))
-                            .valueStyle()
-                        Text("+").operatorStyle()
-                        Text(wrapNegative(state.fifteenMinInsulin))
-                            .valueStyle()
-                        Spacer(minLength: 0)
-                        Text("=").operatorStyle()
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(insulinFormatter(state.wholeCalc))
-                                .valueStyle()
-                                .foregroundStyle(solutionColor(state.wholeCalc) ?? .secondary)
-                            Text("U")
-                                .unitStyle()
-                        }
-                    }
-
-                    // Row 3: Units
-                    GridRow(alignment: .top) {
-                        Text("U").unitStyle()
-                        Text("") // Placeholder for first plus sign
-                        Text("U").unitStyle()
-                        Text("") // Placeholder for second plus sign
-                        Text("U").unitStyle()
-                        Text("") // Placeholder for third plus sign
-                        Text("U").unitStyle()
-                        Spacer(minLength: 0)
-                        Text("") // Placeholder for equals sign
-                        Text("") // Placeholder for solution
-                    }
-                }
-            }
-            .multilineTextAlignment(.center)
-        }
-    }
-
-    var superBolusCard: some View {
-        calculationCardView(String(localized: "Super Bolus")) {
-            Grid {
-                // Row 1: Titles
-                GridRow(alignment: .bottom) {
-                    Text("Basal Rate").secondaryLabel()
-                    Text("") // Placeholder for multiplication sign
-                    Text("Super Bolus %").secondaryLabel()
-                    Spacer(minLength: 0)
-                    Text("") // Placeholder for equals sign
-                    Text("") // Placeholder for solution
-                }
-
-                // Row 2: Values
-                GridRow {
-                    Text("\(state.currentBasal)").valueStyle()
-                    Text("×").operatorStyle()
-                    Text((100 * state.sweetMealFactor).formatted() + " %").valueStyle()
-                    Spacer(minLength: 0)
-                    Text("=").operatorStyle()
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(insulinFormatter(state.superBolusInsulin))
-                            .valueStyle()
-                            .foregroundStyle(solutionColor(state.superBolusInsulin) ?? .primary)
-                        Text("U")
-                            .unitStyle()
-                    }
-                }
-
-                // Row 3: Units
-                GridRow(alignment: .top) {
-                    Text("U/hr").unitStyle()
-                    Text("") // Placeholder for multiplication sign
-                    Text("") // Placeholder for percent sign
-                    Spacer(minLength: 0)
-                    Text("") // Placeholder for equals sign
-                    Text("") // Placeholder for solution
-                }
-            }
-            .multilineTextAlignment(.center)
-            .leadingFullWidth()
-        }
-    }
-
-    // MARK: - Refactored Factors Card
-
-    var factorsCard: some View {
-        calculationCardView(String(localized: "Applied Factors")) {
-            Grid {
-                // Choose the layout based on which factors are active
-                switch (state.useSuperBolus, state.useFattyMealCorrectionFactor) {
-                case (false, false):
-                    // Simple case: just Full Bolus × Rec. Bolus %
-                    GridRow(alignment: .bottom) {
-                        Text("Full Bolus").secondaryLabel()
-                        Text("") // Placeholder for multiplication sign
-                        Text("Rec. Bolus %").secondaryLabel()
-                        Spacer(minLength: 0)
-                        Text("") // Placeholder for equals sign
-                        Text("") // Placeholder for solution
-                    }
-
-                    GridRow {
-                        Text(insulinFormatter(state.wholeCalc)).valueStyle()
-                        Text("×").operatorStyle()
-                        Text((100 * state.fraction).formatted() + " %").valueStyle()
-                        Spacer(minLength: 0)
-                        Text("=").operatorStyle()
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(insulinFormatter(state.factoredInsulin))
-                                .valueStyle()
-                                .foregroundStyle(solutionColor(state.factoredInsulin) ?? .primary)
-                            Text("U")
-                                .unitStyle()
-                        }
-                    }
-
-                    GridRow(alignment: .top) {
-                        Text("U").unitStyle()
-                        Text("") // Placeholder for multiplication sign
-                        Text("") // Placeholder for percent sign
-                        Spacer(minLength: 0)
-                        Text("") // Placeholder for equals sign
-                        Text("") // Placeholder for solution
-                    }
-
-                case (false, true):
-                    // Case: Full Bolus × Rec. Bolus % × Fatty Meal %
-                    GridRow(alignment: .bottom) {
-                        Text("Full Bolus").secondaryLabel()
-                        Text("") // Placeholder for first multiplication sign
-                        Text("Rec. Bolus %").secondaryLabel()
-                        Text("") // Placeholder for second multiplication sign
-                        Text("Fatty %").secondaryLabel()
-                        Spacer(minLength: 0)
-                        Text("") // Placeholder for equals sign
-                        Text("") // Placeholder for solution
-                    }
-
-                    GridRow {
-                        Text(insulinFormatter(state.wholeCalc)).valueStyle()
-                        Text("×").operatorStyle()
-                        Text((100 * state.fraction).formatted() + " %").valueStyle()
-                        Text("×").operatorStyle()
-                        Text((100 * state.fattyMealFactor).formatted() + " %").valueStyle()
-                        Spacer(minLength: 0)
-                        Text("=").operatorStyle()
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(insulinFormatter(state.factoredInsulin))
-                                .valueStyle()
-                                .foregroundStyle(solutionColor(state.factoredInsulin) ?? .primary)
-                            Text("U")
-                                .unitStyle()
-                        }
-                    }
-
-                    GridRow(alignment: .top) {
-                        Text("U").unitStyle()
-                        Text("") // Placeholder for first multiplication sign
-                        Text("") // Placeholder for percent sign
-                        Text("") // Placeholder for second multiplication sign
-                        Text("") // Placeholder for percent sign
-                        Spacer(minLength: 0)
-                        Text("") // Placeholder for equals sign
-                        Text("") // Placeholder for solution
-                    }
-
-                case (true, false):
-                    // Case: (Full Bolus × Rec. Bolus %) + Super Bolus
-                    GridRow(alignment: .bottom) {
-                        Text("") // Placeholder for opening parenthesis
-                        Text("Full Bolus").secondaryLabel()
-                        Text("") // Placeholder for multiplication sign
-                        Text("Rec. %").secondaryLabel()
-                        Text("") // Placeholder for closing parenthesis
-                        Text("") // Placeholder for plus sign
-                        Text("Super Bolus").secondaryLabel()
-                        Spacer(minLength: 0)
-                        Text("") // Placeholder for equals sign
-                        Text("") // Placeholder for solution
-                    }
-
-                    GridRow {
-                        Text("(").operatorStyle()
-                        Text(insulinFormatter(state.wholeCalc)).valueStyle()
-                        Text("×").operatorStyle()
-                        Text((100 * state.fraction).formatted() + " %").valueStyle()
-                        Text(")").operatorStyle()
-                        Text("+").operatorStyle()
-                        Text(insulinFormatter(state.superBolusInsulin)).valueStyle()
-                        Spacer(minLength: 0)
-                        Text("=").operatorStyle()
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(insulinFormatter(state.factoredInsulin))
-                                .valueStyle()
-                                .foregroundStyle(solutionColor(state.factoredInsulin) ?? .primary)
-                            Text("U")
-                                .unitStyle()
-                        }
-                    }
-
-                    GridRow(alignment: .top) {
-                        Text("") // Placeholder for opening parenthesis
-                        Text("U").unitStyle()
-                        Text("") // Placeholder for multiplication sign
-                        Text("") // Placeholder for percent sign
-                        Text("") // Placeholder for closing parenthesis
-                        Text("") // Placeholder for plus sign
-                        Text("U").unitStyle()
-                        Spacer(minLength: 0)
-                        Text("") // Placeholder for equals sign
-                        Text("") // Placeholder for solution
-                    }
-
-                case (true, true):
-                    // This case should never occur as you can't apply a Super Bolus to a Fatty Meal
+                        .layoutPriority(-15)
+                    Text("Rec. Bolus %")
                     Text("")
+                        .layoutPriority(-15)
+                    Text("Fatty %")
                 }
+                .secondaryStyle()
+
+                // Row 2: Formula.
+                GridRow {
+                    Text(insulinFormatter(state.wholeCalc)).valueStyle()
+                    Text("×")
+                        .operatorStyle()
+                    Text((100 * state.fraction).formatted() + " %")
+                        .valueStyle()
+                    Text("×")
+                        .operatorStyle()
+                    Text((100 * state.fattyMealFactor).formatted() + " %")
+                        .valueStyle()
+                    Text("=")
+                        .operatorStyle()
+                        .frame(idealWidth: 10, maxWidth: .infinity, alignment: .trailing)
+                        .layoutPriority(-15)
+                    Text(insulinFormatter(state.factoredInsulin))
+                        .solutionStyle(state.factoredInsulin)
+                }
+
+                // Row 3: Units.
+                GridRow(alignment: .firstTextBaseline) {
+                    Text("U")
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("U")
+                }
+                .unitStyle()
+
+            // Case: (Full Bolus × Rec. Bolus %) + Super Bolus
+            case (true, false):
+                // Row 1: Header.
+                GridRow(alignment: .lastTextBaseline) {
+                    Text("Full Bolus")
+                        .gridCellColumns(3) // Allows label to expand above operators.
+                    Text("Rec. %")
+                    Text("")
+                        .layoutPriority(-15)
+                        .gridCellColumns(2)
+                    Text("Super Bolus")
+                }
+                .secondaryStyle()
+
+                // Row 2: Formula.
+                GridRow {
+                    Text("(")
+                        .operatorStyle()
+                    Text(insulinFormatter(state.wholeCalc)).valueStyle()
+                    Text("×")
+                        .operatorStyle()
+                    Text((100 * state.fraction).formatted() + " %")
+                        .valueStyle()
+                    Text(")")
+                        .operatorStyle()
+                    Text("+")
+                        .operatorStyle()
+                    Text(insulinFormatter(state.superBolusInsulin))
+                        .valueStyle()
+                    Text("=")
+                        .operatorStyle()
+                        .frame(idealWidth: 10, maxWidth: .infinity, alignment: .trailing)
+                        .layoutPriority(-15)
+                    Text(insulinFormatter(state.factoredInsulin))
+                        .solutionStyle(state.factoredInsulin)
+                }
+
+                // Row 3: Units.
+                GridRow(alignment: .firstTextBaseline) {
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("U")
+                    Text("")
+                        .layoutPriority(-15)
+                        .gridCellColumns(4)
+                    Text("U")
+                    Text("")
+                        .layoutPriority(-15)
+                    Text("U")
+                }
+                .unitStyle()
+
+            // This case should never occur as you can't apply a Super Bolus to a Fatty Meal
+            // Per app logic, these options are mutually exclusive
+            case (true, true):
+                Text("")
+                    .layoutPriority(-15)
             }
-            .multilineTextAlignment(.center)
-            .trailingFullWidth()
         }
+        .multilineTextAlignment(.center)
     }
 
     // MARK: - Result Section
 
-    var recommendedBolusCard: some View {
-        VStack {
-            Text("Recommended Bolus")
-                .font(.headline)
-                .fontWeight(.bold)
-                .minimumScaleFactor(0.5)
-                .padding(.bottom, 4)
+    // Final recommendation display with warning conditions and limitations
 
+    /// Recommended bolus card that stays fixed at bottom of the view
+    /// Displays final calculated insulin amount with warnings based on various conditions:
+    /// - Loop staleness
+    /// - Very low glucose (current or forecasted)
+    /// - Max bolus limits
+    /// - Available IOB limits
+    private var recommendedBolusCard: some View {
+        /// Amount of insulin that can be dosed without exceeding Max IOB.
+        let iobAvailable: Decimal = state.maxIOB - state.iob
+        /// Checks if last loop was over 15 minutes ago.
+        let isLoopStale = state.lastLoopDate == nil ||
+            Date().timeIntervalSince(state.lastLoopDate!) > 15 * 60
+
+        /// Computed property to determine if pump-compatible rounding was applied.
+        /// Only relevant for positive insulin amounts.
+        var isRoundedForPump: Bool {
+            // Only check for rounding when we have a positive recommendation amount.
+            if state.factoredInsulin > 0 {
+                if state.factoredInsulin > iobAvailable {
+                    // Check if calculated insulin appears different from available IOB (limited by Max IOB)
+                    return insulinFormatter(state.insulinCalculated) != insulinFormatter(iobAvailable)
+                } else {
+                    // Check if calculated insulin appears different from factored insulin (normal case)
+                    return insulinFormatter(state.insulinCalculated) != insulinFormatter(state.factoredInsulin)
+                }
+            }
+            return false
+        }
+
+        return VStack(alignment: .center, spacing: 4) {
+            // Display appropriate warnings based on current conditions as a header on this card.
+            // Each warning indicates a specific safety concern.
+            if isLoopStale {
+                limitWarning(String(localized: "Last loop was > 15 mins ago."))
+            } else if state.currentBG < 54 {
+                limitWarning(String(localized: "Glucose is very low."))
+            } else if state.minPredBG < 54 {
+                limitWarning(String(localized: "Glucose forecast is very low."))
+            } else if state.factoredInsulin > state.maxBolus, state.maxBolus <= iobAvailable {
+                limitWarning(String(localized: "Max Bolus = \(insulinFormatter(state.maxBolus)) U"))
+            } else if state.factoredInsulin > 0, state.factoredInsulin > iobAvailable {
+                // Available IOB warning with detailed breakdown.
+                // Shows calculation: Max IOB - IOB = Available IOB
+                limitWarning(String(localized: "Available IOB:"))
+                HStack(alignment: .firstTextBaseline, spacing: 0) {
+                    Text("Max IOB - IOB = ").secondaryStyle()
+                    Text(insulinFormatter(state.maxIOB)).font(.footnote)
+                    Text(" U - ").secondaryStyle()
+                    Text(wrapNegative(state.iob)).font(.footnote)
+                    Text(" U = ").secondaryStyle()
+                    Text(insulinFormatter(iobAvailable))
+                        .font(.footnote)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.red)
+                    Text(" U").secondaryStyle()
+                }
+                .fixedSize()
+            }
+
+            // Recommended Bolus card with accent-colored background
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.accentColor.opacity(0.1))
 
-                Grid(alignment: .center, horizontalSpacing: 8) {
-                    let iobAvailable: Decimal = state.maxIOB - state.iob
-                    let isLoopStale = state.lastLoopDate == nil ||
-                        Date().timeIntervalSince(state.lastLoopDate!) > 15 * 60
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Recommended Bolus").font(.headline)
 
-                    // Main row with insulin calculation always visible
-                    GridRow {
-                        // Left column
-                        VStack {
-                            if isLoopStale {
-                                limitWarning(String(localized: "Last loop was > 15 mins ago."))
-                            } else if state.currentBG < 54 {
-                                limitWarning(String(localized: "Glucose is very low."))
-                            } else if state.minPredBG < 54 {
-                                limitWarning(String(localized: "Glucose forecast is very low."))
-                            } else if state.factoredInsulin > state.maxBolus, state.maxBolus <= iobAvailable {
-                                limitWarning(String(localized: "Max Bolus = \(insulinFormatter(state.maxBolus)) U"))
-                            } else if state.factoredInsulin > 0 {
-                                if state.factoredInsulin > iobAvailable {
-                                    // Available IOB row
-                                    limitWarning(String(localized: "Available IOB:"))
-
-                                    // Formula row with simplified alignment
-                                    HStack(alignment: .center) {
-                                        let iobFormatted = state.iob < 0 ?
-                                            "(\(insulinFormatter(state.iob)))" : insulinFormatter(state.iob)
-
-                                        Text("\(insulinFormatter(state.maxIOB))").valueStyle()
-                                        Text("-").operatorStyle()
-                                        Text("\(iobFormatted)").valueStyle()
-                                        Text("=").operatorStyle()
-                                        Text("\(insulinFormatter(iobAvailable)) U")
-                                            .font(.title3)
-                                            .foregroundStyle(.red)
-                                            .minimumScaleFactor(0.5)
-                                        Spacer()
-                                    }
-                                    .multilineTextAlignment(.center)
-
-                                    // Description row with simplified alignment
-                                    HStack(alignment: .center) {
-                                        Text("Max IOB").tertiaryLabel()
-                                        Text("")
-                                        Text("IOB").tertiaryLabel()
-                                        Text("")
-                                        Text("")
-                                        Spacer()
-                                    }
-                                    .multilineTextAlignment(.center)
-                                }
-
-                                // Pump rounding note (only shown when appropriate)
-                                if (
-                                    state.factoredInsulin > iobAvailable &&
-                                        insulinFormatter(state.insulinCalculated) != insulinFormatter(iobAvailable)
-                                ) || (
-                                    state.factoredInsulin <= iobAvailable &&
-                                        insulinFormatter(state.insulinCalculated) != insulinFormatter(state.factoredInsulin)
-                                )
-                                {
-                                    Text("Rounded for pump")
-                                        .secondaryLabel()
-                                        .leadingFullWidth()
-                                }
-                            }
+                        // Only show "Rounded for pump" text when rounding was applied.
+                        if isRoundedForPump {
+                            Text("Rounded for pump")
+                                .secondaryStyle()
                         }
+                    }
+                    .fixedSize(horizontal: true, vertical: true)
 
-                        Spacer()
+                    Spacer()
 
-                        // Right column - the insulin calculation
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(insulinFormatter(state.insulinCalculated))
-                                .solutionStyle()
-                                .foregroundStyle(state.insulinCalculated > 0 ? Color.accentColor : .primary)
+                    // Final insulin recommendation
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(insulinFormatter(state.insulinCalculated))
+                            .largeSolutionStyle()
+                            .foregroundStyle(state.insulinCalculated > 0 ? Color.accentColor : .primary)
 
-                            Text("U")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .minimumScaleFactor(0.5)
-                        }
-                        .gridCellAnchor(.trailing)
+                        Text("U")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
-            .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 2)
             .fixedSize(horizontal: false, vertical: true)
         }
     }
 
     // MARK: - Helper Views
 
-    func calculationCardView<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title).sectionTitle()
-            content().calculationCardStyle()
-        }
-    }
+    // Support views for warnings and other UI elements
 
-    func limitWarning(_ text: String) -> some View {
+    /// Creates a standardized warning display with triangle icon and red text used for rec bolus card's header.
+    /// - Parameter text: The warning message to display
+    /// - Returns: A formatted warning view
+    private func limitWarning(_ text: String) -> some View {
         HStack {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
@@ -857,20 +840,28 @@ struct PopupView: View {
                 .fontWeight(.medium)
                 .foregroundStyle(.red)
                 .minimumScaleFactor(0.5)
-                .leadingFullWidth()
                 .font(.subheadline)
         }
     }
 
-    // MARK: - Helper Methods
+    // MARK: - Helper Formatters
 
-    func insulinFormatter(_ value: Decimal, _ roundingMode: NSDecimalNumber.RoundingMode = .down) -> String {
+    // Functions for consistent number formatting throughout the view
+
+    /// Formats insulin values with consistent decimal places
+    /// - Parameters:
+    ///   - value: The insulin value to format
+    ///   - roundingMode: The rounding mode to apply (default: .down for conservative dosing)
+    /// - Returns: A formatted string with 2 decimal places
+    private func insulinFormatter(_ value: Decimal, _ roundingMode: NSDecimalNumber.RoundingMode = .down) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.minimumFractionDigits = 2
         formatter.maximumFractionDigits = 2
         formatter.locale = Locale.current
 
+        // Create a decimal handler with the specified rounding behavior.
+        // Always rounds to 2 decimal places (0.01 U precision).
         let handler = NSDecimalNumberHandler(
             roundingMode: roundingMode,
             scale: 2,
@@ -885,18 +876,12 @@ struct PopupView: View {
         return formatter.string(from: roundedValue) ?? "\(value)"
     }
 
-    func solutionColor(_ value: Decimal) -> Color? {
-        switch value {
-        case ..<0:
-            return .red
-        case 0:
-            return nil
-        default:
-            return .green
-        }
-    }
-
-    func wrapNegative(_ value: Decimal, _ roundingMode: NSDecimalNumber.RoundingMode = .down) -> String {
+    /// Wraps negative values in parentheses for clearer display in full bolus card.
+    /// - Parameters:
+    ///   - value: The decimal value to format
+    ///   - roundingMode: The rounding mode to apply (default: .down)
+    /// - Returns: A formatted string with parentheses for negative values
+    private func wrapNegative(_ value: Decimal, _ roundingMode: NSDecimalNumber.RoundingMode = .down) -> String {
         value < 0 ? "(" + insulinFormatter(value, roundingMode) + ")" : insulinFormatter(value, roundingMode)
     }
 }
