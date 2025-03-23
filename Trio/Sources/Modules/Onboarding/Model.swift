@@ -134,7 +134,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 
         return values
     }
-    
+
     // Target related
     var targetItems: [TargetsEditor.Item] = []
     var initialTargetItems: [TargetsEditor.Item] = []
@@ -270,7 +270,7 @@ extension OnboardingData {
     var targetsHaveChanged: Bool {
         initialTargetItems != targetItems
     }
-    
+
     func addTarget() {
         var time = 0
         var low = 0
@@ -301,7 +301,8 @@ extension OnboardingData {
         }
         let profile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
         saveTargets(profile)
-        initialTargetItems = targetItems.map { TargetsEditor.Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
+        initialTargetItems = targetItems
+            .map { TargetsEditor.Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
     }
 
 //    func validateTarget() {
@@ -319,7 +320,7 @@ extension OnboardingData {
 //            }
 //        }
 //    }
-    
+
     func saveTargets(_ profile: BGTargets) {
         storage.save(profile, as: OpenAPS.Settings.bgTargets)
     }
