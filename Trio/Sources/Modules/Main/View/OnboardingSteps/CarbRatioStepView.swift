@@ -6,12 +6,14 @@
 //
 import Charts
 import SwiftUI
+import UIKit
 
 /// Carb ratio step view for setting insulin-to-carb ratio.
 struct CarbRatioStepView: View {
     @State var onboardingData: OnboardingData
     @State private var showTimeSelector = false
     @State private var selectedRatioIndex: Int?
+    @State private var refreshUI = UUID() // to update chart when slider value changes
 
     // For chart scaling
     private let chartScale = Calendar.current
@@ -119,6 +121,8 @@ struct CarbRatioStepView: View {
                                                 let newIndex = onboardingData.carbRatioRateValues
                                                     .firstIndex { abs(Double($0) - newValue) < 0.05 } ?? item.rateIndex
                                                 onboardingData.carbRatioItems[index].rateIndex = newIndex
+                                                // Force refresh when slider changes
+                                                refreshUI = UUID()
                                             }
                                         ),
                                         in: Double(truncating: onboardingData.carbRatioRateValues.first! as NSNumber) ...
@@ -127,12 +131,18 @@ struct CarbRatioStepView: View {
                                     )
                                     .accentColor(.orange)
                                     .padding(.horizontal, 5)
+                                    .onChange(of: onboardingData.carbRatioItems[index].rateIndex) { _, _ in
+                                        let impact = UIImpactFeedbackGenerator(style: .light)
+                                        impact.impactOccurred()
+                                    }
 
                                     // Display the current value
                                     Text(
                                         "\(formatter.string(from: onboardingData.carbRatioRateValues[item.rateIndex] as NSNumber) ?? "--") g/U"
                                     )
-                                    .frame(width: 60, alignment: .trailing)
+                                    .frame(width: 80, alignment: .trailing)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
 
                                     // Delete button (not for the first entry at 00:00)
                                     if index > 0 {
@@ -295,6 +305,7 @@ struct CarbRatioStepView: View {
                     .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.orange)
             }
         }
+        .id(refreshUI) // Force chart update
         .chartXAxis {
             AxisMarks(values: .automatic(desiredCount: 6)) { _ in
                 AxisValueLabel(format: .dateTime.hour())
