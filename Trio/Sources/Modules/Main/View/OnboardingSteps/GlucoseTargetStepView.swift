@@ -189,74 +189,74 @@ struct GlucoseTargetStepView: View {
 
                     // List of targets
                     VStack(spacing: 2) {
-                        ForEach(Array(onboardingData.targetItems.enumerated()), id: \.element.id) { index, item in
-                            HStack {
-                                // Time display
-                                Text(
-                                    dateFormatter
-                                        .string(from: Date(
-                                            timeIntervalSince1970: onboardingData
-                                                .targetTimeValues[item.timeIndex]
-                                        ))
-                                )
-                                .frame(width: 80, alignment: .leading)
-                                .padding(.leading)
-
-                                // Ratio slider
-                                Slider(
-                                    value: Binding(
-                                        get: {
-                                            Double(
-                                                truncating: onboardingData
-                                                    .targetRateValues[item.rateIndex] as NSNumber
-                                            ) },
-                                        set: { newValue in
-                                            // Find closest match in rateValues array
-                                            let newIndex = onboardingData.targetRateValues
-                                                .firstIndex { abs(Double($0) - newValue) < 0.05 } ?? item.rateIndex
-                                            onboardingData.targetItems[index].rateIndex = newIndex
-                                            // Force refresh when slider changes
-                                            refreshUI = UUID()
-                                        }
-                                    ),
-                                    in: Double(truncating: onboardingData.targetRateValues.first! as NSNumber) ...
-                                        Double(truncating: onboardingData.targetRateValues.last! as NSNumber),
-                                    step: 0.5
-                                )
-                                .accentColor(.orange)
-                                .padding(.horizontal, 5)
-                                .onChange(of: onboardingData.targetItems[index].rateIndex) { _, _ in
-                                    let impact = UIImpactFeedbackGenerator(style: .light)
-                                    impact.impactOccurred()
-                                }
-
-                                // Display the current value
-                                Text(
-                                    "\(Formatters.decimalFormatterWithOneFractionDigit.string(from: onboardingData.targetRateValues[item.rateIndex] as NSNumber) ?? "--") g/U"
-                                )
-                                .frame(width: 80, alignment: .trailing)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-
-                                // Delete button (not for the first entry at 00:00)
-                                if index > 0 {
-                                    Button(action: {
-                                        onboardingData.targetItems.remove(at: index)
-                                    }) {
-                                        Image(systemName: "trash")
-                                            .foregroundColor(.red)
-                                            .padding(.horizontal, 5)
-                                    }
-                                } else {
-                                    // Spacer to maintain alignment
-                                    Spacer()
-                                        .frame(width: 30)
-                                }
-                            }
-                            .padding(.vertical, 12)
-                            .background(index % 2 == 0 ? Color.orange.opacity(0.05) : Color.clear)
-                            .cornerRadius(8)
-                        }
+//                        ForEach(Array(onboardingData.targetItems.enumerated()), id: \.element.id) { index, item in
+//                            HStack {
+//                                // Time display
+//                                Text(
+//                                    dateFormatter
+//                                        .string(from: Date(
+//                                            timeIntervalSince1970: onboardingData
+//                                                .targetTimeValues[item.lowIndex]
+//                                        ))
+//                                )
+//                                .frame(width: 80, alignment: .leading)
+//                                .padding(.leading)
+//
+//                                // Ratio slider
+//                                Slider(
+//                                    value: Binding(
+//                                        get: {
+//                                            Double(
+//                                                truncating: onboardingData
+//                                                    .targetRateValues[item.lowIndex] as NSNumber
+//                                            ) },
+//                                        set: { newValue in
+//                                            // Find closest match in rateValues array
+//                                            let newIndex = onboardingData.targetRateValues
+//                                                .firstIndex { abs(Double($0) - newValue) < 0.05 } ?? item.lowIndex
+//                                            onboardingData.targetItems[index].lowIndex = newIndex
+//                                            // Force refresh when slider changes
+//                                            refreshUI = UUID()
+//                                        }
+//                                    ),
+//                                    in: Double(truncating: onboardingData.targetRateValues.first! as NSNumber) ...
+//                                        Double(truncating: onboardingData.targetRateValues.last! as NSNumber),
+//                                    step: 0.5
+//                                )
+//                                .accentColor(.orange)
+//                                .padding(.horizontal, 5)
+//                                .onChange(of: onboardingData.targetItems[index].lowIndex) { _, _ in
+//                                    let impact = UIImpactFeedbackGenerator(style: .light)
+//                                    impact.impactOccurred()
+//                                }
+//
+//                                // Display the current value
+//                                Text(
+//                                    "\(Formatters.decimalFormatterWithOneFractionDigit.string(from: onboardingData.targetRateValues[item.lowIndex] as NSNumber) ?? "--") g/U"
+//                                )
+//                                .frame(width: 80, alignment: .trailing)
+//                                .lineLimit(1)
+//                                .minimumScaleFactor(0.8)
+//
+//                                // Delete button (not for the first entry at 00:00)
+//                                if index > 0 {
+//                                    Button(action: {
+//                                        onboardingData.targetItems.remove(at: index)
+//                                    }) {
+//                                        Image(systemName: "trash")
+//                                            .foregroundColor(.red)
+//                                            .padding(.horizontal, 5)
+//                                    }
+//                                } else {
+//                                    // Spacer to maintain alignment
+//                                    Spacer()
+//                                        .frame(width: 30)
+//                                }
+//                            }
+//                            .padding(.vertical, 12)
+//                            .background(index % 2 == 0 ? Color.orange.opacity(0.05) : Color.clear)
+//                            .cornerRadius(8)
+//                        }
                     }
                     .background(Color.orange.opacity(0.05))
                     .cornerRadius(10)
@@ -334,19 +334,19 @@ struct GlucoseTargetStepView: View {
             // Find available time slots in 1-hour increments
             for hour in 0 ..< 24 {
                 let hourInMinutes = hour * 60
-                // Calculate timeIndex for this hour
+                // Calculate lowIndex for this hour
                 let timeIndex = onboardingData.targetTimeValues.firstIndex { abs($0 - Double(hourInMinutes * 60)) < 10 } ?? 0
 
                 // Check if this hour is already in the profile
                 if !onboardingData.targetItems.contains(where: { $0.timeIndex == timeIndex }) {
                     buttons.append(.default(Text("\(String(format: "%02d:00", hour))")) {
                         // Get the current ratio from the last item
-                        let rateIndex = onboardingData.targetItems.last?.rateIndex ?? 0
+                        let lowIndex = onboardingData.targetItems.last?.lowIndex ?? 0
                         // Create new item with the specified time
-                        let newItem = TargetsEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
+                        let newItem = TargetsEditor.Item(lowIndex: lowIndex, highIndex: lowIndex, timeIndex: timeIndex)
                         // Add the new item and sort the list
                         onboardingData.targetItems.append(newItem)
-                        onboardingData.targetItems.sort(by: { $0.timeIndex < $1.timeIndex })
+                        onboardingData.targetItems.sort(by: { $0.lowIndex < $1.lowIndex })
                     })
                 }
             }
@@ -364,22 +364,22 @@ struct GlucoseTargetStepView: View {
     // Computed property to check if we can add more carb ratios
     private var canAddRatio: Bool {
         guard let lastItem = onboardingData.targetItems.last else { return true }
-        return lastItem.timeIndex < onboardingData.targetTimeValues.count - 1
+        return lastItem.lowIndex < onboardingData.targetTimeValues.count - 1
     }
 
     // Chart for visualizing carb ratios
     private var glucoseTargetChart: some View {
         Chart {
             ForEach(Array(onboardingData.targetItems.enumerated()), id: \.element.id) { index, item in
-                let displayValue = onboardingData.targetRateValues[item.timeIndex]
+                let displayValue = onboardingData.targetRateValues[item.lowIndex]
 
                 let tzOffset = TimeZone.current.secondsFromGMT() * -1
-                let startDate = Date(timeIntervalSinceReferenceDate: onboardingData.targetTimeValues[item.timeIndex])
+                let startDate = Date(timeIntervalSinceReferenceDate: onboardingData.targetTimeValues[item.lowIndex])
                     .addingTimeInterval(TimeInterval(tzOffset))
                 let endDate = onboardingData.targetItems.count > index + 1 ?
                     Date(
                         timeIntervalSinceReferenceDate: onboardingData
-                            .targetTimeValues[onboardingData.targetItems[index + 1].timeIndex]
+                            .targetTimeValues[onboardingData.targetItems[index + 1].lowIndex]
                     )
                     .addingTimeInterval(TimeInterval(tzOffset)) :
                     Date(timeIntervalSinceReferenceDate: onboardingData.targetTimeValues.last!).addingTimeInterval(30 * 60)
