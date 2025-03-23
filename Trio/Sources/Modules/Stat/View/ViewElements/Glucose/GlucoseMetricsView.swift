@@ -42,7 +42,7 @@ struct GlucoseMetricsView: View {
             .number.grouping(.never).rounded().precision(.fractionLength(1))
         )
         let coefficientOfVariationString = glucoseStats.cv
-            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))
+            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
         let daysTrackedString = totalDays.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
 
         VStack(alignment: .leading) {
