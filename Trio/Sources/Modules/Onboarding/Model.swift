@@ -134,6 +134,17 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 
         return values
     }
+    
+    // Target related
+    var targetItems: [TargetsEditor.Item] = []
+    var initialTargetItems: [TargetsEditor.Item] = []
+    let targetTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+
+    var targetRateValues: [Decimal] {
+        let settingsProvider = PickerSettingsProvider.shared
+        let glucoseSetting = PickerSetting(value: 0, step: 1, min: 72, max: 180, type: .glucose)
+        return settingsProvider.generatePickerValues(from: glucoseSetting, units: units)
+    }
 
     // Glucose Target
     var targetLow: Decimal = 70
@@ -250,6 +261,67 @@ extension OnboardingData {
 
     func saveCarbRatioProfile(_ profile: CarbRatios) {
         storage.save(profile, as: OpenAPS.Settings.carbRatios)
+    }
+}
+
+// MARK: - Setup glucose targets
+
+extension OnboardingData {
+    var targetsHaveChanged: Bool {
+        initialTargetItems != targetItems
+    }
+    
+    func addTarget() {
+        var time = 0
+        var low = 0
+        var high = 0
+        if let last = targetItems.last {
+            time = last.timeIndex + 1
+            low = last.lowIndex
+            high = low
+        }
+
+        let newItem = TargetsEditor.Item(lowIndex: low, highIndex: high, timeIndex: time)
+
+        targetItems.append(newItem)
+    }
+
+    func saveTargets() {
+        guard targetsHaveChanged else { return }
+
+        let targets = targetItems.map { item -> BGTargetEntry in
+            let formatter = DateFormatter()
+            formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            formatter.dateFormat = "HH:mm:ss"
+            let date = Date(timeIntervalSince1970: self.targetTimeValues[item.timeIndex])
+            let minutes = Int(date.timeIntervalSince1970 / 60)
+            let low = self.rateValues[item.lowIndex]
+            let high = low
+            return BGTargetEntry(low: low, high: high, start: formatter.string(from: date), offset: minutes)
+        }
+        let profile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
+        saveTargets(profile)
+        initialTargetItems = targetItems.map { TargetsEditor.Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
+    }
+
+//    func validateTarget() {
+//        DispatchQueue.main.async {
+//            let uniq = Array(Set(self.items))
+//            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+//                .map { item -> Item in
+//                    Item(lowIndex: item.lowIndex, highIndex: item.highIndex, timeIndex: item.timeIndex)
+//                }
+//            sorted.first?.timeIndex = 0
+//            self.items = sorted
+//
+//            if self.items.isEmpty {
+//                self.units = self.settingsManager.settings.units
+//            }
+//        }
+//    }
+    
+    func saveTargets(_ profile: BGTargets) {
+        storage.save(profile, as: OpenAPS.Settings.bgTargets)
     }
 }
 
