@@ -392,80 +392,43 @@ struct GlucoseTargetStepView: View {
     // Chart for visualizing glucose targets
     private var glucoseTargetChart: some View {
         Chart {
-//            ForEach(onboardingData.targetItems.indices, id: \.self) { index in
-//                let item = onboardingData.targetItems[index]
-//                let lowValue = onboardingData.targetRateValues[item.lowIndex]
-//                let highValue = onboardingData.targetRateValues[item.highIndex]
-//
-//                let tzOffset = TimeZone.current.secondsFromGMT() * -1
-//                let startDate = Date(timeIntervalSinceReferenceDate: onboardingData.targetTimeValues[item.timeIndex])
-//                    .addingTimeInterval(TimeInterval(tzOffset))
-//
-//                // Calculate end date (next target or end of day)
-//                let endDate: Date
-//                if index < onboardingData.targetItems.count - 1 {
-//                    let nextItem = onboardingData.targetItems[index + 1]
-//                    endDate = Date(timeIntervalSinceReferenceDate: onboardingData.targetTimeValues[nextItem.timeIndex])
-//                        .addingTimeInterval(TimeInterval(tzOffset))
-//                } else {
-//                    endDate = Date(timeIntervalSinceReferenceDate: onboardingData.targetTimeValues.last!)
-//                        .addingTimeInterval(30 * 60)
-//                        .addingTimeInterval(TimeInterval(tzOffset))
-//                }
-//
-//                // Low target line
-//                LineMark(
-//                    x: .value("Start", startDate),
-//                    y: .value("Low Target", lowValue)
-//                )
-//                .foregroundStyle(Color.blue)
-//                .lineStyle(StrokeStyle(lineWidth: 2))
-//
-//                LineMark(
-//                    x: .value("End", endDate),
-//                    y: .value("Low Target", lowValue)
-//                )
-//                .foregroundStyle(Color.blue)
-//                .lineStyle(StrokeStyle(lineWidth: 2))
-//
-//                // High target line
-//                LineMark(
-//                    x: .value("Start", startDate),
-//                    y: .value("High Target", highValue)
-//                )
-//                .foregroundStyle(Color.blue.opacity(0.6))
-//                .lineStyle(StrokeStyle(lineWidth: 2))
-//
-//                LineMark(
-//                    x: .value("End", endDate),
-//                    y: .value("High Target", highValue)
-//                )
-//                .foregroundStyle(Color.blue.opacity(0.6))
-//                .lineStyle(StrokeStyle(lineWidth: 2))
-//
-//                // Target range area
-//                AreaMark(
-//                    x: .value("Start", startDate),
-//                    yStart: .value("Low Target", lowValue),
-//                    yEnd: .value("High Target", highValue)
-//                )
-//                .foregroundStyle(.linearGradient(
-//                    colors: [Color.blue.opacity(0.3), Color.blue.opacity(0.1)],
-//                    startPoint: .bottom,
-//                    endPoint: .top
-//                ))
-//
-//                AreaMark(
-//                    x: .value("End", endDate),
-//                    yStart: .value("Low Target", lowValue),
-//                    yEnd: .value("High Target", highValue)
-//                )
-//                .foregroundStyle(.linearGradient(
-//                    colors: [Color.blue.opacity(0.3), Color.blue.opacity(0.1)],
-//                    startPoint: .bottom,
-//                    endPoint: .top
-//                ))
-//            }
+            ForEach(Array(onboardingData.targetItems.enumerated()), id: \.element.id) { index, item in
+                let displayValue = onboardingData.targetRateValues[item.lowIndex]
+
+                let tzOffset = TimeZone.current.secondsFromGMT() * -1
+                let startDate = Date(timeIntervalSinceReferenceDate: onboardingData.targetTimeValues[item.timeIndex])
+                    .addingTimeInterval(TimeInterval(tzOffset))
+                let endDate = onboardingData.targetItems.count > index + 1 ?
+                    Date(
+                        timeIntervalSinceReferenceDate: onboardingData
+                            .targetTimeValues[onboardingData.targetItems[index + 1].timeIndex]
+                    )
+                    .addingTimeInterval(TimeInterval(tzOffset)) :
+                    Date(timeIntervalSinceReferenceDate: onboardingData.targetTimeValues.last!).addingTimeInterval(30 * 60)
+                    .addingTimeInterval(TimeInterval(tzOffset))
+
+                RectangleMark(
+                    xStart: .value("start", startDate),
+                    xEnd: .value("end", endDate),
+                    yStart: .value("rate-start", displayValue),
+                    yEnd: .value("rate-end", 0)
+                ).foregroundStyle(
+                    .linearGradient(
+                        colors: [
+                            Color.green.opacity(0.6),
+                            Color.green.opacity(0.1)
+                        ],
+                        startPoint: .bottom,
+                        endPoint: .top
+                    )
+                ).alignsMarkStylesWithPlotArea()
+
+                LineMark(x: .value("End Date", startDate), y: .value("Ratio", displayValue))
+                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.green)
+
+                LineMark(x: .value("Start Date", endDate), y: .value("Ratio", displayValue))
+                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.green)
+            }
         }
         .id(refreshUI) // Force chart update
         .chartXAxis {
