@@ -15,7 +15,7 @@ struct BasalProfileStepView: View {
     @State private var selectedBasalIndex: Int?
     @State private var showAlert = false
     @State private var errorMessage = ""
-    @State private var refreshUI = UUID() // Zur Erzwingung von UI-Updates
+    @State private var refreshUI = UUID() // to update chart when slider value changes
 
     // For chart scaling
     private let chartScale = Calendar.current
@@ -152,15 +152,15 @@ struct BasalProfileStepView: View {
                                         // Trigger immediate UI update when slider value changes
                                         let impact = UIImpactFeedbackGenerator(style: .light)
                                         impact.impactOccurred()
-                                        // Aktualisiert die UI, wenn der Slider bewegt wird
-                                        refreshUI = UUID()
                                     }
 
                                     // Display the current value
                                     Text(
                                         "\(onboardingData.basalProfileRateValues.isEmpty || item.rateIndex >= onboardingData.basalProfileRateValues.count ? "--" : formatter.string(from: onboardingData.basalProfileRateValues[item.rateIndex] as NSNumber) ?? "--") U/h"
                                     )
-                                    .frame(width: 60, alignment: .trailing)
+                                    .frame(width: 80, alignment: .trailing)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
 
                                     // Delete button (not for the first entry at 00:00)
                                     if index > 0 {
@@ -225,11 +225,6 @@ struct BasalProfileStepView: View {
                 }
             }
             .padding(.vertical)
-        }
-        .onChange(of: onboardingData.basalProfileItems) { _, _ in
-            // Force UI update when any basal profile item changes
-            // This will update the chart and total daily basal calculation
-            refreshUI = UUID()
         }
         .actionSheet(isPresented: $showTimeSelector) {
             var buttons: [ActionSheet.Button] = []
