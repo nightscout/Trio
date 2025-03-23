@@ -119,7 +119,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
     var initialBasalProfileItems: [BasalProfileEditor.Item] = []
     var basalProfileItems: [BasalProfileEditor.Item] = []
     let basalProfileTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
-    private(set) var basalProfileRateValues: [Decimal] = []
+    var basalProfileRateValues: [Decimal] = stride(from: 0.05, to: 3.05, by: 0.05).map { Decimal($0) }
 
     // Glucose Target
     var targetLow: Decimal = 70
