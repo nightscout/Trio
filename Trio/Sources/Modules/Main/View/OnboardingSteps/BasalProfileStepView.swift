@@ -15,6 +15,7 @@ struct BasalProfileStepView: View {
     @State private var selectedBasalIndex: Int?
     @State private var showAlert = false
     @State private var errorMessage = ""
+    @State private var refreshUI = UUID() // Zur Erzwingung von UI-Updates
 
     // For chart scaling
     private let chartScale = Calendar.current
@@ -135,6 +136,8 @@ struct BasalProfileStepView: View {
                                                    index < onboardingData.basalProfileItems.count
                                                 {
                                                     onboardingData.basalProfileItems[index].rateIndex = newIndex
+                                                    // Force refresh when slider changes
+                                                    refreshUI = UUID()
                                                 }
                                             }
                                         ),
@@ -149,6 +152,8 @@ struct BasalProfileStepView: View {
                                         // Trigger immediate UI update when slider value changes
                                         let impact = UIImpactFeedbackGenerator(style: .light)
                                         impact.impactOccurred()
+                                        // Aktualisiert die UI, wenn der Slider bewegt wird
+                                        refreshUI = UUID()
                                     }
 
                                     // Display the current value
@@ -196,6 +201,7 @@ struct BasalProfileStepView: View {
                             Text("\(calculateTotalDailyBasal(), specifier: "%.2f") U/day")
                                 .font(.headline)
                                 .padding(.horizontal)
+                                .id(refreshUI) // Erzwingt die Aktualisierung des Totals
                         }
                     }
                     .padding(.top)
@@ -219,6 +225,11 @@ struct BasalProfileStepView: View {
                 }
             }
             .padding(.vertical)
+        }
+        .onChange(of: onboardingData.basalProfileItems) { _, _ in
+            // Force UI update when any basal profile item changes
+            // This will update the chart and total daily basal calculation
+            refreshUI = UUID()
         }
         .actionSheet(isPresented: $showTimeSelector) {
             var buttons: [ActionSheet.Button] = []
@@ -372,6 +383,7 @@ struct BasalProfileStepView: View {
                     .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.purple)
             }
         }
+        .id(refreshUI) // Erzwingt die Aktualisierung des Charts
         .chartXAxis {
             AxisMarks(values: .automatic(desiredCount: 6)) { _ in
                 AxisValueLabel(format: .dateTime.hour())
