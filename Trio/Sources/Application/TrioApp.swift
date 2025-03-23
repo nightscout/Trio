@@ -35,7 +35,7 @@ extension Notification.Name {
     @State private var appState = AppState()
     @State private var showLoadingView = true
     @State private var showLoadingError = false
-    @State private var showOnboarding = false
+    @State private var showOnboardingView = false
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -98,14 +98,13 @@ extension Notification.Name {
         ) { [self] _ in
             showLoadingError = true
         }
-
-        notificationCenter.addObserver(
-            forName: .onboardingCompleted,
-            object: nil,
-            queue: .main
-        ) { [self] _ in
-            showOnboarding = false
-        }
+//        notificationCenter.addObserver(
+//            forName: .onboardingCompleted,
+//            object: nil,
+//            queue: .main
+//        ) { [self] _ in
+//            showOnboardingView = false
+//        }
 
         let submodulesInfo = BuildDetails.shared.submodules.map { key, value in
             "\(key): \(value.branch) \(value.commitSHA)"
@@ -139,6 +138,8 @@ extension Notification.Name {
                     cleanupOldData()
 
                     self.initState.complete = true
+                    debug(.default, "showonbaording: \(onboardingManager.shouldShowOnboarding)")
+                    self.showOnboardingView = onboardingManager.shouldShowOnboarding
                     Foundation.NotificationCenter.default.post(name: .initializationCompleted, object: nil)
                     UIApplication.shared.registerForRemoteNotifications()
                     do {
@@ -195,18 +196,20 @@ extension Notification.Name {
                     .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
                         self.showLoadingError = true
                     }
-            } else if showOnboarding {
-                // Show onboarding if needed
-                Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
-                    .preferredColorScheme(colorScheme(for: .dark) ?? nil)
-                    .transition(.opacity)
             } else {
-                Main.RootView(resolver: resolver)
-                    .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
-                    .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
-                    .environment(appState)
-                    .environmentObject(Icons())
-                    .onOpenURL(perform: handleURL)
+                if showOnboardingView {
+                    // Show onboarding if needed
+                    Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
+                        .preferredColorScheme(colorScheme(for: .dark) ?? nil)
+                        .transition(.opacity)
+                } else {
+                    Main.RootView(resolver: resolver)
+                        .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
+                        .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
+                        .environment(appState)
+                        .environmentObject(Icons())
+                        .onOpenURL(perform: handleURL)
+                }
             }
         }
         .onChange(of: scenePhase) { _, newScenePhase in

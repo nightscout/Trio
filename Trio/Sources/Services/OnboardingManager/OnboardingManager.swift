@@ -4,12 +4,12 @@ import Swinject
 
 /// Manages the app's onboarding experience, ensuring it's only shown to new users.
 /// Coordinates the display of onboarding screens when the app is launched for the first time.
-final class OnboardingManager: ObservableObject, Injectable {
+@Observable final class OnboardingManager: Injectable {
     /// Shared singleton instance.
     static let shared = OnboardingManager()
 
     /// Indicates whether the onboarding flow should be presented.
-    @Published var shouldShowOnboarding: Bool = false
+    var shouldShowOnboarding: Bool = false
 
     /// Initialize the OnboardingManager with the required dependencies.
     init() {
