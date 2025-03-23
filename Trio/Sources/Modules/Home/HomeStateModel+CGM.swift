@@ -39,6 +39,7 @@ import LoopKitUI
 ///     settingsDidChange (in HomeStateModel and CGMSettingsStateModel)
 
 extension Home.StateModel: CompletionDelegate {
+    /// This completion handler is called by both the CGM and the pump
     func completionNotifyingDidComplete(_ notifying: CompletionNotifying) {
         debug(.service, "Completion fired by: \(type(of: notifying))")
         Task {
@@ -52,6 +53,7 @@ extension Home.StateModel: CompletionDelegate {
             }
         }
         shouldDisplayCGMSetupSheet = false
+        shouldDisplayPumpSetupSheet = false
     }
 }
 
