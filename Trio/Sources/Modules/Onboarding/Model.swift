@@ -120,7 +120,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
     var basalProfileItems: [BasalProfileEditor.Item] = []
     let basalProfileTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
     var basalProfileRateValues: [Decimal] = stride(from: 0.05, to: 3.05, by: 0.05).map { Decimal($0) }
-    
+
     // ISF related
     var isfItems: [ISFEditor.Item] = []
     var initialISFItems: [ISFEditor.Item] = []
@@ -259,7 +259,7 @@ extension OnboardingData {
     var isfValuesHaveChanges: Bool {
         initialISFItems != isfItems
     }
-    
+
     func addISFValue() {
         var time = 0
         var rate = 0
@@ -309,7 +309,7 @@ extension OnboardingData {
 //            }
 //        }
 //    }
-    
+
     func saveISFProfile(_ profile: InsulinSensitivities) {
         storage.save(profile, as: OpenAPS.Settings.insulinSensitivities)
     }
