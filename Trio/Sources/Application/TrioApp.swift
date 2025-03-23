@@ -188,7 +188,7 @@ extension Notification.Name {
             } else if onboardingManager.shouldShowOnboarding {
                 // Show onboarding if needed
                 Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
-                    .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
+                    .preferredColorScheme(colorScheme(for: .dark) ?? nil)
                     .transition(.opacity)
             } else {
                 Main.RootView(resolver: resolver)
