@@ -143,7 +143,7 @@ extension Settings {
                         header: Text("Trio Configuration"),
                         content: {
                             ForEach(SettingItems.trioConfig) { item in
-                                Text(item.title).navigationLink(to: item.view, from: self)
+                                Text(LocalizedStringKey(item.title)).navigationLink(to: item.view, from: self)
                             }
                         }
                     )
@@ -239,12 +239,13 @@ extension Settings {
                             if filteredItems.isNotEmpty {
                                 ForEach(filteredItems) { filteredItem in
                                     VStack(alignment: .leading) {
-                                        Text(filteredItem.matchedContent).bold()
+                                        Text(filteredItem.matchedContent.localized).bold()
                                         if let path = filteredItem.settingItem.path {
-                                            Text(path.map(\.stringValue).joined(separator: " > "))
+                                            Text(path.map(\.localized).joined(separator: " > "))
                                                 .font(.caption)
                                                 .foregroundColor(.secondary)
                                         }
+
                                     }.navigationLink(to: filteredItem.settingItem.view, from: self)
                                 }
                             } else {

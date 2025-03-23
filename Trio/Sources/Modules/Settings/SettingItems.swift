@@ -4,16 +4,16 @@ import SwiftUI
 
 struct SettingItem: Identifiable {
     let id = UUID()
-    let title: LocalizedStringKey
+    let title: String
     let view: Screen
-    let searchContents: [LocalizedStringKey]?
-    let path: [LocalizedStringKey]?
+    let searchContents: [String]?
+    let path: [String]?
 
     init(
-        title: LocalizedStringKey,
+        title: String,
         view: Screen,
-        searchContents: [LocalizedStringKey]? = nil,
-        path: [LocalizedStringKey]? = nil
+        searchContents: [String]? = nil,
+        path: [String]? = nil
     ) {
         self.title = title
         self.view = view
@@ -25,7 +25,7 @@ struct SettingItem: Identifiable {
 struct FilteredSettingItem: Identifiable {
     let id = UUID()
     let settingItem: SettingItem
-    let matchedContent: LocalizedStringKey
+    let matchedContent: String
 }
 
 enum SettingItems {
@@ -302,19 +302,23 @@ enum SettingItems {
     static func filteredItems(searchText: String) -> [FilteredSettingItem] {
         allItems.flatMap { item in
             var results = [FilteredSettingItem]()
-            let searchTextToLower = searchText.lowercased()
+            let searchLower = searchText.lowercased()
 
-            if item.title.stringValue.localizedCaseInsensitiveContains(searchTextToLower) ||
-                item.title.englishValue.localizedCaseInsensitiveContains(searchTextToLower)
+            let titleLocalized = item.title.localized
+            let titleEnglish = item.title.englishLocalized
+
+            if titleLocalized.localizedCaseInsensitiveContains(searchLower) ||
+                titleEnglish.localizedCaseInsensitiveContains(searchLower)
             {
                 results.append(FilteredSettingItem(settingItem: item, matchedContent: item.title))
             }
 
-            if let matchedContents = item.searchContents?.filter({
-                $0.stringValue.localizedCaseInsensitiveContains(searchTextToLower) ||
-                    $0.englishValue.localizedCaseInsensitiveContains(searchTextToLower)
-            }) {
-                results.append(contentsOf: matchedContents.map { FilteredSettingItem(settingItem: item, matchedContent: $0) })
+            if let contents = item.searchContents {
+                let matched = contents.filter {
+                    $0.localized.localizedCaseInsensitiveContains(searchLower) ||
+                        $0.englishLocalized.localizedCaseInsensitiveContains(searchLower)
+                }
+                results.append(contentsOf: matched.map { FilteredSettingItem(settingItem: item, matchedContent: $0) })
             }
 
             return results
@@ -322,29 +326,17 @@ enum SettingItems {
     }
 }
 
-extension LocalizedStringKey {
-    var stringValue: String {
-        let mirror = Mirror(reflecting: self)
-        let children = mirror.children
-        if let label = children.first(where: { $0.label == "key" })?.value as? String {
-            return String(localized: "\(label)", comment: "")
-        } else {
-            return ""
+extension String {
+    func localizedString(locale: Locale = .current) -> String {
+        if locale.identifier == "en",
+           let path = Bundle.main.path(forResource: "en", ofType: "lproj"),
+           let bundle = Bundle(path: path)
+        {
+            return NSLocalizedString(self, bundle: bundle, comment: "")
         }
+        return NSLocalizedString(self, comment: "")
     }
 
-    var englishValue: String {
-        let mirror = Mirror(reflecting: self)
-        let children = mirror.children
-
-        if let key = children.first(where: { $0.label == "key" })?.value as? String {
-            if let path = Bundle.main.path(forResource: "en", ofType: "lproj"),
-               let bundle = Bundle(path: path)
-            {
-                return bundle.localizedString(forKey: key, value: nil, table: nil)
-            }
-        }
-
-        return ""
-    }
+    var localized: String { localizedString() }
+    var englishLocalized: String { localizedString(locale: Locale(identifier: "en")) }
 }
