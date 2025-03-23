@@ -81,92 +81,82 @@ struct CarbRatioStepView: View {
                     }
                     .padding(.horizontal)
 
-                    if onboardingData.carbRatioItems.isEmpty {
-                        // Add default entry if no items exist
-                        Button("Add Initial Carb Ratio") {
-                            onboardingData.addCarbRatio()
-                        }
-                        .foregroundColor(.orange)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.orange.opacity(0.1))
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                    } else {
-                        // List of carb ratios
-                        VStack(spacing: 2) {
-                            ForEach(Array(onboardingData.carbRatioItems.enumerated()), id: \.element.id) { index, item in
-                                HStack {
-                                    // Time display
-                                    Text(
-                                        dateFormatter
-                                            .string(from: Date(
-                                                timeIntervalSince1970: onboardingData
-                                                    .carbRatioTimeValues[item.timeIndex]
-                                            ))
-                                    )
-                                    .frame(width: 80, alignment: .leading)
-                                    .padding(.leading)
+                    // List of carb ratios
+                    VStack(spacing: 2) {
+                        ForEach(Array(onboardingData.carbRatioItems.enumerated()), id: \.element.id) { index, item in
+                            HStack {
+                                // Time display
+                                Text(
+                                    dateFormatter
+                                        .string(from: Date(
+                                            timeIntervalSince1970: onboardingData
+                                                .carbRatioTimeValues[item.timeIndex]
+                                        ))
+                                )
+                                .frame(width: 80, alignment: .leading)
+                                .padding(.leading)
 
-                                    // Ratio slider
-                                    Slider(
-                                        value: Binding(
-                                            get: {
-                                                Double(
-                                                    truncating: onboardingData
-                                                        .carbRatioRateValues[item.rateIndex] as NSNumber
-                                                ) },
-                                            set: { newValue in
-                                                // Find closest match in rateValues array
-                                                let newIndex = onboardingData.carbRatioRateValues
-                                                    .firstIndex { abs(Double($0) - newValue) < 0.05 } ?? item.rateIndex
-                                                onboardingData.carbRatioItems[index].rateIndex = newIndex
-                                                // Force refresh when slider changes
-                                                refreshUI = UUID()
-                                            }
-                                        ),
-                                        in: Double(truncating: onboardingData.carbRatioRateValues.first! as NSNumber) ...
-                                            Double(truncating: onboardingData.carbRatioRateValues.last! as NSNumber),
-                                        step: 0.5
-                                    )
-                                    .accentColor(.orange)
-                                    .padding(.horizontal, 5)
-                                    .onChange(of: onboardingData.carbRatioItems[index].rateIndex) { _, _ in
-                                        let impact = UIImpactFeedbackGenerator(style: .light)
-                                        impact.impactOccurred()
-                                    }
-
-                                    // Display the current value
-                                    Text(
-                                        "\(formatter.string(from: onboardingData.carbRatioRateValues[item.rateIndex] as NSNumber) ?? "--") g/U"
-                                    )
-                                    .frame(width: 80, alignment: .trailing)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
-
-                                    // Delete button (not for the first entry at 00:00)
-                                    if index > 0 {
-                                        Button(action: {
-                                            onboardingData.carbRatioItems.remove(at: index)
-                                        }) {
-                                            Image(systemName: "trash")
-                                                .foregroundColor(.red)
-                                                .padding(.horizontal, 5)
+                                // Ratio slider
+                                Slider(
+                                    value: Binding(
+                                        get: {
+                                            Double(
+                                                truncating: onboardingData
+                                                    .carbRatioRateValues[item.rateIndex] as NSNumber
+                                            ) },
+                                        set: { newValue in
+                                            // Find closest match in rateValues array
+                                            let newIndex = onboardingData.carbRatioRateValues
+                                                .firstIndex { abs(Double($0) - newValue) < 0.05 } ?? item.rateIndex
+                                            onboardingData.carbRatioItems[index].rateIndex = newIndex
+                                            // Force refresh when slider changes
+                                            refreshUI = UUID()
                                         }
-                                    } else {
-                                        // Spacer to maintain alignment
-                                        Spacer()
-                                            .frame(width: 30)
-                                    }
+                                    ),
+                                    in: Double(truncating: onboardingData.carbRatioRateValues.first! as NSNumber) ...
+                                        Double(truncating: onboardingData.carbRatioRateValues.last! as NSNumber),
+                                    step: 0.5
+                                )
+                                .accentColor(.orange)
+                                .padding(.horizontal, 5)
+                                .onChange(of: onboardingData.carbRatioItems[index].rateIndex) { _, _ in
+                                    let impact = UIImpactFeedbackGenerator(style: .light)
+                                    impact.impactOccurred()
                                 }
-                                .padding(.vertical, 12)
-                                .background(index % 2 == 0 ? Color.orange.opacity(0.05) : Color.clear)
-                                .cornerRadius(8)
+
+                                // Display the current value
+                                Text(
+                                    "\(formatter.string(from: onboardingData.carbRatioRateValues[item.rateIndex] as NSNumber) ?? "--") g/U"
+                                )
+                                .frame(width: 80, alignment: .trailing)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+
+                                // Delete button (not for the first entry at 00:00)
+                                if index > 0 {
+                                    Button(action: {
+                                        onboardingData.carbRatioItems.remove(at: index)
+                                    }) {
+                                        Image(systemName: "trash")
+                                            .foregroundColor(.red)
+                                            .padding(.horizontal, 5)
+                                    }
+                                } else {
+                                    // Spacer to maintain alignment
+                                    Spacer()
+                                        .frame(width: 30)
+                                }
                             }
+                            .padding(.vertical, 12)
+                            .background(index % 2 == 0 ? Color.orange.opacity(0.05) : Color.clear)
+                            .cornerRadius(8)
                         }
-                        .background(Color.orange.opacity(0.05))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
+                    }
+                    .background(Color.orange.opacity(0.05))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                    .onAppear {
+                        onboardingData.addCarbRatio()
                     }
                 }
 

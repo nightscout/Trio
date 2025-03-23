@@ -85,108 +85,98 @@ struct InsulinSensitivityStepView: View {
                     }
                     .padding(.horizontal)
 
-                    if onboardingData.isfItems.isEmpty {
-                        // Add default entry if no items exist
-                        Button("Add Initial ISF Value") {
-                            onboardingData.addISFValue()
-                        }
-                        .foregroundColor(.red)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.red.opacity(0.1))
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                    } else {
-                        // List of ISF values
-                        VStack(spacing: 2) {
-                            ForEach(Array(onboardingData.isfItems.enumerated()), id: \.element.id) { index, item in
-                                HStack {
-                                    // Time display
-                                    Text(
-                                        dateFormatter
-                                            .string(from: Date(
-                                                timeIntervalSince1970: onboardingData
-                                                    .isfTimeValues[item.timeIndex]
-                                            ))
-                                    )
-                                    .frame(width: 80, alignment: .leading)
-                                    .padding(.leading)
+                    // List of ISF values
+                    VStack(spacing: 2) {
+                        ForEach(Array(onboardingData.isfItems.enumerated()), id: \.element.id) { index, item in
+                            HStack {
+                                // Time display
+                                Text(
+                                    dateFormatter
+                                        .string(from: Date(
+                                            timeIntervalSince1970: onboardingData
+                                                .isfTimeValues[item.timeIndex]
+                                        ))
+                                )
+                                .frame(width: 80, alignment: .leading)
+                                .padding(.leading)
 
-                                    // ISF slider
-                                    Slider(
-                                        value: Binding(
-                                            get: {
-                                                guard !onboardingData.rateValues.isEmpty,
-                                                      item.rateIndex < onboardingData.rateValues.count
-                                                else {
-                                                    return 0.0
-                                                }
-                                                return Double(
-                                                    truncating: onboardingData
-                                                        .rateValues[item.rateIndex] as NSNumber
-                                                )
-                                            },
-                                            set: { newValue in
-                                                guard !onboardingData.rateValues.isEmpty else { return }
-
-                                                // Find closest match in rateValues array
-                                                let newIndex = onboardingData.rateValues
-                                                    .firstIndex { abs(Double($0) - newValue) < 0.5 } ?? item.rateIndex
-
-                                                // Ensure index is valid before updating
-                                                if newIndex < onboardingData.rateValues.count,
-                                                   index < onboardingData.isfItems.count
-                                                {
-                                                    onboardingData.isfItems[index].rateIndex = newIndex
-                                                    // Force refresh when slider changes
-                                                    refreshUI = UUID()
-                                                }
+                                // ISF slider
+                                Slider(
+                                    value: Binding(
+                                        get: {
+                                            guard !onboardingData.rateValues.isEmpty,
+                                                  item.rateIndex < onboardingData.rateValues.count
+                                            else {
+                                                return 0.0
                                             }
-                                        ),
-                                        in: onboardingData.rateValues.isEmpty ? 0 ... 1 :
-                                            Double(truncating: onboardingData.rateValues.first! as NSNumber) ...
-                                            Double(truncating: onboardingData.rateValues.last! as NSNumber),
-                                        step: onboardingData.units == .mgdL ? 1 : 0.1
-                                    )
-                                    .accentColor(.red)
-                                    .padding(.horizontal, 5)
-                                    .onChange(of: onboardingData.isfItems[index].rateIndex) { _, _ in
-                                        // Trigger immediate UI update when slider value changes
-                                        let impact = UIImpactFeedbackGenerator(style: .light)
-                                        impact.impactOccurred()
-                                    }
+                                            return Double(
+                                                truncating: onboardingData
+                                                    .rateValues[item.rateIndex] as NSNumber
+                                            )
+                                        },
+                                        set: { newValue in
+                                            guard !onboardingData.rateValues.isEmpty else { return }
 
-                                    // Display the current value
-                                    Text(
-                                        "\(onboardingData.rateValues.isEmpty || item.rateIndex >= onboardingData.rateValues.count ? "--" : numberFormatter.string(from: onboardingData.rateValues[item.rateIndex] as NSNumber) ?? "--") \(onboardingData.units == .mgdL ? "mg/dL" : "mmol/L")"
-                                    )
-                                    .frame(width: 90, alignment: .trailing)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
+                                            // Find closest match in rateValues array
+                                            let newIndex = onboardingData.rateValues
+                                                .firstIndex { abs(Double($0) - newValue) < 0.5 } ?? item.rateIndex
 
-                                    // Delete button (not for the first entry at 00:00)
-                                    if index > 0 {
-                                        Button(action: {
-                                            onboardingData.isfItems.remove(at: index)
-                                        }) {
-                                            Image(systemName: "trash")
-                                                .foregroundColor(.red)
-                                                .padding(.horizontal, 5)
+                                            // Ensure index is valid before updating
+                                            if newIndex < onboardingData.rateValues.count,
+                                               index < onboardingData.isfItems.count
+                                            {
+                                                onboardingData.isfItems[index].rateIndex = newIndex
+                                                // Force refresh when slider changes
+                                                refreshUI = UUID()
+                                            }
                                         }
-                                    } else {
-                                        // Spacer to maintain alignment
-                                        Spacer()
-                                            .frame(width: 30)
-                                    }
+                                    ),
+                                    in: onboardingData.rateValues.isEmpty ? 0 ... 1 :
+                                        Double(truncating: onboardingData.rateValues.first! as NSNumber) ...
+                                        Double(truncating: onboardingData.rateValues.last! as NSNumber),
+                                    step: onboardingData.units == .mgdL ? 1 : 0.1
+                                )
+                                .accentColor(.red)
+                                .padding(.horizontal, 5)
+                                .onChange(of: onboardingData.isfItems[index].rateIndex) { _, _ in
+                                    // Trigger immediate UI update when slider value changes
+                                    let impact = UIImpactFeedbackGenerator(style: .light)
+                                    impact.impactOccurred()
                                 }
-                                .padding(.vertical, 12)
-                                .background(index % 2 == 0 ? Color.red.opacity(0.05) : Color.clear)
-                                .cornerRadius(8)
+
+                                // Display the current value
+                                Text(
+                                    "\(onboardingData.rateValues.isEmpty || item.rateIndex >= onboardingData.rateValues.count ? "--" : numberFormatter.string(from: onboardingData.rateValues[item.rateIndex] as NSNumber) ?? "--") \(onboardingData.units == .mgdL ? "mg/dL" : "mmol/L")"
+                                )
+                                .frame(width: 90, alignment: .trailing)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+
+                                // Delete button (not for the first entry at 00:00)
+                                if index > 0 {
+                                    Button(action: {
+                                        onboardingData.isfItems.remove(at: index)
+                                    }) {
+                                        Image(systemName: "trash")
+                                            .foregroundColor(.red)
+                                            .padding(.horizontal, 5)
+                                    }
+                                } else {
+                                    // Spacer to maintain alignment
+                                    Spacer()
+                                        .frame(width: 30)
+                                }
                             }
+                            .padding(.vertical, 12)
+                            .background(index % 2 == 0 ? Color.red.opacity(0.05) : Color.clear)
+                            .cornerRadius(8)
                         }
-                        .background(Color.red.opacity(0.05))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
+                    }
+                    .background(Color.red.opacity(0.05))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                    .onAppear {
+                        onboardingData.addISFValue()
                     }
                 }
 

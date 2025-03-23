@@ -83,108 +83,98 @@ struct BasalProfileStepView: View {
                     }
                     .padding(.horizontal)
 
-                    if onboardingData.basalProfileItems.isEmpty {
-                        // Add default entry if no items exist
-                        Button("Add Initial Basal Rate") {
-                            addBasalRate()
-                        }
-                        .foregroundColor(.purple)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.purple.opacity(0.1))
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                    } else {
-                        // List of basal rates
-                        VStack(spacing: 2) {
-                            ForEach(Array(onboardingData.basalProfileItems.enumerated()), id: \.element.id) { index, item in
-                                HStack {
-                                    // Time display
-                                    Text(
-                                        dateFormatter
-                                            .string(from: Date(
-                                                timeIntervalSince1970: onboardingData
-                                                    .basalProfileTimeValues[item.timeIndex]
-                                            ))
-                                    )
-                                    .frame(width: 80, alignment: .leading)
-                                    .padding(.leading)
+                    // List of basal rates
+                    VStack(spacing: 2) {
+                        ForEach(Array(onboardingData.basalProfileItems.enumerated()), id: \.element.id) { index, item in
+                            HStack {
+                                // Time display
+                                Text(
+                                    dateFormatter
+                                        .string(from: Date(
+                                            timeIntervalSince1970: onboardingData
+                                                .basalProfileTimeValues[item.timeIndex]
+                                        ))
+                                )
+                                .frame(width: 80, alignment: .leading)
+                                .padding(.leading)
 
-                                    // Rate slider
-                                    Slider(
-                                        value: Binding(
-                                            get: {
-                                                guard !onboardingData.basalProfileRateValues.isEmpty,
-                                                      item.rateIndex < onboardingData.basalProfileRateValues.count
-                                                else {
-                                                    return 0.0
-                                                }
-                                                return Double(
-                                                    truncating: onboardingData
-                                                        .basalProfileRateValues[item.rateIndex] as NSNumber
-                                                )
-                                            },
-                                            set: { newValue in
-                                                guard !onboardingData.basalProfileRateValues.isEmpty else { return }
-
-                                                // Find closest match in rateValues array
-                                                let newIndex = onboardingData.basalProfileRateValues
-                                                    .firstIndex { abs(Double($0) - newValue) < 0.005 } ?? item.rateIndex
-
-                                                // Ensure index is valid before updating
-                                                if newIndex < onboardingData.basalProfileRateValues.count,
-                                                   index < onboardingData.basalProfileItems.count
-                                                {
-                                                    onboardingData.basalProfileItems[index].rateIndex = newIndex
-                                                    // Force refresh when slider changes
-                                                    refreshUI = UUID()
-                                                }
+                                // Rate slider
+                                Slider(
+                                    value: Binding(
+                                        get: {
+                                            guard !onboardingData.basalProfileRateValues.isEmpty,
+                                                  item.rateIndex < onboardingData.basalProfileRateValues.count
+                                            else {
+                                                return 0.0
                                             }
-                                        ),
-                                        in: onboardingData.basalProfileRateValues.isEmpty ? 0 ... 1 :
-                                            Double(truncating: onboardingData.basalProfileRateValues.first! as NSNumber) ...
-                                            Double(truncating: onboardingData.basalProfileRateValues.last! as NSNumber),
-                                        step: 0.05
-                                    )
-                                    .accentColor(.purple)
-                                    .padding(.horizontal, 5)
-                                    .onChange(of: onboardingData.basalProfileItems[index].rateIndex) { _, _ in
-                                        // Trigger immediate UI update when slider value changes
-                                        let impact = UIImpactFeedbackGenerator(style: .light)
-                                        impact.impactOccurred()
-                                    }
+                                            return Double(
+                                                truncating: onboardingData
+                                                    .basalProfileRateValues[item.rateIndex] as NSNumber
+                                            )
+                                        },
+                                        set: { newValue in
+                                            guard !onboardingData.basalProfileRateValues.isEmpty else { return }
 
-                                    // Display the current value
-                                    Text(
-                                        "\(onboardingData.basalProfileRateValues.isEmpty || item.rateIndex >= onboardingData.basalProfileRateValues.count ? "--" : formatter.string(from: onboardingData.basalProfileRateValues[item.rateIndex] as NSNumber) ?? "--") U/h"
-                                    )
-                                    .frame(width: 80, alignment: .trailing)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
+                                            // Find closest match in rateValues array
+                                            let newIndex = onboardingData.basalProfileRateValues
+                                                .firstIndex { abs(Double($0) - newValue) < 0.005 } ?? item.rateIndex
 
-                                    // Delete button (not for the first entry at 00:00)
-                                    if index > 0 {
-                                        Button(action: {
-                                            onboardingData.basalProfileItems.remove(at: index)
-                                        }) {
-                                            Image(systemName: "trash")
-                                                .foregroundColor(.red)
-                                                .padding(.horizontal, 5)
+                                            // Ensure index is valid before updating
+                                            if newIndex < onboardingData.basalProfileRateValues.count,
+                                               index < onboardingData.basalProfileItems.count
+                                            {
+                                                onboardingData.basalProfileItems[index].rateIndex = newIndex
+                                                // Force refresh when slider changes
+                                                refreshUI = UUID()
+                                            }
                                         }
-                                    } else {
-                                        // Spacer to maintain alignment
-                                        Spacer()
-                                            .frame(width: 30)
-                                    }
+                                    ),
+                                    in: onboardingData.basalProfileRateValues.isEmpty ? 0 ... 1 :
+                                        Double(truncating: onboardingData.basalProfileRateValues.first! as NSNumber) ...
+                                        Double(truncating: onboardingData.basalProfileRateValues.last! as NSNumber),
+                                    step: 0.05
+                                )
+                                .accentColor(.purple)
+                                .padding(.horizontal, 5)
+                                .onChange(of: onboardingData.basalProfileItems[index].rateIndex) { _, _ in
+                                    // Trigger immediate UI update when slider value changes
+                                    let impact = UIImpactFeedbackGenerator(style: .light)
+                                    impact.impactOccurred()
                                 }
-                                .padding(.vertical, 12)
-                                .background(index % 2 == 0 ? Color.purple.opacity(0.05) : Color.clear)
-                                .cornerRadius(8)
+
+                                // Display the current value
+                                Text(
+                                    "\(onboardingData.basalProfileRateValues.isEmpty || item.rateIndex >= onboardingData.basalProfileRateValues.count ? "--" : formatter.string(from: onboardingData.basalProfileRateValues[item.rateIndex] as NSNumber) ?? "--") U/h"
+                                )
+                                .frame(width: 80, alignment: .trailing)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+
+                                // Delete button (not for the first entry at 00:00)
+                                if index > 0 {
+                                    Button(action: {
+                                        onboardingData.basalProfileItems.remove(at: index)
+                                    }) {
+                                        Image(systemName: "trash")
+                                            .foregroundColor(.red)
+                                            .padding(.horizontal, 5)
+                                    }
+                                } else {
+                                    // Spacer to maintain alignment
+                                    Spacer()
+                                        .frame(width: 30)
+                                }
                             }
+                            .padding(.vertical, 12)
+                            .background(index % 2 == 0 ? Color.purple.opacity(0.05) : Color.clear)
+                            .cornerRadius(8)
                         }
-                        .background(Color.purple.opacity(0.05))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
+                    }
+                    .background(Color.purple.opacity(0.05))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                    .onAppear {
+                        addBasalRate()
                     }
                 }
 
@@ -378,7 +368,7 @@ struct BasalProfileStepView: View {
                     .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.purple)
             }
         }
-        .id(refreshUI) // Erzwingt die Aktualisierung des Charts
+        .id(refreshUI) // Force chart update
         .chartXAxis {
             AxisMarks(values: .automatic(desiredCount: 6)) { _ in
                 AxisValueLabel(format: .dateTime.hour())
