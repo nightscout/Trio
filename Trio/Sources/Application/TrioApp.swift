@@ -98,13 +98,13 @@ extension Notification.Name {
         ) { [self] _ in
             showLoadingError = true
         }
-//        notificationCenter.addObserver(
-//            forName: .onboardingCompleted,
-//            object: nil,
-//            queue: .main
-//        ) { [self] _ in
-//            showOnboardingView = false
-//        }
+        notificationCenter.addObserver(
+            forName: .onboardingCompleted,
+            object: nil,
+            queue: .main
+        ) { [self] _ in
+            showOnboardingView = false
+        }
 
         let submodulesInfo = BuildDetails.shared.submodules.map { key, value in
             "\(key): \(value.branch) \(value.commitSHA)"
