@@ -131,6 +131,7 @@ extension Onboarding {
                                         // Apply settings and complete onboarding
                                         state.applyToSettings()
                                         onboardingManager.completeOnboarding()
+                                        Foundation.NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
                                     } else if let next = currentStep.next {
                                         currentStep = next
                                     }

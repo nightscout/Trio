@@ -7,6 +7,7 @@ import Swinject
 extension Notification.Name {
     static let initializationCompleted = Notification.Name("initializationCompleted")
     static let initializationError = Notification.Name("initializationError")
+    static let onboardingCompleted = Notification.Name("onboardingCompleted")
 }
 
 @main struct TrioApp: App {
@@ -34,6 +35,7 @@ extension Notification.Name {
     @State private var appState = AppState()
     @State private var showLoadingView = true
     @State private var showLoadingError = false
+    @State private var showOnboarding = false
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -95,6 +97,14 @@ extension Notification.Name {
             queue: .main
         ) { [self] _ in
             showLoadingError = true
+        }
+
+        notificationCenter.addObserver(
+            forName: .onboardingCompleted,
+            object: nil,
+            queue: .main
+        ) { [self] _ in
+            showOnboarding = false
         }
 
         let submodulesInfo = BuildDetails.shared.submodules.map { key, value in
@@ -185,7 +195,7 @@ extension Notification.Name {
                     .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
                         self.showLoadingError = true
                     }
-            } else if onboardingManager.shouldShowOnboarding {
+            } else if showOnboarding {
                 // Show onboarding if needed
                 Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
                     .preferredColorScheme(colorScheme(for: .dark) ?? nil)
