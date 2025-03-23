@@ -123,6 +123,9 @@ extension NightscoutConfig {
                                         }
                                     }
                                 ).buttonStyle(BorderlessButtonStyle())
+                                    .alert(isPresented: $isImportAlertPresented) {
+                                        importAlert ?? Alert(title: Text("Unknown Error"))
+                                    }
                             }.padding(.top)
                         }.padding(.vertical)
                     }.listRowBackground(Color.chart)
@@ -177,6 +180,9 @@ extension NightscoutConfig {
                                             }
                                         }
                                     ).buttonStyle(BorderlessButtonStyle())
+                                        .alert(isPresented: $isBackfillAlertPresented) {
+                                            backfillAlert ?? Alert(title: Text("Unknown Error"))
+                                        }
                                 }.padding(.top)
                             }.padding(.vertical)
                         }
@@ -206,12 +212,6 @@ extension NightscoutConfig {
             }
             .navigationBarTitle("Nightscout")
             .navigationBarTitleDisplayMode(.automatic)
-            .alert(isPresented: $isImportAlertPresented) {
-                importAlert ?? Alert(title: Text("Unknown Error"))
-            }
-            .alert(isPresented: $isBackfillAlertPresented) {
-                backfillAlert ?? Alert(title: Text("Unknown Error"))
-            }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)
         }
