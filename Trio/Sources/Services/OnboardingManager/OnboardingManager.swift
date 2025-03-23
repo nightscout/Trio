@@ -18,8 +18,10 @@ final class OnboardingManager: ObservableObject, Injectable {
 
     /// Checks if onboarding has been completed and updates the shouldShowOnboarding flag accordingly.
     private func checkOnboardingStatus() {
-//        shouldShowOnboarding = !UserDefaults.standard.onboardingCompleted
-        shouldShowOnboarding = true
+        shouldShowOnboarding = !UserDefaults.standard.onboardingCompleted
+
+        // Only for Debugging purposes
+//        shouldShowOnboarding = true
     }
 
     /// Marks onboarding as completed and updates the shouldShowOnboarding flag.
