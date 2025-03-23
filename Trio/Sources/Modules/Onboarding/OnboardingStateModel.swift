@@ -190,7 +190,7 @@ extension Onboarding {
 
             // Apply glucose units
             settingsCopy.units = units
-            
+
             // Apply targets
             saveTargets()
 
