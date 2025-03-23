@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import LoopKit
+import Observation
 import SwiftUI
 
 /// Represents the different steps in the onboarding process.
@@ -106,7 +107,6 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 /// Model that holds the data collected during onboarding.
 extension Onboarding {
     @Observable final class StateModel: BaseStateModel<Provider> {
-        @ObservationIgnored @Injected() var settingsManager: SettingsManager!
         @ObservationIgnored @Injected() var storage: FileStorage!
         @ObservationIgnored @Injected() var deviceManager: DeviceDataManager!
 
@@ -175,7 +175,9 @@ extension Onboarding {
             }
         }
 
-        override func subscribe() {}
+        override func subscribe() {
+            applyToSettings()
+        }
 
         /// Applies the onboarding data to the app's settings.
         func applyToSettings() {
