@@ -120,6 +120,20 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
     var basalProfileItems: [BasalProfileEditor.Item] = []
     let basalProfileTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
     var basalProfileRateValues: [Decimal] = stride(from: 0.05, to: 3.05, by: 0.05).map { Decimal($0) }
+    
+    // ISF related
+    var isfItems: [ISFEditor.Item] = []
+    var initialISFItems: [ISFEditor.Item] = []
+    let isfTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+    var rateValues: [Decimal] {
+        var values = stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
+
+        if units == .mmolL {
+            values = values.filter { Int(truncating: $0 as NSNumber) % 2 == 0 }
+        }
+
+        return values
+    }
 
     // Glucose Target
     var targetLow: Decimal = 70
@@ -179,7 +193,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 // MARK: - Setup Carb Ratios
 
 extension OnboardingData {
-    var hasChanges: Bool {
+    var carbRatiosHaveChanges: Bool {
         if initialCarbRatioItems.count != carbRatioItems.count {
             return true
         }
@@ -207,7 +221,7 @@ extension OnboardingData {
     }
 
     func saveCarbRatios() {
-        guard hasChanges else { return }
+        guard carbRatiosHaveChanges else { return }
 
         let schedule = carbRatioItems.enumerated().map { _, item -> CarbRatioEntry in
             let fotmatter = DateFormatter()
@@ -219,7 +233,7 @@ extension OnboardingData {
             return CarbRatioEntry(start: fotmatter.string(from: date), offset: minutes, ratio: rate)
         }
         let profile = CarbRatios(units: .grams, schedule: schedule)
-        saveProfile(profile)
+        saveCarbRatioProfile(profile)
         initialCarbRatioItems = carbRatioItems.map { CarbRatioEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
     }
 
@@ -234,8 +248,70 @@ extension OnboardingData {
 //        }
 //    }
 
-    func saveProfile(_ profile: CarbRatios) {
+    func saveCarbRatioProfile(_ profile: CarbRatios) {
         storage.save(profile, as: OpenAPS.Settings.carbRatios)
+    }
+}
+
+// MARK: - Setup ISF values
+
+extension OnboardingData {
+    var isfValuesHaveChanges: Bool {
+        initialISFItems != isfItems
+    }
+    
+    func addISFValue() {
+        var time = 0
+        var rate = 0
+        if let last = isfItems.last {
+            time = last.timeIndex + 1
+            rate = last.rateIndex
+        }
+
+        let newItem = ISFEditor.Item(rateIndex: rate, timeIndex: time)
+
+        isfItems.append(newItem)
+    }
+
+    func saveISFValue() {
+        guard isfValuesHaveChanges else { return }
+
+        let sensitivities = isfItems.map { item -> InsulinSensitivityEntry in
+            let fotmatter = DateFormatter()
+            fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
+            fotmatter.dateFormat = "HH:mm:ss"
+            let date = Date(timeIntervalSince1970: self.isfTimeValues[item.timeIndex])
+            let minutes = Int(date.timeIntervalSince1970 / 60)
+            let rate = self.rateValues[item.rateIndex]
+            return InsulinSensitivityEntry(sensitivity: rate, offset: minutes, start: fotmatter.string(from: date))
+        }
+        let profile = InsulinSensitivities(
+            units: .mgdL,
+            userPreferredUnits: .mgdL,
+            sensitivities: sensitivities
+        )
+        saveISFProfile(profile)
+        initialISFItems = isfItems.map { ISFEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+    }
+
+//    func validate() {
+//        DispatchQueue.main.async {
+//            DispatchQueue.main.async {
+//                let uniq = Array(Set(self.items))
+//                let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+//                sorted.first?.timeIndex = 0
+//                if self.items != sorted {
+//                    self.items = sorted
+//                }
+//                if self.items.isEmpty {
+//                    self.units = self.settingsManager.settings.units
+//                }
+//            }
+//        }
+//    }
+    
+    func saveISFProfile(_ profile: InsulinSensitivities) {
+        storage.save(profile, as: OpenAPS.Settings.insulinSensitivities)
     }
 }
 
