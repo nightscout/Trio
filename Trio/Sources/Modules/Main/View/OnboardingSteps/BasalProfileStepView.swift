@@ -174,7 +174,9 @@ struct BasalProfileStepView: View {
                     .cornerRadius(10)
                     .padding(.horizontal)
                     .onAppear {
-                        addBasalRate()
+                        if onboardingData.basalProfileItems.isEmpty {
+                            addBasalRate()
+                        }
                     }
                 }
 

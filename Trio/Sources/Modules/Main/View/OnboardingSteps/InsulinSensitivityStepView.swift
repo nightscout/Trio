@@ -176,7 +176,9 @@ struct InsulinSensitivityStepView: View {
                     .cornerRadius(10)
                     .padding(.horizontal)
                     .onAppear {
-                        onboardingData.addISFValue()
+                        if onboardingData.isfItems.isEmpty {
+                            onboardingData.addISFValue()
+                        }
                     }
                 }
 

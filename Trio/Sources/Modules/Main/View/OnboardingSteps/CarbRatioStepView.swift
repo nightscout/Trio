@@ -156,7 +156,9 @@ struct CarbRatioStepView: View {
                     .cornerRadius(10)
                     .padding(.horizontal)
                     .onAppear {
-                        onboardingData.addCarbRatio()
+                        if onboardingData.carbRatioItems.isEmpty {
+                            onboardingData.addCarbRatio()
+                        }
                     }
                 }
 
