@@ -190,6 +190,9 @@ extension Onboarding {
 
             // Apply glucose units
             settingsCopy.units = units
+            
+            // Apply targets
+            saveTargets()
 
             // Apply basal profile
             // TODO: - should we use the return value or modify the function to not return anything?
@@ -199,6 +202,7 @@ extension Onboarding {
             saveCarbRatios()
 
             // Apply ISF values
+            saveISFValues()
 
             // Instead of using updateSettings which doesn't exist,
             // we'll directly set the settings property which will trigger the didSet observer
@@ -352,7 +356,7 @@ extension Onboarding.StateModel {
         isfItems.append(newItem)
     }
 
-    func saveISFValue() {
+    func saveISFValues() {
         guard isfValuesHaveChanges else { return }
 
         let sensitivities = isfItems.map { item -> InsulinSensitivityEntry in
