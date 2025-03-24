@@ -367,7 +367,7 @@ extension DataTable {
                                 action: {
                                     alertGlucoseToDelete = glucose
 
-                                    alertTitle = "Delete Glucose?"
+                                    alertTitle = String(localized: "Delete Glucose?", comment: "Alert title for deleting glucose")
                                     alertMessage = Formatter.dateFormatter
                                         .string(from: glucose.date ?? Date()) + ", " +
                                         (Formatter.decimalFormatterWithTwoFractionDigits.string(for: glucose.glucose) ?? "0")
@@ -526,7 +526,7 @@ extension DataTable {
                         role: .none,
                         action: {
                             alertTreatmentToDelete = item
-                            alertTitle = "Delete Insulin?"
+                            alertTitle = String(localized: "Delete Insulin?", comment: "Alert title for deleting insulin")
                             alertMessage = Formatter.dateFormatter
                                 .string(from: item.timestamp ?? Date()) + ", " +
                                 (Formatter.decimalFormatterWithTwoFractionDigits.string(from: item.bolus?.amount ?? 0) ?? "0") +
@@ -534,7 +534,11 @@ extension DataTable {
 
                             if let bolus = item.bolus {
                                 // Add text snippet, so that alert message is more descriptive for SMBs
-                                alertMessage += bolus.isSMB ? " SMB" : ""
+                                alertMessage += bolus.isSMB ? String(
+                                    localized: " SMB",
+                                    comment: "Super Micro Bolus indicator in delete alert"
+                                )
+                                    : ""
                             }
 
                             isRemoveHistoryItemAlertPresented = true
@@ -603,7 +607,7 @@ extension DataTable {
 
                         // meal is carb-only
                         if meal.fpuID == nil {
-                            alertTitle = "Delete Carbs?"
+                            alertTitle = String(localized: "Delete Carbs?", comment: "Alert title for deleting carbs")
                             alertMessage = Formatter.dateFormatter
                                 .string(from: meal.date ?? Date()) + ", " +
                                 (Formatter.decimalFormatterWithTwoFractionDigits.string(for: meal.carbs) ?? "0") +
@@ -611,8 +615,15 @@ extension DataTable {
                         }
                         // meal is complex-meal or fpu-only
                         else {
-                            alertTitle = meal.isFPU ? "Delete Carbs Equivalents?" : "Delete Carbs?"
-                            alertMessage = "All FPUs and the carbs of the meal will be deleted."
+                            alertTitle = meal.isFPU ? String(
+                                localized: "Delete Carbs Equivalents?",
+                                comment: "Alert title for deleting carb equivalents"
+                            )
+                                : String(localized: "Delete Carbs?", comment: "Alert title for deleting carbs")
+                            alertMessage = String(
+                                localized: "All FPUs and the carbs of the meal will be deleted.",
+                                comment: "Alert message for meal deletion"
+                            )
                         }
 
                         isRemoveHistoryItemAlertPresented = true
