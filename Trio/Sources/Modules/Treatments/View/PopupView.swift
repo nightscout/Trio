@@ -663,55 +663,93 @@ struct PopupView: View {
 
             // Case: (Full Bolus × Rec. Bolus %) + Super Bolus
             case (true, false):
-                // Row 1: Header.
-                GridRow(alignment: .lastTextBaseline) {
-                    Text("Full Bolus")
-                        .gridCellColumns(3) // Allows label to expand above operators.
-                    Text("Rec. %")
-                    Text("")
-                        .layoutPriority(-15)
-                        .gridCellColumns(2)
-                    Text("Super Bolus")
-                }
-                .secondaryStyle()
+                if state.wholeCalc > 0 {
+                    // Row 1: Header.
+                    GridRow(alignment: .lastTextBaseline) {
+                        Text("Full Bolus")
+                            .gridCellColumns(3) // Allows label to expand above operators.
+                        Text("Rec. %")
+                        Text("")
+                            .layoutPriority(-15)
+                            .gridCellColumns(2)
+                        Text("Super Bolus")
+                    }
+                    .secondaryStyle()
 
-                // Row 2: Formula.
-                GridRow {
-                    Text("(")
-                        .operatorStyle()
-                    Text(insulinFormatter(state.wholeCalc)).valueStyle()
-                    Text("×")
-                        .operatorStyle()
-                    Text((100 * state.fraction).formatted() + " %")
-                        .valueStyle()
-                    Text(")")
-                        .operatorStyle()
-                    Text("+")
-                        .operatorStyle()
-                    Text(insulinFormatter(state.superBolusInsulin))
-                        .valueStyle()
-                    Text("=")
-                        .operatorStyle()
-                        .frame(idealWidth: 10, maxWidth: .infinity, alignment: .trailing)
-                        .layoutPriority(-15)
-                    Text(insulinFormatter(state.factoredInsulin))
-                        .solutionStyle(state.factoredInsulin)
-                }
+                    // Row 2: Formula.
+                    GridRow {
+                        Text("(")
+                            .operatorStyle()
+                        Text(insulinFormatter(state.wholeCalc)).valueStyle()
+                        Text("×")
+                            .operatorStyle()
+                        Text((100 * state.fraction).formatted() + " %")
+                            .valueStyle()
+                        Text(")")
+                            .operatorStyle()
+                        Text("+")
+                            .operatorStyle()
+                        Text(insulinFormatter(state.superBolusInsulin))
+                            .valueStyle()
+                        Text("=")
+                            .operatorStyle()
+                            .frame(idealWidth: 10, maxWidth: .infinity, alignment: .trailing)
+                            .layoutPriority(-15)
+                        Text(insulinFormatter(state.factoredInsulin))
+                            .solutionStyle(state.factoredInsulin)
+                    }
 
-                // Row 3: Units.
-                GridRow(alignment: .firstTextBaseline) {
-                    Text("")
-                        .layoutPriority(-15)
-                    Text("U")
-                    Text("")
-                        .layoutPriority(-15)
-                        .gridCellColumns(4)
-                    Text("U")
-                    Text("")
-                        .layoutPriority(-15)
-                    Text("U")
+                    // Row 3: Units.
+                    GridRow(alignment: .firstTextBaseline) {
+                        Text("")
+                            .layoutPriority(-15)
+                        Text("U")
+                        Text("")
+                            .layoutPriority(-15)
+                            .gridCellColumns(4)
+                        Text("U")
+                        Text("")
+                            .layoutPriority(-15)
+                        Text("U")
+                    }
+                    .unitStyle()
+                } else {
+                    // Row 1: Header.
+                    GridRow(alignment: .lastTextBaseline) {
+                        Text("Full Bolus")
+                        Text("")
+                            .layoutPriority(-15)
+                        Text("Super Bolus")
+                    }
+                    .secondaryStyle()
+
+                    // Row 2: Formula.
+                    GridRow {
+                        Text(insulinFormatter(state.wholeCalc)).valueStyle()
+                        Text("+")
+                            .operatorStyle()
+                        Text(insulinFormatter(state.superBolusInsulin))
+                            .valueStyle()
+                        Text("=")
+                            .operatorStyle()
+                            .frame(idealWidth: 10, maxWidth: .infinity, alignment: .trailing)
+                            .layoutPriority(-15)
+                        Text(insulinFormatter(state.factoredInsulin))
+                            .solutionStyle(state.factoredInsulin)
+                    }
+
+                    // Row 3: Units.
+                    GridRow(alignment: .firstTextBaseline) {
+                        Text("U")
+                        Text("")
+                            .layoutPriority(-15)
+                        Text("U")
+                        Text("")
+                            .layoutPriority(-15)
+                        Text("U")
+                    }
+                    .unitStyle()
                 }
-                .unitStyle()
 
             // This case should never occur as you can't apply a Super Bolus to a Fatty Meal
             // Per app logic, these options are mutually exclusive

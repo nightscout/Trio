@@ -393,11 +393,21 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
 
         // apply custom factor at the end of the calculations
         // apply custom factor if fatty meal toggle in bolus calc config settings is on and the box for fatty meals is checked (in RootView)
-        var factoredInsulin = wholeCalc * input.fraction
+        var factoredInsulin = wholeCalc
+
+        // Apply Recommended Bolus Percentage (input.fraction) and if selected apply Fatty Meal Bolus Percentage (input.fattyMealFactor)
+        // If factoredInsulin is negative, though, don't apply either
+        if factoredInsulin > 0 {
+            factoredInsulin *= input.fraction
+
+            if input.useFattyMealCorrectionFactor {
+                factoredInsulin *= input.fattyMealFactor
+            }
+        }
+
+        // Calculate and add super bolus insulin if enabled
         var superBolusInsulin: Decimal = 0
-        if input.useFattyMealCorrectionFactor {
-            factoredInsulin *= input.fattyMealFactor
-        } else if input.useSuperBolus {
+        if input.useSuperBolus {
             superBolusInsulin = input.sweetMealFactor * input.basal
             factoredInsulin += superBolusInsulin
         }
