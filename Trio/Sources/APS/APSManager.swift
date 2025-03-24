@@ -452,7 +452,11 @@ final class BaseAPSManager: APSManager, Injectable {
 
             _ = try await autosenseResult
             try await openAPS.createProfiles(useSwiftOref: settings.useSwiftOref)
-            let determination = try await openAPS.determineBasal(currentTemp: await currentTemp, clock: now)
+            let determination = try await openAPS.determineBasal(
+                currentTemp: await currentTemp,
+                clock: now,
+                useSwiftOref: settings.useSwiftOref
+            )
 
             if let determination = determination {
                 // Capture weak self in closure
@@ -478,6 +482,7 @@ final class BaseAPSManager: APSManager, Injectable {
             return try await openAPS.determineBasal(
                 currentTemp: temp,
                 clock: Date(),
+                useSwiftOref: settings.useSwiftOref,
                 simulatedCarbsAmount: simulatedCarbsAmount,
                 simulatedBolusAmount: simulatedBolusAmount,
                 simulation: true

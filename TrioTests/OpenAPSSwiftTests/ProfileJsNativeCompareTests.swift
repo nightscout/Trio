@@ -90,7 +90,8 @@ import Testing
             swift: profileSwift,
             swiftDuration: 0.1,
             javascript: profileJs,
-            javascriptDuration: 0.1
+            javascriptDuration: 0.1,
+            iobInputs: nil
         )
 
         #expect(comparison.resultType == .matching)
@@ -119,7 +120,8 @@ import Testing
             swift: .success(matchingJSON),
             swiftDuration: 0.1,
             javascript: .success(matchingJSON),
-            javascriptDuration: 0.2
+            javascriptDuration: 0.2,
+            iobInputs: nil
         )
 
         #expect(comparison.resultType == .matching)
@@ -137,7 +139,8 @@ import Testing
             swift: .success(differentJSON),
             swiftDuration: 0.1,
             javascript: .success(matchingJSON),
-            javascriptDuration: 0.2
+            javascriptDuration: 0.2,
+            iobInputs: nil
         )
 
         #expect(comparison.resultType == .valueDifference)
@@ -157,7 +160,8 @@ import Testing
             swift: .failure(error),
             swiftDuration: 0.1,
             javascript: .failure(error),
-            javascriptDuration: 0.2
+            javascriptDuration: 0.2,
+            iobInputs: nil
         )
 
         #expect(comparison.resultType == .matchingExceptions)
@@ -174,7 +178,8 @@ import Testing
             swift: .failure(error),
             swiftDuration: 0.1,
             javascript: .success(matchingJSON),
-            javascriptDuration: 0.2
+            javascriptDuration: 0.2,
+            iobInputs: nil
         )
 
         #expect(comparison.resultType == .swiftOnlyException)
@@ -193,7 +198,8 @@ import Testing
             swift: .success(matchingJSON),
             swiftDuration: 0.1,
             javascript: .failure(error),
-            javascriptDuration: 0.2
+            javascriptDuration: 0.2,
+            iobInputs: nil
         )
 
         #expect(comparison.resultType == .jsOnlyException)
@@ -211,7 +217,8 @@ import Testing
             swift: .success(invalidJSON),
             swiftDuration: 0.1,
             javascript: .success(matchingJSON),
-            javascriptDuration: 0.2
+            javascriptDuration: 0.2,
+            iobInputs: nil
         )
 
         #expect(comparison.resultType == .comparisonError)

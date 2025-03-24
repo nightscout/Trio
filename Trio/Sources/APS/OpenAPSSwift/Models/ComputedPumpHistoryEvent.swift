@@ -22,6 +22,10 @@ struct ComputedPumpHistoryEvent: Codable, Equatable, Identifiable {
     let started_at: Date
     let date: UInt64
 
+    var end: Date {
+        timestamp + (duration ?? durationMin.map { Decimal($0) } ?? 0).minutesToSeconds
+    }
+
     init(
         id: String,
         type: EventType,

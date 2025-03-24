@@ -265,7 +265,8 @@ final class OpenAPS {
 
     func determineBasal(
         currentTemp: TempBasal,
-        clock: Date = Date(),
+        clock: Date,
+        useSwiftOref: Bool,
         simulatedCarbsAmount: Decimal? = nil,
         simulatedBolusAmount: Decimal? = nil,
         simulation: Bool = false
@@ -324,7 +325,8 @@ final class OpenAPS {
             pumphistory: pumpHistoryJSON,
             profile: profile,
             clock: clock,
-            autosens: autosens.isEmpty ? .null : autosens
+            autosens: autosens.isEmpty ? .null : autosens,
+            useSwiftOref: useSwiftOref
         )
 
         // TODO: refactor this to core data
@@ -563,22 +565,61 @@ final class OpenAPS {
         }
     }
 
-    private func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async throws -> RawJSON {
-        try await withCheckedThrowingContinuation { continuation in
-            jsWorker.inCommonContext { worker in
-                worker.evaluateBatch(scripts: [
-                    Script(name: Prepare.log),
-                    Script(name: Bundle.iob),
-                    Script(name: Prepare.iob)
-                ])
-                let result = worker.call(function: Function.generate, with: [
-                    pumphistory,
-                    profile,
-                    clock,
-                    autosens
-                ])
-                continuation.resume(returning: result)
+    private func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON, useSwiftOref: Bool) async throws -> RawJSON {
+        // FIXME: For now we'll just remove duplicate suspends here (ISSUE-399)
+        var pumphistory = pumphistory
+        if let pumpHistoryArray = try? JSONBridge.pumpHistory(from: pumphistory) {
+            pumphistory = pumpHistoryArray.removingDuplicateSuspendResumeEvents().rawJSON
+        }
+
+        let startJavascriptAt = Date()
+        let jsResult = await iobJavascript(pumphistory: pumphistory, profile: profile, clock: clock, autosens: autosens)
+        let javascriptDuration = Date().timeIntervalSince(startJavascriptAt)
+
+        // Important: we want to make sure that this flag ensures that none
+        // of the native code runs
+        guard useSwiftOref else {
+            return try jsResult.returnOrThrow()
+        }
+
+        let startSwiftAt = Date()
+        let (swiftResult, iobInputs) = OpenAPSSwift
+            .iob(pumphistory: pumphistory, profile: profile, clock: clock, autosens: autosens)
+        let swiftDuration = Date().timeIntervalSince(startSwiftAt)
+
+        JSONCompare.logDifferences(
+            function: .iob,
+            swift: swiftResult,
+            swiftDuration: swiftDuration,
+            javascript: jsResult,
+            javascriptDuration: javascriptDuration,
+            iobInputs: iobInputs
+        )
+
+        return try jsResult.returnOrThrow()
+    }
+
+    func iobJavascript(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async -> OrefFunctionResult {
+        do {
+            let result = try await withCheckedThrowingContinuation { continuation in
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: Prepare.log),
+                        Script(name: Bundle.iob),
+                        Script(name: Prepare.iob)
+                    ])
+                    let result = worker.call(function: Function.generate, with: [
+                        pumphistory,
+                        profile,
+                        clock,
+                        autosens
+                    ])
+                    continuation.resume(returning: result)
+                }
             }
+            return .success(result)
+        } catch {
+            return .failure(error)
         }
     }
 

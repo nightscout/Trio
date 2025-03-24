@@ -83,21 +83,21 @@ enum JSONCompare {
         swift: OrefFunctionResult,
         swiftDuration: TimeInterval,
         javascript: OrefFunctionResult,
-        javascriptDuration: TimeInterval
+        javascriptDuration: TimeInterval,
+        iobInputs: IobInputs? = nil
     ) {
         let comparison = createComparison(
             function: function,
             swift: swift,
             swiftDuration: swiftDuration,
             javascript: javascript,
-            javascriptDuration: javascriptDuration
+            javascriptDuration: javascriptDuration,
+            iobInputs: iobInputs
         )
 
         Task {
             do {
                 try await log?.logComparison(comparison: comparison)
-                debug(.openAPS, "\(function) -> n: \(swiftDuration)s, js: \(javascriptDuration)s")
-                prettyPrint(comparison.differences ?? [:])
             } catch {
                 warning(.openAPS, "logComparison exception: \(error)", error: error)
             }
@@ -109,7 +109,8 @@ enum JSONCompare {
         swift: OrefFunctionResult,
         swiftDuration: TimeInterval,
         javascript: OrefFunctionResult,
-        javascriptDuration: TimeInterval
+        javascriptDuration: TimeInterval,
+        iobInputs: IobInputs?
     ) -> AlgorithmComparison {
         switch (swift, javascript) {
         case let (.success(swiftJson), .success(javascriptJson)):
@@ -121,7 +122,8 @@ enum JSONCompare {
                     resultType: resultType,
                     jsDuration: javascriptDuration,
                     swiftDuration: swiftDuration,
-                    differences: differences.isEmpty ? nil : differences
+                    differences: differences.isEmpty ? nil : differences,
+                    iobInputs: differences.isEmpty ? nil : iobInputs
                 )
             } catch {
                 return AlgorithmComparison(
@@ -146,7 +148,8 @@ enum JSONCompare {
                 function: function,
                 resultType: .swiftOnlyException,
                 jsDuration: javascriptDuration,
-                swiftException: AlgorithmException(error: swiftError)
+                swiftException: AlgorithmException(error: swiftError),
+                iobInputs: iobInputs
             )
 
         case let (.success, .failure(jsError)):
@@ -154,7 +157,8 @@ enum JSONCompare {
                 function: function,
                 resultType: .jsOnlyException,
                 swiftDuration: swiftDuration,
-                jsException: AlgorithmException(error: jsError)
+                jsException: AlgorithmException(error: jsError),
+                iobInputs: iobInputs
             )
         }
     }
@@ -170,7 +174,45 @@ enum JSONCompare {
         }
     }
 
-    static func differences(
+    static func differences(function: OrefFunction, swift: String, javascript: String) throws -> [String: ValueDifference] {
+        let differences = try {
+            switch function.returnType() {
+            case .array:
+                return try differencesArray(function: function, swift: swift, javascript: javascript)
+            case .dictionary:
+                return try differencesDictionary(function: function, swift: swift, javascript: javascript)
+            }
+        }()
+
+        let keysToIgnore = function.keysToIgnore()
+        return differences.filter { !keysToIgnore.contains($0.key) }
+    }
+
+    private static func differencesArray(
+        function: OrefFunction,
+        swift: String,
+        javascript: String
+    ) throws -> [String: ValueDifference] {
+        guard let jsData = javascript.data(using: .utf8),
+              let swiftData = swift.data(using: .utf8),
+              let jsArray = try JSONSerialization.jsonObject(with: jsData) as? [Any],
+              let swiftArray = try JSONSerialization.jsonObject(with: swiftData) as? [Any]
+        else {
+            throw NSError(domain: "JSONBridge", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
+        }
+
+        // Converting arrays into dictionaries for comparison
+        let jsDict = Dictionary(uniqueKeysWithValues: jsArray.enumerated().map { index, value in
+            ("[\(index)]", value)
+        })
+        let swiftDict = Dictionary(uniqueKeysWithValues: swiftArray.enumerated().map { index, value in
+            ("[\(index)]", value)
+        })
+
+        return compareDict(function: function, swiftDict: swiftDict, jsDict: jsDict)
+    }
+
+    private static func differencesDictionary(
         function: OrefFunction,
         swift: String,
         javascript: String
@@ -183,14 +225,23 @@ enum JSONCompare {
             throw NSError(domain: "JSONBridge", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
         }
 
+        return compareDict(function: function, swiftDict: swiftDict, jsDict: jsDict)
+    }
+
+    private static func compareDict(
+        function: OrefFunction,
+        swiftDict: [String: Any],
+        jsDict: [String: Any]
+    ) -> [String: ValueDifference] {
         var differences: [String: ValueDifference] = [:]
+        let approximateKeys = function.approximateMatchingNumbers()
 
         // Check all keys present in either dictionary
         Set(jsDict.keys).union(swiftDict.keys).forEach { key in
             let jsValue = jsDict[key].map(convertToJSONValue) ?? .null
             let swiftValue = swiftDict[key].map(convertToJSONValue) ?? .null
 
-            if !valuesAreEqual(jsValue, swiftValue) {
+            if !valuesAreEqual(jsValue, swiftValue, approximately: approximateKeys[key], approximateKeys: approximateKeys) {
                 differences[key] = ValueDifference(
                     js: jsValue,
                     swift: swiftValue,
@@ -200,8 +251,7 @@ enum JSONCompare {
             }
         }
 
-        let keysToIgnore = function.keysToIgnore()
-        return differences.filter { !keysToIgnore.contains($0.key) }
+        return differences
     }
 
     private static func convertToJSONValue(_ value: Any) -> JSONValue {
@@ -230,22 +280,30 @@ enum JSONCompare {
         }
     }
 
-    private static func valuesAreEqual(_ value1: JSONValue, _ value2: JSONValue) -> Bool {
+    private static func valuesAreEqual(
+        _ value1: JSONValue,
+        _ value2: JSONValue,
+        approximately: Double?,
+        approximateKeys: [String: Double]
+    ) -> Bool {
         switch (value1, value2) {
         case (.null, .null):
             return true
         case let (.string(s1), .string(s2)):
             return s1 == s2
         case let (.number(n1), .number(n2)):
-            return n1 == n2
+            let match = n1.isApproximatelyEqual(to: n2, epsilon: approximately)
+            return match
         case let (.boolean(b1), .boolean(b2)):
             return b1 == b2
         case let (.array(a1), .array(a2)):
-            return a1.count == a2.count && zip(a1, a2).allSatisfy(valuesAreEqual)
+            return a1.count == a2.count && zip(a1, a2).allSatisfy { v1, v2 in
+                valuesAreEqual(v1, v2, approximately: approximately, approximateKeys: approximateKeys)
+            }
         case let (.object(o1), .object(o2)):
             return o1.keys == o2.keys && o1.keys.allSatisfy { key in
                 guard let v1 = o1[key], let v2 = o2[key] else { return false }
-                return valuesAreEqual(v1, v2)
+                return valuesAreEqual(v1, v2, approximately: approximateKeys[key], approximateKeys: approximateKeys)
             }
         default:
             return false
