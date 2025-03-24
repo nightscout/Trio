@@ -202,9 +202,27 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     /// - Parameter objects: Array of GlucoseStored objects
     /// - Returns: GlucoseVariables containing current blood glucose and delta
     private func updateGlucoseVariables(with objects: [GlucoseStored]) -> GlucoseVariables {
+        // Always use the most recent reading for current glucose regardless of time
         let lastGlucose = objects.first?.glucose ?? 0
-        let thirdLastGlucose = objects.dropFirst(2).first?.glucose ?? 0
-        let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose)
+
+        // Filter for readings less than 20 minutes old
+        let twentyMinutesAgo = Date().addingTimeInterval(-20 * 60)
+        let recentObjects = objects.filter {
+            guard let date = $0.date else { return false }
+            return date > twentyMinutesAgo
+        }
+
+        // Calculate delta using newest and oldest readings within 20-minute window
+        let delta: Decimal
+        if recentObjects.count >= 2 {
+            // Newest is at index 0, oldest is at the last index
+            let newestInWindow = recentObjects.first?.glucose ?? 0
+            let oldestInWindow = recentObjects.last?.glucose ?? 0
+            delta = Decimal(newestInWindow) - Decimal(oldestInWindow)
+        } else {
+            // Not enough data points in the window
+            delta = 0
+        }
 
         return GlucoseVariables(currentBG: Decimal(lastGlucose), deltaBG: delta)
     }
