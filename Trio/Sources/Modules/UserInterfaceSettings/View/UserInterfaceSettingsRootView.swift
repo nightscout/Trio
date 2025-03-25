@@ -286,7 +286,7 @@ extension UserInterfaceSettings {
 
                             HStack(alignment: .center) {
                                 Text(
-                                    "Set low and high glucose values for the main screen glucose graph and statistics."
+                                    "Set low and high glucose values for the main screen, watch app and live activity glucose graph."
                                 )
                                 .lineLimit(nil)
                                 .font(.footnote)
@@ -382,7 +382,7 @@ extension UserInterfaceSettings {
                         VStack {
                             Picker(
                                 selection: $state.eA1cDisplayUnit,
-                                label: Text("eA1c Display Unit")
+                                label: Text("eA1c/GMI Display Unit")
                             ) {
                                 ForEach(EstimatedA1cDisplayUnit.allCases) { selection in
                                     Text(selection.displayName).tag(selection)
@@ -391,7 +391,7 @@ extension UserInterfaceSettings {
 
                             HStack(alignment: .center) {
                                 Text(
-                                    "Choose to display eA1c in percent or mmol/mol."
+                                    "Choose to display eA1c and GMI in percent or mmol/mol."
                                 )
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -399,11 +399,11 @@ extension UserInterfaceSettings {
                                 Spacer()
                                 Button(
                                     action: {
-                                        hintLabel = String(localized: "eA1c Display Unit")
+                                        hintLabel = String(localized: "eA1c/GMI Display Unit")
                                         selectedVerboseHint =
                                             AnyView(
                                                 Text(
-                                                    "Choose which format you'd prefer the eA1c (estimated A1c) value in the statistics view as a percentage (Example: 6.5%) or mmol/mol (Example: 48 mmol/mol)."
+                                                    "Choose which format you'd prefer the eA1c (estimated A1c) and GMI (Glucose Management Index) value in the statistics view as a percentage (Example: eA1c: 6.5%) or mmol/mol (Example: eA1c: 48 mmol/mol)."
                                                 )
                                             )
                                         shouldDisplayHint.toggle()
@@ -418,46 +418,6 @@ extension UserInterfaceSettings {
                         }.padding(.bottom)
                     }
                 ).listRowBackground(Color.chart)
-
-                Section {
-                    VStack(alignment: .leading) {
-                        Picker(
-                            selection: $state.timeInRangeChartStyle,
-                            label: Text("Time in Range Chart Style").multilineTextAlignment(.leading)
-                        ) {
-                            ForEach(TimeInRangeChartStyle.allCases) { selection in
-                                Text(selection.displayName).tag(selection)
-                            }
-                        }.padding(.top)
-
-                        HStack(alignment: .center) {
-                            Text(
-                                "Choose the orientation of the Time in Range Chart."
-                            )
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(nil)
-                            Spacer()
-                            Button(
-                                action: {
-                                    hintLabel = String(localized: "Time in Range Chart Style")
-                                    selectedVerboseHint =
-                                        AnyView(
-                                            Text(
-                                                "Choose which style for the time in range chart you'd prefer: a standing, i.e., vertical, bar chart or a laying, i.e., horizontal, line chart."
-                                            )
-                                        )
-                                    shouldDisplayHint.toggle()
-                                },
-                                label: {
-                                    HStack {
-                                        Image(systemName: "questionmark.circle")
-                                    }
-                                }
-                            ).buttonStyle(BorderlessButtonStyle())
-                        }.padding(.top)
-                    }.padding(.bottom)
-                }.listRowBackground(Color.chart)
 
                 SettingInputSection(
                     decimalValue: $state.carbsRequiredThreshold,

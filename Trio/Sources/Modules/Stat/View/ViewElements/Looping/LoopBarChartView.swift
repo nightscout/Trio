@@ -4,7 +4,7 @@ import SwiftUI
 struct LoopBarChartView: View {
     let loopStatRecords: [LoopStatRecord]
     let selectedInterval: Stat.StateModel.StatsTimeIntervalWithToday
-    let statsData: [(category: LoopStatsDataType, count: Int, percentage: Double, medianDuration: Double, medianInterval: Double)]
+    let statsData: [LoopStatsProcessedData]
 
     var body: some View {
         VStack(spacing: 20) {
@@ -50,13 +50,7 @@ struct LoopBarChartView: View {
         }
     }
 
-    private func annotationText(for data: (
-        category: LoopStatsDataType,
-        count: Int,
-        percentage: Double,
-        medianDuration: Double,
-        medianInterval: Double
-    )) -> String {
+    private func annotationText(for data: LoopStatsProcessedData) -> String {
         if data.category == .successfulLoop {
             switch selectedInterval {
             case .day,

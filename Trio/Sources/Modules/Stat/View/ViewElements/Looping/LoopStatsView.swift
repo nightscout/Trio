@@ -4,7 +4,7 @@ import SwiftUI
 /// A SwiftUI view displaying statistics about the looping process in an Automated Insulin Delivery (AID) system.
 struct LoopStatsView: View {
     /// The list of loop statistics records used to generate the statistics.
-    let statsData: [(category: LoopStatsDataType, count: Int, percentage: Double, medianDuration: Double, medianInterval: Double)]
+    let statsData: [LoopStatsProcessedData]
 
     /// The main body of the `LoopStatsView`, displaying loop statistics.
     var body: some View {
@@ -31,6 +31,11 @@ struct LoopStatsView: View {
                     title: String(localized: "Success"),
                     value: (successfulStats.percentage / 100)
                         .formatted(.percent.grouping(.never).rounded().precision(.fractionLength(1)))
+                )
+                Spacer()
+                StatChartUtils.statView(
+                    title: String(localized: "Days"),
+                    value: successfulStats.totalDays.description
                 )
             }
             .padding()
