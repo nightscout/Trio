@@ -195,6 +195,14 @@ import Testing
         #expect(jsArray.count == 3)
         #expect(swiftArray.count == 2)
     }
+
+    @Test("should be empty array for {} and [] pump history strings") func emptyPumpHistoryParsing() async throws {
+        let emptyArray = try JSONBridge.pumpHistory(from: "[]")
+        let emptyObject = try JSONBridge.pumpHistory(from: "{}")
+
+        #expect(emptyArray.isEmpty)
+        #expect(emptyObject.isEmpty)
+    }
 }
 
 struct TestFailure: Error {
