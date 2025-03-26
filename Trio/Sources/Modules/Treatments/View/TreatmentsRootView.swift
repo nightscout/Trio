@@ -421,22 +421,24 @@ extension Treatments {
 
         @State private var showConfirmDialogForBolusing = false
 
-        private var bolusWarning: (shouldConfirm: Bool, warningMessage: String) {
+        private var bolusWarning: (shouldConfirm: Bool, warningMessage: String, color: Color) {
             let isGlucoseVeryLow = state.currentBG < 54
             let isForecastVeryLow = state.minPredBG < 54
 
             // Only warn when enacting a bolus via pump
             guard !state.externalInsulin, state.amount > 0 else {
-                return (false, "")
+                return (false, "", .primary)
             }
 
             let warningMessage = isGlucoseVeryLow ? String(localized: "Glucose is very low.") :
                 isForecastVeryLow ? String(localized: "Glucose forecast is very low.") :
                 ""
 
+            let warningColor: Color = isGlucoseVeryLow ? .red : colorScheme == .dark ? .orange : .accentColor
+
             let shouldConfirm = state.confirmBolus && (isGlucoseVeryLow || isForecastVeryLow)
 
-            return (shouldConfirm, warningMessage)
+            return (shouldConfirm, warningMessage, warningColor)
         }
 
         var treatmentButton: some View {
@@ -490,7 +492,7 @@ extension Treatments {
                     Text(bolusWarning.warningMessage)
                         .textCase(nil)
                         .font(.subheadline)
-                        .foregroundColor(Color.loopRed)
+                        .foregroundColor(bolusWarning.color)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.top, -22)
                 }

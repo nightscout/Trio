@@ -69,7 +69,7 @@ private extension View {
         }
 
         return font(.system(.headline, weight: .bold))
-            .frame(minWidth: 50)
+            .frame(minWidth: 45, alignment: .trailing)
             .foregroundStyle(solutionColor)
             .allowsTightening(true)
             .fixedSize(horizontal: true, vertical: true)
@@ -90,6 +90,15 @@ private extension View {
             .lineLimit(1)
     }
 
+    /// Applies styling for warning labels.
+    /// - Parameter warningColor: The color of the text.
+    func warningStyle(_ warningColor: Color) -> some View {
+        font(.subheadline)
+            .foregroundStyle(warningColor)
+            .allowsTightening(true)
+            .minimumScaleFactor(0.5)
+    }
+
     /// Reduces the default inset padding of List Sections for more compact presentation.
     /// Creates tighter spacing in the calculation cards.
     func listRowStyle() -> some View {
@@ -104,6 +113,8 @@ private extension View {
 // with a sticky recommendation card at the bottom.
 
 struct PopupView: View {
+    @Environment(\.colorScheme) var colorScheme
+
     /// State model containing all calculation parameters and results.
     var state: Treatments.StateModel
 
@@ -244,7 +255,7 @@ struct PopupView: View {
                 Text("\(state.units.rawValue)/U")
                 Text("")
                     .layoutPriority(-15)
-                Text("U")
+                Text(padForNegative(state.targetDifferenceInsulin) + String(localized: "U"))
             }
             .unitStyle()
         }
@@ -289,7 +300,7 @@ struct PopupView: View {
                 Text("U")
                 Text("")
                     .layoutPriority(-15)
-                Text("U")
+                Text(padForNegative(-1 * state.iob) + String(localized: "U"))
             }
             .unitStyle()
         }
@@ -360,7 +371,7 @@ struct PopupView: View {
                     if !hasExceededMaxCOB {
                         Text("")
                             .layoutPriority(-15)
-                        Text("U")
+                        Text(padForNegative(state.wholeCobInsulin) + String(localized: "U"))
                     }
                 }
                 .unitStyle()
@@ -384,7 +395,7 @@ struct PopupView: View {
                     GridRow {
                         Text(Int(state.wholeCob).description)
                             .valueStyle()
-                            .foregroundStyle(.red)
+                            .foregroundStyle(.orange)
                         Text("/")
                             .operatorStyle()
                         Text(state.carbRatio.formatted())
@@ -404,7 +415,7 @@ struct PopupView: View {
                         Text("g/U")
                         Text("")
                             .layoutPriority(-15)
-                        Text("U")
+                        Text(padForNegative(state.wholeCobInsulin) + String(localized: "U"))
                     }
                     .unitStyle()
                 }
@@ -450,7 +461,7 @@ struct PopupView: View {
                 Text("\(state.units.rawValue)/U")
                 Text("")
                     .layoutPriority(-15)
-                Text("U")
+                Text(padForNegative(state.fifteenMinInsulin) + String(localized: "U"))
             }
             .unitStyle()
         }
@@ -615,7 +626,7 @@ struct PopupView: View {
                     Text("")
                         .layoutPriority(-15)
                         .gridCellColumns(3)
-                    Text("U")
+                    Text(padForNegative(state.factoredInsulin) + String(localized: "U"))
                 }
                 .unitStyle()
 
@@ -657,7 +668,7 @@ struct PopupView: View {
                     Text("U")
                     Text("")
                         .layoutPriority(-15)
-                    Text("U")
+                    Text(padForNegative(state.factoredInsulin) + String(localized: "U"))
                 }
                 .unitStyle()
 
@@ -710,7 +721,7 @@ struct PopupView: View {
                         Text("U")
                         Text("")
                             .layoutPriority(-15)
-                        Text("U")
+                        Text(padForNegative(state.factoredInsulin) + String(localized: "U"))
                     }
                     .unitStyle()
                 } else {
@@ -746,7 +757,7 @@ struct PopupView: View {
                         Text("U")
                         Text("")
                             .layoutPriority(-15)
-                        Text("U")
+                        Text(padForNegative(state.factoredInsulin) + String(localized: "U"))
                     }
                     .unitStyle()
                 }
@@ -795,33 +806,78 @@ struct PopupView: View {
         }
 
         return VStack(alignment: .center, spacing: 4) {
+            let warningColor: Color = colorScheme == .dark ? .orange : .accentColor
+
             // Display appropriate warnings based on current conditions as a header on this card.
             // Each warning indicates a specific safety concern.
             if isLoopStale {
-                limitWarning(String(localized: "Last loop was > 15 mins ago."))
+                Text("Last loop was > 15 m ago.")
+                    .warningStyle(warningColor)
             } else if state.currentBG < 54 {
-                limitWarning(String(localized: "Glucose is very low."))
+                Text("Glucose is very low.")
+                    .warningStyle(.red)
             } else if state.minPredBG < 54 {
-                limitWarning(String(localized: "Glucose forecast is very low."))
+                Text("Glucose forecast is very low.")
+                    .warningStyle(warningColor)
             } else if state.factoredInsulin > state.maxBolus, state.maxBolus <= iobAvailable {
-                limitWarning(String(localized: "Max Bolus = \(insulinFormatter(state.maxBolus)) U"))
+                Text("Max Bolus = \(insulinFormatter(state.maxBolus)) U")
+                    .warningStyle(warningColor)
             } else if state.factoredInsulin > 0, state.factoredInsulin > iobAvailable {
                 // Available IOB warning with detailed breakdown.
                 // Shows calculation: Max IOB - IOB = Available IOB
-                limitWarning(String(localized: "Available IOB:"))
-                HStack(alignment: .firstTextBaseline, spacing: 0) {
-                    Text("Max IOB - IOB = ").secondaryStyle()
-                    Text(insulinFormatter(state.maxIOB)).font(.footnote)
-                    Text(" U - ").secondaryStyle()
-                    Text(wrapNegative(state.iob)).font(.footnote)
-                    Text(" U = ").secondaryStyle()
-                    Text(insulinFormatter(iobAvailable))
-                        .font(.footnote)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.red)
-                    Text(" U").secondaryStyle()
+                if state.iob > state.maxIOB {
+                    Text("Current IOB (\(insulinFormatter(state.iob)) U) > Max IOB (\(insulinFormatter(state.maxIOB)) U)")
+                        .warningStyle(warningColor)
+                } else {
+                    Text("Limited by Max IOB.")
+                        .warningStyle(warningColor)
+                    ViewThatFits(in: .horizontal) {
+                        // Option 1: Everything on one line (preferred if it fits)
+                        HStack(alignment: .firstTextBaseline, spacing: 0) {
+                            Text("Max IOB (")
+                            Text(insulinFormatter(state.maxIOB))
+                                .foregroundStyle(.primary)
+                            Text(" U) - Current IOB (")
+                            Text(insulinFormatter(state.iob))
+                                .foregroundStyle(.primary)
+                            Text(" U) = ")
+                            Text(insulinFormatter(iobAvailable))
+                                .foregroundStyle(.orange)
+                            Text(" U")
+                        }
+
+                        // Option 2: Two lines
+                        Grid {
+                            GridRow {
+                                Text("Max IOB")
+                                Text("")
+                                Text("IOB")
+                                Text("")
+                                Text("Limit")
+                            }
+                            GridRow {
+                                HStack(alignment: .firstTextBaseline, spacing: 0) {
+                                    Text(insulinFormatter(state.maxIOB))
+                                        .foregroundStyle(.primary)
+                                    Text(" U")
+                                }
+                                Text("-")
+                                HStack(alignment: .firstTextBaseline, spacing: 0) {
+                                    Text(wrapNegative(state.iob))
+                                        .foregroundStyle(.primary)
+                                    Text(" U")
+                                }
+                                Text("=")
+                                HStack(alignment: .firstTextBaseline, spacing: 0) {
+                                    Text(insulinFormatter(iobAvailable))
+                                        .foregroundStyle(.orange)
+                                    Text(" U")
+                                }
+                            }
+                        }
+                    }
+                    .secondaryStyle()
                 }
-                .fixedSize()
             }
 
             // Recommended Bolus card with accent-colored background
@@ -858,27 +914,6 @@ struct PopupView: View {
                 .padding(.vertical, 12)
             }
             .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    // MARK: - Helper Views
-
-    // Support views for warnings and other UI elements
-
-    /// Creates a standardized warning display with triangle icon and red text used for rec bolus card's header.
-    /// - Parameter text: The warning message to display
-    /// - Returns: A formatted warning view
-    private func limitWarning(_ text: String) -> some View {
-        HStack {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.orange)
-                .font(.subheadline)
-
-            Text(text)
-                .fontWeight(.medium)
-                .foregroundStyle(.red)
-                .minimumScaleFactor(0.5)
-                .font(.subheadline)
         }
     }
 
@@ -921,5 +956,14 @@ struct PopupView: View {
     /// - Returns: A formatted string with parentheses for negative values
     private func wrapNegative(_ value: Decimal, _ roundingMode: NSDecimalNumber.RoundingMode = .down) -> String {
         value < 0 ? "(" + insulinFormatter(value, roundingMode) + ")" : insulinFormatter(value, roundingMode)
+    }
+
+    /// Adds a leading space before unit symbols for negative values to ensure proper center alignment.
+    /// This compensates for the negative sign's width, maintaining consistent text alignment
+    /// when displaying both positive and negative values with their units.
+    /// - Parameter value: The decimal value to check for negativity
+    /// - Returns: A single space string if the value is negative, otherwise an empty string
+    private func padForNegative(_ value: Decimal) -> String {
+        value < 0 ? " " : ""
     }
 }
