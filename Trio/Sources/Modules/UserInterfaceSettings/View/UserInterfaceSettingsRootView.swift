@@ -432,7 +432,7 @@ extension UserInterfaceSettings {
 
                         HStack(alignment: .center) {
                             Text(
-                                "Choose type type of time in range to be used for Trio's statistics."
+                                "Choose type of time in range to be used for Trio's statistics."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -448,7 +448,7 @@ extension UserInterfaceSettings {
                                                 spacing: 10
                                             ) {
                                                 Text(
-                                                    "Choose which type of time in range type want Trio to adopt for all its statistical charts and displays:"
+                                                    "Choose which type of time in range Trio should adopt for all its statistical charts and displays:"
                                                 )
                                                 VStack(
                                                     alignment: .leading,
@@ -471,7 +471,7 @@ extension UserInterfaceSettings {
                                                     )
                                                     .bold()
                                                     Text(
-                                                        "Uses the very new – first discussed at ATTD 2025 in Amsterdam, NL – Time in Normoglycemia definition, which adopts the normoglycemic minimum threshold (\(state.units == .mgdL ? Decimal(63) : 53.asMmolL) \(state.units.rawValue)) and \(state.units == .mgdL ? Decimal(140) : 140.asMmolL) \(state.units.rawValue)."
+                                                        "Uses the very new – first discussed at ATTD 2025 in Amsterdam, NL – Time in Normoglycemia definition, which adopts its range as all values between the normoglycemic minimum threshold (\(state.units == .mgdL ? Decimal(63) : 63.asMmolL) \(state.units.rawValue)) and \(state.units == .mgdL ? Decimal(140) : 140.asMmolL) \(state.units.rawValue)."
                                                     )
                                                 }
                                             }
