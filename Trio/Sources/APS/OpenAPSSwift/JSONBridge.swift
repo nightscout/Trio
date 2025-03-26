@@ -45,7 +45,22 @@ enum JSONBridge {
     }
 
     static func pumpHistory(from: JSON) throws -> [PumpHistoryEvent] {
-        try JSONBridge.from(string: from.rawJSON)
+        do {
+            return try JSONBridge.from(string: from.rawJSON)
+        } catch {
+            // see if we got an empty object "{}"
+            guard let data = from.rawJSON.data(using: .utf8) else {
+                throw error
+            }
+
+            if let parsedObject = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+               parsedObject.isEmpty
+            {
+                return []
+            }
+
+            throw error
+        }
     }
 
     static func profile(from: JSON) throws -> Profile {
