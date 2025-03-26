@@ -14,13 +14,7 @@ extension Stat {
         var useFPUconversion: Bool = false
         var glucoseFromPersistence: [GlucoseStored] = []
         var loopStatRecords: [LoopStatRecord] = []
-        var loopStats: [(
-            category: LoopStatsDataType,
-            count: Int,
-            percentage: Double,
-            medianDuration: Double,
-            medianInterval: Double
-        )] = []
+        var loopStats: [LoopStatsProcessedData] = []
         var groupedLoopStats: [LoopStatsByPeriod] = []
         var bolusStats: [BolusStats] = []
         var hourlyStats: [HourlyStats] = []

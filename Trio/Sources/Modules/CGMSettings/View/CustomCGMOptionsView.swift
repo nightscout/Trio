@@ -140,12 +140,10 @@ extension CGMSettings {
                                 .padding(.vertical)
                         }
 
-                        if state.url == nil {
-                            NavigationLink(
-                                destination: NightscoutConfig.RootView(resolver: resolver, displayClose: false),
-                                label: { Text("Configure Nightscout").foregroundStyle(Color.accentColor) }
-                            )
-                        }
+                        NavigationLink(
+                            destination: NightscoutConfig.RootView(resolver: resolver, displayClose: false),
+                            label: { Text("Configure Nightscout").foregroundStyle(Color.accentColor) }
+                        )
                     }
                 ).listRowBackground(Color.chart)
 
