@@ -4,6 +4,7 @@ enum TimeInRangeType: String, JSON, CaseIterable, Identifiable, Codable, Hashabl
     var id: String { rawValue }
     case timeInTightRange
     case timeInNormoglycemia
+
     var displayName: String {
         switch self {
         case .timeInTightRange:
