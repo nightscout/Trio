@@ -715,10 +715,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 guard self.privateContext.hasChanges else { return }
                 try self.privateContext.save()
                 debug(.apsManager, "Determination enacted. Enacted: \(wasEnacted)")
-
-                Task.detached(priority: .low) {
-                    await self.statistics()
-                }
             }
         } catch {
             debug(
@@ -904,125 +900,6 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    // TODO: - Refactor this whole shit here...
-
-    // Add to statistics.JSON for upload to NS.
-    private func statistics() async {
-        let now = Date()
-        if settingsManager.settings.uploadStats != nil {
-            let hour = Calendar.current.component(.hour, from: now)
-            guard hour > 20 else {
-                return
-            }
-
-            // MARK: - Core Data related
-
-            async let glucoseStats = glucoseForStats()
-            async let lastLoopForStats = lastLoopForStats()
-            async let carbTotal = carbsForStats()
-            async let preferences = settingsManager.preferences
-
-            let loopStats = await loopStats(oneDayGlucose: Double(rawValue: (await glucoseStats?.oneDayGlucose.readings)!) ?? 0.0)
-
-            // Only save and upload once per day
-            guard (-1 * (await lastLoopForStats ?? .distantPast).timeIntervalSinceNow.hours) > 22 else { return }
-
-            let units = settingsManager.settings.units
-
-            // MARK: - Not Core Data related stuff
-
-            let pref = await preferences
-            var algo_ = "Oref0"
-
-            if pref.sigmoid, pref.enableDynamicCR {
-                algo_ = "Dynamic ISF + CR: Sigmoid"
-            } else if pref.sigmoid, !pref.enableDynamicCR {
-                algo_ = "Dynamic ISF: Sigmoid"
-            } else if pref.useNewFormula, pref.enableDynamicCR {
-                algo_ = "Dynamic ISF + CR: Logarithmic"
-            } else if pref.useNewFormula, !pref.sigmoid,!pref.enableDynamicCR {
-                algo_ = "Dynamic ISF: Logarithmic"
-            }
-            let af = pref.adjustmentFactor
-            let insulin_type = pref.curve
-            let buildDate = BuildDetails.shared.buildDate()
-            let version = Bundle.main.releaseVersionNumber
-            let build = Bundle.main.buildVersionNumber
-
-            var branch = BuildDetails.shared.branchAndSha
-
-            let copyrightNotice_ = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? ""
-            let pump_ = pumpManager?.localizedTitle ?? ""
-            let cgm = settingsManager.settings.cgm
-            let file = OpenAPS.Monitor.statistics
-            var iPa: Decimal = 75
-            if pref.useCustomPeakTime {
-                iPa = pref.insulinPeakTime
-            } else if pref.curve.rawValue == "rapid-acting" {
-                iPa = 65
-            } else if pref.curve.rawValue == "ultra-rapid" {
-                iPa = 50
-            }
-
-            // Insulin placeholder
-            let insulin = Ins(
-                TDD: 0,
-                bolus: 0,
-                temp_basal: 0,
-                scheduled_basal: 0,
-                total_average: 0
-            )
-            guard let processedGlucoseStats = await glucoseStats else { return }
-
-            let eA1cDisplayUnit = processedGlucoseStats.eA1cDisplayUnit
-
-            let dailystat = await Statistics(
-                created_at: Date(),
-                iPhone: UIDevice.current.getDeviceId,
-                iOS: UIDevice.current.getOSInfo,
-                Build_Version: version ?? "",
-                Build_Number: build ?? "1",
-                Branch: branch,
-                CopyRightNotice: String(copyrightNotice_.prefix(32)),
-                Build_Date: buildDate ?? Date(),
-                Algorithm: algo_,
-                AdjustmentFactor: af,
-                Pump: pump_,
-                CGM: cgm.rawValue,
-                insulinType: insulin_type.rawValue,
-                peakActivityTime: iPa,
-                Carbs_24h: await carbTotal,
-                GlucoseStorage_Days: Decimal(roundDouble(Double(rawValue: processedGlucoseStats.numberofDays) ?? 0.0, 1)),
-                Statistics: Stats(
-                    Distribution: processedGlucoseStats.TimeInRange,
-                    Glucose: processedGlucoseStats.avg,
-                    EstimatedA1c: processedGlucoseStats.hbs,
-                    Units: Units(Glucose: units.rawValue, EstimatedA1c: eA1cDisplayUnit.rawValue),
-                    LoopCycles: loopStats,
-                    Insulin: insulin,
-                    Variance: processedGlucoseStats.variance
-                )
-            )
-            storage.save(dailystat, as: file)
-
-            await saveStatsToCoreData()
-        }
-    }
-
-    private func saveStatsToCoreData() async {
-        await privateContext.perform {
-            let saveStatsCoreData = StatsData(context: self.privateContext)
-            saveStatsCoreData.lastrun = Date()
-
-            do {
-                guard self.privateContext.hasChanges else { return }
-                try self.privateContext.save()
-            } catch {
-                print(error.localizedDescription)
-            }
-        }
-    }
-
     private func lastLoopForStats() async -> Date? {
         let requestStats = StatsData.fetchRequest() as NSFetchRequest<StatsData>
         let sortStats = NSSortDescriptor(key: "lastrun", ascending: false)
@@ -1035,32 +912,6 @@ final class BaseAPSManager: APSManager, Injectable {
             } catch {
                 print(error.localizedDescription)
                 return .distantPast
-            }
-        }
-    }
-
-    private func carbsForStats() async -> Decimal {
-        let requestCarbs = CarbEntryStored.fetchRequest() as NSFetchRequest<CarbEntryStored>
-        let daysAgo = Date().addingTimeInterval(-1.days.timeInterval)
-        requestCarbs.predicate = NSPredicate(format: "carbs > 0 AND date > %@", daysAgo as NSDate)
-        requestCarbs.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-
-        return await privateContext.perform {
-            do {
-                let carbs = try self.privateContext.fetch(requestCarbs)
-                debugPrint(
-                    "APSManager: statistics() -> \(CoreDataStack.identifier) \(DebuggingIdentifiers.succeeded) fetched carbs"
-                )
-
-                return carbs.reduce(0) { sum, meal in
-                    let mealCarbs = Decimal(string: "\(meal.carbs)") ?? Decimal.zero
-                    return sum + mealCarbs
-                }
-            } catch {
-                debugPrint(
-                    "APSManager: statistics() -> \(CoreDataStack.identifier) \(DebuggingIdentifiers.failed) error while fetching carbs"
-                )
-                return 0
             }
         }
     }

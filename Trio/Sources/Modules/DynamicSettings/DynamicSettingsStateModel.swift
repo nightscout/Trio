@@ -27,7 +27,6 @@ extension DynamicSettings {
 
         @Published var hasValidTDD: Bool = false
         @Published var useNewFormula: Bool = false
-        @Published var enableDynamicCR: Bool = false
         @Published var sigmoid: Bool = false
         @Published var adjustmentFactor: Decimal = 0.8
         @Published var adjustmentFactorSigmoid: Decimal = 0.5
@@ -53,7 +52,6 @@ extension DynamicSettings {
             subscribePreferencesSetting(\.useNewFormula, on: $useNewFormula) { _ in }
             subscribePreferencesSetting(\.sigmoid, on: $sigmoid) { _ in }
 
-            subscribePreferencesSetting(\.enableDynamicCR, on: $enableDynamicCR) { enableDynamicCR = $0 }
             subscribePreferencesSetting(\.adjustmentFactor, on: $adjustmentFactor) { adjustmentFactor = $0 }
             subscribePreferencesSetting(\.adjustmentFactorSigmoid, on: $adjustmentFactorSigmoid) { adjustmentFactorSigmoid = $0 }
             subscribePreferencesSetting(\.weightPercentage, on: $weightPercentage) { weightPercentage = $0 }
@@ -84,7 +82,7 @@ extension DynamicSettings {
                 dynamicSensitivityType = .disabled
             }
         }
-            
+
         /// Checks if there is enough Total Daily Dose (TDD) data collected over the past 7 days.
         ///
         /// This function fetches TDD records from Core Data where:

@@ -520,6 +520,11 @@ final class OpenAPS {
                 adjustedPreferences.lowTemptargetLowersSensitivity = false
                 debug(.openAPS, "Setting lowTTlowersSens to false due to insufficient autosensMax: \(preferences.autosensMax)")
             }
+
+            // FIXME: remove this at a later release; hard code it to false for now
+            if preferences.enableDynamicCR {
+                adjustedPreferences.enableDynamicCR = false
+            }
         }
 
         do {

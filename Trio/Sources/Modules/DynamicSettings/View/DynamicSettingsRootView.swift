@@ -61,7 +61,9 @@ extension DynamicSettings {
                                     String(
                                         localized: "Dynamically adjust insulin sensitivity using Dynamic Ratio rather than Autosens Ratio."
                                     ) :
-                                    String(localized: "Trio has only been actively used and looping for less than seven days. Cannot enable dynamic ISF.")
+                                    String(
+                                        localized: "Trio has only been actively used and looping for less than seven days. Cannot enable dynamic ISF."
+                                    )
                                 let miniHintTextColorForDisabled: Color = colorScheme == .dark ? .orange :
                                     .accentColor
                                 let miniHintTextColor: Color = state.hasValidTDD ? .secondary : miniHintTextColorForDisabled
@@ -230,37 +232,6 @@ extension DynamicSettings {
                             }
                         )
                     }
-
-                    //                    SettingInputSection(
-                    //                        decimalValue: $decimalPlaceholder,
-                    //                        booleanValue: $state.enableDynamicCR,
-                    //                        shouldDisplayHint: $shouldDisplayHint,
-                    //                        selectedVerboseHint: Binding(
-                    //                            get: { selectedVerboseHint },
-                    //                            set: {
-                    //                                selectedVerboseHint = $0.map { AnyView($0) }
-                    //                                hintLabel = String(localized: "Activate Dynamic CR (Carb Ratio)")
-                    //                            }
-                    //                        ),
-                    //                        units: state.units,
-                    //                        type: .boolean,
-                    //                        label: String(localized: "Activate Dynamic CR (Carb Ratio)"),
-                    //                        miniHint: String(localized: "Dynamically adjust your Carb Ratio (CR)."),
-                    //                        verboseHint:
-                    //
-                    //                        VStack(alignment: .leading, spacing: 10) {
-                    //                            Text("Default: OFF").bold()
-                    //                            Text(
-                    //                                "Dynamic CR adjusts your carb ratio based on your Dynamic Ratio, adapting automatically to changes in insulin sensitivity."
-                    //                            )
-                    //                            Text(
-                    //                                "When Dynamic Ratio increases, indicating you need more insulin, the carb ratio value is decreased to make your insulin dosing more effective."
-                    //                            )
-                    //                            Text(
-                    //                                "When Dynamic Ratio decreases, indicating you need less insulin, the carb ratio value is increased to avoid over-delivery."
-                    //                            )
-                    //                        }
-                    //                    )
 
                     SettingInputSection(
                         decimalValue: $decimalPlaceholder,
