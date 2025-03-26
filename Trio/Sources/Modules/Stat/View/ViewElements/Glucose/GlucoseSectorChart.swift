@@ -23,23 +23,6 @@ struct GlucoseSectorChart: View {
         case low = "Low"
     }
 
-    var tightBottomThreshold: Int {
-        switch timeInRangeType {
-        case .timeInTightRange:
-            return 70
-        case .timeInNormoglycemia:
-            return 63
-        }
-    }
-
-    var topThreshold: Int {
-        switch timeInRangeType {
-        case .timeInNormoglycemia,
-             .timeInTightRange:
-            return 140
-        }
-    }
-
     var body: some View {
         HStack(alignment: .center, spacing: 20) {
             // Calculate total number of glucose readings
@@ -47,7 +30,8 @@ struct GlucoseSectorChart: View {
             // Count readings between high limit and 250 mg/dL (high)
             let high = glucose.filter { $0.glucose > Int(highLimit) }.count
             // Count readings between low limit (TITR: 70 mg/dL, TING 63 mg/dL) and 140 mg/dL (tight control)
-            let tight = glucose.filter { $0.glucose >= tightBottomThreshold && $0.glucose <= topThreshold }.count
+            let tight = glucose
+                .filter { $0.glucose >= timeInRangeType.bottomThreshold && $0.glucose <= timeInRangeType.topThreshold }.count
             // Count readings between 140 and high limit (normal range)
             let normal = glucose.filter { $0.glucose >= Int(lowLimit) && $0.glucose <= Int(highLimit) }.count
             // Count readings between 54 and low limit (low)
@@ -72,8 +56,11 @@ struct GlucoseSectorChart: View {
                 }
 
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("\(formatValue(Decimal(tightBottomThreshold)))-\(formatValue(Decimal(topThreshold)))").font(.subheadline)
-                        .foregroundStyle(Color.secondary)
+                    Text(
+                        "\(formatValue(Decimal(timeInRangeType.bottomThreshold)))-\(formatValue(Decimal(timeInRangeType.topThreshold)))"
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(Color.secondary)
                     Text(tightPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
                         .foregroundStyle(Color.green)
                 }
@@ -238,7 +225,8 @@ struct GlucoseSectorChart: View {
             )
 
         case .inRange:
-            let tight = glucose.filter { $0.glucose >= Int(tightBottomThreshold) && $0.glucose <= topThreshold }.count
+            let tight = glucose
+                .filter { $0.glucose >= Int(timeInRangeType.bottomThreshold) && $0.glucose <= timeInRangeType.topThreshold }.count
             let glucoseValues = glucose.filter { $0.glucose >= Int(lowLimit) && $0.glucose <= Int(highLimit) }
             let glucoseValuesAsInt = glucoseValues.map { Int($0.glucose) }
             let (average, median, standardDeviation) = calculateDetailedStatistics(for: glucoseValuesAsInt)
@@ -253,7 +241,7 @@ struct GlucoseSectorChart: View {
                     ),
                     (
                         String(
-                            localized: "\(timeInRangeType == .timeInTightRange ? "TITR" : "TING") (\(formatValue(Decimal(tightBottomThreshold)))-\(formatValue(Decimal(topThreshold))))"
+                            localized: "\(timeInRangeType == .timeInTightRange ? "TITR" : "TING") (\(formatValue(Decimal(timeInRangeType.bottomThreshold)))-\(formatValue(Decimal(timeInRangeType.topThreshold))))"
                         ),
                         formatPercentage(Decimal(tight) / total * 100)
                     ),

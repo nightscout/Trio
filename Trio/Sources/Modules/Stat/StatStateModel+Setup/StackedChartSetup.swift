@@ -64,23 +64,6 @@ extension Stat.StateModel {
     func calculateGlucoseRangeStatsForStackedChart(from ids: [NSManagedObjectID]) async {
         let taskContext = CoreDataStack.shared.newTaskContext()
 
-        var bottomThreshold: Int {
-            switch timeInRangeType {
-            case .timeInTightRange:
-                return 70
-            case .timeInNormoglycemia:
-                return 63
-            }
-        }
-
-        var topThreshold: Int {
-            switch timeInRangeType {
-            case .timeInNormoglycemia,
-                 .timeInTightRange:
-                return 140
-            }
-        }
-
         let calendar = Calendar.current
 
         let stats = await taskContext.perform {
@@ -110,9 +93,12 @@ extension Stat.StateModel {
             // Ranges are processed from bottom to top in the stacked chart
             let ranges: [(name: String, condition: (Int) -> Bool)] = [
                 ("<54", { g in g <= 54 }),
-                ("54-\(bottomThreshold)", { g in g > 54 && g < bottomThreshold }),
-                ("\(bottomThreshold)-\(topThreshold)", { g in g >= bottomThreshold && g <= topThreshold }),
-                ("\(topThreshold)-180", { g in g > topThreshold && g <= 180 }),
+                ("54-\(self.timeInRangeType.bottomThreshold)", { g in g > 54 && g < self.timeInRangeType.bottomThreshold }),
+                (
+                    "\(self.timeInRangeType.bottomThreshold)-\(self.timeInRangeType.topThreshold)",
+                    { g in g >= self.timeInRangeType.bottomThreshold && g <= self.timeInRangeType.topThreshold }
+                ),
+                ("\(self.timeInRangeType.topThreshold)-180", { g in g > self.timeInRangeType.topThreshold && g <= 180 }),
                 ("180-200", { g in g > 180 && g <= 200 }),
                 ("200-220", { g in g > 200 && g <= 220 }),
                 (">220", { g in g > 220 })

@@ -14,4 +14,21 @@ enum TimeInRangeType: String, JSON, CaseIterable, Identifiable, Codable, Hashabl
             return String(localized: "Time in Normoglycemia (TING)", comment: "")
         }
     }
+
+    var bottomThreshold: Int {
+        switch self {
+        case .timeInTightRange:
+            return 70
+        case .timeInNormoglycemia:
+            return 63
+        }
+    }
+
+    var topThreshold: Int {
+        switch self {
+        case .timeInNormoglycemia,
+             .timeInTightRange:
+            return 140
+        }
+    }
 }
