@@ -1,4 +1,5 @@
 import Combine
+import CoreData
 import Observation
 import SwiftUI
 
@@ -85,7 +86,7 @@ extension DynamicSettings {
 
         /// Checks if there is enough Total Daily Dose (TDD) data collected over the past 7 days.
         ///
-        /// This function fetches TDD records from Core Data where:
+        /// This function performs a count fetch for TDDStored records in Core Data where:
         /// - The record's date is within the last 7 days.
         /// - The total value is greater than 0.
         ///
@@ -93,19 +94,24 @@ extension DynamicSettings {
         /// assuming at least 288 expected entries per day (one every 5 minutes).
         ///
         /// - Returns: `true` if sufficient TDD data is available, otherwise `false`.
-        /// - Throws: An error if the Core Data fetch operation fails.
+        /// - Throws: An error if the Core Data count operation fails.
         private func hasSufficientTDD() throws -> Bool {
-            let tdd = try CoreDataStack.shared.fetchEntities(
-                ofType: TDDStored.self,
-                onContext: context,
-                predicate: NSPredicate(format: "date > %@ AND total > 0", Date().addingTimeInterval(-86400 * 7) as NSDate),
-                key: "date",
-                ascending: true,
-                propertiesToFetch: ["date", "total"]
-            ) as? [[String: Any]] ?? []
+            var result = false
 
-            let threshold = Int(Double(7 * 288) * 0.85)
-            return tdd.count >= threshold
+            context.performAndWait {
+                let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "TDDStored")
+                fetchRequest.predicate = NSPredicate(
+                    format: "date > %@ AND total > 0",
+                    Date().addingTimeInterval(-86400 * 7) as NSDate
+                )
+                fetchRequest.resultType = .countResultType
+
+                let count = (try? context.count(for: fetchRequest)) ?? 0
+                let threshold = Int(Double(7 * 288) * 0.85)
+                result = count >= threshold
+            }
+
+            return result
         }
     }
 }
