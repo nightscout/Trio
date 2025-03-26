@@ -255,7 +255,7 @@ struct PopupView: View {
                 Text("\(state.units.rawValue)/U")
                 Text("")
                     .layoutPriority(-15)
-                Text(padForNegative(state.targetDifferenceInsulin) + String(localized: "U"))
+                Text("U")
             }
             .unitStyle()
         }
@@ -300,7 +300,7 @@ struct PopupView: View {
                 Text("U")
                 Text("")
                     .layoutPriority(-15)
-                Text(padForNegative(-1 * state.iob) + String(localized: "U"))
+                Text("U")
             }
             .unitStyle()
         }
@@ -371,7 +371,7 @@ struct PopupView: View {
                     if !hasExceededMaxCOB {
                         Text("")
                             .layoutPriority(-15)
-                        Text(padForNegative(state.wholeCobInsulin) + String(localized: "U"))
+                        Text("U")
                     }
                 }
                 .unitStyle()
@@ -415,7 +415,7 @@ struct PopupView: View {
                         Text("g/U")
                         Text("")
                             .layoutPriority(-15)
-                        Text(padForNegative(state.wholeCobInsulin) + String(localized: "U"))
+                        Text("U")
                     }
                     .unitStyle()
                 }
@@ -461,7 +461,7 @@ struct PopupView: View {
                 Text("\(state.units.rawValue)/U")
                 Text("")
                     .layoutPriority(-15)
-                Text(padForNegative(state.fifteenMinInsulin) + String(localized: "U"))
+                Text("U")
             }
             .unitStyle()
         }
@@ -626,7 +626,7 @@ struct PopupView: View {
                     Text("")
                         .layoutPriority(-15)
                         .gridCellColumns(3)
-                    Text(padForNegative(state.factoredInsulin) + String(localized: "U"))
+                    Text("U")
                 }
                 .unitStyle()
 
@@ -668,7 +668,7 @@ struct PopupView: View {
                     Text("U")
                     Text("")
                         .layoutPriority(-15)
-                    Text(padForNegative(state.factoredInsulin) + String(localized: "U"))
+                    Text("U")
                 }
                 .unitStyle()
 
@@ -721,7 +721,7 @@ struct PopupView: View {
                         Text("U")
                         Text("")
                             .layoutPriority(-15)
-                        Text(padForNegative(state.factoredInsulin) + String(localized: "U"))
+                        Text("U")
                     }
                     .unitStyle()
                 } else {
@@ -757,7 +757,7 @@ struct PopupView: View {
                         Text("U")
                         Text("")
                             .layoutPriority(-15)
-                        Text(padForNegative(state.factoredInsulin) + String(localized: "U"))
+                        Text("U")
                     }
                     .unitStyle()
                 }
@@ -956,14 +956,5 @@ struct PopupView: View {
     /// - Returns: A formatted string with parentheses for negative values
     private func wrapNegative(_ value: Decimal, _ roundingMode: NSDecimalNumber.RoundingMode = .down) -> String {
         value < 0 ? "(" + insulinFormatter(value, roundingMode) + ")" : insulinFormatter(value, roundingMode)
-    }
-
-    /// Adds a leading space before unit symbols for negative values to ensure proper center alignment.
-    /// This compensates for the negative sign's width, maintaining consistent text alignment
-    /// when displaying both positive and negative values with their units.
-    /// - Parameter value: The decimal value to check for negativity
-    /// - Returns: A single space string if the value is negative, otherwise an empty string
-    private func padForNegative(_ value: Decimal) -> String {
-        value < 0 ? " " : ""
     }
 }
