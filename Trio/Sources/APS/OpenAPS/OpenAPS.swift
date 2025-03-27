@@ -295,8 +295,7 @@ final class OpenAPS {
             profile,
             basalProfile,
             autosens,
-            reservoir,
-            preferences
+            reservoir
         ) = await (
             try parsePumpHistory(await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
             try carbs,
@@ -305,8 +304,7 @@ final class OpenAPS {
             profileAsync,
             basalAsync,
             autosenseAsync,
-            reservoirAsync,
-            preferencesAsync
+            reservoirAsync
         )
 
         // Meal calculation
@@ -332,6 +330,35 @@ final class OpenAPS {
             storage.save(iob, as: Monitor.iob)
         }
 
+        // fetch this synchronously, as we possibly manipulate it after fetching
+        var preferences = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
+
+        // FIXME: remove this at a later release; hard code it to false for now
+        if preferences.enableDynamicCR {
+            preferences.enableDynamicCR = false
+        }
+
+        var hasSufficientTddForDynamic: Bool = false
+
+        context.performAndWait {
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "TDDStored")
+            fetchRequest.predicate = NSPredicate(
+                format: "date > %@ AND total > 0",
+                Date().addingTimeInterval(-86400 * 7) as NSDate
+            )
+            fetchRequest.resultType = .countResultType
+
+            let count = (try? self.context.count(for: fetchRequest)) ?? 0
+            let threshold = Int(Double(7 * 288) * 0.85)
+            hasSufficientTddForDynamic = count >= threshold
+        }
+
+        if !hasSufficientTddForDynamic, preferences.useNewFormula || (preferences.useNewFormula && preferences.sigmoid) {
+            debug(.openAPS, "Insufficient TDD for dynamic formula; disabling for determine basal run.")
+            preferences.useNewFormula = false
+            preferences.sigmoid = false
+        }
+
         // Determine basal
         let orefDetermination = try await determineBasal(
             glucose: glucoseAsJSON,
@@ -348,7 +375,7 @@ final class OpenAPS {
             oref2_variables: oref2_variables
         )
 
-        debug(.openAPS, "Determinated: \(orefDetermination)")
+        debug(.openAPS, "OREF DETERMINATION: \(orefDetermination)")
 
         if var determination = Determination(from: orefDetermination), let deliverAt = determination.deliverAt {
             // set both timestamp and deliverAt to the SAME date; this will be updated for timestamp once it is enacted
@@ -519,11 +546,6 @@ final class OpenAPS {
             if preferences.lowTemptargetLowersSensitivity, preferences.autosensMax <= 1 {
                 adjustedPreferences.lowTemptargetLowersSensitivity = false
                 debug(.openAPS, "Setting lowTTlowersSens to false due to insufficient autosensMax: \(preferences.autosensMax)")
-            }
-
-            // FIXME: remove this at a later release; hard code it to false for now
-            if preferences.enableDynamicCR {
-                adjustedPreferences.enableDynamicCR = false
             }
         }
 
