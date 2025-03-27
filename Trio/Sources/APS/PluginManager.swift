@@ -23,22 +23,22 @@ class BasePluginManager: Injectable, PluginManager {
     static let cgms = [
         CgmPluginDescription(
             pluginIdentifier: G5CGMManager.pluginIdentifier,
-            localizedTitle: "Dexcom G5",
+            localizedTitle: String(localized: "Dexcom G5"),
             manager: G5CGMManager.self
         ),
         CgmPluginDescription(
             pluginIdentifier: G6CGMManager.pluginIdentifier,
-            localizedTitle: "Dexcom G6 / ONE",
+            localizedTitle: String(localized: "Dexcom G6 / ONE"),
             manager: G6CGMManager.self
         ),
         CgmPluginDescription(
             pluginIdentifier: G7CGMManager.pluginIdentifier,
-            localizedTitle: "Dexcom G7 / ONE+",
+            localizedTitle: String(localized: "Dexcom G7 / ONE+"),
             manager: G7CGMManager.self
         ),
         CgmPluginDescription(
             pluginIdentifier: LibreTransmitterManagerV3.pluginIdentifier,
-            localizedTitle: "FreeStyle Libre",
+            localizedTitle: String(localized: "FreeStyle Libre"),
             manager: LibreTransmitterManagerV3.self
         )
     ]
