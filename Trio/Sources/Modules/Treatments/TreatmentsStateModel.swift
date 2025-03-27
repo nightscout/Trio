@@ -700,10 +700,8 @@ extension Treatments.StateModel {
 
         // Calculate delta using newest and oldest readings within 20-minute window
         let delta: Decimal
-        if recentObjects.count >= 2 {
+        if let newestInWindow = recentObjects.first?.glucose, let oldestInWindow = recentObjects.last?.glucose {
             // Newest is at index 0, oldest is at the last index
-            let newestInWindow = recentObjects.first?.glucose ?? 0
-            let oldestInWindow = recentObjects.last?.glucose ?? 0
             delta = Decimal(newestInWindow) - Decimal(oldestInWindow)
         } else {
             // Not enough data points in the window

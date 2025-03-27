@@ -25,9 +25,9 @@ extension OrefDetermination {
         if let minPredBGPart = reasonParts.first(where: { $0.contains("minPredBG") }) {
             // Extract the number after "minPredBG"
             let components = minPredBGPart.components(separatedBy: "minPredBG ")
-            if components.count > 1 {
+            if let valueComponent = components.dropFirst().first {
                 // Get everything after "minPredBG " and convert to Decimal
-                let valueString = components[1].trimmingCharacters(in: CharacterSet(charactersIn: "0123456789.-").inverted)
+                let valueString = valueComponent.trimmingCharacters(in: CharacterSet(charactersIn: "0123456789.-").inverted)
                 return Decimal(string: valueString)
             }
         }
