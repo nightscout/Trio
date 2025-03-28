@@ -23,6 +23,16 @@ struct LoopStatsByPeriod: Identifiable {
     var id: Date { period }
 }
 
+struct LoopStatsProcessedData: Identifiable {
+    var id = UUID()
+    let category: LoopStatsDataType
+    let count: Int
+    let percentage: Double
+    let medianDuration: Double
+    let medianInterval: Double
+    let totalDays: Int
+}
+
 enum LoopStatsDataType: String {
     case successfulLoop
     case glucoseCount
@@ -142,7 +152,7 @@ extension Stat.StateModel {
         failedLoopIds: [NSManagedObjectID],
         interval: StatsTimeIntervalWithToday
     ) async throws
-        -> [(category: LoopStatsDataType, count: Int, percentage: Double, medianDuration: Double, medianInterval: Double)]
+        -> [LoopStatsProcessedData]
     {
         // Calculate the date range for glucose readings
         let now = Date()
@@ -197,19 +207,21 @@ extension Stat.StateModel {
             let glucosePercentage = (averageGlucosePerDay / maxLoopsPerDay) * 100
 
             return [
-                (
-                    LoopStatsDataType.successfulLoop,
-                    Int(round(averageLoopsPerDay)),
-                    loopPercentage,
-                    medianDuration,
-                    medianInterval
+                LoopStatsProcessedData(
+                    category: LoopStatsDataType.successfulLoop,
+                    count: Int(round(averageLoopsPerDay)),
+                    percentage: loopPercentage,
+                    medianDuration: medianDuration,
+                    medianInterval: medianInterval,
+                    totalDays: numberOfDays
                 ),
-                (
-                    LoopStatsDataType.glucoseCount,
-                    Int(round(averageGlucosePerDay)),
-                    glucosePercentage,
-                    medianDuration,
-                    medianInterval
+                LoopStatsProcessedData(
+                    category: LoopStatsDataType.glucoseCount,
+                    count: Int(round(averageGlucosePerDay)),
+                    percentage: glucosePercentage,
+                    medianDuration: medianDuration,
+                    medianInterval: medianInterval,
+                    totalDays: numberOfDays
                 )
             ]
         }

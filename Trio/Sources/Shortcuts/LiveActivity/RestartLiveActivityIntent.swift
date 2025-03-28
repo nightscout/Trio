@@ -6,10 +6,10 @@ import Foundation
 /// dependencies injected via Swinject, and calls the restart functionality.
 @available(iOS 16.2, *) struct RestartLiveActivityIntent: LiveActivityIntent {
     /// Title of the action in the Shortcuts app.
-    static var title = LocalizedStringResource("Restart Live Activity", table: "ShortcutsDetail")
+    static var title = LocalizedStringResource("Restart Live Activity")
 
     /// Description of the action in the Shortcuts app.
-    static var description = IntentDescription(.init("Restarts Trio's Live Activity", table: "ShortcutsDetail"))
+    static var description = IntentDescription(.init("Restarts Trio's Live Activity"))
 
     /// Performs the intent by triggering the live activity restart.
     ///

@@ -45,8 +45,8 @@ extension TrioRemoteControl {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: taskContext,
-            predicate: NSPredicate(format: "createdAt > %@", pushMessageDate as NSDate),
-            key: "createdAt",
+            predicate: NSPredicate(format: "date > %@", pushMessageDate as NSDate),
+            key: "date",
             ascending: false
         )
 

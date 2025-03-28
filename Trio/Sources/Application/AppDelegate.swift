@@ -31,6 +31,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
                         .default,
                         "\(DebuggingIdentifiers.failed) failed to handle remote notification with error: \(error.localizedDescription)"
                     )
+                    completionHandler(.failed)
                 }
             }
         } catch {

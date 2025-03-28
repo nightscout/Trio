@@ -4,6 +4,9 @@ import G7SensorKit
 import LoopKitUI
 import SwiftUI
 
+/// For a full description of the events that can happen for the CGM lifecycle, see comment at the top
+/// of HomeStateModel+CGM since these are the same events
+
 struct CGMModel: Identifiable, Hashable {
     var id: String
     var type: CGMType
@@ -23,18 +26,6 @@ let cgmDefaultModel = CGMModel(
     subtitle: CGMType.none.subtitle
 )
 
-struct OtherCGMSourceCompletionNotifying: CompletionNotifying {
-    var completionDelegate: (any LoopKitUI.CompletionDelegate)?
-}
-
-class CGMSetupCompletionNotifying: CompletionNotifying {
-    var completionDelegate: (any LoopKitUI.CompletionDelegate)?
-}
-
-class CGMDeletionCompletionNotifying: CompletionNotifying {
-    var completionDelegate: (any LoopKitUI.CompletionDelegate)?
-}
-
 extension CGMSettings {
     final class StateModel: BaseStateModel<Provider> {
         // Singleton implementation
@@ -49,7 +40,7 @@ extension CGMSettings {
 
         @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         @Injected() var pluginCGMManager: PluginManager!
-        @Injected() private var broadcaster: Broadcaster!
+        @Injected() var broadcaster: Broadcaster!
         @Injected() var nightscoutManager: NightscoutManager!
 
         @Published var units: GlucoseUnits = .mgdL
@@ -60,8 +51,11 @@ extension CGMSettings {
         @Published var listOfCGM: [CGMModel] = []
         @Published var url: URL?
 
+        var shouldRunDeleteOnSettingsChange = true
+
         override func subscribe() {
             units = settingsManager.settings.units
+            broadcaster.register(SettingsObserver.self, observer: self)
 
             // collect the list of CGM available with plugins and CGMType defined manually
             listOfCGM = (
@@ -122,28 +116,36 @@ extension CGMSettings {
             subscribeSetting(\.smoothGlucose, on: $smoothGlucose, initial: { smoothGlucose = $0 })
         }
 
+        // this function will get called for all CGM types (plugin and non plugin)
         func addCGM(cgm: CGMModel) {
             cgmCurrent = cgm
-            switch cgmCurrent.type {
+            switch cgm.type {
             case .plugin:
                 shouldDisplayCGMSetupSheet.toggle()
             default:
-                fetchGlucoseManager.cgmGlucoseSourceType = cgmCurrent.type
-                completionNotifyingDidComplete(OtherCGMSourceCompletionNotifying())
+                // non plugin CGM types should be considered onboarded right away
+                shouldDisplayCGMSetupSheet = true
+                settingsManager.settings.cgm = cgmCurrent.type
+                settingsManager.settings.cgmPluginIdentifier = ""
+                fetchGlucoseManager.updateGlucoseSource(cgmGlucoseSourceType: cgmCurrent.type, cgmGlucosePluginId: cgmCurrent.id)
+                broadcaster.notify(GlucoseObserver.self, on: .main) {
+                    $0.glucoseDidUpdate([])
+                }
             }
         }
 
+        // Note: This function does _not_ get called for plugin CGMs
+        // instead, they will get cgmManagerWantsDeletion events which
+        // are handled by PluginSource
         func deleteCGM() {
-            fetchGlucoseManager.performOnCGMManagerQueue {
-                // Call plugin functionality on the manager queue (or at least attempt to)
-                Task {
-                    await self.fetchGlucoseManager?.deleteGlucoseSource()
-                }
+            Task {
+                await self.fetchGlucoseManager?.deleteGlucoseSource()
 
-                // UI updates go back to Main
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.shouldDisplayCGMSetupSheet = false
-                    self.completionNotifyingDidComplete(CGMDeletionCompletionNotifying())
+                    broadcaster.notify(GlucoseObserver.self, on: .main) {
+                        $0.glucoseDidUpdate([])
+                    }
                 }
             }
         }
@@ -152,40 +154,36 @@ extension CGMSettings {
 
 extension CGMSettings.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
-        // if CGM was deleted
-        if fetchGlucoseManager.cgmGlucoseSourceType == .none {
-            cgmCurrent = cgmDefaultModel
-            settingsManager.settings.cgm = cgmDefaultModel.type
-            settingsManager.settings.cgmPluginIdentifier = cgmDefaultModel.id
-            Task {
-                await fetchGlucoseManager.deleteGlucoseSource()
-            }
-            shouldDisplayCGMSetupSheet = false
-        } else {
-            settingsManager.settings.cgm = cgmCurrent.type
-            settingsManager.settings.cgmPluginIdentifier = cgmCurrent.id
-            fetchGlucoseManager.updateGlucoseSource(cgmGlucoseSourceType: cgmCurrent.type, cgmGlucosePluginId: cgmCurrent.id)
-            shouldDisplayCGMSetupSheet = cgmCurrent.type == .simulator || cgmCurrent.type == .nightscout || cgmCurrent
-                .type == .xdrip || cgmCurrent.type == .enlite
-        }
-
-        // update glucose source if required
-        DispatchQueue.main.async {
-            self.broadcaster.notify(GlucoseObserver.self, on: .main) {
-                $0.glucoseDidUpdate([])
+        Task {
+            // this sleep is because this event and cgmManagerWantsDeletion
+            // are called in parallel.
+            try await Task.sleep(for: .seconds(0.2))
+            await MainActor.run {
+                if fetchGlucoseManager.cgmGlucoseSourceType == .none {
+                    cgmCurrent = cgmDefaultModel
+                }
             }
         }
+        shouldDisplayCGMSetupSheet = false
     }
 }
 
 extension CGMSettings.StateModel: CGMManagerOnboardingDelegate {
     func cgmManagerOnboarding(didCreateCGMManager manager: LoopKitUI.CGMManagerUI) {
-        // update the glucose source
+        // cgmCurrent should have been set in addCGM
+        debug(.service, "didCreateCGMManager called \(cgmCurrent)")
+        settingsManager.settings.cgm = cgmCurrent.type
+        settingsManager.settings.cgmPluginIdentifier = cgmCurrent.id
         fetchGlucoseManager.updateGlucoseSource(
             cgmGlucoseSourceType: cgmCurrent.type,
             cgmGlucosePluginId: cgmCurrent.id,
             newManager: manager
         )
+        DispatchQueue.main.async {
+            self.broadcaster.notify(GlucoseObserver.self, on: .main) {
+                $0.glucoseDidUpdate([])
+            }
+        }
     }
 
     func cgmManagerOnboarding(didOnboardCGMManager _: LoopKitUI.CGMManagerUI) {
@@ -193,8 +191,23 @@ extension CGMSettings.StateModel: CGMManagerOnboardingDelegate {
     }
 }
 
-extension CGMSettings.StateModel {
+extension CGMSettings.StateModel: SettingsObserver {
     func settingsDidChange(_: TrioSettings) {
         units = settingsManager.settings.units
+        // Deletes are handled differently for plugins vs non plugins
+        // but both will call deleteGlucoseSource on the fetchGlucoseManager
+        // so we listen for changes to the cgm setting and update our internal
+        // state accordingly
+        if settingsManager.settings.cgm == .none, shouldRunDeleteOnSettingsChange {
+            shouldRunDeleteOnSettingsChange = false
+            cgmCurrent = cgmDefaultModel
+            DispatchQueue.main.async {
+                self.broadcaster.notify(GlucoseObserver.self, on: .main) {
+                    $0.glucoseDidUpdate([])
+                }
+            }
+        } else {
+            shouldRunDeleteOnSettingsChange = true
+        }
     }
 }

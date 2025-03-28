@@ -29,6 +29,7 @@ extension Settings {
             isUpdateAvailable: false,
             isBlacklisted: false
         )
+        @State private var closedLoopDisabled = true
 
         @Environment(\.colorScheme) var colorScheme
         @EnvironmentObject var appIcons: Icons
@@ -72,7 +73,7 @@ extension Settings {
         var body: some View {
             List {
                 if searchText.isEmpty {
-                    let buildDetails = BuildDetails.default
+                    let buildDetails = BuildDetails.shared
 
                     Section(
                         header: Text("BRANCH: \(buildDetails.branchAndSha)").textCase(nil),
@@ -113,6 +114,11 @@ extension Settings {
                         }
                     ).listRowBackground(Color.chart)
 
+                    let miniHintText = closedLoopDisabled ?
+                        String(localized: "Add a CGM and pump to enable automated insuin delivery") :
+                        String(localized: "Enable automated insulin delivery.")
+                    let miniHintTextColorForDisabled: Color = colorScheme == .dark ? .orange : .accentColor
+                    let miniHintTextColor: Color = closedLoopDisabled ? miniHintTextColorForDisabled : .secondary
                     SettingInputSection(
                         decimalValue: $decimalPlaceholder,
                         booleanValue: $state.closedLoop,
@@ -127,7 +133,7 @@ extension Settings {
                         units: state.units,
                         type: .boolean,
                         label: String(localized: "Closed Loop"),
-                        miniHint: String(localized: "Enable automated insulin delivery."),
+                        miniHint: miniHintText,
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "Running Trio in closed loop mode requires an active CGM sensor session and a connected pump. This enables automated insulin delivery."
@@ -136,14 +142,19 @@ extension Settings {
                                 "Before enabling, dial in your settings (basal / insulin sensitivity / carb ratio), and familiarize yourself with the app."
                             )
                         },
-                        headerText: String(localized: "Automated Insulin Delivery")
+                        headerText: String(localized: "Automated Insulin Delivery"),
+                        isToggleDisabled: closedLoopDisabled,
+                        miniHintColor: miniHintTextColor
                     )
+                    .onAppear {
+                        closedLoopDisabled = !state.hasCgmAndPump()
+                    }
 
                     Section(
                         header: Text("Trio Configuration"),
                         content: {
                             ForEach(SettingItems.trioConfig) { item in
-                                Text(item.title).navigationLink(to: item.view, from: self)
+                                Text(LocalizedStringKey(item.title)).navigationLink(to: item.view, from: self)
                             }
                         }
                     )
@@ -239,12 +250,13 @@ extension Settings {
                             if filteredItems.isNotEmpty {
                                 ForEach(filteredItems) { filteredItem in
                                     VStack(alignment: .leading) {
-                                        Text(filteredItem.matchedContent).bold()
+                                        Text(filteredItem.matchedContent.localized).bold()
                                         if let path = filteredItem.settingItem.path {
-                                            Text(path.map(\.stringValue).joined(separator: " > "))
+                                            Text(path.map(\.localized).joined(separator: " > "))
                                                 .font(.caption)
                                                 .foregroundColor(.secondary)
                                         }
+
                                     }.navigationLink(to: filteredItem.settingItem.view, from: self)
                                 }
                             } else {

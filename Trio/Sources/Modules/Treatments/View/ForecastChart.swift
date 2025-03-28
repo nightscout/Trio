@@ -83,16 +83,9 @@ struct ForecastChart: View {
                 Image(systemName: "arrow.right.circle")
 
                 if let simulatedDetermination = state.simulatedDetermination, let eventualBG = simulatedDetermination.eventualBG {
-                    HStack {
-                        Text(
-                            state.units == .mgdL ? Decimal(eventualBG).description : eventualBG.formattedAsMmolL
-                        )
-                        .font(.footnote)
-                        .foregroundStyle(.primary)
-                        Text("\(state.units.rawValue)")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
+                    eventualGlucoseBadge(for: eventualBG)
+                } else if let lastDetermination = state.determination.first, let eventualBG = lastDetermination.eventualBG {
+                    eventualGlucoseBadge(for: Int(truncating: eventualBG))
                 } else {
                     Text("---")
                         .font(.footnote)
@@ -109,6 +102,19 @@ struct ForecastChart: View {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.primary.opacity(0.2))
             }
+        }
+    }
+
+    @ViewBuilder private func eventualGlucoseBadge(for eventualBG: Int) -> some View {
+        HStack {
+            Text(
+                state.units == .mgdL ? Decimal(eventualBG).description : eventualBG.formattedAsMmolL
+            )
+            .font(.footnote)
+            .foregroundStyle(.primary)
+            Text("\(state.units.rawValue)")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
         }
     }
 

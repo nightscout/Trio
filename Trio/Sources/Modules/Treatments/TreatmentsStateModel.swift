@@ -157,8 +157,10 @@ extension Treatments {
 
         deinit {
             // Unregister from broadcaster
-            broadcaster.unregister(DeterminationObserver.self, observer: self)
-            broadcaster.unregister(BolusFailureObserver.self, observer: self)
+            if let broadcaster = broadcaster {
+                broadcaster.unregister(DeterminationObserver.self, observer: self)
+                broadcaster.unregister(BolusFailureObserver.self, observer: self)
+            }
 
             // Cancel Combine subscriptions
             unsubscribe()

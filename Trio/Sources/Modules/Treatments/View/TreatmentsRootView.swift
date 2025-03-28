@@ -347,7 +347,7 @@ extension Treatments {
                 .blur(radius: state.isAwaitingDeterminationResult ? 5 : 0)
 
                 if state.isAwaitingDeterminationResult {
-                    CustomProgressView(text: progressText.rawValue)
+                    CustomProgressView(text: progressText.displayName)
                 }
             }
             .padding(.top)

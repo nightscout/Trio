@@ -43,10 +43,26 @@ struct CustomProgressView: View {
     }
 }
 
-enum ProgressText: String {
-    case updatingIOB = "Updating IOB ..."
-    case updatingCOB = "Updating COB ..."
-    case updatingHistory = "Updating History ..."
-    case updatingTreatments = "Updating Treatments ..."
-    case updatingIOBandCOB = "Updating IOB and COB ..."
+enum ProgressText: CaseIterable {
+    case updatingIOB
+    case updatingCOB
+    case updatingHistory
+    case updatingTreatments
+    case updatingIOBandCOB
+
+    var displayName: String {
+        switch self {
+        case .updatingIOB:
+            return String(localized: "Updating IOB ...", comment: "Status message for updating IOB")
+        case .updatingCOB:
+
+            return String(localized: "Updating COB ...", comment: "Status message for updating COB")
+        case .updatingHistory:
+            return String(localized: "Updating History ...", comment: "Status message for updating history")
+        case .updatingTreatments:
+            return String(localized: "Updating Treatments ...", comment: "Status message for updating treatments")
+        case .updatingIOBandCOB:
+            return String(localized: "Updating IOB and COB ...", comment: "Status message for updating both IOB and COB")
+        }
+    }
 }

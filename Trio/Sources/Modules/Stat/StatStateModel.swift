@@ -10,18 +10,11 @@ extension Stat {
         var highLimit: Decimal = 180
         var lowLimit: Decimal = 70
         var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
-        var timeInRangeChartStyle: TimeInRangeChartStyle = .vertical
         var units: GlucoseUnits = .mgdL
         var useFPUconversion: Bool = false
         var glucoseFromPersistence: [GlucoseStored] = []
         var loopStatRecords: [LoopStatRecord] = []
-        var loopStats: [(
-            category: LoopStatsDataType,
-            count: Int,
-            percentage: Double,
-            medianDuration: Double,
-            medianInterval: Double
-        )] = []
+        var loopStats: [LoopStatsProcessedData] = []
         var groupedLoopStats: [LoopStatsByPeriod] = []
         var bolusStats: [BolusStats] = []
         var hourlyStats: [HourlyStats] = []
@@ -91,7 +84,6 @@ extension Stat {
             setupMealStats()
             units = settingsManager.settings.units
             eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
-            timeInRangeChartStyle = settingsManager.settings.timeInRangeChartStyle
             useFPUconversion = settingsManager.settings.useFPUconversion
         }
 
@@ -327,10 +319,14 @@ extension Stat.StateModel {
 
         var displayName: String {
             switch self {
-            case .glucose: return "Glucose"
-            case .insulin: return "Insulin"
-            case .looping: return "Looping"
-            case .meals: return "Meals"
+            case .glucose:
+                return String(localized: "Glucose", comment: "Title for glucose-related statistics")
+            case .insulin:
+                return String(localized: "Insulin", comment: "Title for insulin-related statistics")
+            case .looping:
+                return String(localized: "Looping", comment: "Title for looping and system statistics")
+            case .meals:
+                return String(localized: "Meals", comment: "Title for meal-related statistics")
             }
         }
     }
