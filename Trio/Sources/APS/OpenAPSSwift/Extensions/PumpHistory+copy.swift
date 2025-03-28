@@ -39,7 +39,8 @@ extension ComputedPumpHistoryEvent {
             note: note,
             isSMB: isSMB,
             isExternal: isExternal,
-            insulin: insulin
+            insulin: insulin,
+            omitFromTempHistory: omitFromTempHistory
         )
     }
 
@@ -59,7 +60,29 @@ extension ComputedPumpHistoryEvent {
             note: note,
             isSMB: isSMB,
             isExternal: isExternal,
-            insulin: insulin
+            insulin: insulin,
+            omitFromTempHistory: omitFromTempHistory
+        )
+    }
+
+    func copyWith(duration: Decimal, timestamp: Date, omitFromTempHistory: Bool) -> ComputedPumpHistoryEvent {
+        ComputedPumpHistoryEvent(
+            id: id,
+            type: type,
+            timestamp: timestamp,
+            amount: amount,
+            duration: duration,
+            durationMin: durationMin,
+            rate: rate,
+            temp: temp,
+            carbInput: carbInput,
+            fatInput: fatInput,
+            proteinInput: proteinInput,
+            note: note,
+            isSMB: isSMB,
+            isExternal: isExternal,
+            insulin: insulin,
+            omitFromTempHistory: omitFromTempHistory
         )
     }
 
@@ -79,7 +102,8 @@ extension ComputedPumpHistoryEvent {
             note: note,
             isSMB: isSMB,
             isExternal: isExternal,
-            insulin: insulin
+            insulin: insulin,
+            omitFromTempHistory: omitFromTempHistory
         )
     }
 
@@ -99,7 +123,8 @@ extension ComputedPumpHistoryEvent {
             note: note,
             isSMB: isSMB,
             isExternal: isExternal,
-            insulin: insulin
+            insulin: insulin,
+            omitFromTempHistory: omitFromTempHistory
         )
     }
 
@@ -125,7 +150,7 @@ extension ComputedPumpHistoryEvent {
         )
     }
 
-    static func zeroTempBasal(timestamp: Date, duration: Decimal) -> ComputedPumpHistoryEvent {
+    static func zeroTempBasal(timestamp: Date, duration: Decimal, omitFromTempHistory: Bool) -> ComputedPumpHistoryEvent {
         ComputedPumpHistoryEvent(
             id: UUID().uuidString,
             type: .tempBasal,
@@ -141,7 +166,8 @@ extension ComputedPumpHistoryEvent {
             note: nil,
             isSMB: nil,
             isExternal: nil,
-            insulin: nil
+            insulin: nil,
+            omitFromTempHistory: omitFromTempHistory
         )
     }
 

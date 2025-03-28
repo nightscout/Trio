@@ -78,7 +78,8 @@ struct IobHistory {
         // this stops the most recent temp basal, the 1m comes from Javascript
         let zeroTempBasal = ComputedPumpHistoryEvent.zeroTempBasal(
             timestamp: clock + 1.minutesToSeconds,
-            duration: zeroTempDuration ?? 0
+            duration: zeroTempDuration ?? 0,
+            omitFromTempHistory: false
         )
 
         // match temp basal entries to their duration entry
@@ -184,7 +185,10 @@ struct IobHistory {
                     // the temp basal starts during the suspend but goes on
                     // past, adjust the start date
                     let newDuration = tempBasalEnd.timeIntervalSince(suspend.end).secondsToMinutes
-                    let newTempBasal = tempBasal.copyWith(duration: newDuration, timestamp: suspend.end)
+                    let newTempBasal = tempBasal.copyWith(
+                        duration: newDuration,
+                        timestamp: suspend.end
+                    )
                     return modifyTempBasalDuringSuspend(tempBasal: newTempBasal, suspends: Array(suspends.dropFirst(index + 1)))
                 case (true, true):
                     // the suspend is completely within the temp basal
@@ -192,7 +196,11 @@ struct IobHistory {
                     let firstDuration = suspend.timestamp.timeIntervalSince(tempBasal.timestamp).secondsToMinutes
                     let firstTempBasal = tempBasal.copyWith(duration: firstDuration)
                     let secondDuration = tempBasalEnd.timeIntervalSince(suspend.end).secondsToMinutes
-                    let secondTempBasal = tempBasal.copyWith(duration: secondDuration, timestamp: suspend.end)
+                    let secondTempBasal = tempBasal.copyWith(
+                        duration: secondDuration,
+                        timestamp: suspend.end,
+                        omitFromTempHistory: true
+                    )
                     return [firstTempBasal] +
                         modifyTempBasalDuringSuspend(tempBasal: secondTempBasal, suspends: Array(suspends.dropFirst(index + 1)))
                 }
@@ -210,21 +218,29 @@ struct IobHistory {
             return tempBasals
         }
 
-        let lastSuspendTime = lastSuspend.timestamp
-        return tempBasals.map { event in
-            let duration = event.duration ?? 0
-            let eventEnd = event.timestamp + duration.minutesToSeconds
-            guard eventEnd <= lastSuspendTime else {
-                return event
-            }
+        return tempBasals
+        // This logic in Javascript never runs because it's in an `if`
+        // statement that compares a date (number) with a timestamp (string)
+        // which will always evaluate to false.
+        //
+        // Although I think this logic is what the algorithm is trying
+        // to do, this will get rid of zero duration temp, so I don't
+        // think we should use it
+        /*
+         let lastSuspendTime = lastSuspend.timestamp
+         return tempBasals.map { event in
+             guard event.end > lastSuspendTime else {
+                 return event
+             }
 
-            if event.timestamp > lastSuspendTime {
-                return event.copyWith(duration: 0)
-            } else {
-                let newDuration = duration - lastSuspendTime.timeIntervalSince(event.timestamp).secondsToMinutes
-                return event.copyWith(duration: newDuration)
-            }
-        }
+             if event.timestamp > lastSuspendTime {
+                 return event.copyWith(duration: 0)
+             } else {
+                 let newDuration = lastSuspendTime.timeIntervalSince(event.timestamp).secondsToMinutes
+                 return event.copyWith(duration: newDuration)
+             }
+         }
+         */
     }
 
     private static func adjustForSuspendedPrior(
@@ -242,17 +258,24 @@ struct IobHistory {
                 return event
             }
 
-            let duration = event.duration ?? 0
-            let eventEnd = event.timestamp + duration.minutesToSeconds
-            if eventEnd < firstResumeDate {
+            if event.end < firstResumeDate {
                 return event.copyWith(duration: 0)
             } else {
-                let newDuration = duration - eventEnd.timeIntervalSince(firstResumeDate).secondsToMinutes
+                let duration = event.duration ?? 0
+                let newDuration = duration - event.end.timeIntervalSince(firstResumeDate).secondsToMinutes
                 return event.copyWith(duration: newDuration, timestamp: firstResumeDate)
             }
         }
     }
 
+    /// Split up temp basals that overlap with suspends
+    ///
+    /// In Javascript, the algorithm mutates the original tempBasal and includes the mutated
+    /// entry in the tempHistory that it returns. But, it omits any zero temp basals it injects
+    /// or for temp basals that it splits into multiple parts it only includes the original temp basal
+    /// in the temp history even though it accounts for these with the IoB calculation. To signify
+    /// these entries that are just for accounting, we mark them as
+    /// `omitFromTempHistory == true`.
     private static func splitAroundSuspends(
         tempBasals: [ComputedPumpHistoryEvent],
         suspends: [PumpSuspended]
@@ -261,7 +284,9 @@ struct IobHistory {
         tempBasals = adjustForCurrentlySuspended(tempBasals: tempBasals, suspends: suspends)
         tempBasals = tempBasals.flatMap { modifyTempBasalDuringSuspend(tempBasal: $0, suspends: suspends) }
         let zeroTempBasals = suspends
-            .map { ComputedPumpHistoryEvent.zeroTempBasal(timestamp: $0.timestamp, duration: $0.durationInMinutes) }
+            .map {
+                ComputedPumpHistoryEvent
+                    .zeroTempBasal(timestamp: $0.timestamp, duration: $0.durationInMinutes, omitFromTempHistory: true) }
 
         return (tempBasals + zeroTempBasals).sorted { $0.timestamp < $1.timestamp
         }
@@ -429,7 +454,7 @@ struct IobHistory {
         let suspends = try getSuspends(pumpHistory: pumpHistory, clock: clock)
         let boluses = pumpHistory.filter({ $0.type == .bolus }).map { $0.copyWith(insulin: $0.amount) }
 
-        let tempHistory: [ComputedPumpHistoryEvent]
+        var tempHistory: [ComputedPumpHistoryEvent]
         if profile.suspendZerosIob {
             tempHistory = splitAroundSuspends(tempBasals: tempBasals, suspends: suspends)
         } else {
@@ -441,6 +466,8 @@ struct IobHistory {
             profile: profile,
             autosens: autosens
         )
+
+        tempHistory = tempHistory.filter { !$0.omitFromTempHistory }
 
         return (boluses + tempBoluses + tempHistory).sorted { $0.timestamp < $1.timestamp }
     }
