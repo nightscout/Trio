@@ -1,6 +1,6 @@
 import Foundation
 
-struct ComputedCarbs {
+struct ComputedCarbs: Codable {
     var carbs: Decimal
     var nsCarbs: Decimal
     var bwCarbs: Decimal
