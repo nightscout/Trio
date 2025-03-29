@@ -7,6 +7,7 @@ extension DynamicSettings {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() var settings: SettingsManager!
         @Injected() var storage: FileStorage!
+        @Injected() var tddStorage: TDDStorage!
 
         // this is an *interim* fix to provide better UI/UX
         // FIXME: needs to be refactored, once oref-swift lands and dynamicISF becomes swift-bound
@@ -59,11 +60,18 @@ extension DynamicSettings {
             subscribePreferencesSetting(\.tddAdjBasal, on: $tddAdjBasal) { tddAdjBasal = $0 }
             subscribePreferencesSetting(\.threshold_setting, on: $threshold_setting) { threshold_setting = $0 }
 
-            do {
-                hasValidTDD = try hasSufficientTDD()
-            } catch {
-                debug(.coreData, "Error when fetching TDD for validity checking: \(error)")
-                hasValidTDD = false
+            Task {
+                do {
+                    let hasValidTDD = try await tddStorage.hasSufficientTDD()
+                    await MainActor.run {
+                        self.hasValidTDD = hasValidTDD
+                    }
+                } catch {
+                    debug(.coreData, "Error when fetching TDD for validity checking: \(error)")
+                    await MainActor.run {
+                        hasValidTDD = false
+                    }
+                }
             }
         }
 

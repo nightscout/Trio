@@ -117,7 +117,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
     init(resolver: Resolver) {
         injectServices(resolver)
-        openAPS = OpenAPS(storage: storage)
+        openAPS = OpenAPS(storage: storage, tddStorage: tddStorage)
         subscribe()
         lastLoopDateSubject.send(lastLoopDate)
 

@@ -8,13 +8,15 @@ final class OpenAPS {
     private let processQueue = DispatchQueue(label: "OpenAPS.processQueue", qos: .utility)
 
     private let storage: FileStorage
+    private let tddStorage: TDDStorage
 
     let context = CoreDataStack.shared.newTaskContext()
 
     let jsonConverter = JSONConverter()
 
-    init(storage: FileStorage) {
+    init(storage: FileStorage, tddStorage: TDDStorage) {
         self.storage = storage
+        self.tddStorage = tddStorage
     }
 
     static let dateFormatter: ISO8601DateFormatter = {
@@ -284,7 +286,8 @@ final class OpenAPS {
         async let basalAsync = loadFileFromStorageAsync(name: Settings.basalProfile)
         async let autosenseAsync = loadFileFromStorageAsync(name: Settings.autosense)
         async let reservoirAsync = loadFileFromStorageAsync(name: Monitor.reservoir)
-        async let preferencesAsync = loadFileFromStorageAsync(name: Settings.preferences)
+        async let preferencesAsync = storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
+        async let hasSufficientTddForDynamic = tddStorage.hasSufficientTDD()
 
         // Await the results of asynchronous tasks
         let (
@@ -295,7 +298,8 @@ final class OpenAPS {
             profile,
             basalProfile,
             autosens,
-            reservoir
+            reservoir,
+            hasSufficientTdd
         ) = await (
             try parsePumpHistory(await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
             try carbs,
@@ -304,7 +308,8 @@ final class OpenAPS {
             profileAsync,
             basalAsync,
             autosenseAsync,
-            reservoirAsync
+            reservoirAsync,
+            try hasSufficientTddForDynamic
         )
 
         // Meal calculation
@@ -330,30 +335,9 @@ final class OpenAPS {
             storage.save(iob, as: Monitor.iob)
         }
 
-        // fetch this synchronously, as we possibly manipulate it after fetching
-        var preferences = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
+        var preferences = await preferencesAsync
 
-        // FIXME: remove this at a later release; hard code it to false for now
-        if preferences.enableDynamicCR {
-            preferences.enableDynamicCR = false
-        }
-
-        var hasSufficientTddForDynamic: Bool = false
-
-        context.performAndWait {
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "TDDStored")
-            fetchRequest.predicate = NSPredicate(
-                format: "date > %@ AND total > 0",
-                Date().addingTimeInterval(-86400 * 7) as NSDate
-            )
-            fetchRequest.resultType = .countResultType
-
-            let count = (try? self.context.count(for: fetchRequest)) ?? 0
-            let threshold = Int(Double(7 * 288) * 0.85)
-            hasSufficientTddForDynamic = count >= threshold
-        }
-
-        if !hasSufficientTddForDynamic, preferences.useNewFormula || (preferences.useNewFormula && preferences.sigmoid) {
+        if !hasSufficientTdd, preferences.useNewFormula || (preferences.useNewFormula && preferences.sigmoid) {
             debug(.openAPS, "Insufficient TDD for dynamic formula; disabling for determine basal run.")
             preferences.useNewFormula = false
             preferences.sigmoid = false
