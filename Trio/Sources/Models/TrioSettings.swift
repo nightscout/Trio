@@ -69,6 +69,7 @@ struct TrioSettings: JSON, Equatable {
     var useLiveActivity: Bool = false
     var lockScreenView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
+    var timeInRangeType: TimeInRangeType = .timeInTightRange
 }
 
 extension TrioSettings: Decodable {
@@ -293,6 +294,10 @@ extension TrioSettings: Decodable {
 
         if let bolusShortcut = try? container.decode(BolusShortcutLimit.self, forKey: .bolusShortcut) {
             settings.bolusShortcut = bolusShortcut
+        }
+
+        if let timeInRangeType = try? container.decode(TimeInRangeType.self, forKey: .timeInRangeType) {
+            settings.timeInRangeType = timeInRangeType
         }
 
         self = settings

@@ -5,6 +5,7 @@ import HealthKit
 import LoopKit
 import LoopKitUI
 import Swinject
+import TidepoolServiceKit
 
 protocol TidepoolManager {
     func addTidepoolService(service: Service)
@@ -96,12 +97,12 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
 
     /// Loads the Tidepool service from raw stored data
     private func tidepoolServiceFromRaw(_ rawValue: [String: Any]) -> RemoteDataService? {
-        guard let rawState = rawValue["state"] as? Service.RawStateValue,
-              let serviceType = pluginManager.getServiceTypeByIdentifier("TidepoolService")
+        let serviceType = TidepoolService.self
+        guard let rawState = rawValue["state"] as? Service.RawStateValue
         else { return nil }
 
         if let service = serviceType.init(rawState: rawState) {
-            return service as? RemoteDataService
+            return service as RemoteDataService
         }
         return nil
     }
