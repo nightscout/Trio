@@ -460,32 +460,41 @@ extension Home {
 
                 Spacer()
 
-                HStack {
-                    if state.pumpSuspended {
-                        Text("Pump suspended")
-                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                            .foregroundColor(.loopGray)
-                    } else if let tempBasalString = tempBasalString {
-                        Image(systemName: "drop.circle")
-                            .font(.callout)
-                            .foregroundColor(.insulinTintColor)
-                        if tempBasalString.count > 5 {
-                            Text(tempBasalString)
+                if state.maxIOB == 0.0 {
+                    HStack {
+                        Image(systemName: "exclamationmark.circle.fill")
+                        Text("MaxIOB: 0 U")
+                    }.bold()
+                        .foregroundStyle(Color.red)
+                        .font(.callout)
+                } else {
+                    HStack {
+                        if state.pumpSuspended {
+                            Text("Pump suspended")
                                 .font(.callout).fontWeight(.bold).fontDesign(.rounded)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.85)
-                                .truncationMode(.tail)
-                                .allowsTightening(true)
+                                .foregroundColor(.loopGray)
+                        } else if let tempBasalString = tempBasalString {
+                            Image(systemName: "drop.circle")
+                                .font(.callout)
+                                .foregroundColor(.insulinTintColor)
+                            if tempBasalString.count > 5 {
+                                Text(tempBasalString)
+                                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
+                                    .truncationMode(.tail)
+                                    .allowsTightening(true)
+                            } else {
+                                // Short strings can just display normally
+                                Text(tempBasalString).font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                            }
                         } else {
-                            // Short strings can just display normally
-                            Text(tempBasalString).font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                            Image(systemName: "drop.circle")
+                                .font(.callout)
+                                .foregroundColor(.insulinTintColor)
+                            Text("No Data")
+                                .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                         }
-                    } else {
-                        Image(systemName: "drop.circle")
-                            .font(.callout)
-                            .foregroundColor(.insulinTintColor)
-                        Text("No Data")
-                            .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                 }
             }.padding(.horizontal)
