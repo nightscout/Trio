@@ -27,13 +27,12 @@ struct TDDResult {
 /// Implementation of the TDD Calculator
 final class BaseTDDStorage: TDDStorage, Injectable {
     @Injected() private var storage: FileStorage!
-    
+
     private let privateContext = CoreDataStack.shared.newTaskContext()
 
     init(resolver: Resolver) {
         injectServices(resolver)
     }
-
 
     /// Main function to calculate TDD from pump history and basal profile
     /// - Parameters:
@@ -398,7 +397,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
 
         return gaps
     }
-    
+
     //    /// Finds gaps between tempBasal events where scheduled basal ran, excluding suspend-resume periods
     //    /// - Parameters:
     //    ///   - tempBasalEvents: Array of pump history events of type tempBasal

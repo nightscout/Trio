@@ -373,7 +373,7 @@ final class OpenAPS {
 
             return determination
         } else {
-            throw APSError.apsError(message: "Determination is nil")
+            throw APSError.apsError(message: "No determination data.")
         }
     }
 

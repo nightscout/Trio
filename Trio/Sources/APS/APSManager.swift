@@ -33,23 +33,20 @@ enum APSError: LocalizedError {
     case invalidPumpState(message: String)
     case glucoseError(message: String)
     case apsError(message: String)
-    case deviceSyncError(message: String)
     case manualBasalTemp(message: String)
 
     var errorDescription: String? {
         switch self {
         case let .pumpError(error):
-            return "Pump error: \(error.localizedDescription)"
+            return String(localized: "Pump Error (\(error.localizedDescription)).")
         case let .invalidPumpState(message):
-            return "Error: Invalid Pump State: \(message)"
+            return String(localized: "Invalid Pump State (\(message)).")
         case let .glucoseError(message):
-            return "Error: Invalid glucose: \(message)"
+            return String(localized: "Invalid Glucose (\(message)).")
         case let .apsError(message):
-            return "APS error: \(message)"
-        case let .deviceSyncError(message):
-            return "Sync error: \(message)"
+            return String(localized: "Invalid Algorithm Response (\(message)).")
         case let .manualBasalTemp(message):
-            return "Manual Basal Temp : \(message)"
+            return String(localized: "Manual Temporary Basal Rate (\(message)). Looping suspended.")
         }
     }
 }
@@ -351,21 +348,21 @@ final class BaseAPSManager: APSManager, Injectable {
 
     private func verifyStatus() -> Error? {
         guard let pump = pumpManager else {
-            return APSError.invalidPumpState(message: "Pump not set")
+            return APSError.invalidPumpState(message: String(localized: "Pump not set"))
         }
         let status = pump.status.pumpStatus
 
         guard !status.bolusing else {
-            return APSError.invalidPumpState(message: "Pump is bolusing")
+            return APSError.invalidPumpState(message: String(localized: "Pump is bolusing"))
         }
 
         guard !status.suspended else {
-            return APSError.invalidPumpState(message: "Pump suspended")
+            return APSError.invalidPumpState(message: String(localized: "Pump suspended"))
         }
 
         let reservoir = storage.retrieve(OpenAPS.Monitor.reservoir, as: Decimal.self) ?? 100
         guard reservoir >= 0 else {
-            return APSError.invalidPumpState(message: "Reservoir is empty")
+            return APSError.invalidPumpState(message: String(localized: "Reservoir is empty"))
         }
 
         return nil
@@ -417,20 +414,20 @@ final class BaseAPSManager: APSManager, Injectable {
 
             guard glucose.count > 2 else {
                 debug(.apsManager, "Not enough glucose data")
-                self.processError(APSError.glucoseError(message: "Not enough glucose data"))
+                self.processError(APSError.glucoseError(message: String(localized: "Not enough glucose data")))
                 return false
             }
 
             let dateOfLastGlucose = glucose.first?.date
             guard dateOfLastGlucose ?? Date() >= Date().addingTimeInterval(-12.minutes.timeInterval) else {
                 debug(.apsManager, "Glucose data is stale")
-                self.processError(APSError.glucoseError(message: "Glucose data is stale"))
+                self.processError(APSError.glucoseError(message: String(localized: "Glucose data is stale")))
                 return false
             }
 
             guard !GlucoseStored.glucoseIsFlat(glucose) else {
                 debug(.apsManager, "Glucose data is too flat")
-                self.processError(APSError.glucoseError(message: "Glucose data is too flat"))
+                self.processError(APSError.glucoseError(message: String(localized: "Glucose data is too flat")))
                 return false
             }
 
