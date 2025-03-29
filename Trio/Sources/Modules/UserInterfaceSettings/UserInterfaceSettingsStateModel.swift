@@ -12,7 +12,6 @@ extension UserInterfaceSettings {
         @Published var carbsRequiredThreshold: Decimal = 0
         @Published var glucoseColorScheme: GlucoseColorScheme = .staticColor
         @Published var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
-        @Published var timeInRangeChartStyle: TimeInRangeChartStyle = .vertical
 
         var units: GlucoseUnits = .mgdL
 
@@ -40,8 +39,6 @@ extension UserInterfaceSettings {
             subscribeSetting(\.glucoseColorScheme, on: $glucoseColorScheme) { glucoseColorScheme = $0 }
 
             subscribeSetting(\.eA1cDisplayUnit, on: $eA1cDisplayUnit) { eA1cDisplayUnit = $0 }
-
-            subscribeSetting(\.timeInRangeChartStyle, on: $timeInRangeChartStyle) { timeInRangeChartStyle = $0 }
         }
     }
 }
