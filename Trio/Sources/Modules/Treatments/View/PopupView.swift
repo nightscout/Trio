@@ -69,7 +69,7 @@ private extension View {
         }
 
         return font(.system(.headline, weight: .bold))
-            .frame(minWidth: 45, alignment: .trailing)
+            .frame(minWidth: 45, alignment: .center)
             .foregroundStyle(solutionColor)
             .allowsTightening(true)
             .fixedSize(horizontal: true, vertical: true)
