@@ -109,7 +109,7 @@ class BundleReference {}
     }
 
     func checkBundleJsAgainstSwift(iobInputs: IobInputs) async throws {
-        let openAps = OpenAPS(storage: BaseFileStorage())
+        let openAps = OpenAPS(storage: BaseFileStorage(), tddStorage: MockTDDStorage())
         let (iobResultSwift, _) = OpenAPSSwift.iob(
             pumphistory: iobInputs.history,
             profile: try JSONBridge.to(iobInputs.profile),
