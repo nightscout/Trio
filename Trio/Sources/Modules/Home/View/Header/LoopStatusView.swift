@@ -12,6 +12,7 @@ struct LoopStatusView: View {
     @State var helpSheetDetent = PresentationDetent.fraction(0.9)
 
     @State private var statusTitle: String = ""
+    @State private var lastDetermination: OrefDetermination?
 
     var body: some View {
         ScrollView {
@@ -44,7 +45,8 @@ struct LoopStatusView: View {
 
                 if let errorMessage = state.errorMessage, let date = state.errorDate {
                     Group {
-                        Text("Error During Algorithm Run at \(Formatter.dateFormatter.string(from: date))").font(.headline)
+                        Text("Loop at \(Formatter.dateFormatter.string(from: date)) failed.").font(.headline)
+                            .font(.headline)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(errorMessage).font(.caption).fixedSize(horizontal: false, vertical: true)
                     }.foregroundColor(.loopRed)
@@ -124,6 +126,9 @@ struct LoopStatusView: View {
                 LoopStatusHelpView(state: state, helpSheetDetent: $helpSheetDetent, isHelpSheetPresented: $isHelpSheetPresented)
             }
         }
+        .onAppear {
+            lastDetermination = state.determinationsFromPersistence.first
+        }
         .presentationDetents([.height(sheetContentHeight)])
         .presentationDragIndicator(.visible)
         .onPreferenceChange(ContentSizeKey.self) { newSize in
@@ -163,11 +168,34 @@ struct LoopStatusView: View {
     }
 
     private func setStatusTitle() {
-        if let determination = state.determinationsFromPersistence.first {
-            statusTitle =
-                "Enacted at \(Formatter.dateFormatter.string(from: determination.deliverAt ?? Date()))"
+        if let determination = state.determinationsFromPersistence.first, let deliverAt = determination.deliverAt {
+            let minutesAgo = abs(deliverAt.timeIntervalSinceNow) / 60
+
+            if deliverAt < Date().addingTimeInterval(-5 * 60) {
+                let roundedMinutes = Int(minutesAgo.rounded())
+                statusTitle = String(
+                    localized: "Trio has not looped in \(roundedMinutes) minutes."
+                )
+            } else {
+                statusTitle = String(
+                    localized: "Enacted at \(Formatter.dateFormatter.string(from: deliverAt))"
+                )
+            }
+        } else if let determination = lastDetermination, let deliverAt = determination.deliverAt {
+            let minutesAgo = abs(deliverAt.timeIntervalSinceNow) / 60
+
+            if deliverAt < Date().addingTimeInterval(-5 * 60) {
+                let roundedMinutes = Int(minutesAgo.rounded())
+                statusTitle = String(
+                    localized: "Trio has not looped in \(roundedMinutes) minutes."
+                )
+            } else {
+                statusTitle = String(
+                    localized: "Enacted at \(Formatter.dateFormatter.string(from: deliverAt))"
+                )
+            }
         } else {
-            statusTitle = "Not enacted."
+            statusTitle = String(localized: "Not looping.")
         }
     }
 
