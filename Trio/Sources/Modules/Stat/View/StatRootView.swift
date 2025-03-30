@@ -130,7 +130,8 @@ extension Stat {
                             highLimit: state.highLimit,
                             lowLimit: state.lowLimit,
                             units: state.units,
-                            glucoseRangeStats: state.glucoseRangeStats
+                            glucoseRangeStats: state.glucoseRangeStats,
+                            timeInRangeType: state.timeInRangeType
                         )
                     }
                 }
@@ -144,7 +145,8 @@ extension Stat {
                         highLimit: state.highLimit,
                         lowLimit: state.lowLimit,
                         units: state.units,
-                        glucose: state.glucoseFromPersistence
+                        glucose: state.glucoseFromPersistence,
+                        timeInRangeType: state.timeInRangeType
                     )
 
                     Divider()
@@ -176,7 +178,7 @@ extension Stat {
 
             Picker("Duration", selection: $state.selectedIntervalForInsulinStats) {
                 ForEach(StateModel.StatsTimeInterval.allCases) { timeInterval in
-                    Text(timeInterval.rawValue).tag(timeInterval)
+                    Text(timeInterval.displayName).tag(timeInterval)
                 }
             }
             .pickerStyle(.segmented)
@@ -316,7 +318,7 @@ extension Stat {
 
             Picker("Duration", selection: $state.selectedIntervalForMealStats) {
                 ForEach(StateModel.StatsTimeInterval.allCases, id: \.self) { timeInterval in
-                    Text(timeInterval.rawValue)
+                    Text(timeInterval.displayName)
                 }
             }
             .pickerStyle(.segmented)

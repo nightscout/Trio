@@ -16,6 +16,9 @@ extension Adjustments.StateModel {
                 async let updateState: () = updateLatestTempTargetConfigurationOfState(from: id)
                 async let setTempTarget: () = setCurrentTempTarget(from: id)
                 _ = await (updateState, setTempTarget)
+
+                // perform determine basal sync to immediately apply temp target changes
+                try await apsManager.determineBasalSync()
             } catch {
                 debug(
                     .default,

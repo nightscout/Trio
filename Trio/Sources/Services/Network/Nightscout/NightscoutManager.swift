@@ -504,6 +504,19 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             return
         }
 
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: TDDStored.self,
+            onContext: backgroundContext,
+            predicate: NSPredicate.predicateFor30MinAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 1
+        )
+
+        let tdd: Decimal? = await backgroundContext.perform {
+            (results as? [TDDStored])?.first?.total as? Decimal
+        }
+
         // Suggested / Enacted
         async let enactedDeterminationID = determinationStorage
             .fetchLastDeterminationObjectID(predicate: NSPredicate.enactedDeterminationsNotYetUploadedToNightscout)
@@ -543,6 +556,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 suggestion.minPredBG = suggestion.minPredBG?.asMmolL
                 suggestion.threshold = suggestion.threshold?.asMmolL
             }
+
+            suggestion.reason = injectTDD(into: suggestion.reason, tdd: tdd)
+            suggestion.tdd = tdd
+
             // Check whether the last suggestion that was uploaded is the same that is fetched again when we are attempting to upload the enacted determination
             // Apparently we are too fast; so the flag update is not fast enough to have the predicate filter last suggestion out
             // If this check is truthy, set suggestion to nil so it's not uploaded again
@@ -553,17 +570,20 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
         }
 
-        if let fetchedEnacted = fetchedEnactedDetermination, settingsManager.settings.units == .mmolL {
-            var modifiedFetchedEnactedDetermination = fetchedEnactedDetermination
-            modifiedFetchedEnactedDetermination?
-                .reason = parseReasonGlucoseValuesToMmolL(fetchedEnacted.reason)
-            // TODO: verify that these parsings are needed for 3rd party apps, e.g., LoopFollow
-            modifiedFetchedEnactedDetermination?.current_target = fetchedEnacted.current_target?.asMmolL
-            modifiedFetchedEnactedDetermination?.minGuardBG = fetchedEnacted.minGuardBG?.asMmolL
-            modifiedFetchedEnactedDetermination?.minPredBG = fetchedEnacted.minPredBG?.asMmolL
-            modifiedFetchedEnactedDetermination?.threshold = fetchedEnacted.threshold?.asMmolL
+        if var enacted = fetchedEnactedDetermination {
+            if settingsManager.settings.units == .mmolL {
+                enacted.reason = parseReasonGlucoseValuesToMmolL(enacted.reason)
+                // TODO: verify that these parsings are needed for 3rd party apps, e.g., LoopFollow
+                enacted.current_target = enacted.current_target?.asMmolL
+                enacted.minGuardBG = enacted.minGuardBG?.asMmolL
+                enacted.minPredBG = enacted.minPredBG?.asMmolL
+                enacted.threshold = enacted.threshold?.asMmolL
+            }
 
-            fetchedEnactedDetermination = modifiedFetchedEnactedDetermination
+            enacted.reason = injectTDD(into: enacted.reason, tdd: tdd)
+            enacted.tdd = tdd
+
+            fetchedEnactedDetermination = enacted
         }
 
         // Gather all relevant data for OpenAPS Status
@@ -786,6 +806,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 let isAPNSProduction = UserDefaults.standard.bool(forKey: "isAPNSProduction")
                 let presetOverrides = try await overridesStorage.getPresetOverridesForNightscout()
                 let teamID = Bundle.main.object(forInfoDictionaryKey: "TeamID") as? String ?? ""
+                let expireDate = BuildDetails.shared.calculateExpirationDate()
 
                 let profileStore = NightscoutProfileStore(
                     defaultProfile: defaultProfile,
@@ -798,7 +819,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     deviceToken: deviceToken,
                     isAPNSProduction: isAPNSProduction,
                     overridePresets: presetOverrides,
-                    teamID: teamID
+                    teamID: teamID,
+                    expirationDate: expireDate
                 )
 
                 guard let nightscout = nightscoutAPI, isNetworkReachable else {
@@ -810,6 +832,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 }
 
                 try await nightscout.uploadProfile(profileStore)
+
+                BuildDetails.shared.recordUploadedExpireDate(expireDate: expireDate)
+
                 debug(.nightscout, "Profile uploaded")
             } catch {
                 debug(.nightscout, "NightscoutManager uploadProfile: \(error.localizedDescription)")
@@ -1446,5 +1471,45 @@ extension BaseNightscoutManager {
         }
 
         return updatedReason
+    }
+}
+
+extension BaseNightscoutManager {
+    /// Injects TDD into the provided `reason` string if TDD is available.
+    ///
+    /// - Parameters:
+    ///   - reason: The raw reason string (e.g., "minPredBG=5.2, IOBpredBG=102").
+    ///   - tdd: The total daily dose of insulin.
+    /// - Returns: A modified reason string that includes "TDD: x U" appended
+    ///   after the last matched prediction term, or at the end if no match is found.
+    func injectTDD(into reason: String, tdd: Decimal?) -> String {
+        guard let tdd = tdd else { return reason }
+
+        let tddString = ", TDD: \(tdd) U"
+
+        // Regex that matches any of the keywords followed by an optional colon, whitespace, then a number.
+        let pattern = "(minPredBG|minGuardBG|IOBpredBG|COBpredBG|UAMpredBG):?\\s*(-?\\d+(?:\\.\\d+)?)"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+            return reason + tddString
+        }
+
+        // Split the reason at the first semicolon (if present)
+        let components = reason.split(separator: ";", maxSplits: 1, omittingEmptySubsequences: false)
+        let mainPart = String(components[0])
+        let tailPart = components.count > 1 ? ";" + components[1] : ""
+
+        // Search only in the main part for the keywords
+        let nsRange = NSRange(mainPart.startIndex ..< mainPart.endIndex, in: mainPart)
+        let matches = regex.matches(in: mainPart, options: [], range: nsRange)
+
+        // If found, insert TDD after the last occurrence in the main part.
+        if let lastMatch = matches.last, let matchRange = Range(lastMatch.range, in: mainPart) {
+            var modifiedMainPart = mainPart
+            modifiedMainPart.insert(contentsOf: tddString, at: matchRange.upperBound)
+            return modifiedMainPart + tailPart
+        }
+
+        // If no match is found, append TDD at the end of the original reason string.
+        return reason + tddString
     }
 }

@@ -33,6 +33,8 @@ struct SettingInputSection<VerboseHint: View>: View {
     var verboseHint: VerboseHint
     var headerText: String?
     var footerText: String?
+    var isToggleDisabled: Bool = false
+    var miniHintColor: Color = .secondary
 
     @ObservedObject private var pickerSettingsProvider = PickerSettingsProvider.shared
     @State private var displayPicker: Bool = false
@@ -55,6 +57,7 @@ struct SettingInputSection<VerboseHint: View>: View {
 
                     case .boolean:
                         toggleView(label: label, isOn: $booleanValue)
+                            .disabled(isToggleDisabled)
 
                     case let .conditionalDecimal(key):
                         VStack {
@@ -73,7 +76,8 @@ struct SettingInputSection<VerboseHint: View>: View {
                     hintSection(
                         miniHint: miniHint,
                         shouldDisplayHint: $shouldDisplayHint,
-                        verboseHint: verboseHint
+                        verboseHint: verboseHint,
+                        miniHintColor: miniHintColor
                     )
                 }
             },
@@ -235,11 +239,16 @@ struct SettingInputSection<VerboseHint: View>: View {
         }.padding(.top)
     }
 
-    private func hintSection(miniHint: String, shouldDisplayHint: Binding<Bool>, verboseHint: VerboseHint) -> some View {
+    private func hintSection(
+        miniHint: String,
+        shouldDisplayHint: Binding<Bool>,
+        verboseHint: VerboseHint,
+        miniHintColor: Color = .secondary
+    ) -> some View {
         HStack(alignment: .center) {
             Text(miniHint)
                 .font(.footnote)
-                .foregroundColor(.secondary)
+                .foregroundColor(miniHintColor)
                 .lineLimit(nil)
             Spacer()
             Button(action: {

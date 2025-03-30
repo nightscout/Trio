@@ -8,9 +8,9 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .notAllowed:
-            return String(localized: "Not allowed", table: "ShortcutsDetail")
+            return String(localized: "Not allowed")
         case .limitBolusMax:
-            return String(localized: "Max bolus", table: "ShortcutsDetail")
+            return String(localized: "Max bolus")
         }
     }
 }
@@ -54,7 +54,6 @@ struct TrioSettings: JSON, Equatable {
     var glucoseColorScheme: GlucoseColorScheme = .staticColor
     var xGridLines: Bool = true
     var yGridLines: Bool = true
-    var timeInRangeChartStyle: TimeInRangeChartStyle = .vertical
     var rulerMarks: Bool = true
     var forecastDisplayType: ForecastDisplayType = .cone
     var maxCarbs: Decimal = 250
@@ -67,9 +66,11 @@ struct TrioSettings: JSON, Equatable {
     var sweetMeals: Bool = false
     var sweetMealFactor: Decimal = 1
     var displayPresets: Bool = true
+    var confirmBolus: Bool = false
     var useLiveActivity: Bool = false
     var lockScreenView: LockScreenView = .simple
     var bolusShortcut: BolusShortcutLimit = .notAllowed
+    var timeInRangeType: TimeInRangeType = .timeInTightRange
 }
 
 extension TrioSettings: Decodable {
@@ -252,10 +253,6 @@ extension TrioSettings: Decodable {
             settings.yGridLines = yGridLines
         }
 
-        if let timeInRangeChartStyle = try? container.decode(TimeInRangeChartStyle.self, forKey: .timeInRangeChartStyle) {
-            settings.timeInRangeChartStyle = timeInRangeChartStyle
-        }
-
         if let rulerMarks = try? container.decode(Bool.self, forKey: .rulerMarks) {
             settings.rulerMarks = rulerMarks
         }
@@ -288,6 +285,10 @@ extension TrioSettings: Decodable {
             settings.displayPresets = displayPresets
         }
 
+        if let confirmBolus = try? container.decode(Bool.self, forKey: .confirmBolus) {
+            settings.confirmBolus = confirmBolus
+        }
+
         if let useLiveActivity = try? container.decode(Bool.self, forKey: .useLiveActivity) {
             settings.useLiveActivity = useLiveActivity
         }
@@ -298,6 +299,10 @@ extension TrioSettings: Decodable {
 
         if let bolusShortcut = try? container.decode(BolusShortcutLimit.self, forKey: .bolusShortcut) {
             settings.bolusShortcut = bolusShortcut
+        }
+
+        if let timeInRangeType = try? container.decode(TimeInRangeType.self, forKey: .timeInRangeType) {
+            settings.timeInRangeType = timeInRangeType
         }
 
         self = settings
