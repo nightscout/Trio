@@ -205,8 +205,7 @@ enum SettingItems {
                 "Low Threshold",
                 "High Threshold",
                 "X-Axis Interval Step",
-                "Override eA1c Unit",
-                "Standing / Laying TIR Chart",
+                "eA1c/GMI Display Unit",
                 "Show Carbs Required Badge",
                 "Carbs Required Threshold",
                 "Forecast Display Type",
@@ -217,7 +216,10 @@ enum SettingItems {
                 "Appearance",
                 "Dark Scheme",
                 "Light Scheme",
-                "Glucose Color Scheme"
+                "Glucose Color Scheme",
+                "Time in Range Type",
+                "Time in Tight Range (TITR)",
+                "Time in Normoglycemia (TING)"
             ],
             path: ["Features", "User Interface"]
         ),
