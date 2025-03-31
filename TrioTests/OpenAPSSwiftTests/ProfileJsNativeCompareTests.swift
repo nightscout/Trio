@@ -59,7 +59,7 @@ import Testing
 
     @Test("should compare Profile for js and native with base inputs") func withBasicInputs() async throws {
         let inputs = createBaseInputs()
-        let openAps = OpenAPS(storage: BaseFileStorage())
+        let openAps = OpenAPS(storage: BaseFileStorage(), tddStorage: MockTDDStorage())
         let profileJs = await openAps.makeProfileJavascript(
             preferences: inputs.0,
             pumpSettings: inputs.1,
