@@ -298,8 +298,9 @@ extension Preferences: Decodable {
             preferences.sigmoid = sigmoid
         }
 
+        // FIXME: remove this at a later release; hard code it to false for now
         if let enableDynamicCR = try? container.decode(Bool.self, forKey: .enableDynamicCR) {
-            preferences.enableDynamicCR = enableDynamicCR
+            preferences.enableDynamicCR = false
         }
 
         if let useNewFormula = try? container.decode(Bool.self, forKey: .useNewFormula) {

@@ -37,6 +37,9 @@ import Testing
         let basal: Decimal = 1.5
         let fraction: Decimal = 0.8
         let maxBolus: Decimal = 10
+        let maxIOB: Decimal = 15.0
+        let maxCOB: Decimal = 120.0
+        let minPredBG: Decimal = 80.0
 
         // STEP 2: Create calculation input
         let input = CalculationInput(
@@ -54,7 +57,10 @@ import Testing
             sweetMealFactor: sweetMealFactor,
             basal: basal,
             fraction: fraction,
-            maxBolus: maxBolus
+            maxBolus: maxBolus,
+            maxIOB: maxIOB,
+            maxCOB: maxCOB,
+            minPredBG: minPredBG
         )
 
         // STEP 3: Calculate insulin
@@ -144,6 +150,9 @@ import Testing
         let basal: Decimal = 1.5
         let fraction: Decimal = 0.8
         let maxBolus: Decimal = 10
+        let maxIOB: Decimal = 15.0
+        let maxCOB: Decimal = 120.0
+        let minPredBG: Decimal = 80.0
 
         // STEP 2: Create calculation input
         let input = CalculationInput(
@@ -161,7 +170,10 @@ import Testing
             sweetMealFactor: sweetMealFactor,
             basal: basal,
             fraction: fraction,
-            maxBolus: maxBolus
+            maxBolus: maxBolus,
+            maxIOB: maxIOB,
+            maxCOB: maxCOB,
+            minPredBG: minPredBG
         )
 
         // STEP 3: Calculate insulin with fatty meal enabled
@@ -183,7 +195,10 @@ import Testing
             sweetMealFactor: sweetMealFactor,
             basal: basal,
             fraction: fraction,
-            maxBolus: maxBolus
+            maxBolus: maxBolus,
+            maxIOB: maxIOB,
+            maxCOB: maxCOB,
+            minPredBG: minPredBG
         )
         let standardResult = await calculator.calculateInsulin(input: standardInput)
 
@@ -224,6 +239,9 @@ import Testing
         let basal: Decimal = 1.5 // Will be added to insulin calculation when super bolus is enabled
         let fraction: Decimal = 0.8
         let maxBolus: Decimal = 10
+        let maxIOB: Decimal = 15.0
+        let maxCOB: Decimal = 120.0
+        let minPredBG: Decimal = 80.0
 
         // STEP 2: Create calculation input with super bolus enabled
         let input = CalculationInput(
@@ -241,7 +259,10 @@ import Testing
             sweetMealFactor: sweetMealFactor,
             basal: basal,
             fraction: fraction,
-            maxBolus: maxBolus
+            maxBolus: maxBolus,
+            maxIOB: maxIOB,
+            maxCOB: maxCOB,
+            minPredBG: minPredBG
         )
 
         // STEP 3: Calculate insulin with super bolus enabled
@@ -263,7 +284,10 @@ import Testing
             sweetMealFactor: sweetMealFactor,
             basal: basal,
             fraction: fraction,
-            maxBolus: maxBolus
+            maxBolus: maxBolus,
+            maxIOB: maxIOB,
+            maxCOB: maxCOB,
+            minPredBG: minPredBG
         )
         let standardResult = await calculator.calculateInsulin(input: standardInput)
 

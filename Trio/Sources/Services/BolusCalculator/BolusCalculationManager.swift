@@ -30,6 +30,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     private struct BolusCalculatorVariables {
         var insulinRequired: Decimal
         var evBG: Decimal
+        var minPredBG: Decimal
+        var lastLoopDate: Date?
         var insulin: Decimal
         var target: Decimal
         var isf: Decimal
@@ -170,6 +172,14 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             )
     }
 
+    /// Retrieves Preferences from storage
+    /// - Returns: Preferences object containing maxIOB and maxCOB
+    private func getPreferences() async -> Preferences {
+        await fileStorage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self)
+            ?? Preferences(from: OpenAPS.defaults(for: OpenAPS.Settings.preferences))
+            ?? Preferences(maxIOB: 0, maxCOB: 120)
+    }
+
     /// Fetches recent glucose readings from CoreData
     /// - Returns: Array of NSManagedObjectIDs for glucose readings
     private func fetchGlucose() async throws -> [NSManagedObjectID] {
@@ -194,9 +204,27 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     /// - Parameter objects: Array of GlucoseStored objects
     /// - Returns: GlucoseVariables containing current blood glucose and delta
     private func updateGlucoseVariables(with objects: [GlucoseStored]) -> GlucoseVariables {
+        // Always use the most recent reading for current glucose regardless of time
         let lastGlucose = objects.first?.glucose ?? 0
-        let thirdLastGlucose = objects.dropFirst(2).first?.glucose ?? 0
-        let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose)
+
+        // Filter for readings less than 20 minutes old
+        let twentyMinutesAgo = Date().addingTimeInterval(-20 * 60)
+        let recentObjects = objects.filter {
+            guard let date = $0.date else { return false }
+            return date > twentyMinutesAgo
+        }
+
+        // Calculate delta using newest and oldest readings within 20-minute window
+        let delta: Decimal
+        if recentObjects.count >= 2 {
+            // Newest is at index 0, oldest is at the last index
+            let newestInWindow = recentObjects.first?.glucose ?? 0
+            let oldestInWindow = recentObjects.last?.glucose ?? 0
+            delta = Decimal(newestInWindow) - Decimal(oldestInWindow)
+        } else {
+            // Not enough data points in the window
+            delta = 0
+        }
 
         return GlucoseVariables(currentBG: Decimal(lastGlucose), deltaBG: delta)
     }
@@ -220,6 +248,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             return BolusCalculatorVariables(
                 insulinRequired: 0,
                 evBG: 0,
+                minPredBG: 0,
+                lastLoopDate: nil,
                 insulin: 0,
                 target: currentBGTarget,
                 isf: currentISF,
@@ -234,6 +264,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         return BolusCalculatorVariables(
             insulinRequired: (mostRecentDetermination.insulinReq ?? 0) as Decimal,
             evBG: (mostRecentDetermination.eventualBG ?? 0) as Decimal,
+            minPredBG: (mostRecentDetermination.minPredBGFromReason ?? 0) as Decimal,
+            lastLoopDate: apsManager.lastLoopDate as Date?,
             insulin: (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal,
             target: (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal,
             isf: (mostRecentDetermination.insulinSensitivity ?? NSDecimalNumber(decimal: currentISF)) as Decimal,
@@ -262,6 +294,12 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             let currentCarbRatio = await getCurrentSettingValue(for: .carbRatio)
             let currentBGTarget = await getCurrentSettingValue(for: .bgTarget)
             let currentISF = await getCurrentSettingValue(for: .isf)
+
+            // Get max IOB and max COB
+
+            let preferences = await getPreferences()
+            let maxIOB = preferences.maxIOB
+            let maxCOB = preferences.maxCOB
 
             // Fetch glucose data
             let glucoseIds = try await fetchGlucose()
@@ -306,7 +344,10 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
                 sweetMealFactor: settings.sweetMealFactor,
                 basal: bolusVars.basal,
                 fraction: settings.fraction,
-                maxBolus: maxBolus
+                maxBolus: maxBolus,
+                maxIOB: maxIOB,
+                maxCOB: maxCOB,
+                minPredBG: bolusVars.minPredBG
             )
         } catch {
             debug(
@@ -324,14 +365,15 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     func calculateInsulin(input: CalculationInput) async -> CalculationResult {
         // insulin needed for the current blood glucose
         let targetDifference = input.currentBG - input.target
-        let targetDifferenceInsulin = apsManager.roundBolus(amount: targetDifference / input.isf)
+
+        let targetDifferenceInsulin = targetDifference / input.isf
 
         // more or less insulin because of bg trend in the last 15 minutes
-        let fifteenMinutesInsulin = apsManager.roundBolus(amount: input.deltaBG / input.isf)
+        let fifteenMinutesInsulin = input.deltaBG / input.isf
 
         // determine whole COB for which we want to dose insulin for and then determine insulin for wholeCOB
-        let wholeCob = Decimal(input.cob) + input.carbs
-        let wholeCobInsulin = apsManager.roundBolus(amount: wholeCob / input.carbRatio)
+        let wholeCob = min(Decimal(input.cob) + input.carbs, input.maxCOB)
+        let wholeCobInsulin = wholeCob / input.carbRatio
 
         // determine how much the calculator reduces/ increases the bolus because of IOB
         let iobInsulinReduction = (-1) * input.iob
@@ -352,29 +394,47 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         }
 
         // apply custom factor at the end of the calculations
-        let result = wholeCalc * input.fraction
-
         // apply custom factor if fatty meal toggle in bolus calc config settings is on and the box for fatty meals is checked (in RootView)
-        var insulinCalculated: Decimal
-        var superBolusInsulin: Decimal = 0
-        if input.useFattyMealCorrectionFactor {
-            insulinCalculated = result * input.fattyMealFactor
-        } else if input.useSuperBolus {
-            superBolusInsulin = input.sweetMealFactor * input.basal
-            insulinCalculated = result + superBolusInsulin
-        } else {
-            insulinCalculated = result
+        var factoredInsulin = wholeCalc
+
+        // Apply Recommended Bolus Percentage (input.fraction) and if selected apply Fatty Meal Bolus Percentage (input.fattyMealFactor)
+        // If factoredInsulin is negative, though, don't apply either
+        if factoredInsulin > 0 {
+            factoredInsulin *= input.fraction
+
+            if input.useFattyMealCorrectionFactor {
+                factoredInsulin *= input.fattyMealFactor
+            }
         }
 
-        // display no negative insulinCalculated
-        insulinCalculated = max(insulinCalculated, 0)
-        insulinCalculated = min(insulinCalculated, input.maxBolus)
+        // Calculate and add super bolus insulin if enabled
+        var superBolusInsulin: Decimal = 0
+        if input.useSuperBolus {
+            superBolusInsulin = input.sweetMealFactor * input.basal
+            factoredInsulin += superBolusInsulin
+        }
 
-        // round calculated recommendation to allowed bolus increment
-        insulinCalculated = apsManager.roundBolus(amount: insulinCalculated)
+        // the final result for recommended insulin amount
+        var insulinCalculated: Decimal
+        let isLoopStale = Date().timeIntervalSince(apsManager.lastLoopDate) > 15 * 60
+
+        // don't recommend insulin when current glucose or minPredBG is < 54 or last sucessful loop was over 15 minutes ago
+        if input.currentBG < 54 || input.minPredBG < 54 || isLoopStale {
+            insulinCalculated = 0
+        } else {
+            // no negative insulinCalculated
+            insulinCalculated = max(factoredInsulin, 0)
+            // don't exceed maxBolus
+            insulinCalculated = min(insulinCalculated, input.maxBolus)
+            // don't exceed maxIOB
+            insulinCalculated = min(insulinCalculated, input.maxIOB - input.iob)
+            // round calculated recommendation to allowed bolus increment
+            insulinCalculated = apsManager.roundBolus(amount: insulinCalculated)
+        }
 
         return CalculationResult(
             insulinCalculated: insulinCalculated,
+            factoredInsulin: factoredInsulin,
             wholeCalc: wholeCalc,
             correctionInsulin: targetDifferenceInsulin,
             iobInsulinReduction: iobInsulinReduction,
@@ -414,6 +474,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             // Return safe default values
             return CalculationResult(
                 insulinCalculated: 0,
+                factoredInsulin: 0,
                 wholeCalc: 0,
                 correctionInsulin: 0,
                 iobInsulinReduction: 0,
@@ -445,11 +506,15 @@ struct CalculationInput: Sendable {
     let basal: Decimal // Current basal rate
     let fraction: Decimal // General correction factor
     let maxBolus: Decimal // Maximum allowed bolus
+    let maxIOB: Decimal // Maximum allowed IOB to be used for rec. bolus calculation
+    let maxCOB: Decimal // Maximum allowed COB to be used for rec. bolus calculation
+    let minPredBG: Decimal // Minimum Predicted Glucose determined by Oref
 }
 
 /// Results of the bolus calculation
 struct CalculationResult: Sendable {
-    let insulinCalculated: Decimal // Final calculated insulin amount
+    let insulinCalculated: Decimal // Final calculated insulin amount which respects limits
+    let factoredInsulin: Decimal // Total calculation after adjustments
     let wholeCalc: Decimal // Total calculation before adjustments
     let correctionInsulin: Decimal // Insulin for BG correction
     let iobInsulinReduction: Decimal // IOB reduction amount

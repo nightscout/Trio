@@ -97,7 +97,7 @@ extension NSPredicate {
     static var recentPumpHistory: NSPredicate {
         let date = Date.twentyMinutesAgo
         return NSPredicate(
-            format: "type == %@ AND timestamp <= %@",
+            format: "type == %@ AND timestamp >= %@",
             PumpEventStored.EventType.tempBasal.rawValue,
             date as NSDate
         )

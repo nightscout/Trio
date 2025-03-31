@@ -31,6 +31,8 @@ extension Treatments {
         var threshold: Decimal = 0
         var maxBolus: Decimal = 0
         var maxExternal: Decimal { maxBolus * 3 }
+        var maxIOB: Decimal = 0
+        var maxCOB: Decimal = 0
         var errorString: Decimal = 0
         var evBG: Decimal = 0
         var insulin: Decimal = 0
@@ -40,6 +42,7 @@ extension Treatments {
         var minDelta: Decimal = 0
         var expectedDelta: Decimal = 0
         var minPredBG: Decimal = 0
+        var lastLoopDate: Date?
         var isAwaitingDeterminationResult: Bool = false
         var carbRatio: Decimal = 0
 
@@ -58,6 +61,7 @@ extension Treatments {
         var wholeCobInsulin: Decimal = 0
         var iobInsulinReduction: Decimal = 0
         var wholeCalc: Decimal = 0
+        var factoredInsulin: Decimal = 0
         var insulinCalculated: Decimal = 0
         var fraction: Decimal = 0
         var basal: Decimal = 0
@@ -65,6 +69,7 @@ extension Treatments {
         var fattyMealFactor: Decimal = 0
         var useFattyMealCorrectionFactor: Bool = false
         var displayPresets: Bool = true
+        var confirmBolus: Bool = false
 
         var currentBasal: Decimal = 0
         var currentCarbRatio: Decimal = 0
@@ -244,6 +249,13 @@ extension Treatments {
                         self.maxBolus = getMaxBolus
                     }
                 }
+                group.addTask {
+                    let getPreferences = await self.provider.getPreferences()
+                    await MainActor.run {
+                        self.maxIOB = getPreferences.maxIOB
+                        self.maxCOB = getPreferences.maxCOB
+                    }
+                }
             }
         }
 
@@ -274,6 +286,7 @@ extension Treatments {
             sweetMeals = settings.settings.sweetMeals
             sweetMealFactor = settings.settings.sweetMealFactor
             displayPresets = settings.settings.displayPresets
+            confirmBolus = settings.settings.confirmBolus
             forecastDisplayType = settings.settings.forecastDisplayType
             lowGlucose = settingsManager.settings.low
             highGlucose = settingsManager.settings.high
@@ -373,6 +386,7 @@ extension Treatments {
                 iobInsulinReduction = result.iobInsulinReduction
                 superBolusInsulin = result.superBolusInsulin
                 wholeCalc = result.wholeCalc
+                factoredInsulin = result.factoredInsulin
                 fifteenMinInsulin = result.fifteenMinutesInsulin
             }
 
@@ -673,11 +687,28 @@ extension Treatments.StateModel {
     }
 
     @MainActor private func updateGlucoseArray(with objects: [GlucoseStored]) {
+        // Store all objects for the forecast graph
         glucoseFromPersistence = objects
 
-        let lastGlucose = glucoseFromPersistence.first?.glucose ?? 0
-        let thirdLastGlucose = glucoseFromPersistence.dropFirst(2).first?.glucose ?? 0
-        let delta = Decimal(lastGlucose) - Decimal(thirdLastGlucose)
+        // Always use the most recent reading for current glucose
+        let lastGlucose = objects.first?.glucose ?? 0
+
+        // Filter for readings less than 20 minutes old
+        let twentyMinutesAgo = Date().addingTimeInterval(-20 * 60)
+        let recentObjects = objects.filter {
+            guard let date = $0.date else { return false }
+            return date > twentyMinutesAgo
+        }
+
+        // Calculate delta using newest and oldest readings within 20-minute window
+        let delta: Decimal
+        if let newestInWindow = recentObjects.first?.glucose, let oldestInWindow = recentObjects.last?.glucose {
+            // Newest is at index 0, oldest is at the last index
+            delta = Decimal(newestInWindow) - Decimal(oldestInWindow)
+        } else {
+            // Not enough data points in the window
+            delta = 0
+        }
 
         currentBG = Decimal(lastGlucose)
         deltaBG = delta
@@ -765,6 +796,8 @@ extension Treatments.StateModel {
             // setup vars for bolus calculation
             insulinRequired = (mostRecentDetermination.insulinReq ?? 0) as Decimal
             evBG = (mostRecentDetermination.eventualBG ?? 0) as Decimal
+            minPredBG = (mostRecentDetermination.minPredBGFromReason ?? 0) as Decimal
+            lastLoopDate = apsManager.lastLoopDate as Date?
             insulin = (mostRecentDetermination.insulinForManualBolus ?? 0) as Decimal
             target = (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal
             isf = (mostRecentDetermination.insulinSensitivity ?? currentISF as NSDecimalNumber) as Decimal

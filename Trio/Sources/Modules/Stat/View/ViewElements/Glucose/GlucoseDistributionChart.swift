@@ -7,6 +7,7 @@ struct GlucoseDistributionChart: View {
     let lowLimit: Decimal
     let units: GlucoseUnits
     let glucoseRangeStats: [GlucoseRangeStats]
+    let timeInRangeType: TimeInRangeType
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -25,9 +26,9 @@ struct GlucoseDistributionChart: View {
             }
             .chartForegroundStyleScale([
                 "<54": .purple.opacity(0.7),
-                "54-70": .red.opacity(0.7),
-                "70-140": .green,
-                "140-180": .green.opacity(0.7),
+                "54-\(timeInRangeType.bottomThreshold)": .red.opacity(0.7),
+                "\(timeInRangeType.bottomThreshold)-\(timeInRangeType.topThreshold)": .green,
+                "\(timeInRangeType.topThreshold)-180": .green.opacity(0.7),
                 "180-200": .yellow.opacity(0.7),
                 "200-220": .orange.opacity(0.7),
                 ">220": .orange.opacity(0.8)
@@ -36,12 +37,15 @@ struct GlucoseDistributionChart: View {
                 let legendItems: [(String, Color)] = [
                     ("<\(units == .mgdL ? Decimal(54) : 54.asMmolL)", .purple.opacity(0.7)),
                     (
-                        "\(units == .mgdL ? Decimal(54) : 54.asMmolL)-\(units == .mgdL ? Decimal(70) : 70.asMmolL)",
+                        "\(units == .mgdL ? Decimal(54) : 54.asMmolL)-\(units == .mgdL ? Decimal(timeInRangeType.bottomThreshold) : timeInRangeType.bottomThreshold.asMmolL)",
                         .red.opacity(0.7)
                     ),
-                    ("\(units == .mgdL ? Decimal(70) : 70.asMmolL)-\(units == .mgdL ? Decimal(140) : 140.asMmolL)", .green),
                     (
-                        "\(units == .mgdL ? Decimal(140) : 140.asMmolL)-\(units == .mgdL ? Decimal(180) : 180.asMmolL)",
+                        "\(units == .mgdL ? Decimal(timeInRangeType.bottomThreshold) : timeInRangeType.bottomThreshold.asMmolL)-\(units == .mgdL ? Decimal(timeInRangeType.topThreshold) : timeInRangeType.topThreshold.asMmolL)",
+                        .green
+                    ),
+                    (
+                        "\(units == .mgdL ? Decimal(timeInRangeType.topThreshold) : timeInRangeType.topThreshold.asMmolL)-\(units == .mgdL ? Decimal(180) : 180.asMmolL)",
                         .green.opacity(0.7)
                     ),
                     (

@@ -33,5 +33,11 @@ extension Treatments {
                     sensitivities: []
                 )
         }
+
+        func getPreferences() async -> Preferences {
+            await storage.retrieveAsync(OpenAPS.Settings.preferences, as: Preferences.self)
+                ?? Preferences(from: OpenAPS.defaults(for: OpenAPS.Settings.preferences))
+                ?? Preferences(maxIOB: 0, maxCOB: 120)
+        }
     }
 }

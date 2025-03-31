@@ -9,31 +9,18 @@ extension BolusCalculatorConfig {
         @Published var sweetMeals: Bool = false
         @Published var sweetMealFactor: Decimal = 0
         @Published var displayPresets: Bool = true
+        @Published var confirmBolusWhenVeryLowGlucose: Bool = false
 
         override func subscribe() {
             units = settingsManager.settings.units
 
-            subscribeSetting(\.overrideFactor, on: $overrideFactor, initial: {
-                let value = max(min($0, 1.2), 0.1)
-                overrideFactor = value
-            }, map: {
-                $0
-            })
+            subscribeSetting(\.overrideFactor, on: $overrideFactor) { overrideFactor = $0 }
             subscribeSetting(\.fattyMeals, on: $fattyMeals) { fattyMeals = $0 }
             subscribeSetting(\.displayPresets, on: $displayPresets) { displayPresets = $0 }
-            subscribeSetting(\.fattyMealFactor, on: $fattyMealFactor, initial: {
-                let value = max(min($0, 1.2), 0.1)
-                fattyMealFactor = value
-            }, map: {
-                $0
-            })
+            subscribeSetting(\.fattyMealFactor, on: $fattyMealFactor) { fattyMealFactor = $0 }
             subscribeSetting(\.sweetMeals, on: $sweetMeals) { sweetMeals = $0 }
-            subscribeSetting(\.sweetMealFactor, on: $sweetMealFactor, initial: {
-                let value = max(min($0, 5), 1)
-                sweetMealFactor = value
-            }, map: {
-                $0
-            })
+            subscribeSetting(\.sweetMealFactor, on: $sweetMealFactor) { sweetMealFactor = $0 }
+            subscribeSetting(\.confirmBolus, on: $confirmBolusWhenVeryLowGlucose) { confirmBolusWhenVeryLowGlucose = $0 }
         }
     }
 }

@@ -106,8 +106,7 @@ extension CGMSettings {
                         type: .boolean,
                         label: String(localized: "Smooth Glucose Value"),
                         miniHint: String(localized: "Smooth CGM readings using Savitzky-Golay filtering."),
-                        verboseHint:
-                        VStack(alignment: .leading, spacing: 10) {
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
                                 "This filter looks at small groups of nearby readings and fits them to a simple mathematical curve. This process doesn't change the overall pattern of your glucose data but helps smooth out the \"noise\" or irregular fluctuations that could lead to false highs or lows."
