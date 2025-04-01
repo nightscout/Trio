@@ -1,6 +1,7 @@
 import LoopKit
 import LoopKitUI
 import SwiftUI
+import TidepoolServiceKit
 
 extension Settings {
     final class StateModel: BaseStateModel<Provider> {
@@ -37,7 +38,7 @@ extension Settings {
 
             copyrightNotice = Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? ""
 
-            serviceUIType = pluginManager.getServiceTypeByIdentifier("TidepoolService")
+            serviceUIType = TidepoolService.self as? ServiceUI.Type
         }
 
         func logItems() -> [URL] {
