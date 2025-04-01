@@ -146,7 +146,8 @@ extension Onboarding {
                                 .foregroundColor(.white)
                                 .background(
                                     Capsule()
-                                        .fill(currentStep.accentColor)
+//                                        .fill(currentStep.accentColor)
+                                        .fill(Color.blue)
                                 )
                             }
                         }

@@ -11,11 +11,8 @@ import UIKit
 /// Basal profile step view for setting basal insulin rates.
 struct BasalProfileStepView: View {
     @Bindable var state: Onboarding.StateModel
-    @State private var showTimeSelector = false
-    @State private var selectedBasalIndex: Int?
-    @State private var showAlert = false
-    @State private var errorMessage = ""
     @State private var refreshUI = UUID() // to update chart when slider value changes
+    @State private var therapyItems: [TherapySettingItem] = []
 
     // For chart scaling
     private let chartScale = Calendar.current
@@ -37,148 +34,24 @@ struct BasalProfileStepView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Your basal insulin profile determines how much background insulin you receive throughout the day.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal)
-
+            VStack(alignment: .leading, spacing: 0) {
                 // Chart visualization
                 if !state.basalProfileItems.isEmpty {
                     VStack(alignment: .leading) {
-                        Text("Basal Profile")
-                            .font(.headline)
-                            .padding(.horizontal)
-
                         basalProfileChart
                             .frame(height: 180)
                             .padding(.horizontal)
                     }
-                    .padding(.vertical, 5)
-                    .background(Color.purple.opacity(0.05))
+                    .padding(.vertical)
+                    .background(Color.chart.opacity(0.45))
                     .cornerRadius(10)
                 }
 
-                // Basal rates list
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Text("Basal Rates")
-                            .font(.headline)
-
-                        Spacer()
-
-                        // Add new basal rate button
-                        if state.basalProfileItems.count < 24 {
-                            Button(action: {
-                                showTimeSelector = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "plus.circle.fill")
-                                    Text("Add Rate")
-                                }
-                                .foregroundColor(.purple)
-                            }
-                            .disabled(!canAddBasalRate)
-                        }
-                    }
-                    .padding(.horizontal)
-
-                    // List of basal rates
-                    VStack(spacing: 2) {
-                        ForEach(Array(state.basalProfileItems.enumerated()), id: \.element.id) { index, item in
-                            HStack {
-                                // Time display
-                                Text(
-                                    dateFormatter
-                                        .string(from: Date(
-                                            timeIntervalSince1970: state
-                                                .basalProfileTimeValues[item.timeIndex]
-                                        ))
-                                )
-                                .frame(width: 80, alignment: .leading)
-                                .padding(.leading)
-
-                                // Rate slider
-                                Slider(
-                                    value: Binding(
-                                        get: {
-                                            guard !state.basalProfileRateValues.isEmpty,
-                                                  item.rateIndex < state.basalProfileRateValues.count
-                                            else {
-                                                return 0.0
-                                            }
-                                            return Double(
-                                                truncating: state
-                                                    .basalProfileRateValues[item.rateIndex] as NSNumber
-                                            )
-                                        },
-                                        set: { newValue in
-                                            guard !state.basalProfileRateValues.isEmpty else { return }
-
-                                            // Find closest match in rateValues array
-                                            let newIndex = state.basalProfileRateValues
-                                                .firstIndex { abs(Double($0) - newValue) < 0.005 } ?? item.rateIndex
-
-                                            // Ensure index is valid before updating
-                                            if newIndex < state.basalProfileRateValues.count,
-                                               index < state.basalProfileItems.count
-                                            {
-                                                state.basalProfileItems[index].rateIndex = newIndex
-                                                // Force refresh when slider changes
-                                                refreshUI = UUID()
-                                            }
-                                        }
-                                    ),
-                                    in: state.basalProfileRateValues.isEmpty ? 0 ... 1 :
-                                        Double(truncating: state.basalProfileRateValues.first! as NSNumber) ...
-                                        Double(truncating: state.basalProfileRateValues.last! as NSNumber),
-                                    step: 0.05
-                                )
-                                .accentColor(.purple)
-                                .padding(.horizontal, 5)
-                                .onChange(of: state.basalProfileItems[index].rateIndex) { _, _ in
-                                    // Trigger immediate UI update when slider value changes
-                                    let impact = UIImpactFeedbackGenerator(style: .light)
-                                    impact.impactOccurred()
-                                }
-
-                                // Display the current value
-                                Text(
-                                    "\(state.basalProfileRateValues.isEmpty || item.rateIndex >= state.basalProfileRateValues.count ? "--" : formatter.string(from: state.basalProfileRateValues[item.rateIndex] as NSNumber) ?? "--") U/h"
-                                )
-                                .frame(width: 80, alignment: .trailing)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-
-                                // Delete button (not for the first entry at 00:00)
-                                if index > 0 {
-                                    Button(action: {
-                                        state.basalProfileItems.remove(at: index)
-                                    }) {
-                                        Image(systemName: "trash")
-                                            .foregroundColor(.red)
-                                            .padding(.horizontal, 5)
-                                    }
-                                } else {
-                                    // Spacer to maintain alignment
-                                    Spacer()
-                                        .frame(width: 30)
-                                }
-                            }
-                            .padding(.vertical, 12)
-                            .background(index % 2 == 0 ? Color.purple.opacity(0.05) : Color.clear)
-                            .cornerRadius(8)
-                        }
-                    }
-                    .background(Color.purple.opacity(0.05))
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-                    .onAppear {
-                        if state.basalProfileItems.isEmpty {
-                            addBasalRate()
-                        }
-                    }
-                }
+                TimeValueEditorView(
+                    items: $therapyItems,
+                    unit: String(localized: "U/hr"),
+                    valueOptions: state.basalProfileRateValues
+                ).scaledToFit()
 
                 // Total daily basal calculation
                 if !state.basalProfileItems.isEmpty {
@@ -199,63 +72,32 @@ struct BasalProfileStepView: View {
                     .padding(.top)
 
                     // Information about basal rates
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("What This Means")
-                            .font(.headline)
-                            .padding(.horizontal)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("• The basal profile provides background insulin throughout the day")
-                            Text("• Rates should be adjusted based on your body's varying insulin needs")
-                            Text("• Morning hours may require more insulin due to 'dawn phenomenon'")
-                            Text("• Lower rates are typically needed during sleep or periods of activity")
-                        }
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal)
-                    }
+//                    VStack(alignment: .leading, spacing: 8) {
+//                        Text("What This Means")
+//                            .font(.headline)
+//                            .padding(.horizontal)
+//
+//                        VStack(alignment: .leading, spacing: 4) {
+//                            Text("• The basal profile provides background insulin throughout the day")
+//                            Text("• Rates should be adjusted based on your body's varying insulin needs")
+//                            Text("• Morning hours may require more insulin due to 'dawn phenomenon'")
+//                            Text("• Lower rates are typically needed during sleep or periods of activity")
+//                        }
+//                        .font(.caption)
+//                        .foregroundColor(.secondary)
+//                        .padding(.horizontal)
+//                    }
                 }
             }
-            .padding(.vertical)
         }
-        .actionSheet(isPresented: $showTimeSelector) {
-            var buttons: [ActionSheet.Button] = []
-
-            // Find available time slots in 1-hour increments
-            for hour in 0 ..< 24 {
-                let hourInMinutes = hour * 60
-                // Calculate timeIndex for this hour
-                let timeIndex = state.basalProfileTimeValues
-                    .firstIndex { abs($0 - Double(hourInMinutes * 60)) < 10 } ?? 0
-
-                // Check if this hour is already in the profile
-                if !state.basalProfileItems.contains(where: { $0.timeIndex == timeIndex }) {
-                    buttons.append(.default(Text("\(String(format: "%02d:00", hour))")) {
-                        // Get the current rate from the last item
-                        let rateIndex = state.basalProfileItems.last?.rateIndex ?? 20 // 1.0 U/h as default
-                        // Create new item with the specified time
-                        let newItem = BasalProfileEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
-                        // Add the new item and sort the list
-                        state.basalProfileItems.append(newItem)
-                        state.basalProfileItems.sort(by: { $0.timeIndex < $1.timeIndex })
-                    })
-                }
+        .onAppear {
+            if state.basalProfileItems.isEmpty {
+                state.addBasalRate()
             }
-
-            buttons.append(.cancel())
-
-            return ActionSheet(
-                title: Text("Select Start Time"),
-                message: Text("Choose when this basal rate should start"),
-                buttons: buttons
-            )
-        }
-        .alert(isPresented: $showAlert) {
-            Alert(
-                title: Text("Unable to Save Basal Profile"),
-                message: Text(errorMessage),
-                dismissButton: .default(Text("OK"))
-            )
+            therapyItems = state.getBasalTherapyItems(from: state.basalProfileItems)
+        }.onChange(of: therapyItems) { _, newItems in
+            state.updateBasalRates(from: newItems)
+            refreshUI = UUID()
         }
     }
 

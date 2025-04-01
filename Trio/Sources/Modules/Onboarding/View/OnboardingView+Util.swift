@@ -70,13 +70,13 @@ struct TimeValueEditorView: View {
                     items.append(TherapySettingItem(time: newTime, value: newValue))
                 } label: {
                     HStack {
-                        Image(systemName: "plus")
+                        Image(systemName: "plus.circle.fill")
                         Text("Add")
                     }.foregroundColor(.accentColor)
                 }
                 .disabled(items.count >= 48)
             }
-            .listRowBackground(Color.chart)
+            .listRowBackground(Color.chart.opacity(0.45))
             .padding(.vertical, 5)
 
             ForEach($items) { $item in
@@ -85,15 +85,21 @@ struct TimeValueEditorView: View {
                         selectedItemID = selectedItemID == item.id ? nil : item.id
                     } label: {
                         HStack {
-                            let startDate = Date(timeIntervalSinceReferenceDate: item.time)
-                            Text(timeFormatter.string(from: startDate))
-                                .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
-                            Spacer()
                             HStack {
                                 Text("\(item.value, specifier: "%.1f")")
                                     .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
                                 Text(unit.description)
                                     .foregroundStyle(Color.secondary)
+                            }
+
+                            Spacer()
+
+                            HStack {
+                                Text("starts at").foregroundStyle(Color.secondary)
+
+                                let startDate = Date(timeIntervalSinceReferenceDate: item.time)
+                                Text(timeFormatter.string(from: startDate))
+                                    .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
                             }
                         }.contentShape(Rectangle())
                     }
@@ -119,9 +125,9 @@ struct TimeValueEditorView: View {
                     }
                 }
             }
-            .listRowBackground(Color.chart)
+            .listRowBackground(Color.chart.opacity(0.45))
 
-            Rectangle().fill(Color.chart).frame(height: 10)
+            Rectangle().fill(Color.chart.opacity(0.45)).frame(height: 10)
                 .clipShape(
                     .rect(
                         topLeadingRadius: 0,

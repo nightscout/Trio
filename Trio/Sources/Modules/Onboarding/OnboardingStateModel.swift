@@ -201,9 +201,9 @@ extension Onboarding {
             settingsManager.settings = settingsCopy
         }
 
-        func getTherapyItems(from targets: [TargetsEditor.Item]) -> [TherapySettingItem] {
+        func getTargetTherapyItems(from targets: [TargetsEditor.Item]) -> [TherapySettingItem] {
             targets.map {
-                return TherapySettingItem(
+                TherapySettingItem(
                     id: UUID(),
                     time: targetTimeValues[$0.timeIndex],
                     value: Double(targetRateValues[$0.lowIndex])
@@ -219,6 +219,48 @@ extension Onboarding {
                 })?.offset ?? 0
 
                 return TargetsEditor.Item(lowIndex: closestRate, highIndex: closestRate, timeIndex: timeIndex)
+            }
+        }
+
+        func getBasalTherapyItems(from basalRates: [BasalProfileEditor.Item]) -> [TherapySettingItem] {
+            basalRates.map {
+                TherapySettingItem(
+                    id: UUID(),
+                    time: basalProfileTimeValues[$0.timeIndex],
+                    value: Double(basalProfileRateValues[$0.rateIndex])
+                )
+            }
+        }
+
+        func updateBasalRates(from therapyItems: [TherapySettingItem]) {
+            basalProfileItems = therapyItems.map { item in
+                let timeIndex = basalProfileTimeValues.firstIndex(where: { $0 == item.time }) ?? 0
+                let closestRate = basalProfileRateValues.enumerated().min(by: {
+                    abs(Double($0.element) - item.value) < abs(Double($1.element) - item.value)
+                })?.offset ?? 0
+
+                return BasalProfileEditor.Item(rateIndex: closestRate, timeIndex: timeIndex)
+            }
+        }
+
+        func getCarbRatioTherapyItems(from basalRates: [CarbRatioEditor.Item]) -> [TherapySettingItem] {
+            basalRates.map {
+                TherapySettingItem(
+                    id: UUID(),
+                    time: carbRatioTimeValues[$0.timeIndex],
+                    value: Double(carbRatioRateValues[$0.rateIndex])
+                )
+            }
+        }
+
+        func updateCarbRatios(from therapyItems: [TherapySettingItem]) {
+            carbRatioItems = therapyItems.map { item in
+                let timeIndex = carbRatioTimeValues.firstIndex(where: { $0 == item.time }) ?? 0
+                let closestRate = carbRatioRateValues.enumerated().min(by: {
+                    abs(Double($0.element) - item.value) < abs(Double($1.element) - item.value)
+                })?.offset ?? 0
+
+                return CarbRatioEditor.Item(rateIndex: closestRate, timeIndex: timeIndex)
             }
         }
     }

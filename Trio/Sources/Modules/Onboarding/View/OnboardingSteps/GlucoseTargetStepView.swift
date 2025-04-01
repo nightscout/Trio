@@ -44,7 +44,7 @@ struct GlucoseTargetStepView: View {
                             .padding(.horizontal)
                     }
                     .padding(.vertical)
-                    .background(Color.chart)
+                    .background(Color.chart.opacity(0.45))
                     .clipShape(
                         .rect(
                             topLeadingRadius: 10,
@@ -67,7 +67,7 @@ struct GlucoseTargetStepView: View {
             if state.targetItems.isEmpty {
                 state.addTarget()
             }
-            therapyItems = state.getTherapyItems(from: state.targetItems)
+            therapyItems = state.getTargetTherapyItems(from: state.targetItems)
         }.onChange(of: therapyItems) { _, newItems in
             state.updateTargets(from: newItems)
             refreshUI = UUID()

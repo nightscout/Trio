@@ -11,9 +11,8 @@ import UIKit
 /// Carb ratio step view for setting insulin-to-carb ratio.
 struct CarbRatioStepView: View {
     @Bindable var state: Onboarding.StateModel
-    @State private var showTimeSelector = false
-    @State private var selectedRatioIndex: Int?
     @State private var refreshUI = UUID() // to update chart when slider value changes
+    @State private var therapyItems: [TherapySettingItem] = []
 
     // For chart scaling
     private let chartScale = Calendar.current
@@ -35,132 +34,24 @@ struct CarbRatioStepView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Your carb ratio tells how many grams of carbohydrates one unit of insulin will cover.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal)
-
+            VStack(alignment: .leading, spacing: 0) {
                 // Chart visualization
                 if !state.carbRatioItems.isEmpty {
                     VStack(alignment: .leading) {
-                        Text("Carb Ratio Profile")
-                            .font(.headline)
-                            .padding(.horizontal)
-
                         carbRatioChart
                             .frame(height: 180)
                             .padding(.horizontal)
                     }
-                    .padding(.vertical, 5)
-                    .background(Color.orange.opacity(0.05))
+                    .padding(.vertical)
+                    .background(Color.chart.opacity(0.45))
                     .cornerRadius(10)
                 }
 
-                // Carb ratios list
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Text("Carb Ratios")
-                            .font(.headline)
-
-                        Spacer()
-
-                        // Add new carb ratio button
-                        if state.carbRatioItems.count < 24 {
-                            Button(action: {
-                                showTimeSelector = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "plus.circle.fill")
-                                    Text("Add Ratio")
-                                }
-                                .foregroundColor(.orange)
-                            }
-                            .disabled(!canAddRatio)
-                        }
-                    }
-                    .padding(.horizontal)
-
-                    // List of carb ratios
-                    VStack(spacing: 2) {
-                        ForEach(Array(state.carbRatioItems.enumerated()), id: \.element.id) { index, item in
-                            HStack {
-                                // Time display
-                                Text(
-                                    dateFormatter
-                                        .string(from: Date(
-                                            timeIntervalSince1970: state
-                                                .carbRatioTimeValues[item.timeIndex]
-                                        ))
-                                )
-                                .frame(width: 80, alignment: .leading)
-                                .padding(.leading)
-
-                                // Ratio slider
-                                Slider(
-                                    value: Binding(
-                                        get: {
-                                            Double(
-                                                truncating: state
-                                                    .carbRatioRateValues[item.rateIndex] as NSNumber
-                                            ) },
-                                        set: { newValue in
-                                            // Find closest match in rateValues array
-                                            let newIndex = state.carbRatioRateValues
-                                                .firstIndex { abs(Double($0) - newValue) < 0.05 } ?? item.rateIndex
-                                            state.carbRatioItems[index].rateIndex = newIndex
-                                            // Force refresh when slider changes
-                                            refreshUI = UUID()
-                                        }
-                                    ),
-                                    in: Double(truncating: state.carbRatioRateValues.first! as NSNumber) ...
-                                        Double(truncating: state.carbRatioRateValues.last! as NSNumber),
-                                    step: 0.5
-                                )
-                                .accentColor(.orange)
-                                .padding(.horizontal, 5)
-                                .onChange(of: state.carbRatioItems[index].rateIndex) { _, _ in
-                                    let impact = UIImpactFeedbackGenerator(style: .light)
-                                    impact.impactOccurred()
-                                }
-
-                                // Display the current value
-                                Text(
-                                    "\(formatter.string(from: state.carbRatioRateValues[item.rateIndex] as NSNumber) ?? "--") g/U"
-                                )
-                                .frame(width: 80, alignment: .trailing)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-
-                                // Delete button (not for the first entry at 00:00)
-                                if index > 0 {
-                                    Button(action: {
-                                        state.carbRatioItems.remove(at: index)
-                                    }) {
-                                        Image(systemName: "trash")
-                                            .foregroundColor(.red)
-                                            .padding(.horizontal, 5)
-                                    }
-                                } else {
-                                    // Spacer to maintain alignment
-                                    Spacer()
-                                        .frame(width: 30)
-                                }
-                            }
-                            .padding(.vertical, 12)
-                            .background(index % 2 == 0 ? Color.orange.opacity(0.05) : Color.clear)
-                            .cornerRadius(8)
-                        }
-                    }
-                    .background(Color.orange.opacity(0.05))
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-                    .onAppear {
-                        if state.carbRatioItems.isEmpty {
-                            state.addCarbRatio()
-                        }
-                    }
-                }
+                TimeValueEditorView(
+                    items: $therapyItems,
+                    unit: String(localized: "g/U"),
+                    valueOptions: state.carbRatioRateValues
+                ).scaledToFit()
 
                 // Example calculation based on first carb ratio
                 if !state.carbRatioItems.isEmpty {
@@ -215,38 +106,15 @@ struct CarbRatioStepView: View {
                     }
                 }
             }
-            .padding(.vertical)
         }
-        .actionSheet(isPresented: $showTimeSelector) {
-            var buttons: [ActionSheet.Button] = []
-
-            // Find available time slots in 1-hour increments
-            for hour in 0 ..< 24 {
-                let hourInMinutes = hour * 60
-                // Calculate timeIndex for this hour
-                let timeIndex = state.carbRatioTimeValues.firstIndex { abs($0 - Double(hourInMinutes * 60)) < 10 } ?? 0
-
-                // Check if this hour is already in the profile
-                if !state.carbRatioItems.contains(where: { $0.timeIndex == timeIndex }) {
-                    buttons.append(.default(Text("\(String(format: "%02d:00", hour))")) {
-                        // Get the current ratio from the last item
-                        let rateIndex = state.carbRatioItems.last?.rateIndex ?? 0
-                        // Create new item with the specified time
-                        let newItem = CarbRatioEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
-                        // Add the new item and sort the list
-                        state.carbRatioItems.append(newItem)
-                        state.carbRatioItems.sort(by: { $0.timeIndex < $1.timeIndex })
-                    })
-                }
+        .onAppear {
+            if state.carbRatioItems.isEmpty {
+                state.addCarbRatio()
             }
-
-            buttons.append(.cancel())
-
-            return ActionSheet(
-                title: Text("Select Start Time"),
-                message: Text("Choose when this carb ratio should start"),
-                buttons: buttons
-            )
+            therapyItems = state.getCarbRatioTherapyItems(from: state.carbRatioItems)
+        }.onChange(of: therapyItems) { _, newItems in
+            state.updateCarbRatios(from: newItems)
+            refreshUI = UUID()
         }
     }
 
