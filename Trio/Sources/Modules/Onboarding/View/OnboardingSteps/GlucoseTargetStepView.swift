@@ -11,10 +11,6 @@ import UIKit
 /// Glucose target step view for setting target glucose range.
 struct GlucoseTargetStepView: View {
     @Bindable var state: Onboarding.StateModel
-    @State private var showTimeSelector = false
-    @State private var selectedTargetIndex: Int?
-    @State private var showAlert = false
-    @State private var errorMessage = ""
     @State private var refreshUI = UUID() // to update chart when slider value changes
     @State private var therapyItems: [TherapySettingItem] = []
 
@@ -39,39 +35,39 @@ struct GlucoseTargetStepView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 0) {
                 // Chart visualization
                 if !state.targetItems.isEmpty {
                     VStack(alignment: .leading) {
-                        Text("Glucose Targets")
-                            .font(.headline)
-                            .padding(.horizontal)
-
                         glucoseTargetChart
                             .frame(height: 180)
                             .padding(.horizontal)
                     }
-                    .padding(.vertical, 5)
-                    .background(Color.blue.opacity(0.05))
-                    .cornerRadius(10)
+                    .padding(.vertical)
+                    .background(Color.chart)
+                    .clipShape(
+                        .rect(
+                            topLeadingRadius: 10,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: 0,
+                            topTrailingRadius: 10
+                        )
+                    )
                 }
 
                 // Glucose target list
-                VStack(alignment: .leading) {
-                    TimeValueEditorView(
-                        items: $therapyItems,
-                        unit: state.units.rawValue,
-                        valueOptions: state.targetRateValues
-                    )
-                    .id(therapyItems.count) // quick workaround to force refresh on change
-                }
+                TimeValueEditorView(
+                    items: $therapyItems,
+                    unit: state.units.rawValue,
+                    valueOptions: state.targetRateValues
+                ).scaledToFit()
             }
-        }.onAppear {
+        }
+        .onAppear {
             if state.targetItems.isEmpty {
                 state.addTarget()
             }
             therapyItems = state.getTherapyItems(from: state.targetItems)
-            debug(.default, "THERAPY ITEMS: \(therapyItems)")
         }.onChange(of: therapyItems) { _, newItems in
             state.updateTargets(from: newItems)
             refreshUI = UUID()

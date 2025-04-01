@@ -203,11 +203,9 @@ extension Onboarding {
 
         func getTherapyItems(from targets: [TargetsEditor.Item]) -> [TherapySettingItem] {
             targets.map {
-                debug(.default, "- timeIndex: \($0.timeIndex), valueIndex: \($0.lowIndex)")
                 return TherapySettingItem(
                     id: UUID(),
-//                    time: targetTimeValues[$0.timeIndex],
-                    time: targetTimeValues[safe: $0.timeIndex] ?? 0.0,
+                    time: targetTimeValues[$0.timeIndex],
                     value: Double(targetRateValues[$0.lowIndex])
                 )
             }
@@ -474,11 +472,5 @@ extension Onboarding.StateModel {
                 }
             }
         }.eraseToAnyPublisher()
-    }
-}
-
-extension Collection {
-    subscript(safe index: Index) -> Element? {
-        indices.contains(index) ? self[index] : nil
     }
 }

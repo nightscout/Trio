@@ -72,11 +72,12 @@ struct TimeValueEditorView: View {
                     HStack {
                         Image(systemName: "plus")
                         Text("Add")
-                            .foregroundColor(.accentColor)
-                    }
+                    }.foregroundColor(.accentColor)
                 }
                 .disabled(items.count >= 48)
             }
+            .listRowBackground(Color.chart)
+            .padding(.vertical, 5)
 
             ForEach($items) { $item in
                 VStack(spacing: 0) {
@@ -97,7 +98,6 @@ struct TimeValueEditorView: View {
                         }.contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .padding(.vertical, 8)
 
                     if selectedItemID == item.id {
                         TimeValuePickerRow(
@@ -109,7 +109,7 @@ struct TimeValueEditorView: View {
                     }
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    if let index = items.firstIndex(where: { $0.id == item.id }), index > 0 {
+                    if let index = items.firstIndex(where: { $0.id == item.id }), items.count > 1 {
                         Button(role: .destructive) {
                             items.remove(at: index)
                             selectedItemID = nil
@@ -119,10 +119,23 @@ struct TimeValueEditorView: View {
                     }
                 }
             }
+            .listRowBackground(Color.chart)
+
+            Rectangle().fill(Color.chart).frame(height: 10)
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 0,
+                        bottomLeadingRadius: 10,
+                        bottomTrailingRadius: 10,
+                        topTrailingRadius: 0
+                    )
+                )
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: -22, leading: 0, bottom: 0, trailing: 0))
+                .listRowSeparator(.hidden)
         }
-        .onAppear {
-            debug(.default, "ITEMS TO DISPLAY: \(items)")
-        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 
     private var timeFormatter: DateFormatter {
