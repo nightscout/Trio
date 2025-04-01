@@ -20,7 +20,7 @@ struct TimeValuePickerRow: View {
                 )) {
                     ForEach(0 ..< 48) { i in
                         let seconds = Double(i * 30 * 60)
-                        Text(timeFormatter.string(from: Date(timeIntervalSince1970: seconds)))
+                        Text(timeFormatter.string(from: Date(timeIntervalSinceReferenceDate: seconds)))
                             .tag(seconds)
                     }
                 }
@@ -46,6 +46,7 @@ struct TimeValuePickerRow: View {
     private var timeFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
+        formatter.timeZone = TimeZone.current
         return formatter
     }
 }
@@ -77,13 +78,14 @@ struct TimeValueEditorView: View {
                 .disabled(items.count >= 48)
             }
 
-            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+            ForEach($items) { $item in
                 VStack(spacing: 0) {
                     Button {
                         selectedItemID = selectedItemID == item.id ? nil : item.id
                     } label: {
                         HStack {
-                            Text(timeFormatter.string(from: Date(timeIntervalSince1970: item.time)))
+                            let startDate = Date(timeIntervalSinceReferenceDate: item.time)
+                            Text(timeFormatter.string(from: startDate))
                                 .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
                             Spacer()
                             HStack {
@@ -99,7 +101,7 @@ struct TimeValueEditorView: View {
 
                     if selectedItemID == item.id {
                         TimeValuePickerRow(
-                            item: $items[index],
+                            item: $item,
                             valueOptions: valueOptions,
                             unit: unit
                         )
@@ -107,7 +109,7 @@ struct TimeValueEditorView: View {
                     }
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    if index > 0 {
+                    if let index = items.firstIndex(where: { $0.id == item.id }), index > 0 {
                         Button(role: .destructive) {
                             items.remove(at: index)
                             selectedItemID = nil
@@ -117,6 +119,9 @@ struct TimeValueEditorView: View {
                     }
                 }
             }
+        }
+        .onAppear {
+            debug(.default, "ITEMS TO DISPLAY: \(items)")
         }
     }
 

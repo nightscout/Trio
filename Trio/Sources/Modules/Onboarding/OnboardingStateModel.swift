@@ -139,7 +139,7 @@ extension Onboarding {
         // Target related
         var targetItems: [TargetsEditor.Item] = []
         var initialTargetItems: [TargetsEditor.Item] = []
-        let targetTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+        let targetTimeValues = stride(from: 0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
         var targetRateValues: [Decimal] {
             let settingsProvider = PickerSettingsProvider.shared
@@ -203,9 +203,11 @@ extension Onboarding {
 
         func getTherapyItems(from targets: [TargetsEditor.Item]) -> [TherapySettingItem] {
             targets.map {
-                TherapySettingItem(
+                debug(.default, "- timeIndex: \($0.timeIndex), valueIndex: \($0.lowIndex)")
+                return TherapySettingItem(
                     id: UUID(),
-                    time: targetTimeValues[$0.timeIndex],
+//                    time: targetTimeValues[$0.timeIndex],
+                    time: targetTimeValues[safe: $0.timeIndex] ?? 0.0,
                     value: Double(targetRateValues[$0.lowIndex])
                 )
             }
@@ -472,5 +474,11 @@ extension Onboarding.StateModel {
                 }
             }
         }.eraseToAnyPublisher()
+    }
+}
+
+extension Collection {
+    subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }

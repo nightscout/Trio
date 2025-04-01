@@ -58,15 +58,12 @@ struct GlucoseTargetStepView: View {
 
                 // Glucose target list
                 VStack(alignment: .leading) {
-                    Text("Glucose Targets")
-                        .font(.title2)
-                        .padding(.horizontal)
-
                     TimeValueEditorView(
                         items: $therapyItems,
                         unit: state.units.rawValue,
                         valueOptions: state.targetRateValues
                     )
+                    .id(therapyItems.count) // quick workaround to force refresh on change
                 }
             }
         }.onAppear {
