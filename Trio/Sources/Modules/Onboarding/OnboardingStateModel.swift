@@ -147,10 +147,6 @@ extension Onboarding {
             return settingsProvider.generatePickerValues(from: glucoseSetting, units: units)
         }
 
-        // Glucose Target
-        var targetLow: Decimal = 70
-        var targetHigh: Decimal = 180
-
         // Basal Profile
         var basalRates: [BasalRateEntry] = [BasalRateEntry(startTime: 0, rate: 1.0)]
 
@@ -184,10 +180,6 @@ extension Onboarding {
             // Make a copy of the current settings that we can mutate
             var settingsCopy = settingsManager.settings
 
-            // Apply glucose target - We'll use lowGlucose and highGlucose properties
-            settingsCopy.lowGlucose = targetLow
-            settingsCopy.highGlucose = targetHigh
-
             // Apply glucose units
             settingsCopy.units = units
 
@@ -207,6 +199,27 @@ extension Onboarding {
             // Instead of using updateSettings which doesn't exist,
             // we'll directly set the settings property which will trigger the didSet observer
             settingsManager.settings = settingsCopy
+        }
+
+        func getTherapyItems(from targets: [TargetsEditor.Item]) -> [TherapySettingItem] {
+            targets.map {
+                TherapySettingItem(
+                    id: UUID(),
+                    time: targetTimeValues[$0.timeIndex],
+                    value: Double(targetRateValues[$0.lowIndex])
+                )
+            }
+        }
+
+        func updateTargets(from therapyItems: [TherapySettingItem]) {
+            targetItems = therapyItems.map { item in
+                let timeIndex = targetTimeValues.firstIndex(where: { $0 == item.time }) ?? 0
+                let closestRate = targetRateValues.enumerated().min(by: {
+                    abs(Double($0.element) - item.value) < abs(Double($1.element) - item.value)
+                })?.offset ?? 0
+
+                return TargetsEditor.Item(lowIndex: closestRate, highIndex: closestRate, timeIndex: timeIndex)
+            }
         }
     }
 }

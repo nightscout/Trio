@@ -37,44 +37,45 @@ extension Onboarding {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 20) {
                                 // Header
-                                HStack {
-                                    Image(systemName: currentStep.iconName)
-                                        .font(.system(size: 40))
-                                        .foregroundColor(currentStep.accentColor)
-                                        .frame(width: 60, height: 60)
-                                        .background(
-                                            Circle()
-                                                .fill(currentStep.accentColor.opacity(0.2))
-                                        )
+                                if currentStep != .welcome {
+                                    HStack {
+                                        Image(systemName: currentStep.iconName)
+                                            .font(.system(size: 40))
+                                            .foregroundColor(currentStep.accentColor)
+                                            .frame(width: 60, height: 60)
+                                            .background(
+                                                Circle()
+                                                    .fill(currentStep.accentColor.opacity(0.2))
+                                            )
 
-                                    VStack(alignment: .leading) {
-                                        Text(currentStep.title)
-                                            .font(.largeTitle)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.primary)
+                                        VStack(alignment: .leading) {
+                                            Text(currentStep.title)
+                                                .font(.largeTitle)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.primary)
 
-                                        Text(currentStep.description)
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                            .fixedSize(horizontal: false, vertical: true)
+                                            Text(currentStep.description)
+                                                .font(.subheadline)
+                                                .foregroundColor(.secondary)
+                                                .fixedSize(horizontal: false, vertical: true)
+                                        }
                                     }
+                                    .padding([.horizontal, .top])
                                 }
-                                .padding(.horizontal)
-                                .padding(.top)
 
                                 // Animation container (for steps that include animations)
-                                AnimationPlaceholder(for: currentStep)
-                                    .padding()
-                                    .scaleEffect(animationScale)
-                                    .opacity(animationOpacity)
-                                    .onAppear {
-                                        withAnimation(.easeInOut(duration: 0.7)) {
-                                            animationOpacity = 1
-                                            animationScale = 1.0
-                                        }
-                                        // Start pulse animation
-                                        isAnimating = true
-                                    }
+//                                AnimationPlaceholder(for: currentStep)
+//                                    .padding()
+//                                    .scaleEffect(animationScale)
+//                                    .opacity(animationOpacity)
+//                                    .onAppear {
+//                                        withAnimation(.easeInOut(duration: 0.7)) {
+//                                            animationOpacity = 1
+//                                            animationScale = 1.0
+//                                        }
+//                                        // Start pulse animation
+//                                        isAnimating = true
+//                                    }
 
                                 // Step-specific content
                                 Group {

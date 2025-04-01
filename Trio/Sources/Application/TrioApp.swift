@@ -138,8 +138,6 @@ extension Notification.Name {
                     cleanupOldData()
 
                     self.initState.complete = true
-                    debug(.default, "showonbaording: \(onboardingManager.shouldShowOnboarding)")
-                    self.showOnboardingView = onboardingManager.shouldShowOnboarding
                     Foundation.NotificationCenter.default.post(name: .initializationCompleted, object: nil)
                     UIApplication.shared.registerForRemoteNotifications()
                     do {
@@ -196,20 +194,18 @@ extension Notification.Name {
                     .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
                         self.showLoadingError = true
                     }
+            } else if onboardingManager.shouldShowOnboarding {
+                // Show onboarding if needed
+                Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
+                    .preferredColorScheme(colorScheme(for: .dark) ?? nil)
+                    .transition(.opacity)
             } else {
-                if showOnboardingView {
-                    // Show onboarding if needed
-                    Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
-                        .preferredColorScheme(colorScheme(for: .dark) ?? nil)
-                        .transition(.opacity)
-                } else {
-                    Main.RootView(resolver: resolver)
-                        .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
-                        .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
-                        .environment(appState)
-                        .environmentObject(Icons())
-                        .onOpenURL(perform: handleURL)
-                }
+                Main.RootView(resolver: resolver)
+                    .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
+                    .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
+                    .environment(appState)
+                    .environmentObject(Icons())
+                    .onOpenURL(perform: handleURL)
             }
         }
         .onChange(of: scenePhase) { _, newScenePhase in
