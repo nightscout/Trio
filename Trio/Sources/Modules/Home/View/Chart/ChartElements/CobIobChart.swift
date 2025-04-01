@@ -81,11 +81,14 @@ extension MainChartView {
         .position(by: .value("Axis", axis))
     }
 
-    func scaleIobAmountForChart(_ rawAmount: Double) -> Double {
-        rawAmount > 0 ? rawAmount * 8 : rawAmount * 9
-    }
-
-    func scaleIobAmountForChart(_ rawAmount: Decimal) -> Decimal {
+    /// Scales IOB amounts for chart display.
+    ///
+    /// As IOB and COB share the same Y axis and COB is usually >> IOB,
+    /// we need to visually weigh IOB by multiplying it by a scaling factor:
+    ///
+    /// - Parameter rawAmount: The unscaled IOB amount
+    /// - Returns: The scaled IOB amount for visual representation
+    private func scaleIobAmountForChart<T: Numeric & Comparable>(_ rawAmount: T) -> T where T: ExpressibleByIntegerLiteral {
         rawAmount > 0 ? rawAmount * 8 : rawAmount * 9
     }
 
@@ -125,8 +128,6 @@ extension MainChartView {
             // MARK: - IOB line and area mark
 
             let rawAmount = item.iob?.doubleValue ?? 0
-
-            // as iob and cob share the same y axis and cob is usually >> iob we need to weigh iob visually
             let amountIOB: Double = scaleIobAmountForChart(rawAmount)
 
             AreaMark(x: .value("Time", date), y: .value("Amount", amountIOB))
