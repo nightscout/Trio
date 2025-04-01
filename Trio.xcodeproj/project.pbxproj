@@ -205,8 +205,48 @@
 		3B2F77862D7E52ED005ED9FA /* TDD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77852D7E52ED005ED9FA /* TDD.swift */; };
 		3B2F77882D7E5387005ED9FA /* CurrentTDDSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */; };
 		3B4196E02D8C4BC00091DFF7 /* HomeStateModel+CGM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4196DF2D8C4BBB0091DFF7 /* HomeStateModel+CGM.swift */; };
+		3B4BA76A2D8DBD690069D5B8 /* CGMBLEKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75B2D8DBD690069D5B8 /* CGMBLEKit.framework */; };
+		3B4BA76B2D8DBD690069D5B8 /* CGMBLEKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75B2D8DBD690069D5B8 /* CGMBLEKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA76C2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75C2D8DBD690069D5B8 /* CGMBLEKitUI.framework */; };
+		3B4BA76D2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75C2D8DBD690069D5B8 /* CGMBLEKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA76E2D8DBD690069D5B8 /* DanaKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75D2D8DBD690069D5B8 /* DanaKit.framework */; };
+		3B4BA76F2D8DBD690069D5B8 /* DanaKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75D2D8DBD690069D5B8 /* DanaKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA7702D8DBD690069D5B8 /* G7SensorKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */; };
+		3B4BA7712D8DBD690069D5B8 /* G7SensorKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA7722D8DBD690069D5B8 /* G7SensorKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75F2D8DBD690069D5B8 /* G7SensorKitUI.framework */; };
+		3B4BA7732D8DBD690069D5B8 /* G7SensorKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75F2D8DBD690069D5B8 /* G7SensorKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA7742D8DBD690069D5B8 /* LibreTransmitter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */; };
+		3B4BA7752D8DBD690069D5B8 /* LibreTransmitter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA7762D8DBD690069D5B8 /* LibreTransmitterUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */; };
+		3B4BA7772D8DBD690069D5B8 /* LibreTransmitterUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA7782D8DBD690069D5B8 /* MinimedKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */; };
+		3B4BA7792D8DBD690069D5B8 /* MinimedKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA77A2D8DBD690069D5B8 /* MinimedKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7632D8DBD690069D5B8 /* MinimedKitUI.framework */; };
+		3B4BA77B2D8DBD690069D5B8 /* MinimedKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7632D8DBD690069D5B8 /* MinimedKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA77C2D8DBD690069D5B8 /* OmniBLE.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7642D8DBD690069D5B8 /* OmniBLE.framework */; };
+		3B4BA77D2D8DBD690069D5B8 /* OmniBLE.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7642D8DBD690069D5B8 /* OmniBLE.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA77E2D8DBD690069D5B8 /* OmniKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7652D8DBD690069D5B8 /* OmniKit.framework */; };
+		3B4BA77F2D8DBD690069D5B8 /* OmniKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7652D8DBD690069D5B8 /* OmniKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA7802D8DBD690069D5B8 /* OmniKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7662D8DBD690069D5B8 /* OmniKitUI.framework */; };
+		3B4BA7812D8DBD690069D5B8 /* OmniKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7662D8DBD690069D5B8 /* OmniKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA7822D8DBD690069D5B8 /* RileyLinkBLEKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7672D8DBD690069D5B8 /* RileyLinkBLEKit.framework */; };
+		3B4BA7832D8DBD690069D5B8 /* RileyLinkBLEKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7672D8DBD690069D5B8 /* RileyLinkBLEKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA7842D8DBD690069D5B8 /* RileyLinkKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7682D8DBD690069D5B8 /* RileyLinkKit.framework */; };
+		3B4BA7852D8DBD690069D5B8 /* RileyLinkKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7682D8DBD690069D5B8 /* RileyLinkKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA7862D8DBD690069D5B8 /* RileyLinkKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7692D8DBD690069D5B8 /* RileyLinkKitUI.framework */; };
+		3B4BA7872D8DBD690069D5B8 /* RileyLinkKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7692D8DBD690069D5B8 /* RileyLinkKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA78A2D8DC0EC0069D5B8 /* ShareClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE398D1A297D69A900DF218F /* ShareClient.framework */; };
+		3B4BA78B2D8DC0EC0069D5B8 /* ShareClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CE398D1A297D69A900DF218F /* ShareClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA78C2D8DC0EC0069D5B8 /* ShareClientUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE79502D29980E4D00FA576E /* ShareClientUI.framework */; };
+		3B4BA78D2D8DC0EC0069D5B8 /* ShareClientUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CE79502D29980E4D00FA576E /* ShareClientUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA78E2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7882D8DC0EC0069D5B8 /* TidepoolServiceKit.framework */; };
+		3B4BA78F2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7882D8DC0EC0069D5B8 /* TidepoolServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4BA7902D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */; };
+		3B4BA7912D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3BAD36B22D7CDC1A00CC298D /* MainLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */; };
 		3BAD36CC2D7D420E00CC298D /* CoreDataInitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */; };
+		3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687B2D8DDD4600899469 /* SlideButton */; };
+		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
 		45252C95D220E796FDB3B022 /* ConfigEditorDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */; };
 		45717281F743594AA9D87191 /* ConfigEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920DDB21E5D0EB813197500D /* ConfigEditorRootView.swift */; };
 		491D6FBD2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491D6FBC2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift */; };
@@ -580,6 +620,7 @@
 		DDE1796F2C910127003CDDB7 /* OrefDetermination+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE1794F2C910127003CDDB7 /* OrefDetermination+CoreDataProperties.swift */; };
 		DDE179702C910127003CDDB7 /* OverrideStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179502C910127003CDDB7 /* OverrideStored+CoreDataClass.swift */; };
 		DDE179712C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179512C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift */; };
+		DDEBB05C2D89E9050032305D /* TimeInRangeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */; };
 		DDF847DD2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847DC2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift */; };
 		DDF847DF2C5C28780049BB3B /* LiveActivitySettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847DE2C5C28780049BB3B /* LiveActivitySettingsProvider.swift */; };
 		DDF847E12C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E02C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift */; };
@@ -667,10 +708,29 @@
 			dstSubfolderSpec = 10;
 			files = (
 				CE51DD1D2A01970900F163F7 /* ConnectIQ 2.xcframework in Embed Frameworks */,
+				3B4BA78F2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Embed Frameworks */,
+				3B4BA7732D8DBD690069D5B8 /* G7SensorKitUI.framework in Embed Frameworks */,
+				3B4BA76D2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Embed Frameworks */,
+				3B4BA76B2D8DBD690069D5B8 /* CGMBLEKit.framework in Embed Frameworks */,
+				3B4BA7792D8DBD690069D5B8 /* MinimedKit.framework in Embed Frameworks */,
 				CE95BF5C2BA770C300DC3DE3 /* LoopKit.framework in Embed Frameworks */,
+				3B4BA7712D8DBD690069D5B8 /* G7SensorKit.framework in Embed Frameworks */,
 				CEB434FE28B90B8C00B70274 /* SwiftCharts in Embed Frameworks */,
+				3B4BA7812D8DBD690069D5B8 /* OmniKitUI.framework in Embed Frameworks */,
+				3B4BA76F2D8DBD690069D5B8 /* DanaKit.framework in Embed Frameworks */,
+				3B4BA77D2D8DBD690069D5B8 /* OmniBLE.framework in Embed Frameworks */,
+				3B4BA77F2D8DBD690069D5B8 /* OmniKit.framework in Embed Frameworks */,
+				3B4BA7852D8DBD690069D5B8 /* RileyLinkKit.framework in Embed Frameworks */,
+				3B4BA7752D8DBD690069D5B8 /* LibreTransmitter.framework in Embed Frameworks */,
+				3B4BA7772D8DBD690069D5B8 /* LibreTransmitterUI.framework in Embed Frameworks */,
+				3B4BA77B2D8DBD690069D5B8 /* MinimedKitUI.framework in Embed Frameworks */,
+				3B4BA7832D8DBD690069D5B8 /* RileyLinkBLEKit.framework in Embed Frameworks */,
 				CE95BF642BA771BE00DC3DE3 /* LoopTestingKit.framework in Embed Frameworks */,
 				CE95BF622BA7715900DC3DE3 /* MockKitUI.framework in Embed Frameworks */,
+				3B4BA78D2D8DC0EC0069D5B8 /* ShareClientUI.framework in Embed Frameworks */,
+				3B4BA7872D8DBD690069D5B8 /* RileyLinkKitUI.framework in Embed Frameworks */,
+				3B4BA78B2D8DC0EC0069D5B8 /* ShareClient.framework in Embed Frameworks */,
+				3B4BA7912D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Embed Frameworks */,
 				CE95BF602BA7715800DC3DE3 /* MockKit.framework in Embed Frameworks */,
 				CE95BF5E2BA770C300DC3DE3 /* LoopKitUI.framework in Embed Frameworks */,
 			);
@@ -926,6 +986,23 @@
 		3B2F77852D7E52ED005ED9FA /* TDD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDD.swift; sourceTree = "<group>"; };
 		3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentTDDSetup.swift; sourceTree = "<group>"; };
 		3B4196DF2D8C4BBB0091DFF7 /* HomeStateModel+CGM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeStateModel+CGM.swift"; sourceTree = "<group>"; };
+		3B4BA75B2D8DBD690069D5B8 /* CGMBLEKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CGMBLEKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA75C2D8DBD690069D5B8 /* CGMBLEKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CGMBLEKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA75D2D8DBD690069D5B8 /* DanaKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DanaKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = G7SensorKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA75F2D8DBD690069D5B8 /* G7SensorKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = G7SensorKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LibreTransmitter.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LibreTransmitterUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MinimedKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA7632D8DBD690069D5B8 /* MinimedKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MinimedKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA7642D8DBD690069D5B8 /* OmniBLE.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = OmniBLE.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA7652D8DBD690069D5B8 /* OmniKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = OmniKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA7662D8DBD690069D5B8 /* OmniKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = OmniKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA7672D8DBD690069D5B8 /* RileyLinkBLEKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkBLEKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA7682D8DBD690069D5B8 /* RileyLinkKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA7692D8DBD690069D5B8 /* RileyLinkKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA7882D8DC0EC0069D5B8 /* TidepoolServiceKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TidepoolServiceKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TidepoolServiceKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainLoadingView.swift; sourceTree = "<group>"; };
 		3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataInitializationCoordinator.swift; sourceTree = "<group>"; };
 		3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorProvider.swift; sourceTree = "<group>"; };
@@ -1309,6 +1386,7 @@
 		DDE1794F2C910127003CDDB7 /* OrefDetermination+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrefDetermination+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE179502C910127003CDDB7 /* OverrideStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDE179512C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeInRangeType.swift; sourceTree = "<group>"; };
 		DDF847DC2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsDataFlow.swift; sourceTree = "<group>"; };
 		DDF847DE2C5C28780049BB3B /* LiveActivitySettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsProvider.swift; sourceTree = "<group>"; };
 		DDF847E02C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsStateModel.swift; sourceTree = "<group>"; };
@@ -1357,17 +1435,38 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE95BF632BA771BE00DC3DE3 /* LoopTestingKit.framework in Frameworks */,
+				3B4BA7722D8DBD690069D5B8 /* G7SensorKitUI.framework in Frameworks */,
+				3B4BA7742D8DBD690069D5B8 /* LibreTransmitter.framework in Frameworks */,
+				3B4BA78C2D8DC0EC0069D5B8 /* ShareClientUI.framework in Frameworks */,
+				3B4BA77A2D8DBD690069D5B8 /* MinimedKitUI.framework in Frameworks */,
+				3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */,
+				3B4BA7782D8DBD690069D5B8 /* MinimedKit.framework in Frameworks */,
+				3B4BA7762D8DBD690069D5B8 /* LibreTransmitterUI.framework in Frameworks */,
+				3B4BA7902D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Frameworks */,
+				3B4BA76A2D8DBD690069D5B8 /* CGMBLEKit.framework in Frameworks */,
+				3B4BA77C2D8DBD690069D5B8 /* OmniBLE.framework in Frameworks */,
 				38E87403274F78C000975559 /* libswiftCoreNFC.tbd in Frameworks */,
 				38E87401274F77E400975559 /* CoreNFC.framework in Frameworks */,
+				3B4BA78A2D8DC0EC0069D5B8 /* ShareClient.framework in Frameworks */,
+				3B4BA77E2D8DBD690069D5B8 /* OmniKit.framework in Frameworks */,
 				CE51DD1C2A01970900F163F7 /* ConnectIQ 2.xcframework in Frameworks */,
 				3811DE1025C9D37700A708ED /* Swinject in Frameworks */,
+				3B4BA78E2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Frameworks */,
 				B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */,
+				3B4BA7702D8DBD690069D5B8 /* G7SensorKit.framework in Frameworks */,
+				3B4BA76C2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Frameworks */,
 				CE95BF5B2BA770C300DC3DE3 /* LoopKit.framework in Frameworks */,
 				38B17B6625DD90E0005CAE3D /* SwiftDate in Frameworks */,
 				3833B46D26012030003021B3 /* Algorithms in Frameworks */,
+				3B4BA7822D8DBD690069D5B8 /* RileyLinkBLEKit.framework in Frameworks */,
+				3B4BA76E2D8DBD690069D5B8 /* DanaKit.framework in Frameworks */,
+				3B4BA7862D8DBD690069D5B8 /* RileyLinkKitUI.framework in Frameworks */,
 				CEB434FD28B90B7C00B70274 /* SwiftCharts in Frameworks */,
 				CE95BF5F2BA7715800DC3DE3 /* MockKit.framework in Frameworks */,
+				3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */,
 				38DF1789276FC8C400B3528F /* SwiftMessages in Frameworks */,
+				3B4BA7802D8DBD690069D5B8 /* OmniKitUI.framework in Frameworks */,
+				3B4BA7842D8DBD690069D5B8 /* RileyLinkKit.framework in Frameworks */,
 				CE95BF612BA7715900DC3DE3 /* MockKitUI.framework in Frameworks */,
 				E0CC2C5C275B9F0F00A7BC71 /* HealthKit.framework in Frameworks */,
 				CE95BF5D2BA770C300DC3DE3 /* LoopKitUI.framework in Frameworks */,
@@ -1939,6 +2038,23 @@
 		3818AA48274C267000843DB3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3B4BA7882D8DC0EC0069D5B8 /* TidepoolServiceKit.framework */,
+				3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */,
+				3B4BA75B2D8DBD690069D5B8 /* CGMBLEKit.framework */,
+				3B4BA75C2D8DBD690069D5B8 /* CGMBLEKitUI.framework */,
+				3B4BA75D2D8DBD690069D5B8 /* DanaKit.framework */,
+				3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */,
+				3B4BA75F2D8DBD690069D5B8 /* G7SensorKitUI.framework */,
+				3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */,
+				3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */,
+				3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */,
+				3B4BA7632D8DBD690069D5B8 /* MinimedKitUI.framework */,
+				3B4BA7642D8DBD690069D5B8 /* OmniBLE.framework */,
+				3B4BA7652D8DBD690069D5B8 /* OmniKit.framework */,
+				3B4BA7662D8DBD690069D5B8 /* OmniKitUI.framework */,
+				3B4BA7672D8DBD690069D5B8 /* RileyLinkBLEKit.framework */,
+				3B4BA7682D8DBD690069D5B8 /* RileyLinkKit.framework */,
+				3B4BA7692D8DBD690069D5B8 /* RileyLinkKitUI.framework */,
 				CE95BF492BA5CED700DC3DE3 /* LoopKit.framework */,
 				CE95BF4A2BA5CED700DC3DE3 /* LoopKitUI.framework */,
 				CE51DD1B2A01970800F163F7 /* ConnectIQ 2.xcframework */,
@@ -2098,6 +2214,7 @@
 		388E5A5925B6F0250019842D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */,
 				3B2F77852D7E52ED005ED9FA /* TDD.swift */,
 				DD4FFF322D458EE600B6CFF9 /* GarminWatchState.swift */,
 				DD3078692D42F94000DE0490 /* GarminDevice.swift */,
@@ -3349,7 +3466,6 @@
 				3821ECD025DC703C00BC42AD /* Embed Frameworks */,
 				38E8753D27554D5900975559 /* Embed Watch Content */,
 				6B1A8D122B14D88E00E76752 /* Embed Foundation Extensions */,
-				CE95BF582BA5F8F300DC3DE3 /* Install plugins */,
 				DD88C8DF2C4D583900F2D558 /* Run Script: Capture Build Details */,
 			);
 			buildRules = (
@@ -3366,6 +3482,8 @@
 				38DF1788276FC8C400B3528F /* SwiftMessages */,
 				CEB434FC28B90B7C00B70274 /* SwiftCharts */,
 				B958F1B62BA0711600484851 /* MKRingProgressView */,
+				3BD9687B2D8DDD4600899469 /* SlideButton */,
+				3BD9687E2D8DDD8800899469 /* CryptoSwift */,
 			);
 			productName = Trio;
 			productReference = 388E595825AD948C0019842D /* Trio.app */;
@@ -3539,6 +3657,8 @@
 				38DF1787276FC8C300B3528F /* XCRemoteSwiftPackageReference "SwiftMessages" */,
 				CEB434FB28B90B7C00B70274 /* XCRemoteSwiftPackageReference "SwiftCharts" */,
 				B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */,
+				3BD9687A2D8DDD4600899469 /* XCRemoteSwiftPackageReference "SlideButton" */,
+				3BD9687D2D8DDD8800899469 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
 			);
 			productRefGroup = 388E595925AD948C0019842D /* Products */;
 			projectDirPath = "";
@@ -3632,25 +3752,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "source \"${SRCROOT}\"/scripts/swiftformat.sh\n\n";
-		};
-		CE95BF582BA5F8F300DC3DE3 /* Install plugins */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Install plugins";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Scripts/copy-plugins.sh\"\n";
 		};
 		DD88C8DF2C4D583900F2D558 /* Run Script: Capture Build Details */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -4062,6 +4163,7 @@
 				CE7CA3542A064973004BE681 /* TempPresetsIntentRequest.swift in Sources */,
 				58A3D5442C96DE11003F90FC /* TempTargetStored+Helper.swift in Sources */,
 				DD6B7CB42C7B71F700B75029 /* ForecastDisplayType.swift in Sources */,
+				DDEBB05C2D89E9050032305D /* TimeInRangeType.swift in Sources */,
 				DD5DC9F32CF3D9DD00AB8703 /* AdjustmentsStateModel+TempTargets.swift in Sources */,
 				F5F7E6C1B7F098F59EB67EC5 /* TargetsEditorDataFlow.swift in Sources */,
 				DD17453A2C55BFA600211FAC /* AlgorithmAdvancedSettingsDataFlow.swift in Sources */,
@@ -4935,6 +5037,22 @@
 				minimumVersion = 9.0.0;
 			};
 		};
+		3BD9687A2D8DDD4600899469 /* XCRemoteSwiftPackageReference "SlideButton" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/no-comment/SlideButton";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		3BD9687D2D8DDD8800899469 /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/krzyzanowskim/CryptoSwift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.8.2;
+			};
+		};
 		B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/maxkonovalov/MKRingProgressView.git";
@@ -4973,6 +5091,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 38DF1787276FC8C300B3528F /* XCRemoteSwiftPackageReference "SwiftMessages" */;
 			productName = SwiftMessages;
+		};
+		3BD9687B2D8DDD4600899469 /* SlideButton */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3BD9687A2D8DDD4600899469 /* XCRemoteSwiftPackageReference "SlideButton" */;
+			productName = SlideButton;
+		};
+		3BD9687E2D8DDD8800899469 /* CryptoSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3BD9687D2D8DDD8800899469 /* XCRemoteSwiftPackageReference "CryptoSwift" */;
+			productName = CryptoSwift;
 		};
 		B958F1B62BA0711600484851 /* MKRingProgressView */ = {
 			isa = XCSwiftPackageProductDependency;
