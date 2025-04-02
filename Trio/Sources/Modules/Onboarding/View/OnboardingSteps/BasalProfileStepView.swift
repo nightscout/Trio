@@ -51,42 +51,30 @@ struct BasalProfileStepView: View {
                     items: $therapyItems,
                     unit: String(localized: "U/hr"),
                     valueOptions: state.basalProfileRateValues
-                ).scaledToFit()
+                )
+
+                Spacer(minLength: 20)
 
                 // Total daily basal calculation
                 if !state.basalProfileItems.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 0) {
                         HStack {
-                            Text("Total Daily Basal")
-                                .font(.headline)
-                                .padding(.horizontal)
+                            Text("Total")
+                                .bold()
 
                             Spacer()
 
-                            Text("\(calculateTotalDailyBasal(), specifier: "%.2f") U/day")
-                                .font(.headline)
-                                .padding(.horizontal)
-                                .id(refreshUI) // Erzwingt die Aktualisierung des Totals
+                            HStack {
+                                Text("\(calculateTotalDailyBasal(), specifier: "%.2f")")
+                                Text("U/hr")
+                                    .foregroundStyle(Color.secondary)
+                            }
+                            .id(refreshUI) // Erzwingt die Aktualisierung des Totals
                         }
                     }
-                    .padding(.top)
-
-                    // Information about basal rates
-//                    VStack(alignment: .leading, spacing: 8) {
-//                        Text("What This Means")
-//                            .font(.headline)
-//                            .padding(.horizontal)
-//
-//                        VStack(alignment: .leading, spacing: 4) {
-//                            Text("• The basal profile provides background insulin throughout the day")
-//                            Text("• Rates should be adjusted based on your body's varying insulin needs")
-//                            Text("• Morning hours may require more insulin due to 'dawn phenomenon'")
-//                            Text("• Lower rates are typically needed during sleep or periods of activity")
-//                        }
-//                        .font(.caption)
-//                        .foregroundColor(.secondary)
-//                        .padding(.horizontal)
-//                    }
+                    .padding()
+                    .background(Color.chart.opacity(0.45))
+                    .cornerRadius(10)
                 }
             }
         }

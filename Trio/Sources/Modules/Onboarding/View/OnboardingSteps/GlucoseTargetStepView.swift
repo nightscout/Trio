@@ -60,7 +60,7 @@ struct GlucoseTargetStepView: View {
                     items: $therapyItems,
                     unit: state.units.rawValue,
                     valueOptions: state.targetRateValues
-                ).scaledToFit()
+                )
             }
         }
         .onAppear {

@@ -51,7 +51,7 @@ struct CarbRatioStepView: View {
                     items: $therapyItems,
                     unit: String(localized: "g/U"),
                     valueOptions: state.carbRatioRateValues
-                ).scaledToFit()
+                )
 
                 // Example calculation based on first carb ratio
                 if !state.carbRatioItems.isEmpty {

@@ -51,7 +51,7 @@ struct InsulinSensitivityStepView: View {
                     items: $therapyItems,
                     unit: String(localized: "\(state.units.rawValue)/U"),
                     valueOptions: state.isfRateValues
-                ).scaledToFit()
+                )
 
                 // Example calculation based on first ISF
                 if !state.isfItems.isEmpty {
