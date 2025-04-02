@@ -7,10 +7,12 @@ import SwiftUI
 /// Represents the different steps in the onboarding process.
 enum OnboardingStep: Int, CaseIterable, Identifiable {
     case welcome
+    case unitSelection
     case glucoseTarget
     case basalProfile
     case carbRatio
     case insulinSensitivity
+    case deliveryLimits
     case completed
 
     var id: Int { rawValue }
@@ -20,6 +22,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
         switch self {
         case .welcome:
             return "Welcome to Trio"
+        case .unitSelection:
+            return "Units & Pump"
         case .glucoseTarget:
             return "Glucose Target"
         case .basalProfile:
@@ -28,6 +32,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
             return "Carbohydrate Ratio"
         case .insulinSensitivity:
             return "Insulin Sensitivity"
+        case .deliveryLimits:
+            return "Delivery Limits"
         case .completed:
             return "All Set!"
         }
@@ -38,6 +44,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
         switch self {
         case .welcome:
             return "Trio is a powerful app that helps you manage your diabetes. Let's get started by setting up a few important parameters that will help Trio work effectively for you."
+        case .unitSelection:
+            return "Before you can begin with configuring your therapy settigns, Trio needs to know which units you use for your glucose and insulin measurements (based on your pump model)."
         case .glucoseTarget:
             return "Your glucose target is the blood glucose level you aim to maintain. Trio will use this to calculate insulin doses and provide recommendations."
         case .basalProfile:
@@ -46,6 +54,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
             return "Your carb ratio tells how many grams of carbohydrates one unit of insulin will cover. This is essential for accurate meal bolus calculations."
         case .insulinSensitivity:
             return "Your insulin sensitivity factor (ISF) indicates how much one unit of insulin will lower your blood glucose. This helps calculate correction boluses."
+        case .deliveryLimits:
+            return "Trio offers various delivery limits which represent the maximum amount of insulin it can deliver at a time. This helps ensure safe and effective experience."
         case .completed:
             return "Great job! You've completed the initial setup of Trio. You can always adjust these settings later in the app."
         }
@@ -56,6 +66,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
         switch self {
         case .welcome:
             return "hand.wave.fill"
+        case .unitSelection:
+            return "numbers.rectangle"
         case .glucoseTarget:
             return "target"
         case .basalProfile:
@@ -64,6 +76,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
             return "fork.knife"
         case .insulinSensitivity:
             return "drop.fill"
+        case .deliveryLimits:
+            return "slider.horizontal.3"
         case .completed:
             return "checkmark.circle.fill"
         }
@@ -90,6 +104,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
         switch self {
         case .welcome:
             return Color.blue
+        case .unitSelection:
+            return Color.blue
         case .glucoseTarget:
             return Color.green
         case .basalProfile:
@@ -100,6 +116,28 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
             return Color.red
         case .completed:
             return Color.blue
+        }
+    }
+}
+
+enum PumpOptionsForOnboardingUnits: String, Equatable, CaseIterable, Identifiable {
+    case minimed
+    case omnipodEros
+    case omnipodDash
+    case dana
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .minimed:
+            return "Medtronic 5xx / 7xx"
+        case .omnipodEros:
+            return "Omnipod Eros"
+        case .omnipodDash:
+            return "Omnipod Dash"
+        case .dana:
+            return "Dana (RS/-i)"
         }
     }
 }
@@ -120,7 +158,16 @@ extension Onboarding {
         var initialBasalProfileItems: [BasalProfileEditor.Item] = []
         var basalProfileItems: [BasalProfileEditor.Item] = []
         let basalProfileTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
-        var basalProfileRateValues: [Decimal] = stride(from: 0.05, to: 3.05, by: 0.05).map { Decimal($0) }
+        var basalProfileRateValues: [Decimal] {
+            switch pumpModel {
+            case .dana,
+                 .minimed:
+                return stride(from: 0.1, to: 30.0, by: 0.1).map { Decimal($0) }
+            case .omnipodDash,
+                 .omnipodEros:
+                return stride(from: 0.05, to: 30.0, by: 0.05).map { Decimal($0) }
+            }
+        }
 
         // ISF related
         var isfItems: [ISFEditor.Item] = []
@@ -158,6 +205,8 @@ extension Onboarding {
 
         // Blood Glucose Units
         var units: GlucoseUnits = .mgdL
+
+        var pumpModel: PumpOptionsForOnboardingUnits = .omnipodDash
 
         struct BasalRateEntry: Identifiable {
             var id = UUID()

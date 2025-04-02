@@ -34,7 +34,7 @@ struct GlucoseTargetStepView: View {
         .date(from: DateComponents(year: 2001, month: 01, day: 01, hour: 0, minute: 0, second: 0))
 
     var body: some View {
-        ScrollView {
+        LazyVStack {
             VStack(alignment: .leading, spacing: 0) {
                 // Chart visualization
                 if !state.targetItems.isEmpty {

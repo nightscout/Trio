@@ -33,7 +33,7 @@ struct BasalProfileStepView: View {
     }
 
     var body: some View {
-        ScrollView {
+        LazyVStack {
             VStack(alignment: .leading, spacing: 0) {
                 // Chart visualization
                 if !state.basalProfileItems.isEmpty {
