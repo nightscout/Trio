@@ -17,6 +17,15 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 
     var id: Int { rawValue }
 
+    var hasSubsteps: Bool {
+        self == .deliveryLimits
+    }
+
+    var substeps: [DeliveryLimitSubstep] {
+        guard hasSubsteps else { return [] }
+        return DeliveryLimitSubstep.allCases
+    }
+
     /// The title to display for this onboarding step.
     var title: String {
         switch self {
@@ -102,9 +111,10 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
     /// The accent color to use for this step.
     var accentColor: Color {
         switch self {
-        case .welcome:
-            return Color.blue
-        case .unitSelection:
+        case .completed,
+             .deliveryLimits,
+             .unitSelection,
+             .welcome:
             return Color.blue
         case .glucoseTarget:
             return Color.green
@@ -114,8 +124,77 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
             return Color.orange
         case .insulinSensitivity:
             return Color.red
-        case .completed:
-            return Color.blue
+        }
+    }
+}
+
+enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
+    case maxIOB
+    case maxBolus
+    case maxBasal
+    case maxCOB
+
+    var id: Int { rawValue }
+
+    var title: String {
+        switch self {
+        case .maxIOB: return String(localized: "Max IOB", comment: "Max IOB")
+        case .maxBolus: return String(localized: "Max Bolus")
+        case .maxBasal: return String(localized: "Max Basal")
+        case .maxCOB: return String(localized: "Max COB", comment: "Max COB")
+        }
+    }
+
+    var hint: String {
+        switch self {
+        case .maxIOB: return String(localized: "Maximum units of insulin allowed to be active.")
+        case .maxBolus: return String(localized: "Largest bolus of insulin allowed.")
+        case .maxBasal: return String(localized: "Largest basal rate allowed.")
+        case .maxCOB: return String(localized: "Maximum Carbs On Board (COB) allowed.")
+        }
+    }
+
+    var description: any View {
+        switch self {
+        case .maxIOB:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "This is the maximum amount of Insulin On Board (IOB) above profile basal rates from all sources - positive temporary basal rates, manual or meal boluses, and SMBs - that Trio is allowed to accumulate to address an above target glucose."
+                )
+                Text(
+                    "If a calculated amount exceeds this limit, the suggested and / or delivered amount will be reduced so that active insulin on board (IOB) will not exceed this safety limit."
+                )
+                Text(
+                    "Note: You can still manually bolus above this limit, but the suggested bolus amount will never exceed this in the bolus calculator."
+                )
+            }
+        case .maxBolus:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "This is the maximum bolus allowed to be delivered at one time. This limits manual and automatic bolus."
+                )
+                Text("Most set this to their largest meal bolus. Then, adjust if needed.")
+                Text("If you attempt to request a bolus larger than this, the bolus will not be accepted.")
+            }
+        case .maxBasal:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "This is the maximum basal rate allowed to be set or scheduled. This applies to both automatic and manual basal rates."
+                )
+                Text(
+                    "Note to Medtronic Pump Users: You must also manually set the max basal rate on the pump to this value or higher."
+                )
+            }
+        case .maxCOB:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "This setting defines the maximum amount of Carbs On Board (COB) at any given time for Trio to use in dosing calculations. If more carbs are entered than allowed by this limit, Trio will cap the current COB in calculations to Max COB and remain at max until all remaining carbs have shown to be absorbed."
+                )
+                Text(
+                    "For example, if Max COB is 120 g and you enter a meal containing 150 g of carbs, your COB will remain at 120 g until the remaining 30 g have been absorbed."
+                )
+                Text("This is an important limit when UAM is ON.")
+            }
         }
     }
 }
@@ -145,8 +224,11 @@ enum PumpOptionsForOnboardingUnits: String, Equatable, CaseIterable, Identifiabl
 /// Model that holds the data collected during onboarding.
 extension Onboarding {
     @Observable final class StateModel: BaseStateModel<Provider> {
-        @ObservationIgnored @Injected() var storage: FileStorage!
+        @ObservationIgnored @Injected() var fileStorage: FileStorage!
         @ObservationIgnored @Injected() var deviceManager: DeviceDataManager!
+        @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
+
+        private let settingsProvider = PickerSettingsProvider.shared
 
         // Carb Ratio related
         var carbRatioItems: [CarbRatioEditor.Item] = []
@@ -189,7 +271,6 @@ extension Onboarding {
         let targetTimeValues = stride(from: 0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
         var targetRateValues: [Decimal] {
-            let settingsProvider = PickerSettingsProvider.shared
             let glucoseSetting = PickerSetting(value: 0, step: 1, min: 72, max: 180, type: .glucose)
             return settingsProvider.generatePickerValues(from: glucoseSetting, units: units)
         }
@@ -208,6 +289,11 @@ extension Onboarding {
 
         var pumpModel: PumpOptionsForOnboardingUnits = .omnipodDash
 
+        var maxBolus: Decimal = 10
+        var maxBasal: Decimal = 2
+        var maxIOB: Decimal = 0
+        var maxCOB: Decimal = 120
+
         struct BasalRateEntry: Identifiable {
             var id = UUID()
             var startTime: Int // Minutes from midnight
@@ -221,7 +307,14 @@ extension Onboarding {
         }
 
         override func subscribe() {
+            // TODO: why are we immediately storing to settings?
+//            saveOnboardingData()
+        }
+
+        func saveOnboardingData() {
             applyToSettings()
+            applyToPreferences()
+            applyToPumpSettings()
         }
 
         /// Applies the onboarding data to the app's settings.
@@ -229,25 +322,39 @@ extension Onboarding {
             // Make a copy of the current settings that we can mutate
             var settingsCopy = settingsManager.settings
 
-            // Apply glucose units
             settingsCopy.units = units
 
-            // Apply targets
+            // Store therapy settings
             saveTargets()
-
-            // Apply basal profile
-            // TODO: - should we use the return value or modify the function to not return anything?
-            _ = saveBasalProfile()
-
-            // Apply carb ratio
+            saveBasalProfile()
             saveCarbRatios()
-
-            // Apply ISF values
             saveISFValues()
 
-            // Instead of using updateSettings which doesn't exist,
-            // we'll directly set the settings property which will trigger the didSet observer
+            // We'll directly set the settings property which will trigger the didSet observer
             settingsManager.settings = settingsCopy
+        }
+
+        func applyToPreferences() {
+            var preferencesCopy = settingsManager.preferences
+
+            preferencesCopy.maxIOB = maxIOB
+            preferencesCopy.maxCOB = maxCOB
+
+            // We'll directly set the preferences property which will trigger the didSet observer
+            settingsManager.preferences = preferencesCopy
+        }
+
+        func applyToPumpSettings() {
+            let defaultDIA = settingsProvider.settings.insulinPeakTime.value
+            let pumpSettings = PumpSettings(insulinActionCurve: defaultDIA, maxBolus: maxBolus, maxBasal: maxBasal)
+            fileStorage.save(pumpSettings, as: OpenAPS.Settings.settings)
+
+            // TODO: is this actually necessary at this point? Nothing is set up yet, nothing is subscribed to this observer...
+            DispatchQueue.main.async {
+                self.broadcaster.notify(PumpSettingsObserver.self, on: DispatchQueue.main) {
+                    $0.pumpSettingsDidChange(pumpSettings)
+                }
+            }
         }
 
         // TODO: clean up these function and unify them
@@ -398,7 +505,7 @@ extension Onboarding.StateModel {
 //    }
 
     func saveCarbRatioProfile(_ profile: CarbRatios) {
-        storage.save(profile, as: OpenAPS.Settings.carbRatios)
+        fileStorage.save(profile, as: OpenAPS.Settings.carbRatios)
     }
 }
 
@@ -460,7 +567,7 @@ extension Onboarding.StateModel {
 //    }
 
     func saveTargets(_ profile: BGTargets) {
-        storage.save(profile, as: OpenAPS.Settings.bgTargets)
+        fileStorage.save(profile, as: OpenAPS.Settings.bgTargets)
     }
 }
 
@@ -522,7 +629,7 @@ extension Onboarding.StateModel {
 //    }
 
     func saveISFProfile(_ profile: InsulinSensitivities) {
-        storage.save(profile, as: OpenAPS.Settings.insulinSensitivities)
+        fileStorage.save(profile, as: OpenAPS.Settings.insulinSensitivities)
     }
 }
 
@@ -556,7 +663,7 @@ extension Onboarding.StateModel {
         basalProfileItems.append(newItem)
     }
 
-    func saveBasalProfile() -> AnyPublisher<Void, Error> {
+    func saveBasalProfile() {
         let profile = basalProfileItems.map { item -> BasalProfileEntry in
             let formatter = DateFormatter()
             formatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -567,25 +674,6 @@ extension Onboarding.StateModel {
             return BasalProfileEntry(start: formatter.string(from: date), minutes: minutes, rate: rate)
         }
 
-        guard let pump = deviceManager?.pumpManager else {
-            debugPrint("\(DebuggingIdentifiers.failed) No pump found; cannot save basal profile!")
-            return Fail(error: NSError()).eraseToAnyPublisher()
-        }
-
-        let syncValues = profile.map {
-            RepeatingScheduleValue(startTime: TimeInterval($0.minutes * 60), value: Double($0.rate))
-        }
-
-        return Future { promise in
-            pump.syncBasalRateSchedule(items: syncValues) { result in
-                switch result {
-                case .success:
-                    self.storage.save(profile, as: OpenAPS.Settings.basalProfile)
-                    promise(.success(()))
-                case let .failure(error):
-                    promise(.failure(error))
-                }
-            }
-        }.eraseToAnyPublisher()
+        fileStorage.save(profile, as: OpenAPS.Settings.basalProfile)
     }
 }

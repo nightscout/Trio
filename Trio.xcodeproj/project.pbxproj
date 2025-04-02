@@ -552,6 +552,7 @@
 		DD3A3CE92D29C97800AE478E /* Helper+ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3A3CE82D29C97800AE478E /* Helper+ButtonStyles.swift */; };
 		DD3F1F832D9DC78800DCE7B3 /* UnitSelectionStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */; };
 		DD3F1F852D9DD84000DCE7B3 /* DeliveryLimitsStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */; };
+		DD3F1F872D9DDB1200DCE7B3 /* AnimationPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F862D9DDB1200DCE7B3 /* AnimationPlaceholder.swift */; };
 		DD498F2B2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
 		DD498F2C2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
 		DD498F2D2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
@@ -1331,6 +1332,7 @@
 		DD3A3CE82D29C97800AE478E /* Helper+ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Helper+ButtonStyles.swift"; sourceTree = "<group>"; };
 		DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitSelectionStepView.swift; sourceTree = "<group>"; };
 		DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliveryLimitsStepView.swift; sourceTree = "<group>"; };
+		DD3F1F862D9DDB1200DCE7B3 /* AnimationPlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationPlaceholder.swift; sourceTree = "<group>"; };
 		DD4C57A72D73ADEA001BFF2C /* RestartLiveActivityIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartLiveActivityIntent.swift; sourceTree = "<group>"; };
 		DD4C57A92D73B3D9001BFF2C /* RestartLiveActivityIntentRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartLiveActivityIntentRequest.swift; sourceTree = "<group>"; };
 		DD4C581E2D73C43D001BFF2C /* LoopStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStatsView.swift; sourceTree = "<group>"; };
@@ -2727,6 +2729,7 @@
 		BD47FD152D88AAD80043966B /* View */ = {
 			isa = PBXGroup;
 			children = (
+				DD3F1F862D9DDB1200DCE7B3 /* AnimationPlaceholder.swift */,
 				DDC38E0F2D9B376900ADCB46 /* OnboardingView+Util.swift */,
 				BD47FD182D88AAF90043966B /* OnboardingView.swift */,
 				BD47FDD52D8B64AE0043966B /* OnboardingSteps */,
@@ -3910,6 +3913,7 @@
 				3811DF1025CAAAE200A708ED /* APSManager.swift in Sources */,
 				3870FF4725EC187A0088248F /* BloodGlucose.swift in Sources */,
 				38A0364225ED069400FCBB52 /* TempBasal.swift in Sources */,
+				DD3F1F872D9DDB1200DCE7B3 /* AnimationPlaceholder.swift in Sources */,
 				3811DE1725C9D40400A708ED /* Screen.swift in Sources */,
 				383948DA25CD64D500E91849 /* Glucose.swift in Sources */,
 				CE94598029E9E3BD0047C9C6 /* WatchConfigDataFlow.swift in Sources */,

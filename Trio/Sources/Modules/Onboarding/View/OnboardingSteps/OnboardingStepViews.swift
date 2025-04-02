@@ -58,14 +58,9 @@ struct CompletedStepView: View {
             .foregroundColor(.secondary)
 
             VStack(alignment: .leading, spacing: 12) {
-                SettingItemView(icon: "target", title: "Glucose Target", description: "Your target range is set")
-                SettingItemView(
-                    icon: "chart.xyaxis.line",
-                    title: "Basal Profile",
-                    description: "Your basal profile is configured"
-                )
-                SettingItemView(icon: "fork.knife", title: "Carb Ratio", description: "Your carb ratio is defined")
-                SettingItemView(icon: "drop.fill", title: "Insulin Sensitivity", description: "Your ISF is established")
+                ForEach(OnboardingStep.allCases.filter { $0 != .welcome && $0 != .completed }, id: \.self) { step in
+                    SettingItemView(icon: step.iconName, title: step.title)
+                }
             }
             .padding()
             .background(Color.green.opacity(0.1))
@@ -86,7 +81,6 @@ struct CompletedStepView: View {
 struct SettingItemView: View {
     let icon: String
     let title: String
-    let description: String
 
     var body: some View {
         HStack(spacing: 15) {
@@ -98,10 +92,6 @@ struct SettingItemView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.headline)
-
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
             }
 
             Spacer()
