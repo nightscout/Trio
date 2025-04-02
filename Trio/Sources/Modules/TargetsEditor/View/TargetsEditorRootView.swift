@@ -169,9 +169,6 @@ extension TargetsEditor {
             }
         }
 
-        let chartScale = Calendar.current
-            .date(from: DateComponents(year: 2001, month: 01, day: 01, hour: 0, minute: 0, second: 0))
-
         var chart: some View {
             Chart {
                 ForEach(state.items.indexed(), id: \.1.id) { index, item in
@@ -182,15 +179,17 @@ extension TargetsEditor {
                     // However, swift doesn't understand languages that use comma as decimal delminator
                     let displayValueFloat = Double(displayValue.replacingOccurrences(of: ",", with: "."))
 
-                    let tzOffset = TimeZone.current.secondsFromGMT() * -1
-                    let startDate = Date(timeIntervalSinceReferenceDate: state.timeValues[item.timeIndex])
-                        .addingTimeInterval(TimeInterval(tzOffset))
+                    let startDate = Calendar.current
+                        .startOfDay(for: Date())
+                        .addingTimeInterval(state.timeValues[item.timeIndex])
+
                     let endDate = state.items
                         .count > index + 1 ?
-                        Date(timeIntervalSinceReferenceDate: state.timeValues[state.items[index + 1].timeIndex])
-                        .addingTimeInterval(TimeInterval(tzOffset)) :
-                        Date(timeIntervalSinceReferenceDate: state.timeValues.last!).addingTimeInterval(30 * 60)
-                        .addingTimeInterval(TimeInterval(tzOffset))
+                        Calendar.current.startOfDay(for: Date())
+                        .addingTimeInterval(state.timeValues[state.items[index + 1].timeIndex])
+                        :
+                        Calendar.current.startOfDay(for: Date())
+                        .addingTimeInterval(state.timeValues.last! + 30 * 60)
 
                     LineMark(x: .value("End Date", startDate), y: .value("Target", displayValueFloat ?? 0.0))
                         .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.green.gradient)
@@ -206,7 +205,8 @@ extension TargetsEditor {
                 }
             }
             .chartXScale(
-                domain: Calendar.current.startOfDay(for: chartScale!) ... Calendar.current.startOfDay(for: chartScale!)
+                domain: Calendar.current.startOfDay(for: Date()) ... Calendar
+                    .current.startOfDay(for: Date())
                     .addingTimeInterval(60 * 60 * 24)
             )
             .chartYAxis {
