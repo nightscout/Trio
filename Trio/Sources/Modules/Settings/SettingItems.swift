@@ -162,7 +162,8 @@ enum SettingItems {
                 "Enable Fatty Meal Factor",
                 "Fatty Meal Factor",
                 "Enable Super Bolus",
-                "Super Bolus Factor"
+                "Super Bolus Factor",
+                "Very Low Glucose Warning"
             ],
             path: ["Features", "Bolus Calculator"]
         ),
