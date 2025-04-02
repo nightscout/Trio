@@ -55,17 +55,16 @@ struct InsulinSensitivityStepView: View {
 
                 // Example calculation based on first ISF
                 if !state.isfItems.isEmpty {
-                    Divider()
-                        .padding(.horizontal)
+                    Spacer(minLength: 20)
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Example Calculation")
                             .font(.headline)
                             .padding(.horizontal)
 
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: 8) {
                             // Current glucose is 40 mg/dL or 2.2 mmol/L above target
-                            let aboveTarget = state.units == .mgdL ? 40.0 : 2.2
+                            let aboveTarget = state.units == .mgdL ? Decimal(40) : 40.asMmolL
 
                             let isfValue = state.isfRateValues.isEmpty || state.isfItems.isEmpty ?
                                 Double(truncating: state.isf as NSNumber) :
@@ -74,28 +73,28 @@ struct InsulinSensitivityStepView: View {
                                         .isfRateValues[state.isfItems.first!.rateIndex] as NSNumber
                                 )
 
-                            let insulinNeeded = aboveTarget / isfValue
+                            let insulinNeeded = aboveTarget / Decimal(isfValue)
 
                             Text(
-                                "If you are \(numberFormatter.string(from: NSNumber(value: aboveTarget)) ?? "--") \(state.units == .mgdL ? "mg/dL" : "mmol/L") above target:"
+                                "If you are \(numberFormatter.string(from: aboveTarget as NSNumber) ?? "--") \(state.units.rawValue) above target:"
                             )
                             .font(.subheadline)
                             .padding(.horizontal)
 
                             Text(
-                                "\(numberFormatter.string(from: NSNumber(value: aboveTarget)) ?? "--") ÷ \(numberFormatter.string(from: isfValue as NSNumber) ?? "--") = \(String(format: "%.1f", insulinNeeded)) units of insulin"
+                                "\(numberFormatter.string(from: aboveTarget as NSNumber) ?? "--") ÷ \(numberFormatter.string(from: isfValue as NSNumber) ?? "--") = \(String(format: "%.1f", Double(insulinNeeded)))" +
+                                    " " + String(localized: "U")
                             )
                             .font(.system(.body, design: .monospaced))
                             .foregroundColor(.red)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.red.opacity(0.1))
-                            .cornerRadius(8)
-                            .padding(.horizontal)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .background(Color.chart.opacity(0.45))
+                            .cornerRadius(10)
                         }
-                        .padding(.vertical, 4)
                     }
+
+                    Spacer(minLength: 20)
 
                     // Information about ISF
                     VStack(alignment: .leading, spacing: 8) {
@@ -104,17 +103,13 @@ struct InsulinSensitivityStepView: View {
                             .padding(.horizontal)
 
                         VStack(alignment: .leading, spacing: 4) {
-                            if state.units == .mgdL {
-                                Text("• An ISF of 50 mg/dL means 1 unit of insulin lowers your BG by 50 mg/dL")
-                                Text("• A lower number means you're more sensitive to insulin")
-                                Text("• A higher number means you're less sensitive to insulin")
-                                Text("• ISF may vary throughout the day")
-                            } else {
-                                Text("• An ISF of 2.8 mmol/L means 1 unit of insulin lowers your BG by 2.8 mmol/L")
-                                Text("• A lower number means you're more sensitive to insulin")
-                                Text("• A higher number means you're less sensitive to insulin")
-                                Text("• ISF may vary throughout the day")
-                            }
+                            let isfValue = "\(state.units == .mgdL ? Decimal(50) : 50.asMmolL)" +
+                                "\(state.units.rawValue)"
+                            Text(
+                                "• An ISF of \(isfValue) means 1 U lowers your glucose by \(isfValue)"
+                            )
+                            Text("• A lower number means you're more sensitive to insulin")
+                            Text("• A higher number means you're less sensitive to insulin")
                         }
                         .font(.caption)
                         .foregroundColor(.secondary)

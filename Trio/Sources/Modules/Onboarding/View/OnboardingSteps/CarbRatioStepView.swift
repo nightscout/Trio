@@ -55,15 +55,14 @@ struct CarbRatioStepView: View {
 
                 // Example calculation based on first carb ratio
                 if !state.carbRatioItems.isEmpty {
-                    Divider()
-                        .padding(.horizontal)
+                    Spacer(minLength: 20)
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Example Calculation")
                             .font(.headline)
                             .padding(.horizontal)
 
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: 8) {
                             Text("For 45g of carbs, you would need:")
                                 .font(.subheadline)
                                 .padding(.horizontal)
@@ -74,19 +73,19 @@ struct CarbRatioStepView: View {
                                         .carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber
                                 )
                             Text(
-                                "45g ÷ \(formatter.string(from: state.carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber) ?? "--") = \(String(format: "%.1f", insulinNeeded)) units of insulin"
+                                "45g ÷ \(formatter.string(from: state.carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber) ?? "--") = \(String(format: "%.1f", insulinNeeded))" +
+                                    " " + String(localized: "U")
                             )
                             .font(.system(.body, design: .monospaced))
                             .foregroundColor(.orange)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.orange.opacity(0.1))
-                            .cornerRadius(8)
-                            .padding(.horizontal)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .background(Color.chart.opacity(0.45))
+                            .cornerRadius(10)
                         }
-                        .padding(.vertical, 4)
                     }
+
+                    Spacer(minLength: 20)
 
                     // Information about the carb ratio
                     VStack(alignment: .leading, spacing: 8) {
