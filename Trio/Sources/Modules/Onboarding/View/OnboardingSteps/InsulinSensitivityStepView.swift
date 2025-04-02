@@ -11,11 +11,8 @@ import UIKit
 /// Insulin sensitivity step view for setting insulin sensitivity factor.
 struct InsulinSensitivityStepView: View {
     @Bindable var state: Onboarding.StateModel
-    @State private var showTimeSelector = false
-    @State private var selectedISFIndex: Int?
-    @State private var showAlert = false
-    @State private var errorMessage = ""
     @State private var refreshUI = UUID() // to update chart when slider value changes
+    @State private var therapyItems: [TherapySettingItem] = []
 
     // For chart scaling
     private let chartScale = Calendar.current
@@ -37,150 +34,24 @@ struct InsulinSensitivityStepView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text(
-                    "Your insulin sensitivity factor (ISF) indicates how much one unit of insulin will lower your blood glucose."
-                )
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .padding(.horizontal)
-
+            VStack(alignment: .leading, spacing: 0) {
                 // Chart visualization
                 if !state.isfItems.isEmpty {
                     VStack(alignment: .leading) {
-                        Text("ISF Profile")
-                            .font(.headline)
-                            .padding(.horizontal)
-
                         isfChart
                             .frame(height: 180)
                             .padding(.horizontal)
                     }
                     .padding(.vertical, 5)
-                    .background(Color.red.opacity(0.05))
+                    .background(Color.chart.opacity(0.45))
                     .cornerRadius(10)
                 }
 
-                // ISF values list
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Text("Sensitivity Factors")
-                            .font(.headline)
-
-                        Spacer()
-
-                        // Add new ISF button
-                        if state.isfItems.count < 24 {
-                            Button(action: {
-                                showTimeSelector = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "plus.circle.fill")
-                                    Text("Add ISF")
-                                }
-                                .foregroundColor(.red)
-                            }
-                            .disabled(!canAddISF)
-                        }
-                    }
-                    .padding(.horizontal)
-
-                    // List of ISF values
-                    VStack(spacing: 2) {
-                        ForEach(Array(state.isfItems.enumerated()), id: \.element.id) { index, item in
-                            HStack {
-                                // Time display
-                                Text(
-                                    dateFormatter
-                                        .string(from: Date(
-                                            timeIntervalSince1970: state
-                                                .isfTimeValues[item.timeIndex]
-                                        ))
-                                )
-                                .frame(width: 80, alignment: .leading)
-                                .padding(.leading)
-
-                                // ISF slider
-                                Slider(
-                                    value: Binding(
-                                        get: {
-                                            guard !state.rateValues.isEmpty,
-                                                  item.rateIndex < state.rateValues.count
-                                            else {
-                                                return 0.0
-                                            }
-                                            return Double(
-                                                truncating: state
-                                                    .rateValues[item.rateIndex] as NSNumber
-                                            )
-                                        },
-                                        set: { newValue in
-                                            guard !state.rateValues.isEmpty else { return }
-
-                                            // Find closest match in rateValues array
-                                            let newIndex = state.rateValues
-                                                .firstIndex { abs(Double($0) - newValue) < 0.5 } ?? item.rateIndex
-
-                                            // Ensure index is valid before updating
-                                            if newIndex < state.rateValues.count,
-                                               index < state.isfItems.count
-                                            {
-                                                state.isfItems[index].rateIndex = newIndex
-                                                // Force refresh when slider changes
-                                                refreshUI = UUID()
-                                            }
-                                        }
-                                    ),
-                                    in: state.rateValues.isEmpty ? 0 ... 1 :
-                                        Double(truncating: state.rateValues.first! as NSNumber) ...
-                                        Double(truncating: state.rateValues.last! as NSNumber),
-                                    step: state.units == .mgdL ? 1 : 0.1
-                                )
-                                .accentColor(.red)
-                                .padding(.horizontal, 5)
-                                .onChange(of: state.isfItems[index].rateIndex) { _, _ in
-                                    // Trigger immediate UI update when slider value changes
-                                    let impact = UIImpactFeedbackGenerator(style: .light)
-                                    impact.impactOccurred()
-                                }
-
-                                // Display the current value
-                                Text(
-                                    "\(state.rateValues.isEmpty || item.rateIndex >= state.rateValues.count ? "--" : numberFormatter.string(from: state.rateValues[item.rateIndex] as NSNumber) ?? "--") \(state.units == .mgdL ? "mg/dL" : "mmol/L")"
-                                )
-                                .frame(width: 90, alignment: .trailing)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-
-                                // Delete button (not for the first entry at 00:00)
-                                if index > 0 {
-                                    Button(action: {
-                                        state.isfItems.remove(at: index)
-                                    }) {
-                                        Image(systemName: "trash")
-                                            .foregroundColor(.red)
-                                            .padding(.horizontal, 5)
-                                    }
-                                } else {
-                                    // Spacer to maintain alignment
-                                    Spacer()
-                                        .frame(width: 30)
-                                }
-                            }
-                            .padding(.vertical, 12)
-                            .background(index % 2 == 0 ? Color.red.opacity(0.05) : Color.clear)
-                            .cornerRadius(8)
-                        }
-                    }
-                    .background(Color.red.opacity(0.05))
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-                    .onAppear {
-                        if state.isfItems.isEmpty {
-                            state.addISFValue()
-                        }
-                    }
-                }
+                TimeValueEditorView(
+                    items: $therapyItems,
+                    unit: String(localized: "\(state.units.rawValue)/U"),
+                    valueOptions: state.isfRateValues
+                ).scaledToFit()
 
                 // Example calculation based on first ISF
                 if !state.isfItems.isEmpty {
@@ -196,11 +67,11 @@ struct InsulinSensitivityStepView: View {
                             // Current glucose is 40 mg/dL or 2.2 mmol/L above target
                             let aboveTarget = state.units == .mgdL ? 40.0 : 2.2
 
-                            let isfValue = state.rateValues.isEmpty || state.isfItems.isEmpty ?
+                            let isfValue = state.isfRateValues.isEmpty || state.isfItems.isEmpty ?
                                 Double(truncating: state.isf as NSNumber) :
                                 Double(
                                     truncating: state
-                                        .rateValues[state.isfItems.first!.rateIndex] as NSNumber
+                                        .isfRateValues[state.isfItems.first!.rateIndex] as NSNumber
                                 )
 
                             let insulinNeeded = aboveTarget / isfValue
@@ -251,46 +122,15 @@ struct InsulinSensitivityStepView: View {
                     }
                 }
             }
-            .padding(.vertical)
         }
-        .actionSheet(isPresented: $showTimeSelector) {
-            var buttons: [ActionSheet.Button] = []
-
-            // Find available time slots in 1-hour increments
-            for hour in 0 ..< 24 {
-                let hourInMinutes = hour * 60
-                // Calculate timeIndex for this hour
-                let timeIndex = state.isfTimeValues
-                    .firstIndex { abs($0 - Double(hourInMinutes * 60)) < 10 } ?? 0
-
-                // Check if this hour is already in the profile
-                if !state.isfItems.contains(where: { $0.timeIndex == timeIndex }) {
-                    buttons.append(.default(Text("\(String(format: "%02d:00", hour))")) {
-                        // Get the current rate from the last item
-                        let rateIndex = state.isfItems.last?.rateIndex ?? 45 // Default to 45 mg/dL
-                        // Create new item with the specified time
-                        let newItem = ISFEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
-                        // Add the new item and sort the list
-                        state.isfItems.append(newItem)
-                        state.isfItems.sort(by: { $0.timeIndex < $1.timeIndex })
-                    })
-                }
+        .onAppear {
+            if state.isfItems.isEmpty {
+                state.addISFValue()
             }
-
-            buttons.append(.cancel())
-
-            return ActionSheet(
-                title: Text("Select Start Time"),
-                message: Text("Choose when this sensitivity factor should start"),
-                buttons: buttons
-            )
-        }
-        .alert(isPresented: $showAlert) {
-            Alert(
-                title: Text("Unable to Save ISF Profile"),
-                message: Text(errorMessage),
-                dismissButton: .default(Text("OK"))
-            )
+            therapyItems = state.getSensitivityTherapyItems(from: state.isfItems)
+        }.onChange(of: therapyItems) { _, newItems in
+            state.updateSensitivies(from: newItems)
+            refreshUI = UUID()
         }
     }
 
@@ -299,7 +139,7 @@ struct InsulinSensitivityStepView: View {
         // Default to midnight (00:00) and 50 mg/dL (or 2.8 mmol/L)
         let timeIndex = state.isfTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
         let defaultISF = state.units == .mgdL ? 50.0 : 2.8
-        let rateIndex = state.rateValues.firstIndex { abs(Double($0) - defaultISF) < 0.5 } ?? 45
+        let rateIndex = state.isfRateValues.firstIndex { abs(Double($0) - defaultISF) < 0.5 } ?? 45
 
         let newItem = ISFEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
         state.isfItems.append(newItem)
@@ -315,7 +155,7 @@ struct InsulinSensitivityStepView: View {
     private var isfChart: some View {
         Chart {
             ForEach(Array(state.isfItems.enumerated()), id: \.element.id) { index, item in
-                let displayValue = state.rateValues[item.rateIndex]
+                let displayValue = state.isfRateValues[item.rateIndex]
 
                 let tzOffset = TimeZone.current.secondsFromGMT() * -1
                 let startDate = Date(timeIntervalSinceReferenceDate: state.isfTimeValues[item.timeIndex])

@@ -126,7 +126,7 @@ extension Onboarding {
         var isfItems: [ISFEditor.Item] = []
         var initialISFItems: [ISFEditor.Item] = []
         let isfTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
-        var rateValues: [Decimal] {
+        var isfRateValues: [Decimal] {
             var values = stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
 
             if units == .mmolL {
@@ -201,6 +201,7 @@ extension Onboarding {
             settingsManager.settings = settingsCopy
         }
 
+        // TODO: clean up these function and unify them
         func getTargetTherapyItems(from targets: [TargetsEditor.Item]) -> [TherapySettingItem] {
             targets.map {
                 TherapySettingItem(
@@ -243,8 +244,8 @@ extension Onboarding {
             }
         }
 
-        func getCarbRatioTherapyItems(from basalRates: [CarbRatioEditor.Item]) -> [TherapySettingItem] {
-            basalRates.map {
+        func getCarbRatioTherapyItems(from carbRatios: [CarbRatioEditor.Item]) -> [TherapySettingItem] {
+            carbRatios.map {
                 TherapySettingItem(
                     id: UUID(),
                     time: carbRatioTimeValues[$0.timeIndex],
@@ -263,6 +264,29 @@ extension Onboarding {
                 return CarbRatioEditor.Item(rateIndex: closestRate, timeIndex: timeIndex)
             }
         }
+
+        func getSensitivityTherapyItems(from sensitivities: [ISFEditor.Item]) -> [TherapySettingItem] {
+            sensitivities.map {
+                TherapySettingItem(
+                    id: UUID(),
+                    time: isfTimeValues[$0.timeIndex],
+                    value: Double(isfRateValues[$0.rateIndex])
+                )
+            }
+        }
+
+        func updateSensitivies(from therapyItems: [TherapySettingItem]) {
+            isfItems = therapyItems.map { item in
+                let timeIndex = isfTimeValues.firstIndex(where: { $0 == item.time }) ?? 0
+                let closestRate = isfRateValues.enumerated().min(by: {
+                    abs(Double($0.element) - item.value) < abs(Double($1.element) - item.value)
+                })?.offset ?? 0
+
+                return ISFEditor.Item(rateIndex: closestRate, timeIndex: timeIndex)
+            }
+        }
+
+        // TODO: add update handler for all therapy items to automatically fill in time gaps and ensure schedule always starts at 00:00 and ends at 23:30
     }
 }
 
@@ -360,7 +384,7 @@ extension Onboarding.StateModel {
             formatter.dateFormat = "HH:mm:ss"
             let date = Date(timeIntervalSince1970: self.targetTimeValues[item.timeIndex])
             let minutes = Int(date.timeIntervalSince1970 / 60)
-            let low = self.rateValues[item.lowIndex]
+            let low = self.isfRateValues[item.lowIndex]
             let high = low
             return BGTargetEntry(low: low, high: high, start: formatter.string(from: date), offset: minutes)
         }
@@ -420,7 +444,7 @@ extension Onboarding.StateModel {
             fotmatter.dateFormat = "HH:mm:ss"
             let date = Date(timeIntervalSince1970: self.isfTimeValues[item.timeIndex])
             let minutes = Int(date.timeIntervalSince1970 / 60)
-            let rate = self.rateValues[item.rateIndex]
+            let rate = self.isfRateValues[item.rateIndex]
             return InsulinSensitivityEntry(sensitivity: rate, offset: minutes, start: fotmatter.string(from: date))
         }
         let profile = InsulinSensitivities(
