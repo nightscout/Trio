@@ -18,7 +18,7 @@ extension ComputedBGTargetEntry {
         case offset
         case maxBg = "max_bg"
         case minBg = "min_bg"
-        case temptargetSet = "temptarget_set"
+        case temptargetSet
     }
 }
 
