@@ -29,12 +29,13 @@ extension BasalProfileEditor {
             return formatter
         }
 
+        var now = Date()
         var basalScheduleChart: some View {
             Chart {
                 ForEach(state.chartData!, id: \.self) { profile in
-                    let startDate = Calendar.current.startOfDay(for: Date())
+                    let startDate = Calendar.current.startOfDay(for: now)
                         .addingTimeInterval(profile.startDate.timeIntervalSinceReferenceDate + Double(tzOffset))
-                    let endDate = Calendar.current.startOfDay(for: Date())
+                    let endDate = Calendar.current.startOfDay(for: now)
                         .addingTimeInterval(profile.endDate!.timeIntervalSinceReferenceDate + Double(tzOffset))
                     RectangleMark(
                         xStart: .value("start", startDate),
@@ -72,8 +73,8 @@ extension BasalProfileEditor {
                 }
             }
             .chartXScale(
-                domain: Calendar.current.startOfDay(for: Date()) ... Calendar
-                    .current.startOfDay(for: Date())
+                domain: Calendar.current.startOfDay(for: now) ... Calendar
+                    .current.startOfDay(for: now)
                     .addingTimeInterval(60 * 60 * 24)
             )
         }

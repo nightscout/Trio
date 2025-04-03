@@ -169,6 +169,7 @@ extension TargetsEditor {
             }
         }
 
+        var now = Date()
         var chart: some View {
             Chart {
                 ForEach(state.items.indexed(), id: \.1.id) { index, item in
@@ -180,15 +181,15 @@ extension TargetsEditor {
                     let displayValueFloat = Double(displayValue.replacingOccurrences(of: ",", with: "."))
 
                     let startDate = Calendar.current
-                        .startOfDay(for: Date())
+                        .startOfDay(for: now)
                         .addingTimeInterval(state.timeValues[item.timeIndex])
 
                     let endDate = state.items
                         .count > index + 1 ?
-                        Calendar.current.startOfDay(for: Date())
+                        Calendar.current.startOfDay(for: now)
                         .addingTimeInterval(state.timeValues[state.items[index + 1].timeIndex])
                         :
-                        Calendar.current.startOfDay(for: Date())
+                        Calendar.current.startOfDay(for: now)
                         .addingTimeInterval(state.timeValues.last! + 30 * 60)
 
                     LineMark(x: .value("End Date", startDate), y: .value("Target", displayValueFloat ?? 0.0))
@@ -205,8 +206,8 @@ extension TargetsEditor {
                 }
             }
             .chartXScale(
-                domain: Calendar.current.startOfDay(for: Date()) ... Calendar
-                    .current.startOfDay(for: Date())
+                domain: Calendar.current.startOfDay(for: now) ... Calendar
+                    .current.startOfDay(for: now)
                     .addingTimeInterval(60 * 60 * 24)
             )
             .chartYAxis {
