@@ -163,6 +163,10 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
         case .maxIOB:
             return VStack(alignment: .leading, spacing: 8) {
                 Text(
+                    "Note: This setting must be greater than 0 for any automatic insulin dosing by Trio."
+                ).bold().foregroundStyle(Color.primary)
+
+                Text(
                     "This is the maximum amount of Insulin On Board (IOB) above profile basal rates from all sources - positive temporary basal rates, manual or meal boluses, and SMBs - that Trio is allowed to accumulate to address an above target glucose."
                 )
                 Text(
