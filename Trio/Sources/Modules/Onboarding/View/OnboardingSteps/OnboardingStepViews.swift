@@ -44,7 +44,6 @@ struct CompletedStepView: View {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 80))
                 .foregroundColor(.green)
-                .padding()
 
             Text("You're All Set!")
                 .font(.title)
@@ -52,7 +51,7 @@ struct CompletedStepView: View {
                 .multilineTextAlignment(.center)
 
             Text(
-                "You've successfully completed the initial setup of Trio. Your settings have been saved and you're ready to start using the app."
+                "You've successfully completed the initial setup of Trio. Tap 'Get Started' to save your settings and get ready to start using Trio."
             )
             .multilineTextAlignment(.center)
             .foregroundColor(.secondary)

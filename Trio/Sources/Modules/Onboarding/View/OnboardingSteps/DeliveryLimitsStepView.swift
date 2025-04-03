@@ -14,7 +14,6 @@ struct DeliveryLimitsStepView: View {
                 .padding(.horizontal)
                 .font(.headline)
 
-            // Replace with real pickers or sliders later
             switch substep {
             case .maxIOB:
                 deliveryLimitInputSection(
