@@ -24,7 +24,7 @@ struct NightscoutStepView: View {
                         Spacer()
                     }
                     .padding()
-                    .background(Color.chart.opacity(0.45))
+                    .background(Color.chart.opacity(0.65))
                     .cornerRadius(10)
                 }
                 .buttonStyle(.plain)

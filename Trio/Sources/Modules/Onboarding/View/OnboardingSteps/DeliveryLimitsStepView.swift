@@ -81,7 +81,7 @@ struct DeliveryLimitsStepView: View {
             }
         }
         .padding()
-        .background(Color.chart.opacity(0.45))
+        .background(Color.chart.opacity(0.65))
         .cornerRadius(10)
     }
 

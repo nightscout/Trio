@@ -20,7 +20,7 @@ struct NightscoutLoginStepView: View {
                         .foregroundStyle(.orange)
                 }
             }.padding()
-                .background(Color.chart.opacity(0.45))
+                .background(Color.chart.opacity(0.65))
                 .cornerRadius(10)
 
             HStack {
@@ -30,7 +30,7 @@ struct NightscoutLoginStepView: View {
                     .textContentType(.password)
                     .keyboardType(.asciiCapable)
             }.padding()
-                .background(Color.chart.opacity(0.45))
+                .background(Color.chart.opacity(0.65))
                 .cornerRadius(10)
 
             Spacer(minLength: 10)

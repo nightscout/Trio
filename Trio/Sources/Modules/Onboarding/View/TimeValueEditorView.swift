@@ -25,7 +25,7 @@ struct TimeValueEditorView: View {
                 }
                 .disabled(items.count >= 48)
             }
-            .listRowBackground(Color.chart.opacity(0.45))
+            .listRowBackground(Color.chart.opacity(0.65))
             .padding(.vertical, 5)
 
             ForEach($items) { $item in
@@ -74,9 +74,9 @@ struct TimeValueEditorView: View {
                     }
                 }
             }
-            .listRowBackground(Color.chart.opacity(0.45))
+            .listRowBackground(Color.chart.opacity(0.65))
 
-            Rectangle().fill(Color.chart.opacity(0.45)).frame(height: 10)
+            Rectangle().fill(Color.chart.opacity(0.65)).frame(height: 10)
                 .clipShape(
                     .rect(
                         topLeadingRadius: 0,

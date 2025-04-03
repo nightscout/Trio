@@ -44,7 +44,7 @@ struct GlucoseTargetStepView: View {
                             .padding(.horizontal)
                     }
                     .padding(.vertical)
-                    .background(Color.chart.opacity(0.45))
+                    .background(Color.chart.opacity(0.65))
                     .clipShape(
                         .rect(
                             topLeadingRadius: 10,

@@ -9,9 +9,9 @@ extension Onboarding {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var fileStorage: FileStorage!
         @ObservationIgnored @Injected() var deviceManager: DeviceDataManager!
-        @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
-        @ObservationIgnored @Injected() private var keychain: Keychain!
-        @ObservationIgnored @Injected() private var nightscoutManager: NightscoutManager!
+        @ObservationIgnored @Injected() var broadcaster: Broadcaster!
+        @ObservationIgnored @Injected() var keychain: Keychain!
+        @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
 
         private let settingsProvider = PickerSettingsProvider.shared
 
@@ -24,6 +24,8 @@ extension Onboarding {
         var isValidURL: Bool = false
         var connecting: Bool = false
         var isConnectedToNS: Bool = false
+        var nightscoutImportErrors: [String] = []
+        var nightscoutImportStatus: ImportStatus = .finished
 
         // Carb Ratio related
         var carbRatioItems: [CarbRatioEditor.Item] = []
@@ -238,55 +240,6 @@ extension Onboarding {
         }
 
         // TODO: add update handler for all therapy items to automatically fill in time gaps and ensure schedule always starts at 00:00 and ends at 23:30
-    }
-}
-
-// MARK: - Setup Nightscout Connection
-
-extension Onboarding.StateModel {
-    func connectToNightscout() {
-        if let CheckURL = url.last, CheckURL == "/" {
-            let fixedURL = url.dropLast()
-            url = String(fixedURL)
-        }
-
-        guard let url = URL(string: url), self.url.hasPrefix("https://") else {
-            message = "Invalid URL"
-            isValidURL = false
-            return
-        }
-
-        connecting = true
-        isValidURL = true
-        message = ""
-
-        NightscoutAPI(url: url, secret: secret).checkConnection()
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                switch completion {
-                case .finished: break
-                case let .failure(error):
-                    self.message = "Error: \(error.localizedDescription)"
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    self.connecting = false
-                }
-            } receiveValue: {
-                self.keychain.setValue(self.url, forKey: NightscoutConfig.Config.urlKey)
-                self.keychain.setValue(self.secret, forKey: NightscoutConfig.Config.secretKey)
-                self.isConnectedToNS = true
-            }
-            .store(in: &lifetime)
-    }
-
-    private var nightscoutAPI: NightscoutAPI? {
-        guard let urlString = keychain.getValue(String.self, forKey: NightscoutConfig.Config.urlKey),
-              let url = URL(string: urlString),
-              let secret = keychain.getValue(String.self, forKey: NightscoutConfig.Config.secretKey)
-        else {
-            return nil
-        }
-        return NightscoutAPI(url: url, secret: secret)
     }
 }
 

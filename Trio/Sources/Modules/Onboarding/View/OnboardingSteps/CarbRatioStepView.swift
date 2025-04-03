@@ -43,7 +43,7 @@ struct CarbRatioStepView: View {
                             .padding(.horizontal)
                     }
                     .padding(.vertical)
-                    .background(Color.chart.opacity(0.45))
+                    .background(Color.chart.opacity(0.65))
                     .cornerRadius(10)
                 }
 
@@ -80,7 +80,7 @@ struct CarbRatioStepView: View {
                             .foregroundColor(.orange)
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .center)
-                            .background(Color.chart.opacity(0.45))
+                            .background(Color.chart.opacity(0.65))
                             .cornerRadius(10)
                         }
                     }

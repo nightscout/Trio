@@ -225,6 +225,9 @@ extension Onboarding {
                                                   state.nightscoutImportOption == .useImport
                                         {
                                             // TODO: trigger import, show animation, then proceed to next step
+                                            Task {
+                                                await state.importSettingsFromNightscout(currentStep: $currentStep)
+                                            }
                                         } else if let next = currentStep.next {
                                             currentStep = next
                                         }

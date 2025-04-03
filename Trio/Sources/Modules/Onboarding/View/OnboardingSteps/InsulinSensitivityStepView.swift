@@ -43,7 +43,7 @@ struct InsulinSensitivityStepView: View {
                             .padding(.horizontal)
                     }
                     .padding(.vertical, 5)
-                    .background(Color.chart.opacity(0.45))
+                    .background(Color.chart.opacity(0.65))
                     .cornerRadius(10)
                 }
 
@@ -89,7 +89,7 @@ struct InsulinSensitivityStepView: View {
                             .foregroundColor(.red)
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .center)
-                            .background(Color.chart.opacity(0.45))
+                            .background(Color.chart.opacity(0.65))
                             .cornerRadius(10)
                         }
                     }
