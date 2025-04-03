@@ -279,118 +279,74 @@ extension Onboarding {
 struct OnboardingProgressBar: View {
     let currentStep: OnboardingStep
     let currentSubstep: Int?
-    let stepsWithSubsteps: [OnboardingStep: Int] // e.g. [.deliveryLimits: 4]
+    let stepsWithSubsteps: [OnboardingStep: Int]
     let nightscoutSetupOption: NightscoutSetupOption
 
     var body: some View {
         HStack(spacing: 4) {
-            ForEach(renderedSteps, id: \.self.id) { element in
-                if let substeps = element.substeps {
-                    HStack(spacing: 2) {
-                        ForEach(0 ..< substeps, id: \.self) { i in
-                            Rectangle()
-                                .fill(isSubstepActive(for: element.step, index: i) ? Color.blue : Color.gray.opacity(0.3))
-                                .frame(height: 4)
-                                .cornerRadius(2)
-                        }
-                    }
-                } else {
+            ForEach(renderedSteps, id: \.id) { step in
+                ZStack(alignment: .leading) {
                     Rectangle()
-                        .fill(isStepActive(element.step) ? Color.blue : Color.gray.opacity(0.3))
+                        .fill(Color.gray.opacity(0.3))
                         .frame(height: 4)
                         .cornerRadius(2)
+
+                    GeometryReader { geo in
+                        Rectangle()
+                            .fill(Color.blue)
+                            .frame(
+                                width: geo.size.width * fillFraction(for: step.step, totalSubsteps: step.substeps),
+                                height: 4
+                            )
+                            .cornerRadius(2)
+                    }
                 }
+                .frame(height: 4)
             }
         }
         .padding(.horizontal)
     }
 
-    // Filter only the visible steps (exclude welcome and completed)
     private var visibleSteps: [OnboardingStep] {
         OnboardingStep.allCases.filter { $0 != .welcome && $0 != .completed }
     }
 
-    // Combine steps with info on whether they have substeps
     private var renderedSteps: [(id: String, step: OnboardingStep, substeps: Int?)] {
         visibleSteps.map {
-            let sub = stepsWithSubsteps[$0]
-            return (id: "\($0.id)", step: $0, substeps: sub)
+            (id: "\($0.rawValue)", step: $0, substeps: stepsWithSubsteps[$0])
         }
     }
 
-    private func isStepActive(_ step: OnboardingStep) -> Bool {
-        // If we’re at .completed, everything should be filled
-        if currentStep == .completed { return true }
+    private func fillFraction(for step: OnboardingStep, totalSubsteps: Int?) -> CGFloat {
+        // If currentStep is .completed, fill everything
+        if currentStep == .completed { return 1.0 }
 
-        // Current step should be filled
-        if step == currentStep { return true }
-
-        // Steps before the current one should be filled
         if let currentIndex = visibleSteps.firstIndex(of: currentStep),
            let stepIndex = visibleSteps.firstIndex(of: step),
            stepIndex < currentIndex
         {
-            return true
+            return 1.0
         }
 
-        return false
-    }
-
-//    private func isSubstepActive(for step: OnboardingStep, index: Int) -> Bool {
-//        guard let current = currentSubstep else {
-//            // Special case: if currentStep is `.completed`, show all substeps as filled
-//            if currentStep == .completed &&
-//                stepsWithSubsteps[step] != nil
-//            {
-//                return true
-//            }
-//            return false
-//        }
-//
-//        if step == currentStep {
-//            return index <= current
-//        }
-//
-//        // If step comes before currentStep, mark all substeps filled
-//        if let currentIndex = visibleSteps.firstIndex(of: currentStep),
-//           let stepIndex = visibleSteps.firstIndex(of: step),
-//           stepIndex < currentIndex
-//        {
-//            return true
-//        }
-//
-//        return false
-//    }
-    private func isSubstepActive(for step: OnboardingStep, index: Int) -> Bool {
-        // Case 1: We're on the completed screen → show everything as done
-        if currentStep == .completed && stepsWithSubsteps[step] != nil {
-            return true
+        if step == currentStep {
+            if let total = totalSubsteps, let current = currentSubstep {
+                return CGFloat(current + 1) / CGFloat(total)
+            } else {
+                return 1.0
+            }
         }
 
-        // Case 2: Nightscout was skipped, and we're past it → mark all its substeps active
+        // Handle special case: Nightscout was skipped
         if step == .nightscout,
            nightscoutSetupOption == .skipNightscoutSetup,
            let currentIndex = visibleSteps.firstIndex(of: currentStep),
-           let stepIndex = visibleSteps.firstIndex(of: .nightscout),
-           currentIndex > stepIndex
+           let nightscoutIndex = visibleSteps.firstIndex(of: .nightscout),
+           currentIndex > nightscoutIndex
         {
-            return true
+            return 1.0
         }
 
-        // Case 3: We're currently on the same step → check substep index
-        if step == currentStep {
-            return index <= (currentSubstep ?? 0)
-        }
-
-        // Case 4: We're past this step → all substeps active
-        if let currentIndex = visibleSteps.firstIndex(of: currentStep),
-           let stepIndex = visibleSteps.firstIndex(of: step),
-           stepIndex < currentIndex
-        {
-            return true
-        }
-
-        return false
+        return 0.0
     }
 }
 
