@@ -91,6 +91,7 @@ extension Onboarding {
 
         var pumpModel: PumpOptionsForOnboardingUnits = .omnipodDash
 
+        // Delivery Limit defaults
         var maxBolus: Decimal = 10
         var maxBasal: Decimal = 2
         var maxIOB: Decimal = 0
@@ -108,23 +109,18 @@ extension Onboarding {
             }
         }
 
-        override func subscribe() {
-            // TODO: why are we immediately storing to settings?
-//            saveOnboardingData()
-        }
+        override func subscribe() {}
 
         func saveOnboardingData() {
             applyToSettings()
             applyToPreferences()
-            Task {
-                await applyToPumpSettings()
+            applyToPumpSettings()
 
-                // Store therapy settings
-                await saveTargets()
-                await saveBasalProfile()
-                await saveCarbRatios()
-                await saveISFValues()
-            }
+            // Store therapy settings on file
+            saveTargets()
+            saveBasalProfile()
+            saveCarbRatios()
+            saveISFValues()
         }
 
         /// Applies the onboarding data to the app's settings.
@@ -148,11 +144,11 @@ extension Onboarding {
             settingsManager.preferences = preferencesCopy
         }
 
-        func applyToPumpSettings() async {
+        func applyToPumpSettings() {
             let defaultDIA = settingsProvider.settings.insulinPeakTime.value
             let pumpSettings = PumpSettings(insulinActionCurve: defaultDIA, maxBolus: maxBolus, maxBasal: maxBasal)
 
-            await fileStorage.saveAsync(pumpSettings, as: OpenAPS.Settings.settings)
+            fileStorage.save(pumpSettings, as: OpenAPS.Settings.settings)
 
             // TODO: is this actually necessary at this point? Nothing is set up yet, nothing is subscribed to this observer...
             DispatchQueue.main.async {
@@ -246,23 +242,7 @@ extension Onboarding {
 // MARK: - Setup Carb Ratios
 
 extension Onboarding.StateModel {
-    var carbRatiosHaveChanges: Bool {
-        if initialCarbRatioItems.count != carbRatioItems.count {
-            return true
-        }
-
-        for (initialItem, currentItem) in zip(initialCarbRatioItems, carbRatioItems) {
-            if initialItem.rateIndex != currentItem.rateIndex || initialItem.timeIndex != currentItem.timeIndex {
-                return true
-            }
-        }
-
-        return false
-    }
-
-    func saveCarbRatios() async {
-        guard carbRatiosHaveChanges else { return }
-
+    func saveCarbRatios() {
         let schedule = carbRatioItems.enumerated().map { _, item -> CarbRatioEntry in
             let fotmatter = DateFormatter()
             fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -274,7 +254,7 @@ extension Onboarding.StateModel {
         }
         let profile = CarbRatios(units: .grams, schedule: schedule)
 
-        await fileStorage.saveAsync(profile, as: OpenAPS.Settings.carbRatios)
+        fileStorage.save(profile, as: OpenAPS.Settings.carbRatios)
 
         initialCarbRatioItems = carbRatioItems.map { CarbRatioEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
     }
@@ -294,13 +274,7 @@ extension Onboarding.StateModel {
 // MARK: - Setup glucose targets
 
 extension Onboarding.StateModel {
-    var targetsHaveChanged: Bool {
-        initialTargetItems != targetItems
-    }
-
-    func saveTargets() async {
-        guard targetsHaveChanged else { return }
-
+    func saveTargets() {
         let targets = targetItems.map { item -> BGTargetEntry in
             let formatter = DateFormatter()
             formatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -313,7 +287,7 @@ extension Onboarding.StateModel {
         }
         let profile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
 
-        await fileStorage.saveAsync(profile, as: OpenAPS.Settings.bgTargets)
+        fileStorage.save(profile, as: OpenAPS.Settings.bgTargets)
 
         initialTargetItems = targetItems
             .map { TargetsEditor.Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
@@ -334,13 +308,7 @@ extension Onboarding.StateModel {
 // MARK: - Setup ISF values
 
 extension Onboarding.StateModel {
-    var isfValuesHaveChanges: Bool {
-        initialISFItems != isfItems
-    }
-
-    func saveISFValues() async {
-        guard isfValuesHaveChanges else { return }
-
+    func saveISFValues() {
         let sensitivities = isfItems.map { item -> InsulinSensitivityEntry in
             let fotmatter = DateFormatter()
             fotmatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -356,7 +324,7 @@ extension Onboarding.StateModel {
             sensitivities: sensitivities
         )
 
-        await fileStorage.saveAsync(profile, as: OpenAPS.Settings.insulinSensitivities)
+        fileStorage.save(profile, as: OpenAPS.Settings.insulinSensitivities)
 
         initialISFItems = isfItems.map { ISFEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
     }
@@ -376,21 +344,7 @@ extension Onboarding.StateModel {
 // MARK: - Setup Basal Profile
 
 extension Onboarding.StateModel {
-    var hasBasalProfileChanges: Bool {
-        if initialBasalProfileItems.count != basalProfileItems.count {
-            return true
-        }
-
-        for (initialItem, currentItem) in zip(initialBasalProfileItems, basalProfileItems) {
-            if initialItem.rateIndex != currentItem.rateIndex || initialItem.timeIndex != currentItem.timeIndex {
-                return true
-            }
-        }
-
-        return false
-    }
-
-    func saveBasalProfile() async {
+    func saveBasalProfile() {
         let profile = basalProfileItems.map { item -> BasalProfileEntry in
             let formatter = DateFormatter()
             formatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -401,7 +355,7 @@ extension Onboarding.StateModel {
             return BasalProfileEntry(start: formatter.string(from: date), minutes: minutes, rate: rate)
         }
 
-        await fileStorage.saveAsync(profile, as: OpenAPS.Settings.basalProfile)
+        fileStorage.save(profile, as: OpenAPS.Settings.basalProfile)
 
         initialBasalProfileItems = basalProfileItems
             .map { BasalProfileEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
