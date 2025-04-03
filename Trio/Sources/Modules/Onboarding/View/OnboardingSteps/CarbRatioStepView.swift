@@ -50,6 +50,7 @@ struct CarbRatioStepView: View {
                 TimeValueEditorView(
                     items: $therapyItems,
                     unit: String(localized: "g/U"),
+                    timeOptions: state.carbRatioTimeValues,
                     valueOptions: state.carbRatioRateValues
                 )
 
@@ -108,13 +109,24 @@ struct CarbRatioStepView: View {
         }
         .onAppear {
             if state.carbRatioItems.isEmpty {
-                state.addCarbRatio()
+                addCarbRatio()
             }
+            state.validateCarbRatios()
             therapyItems = state.getCarbRatioTherapyItems(from: state.carbRatioItems)
         }.onChange(of: therapyItems) { _, newItems in
             state.updateCarbRatios(from: newItems)
             refreshUI = UUID()
         }
+    }
+
+    // Add initial carb ratio
+    private func addCarbRatio() {
+        // Default to midnight (00:00) and 10 g/U
+        let timeIndex = state.carbRatioTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
+        let rateIndex = state.carbRatioRateValues.firstIndex { abs(Double($0) - 10.0) < 0.05 } ?? 10
+
+        let newItem = CarbRatioEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
+        state.carbRatioItems.append(newItem)
     }
 
     // Computed property to check if we can add more carb ratios

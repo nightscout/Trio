@@ -3,6 +3,7 @@ import SwiftUI
 struct TimeValueEditorView: View {
     @Binding var items: [TherapySettingItem]
     var unit: String
+    var timeOptions: [TimeInterval]
     var valueOptions: [Decimal]
 
     @State private var selectedItemID: UUID?
@@ -45,9 +46,11 @@ struct TimeValueEditorView: View {
 
                             HStack {
                                 Text("starts at").foregroundStyle(Color.secondary)
-
-                                let startDate = Date(timeIntervalSinceReferenceDate: item.time)
-                                Text(timeFormatter.string(from: startDate))
+                                let timeIndex = timeOptions.firstIndex { abs($0 - item.time) < 1 } ?? 0
+                                let time = timeOptions[timeIndex]
+                                let date = Date(timeIntervalSince1970: time)
+                                let timeString = timeFormatter.string(from: date)
+                                Text(timeString)
                                     .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
                             }
                         }.contentShape(Rectangle())
@@ -57,6 +60,7 @@ struct TimeValueEditorView: View {
                     if selectedItemID == item.id {
                         TimeValuePickerRow(
                             item: $item,
+                            timeOptions: timeOptions,
                             valueOptions: valueOptions,
                             unit: unit
                         )
@@ -111,31 +115,31 @@ struct TherapySettingItem: Identifiable, Equatable {
 
 struct TimeValuePickerRow: View {
     @Binding var item: TherapySettingItem
+    var timeOptions: [TimeInterval]
     var valueOptions: [Decimal]
     var unit: String
 
     var body: some View {
         VStack(spacing: 8) {
             HStack {
-                Picker("Time", selection: Binding(
-                    get: { item.time },
-                    set: { item.time = $0 }
-                )) {
-                    ForEach(0 ..< 48) { i in
-                        let seconds = Double(i * 30 * 60)
-                        Text(timeFormatter.string(from: Date(timeIntervalSinceReferenceDate: seconds)))
-                            .tag(seconds)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .clipped()
-
                 Picker("Value", selection: Binding(
                     get: { item.value },
                     set: { item.value = $0 }
                 )) {
                     ForEach(valueOptions, id: \.self) { value in
                         Text("\(Double(value), specifier: "%.1f") \(unit)").tag(Double(value))
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .clipped()
+
+                Picker("Time", selection: Binding(
+                    get: { timeOptions.contains(item.time) ? item.time : timeOptions.first ?? 0 },
+                    set: { item.time = $0 }
+                )) {
+                    ForEach(timeOptions, id: \.self) { time in
+                        Text(timeFormatter.string(from: Date(timeIntervalSince1970: time)))
+                            .tag(time)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -148,8 +152,8 @@ struct TimeValuePickerRow: View {
 
     private var timeFormatter: DateFormatter {
         let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        formatter.timeZone = TimeZone.current
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.timeStyle = .short
         return formatter
     }
 }
@@ -163,6 +167,7 @@ struct TimeValuePickerRow: View {
     TimeValueEditorView(
         items: $previewItems,
         unit: "U/h",
+        timeOptions: stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 },
         valueOptions: stride(from: 0.0, through: 10.0, by: 0.05).map { Decimal(round(100 * $0) / 100) }
     )
 }

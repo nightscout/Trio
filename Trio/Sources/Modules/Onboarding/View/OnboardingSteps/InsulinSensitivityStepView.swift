@@ -50,6 +50,7 @@ struct InsulinSensitivityStepView: View {
                 TimeValueEditorView(
                     items: $therapyItems,
                     unit: String(localized: "\(state.units.rawValue)/U"),
+                    timeOptions: state.isfTimeValues,
                     valueOptions: state.isfRateValues
                 )
 
@@ -120,8 +121,9 @@ struct InsulinSensitivityStepView: View {
         }
         .onAppear {
             if state.isfItems.isEmpty {
-                state.addISFValue()
+                addInitialISF()
             }
+            state.validateISF()
             therapyItems = state.getSensitivityTherapyItems(from: state.isfItems)
         }.onChange(of: therapyItems) { _, newItems in
             state.updateSensitivies(from: newItems)

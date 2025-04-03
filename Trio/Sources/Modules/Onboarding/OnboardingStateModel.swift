@@ -31,12 +31,14 @@ extension Onboarding {
         var carbRatioItems: [CarbRatioEditor.Item] = []
         var initialCarbRatioItems: [CarbRatioEditor.Item] = []
         let carbRatioTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+            .sorted { $0 < $1 }
         let carbRatioRateValues = stride(from: 30.0, to: 501.0, by: 1.0).map { ($0.decimal ?? .zero) / 10 }
 
         // Basal Profile related
         var initialBasalProfileItems: [BasalProfileEditor.Item] = []
         var basalProfileItems: [BasalProfileEditor.Item] = []
         let basalProfileTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+            .sorted { $0 < $1 }
         var basalProfileRateValues: [Decimal] {
             switch pumpModel {
             case .dana,
@@ -51,7 +53,7 @@ extension Onboarding {
         // ISF related
         var isfItems: [ISFEditor.Item] = []
         var initialISFItems: [ISFEditor.Item] = []
-        let isfTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+        let isfTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }.sorted { $0 < $1 }
         var isfRateValues: [Decimal] {
             var values = stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
 
@@ -65,7 +67,8 @@ extension Onboarding {
         // Target related
         var targetItems: [TargetsEditor.Item] = []
         var initialTargetItems: [TargetsEditor.Item] = []
-        let targetTimeValues = stride(from: 0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+        let targetTimeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
+            .sorted { $0 < $1 }
 
         var targetRateValues: [Decimal] {
             let glucoseSetting = PickerSetting(value: 0, step: 1, min: 72, max: 180, type: .glucose)
@@ -162,18 +165,16 @@ extension Onboarding {
                     time: targetTimeValues[$0.timeIndex],
                     value: Double(targetRateValues[$0.lowIndex])
                 )
-            }
+            }.sorted { $0.time < $1.time }
         }
 
         func updateTargets(from therapyItems: [TherapySettingItem]) {
             targetItems = therapyItems.map { item in
                 let timeIndex = targetTimeValues.firstIndex(where: { $0 == item.time }) ?? 0
-                let closestRate = targetRateValues.enumerated().min(by: {
-                    abs(Double($0.element) - item.value) < abs(Double($1.element) - item.value)
-                })?.offset ?? 0
+                let closestTargetIndex = targetRateValues.firstIndex(of: Decimal(item.value)) ?? 0
 
-                return TargetsEditor.Item(lowIndex: closestRate, highIndex: closestRate, timeIndex: timeIndex)
-            }
+                return TargetsEditor.Item(lowIndex: closestTargetIndex, highIndex: closestTargetIndex, timeIndex: timeIndex)
+            }.sorted { $0.timeIndex < $1.timeIndex }
         }
 
         func getBasalTherapyItems(from basalRates: [BasalProfileEditor.Item]) -> [TherapySettingItem] {
@@ -183,18 +184,16 @@ extension Onboarding {
                     time: basalProfileTimeValues[$0.timeIndex],
                     value: Double(basalProfileRateValues[$0.rateIndex])
                 )
-            }
+            }.sorted { $0.time < $1.time }
         }
 
         func updateBasalRates(from therapyItems: [TherapySettingItem]) {
             basalProfileItems = therapyItems.map { item in
                 let timeIndex = basalProfileTimeValues.firstIndex(where: { $0 == item.time }) ?? 0
-                let closestRate = basalProfileRateValues.enumerated().min(by: {
-                    abs(Double($0.element) - item.value) < abs(Double($1.element) - item.value)
-                })?.offset ?? 0
+                let closestRateIndex = basalProfileRateValues.firstIndex(of: Decimal(item.value)) ?? 0
 
-                return BasalProfileEditor.Item(rateIndex: closestRate, timeIndex: timeIndex)
-            }
+                return BasalProfileEditor.Item(rateIndex: closestRateIndex, timeIndex: timeIndex)
+            }.sorted { $0.timeIndex < $1.timeIndex }
         }
 
         func getCarbRatioTherapyItems(from carbRatios: [CarbRatioEditor.Item]) -> [TherapySettingItem] {
@@ -204,18 +203,16 @@ extension Onboarding {
                     time: carbRatioTimeValues[$0.timeIndex],
                     value: Double(carbRatioRateValues[$0.rateIndex])
                 )
-            }
+            }.sorted { $0.time < $1.time }
         }
 
         func updateCarbRatios(from therapyItems: [TherapySettingItem]) {
             carbRatioItems = therapyItems.map { item in
                 let timeIndex = carbRatioTimeValues.firstIndex(where: { $0 == item.time }) ?? 0
-                let closestRate = carbRatioRateValues.enumerated().min(by: {
-                    abs(Double($0.element) - item.value) < abs(Double($1.element) - item.value)
-                })?.offset ?? 0
+                let closestRateIndex = carbRatioRateValues.firstIndex(of: Decimal(item.value)) ?? 0
 
-                return CarbRatioEditor.Item(rateIndex: closestRate, timeIndex: timeIndex)
-            }
+                return CarbRatioEditor.Item(rateIndex: closestRateIndex, timeIndex: timeIndex)
+            }.sorted { $0.timeIndex < $1.timeIndex }
         }
 
         func getSensitivityTherapyItems(from sensitivities: [ISFEditor.Item]) -> [TherapySettingItem] {
@@ -225,18 +222,16 @@ extension Onboarding {
                     time: isfTimeValues[$0.timeIndex],
                     value: Double(isfRateValues[$0.rateIndex])
                 )
-            }
+            }.sorted { $0.time < $1.time }
         }
 
         func updateSensitivies(from therapyItems: [TherapySettingItem]) {
             isfItems = therapyItems.map { item in
                 let timeIndex = isfTimeValues.firstIndex(where: { $0 == item.time }) ?? 0
-                let closestRate = isfRateValues.enumerated().min(by: {
-                    abs(Double($0.element) - item.value) < abs(Double($1.element) - item.value)
-                })?.offset ?? 0
+                let closestRateIndex = isfRateValues.firstIndex(of: Decimal(item.value)) ?? 0
 
-                return ISFEditor.Item(rateIndex: closestRate, timeIndex: timeIndex)
-            }
+                return ISFEditor.Item(rateIndex: closestRateIndex, timeIndex: timeIndex)
+            }.sorted { $0.timeIndex < $1.timeIndex }
         }
 
         // TODO: add update handler for all therapy items to automatically fill in time gaps and ensure schedule always starts at 00:00 and ends at 23:30
@@ -260,19 +255,6 @@ extension Onboarding.StateModel {
         return false
     }
 
-    func addCarbRatio() {
-        var time = 0
-        var rate = 0
-        if let last = carbRatioItems.last {
-            time = last.timeIndex + 1
-            rate = last.rateIndex
-        }
-
-        let newItem = CarbRatioEditor.Item(rateIndex: rate, timeIndex: time)
-
-        carbRatioItems.append(newItem)
-    }
-
     func saveCarbRatios() {
         guard carbRatiosHaveChanges else { return }
 
@@ -286,23 +268,21 @@ extension Onboarding.StateModel {
             return CarbRatioEntry(start: fotmatter.string(from: date), offset: minutes, ratio: rate)
         }
         let profile = CarbRatios(units: .grams, schedule: schedule)
-        saveCarbRatioProfile(profile)
+
+        fileStorage.save(profile, as: OpenAPS.Settings.carbRatios)
+
         initialCarbRatioItems = carbRatioItems.map { CarbRatioEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
     }
 
-//    func validate() {
-//        DispatchQueue.main.async {
-//            let uniq = Array(Set(self.items))
-//            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
-//            sorted.first?.timeIndex = 0
-//            if self.items != sorted {
-//                self.items = sorted
-//            }
-//        }
-//    }
-
-    func saveCarbRatioProfile(_ profile: CarbRatios) {
-        fileStorage.save(profile, as: OpenAPS.Settings.carbRatios)
+    func validateCarbRatios() {
+        DispatchQueue.main.async {
+            let uniq = Array(Set(self.carbRatioItems))
+            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+            sorted.first?.timeIndex = 0
+            if self.carbRatioItems != sorted {
+                self.carbRatioItems = sorted
+            }
+        }
     }
 }
 
@@ -311,21 +291,6 @@ extension Onboarding.StateModel {
 extension Onboarding.StateModel {
     var targetsHaveChanged: Bool {
         initialTargetItems != targetItems
-    }
-
-    func addTarget() {
-        var time = 0
-        var low = 0
-        var high = 0
-        if let last = targetItems.last {
-            time = last.timeIndex + 1
-            low = last.lowIndex
-            high = low
-        }
-
-        let newItem = TargetsEditor.Item(lowIndex: low, highIndex: high, timeIndex: time)
-
-        targetItems.append(newItem)
     }
 
     func saveTargets() {
@@ -342,29 +307,22 @@ extension Onboarding.StateModel {
             return BGTargetEntry(low: low, high: high, start: formatter.string(from: date), offset: minutes)
         }
         let profile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
-        saveTargets(profile)
+
+        fileStorage.save(profile, as: OpenAPS.Settings.bgTargets)
+
         initialTargetItems = targetItems
             .map { TargetsEditor.Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
     }
 
-//    func validateTarget() {
-//        DispatchQueue.main.async {
-//            let uniq = Array(Set(self.items))
-//            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
-//                .map { item -> Item in
-//                    Item(lowIndex: item.lowIndex, highIndex: item.highIndex, timeIndex: item.timeIndex)
-//                }
-//            sorted.first?.timeIndex = 0
-//            self.items = sorted
-//
-//            if self.items.isEmpty {
-//                self.units = self.settingsManager.settings.units
-//            }
-//        }
-//    }
-
-    func saveTargets(_ profile: BGTargets) {
-        fileStorage.save(profile, as: OpenAPS.Settings.bgTargets)
+    func validateTarget() {
+        DispatchQueue.main.async {
+            let uniq = Array(Set(self.targetItems))
+            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+            sorted.first?.timeIndex = 0
+            if self.targetItems != sorted {
+                self.targetItems = sorted
+            }
+        }
     }
 }
 
@@ -373,19 +331,6 @@ extension Onboarding.StateModel {
 extension Onboarding.StateModel {
     var isfValuesHaveChanges: Bool {
         initialISFItems != isfItems
-    }
-
-    func addISFValue() {
-        var time = 0
-        var rate = 0
-        if let last = isfItems.last {
-            time = last.timeIndex + 1
-            rate = last.rateIndex
-        }
-
-        let newItem = ISFEditor.Item(rateIndex: rate, timeIndex: time)
-
-        isfItems.append(newItem)
     }
 
     func saveISFValues() {
@@ -405,28 +350,21 @@ extension Onboarding.StateModel {
             userPreferredUnits: .mgdL,
             sensitivities: sensitivities
         )
-        saveISFProfile(profile)
+
+        fileStorage.save(profile, as: OpenAPS.Settings.insulinSensitivities)
+
         initialISFItems = isfItems.map { ISFEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
     }
 
-//    func validate() {
-//        DispatchQueue.main.async {
-//            DispatchQueue.main.async {
-//                let uniq = Array(Set(self.items))
-//                let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
-//                sorted.first?.timeIndex = 0
-//                if self.items != sorted {
-//                    self.items = sorted
-//                }
-//                if self.items.isEmpty {
-//                    self.units = self.settingsManager.settings.units
-//                }
-//            }
-//        }
-//    }
-
-    func saveISFProfile(_ profile: InsulinSensitivities) {
-        fileStorage.save(profile, as: OpenAPS.Settings.insulinSensitivities)
+    func validateISF() {
+        DispatchQueue.main.async {
+            let uniq = Array(Set(self.isfItems))
+            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+            sorted.first?.timeIndex = 0
+            if self.isfItems != sorted {
+                self.isfItems = sorted
+            }
+        }
     }
 }
 
@@ -447,19 +385,6 @@ extension Onboarding.StateModel {
         return false
     }
 
-    func addBasalRate() {
-        var time = 0
-        var rate = 20 // Default to 1.0 U/h (index 20 if basalProfileRateValues starts at 0.05 and increments by 0.05)
-
-        if let last = basalProfileItems.last {
-            time = last.timeIndex + 1
-            rate = last.rateIndex
-        }
-
-        let newItem = BasalProfileEditor.Item(rateIndex: rate, timeIndex: time)
-        basalProfileItems.append(newItem)
-    }
-
     func saveBasalProfile() {
         let profile = basalProfileItems.map { item -> BasalProfileEntry in
             let formatter = DateFormatter()
@@ -472,5 +397,18 @@ extension Onboarding.StateModel {
         }
 
         fileStorage.save(profile, as: OpenAPS.Settings.basalProfile)
+    }
+
+    func validateBasal() {
+        DispatchQueue.main.async {
+            let uniq = Array(Set(self.basalProfileItems))
+            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+            if let first = sorted.first, first.timeIndex != 0 {
+                sorted[0].timeIndex = 0
+            }
+            if self.basalProfileItems != sorted {
+                self.basalProfileItems = sorted
+            }
+        }
     }
 }

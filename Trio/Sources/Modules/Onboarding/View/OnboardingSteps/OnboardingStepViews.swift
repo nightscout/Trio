@@ -89,7 +89,7 @@ struct SettingItemView: View {
                 Image(icon)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 40, height: 40)
+                    .frame(width: 40, height: 24)
                     .colorMultiply(Color.green)
             } else {
                 Image(systemName: icon)

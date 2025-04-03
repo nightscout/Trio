@@ -59,19 +59,31 @@ struct GlucoseTargetStepView: View {
                 TimeValueEditorView(
                     items: $therapyItems,
                     unit: state.units.rawValue,
+                    timeOptions: state.targetTimeValues,
                     valueOptions: state.targetRateValues
                 )
             }
         }
         .onAppear {
             if state.targetItems.isEmpty {
-                state.addTarget()
+                addTarget()
             }
+            state.validateTarget()
             therapyItems = state.getTargetTherapyItems(from: state.targetItems)
         }.onChange(of: therapyItems) { _, newItems in
             state.updateTargets(from: newItems)
             refreshUI = UUID()
         }
+    }
+
+    // Add initial target
+    private func addTarget() {
+        // Default to midnight (00:00) and 1.0 U/h rate
+        let timeIndex = state.targetTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
+        let targetIndex = state.targetRateValues.firstIndex { abs(Double($0) - 100) < 0.05 } ?? 100
+
+        let newItem = TargetsEditor.Item(lowIndex: targetIndex, highIndex: targetIndex, timeIndex: timeIndex)
+        state.targetItems.append(newItem)
     }
 
     // Computed property to check if we can add more targets

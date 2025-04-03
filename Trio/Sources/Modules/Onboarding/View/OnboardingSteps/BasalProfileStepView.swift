@@ -50,6 +50,7 @@ struct BasalProfileStepView: View {
                 TimeValueEditorView(
                     items: $therapyItems,
                     unit: String(localized: "U/hr"),
+                    timeOptions: state.basalProfileTimeValues,
                     valueOptions: state.basalProfileRateValues
                 )
 
@@ -80,8 +81,9 @@ struct BasalProfileStepView: View {
         }
         .onAppear {
             if state.basalProfileItems.isEmpty {
-                state.addBasalRate()
+                addBasalRate()
             }
+            state.validateBasal()
             therapyItems = state.getBasalTherapyItems(from: state.basalProfileItems)
         }.onChange(of: therapyItems) { _, newItems in
             state.updateBasalRates(from: newItems)
