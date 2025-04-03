@@ -93,9 +93,8 @@ extension Home.StateModel {
 
             // Ensure min and max IOB values exist, or set defaults
             if let minIob = minIob, let maxIob = maxIob {
-                let adjustedMin = minIob < 0 ? minIob - 2 : 0
                 Task {
-                    await self.updateIobChartBounds(minValue: adjustedMin, maxValue: maxIob + 2)
+                    await self.updateIobChartBounds(minValue: minIob, maxValue: maxIob)
                 }
             } else {
                 Task {
