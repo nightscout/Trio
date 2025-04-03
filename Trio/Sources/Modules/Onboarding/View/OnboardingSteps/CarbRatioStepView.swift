@@ -44,7 +44,14 @@ struct CarbRatioStepView: View {
                     }
                     .padding(.vertical)
                     .background(Color.chart.opacity(0.65))
-                    .cornerRadius(10)
+                    .clipShape(
+                        .rect(
+                            topLeadingRadius: 10,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: 0,
+                            topTrailingRadius: 10
+                        )
+                    )
                 }
 
                 TherapySettingEditorView(
