@@ -4,231 +4,24 @@ import LoopKit
 import Observation
 import SwiftUI
 
-/// Represents the different steps in the onboarding process.
-enum OnboardingStep: Int, CaseIterable, Identifiable {
-    case welcome
-    case unitSelection
-    case glucoseTarget
-    case basalProfile
-    case carbRatio
-    case insulinSensitivity
-    case deliveryLimits
-    case completed
-
-    var id: Int { rawValue }
-
-    var hasSubsteps: Bool {
-        self == .deliveryLimits
-    }
-
-    var substeps: [DeliveryLimitSubstep] {
-        guard hasSubsteps else { return [] }
-        return DeliveryLimitSubstep.allCases
-    }
-
-    /// The title to display for this onboarding step.
-    var title: String {
-        switch self {
-        case .welcome:
-            return "Welcome to Trio"
-        case .unitSelection:
-            return "Units & Pump"
-        case .glucoseTarget:
-            return "Glucose Target"
-        case .basalProfile:
-            return "Basal Profile"
-        case .carbRatio:
-            return "Carbohydrate Ratio"
-        case .insulinSensitivity:
-            return "Insulin Sensitivity"
-        case .deliveryLimits:
-            return "Delivery Limits"
-        case .completed:
-            return "All Set!"
-        }
-    }
-
-    /// A detailed description of what this onboarding step is about.
-    var description: String {
-        switch self {
-        case .welcome:
-            return "Trio is a powerful app that helps you manage your diabetes. Let's get started by setting up a few important parameters that will help Trio work effectively for you."
-        case .unitSelection:
-            return "Before you can begin with configuring your therapy settigns, Trio needs to know which units you use for your glucose and insulin measurements (based on your pump model)."
-        case .glucoseTarget:
-            return "Your glucose target is the blood glucose level you aim to maintain. Trio will use this to calculate insulin doses and provide recommendations."
-        case .basalProfile:
-            return "Your basal profile represents the amount of background insulin you need throughout the day. This helps Trio calculate your insulin needs."
-        case .carbRatio:
-            return "Your carb ratio tells how many grams of carbohydrates one unit of insulin will cover. This is essential for accurate meal bolus calculations."
-        case .insulinSensitivity:
-            return "Your insulin sensitivity factor (ISF) indicates how much one unit of insulin will lower your blood glucose. This helps calculate correction boluses."
-        case .deliveryLimits:
-            return "Trio offers various delivery limits which represent the maximum amount of insulin it can deliver at a time. This helps ensure safe and effective experience."
-        case .completed:
-            return "Great job! You've completed the initial setup of Trio. You can always adjust these settings later in the app."
-        }
-    }
-
-    /// The system icon name associated with this step.
-    var iconName: String {
-        switch self {
-        case .welcome:
-            return "hand.wave.fill"
-        case .unitSelection:
-            return "numbers.rectangle"
-        case .glucoseTarget:
-            return "target"
-        case .basalProfile:
-            return "chart.xyaxis.line"
-        case .carbRatio:
-            return "fork.knife"
-        case .insulinSensitivity:
-            return "drop.fill"
-        case .deliveryLimits:
-            return "slider.horizontal.3"
-        case .completed:
-            return "checkmark.circle.fill"
-        }
-    }
-
-    /// Returns the next step in the onboarding process, or nil if this is the last step.
-    var next: OnboardingStep? {
-        let allCases = OnboardingStep.allCases
-        let currentIndex = allCases.firstIndex(of: self) ?? 0
-        let nextIndex = currentIndex + 1
-        return nextIndex < allCases.count ? allCases[nextIndex] : nil
-    }
-
-    /// Returns the previous step in the onboarding process, or nil if this is the first step.
-    var previous: OnboardingStep? {
-        let allCases = OnboardingStep.allCases
-        let currentIndex = allCases.firstIndex(of: self) ?? 0
-        let previousIndex = currentIndex - 1
-        return previousIndex >= 0 ? allCases[previousIndex] : nil
-    }
-
-    /// The accent color to use for this step.
-    var accentColor: Color {
-        switch self {
-        case .completed,
-             .deliveryLimits,
-             .unitSelection,
-             .welcome:
-            return Color.blue
-        case .glucoseTarget:
-            return Color.green
-        case .basalProfile:
-            return Color.purple
-        case .carbRatio:
-            return Color.orange
-        case .insulinSensitivity:
-            return Color.red
-        }
-    }
-}
-
-enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
-    case maxIOB
-    case maxBolus
-    case maxBasal
-    case maxCOB
-
-    var id: Int { rawValue }
-
-    var title: String {
-        switch self {
-        case .maxIOB: return String(localized: "Max IOB", comment: "Max IOB")
-        case .maxBolus: return String(localized: "Max Bolus")
-        case .maxBasal: return String(localized: "Max Basal")
-        case .maxCOB: return String(localized: "Max COB", comment: "Max COB")
-        }
-    }
-
-    var hint: String {
-        switch self {
-        case .maxIOB: return String(localized: "Maximum units of insulin allowed to be active.")
-        case .maxBolus: return String(localized: "Largest bolus of insulin allowed.")
-        case .maxBasal: return String(localized: "Largest basal rate allowed.")
-        case .maxCOB: return String(localized: "Maximum Carbs On Board (COB) allowed.")
-        }
-    }
-
-    var description: any View {
-        switch self {
-        case .maxIOB:
-            return VStack(alignment: .leading, spacing: 8) {
-                Text(
-                    "This is the maximum amount of Insulin On Board (IOB) above profile basal rates from all sources - positive temporary basal rates, manual or meal boluses, and SMBs - that Trio is allowed to accumulate to address an above target glucose."
-                )
-                Text(
-                    "If a calculated amount exceeds this limit, the suggested and / or delivered amount will be reduced so that active insulin on board (IOB) will not exceed this safety limit."
-                )
-                Text(
-                    "Note: You can still manually bolus above this limit, but the suggested bolus amount will never exceed this in the bolus calculator."
-                )
-            }
-        case .maxBolus:
-            return VStack(alignment: .leading, spacing: 8) {
-                Text(
-                    "This is the maximum bolus allowed to be delivered at one time. This limits manual and automatic bolus."
-                )
-                Text("Most set this to their largest meal bolus. Then, adjust if needed.")
-                Text("If you attempt to request a bolus larger than this, the bolus will not be accepted.")
-            }
-        case .maxBasal:
-            return VStack(alignment: .leading, spacing: 8) {
-                Text(
-                    "This is the maximum basal rate allowed to be set or scheduled. This applies to both automatic and manual basal rates."
-                )
-                Text(
-                    "Note to Medtronic Pump Users: You must also manually set the max basal rate on the pump to this value or higher."
-                )
-            }
-        case .maxCOB:
-            return VStack(alignment: .leading, spacing: 8) {
-                Text(
-                    "This setting defines the maximum amount of Carbs On Board (COB) at any given time for Trio to use in dosing calculations. If more carbs are entered than allowed by this limit, Trio will cap the current COB in calculations to Max COB and remain at max until all remaining carbs have shown to be absorbed."
-                )
-                Text(
-                    "For example, if Max COB is 120 g and you enter a meal containing 150 g of carbs, your COB will remain at 120 g until the remaining 30 g have been absorbed."
-                )
-                Text("This is an important limit when UAM is ON.")
-            }
-        }
-    }
-}
-
-enum PumpOptionsForOnboardingUnits: String, Equatable, CaseIterable, Identifiable {
-    case minimed
-    case omnipodEros
-    case omnipodDash
-    case dana
-
-    var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .minimed:
-            return "Medtronic 5xx / 7xx"
-        case .omnipodEros:
-            return "Omnipod Eros"
-        case .omnipodDash:
-            return "Omnipod Dash"
-        case .dana:
-            return "Dana (RS/-i)"
-        }
-    }
-}
-
 /// Model that holds the data collected during onboarding.
 extension Onboarding {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var fileStorage: FileStorage!
         @ObservationIgnored @Injected() var deviceManager: DeviceDataManager!
         @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
+        @ObservationIgnored @Injected() private var keychain: Keychain!
+        @ObservationIgnored @Injected() private var nightscoutManager: NightscoutManager!
 
         private let settingsProvider = PickerSettingsProvider.shared
+
+        // Nightscout Setup
+        var nightscoutSetupOption: NightscoutSetupOption = .noSelection
+        var url = ""
+        var secret = ""
+        var message = ""
+        var isValidURL: Bool = false
+        var connecting = false
 
         // Carb Ratio related
         var carbRatioItems: [CarbRatioEditor.Item] = []
@@ -443,6 +236,54 @@ extension Onboarding {
         }
 
         // TODO: add update handler for all therapy items to automatically fill in time gaps and ensure schedule always starts at 00:00 and ends at 23:30
+    }
+}
+
+// MARK: - Setup Nightscout Connection
+
+extension Onboarding.StateModel {
+    func connectToNightscout() {
+        if let CheckURL = url.last, CheckURL == "/" {
+            let fixedURL = url.dropLast()
+            url = String(fixedURL)
+        }
+
+        guard let url = URL(string: url), self.url.hasPrefix("https://") else {
+            message = "Invalid URL"
+            isValidURL = false
+            return
+        }
+
+        connecting = true
+        isValidURL = true
+        message = ""
+
+        NightscoutAPI(url: url, secret: secret).checkConnection()
+            .receive(on: DispatchQueue.main)
+            .sink { completion in
+                switch completion {
+                case .finished: break
+                case let .failure(error):
+                    self.message = "Error: \(error.localizedDescription)"
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    self.connecting = false
+                }
+            } receiveValue: {
+                self.keychain.setValue(self.url, forKey: NightscoutConfig.Config.urlKey)
+                self.keychain.setValue(self.secret, forKey: NightscoutConfig.Config.secretKey)
+            }
+            .store(in: &lifetime)
+    }
+
+    private var nightscoutAPI: NightscoutAPI? {
+        guard let urlString = keychain.getValue(String.self, forKey: NightscoutConfig.Config.urlKey),
+              let url = URL(string: urlString),
+              let secret = keychain.getValue(String.self, forKey: NightscoutConfig.Config.secretKey)
+        else {
+            return nil
+        }
+        return NightscoutAPI(url: url, secret: secret)
     }
 }
 

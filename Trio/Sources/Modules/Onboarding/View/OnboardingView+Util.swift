@@ -1,168 +1,253 @@
 import SwiftUI
 
-struct TherapySettingItem: Identifiable, Equatable {
-    var id = UUID()
-    var time: TimeInterval // seconds since start of day
-    var value: Double
-}
+/// Represents the different steps in the onboarding process.
+enum OnboardingStep: Int, CaseIterable, Identifiable {
+    case welcome
+    case nightscout
+    case unitSelection
+    case glucoseTarget
+    case basalProfile
+    case carbRatio
+    case insulinSensitivity
+    case deliveryLimits
+    case completed
 
-struct TimeValuePickerRow: View {
-    @Binding var item: TherapySettingItem
-    var valueOptions: [Decimal]
-    var unit: String
+    var id: Int { rawValue }
 
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Picker("Time", selection: Binding(
-                    get: { item.time },
-                    set: { item.time = $0 }
-                )) {
-                    ForEach(0 ..< 48) { i in
-                        let seconds = Double(i * 30 * 60)
-                        Text(timeFormatter.string(from: Date(timeIntervalSinceReferenceDate: seconds)))
-                            .tag(seconds)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .clipped()
+    var hasSubsteps: Bool {
+        self == .deliveryLimits
+    }
 
-                Picker("Value", selection: Binding(
-                    get: { item.value },
-                    set: { item.value = $0 }
-                )) {
-                    ForEach(valueOptions, id: \.self) { value in
-                        Text("\(Double(value), specifier: "%.1f") \(unit)").tag(Double(value))
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .clipped()
-            }
-            .pickerStyle(.wheel)
+    var substeps: [DeliveryLimitSubstep] {
+        guard hasSubsteps else { return [] }
+        return DeliveryLimitSubstep.allCases
+    }
+
+    /// The title to display for this onboarding step.
+    var title: String {
+        switch self {
+        case .welcome:
+            return "Welcome to Trio"
+        case .nightscout:
+            return "Nightscout"
+        case .unitSelection:
+            return "Units & Pump"
+        case .glucoseTarget:
+            return "Glucose Target"
+        case .basalProfile:
+            return "Basal Profile"
+        case .carbRatio:
+            return "Carbohydrate Ratio"
+        case .insulinSensitivity:
+            return "Insulin Sensitivity"
+        case .deliveryLimits:
+            return "Delivery Limits"
+        case .completed:
+            return "All Set!"
         }
-        .padding(.vertical, 8)
     }
 
-    private var timeFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        formatter.timeZone = TimeZone.current
-        return formatter
+    /// A detailed description of what this onboarding step is about.
+    var description: String {
+        switch self {
+        case .welcome:
+            return "Trio is a powerful app that helps you manage your diabetes. Let's get started by setting up a few important parameters that will help Trio work effectively for you."
+        case .nightscout:
+            return "Nightscout is a cloud-based platform that allows you to store your diabetes data. It's often used by caregivers to remotely monitor what Trio is doing."
+        case .unitSelection:
+            return "Before you can begin with configuring your therapy settigns, Trio needs to know which units you use for your glucose and insulin measurements (based on your pump model)."
+        case .glucoseTarget:
+            return "Your glucose target is the blood glucose level you aim to maintain. Trio will use this to calculate insulin doses and provide recommendations."
+        case .basalProfile:
+            return "Your basal profile represents the amount of background insulin you need throughout the day. This helps Trio calculate your insulin needs."
+        case .carbRatio:
+            return "Your carb ratio tells how many grams of carbohydrates one unit of insulin will cover. This is essential for accurate meal bolus calculations."
+        case .insulinSensitivity:
+            return "Your insulin sensitivity factor (ISF) indicates how much one unit of insulin will lower your blood glucose. This helps calculate correction boluses."
+        case .deliveryLimits:
+            return "Trio offers various delivery limits which represent the maximum amount of insulin it can deliver at a time. This helps ensure safe and effective experience."
+        case .completed:
+            return "Great job! You've completed the initial setup of Trio. You can always adjust these settings later in the app."
+        }
+    }
+
+    /// The system icon name associated with this step.
+    var iconName: String {
+        switch self {
+        case .welcome:
+            return "hand.wave.fill"
+        case .nightscout:
+            return "owl"
+        case .unitSelection:
+            return "numbers.rectangle"
+        case .glucoseTarget:
+            return "target"
+        case .basalProfile:
+            return "chart.xyaxis.line"
+        case .carbRatio:
+            return "fork.knife"
+        case .insulinSensitivity:
+            return "drop.fill"
+        case .deliveryLimits:
+            return "slider.horizontal.3"
+        case .completed:
+            return "checkmark.circle.fill"
+        }
+    }
+
+    /// Returns the next step in the onboarding process, or nil if this is the last step.
+    var next: OnboardingStep? {
+        let allCases = OnboardingStep.allCases
+        let currentIndex = allCases.firstIndex(of: self) ?? 0
+        let nextIndex = currentIndex + 1
+        return nextIndex < allCases.count ? allCases[nextIndex] : nil
+    }
+
+    /// Returns the previous step in the onboarding process, or nil if this is the first step.
+    var previous: OnboardingStep? {
+        let allCases = OnboardingStep.allCases
+        let currentIndex = allCases.firstIndex(of: self) ?? 0
+        let previousIndex = currentIndex - 1
+        return previousIndex >= 0 ? allCases[previousIndex] : nil
+    }
+
+    /// The accent color to use for this step.
+    var accentColor: Color {
+        switch self {
+        case .completed,
+             .deliveryLimits,
+             .nightscout,
+             .unitSelection,
+             .welcome:
+            return Color.blue
+        case .glucoseTarget:
+            return Color.green
+        case .basalProfile:
+            return Color.purple
+        case .carbRatio:
+            return Color.orange
+        case .insulinSensitivity:
+            return Color.red
+        }
     }
 }
 
-struct TimeValueEditorView: View {
-    @Binding var items: [TherapySettingItem]
-    var unit: String
-    var valueOptions: [Decimal]
+enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
+    case maxIOB
+    case maxBolus
+    case maxBasal
+    case maxCOB
 
-    @State private var selectedItemID: UUID?
+    var id: Int { rawValue }
 
-    var body: some View {
-        List {
-            HStack {
-                Text("Entries").bold()
-                Spacer()
-                Button {
-                    let lastTime = items.last?.time ?? 0
-                    let newTime = min(lastTime + 1800, 23 * 3600 + 1800)
-                    let newValue = items.last?.value ?? 1.0
-                    items.append(TherapySettingItem(time: newTime, value: newValue))
-                } label: {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Add")
-                    }.foregroundColor(.accentColor)
-                }
-                .disabled(items.count >= 48)
-            }
-            .listRowBackground(Color.chart.opacity(0.45))
-            .padding(.vertical, 5)
+    var title: String {
+        switch self {
+        case .maxIOB: return String(localized: "Max IOB", comment: "Max IOB")
+        case .maxBolus: return String(localized: "Max Bolus")
+        case .maxBasal: return String(localized: "Max Basal")
+        case .maxCOB: return String(localized: "Max COB", comment: "Max COB")
+        }
+    }
 
-            ForEach($items) { $item in
-                VStack(spacing: 0) {
-                    Button {
-                        selectedItemID = selectedItemID == item.id ? nil : item.id
-                    } label: {
-                        HStack {
-                            HStack {
-                                Text("\(item.value, specifier: "%.1f")")
-                                    .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
-                                Text(unit.description)
-                                    .foregroundStyle(Color.secondary)
-                            }
+    var hint: String {
+        switch self {
+        case .maxIOB: return String(localized: "Maximum units of insulin allowed to be active.")
+        case .maxBolus: return String(localized: "Largest bolus of insulin allowed.")
+        case .maxBasal: return String(localized: "Largest basal rate allowed.")
+        case .maxCOB: return String(localized: "Maximum Carbs On Board (COB) allowed.")
+        }
+    }
 
-                            Spacer()
-
-                            HStack {
-                                Text("starts at").foregroundStyle(Color.secondary)
-
-                                let startDate = Date(timeIntervalSinceReferenceDate: item.time)
-                                Text(timeFormatter.string(from: startDate))
-                                    .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
-                            }
-                        }.contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-
-                    if selectedItemID == item.id {
-                        TimeValuePickerRow(
-                            item: $item,
-                            valueOptions: valueOptions,
-                            unit: unit
-                        )
-                        .transition(.slide)
-                    }
-                }
-                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    if let index = items.firstIndex(where: { $0.id == item.id }), items.count > 1 {
-                        Button(role: .destructive) {
-                            items.remove(at: index)
-                            selectedItemID = nil
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
-                }
-            }
-            .listRowBackground(Color.chart.opacity(0.45))
-
-            Rectangle().fill(Color.chart.opacity(0.45)).frame(height: 10)
-                .clipShape(
-                    .rect(
-                        topLeadingRadius: 0,
-                        bottomLeadingRadius: 10,
-                        bottomTrailingRadius: 10,
-                        topTrailingRadius: 0
-                    )
+    var description: any View {
+        switch self {
+        case .maxIOB:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "This is the maximum amount of Insulin On Board (IOB) above profile basal rates from all sources - positive temporary basal rates, manual or meal boluses, and SMBs - that Trio is allowed to accumulate to address an above target glucose."
                 )
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: -22, leading: 0, bottom: 0, trailing: 0))
-                .listRowSeparator(.hidden)
+                Text(
+                    "If a calculated amount exceeds this limit, the suggested and / or delivered amount will be reduced so that active insulin on board (IOB) will not exceed this safety limit."
+                )
+                Text(
+                    "Note: You can still manually bolus above this limit, but the suggested bolus amount will never exceed this in the bolus calculator."
+                )
+            }
+        case .maxBolus:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "This is the maximum bolus allowed to be delivered at one time. This limits manual and automatic bolus."
+                )
+                Text("Most set this to their largest meal bolus. Then, adjust if needed.")
+                Text("If you attempt to request a bolus larger than this, the bolus will not be accepted.")
+            }
+        case .maxBasal:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "This is the maximum basal rate allowed to be set or scheduled. This applies to both automatic and manual basal rates."
+                )
+                Text(
+                    "Note to Medtronic Pump Users: You must also manually set the max basal rate on the pump to this value or higher."
+                )
+            }
+        case .maxCOB:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "This setting defines the maximum amount of Carbs On Board (COB) at any given time for Trio to use in dosing calculations. If more carbs are entered than allowed by this limit, Trio will cap the current COB in calculations to Max COB and remain at max until all remaining carbs have shown to be absorbed."
+                )
+                Text(
+                    "For example, if Max COB is 120 g and you enter a meal containing 150 g of carbs, your COB will remain at 120 g until the remaining 30 g have been absorbed."
+                )
+                Text("This is an important limit when UAM is ON.")
+            }
         }
-        .listStyle(.plain)
-        .scrollDisabled(true)
-        .scrollContentBackground(.hidden)
-        .frame(height: 55 + CGFloat(items.count) * 45 + (items.contains(where: { $0.id == selectedItemID }) ? 230 : 0))
-        // 55 for header row, item counts x 45 for every entry row + 230 for a visible picker row
-    }
-
-    private var timeFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter
     }
 }
 
-#Preview {
-    @Previewable @State var previewItems = [
-        TherapySettingItem(time: 0, value: 1.0),
-        TherapySettingItem(time: 1800, value: 1.2)
-    ]
+enum PumpOptionsForOnboardingUnits: String, Equatable, CaseIterable, Identifiable {
+    case minimed
+    case omnipodEros
+    case omnipodDash
+    case dana
 
-    TimeValueEditorView(
-        items: $previewItems,
-        unit: "U/h",
-        valueOptions: stride(from: 0.0, through: 10.0, by: 0.05).map { Decimal(round(100 * $0) / 100) }
-    )
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .minimed:
+            return "Medtronic 5xx / 7xx"
+        case .omnipodEros:
+            return "Omnipod Eros"
+        case .omnipodDash:
+            return "Omnipod Dash"
+        case .dana:
+            return "Dana (RS/-i)"
+        }
+    }
+}
+
+enum NightscoutSetupOption: String, Equatable, CaseIterable, Identifiable {
+    case setupNightscout
+    case skipNightscoutSetup
+    case noSelection
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .setupNightscout:
+            return String(localized: "Setup Nightscout for Trio")
+        case .skipNightscoutSetup:
+            return String(localized: "Skip Nightscout Setup")
+        case .noSelection:
+            return ""
+        }
+    }
+}
+
+enum NightscoutSubstep: Int, CaseIterable, Identifiable {
+    case setupSelection
+    case connectToNightscout
+    case importFromNightscout
+
+    var id: Int { rawValue }
 }
