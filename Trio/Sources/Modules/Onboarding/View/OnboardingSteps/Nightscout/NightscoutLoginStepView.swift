@@ -35,14 +35,6 @@ struct NightscoutLoginStepView: View {
 
             Spacer(minLength: 10)
 
-            if state.message.isNotEmpty {
-                VStack(alignment: .center) {
-                    Text(state.message)
-                        .font(.subheadline)
-                        .foregroundStyle(Color.orange)
-                }
-            }
-
             Button(action: {
                 let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
                 impactHeavy.impactOccurred()
@@ -58,8 +50,29 @@ struct NightscoutLoginStepView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.vertical, 8)
             }
-            .disabled(state.url.isEmpty || state.secret.isEmpty)
+            .disabled(state.isConnectedToNS || state.url.isEmpty || state.secret.isEmpty)
             .buttonStyle(.borderedProminent)
+
+            if state.message.isNotEmpty {
+                VStack(alignment: .center) {
+                    Text(state.message)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.orange)
+                }
+            } else if state.isConnectedToNS {
+                HStack {
+                    Spacer()
+                    Text("Connected")
+                        .font(.subheadline)
+                        .foregroundColor(.green)
+                    ZStack {
+                        Image(systemName: "network")
+                        Image(systemName: "checkmark.circle.fill").foregroundColor(.green).font(.caption2)
+                            .offset(x: 9, y: 6)
+                    }
+                    Spacer()
+                }
+            }
         }
     }
 }

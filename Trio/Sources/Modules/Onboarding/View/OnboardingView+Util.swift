@@ -244,6 +244,25 @@ enum NightscoutSetupOption: String, Equatable, CaseIterable, Identifiable {
     }
 }
 
+enum NightscoutImportOption: String, Equatable, CaseIterable, Identifiable {
+    case useImport
+    case skipImport
+    case noSelection
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .useImport:
+            return String(localized: "Import Settings")
+        case .skipImport:
+            return String(localized: "Configure Yourself")
+        case .noSelection:
+            return ""
+        }
+    }
+}
+
 enum NightscoutSubstep: Int, CaseIterable, Identifiable {
     case setupSelection
     case connectToNightscout

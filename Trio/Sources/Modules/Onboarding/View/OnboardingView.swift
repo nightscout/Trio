@@ -17,14 +17,16 @@ extension Onboarding {
         @State private var isAnimating = false
 
         private var shouldDisableNextButton: Bool {
-            (
-                currentStep == .nightscout && currentNightscoutSubstep == .setupSelection && state
-                    .nightscoutSetupOption == .noSelection
-            ) ||
+            currentStep == .nightscout &&
                 (
-                    currentStep == .nightscout && currentNightscoutSubstep == .connectToNightscout && state.url.isEmpty && !state
+                    currentNightscoutSubstep == .setupSelection && state
+                        .nightscoutSetupOption == .noSelection
+                ) ||
+                (
+                    currentNightscoutSubstep == .connectToNightscout && state.url.isEmpty && !state
                         .isValidURL && state.secret.isEmpty
                 )
+                || (currentNightscoutSubstep == .importFromNightscout && state.nightscoutImportOption == .noSelection)
         }
 
         var body: some View {
@@ -172,19 +174,7 @@ extension Onboarding {
                                                         .rawValue - 1
                                                 )!
                                             }
-                                        }
-
-//                                        else if currentStep == .nightscout {
-//                                            if currentNightscoutSubstep != .setupSelection,
-//                                               state.nightscoutSetupOption == .skipNightscoutSetup
-//                                            {
-//                                                currentNightscoutSubstep = .setupSelection
-//                                            } else {
-//                                                currentNightscoutSubstep =
-//                                                    NightscoutSubstep(rawValue: currentNightscoutSubstep.rawValue - 1)!
-//                                            }
-//                                        }
-                                        else if currentStep == .deliveryLimits {
+                                        } else if currentStep == .deliveryLimits {
                                             if let previousSub = DeliveryLimitSubstep(
                                                 rawValue: currentDeliverySubstep
                                                     .rawValue - 1
@@ -231,6 +221,10 @@ extension Onboarding {
                                                         .rawValue + 1
                                                 )!
                                             }
+                                        } else if currentNightscoutSubstep == .importFromNightscout,
+                                                  state.nightscoutImportOption == .useImport
+                                        {
+                                            // TODO: trigger import, show animation, then proceed to next step
                                         } else if let next = currentStep.next {
                                             currentStep = next
                                         }

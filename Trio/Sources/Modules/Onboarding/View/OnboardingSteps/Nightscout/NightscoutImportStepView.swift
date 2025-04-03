@@ -4,40 +4,45 @@ struct NightscoutImportStepView: View {
     @Bindable var state: Onboarding.StateModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 20) {
             Text(
-                "Before you proceed, please decide if you want to import existing therapy settings from Nightscout (your \"default profile\"), or if you would like to start from scratch."
-            )
+                "Please choose if you want to import existing therapy settings from Nightscout or start from scratch."
+            ).font(.headline)
+                .padding(.horizontal)
 
-            Text("Tap \"Import Settings\" to begin, or \"Next\" to skip.")
-                .foregroundStyle(Color.secondary)
+            ForEach([NightscoutImportOption.useImport, NightscoutImportOption.skipImport], id: \.self) { option in
+                Button(action: {
+                    state.nightscoutImportOption = option
+                }) {
+                    HStack {
+                        Image(systemName: state.nightscoutImportOption == option ? "largecircle.fill.circle" : "circle")
+                            .foregroundColor(state.nightscoutImportOption == option ? .accentColor : .secondary)
+                            .imageScale(.large)
 
-            Button(action: {
-                let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-                impactHeavy.impactOccurred()
+                        Text(option.displayName)
+                            .foregroundColor(.primary)
 
-                // TODO: handle import
-            }) {
-                HStack {
-                    Text("Import Settings").bold()
+                        Spacer()
+                    }
+                    .padding()
+                    .background(Color.chart.opacity(0.45))
+                    .cornerRadius(10)
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, 8)
+                .buttonStyle(.plain)
             }
-            .disabled(state.url.isEmpty || state.secret.isEmpty)
-            .buttonStyle(.borderedProminent)
 
             VStack(alignment: .leading, spacing: 10) {
                 Text(
-                    "Trio will import the following therapy settings from Nightscout:"
+                    "Trio will import the following therapy settings from your Nightscout instance:"
                 )
                 VStack(alignment: .leading) {
-                    Text("• Basal Rates")
-                    Text("• Insulin Sensitivities")
-                    Text("• Carb Ratios")
                     Text("• Glucose Targets")
+                    Text("• Basal Rates")
+                    Text("• Carb Ratios")
+                    Text("• Insulin Sensitivities")
                 }
             }
+            .padding(.horizontal)
             .font(.footnote)
             .foregroundStyle(Color.secondary)
         }

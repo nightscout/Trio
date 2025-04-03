@@ -17,11 +17,13 @@ extension Onboarding {
 
         // Nightscout Setup
         var nightscoutSetupOption: NightscoutSetupOption = .noSelection
+        var nightscoutImportOption: NightscoutImportOption = .noSelection
         var url = ""
         var secret = ""
         var message = ""
         var isValidURL: Bool = false
-        var connecting = false
+        var connecting: Bool = false
+        var isConnectedToNS: Bool = false
 
         // Carb Ratio related
         var carbRatioItems: [CarbRatioEditor.Item] = []
@@ -272,6 +274,7 @@ extension Onboarding.StateModel {
             } receiveValue: {
                 self.keychain.setValue(self.url, forKey: NightscoutConfig.Config.urlKey)
                 self.keychain.setValue(self.secret, forKey: NightscoutConfig.Config.secretKey)
+                self.isConnectedToNS = true
             }
             .store(in: &lifetime)
     }
