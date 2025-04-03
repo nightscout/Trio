@@ -80,7 +80,7 @@ extension UnitsLimitsSettings {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 10 units").bold()
                         Text(
-                            "This is the maximum bolus allowed to be delivered at one time. This limits manual and automatic bolus."
+                            "This is the maximum bolus allowed to be delivered at one time. This only limits manual boluses and does not limit SMBs."
                         )
                         Text("Most set this to their largest meal bolus. Then, adjust if needed.")
                         Text("If you attempt to request a bolus larger than this, the bolus will not be accepted.")
@@ -139,6 +139,53 @@ extension UnitsLimitsSettings {
                             "For example, if Max COB is 120 g and you enter a meal containing 150 g of carbs, your COB will remain at 120 g until the remaining 30 g have been absorbed."
                         )
                         Text("This is an important limit when UAM is ON.")
+                    }
+                )
+
+                SettingInputSection(
+                    decimalValue: $state.threshold_setting,
+                    booleanValue: $booleanPlaceholder,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(localized: "Minimum Safety Threshold")
+                        }
+                    ),
+                    units: state.units,
+                    type: .decimal("threshold_setting"),
+                    label: String(localized: "Minimum Safety Threshold"),
+                    miniHint: String(localized: "Increase the safety threshold used to suspend insulin delivery."),
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: Set by Algorithm").bold()
+                        Text(
+                            "Minimum Threshold Setting is, by default, determined by your set Glucose Target. This threshold automatically suspends insulin delivery if your glucose levels are forecasted to fall below this value. It’s designed to protect against hypoglycemia, particularly during sleep or other vulnerable times."
+                        )
+                        Text(
+                            "Trio will use the larger of the default setting calculation below and the value entered here."
+                        )
+                        VStack(alignment: .leading, spacing: 10) {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text("The default setting is based on this calculation:").bold()
+                                Text("TargetGlucose - 0.5 × (TargetGlucose - 40)")
+                            }
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(
+                                    "If your glucose target is \(state.units == .mgdL ? "110" : 110.formattedAsMmolL) \(state.units.rawValue), Trio will use a safety threshold of \(state.units == .mgdL ? "75" : 75.formattedAsMmolL) \(state.units.rawValue), unless you set Minimum Safety Threshold to something > \(state.units == .mgdL ? "75" : 75.formattedAsMmolL) \(state.units.rawValue)."
+                                )
+                                Text(
+                                    "\(state.units == .mgdL ? "110" : 110.formattedAsMmolL) - 0.5 × (\(state.units == .mgdL ? "110" : 110.formattedAsMmolL) - \(state.units == .mgdL ? "40" : 40.formattedAsMmolL)) = \(state.units == .mgdL ? "75" : 75.formattedAsMmolL)"
+                                )
+                            }
+                            Text(
+                                "This setting is limited to values between \(state.units == .mgdL ? "60" : 60.formattedAsMmolL) - \(state.units == .mgdL ? "120" : 120.formattedAsMmolL) \(state.units.rawValue)"
+                            )
+                            Text(
+                                "Note: Basal may be resumed if there is negative IOB and glucose is rising faster than the forecast."
+                            )
+                        }
                     }
                 )
             }
