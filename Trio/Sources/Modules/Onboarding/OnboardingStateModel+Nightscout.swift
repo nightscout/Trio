@@ -196,7 +196,7 @@ extension Onboarding.StateModel {
         targetItems = targetsProfile.targets.map { entry in
             let timeIndex = targetTimeValues.firstIndex(where: { Int($0) == entry.offset * 60 }) ?? 0
             let lowIndex = targetRateValues.enumerated().min(by: {
-                abs(Double($0.element) - Double(entry.low)) < abs(Double($1.element) - Double(entry.low))
+                abs($0.element - entry.low) < abs($1.element - entry.low)
             })?.offset ?? 0
 
             return TargetsEditor.Item(lowIndex: lowIndex, highIndex: lowIndex, timeIndex: timeIndex)
@@ -207,9 +207,8 @@ extension Onboarding.StateModel {
         basalProfileItems = basals.map { entry in
             let timeIndex = basalProfileTimeValues.firstIndex(where: { Int($0) == entry.minutes * 60 }) ?? 0
             let rateIndex = basalProfileRateValues.enumerated().min(by: {
-                abs(Double($0.element) - Double(entry.rate)) < abs(Double($1.element) - Double(entry.rate))
+                abs($0.element - entry.rate) < abs($1.element - entry.rate)
             })?.offset ?? 0
-
             return BasalProfileEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
         }
         initialBasalProfileItems = basalProfileItems
@@ -218,9 +217,8 @@ extension Onboarding.StateModel {
         carbRatioItems = carbratiosProfile.schedule.map { entry in
             let timeIndex = carbRatioTimeValues.firstIndex(where: { Int($0) == entry.offset * 60 }) ?? 0
             let rateIndex = carbRatioRateValues.enumerated().min(by: {
-                abs(Double($0.element) - Double(entry.ratio)) < abs(Double($1.element) - Double(entry.ratio))
+                abs($0.element - entry.ratio) < abs($1.element - entry.ratio)
             })?.offset ?? 0
-
             return CarbRatioEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
         }
         initialCarbRatioItems = carbRatioItems
@@ -229,7 +227,7 @@ extension Onboarding.StateModel {
         isfItems = sensitivitiesProfile.sensitivities.map { entry in
             let timeIndex = isfTimeValues.firstIndex(where: { Int($0) == entry.offset * 60 }) ?? 0
             let rateIndex = isfRateValues.enumerated().min(by: {
-                abs(Double($0.element) - Double(entry.sensitivity)) < abs(Double($1.element) - Double(entry.sensitivity))
+                abs($0.element - entry.sensitivity) < abs($1.element - entry.sensitivity)
             })?.offset ?? 0
 
             return ISFEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)

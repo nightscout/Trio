@@ -47,9 +47,9 @@ struct BasalProfileStepView: View {
                     .cornerRadius(10)
                 }
 
-                TimeValueEditorView(
+                TherapySettingEditorView(
                     items: $therapyItems,
-                    unit: String(localized: "U/hr"),
+                    unit: .unitPerHour,
                     timeOptions: state.basalProfileTimeValues,
                     valueOptions: state.basalProfileRateValues
                 )

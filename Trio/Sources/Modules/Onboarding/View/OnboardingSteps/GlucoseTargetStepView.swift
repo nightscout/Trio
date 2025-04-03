@@ -56,9 +56,9 @@ struct GlucoseTargetStepView: View {
                 }
 
                 // Glucose target list
-                TimeValueEditorView(
+                TherapySettingEditorView(
                     items: $therapyItems,
-                    unit: state.units.rawValue,
+                    unit: state.units == .mgdL ? .mgdL : .mmolL,
                     timeOptions: state.targetTimeValues,
                     valueOptions: state.targetRateValues
                 )
@@ -78,9 +78,12 @@ struct GlucoseTargetStepView: View {
 
     // Add initial target
     private func addTarget() {
-        // Default to midnight (00:00) and 1.0 U/h rate
         let timeIndex = state.targetTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
-        let targetIndex = state.targetRateValues.firstIndex { abs(Double($0) - 100) < 0.05 } ?? 100
+        let expectedDefault = Decimal(100)
+
+        let targetIndex = state.targetRateValues.enumerated()
+            .min(by: { abs($0.element - expectedDefault) < abs($1.element - expectedDefault) })?
+            .offset ?? 0
 
         let newItem = TargetsEditor.Item(lowIndex: targetIndex, highIndex: targetIndex, timeIndex: timeIndex)
         state.targetItems.append(newItem)

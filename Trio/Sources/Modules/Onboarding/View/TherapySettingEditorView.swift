@@ -1,8 +1,8 @@
 import SwiftUI
 
-struct TimeValueEditorView: View {
+struct TherapySettingEditorView: View {
     @Binding var items: [TherapySettingItem]
-    var unit: String
+    var unit: TherapySettingUnit
     var timeOptions: [TimeInterval]
     var valueOptions: [Decimal]
 
@@ -36,9 +36,9 @@ struct TimeValueEditorView: View {
                     } label: {
                         HStack {
                             HStack {
-                                Text("\(item.value, specifier: "%.1f")")
+                                Text(displayText(for: unit, decimalValue: item.value))
                                     .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
-                                Text(unit.description)
+                                Text(unit.displayName)
                                     .foregroundStyle(Color.secondary)
                             }
 
@@ -58,7 +58,7 @@ struct TimeValueEditorView: View {
                     .buttonStyle(.plain)
 
                     if selectedItemID == item.id {
-                        TimeValuePickerRow(
+                        timeValuePickerRow(
                             item: $item,
                             timeOptions: timeOptions,
                             valueOptions: valueOptions,
@@ -100,42 +100,28 @@ struct TimeValueEditorView: View {
         // 55 for header row, item counts x 45 for every entry row + 230 for a visible picker row
     }
 
-    private var timeFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter
-    }
-}
-
-struct TherapySettingItem: Identifiable, Equatable {
-    var id = UUID()
-    var time: TimeInterval // seconds since start of day
-    var value: Double
-}
-
-struct TimeValuePickerRow: View {
-    @Binding var item: TherapySettingItem
-    var timeOptions: [TimeInterval]
-    var valueOptions: [Decimal]
-    var unit: String
-
-    var body: some View {
+    @ViewBuilder private func timeValuePickerRow(
+        item: Binding<TherapySettingItem>,
+        timeOptions: [TimeInterval],
+        valueOptions: [Decimal],
+        unit: TherapySettingUnit
+    ) -> some View {
         VStack(spacing: 8) {
             HStack {
                 Picker("Value", selection: Binding(
-                    get: { item.value },
-                    set: { item.value = $0 }
+                    get: { Double(item.wrappedValue.value) },
+                    set: { item.wrappedValue.value = Decimal($0) }
                 )) {
                     ForEach(valueOptions, id: \.self) { value in
-                        Text("\(Double(value), specifier: "%.1f") \(unit)").tag(Double(value))
+                        Text("\(displayText(for: unit, decimalValue: value)) \(unit.displayName)").tag(Double(value))
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .clipped()
 
                 Picker("Time", selection: Binding(
-                    get: { timeOptions.contains(item.time) ? item.time : timeOptions.first ?? 0 },
-                    set: { item.time = $0 }
+                    get: { item.wrappedValue.time },
+                    set: { item.wrappedValue.time = $0 }
                 )) {
                     ForEach(timeOptions, id: \.self) { time in
                         Text(timeFormatter.string(from: Date(timeIntervalSince1970: time)))
@@ -156,6 +142,53 @@ struct TimeValuePickerRow: View {
         formatter.timeStyle = .short
         return formatter
     }
+
+    private func displayText(for unit: TherapySettingUnit, decimalValue: Decimal) -> String {
+        switch unit {
+        case .mmolL,
+             .mmolLPerUnit:
+            return decimalValue.formattedAsMmolL
+        case .gramPerUnit,
+             .mgdL,
+             .mgdLPerUnit,
+             .unitPerHour:
+            return decimalValue.description
+        }
+    }
+}
+
+struct TherapySettingItem: Identifiable, Equatable, Hashable {
+    var id = UUID()
+    var time: TimeInterval // seconds since start of day
+    var value: Decimal
+}
+
+enum TherapySettingUnit: String, CaseIterable {
+    case mmolLPerUnit
+    case mgdLPerUnit
+    case unitPerHour
+    case gramPerUnit
+    case mmolL
+    case mgdL
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .mmolLPerUnit:
+            return String(localized: "mmol/L/U")
+        case .mgdLPerUnit:
+            return String(localized: "mg/dL/U")
+        case .unitPerHour:
+            return String(localized: "U/hr")
+        case .gramPerUnit:
+            return String(localized: "g/U")
+        case .mmolL:
+            return "mmol/L"
+        case .mgdL:
+            return "mg/dL"
+        }
+    }
 }
 
 #Preview {
@@ -164,9 +197,9 @@ struct TimeValuePickerRow: View {
         TherapySettingItem(time: 1800, value: 1.2)
     ]
 
-    TimeValueEditorView(
+    TherapySettingEditorView(
         items: $previewItems,
-        unit: "U/h",
+        unit: .unitPerHour,
         timeOptions: stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 },
         valueOptions: stride(from: 0.0, through: 10.0, by: 0.05).map { Decimal(round(100 * $0) / 100) }
     )

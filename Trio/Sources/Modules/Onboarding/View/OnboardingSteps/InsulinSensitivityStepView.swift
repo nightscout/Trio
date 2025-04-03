@@ -47,9 +47,9 @@ struct InsulinSensitivityStepView: View {
                     .cornerRadius(10)
                 }
 
-                TimeValueEditorView(
+                TherapySettingEditorView(
                     items: $therapyItems,
-                    unit: String(localized: "\(state.units.rawValue)/U"),
+                    unit: state.units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit,
                     timeOptions: state.isfTimeValues,
                     valueOptions: state.isfRateValues
                 )
@@ -133,10 +133,12 @@ struct InsulinSensitivityStepView: View {
 
     // Add initial ISF value
     private func addInitialISF() {
-        // Default to midnight (00:00) and 50 mg/dL (or 2.8 mmol/L)
         let timeIndex = state.isfTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
-        let defaultISF = state.units == .mgdL ? 50.0 : 2.8
-        let rateIndex = state.isfRateValues.firstIndex { abs(Double($0) - defaultISF) < 0.5 } ?? 45
+        let expectedDefault = Decimal(50)
+
+        let rateIndex = state.isfRateValues.enumerated()
+            .min(by: { abs($0.element - expectedDefault) < abs($1.element - expectedDefault) })?
+            .offset ?? 0
 
         let newItem = ISFEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
         state.isfItems.append(newItem)

@@ -47,9 +47,9 @@ struct CarbRatioStepView: View {
                     .cornerRadius(10)
                 }
 
-                TimeValueEditorView(
+                TherapySettingEditorView(
                     items: $therapyItems,
-                    unit: String(localized: "g/U"),
+                    unit: .gramPerUnit,
                     timeOptions: state.carbRatioTimeValues,
                     valueOptions: state.carbRatioRateValues
                 )
