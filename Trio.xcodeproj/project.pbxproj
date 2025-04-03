@@ -572,8 +572,6 @@
 		DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */; };
 		DD6B7CB22C7B6F0800B75029 /* Rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB12C7B6F0800B75029 /* Rounding.swift */; };
 		DD6B7CB42C7B71F700B75029 /* ForecastDisplayType.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */; };
-		DD6B7CB92C7BAC6900B75029 /* NightscoutImportResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CB82C7BAC6900B75029 /* NightscoutImportResultView.swift */; };
-		DD6B7CBB2C7FBBFA00B75029 /* ReviewInsulinActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6B7CBA2C7FBBFA00B75029 /* ReviewInsulinActionView.swift */; };
 		DD6D67E42C9C253500660C9B /* ColorSchemeOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6D67E32C9C253500660C9B /* ColorSchemeOption.swift */; };
 		DD6F63CC2D27F615007D94CF /* TreatmentMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */; };
 		DD73FA0F2D74F58E00D19D1E /* BackgroundTask+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD73FA0E2D74F57300D19D1E /* BackgroundTask+Helper.swift */; };
@@ -1354,8 +1352,6 @@
 		DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutExercise.swift; sourceTree = "<group>"; };
 		DD6B7CB12C7B6F0800B75029 /* Rounding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rounding.swift; sourceTree = "<group>"; };
 		DD6B7CB32C7B71F700B75029 /* ForecastDisplayType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastDisplayType.swift; sourceTree = "<group>"; };
-		DD6B7CB82C7BAC6900B75029 /* NightscoutImportResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutImportResultView.swift; sourceTree = "<group>"; };
-		DD6B7CBA2C7FBBFA00B75029 /* ReviewInsulinActionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewInsulinActionView.swift; sourceTree = "<group>"; };
 		DD6D67E32C9C253500660C9B /* ColorSchemeOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeOption.swift; sourceTree = "<group>"; };
 		DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreatmentMenuView.swift; sourceTree = "<group>"; };
 		DD73FA0E2D74F57300D19D1E /* BackgroundTask+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundTask+Helper.swift"; sourceTree = "<group>"; };
@@ -2512,7 +2508,6 @@
 		4F4AE4D901E8BA872B207D7F /* View */ = {
 			isa = PBXGroup;
 			children = (
-				DD6B7CB72C7BAC1B00B75029 /* ProfileImport */,
 				8782B44544F38F2B2D82C38E /* NightscoutConfigRootView.swift */,
 				5A2325512BFCBF55003518CA /* NightscoutUploadView.swift */,
 				5A2325532BFCBF65003518CA /* NightscoutFetchView.swift */,
@@ -3246,15 +3241,6 @@
 			path = ViewElements;
 			sourceTree = "<group>";
 		};
-		DD6B7CB72C7BAC1B00B75029 /* ProfileImport */ = {
-			isa = PBXGroup;
-			children = (
-				DD6B7CB82C7BAC6900B75029 /* NightscoutImportResultView.swift */,
-				DD6B7CBA2C7FBBFA00B75029 /* ReviewInsulinActionView.swift */,
-			);
-			path = ProfileImport;
-			sourceTree = "<group>";
-		};
 		DD9ECB662CA99EFE00AA7C45 /* RemoteControl */ = {
 			isa = PBXGroup;
 			children = (
@@ -3915,7 +3901,6 @@
 				3894873A2614928B004DF424 /* DispatchTimer.swift in Sources */,
 				3895E4C625B9E00D00214B37 /* Preferences.swift in Sources */,
 				CE94598429E9E3E60047C9C6 /* WatchConfigStateModel.swift in Sources */,
-				DD6B7CB92C7BAC6900B75029 /* NightscoutImportResultView.swift in Sources */,
 				38DF1786276A73D400B3528F /* TagCloudView.swift in Sources */,
 				38B4F3CD25E5031100E76A18 /* Broadcaster.swift in Sources */,
 				383420D925FFEB3F002D46C1 /* Popup.swift in Sources */,
@@ -4161,7 +4146,6 @@
 				DD32CFA02CC824D6003686D6 /* TrioRemoteControl+APNS.swift in Sources */,
 				CE7CA3532A064973004BE681 /* TempPresetIntent.swift in Sources */,
 				D6DEC113821A7F1056C4AA1E /* NightscoutConfigDataFlow.swift in Sources */,
-				DD6B7CBB2C7FBBFA00B75029 /* ReviewInsulinActionView.swift in Sources */,
 				38E98A3025F52FF700C0CED0 /* Config.swift in Sources */,
 				BDB899882C564509006F3298 /* ForecastChart.swift in Sources */,
 				110AEDE32C5193D200615CC9 /* BolusIntent.swift in Sources */,
