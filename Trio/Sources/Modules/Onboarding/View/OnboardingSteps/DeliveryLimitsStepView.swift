@@ -11,6 +11,7 @@ struct DeliveryLimitsStepView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(substep.hint)
+                .padding(.horizontal)
                 .font(.headline)
 
             // Replace with real pickers or sliders later
@@ -48,6 +49,7 @@ struct DeliveryLimitsStepView: View {
             AnyView(substep.description)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+                .padding(.horizontal)
         }
     }
 

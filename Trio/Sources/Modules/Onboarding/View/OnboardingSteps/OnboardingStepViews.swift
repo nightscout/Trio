@@ -59,7 +59,7 @@ struct CompletedStepView: View {
 
             VStack(alignment: .leading, spacing: 12) {
                 ForEach(OnboardingStep.allCases.filter { $0 != .welcome && $0 != .completed }, id: \.self) { step in
-                    SettingItemView(icon: step.iconName, title: step.title)
+                    SettingItemView(step: step, icon: step.iconName, title: step.title)
                 }
             }
             .padding()
@@ -79,15 +79,24 @@ struct CompletedStepView: View {
 
 /// A reusable view for displaying setting items in the completed step.
 struct SettingItemView: View {
+    let step: OnboardingStep
     let icon: String
     let title: String
 
     var body: some View {
         HStack(spacing: 15) {
-            Image(systemName: icon)
-                .font(.system(size: 24))
-                .foregroundColor(.green)
-                .frame(width: 40)
+            if step == .nightscout {
+                Image(icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 40)
+                    .colorMultiply(Color.green)
+            } else {
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                    .foregroundColor(.green)
+                    .frame(width: 40)
+            }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
