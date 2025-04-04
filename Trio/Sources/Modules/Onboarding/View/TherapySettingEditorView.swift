@@ -18,6 +18,7 @@ struct TherapySettingEditorView: View {
                     let newTime = min(lastTime + 1800, 23 * 3600 + 1800)
                     let newValue = items.last?.value ?? 1.0
                     items.append(TherapySettingItem(time: newTime, value: newValue))
+                    selectedItemID = nil
                 } label: {
                     HStack {
                         Image(systemName: "plus.circle.fill")
@@ -33,6 +34,11 @@ struct TherapySettingEditorView: View {
                 VStack(spacing: 0) {
                     Button {
                         selectedItemID = selectedItemID == item.id ? nil : item.id
+                        Task { @MainActor in
+                            withAnimation {
+                                items = items.sorted { $0.time < $1.time }
+                            }
+                        }
                     } label: {
                         HStack {
                             HStack {
