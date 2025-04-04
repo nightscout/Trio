@@ -3,6 +3,7 @@ import SwiftUI
 /// Represents the different steps in the onboarding process.
 enum OnboardingStep: Int, CaseIterable, Identifiable {
     case welcome
+    case diagnostics
     case nightscout
     case unitSelection
     case glucoseTarget
@@ -27,23 +28,25 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .welcome:
-            return "Welcome to Trio"
+            return String(localized: "Welcome to Trio")
+        case .diagnostics:
+            return String(localized: "Diagnostics")
         case .nightscout:
-            return "Nightscout"
+            return String(localized: "Nightscout")
         case .unitSelection:
-            return "Units & Pump"
+            return String(localized: "Units & Pump")
         case .glucoseTarget:
-            return "Glucose Target"
+            return String(localized: "Glucose Target")
         case .basalProfile:
-            return "Basal Profile"
+            return String(localized: "Basal Profile")
         case .carbRatio:
-            return "Carbohydrate Ratio"
+            return String(localized: "Carbohydrate Ratio")
         case .insulinSensitivity:
-            return "Insulin Sensitivity"
+            return String(localized: "Insulin Sensitivity")
         case .deliveryLimits:
-            return "Delivery Limits"
+            return String(localized: "Delivery Limits")
         case .completed:
-            return "All Set!"
+            return String(localized: "All Set!")
         }
     }
 
@@ -51,23 +54,45 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
     var description: String {
         switch self {
         case .welcome:
-            return "Trio is a powerful app that helps you manage your diabetes. Let's get started by setting up a few important parameters that will help Trio work effectively for you."
+            return String(
+                localized: "Trio is a powerful app that helps you manage your diabetes. Let's get started by setting up a few important parameters that will help Trio work effectively for you."
+            )
+        case .diagnostics:
+            return String(
+                localized: "By default, Trio collects crash reports and other anonymized data related to errors, exceptions, and overall app performance."
+            )
         case .nightscout:
-            return "Nightscout is a cloud-based platform that allows you to store your diabetes data. It's often used by caregivers to remotely monitor what Trio is doing."
+            return String(
+                localized: "Nightscout is a cloud-based platform that allows you to store your diabetes data. It's often used by caregivers to remotely monitor what Trio is doing."
+            )
         case .unitSelection:
-            return "Before you can begin with configuring your therapy settigns, Trio needs to know which units you use for your glucose and insulin measurements (based on your pump model)."
+            return String(
+                localized: "Before you can begin with configuring your therapy settigns, Trio needs to know which units you use for your glucose and insulin measurements (based on your pump model)."
+            )
         case .glucoseTarget:
-            return "Your glucose target is the blood glucose level you aim to maintain. Trio will use this to calculate insulin doses and provide recommendations."
+            return String(
+                localized: "Your glucose target is the blood glucose level you aim to maintain. Trio will use this to calculate insulin doses and provide recommendations."
+            )
         case .basalProfile:
-            return "Your basal profile represents the amount of background insulin you need throughout the day. This helps Trio calculate your insulin needs."
+            return String(
+                localized: "Your basal profile represents the amount of background insulin you need throughout the day. This helps Trio calculate your insulin needs."
+            )
         case .carbRatio:
-            return "Your carb ratio tells how many grams of carbohydrates one unit of insulin will cover. This is essential for accurate meal bolus calculations."
+            return String(
+                localized: "Your carb ratio tells how many grams of carbohydrates one unit of insulin will cover. This is essential for accurate meal bolus calculations."
+            )
         case .insulinSensitivity:
-            return "Your insulin sensitivity factor (ISF) indicates how much one unit of insulin will lower your blood glucose. This helps calculate correction boluses."
+            return String(
+                localized: "Your insulin sensitivity factor (ISF) indicates how much one unit of insulin will lower your blood glucose. This helps calculate correction boluses."
+            )
         case .deliveryLimits:
-            return "Trio offers various delivery limits which represent the maximum amount of insulin it can deliver at a time. This helps ensure safe and effective experience."
+            return String(
+                localized: "Trio offers various delivery limits which represent the maximum amount of insulin it can deliver at a time. This helps ensure safe and effective experience."
+            )
         case .completed:
-            return "Great job! You've completed the initial setup of Trio. You can always adjust these settings later in the app."
+            return String(
+                localized: "Great job! You've completed the initial setup of Trio. You can always adjust these settings later in the app."
+            )
         }
     }
 
@@ -76,6 +101,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
         switch self {
         case .welcome:
             return "hand.wave.fill"
+        case .diagnostics:
+            return "waveform.badge.magnifyingglass"
         case .nightscout:
             return "owl"
         case .unitSelection:
@@ -116,6 +143,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
         switch self {
         case .completed,
              .deliveryLimits,
+             .diagnostics,
              .nightscout,
              .unitSelection,
              .welcome:
@@ -203,6 +231,22 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
                 )
                 Text("This is an important limit when UAM is ON.")
             }
+        }
+    }
+}
+
+enum DiagnostisSharingOption: String, Equatable, CaseIterable, Identifiable {
+    case enabled
+    case disabled
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .enabled:
+            return "Enable Sharing"
+        case .disabled:
+            return "Disable Sharing"
         }
     }
 }

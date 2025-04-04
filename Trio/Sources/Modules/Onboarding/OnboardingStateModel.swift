@@ -15,6 +15,9 @@ extension Onboarding {
 
         private let settingsProvider = PickerSettingsProvider.shared
 
+        // App diagnostics sharing
+        var diagnostisSharingOption: DiagnostisSharingOption = .enabled
+
         // Nightscout Setup
         var nightscoutSetupOption: NightscoutSetupOption = .noSelection
         var nightscoutImportOption: NightscoutImportOption = .noSelection
