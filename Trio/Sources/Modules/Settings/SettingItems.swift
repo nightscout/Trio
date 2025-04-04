@@ -65,7 +65,7 @@ enum SettingItems {
         SettingItem(
             title: "Units and Limits",
             view: .unitsAndLimits,
-            searchContents: ["Glucose Units", "Max Basal", "Max Bolus", "Max IOB", "Max COB"],
+            searchContents: ["Glucose Units", "Max Basal", "Max Bolus", "Max IOB", "Max COB", "Minimum Safety Threshold"],
             path: ["Therapy Settings", "Units and Limits"]
         ),
         SettingItem(title: "Basal Rates", view: .basalProfileEditor, path: ["Therapy Settings"]),
@@ -97,9 +97,7 @@ enum SettingItems {
                 "Enable UAM",
                 "Max SMB Basal Minutes",
                 "Max UAM SMB Basal Minutes",
-                "Max Delta-BG Threshold SMB",
-                "SMB Delivery Ratio",
-                "SMB Interval"
+                "Max Delta-BG Threshold SMB"
             ],
             path: ["Algorithm", "Super Micro Bolus (SMB)"]
         ),
@@ -114,8 +112,7 @@ enum SettingItems {
                 "AF",
                 "Sigmoid Adjustment Factor",
                 "Weighted Average of TDD",
-                "Adjust Basal",
-                "Minimum Safety Threshold"
+                "Adjust Basal"
             ],
             path: ["Algorithm", "Dynamic Sensitivity"]
         ),
@@ -143,6 +140,8 @@ enum SettingItems {
                 "Skip Neutral Temps",
                 "Unsuspend If No Temp",
                 "Suspend Zeros IOB",
+                "SMB Delivery Ratio",
+                "SMB Interval",
                 "Min 5m Carbimpact",
                 "Remaining Carbs Fraction",
                 "Remaining Carbs Cap",
