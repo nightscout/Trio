@@ -58,7 +58,8 @@ struct CarbRatioStepView: View {
                     items: $therapyItems,
                     unit: .gramPerUnit,
                     timeOptions: state.carbRatioTimeValues,
-                    valueOptions: state.carbRatioRateValues
+                    valueOptions: state.carbRatioRateValues,
+                    validateOnDelete: state.validateCarbRatios
                 )
 
                 // Example calculation based on first carb ratio
@@ -134,12 +135,6 @@ struct CarbRatioStepView: View {
 
         let newItem = CarbRatioEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
         state.carbRatioItems.append(newItem)
-    }
-
-    // Computed property to check if we can add more carb ratios
-    private var canAddRatio: Bool {
-        guard let lastItem = state.carbRatioItems.last else { return true }
-        return lastItem.timeIndex < state.carbRatioTimeValues.count - 1
     }
 
     // Chart for visualizing carb ratios

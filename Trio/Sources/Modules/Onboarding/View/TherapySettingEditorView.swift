@@ -5,6 +5,7 @@ struct TherapySettingEditorView: View {
     var unit: TherapySettingUnit
     var timeOptions: [TimeInterval]
     var valueOptions: [Decimal]
+    var validateOnDelete: (() -> Void)?
 
     @State private var selectedItemID: UUID?
 
@@ -78,6 +79,7 @@ struct TherapySettingEditorView: View {
                         Button(role: .destructive) {
                             items.remove(at: index)
                             selectedItemID = nil
+                            validateTherapySettingItems()
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
@@ -142,6 +144,21 @@ struct TherapySettingEditorView: View {
         .padding(.vertical, 8)
     }
 
+    private func validateTherapySettingItems() {
+        // validates therapy items (i.e. parsed therapy settings into wrapper class)
+        var newItems = Array(Set(items)).sorted { $0.time < $1.time }
+        if let first = newItems.first {
+            first.time = 0
+        }
+
+        if items != newItems {
+            items = newItems
+        }
+
+        // validates underlying "raw" therapy setting (i.e. item of type basal, target, isf, carb ratio)
+        validateOnDelete?()
+    }
+
     private var timeFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -163,10 +180,24 @@ struct TherapySettingEditorView: View {
     }
 }
 
-struct TherapySettingItem: Identifiable, Equatable, Hashable {
+class TherapySettingItem: Identifiable, Equatable, Hashable {
     var id = UUID()
-    var time: TimeInterval // seconds since start of day
-    var value: Decimal
+    var time: TimeInterval = 0 // seconds since start of day
+    var value: Decimal = 0
+
+    init(time: TimeInterval, value: Decimal) {
+        self.time = time
+        self.value = value
+    }
+
+    static func == (lhs: TherapySettingItem, rhs: TherapySettingItem) -> Bool {
+        lhs.time == rhs.time && lhs.value == rhs.value
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(time)
+        hasher.combine(value)
+    }
 }
 
 enum TherapySettingUnit: String, CaseIterable {

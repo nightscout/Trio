@@ -58,7 +58,8 @@ struct BasalProfileStepView: View {
                     items: $therapyItems,
                     unit: .unitPerHour,
                     timeOptions: state.basalProfileTimeValues,
-                    valueOptions: state.basalProfileRateValues
+                    valueOptions: state.basalProfileRateValues,
+                    validateOnDelete: state.validateBasal
                 )
 
                 Spacer(minLength: 20)
@@ -106,12 +107,6 @@ struct BasalProfileStepView: View {
 
         let newItem = BasalProfileEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
         state.basalProfileItems.append(newItem)
-    }
-
-    // Computed property to check if we can add more basal rates
-    private var canAddBasalRate: Bool {
-        guard let lastItem = state.basalProfileItems.last else { return true }
-        return lastItem.timeIndex < state.basalProfileTimeValues.count - 1
     }
 
     // Calculate the total daily basal insulin

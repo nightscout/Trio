@@ -162,7 +162,6 @@ extension Onboarding {
         func getTargetTherapyItems(from targets: [TargetsEditor.Item]) -> [TherapySettingItem] {
             targets.map {
                 TherapySettingItem(
-                    id: UUID(),
                     time: targetTimeValues[$0.timeIndex],
                     value: targetRateValues[$0.lowIndex]
                 )
@@ -181,7 +180,6 @@ extension Onboarding {
         func getBasalTherapyItems(from basalRates: [BasalProfileEditor.Item]) -> [TherapySettingItem] {
             basalRates.map {
                 TherapySettingItem(
-                    id: UUID(),
                     time: basalProfileTimeValues[$0.timeIndex],
                     value: basalProfileRateValues[$0.rateIndex]
                 )
@@ -200,7 +198,6 @@ extension Onboarding {
         func getCarbRatioTherapyItems(from carbRatios: [CarbRatioEditor.Item]) -> [TherapySettingItem] {
             carbRatios.map {
                 TherapySettingItem(
-                    id: UUID(),
                     time: carbRatioTimeValues[$0.timeIndex],
                     value: carbRatioRateValues[$0.rateIndex]
                 )
@@ -219,7 +216,6 @@ extension Onboarding {
         func getSensitivityTherapyItems(from sensitivities: [ISFEditor.Item]) -> [TherapySettingItem] {
             sensitivities.map {
                 TherapySettingItem(
-                    id: UUID(),
                     time: isfTimeValues[$0.timeIndex],
                     value: isfRateValues[$0.rateIndex]
                 )
@@ -260,13 +256,11 @@ extension Onboarding.StateModel {
     }
 
     func validateCarbRatios() {
-        DispatchQueue.main.async {
-            let uniq = Array(Set(self.carbRatioItems))
-            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
-            sorted.first?.timeIndex = 0
-            if self.carbRatioItems != sorted {
-                self.carbRatioItems = sorted
-            }
+        let uniq = Array(Set(carbRatioItems))
+        let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+        sorted.first?.timeIndex = 0
+        if carbRatioItems != sorted {
+            carbRatioItems = sorted
         }
     }
 }
@@ -294,13 +288,11 @@ extension Onboarding.StateModel {
     }
 
     func validateTarget() {
-        DispatchQueue.main.async {
-            let uniq = Array(Set(self.targetItems))
-            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
-            sorted.first?.timeIndex = 0
-            if self.targetItems != sorted {
-                self.targetItems = sorted
-            }
+        let uniq = Array(Set(targetItems))
+        let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+        sorted.first?.timeIndex = 0
+        if targetItems != sorted {
+            targetItems = sorted
         }
     }
 }
@@ -330,13 +322,11 @@ extension Onboarding.StateModel {
     }
 
     func validateISF() {
-        DispatchQueue.main.async {
-            let uniq = Array(Set(self.isfItems))
-            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
-            sorted.first?.timeIndex = 0
-            if self.isfItems != sorted {
-                self.isfItems = sorted
-            }
+        let uniq = Array(Set(isfItems))
+        let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+        sorted.first?.timeIndex = 0
+        if isfItems != sorted {
+            isfItems = sorted
         }
     }
 }
@@ -362,15 +352,13 @@ extension Onboarding.StateModel {
     }
 
     func validateBasal() {
-        DispatchQueue.main.async {
-            let uniq = Array(Set(self.basalProfileItems))
-            let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
-            if let first = sorted.first, first.timeIndex != 0 {
-                sorted[0].timeIndex = 0
-            }
-            if self.basalProfileItems != sorted {
-                self.basalProfileItems = sorted
-            }
+        let uniq = Array(Set(basalProfileItems))
+        let sorted = uniq.sorted { $0.timeIndex < $1.timeIndex }
+        if let first = sorted.first, first.timeIndex != 0 {
+            sorted[0].timeIndex = 0
+        }
+        if basalProfileItems != sorted {
+            basalProfileItems = sorted
         }
     }
 }

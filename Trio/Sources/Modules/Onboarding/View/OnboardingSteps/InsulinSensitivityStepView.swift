@@ -58,7 +58,8 @@ struct InsulinSensitivityStepView: View {
                     items: $therapyItems,
                     unit: state.units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit,
                     timeOptions: state.isfTimeValues,
-                    valueOptions: state.isfRateValues
+                    valueOptions: state.isfRateValues,
+                    validateOnDelete: state.validateISF
                 )
 
                 // Example calculation based on first ISF
@@ -149,12 +150,6 @@ struct InsulinSensitivityStepView: View {
 
         let newItem = ISFEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
         state.isfItems.append(newItem)
-    }
-
-    // Computed property to check if we can add more ISF values
-    private var canAddISF: Bool {
-        guard let lastItem = state.isfItems.last else { return true }
-        return lastItem.timeIndex < state.isfTimeValues.count - 1
     }
 
     // Chart for visualizing ISF profile

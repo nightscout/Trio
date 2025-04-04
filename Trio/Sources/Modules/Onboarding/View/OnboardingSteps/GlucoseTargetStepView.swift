@@ -60,7 +60,8 @@ struct GlucoseTargetStepView: View {
                     items: $therapyItems,
                     unit: state.units == .mgdL ? .mgdL : .mmolL,
                     timeOptions: state.targetTimeValues,
-                    valueOptions: state.targetRateValues
+                    valueOptions: state.targetRateValues,
+                    validateOnDelete: state.validateTarget
                 )
             }
         }
@@ -87,12 +88,6 @@ struct GlucoseTargetStepView: View {
 
         let newItem = TargetsEditor.Item(lowIndex: targetIndex, highIndex: targetIndex, timeIndex: timeIndex)
         state.targetItems.append(newItem)
-    }
-
-    // Computed property to check if we can add more targets
-    private var canAddTarget: Bool {
-        guard let lastItem = state.targetItems.last else { return true }
-        return lastItem.timeIndex < state.targetTimeValues.count - 1
     }
 
     // Chart for visualizing glucose targets
