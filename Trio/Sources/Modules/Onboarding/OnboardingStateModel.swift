@@ -17,7 +17,7 @@ extension Onboarding {
 
         // MARK: - App Diagnostics
 
-        var diagnostisSharingOption: DiagnostisSharingOption = .enabled
+        var diagnosticsSharingOption: DiagnostisSharingOption = .enabled
 
         // MARK: - Nightscout Setup
 
@@ -383,6 +383,7 @@ extension Onboarding {
 
         /// Persists all onboarding data by applying settings and saving therapy values.
         func saveOnboardingData() {
+            applyDiagnostics()
             applyToSettings()
             applyToPreferences()
             applyToPumpSettings()
@@ -390,6 +391,12 @@ extension Onboarding {
             saveBasalProfile()
             saveCarbRatios()
             saveISFValues()
+        }
+
+        /// Persists the current diagnostics sharing option to a local property list file.
+        func applyDiagnostics() {
+            @PersistedProperty(key: "DiagnosticsSharingState") var storedDiagnosticsOption: String?
+            storedDiagnosticsOption = diagnosticsSharingOption.rawValue
         }
 
         /// Applies the selected glucose units to the app's settings.

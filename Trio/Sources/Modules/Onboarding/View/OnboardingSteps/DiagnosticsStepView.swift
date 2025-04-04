@@ -10,11 +10,11 @@ struct DiagnosticsStepView: View {
 
             ForEach(DiagnostisSharingOption.allCases, id: \.self) { option in
                 Button(action: {
-                    state.diagnostisSharingOption = option
+                    state.diagnosticsSharingOption = option
                 }) {
                     HStack {
-                        Image(systemName: state.diagnostisSharingOption == option ? "largecircle.fill.circle" : "circle")
-                            .foregroundColor(state.diagnostisSharingOption == option ? .accentColor : .secondary)
+                        Image(systemName: state.diagnosticsSharingOption == option ? "largecircle.fill.circle" : "circle")
+                            .foregroundColor(state.diagnosticsSharingOption == option ? .accentColor : .secondary)
                             .imageScale(.large)
 
                         Text(option.displayName)
