@@ -117,24 +117,14 @@ struct CarbRatioStepView: View {
         }
         .onAppear {
             if state.carbRatioItems.isEmpty {
-                addCarbRatio()
+                state.addInitialCarbRatio()
             }
             state.validateCarbRatios()
-            therapyItems = state.getCarbRatioTherapyItems(from: state.carbRatioItems)
+            therapyItems = state.getCarbRatioTherapyItems()
         }.onChange(of: therapyItems) { _, newItems in
-            state.updateCarbRatios(from: newItems)
+            state.updateCarbRatio(from: newItems)
             refreshUI = UUID()
         }
-    }
-
-    // Add initial carb ratio
-    private func addCarbRatio() {
-        // Default to midnight (00:00) and 10 g/U
-        let timeIndex = state.carbRatioTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
-        let rateIndex = state.carbRatioRateValues.firstIndex { abs(Double($0) - 10.0) < 0.05 } ?? 10
-
-        let newItem = CarbRatioEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
-        state.carbRatioItems.append(newItem)
     }
 
     // Chart for visualizing carb ratios

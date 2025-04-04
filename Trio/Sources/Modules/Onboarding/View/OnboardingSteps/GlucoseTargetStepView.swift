@@ -67,27 +67,14 @@ struct GlucoseTargetStepView: View {
         }
         .onAppear {
             if state.targetItems.isEmpty {
-                addTarget()
+                state.addInitialTarget()
             }
             state.validateTarget()
-            therapyItems = state.getTargetTherapyItems(from: state.targetItems)
+            therapyItems = state.getTargetTherapyItems()
         }.onChange(of: therapyItems) { _, newItems in
             state.updateTargets(from: newItems)
             refreshUI = UUID()
         }
-    }
-
-    // Add initial target
-    private func addTarget() {
-        let timeIndex = state.targetTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
-        let expectedDefault = Decimal(100)
-
-        let targetIndex = state.targetRateValues.enumerated()
-            .min(by: { abs($0.element - expectedDefault) < abs($1.element - expectedDefault) })?
-            .offset ?? 0
-
-        let newItem = TargetsEditor.Item(lowIndex: targetIndex, highIndex: targetIndex, timeIndex: timeIndex)
-        state.targetItems.append(newItem)
     }
 
     // Chart for visualizing glucose targets

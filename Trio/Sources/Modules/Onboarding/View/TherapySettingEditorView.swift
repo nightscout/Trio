@@ -8,6 +8,7 @@ struct TherapySettingEditorView: View {
     var validateOnDelete: (() -> Void)?
 
     @State private var selectedItemID: UUID?
+    @State private var refreshUI = UUID() // to update list and UI picker value(s) change(s)
 
     var body: some View {
         List {
@@ -15,11 +16,17 @@ struct TherapySettingEditorView: View {
                 Text("Entries").bold()
                 Spacer()
                 Button {
+                    // Prepare and add new entry
                     let lastTime = items.last?.time ?? 0
                     let newTime = min(lastTime + 1800, 23 * 3600 + 1800)
                     let newValue = items.last?.value ?? 1.0
                     items.append(TherapySettingItem(time: newTime, value: newValue))
+
+                    // Reset selected item to close picker
                     selectedItemID = nil
+
+                    // Sort items, in case user has changed time of one item, then taps 'Add'
+                    sortTherapyItems()
                 } label: {
                     HStack {
                         Image(systemName: "plus.circle.fill")
@@ -35,11 +42,7 @@ struct TherapySettingEditorView: View {
                 VStack(spacing: 0) {
                     Button {
                         selectedItemID = selectedItemID == item.id ? nil : item.id
-                        Task { @MainActor in
-                            withAnimation {
-                                items = items.sorted { $0.time < $1.time }
-                            }
-                        }
+                        sortTherapyItems()
                     } label: {
                         HStack {
                             HStack {
@@ -60,7 +63,9 @@ struct TherapySettingEditorView: View {
                                 Text(timeString)
                                     .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
                             }
-                        }.contentShape(Rectangle())
+                        }
+                        .contentShape(Rectangle())
+                        .id(refreshUI) // force list update
                     }
                     .buttonStyle(.plain)
 
@@ -118,7 +123,10 @@ struct TherapySettingEditorView: View {
             HStack {
                 Picker("Value", selection: Binding(
                     get: { Double(item.wrappedValue.value) },
-                    set: { item.wrappedValue.value = Decimal($0) }
+                    set: {
+                        item.wrappedValue.value = Decimal($0)
+                        refreshUI = UUID()
+                    }
                 )) {
                     ForEach(valueOptions, id: \.self) { value in
                         Text("\(displayText(for: unit, decimalValue: value)) \(unit.displayName)").tag(Double(value))
@@ -129,7 +137,11 @@ struct TherapySettingEditorView: View {
 
                 Picker("Time", selection: Binding(
                     get: { item.wrappedValue.time },
-                    set: { item.wrappedValue.time = $0 }
+                    set: {
+                        item.wrappedValue.time = $0
+                        validateTherapySettingItems()
+                        refreshUI = UUID()
+                    }
                 )) {
                     ForEach(timeOptions, id: \.self) { time in
                         Text(timeFormatter.string(from: Date(timeIntervalSince1970: time)))
@@ -144,9 +156,17 @@ struct TherapySettingEditorView: View {
         .padding(.vertical, 8)
     }
 
+    private func sortTherapyItems() {
+        Task { @MainActor in
+            withAnimation {
+                items = items.sorted { $0.time < $1.time }
+            }
+        }
+    }
+
     private func validateTherapySettingItems() {
         // validates therapy items (i.e. parsed therapy settings into wrapper class)
-        var newItems = Array(Set(items)).sorted { $0.time < $1.time }
+        let newItems = Array(Set(items)).sorted { $0.time < $1.time }
         if let first = newItems.first {
             first.time = 0
         }

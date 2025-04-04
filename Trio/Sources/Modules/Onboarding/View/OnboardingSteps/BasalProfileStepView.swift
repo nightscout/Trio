@@ -18,10 +18,9 @@ struct BasalProfileStepView: View {
     private let chartScale = Calendar.current
         .date(from: DateComponents(year: 2001, month: 01, day: 01, hour: 0, minute: 0, second: 0))
 
-    private var formatter: NumberFormatter {
+    private var rateFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 2
         return formatter
     }
 
@@ -74,8 +73,8 @@ struct BasalProfileStepView: View {
                             Spacer()
 
                             HStack {
-                                Text("\(calculateTotalDailyBasal(), specifier: "%.2f")")
-                                Text("U/hr")
+                                Text(rateFormatter.string(from: calculateTotalDailyBasal() as NSNumber) ?? "0")
+                                Text("U/day")
                                     .foregroundStyle(Color.secondary)
                             }
                             .id(refreshUI) // Erzwingt die Aktualisierung des Totals
@@ -89,24 +88,14 @@ struct BasalProfileStepView: View {
         }
         .onAppear {
             if state.basalProfileItems.isEmpty {
-                addBasalRate()
+                state.addInitialBasalRate()
             }
             state.validateBasal()
-            therapyItems = state.getBasalTherapyItems(from: state.basalProfileItems)
+            therapyItems = state.getBasalTherapyItems()
         }.onChange(of: therapyItems) { _, newItems in
-            state.updateBasalRates(from: newItems)
+            state.updateBasal(from: newItems)
             refreshUI = UUID()
         }
-    }
-
-    // Add initial basal rate
-    private func addBasalRate() {
-        // Default to midnight (00:00) and 1.0 U/h rate
-        let timeIndex = state.basalProfileTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
-        let rateIndex = state.basalProfileRateValues.firstIndex { abs(Double($0) - 1.0) < 0.05 } ?? 20
-
-        let newItem = BasalProfileEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
-        state.basalProfileItems.append(newItem)
     }
 
     // Calculate the total daily basal insulin

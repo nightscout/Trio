@@ -76,7 +76,7 @@ struct InsulinSensitivityStepView: View {
                             let aboveTarget = state.units == .mgdL ? Decimal(40) : 40.asMmolL
 
                             let isfValue = state.isfRateValues.isEmpty || state.isfItems.isEmpty ?
-                                Double(truncating: state.isf as NSNumber) :
+                                Double(truncating: 50 as NSNumber) :
                                 Double(
                                     truncating: state
                                         .isfRateValues[state.isfItems.first!.rateIndex] as NSNumber
@@ -129,27 +129,14 @@ struct InsulinSensitivityStepView: View {
         }
         .onAppear {
             if state.isfItems.isEmpty {
-                addInitialISF()
+                state.addInitialISF()
             }
             state.validateISF()
-            therapyItems = state.getSensitivityTherapyItems(from: state.isfItems)
+            therapyItems = state.getISFTherapyItems()
         }.onChange(of: therapyItems) { _, newItems in
-            state.updateSensitivies(from: newItems)
+            state.updateISF(from: newItems)
             refreshUI = UUID()
         }
-    }
-
-    // Add initial ISF value
-    private func addInitialISF() {
-        let timeIndex = state.isfTimeValues.firstIndex { abs($0 - 0) < 1 } ?? 0
-        let expectedDefault = Decimal(50)
-
-        let rateIndex = state.isfRateValues.enumerated()
-            .min(by: { abs($0.element - expectedDefault) < abs($1.element - expectedDefault) })?
-            .offset ?? 0
-
-        let newItem = ISFEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
-        state.isfItems.append(newItem)
     }
 
     // Chart for visualizing ISF profile
