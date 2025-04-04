@@ -165,6 +165,7 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
     case maxBolus
     case maxBasal
     case maxCOB
+    case minimumSafetyThreshold
 
     var id: Int { rawValue }
 
@@ -174,6 +175,7 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
         case .maxBolus: return String(localized: "Max Bolus")
         case .maxBasal: return String(localized: "Max Basal")
         case .maxCOB: return String(localized: "Max COB", comment: "Max COB")
+        case .minimumSafetyThreshold: return String(localized: "Minimum Safety Threshold")
         }
     }
 
@@ -183,10 +185,11 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
         case .maxBolus: return String(localized: "Largest bolus of insulin allowed.")
         case .maxBasal: return String(localized: "Largest basal rate allowed.")
         case .maxCOB: return String(localized: "Maximum Carbs On Board (COB) allowed.")
+        case .minimumSafetyThreshold: return String(localized: "Increase the safety threshold used to suspend insulin delivery.")
         }
     }
 
-    var description: any View {
+    func description(units: GlucoseUnits) -> any View {
         switch self {
         case .maxIOB:
             return VStack(alignment: .leading, spacing: 8) {
@@ -230,6 +233,36 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
                     "For example, if Max COB is 120 g and you enter a meal containing 150 g of carbs, your COB will remain at 120 g until the remaining 30 g have been absorbed."
                 )
                 Text("This is an important limit when UAM is ON.")
+            }
+        case .minimumSafetyThreshold:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: Set by Algorithm").bold()
+                Text(
+                    "Minimum Threshold Setting is, by default, determined by your set Glucose Target. This threshold automatically suspends insulin delivery if your glucose levels are forecasted to fall below this value. It’s designed to protect against hypoglycemia, particularly during sleep or other vulnerable times."
+                )
+                Text(
+                    "Trio will use the larger of the default setting calculation below and the value entered here."
+                )
+                VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("The default setting is based on this calculation:").bold()
+                        Text("TargetGlucose - 0.5 × (TargetGlucose - 40)")
+                    }
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(
+                            "If your glucose target is \(units == .mgdL ? "110" : 110.formattedAsMmolL) \(units.rawValue), Trio will use a safety threshold of \(units == .mgdL ? "75" : 75.formattedAsMmolL) \(units.rawValue), unless you set Minimum Safety Threshold to something > \(units == .mgdL ? "75" : 75.formattedAsMmolL) \(units.rawValue)."
+                        )
+                        Text(
+                            "\(units == .mgdL ? "110" : 110.formattedAsMmolL) - 0.5 × (\(units == .mgdL ? "110" : 110.formattedAsMmolL) - \(units == .mgdL ? "40" : 40.formattedAsMmolL)) = \(units == .mgdL ? "75" : 75.formattedAsMmolL)"
+                        )
+                    }
+                    Text(
+                        "This setting is limited to values between \(units == .mgdL ? "60" : 60.formattedAsMmolL) - \(units == .mgdL ? "120" : 120.formattedAsMmolL) \(units.rawValue)"
+                    )
+                    Text(
+                        "Note: Basal may be resumed if there is negative IOB and glucose is rising faster than the forecast."
+                    )
+                }
             }
         }
     }

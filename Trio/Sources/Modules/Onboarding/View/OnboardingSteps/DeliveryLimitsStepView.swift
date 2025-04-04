@@ -43,9 +43,16 @@ struct DeliveryLimitsStepView: View {
                     setting: settingsProvider.settings.maxCOB,
                     decimalValue: $state.maxCOB
                 )
+            case .minimumSafetyThreshold:
+                deliveryLimitInputSection(
+                    label: substep.title,
+                    displayPicker: $shouldDisplayPicker,
+                    setting: settingsProvider.settings.threshold_setting,
+                    decimalValue: $state.minimumSafetyThreshold
+                )
             }
 
-            AnyView(substep.description)
+            AnyView(substep.description(units: state.units))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
@@ -92,6 +99,9 @@ struct DeliveryLimitsStepView: View {
             return Text("\(decimalValue) \(String(localized: "U", comment: "Insulin unit abbreviation"))")
         case .maxCOB:
             return Text("\(decimalValue) \(String(localized: "g", comment: "Gram abbreviation"))")
+        case .minimumSafetyThreshold:
+            let value = state.units == .mgdL ? decimalValue : decimalValue.asMmolL
+            return Text("\(decimalValue) \(state.units.rawValue)")
         }
     }
 }

@@ -90,6 +90,7 @@ extension Onboarding {
         var maxBasal: Decimal = 2
         var maxIOB: Decimal = 0
         var maxCOB: Decimal = 120
+        var minimumSafetyThreshold: Decimal = 60
 
         // MARK: - Subscribe
 
