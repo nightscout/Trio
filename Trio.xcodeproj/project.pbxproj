@@ -278,6 +278,10 @@
 		3B5F45B62D6A239500F70982 /* DoubleApproximateMatching.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5F45B52D6A239000F70982 /* DoubleApproximateMatching.swift */; };
 		3BAD36B22D7CDC1A00CC298D /* MainLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */; };
 		3BAD36CC2D7D420E00CC298D /* CoreDataInitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */; };
+		3BC0AA3B2DA74C87000DF7B7 /* iob-total.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA3A2DA74C87000DF7B7 /* iob-total.js */; };
+		3BC0AA3E2DA817EC000DF7B7 /* iob-calculate.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA3C2DA817EC000DF7B7 /* iob-calculate.js */; };
+		3BC0AA3F2DA817EC000DF7B7 /* iob-history.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA3D2DA817EC000DF7B7 /* iob-history.js */; };
+		3BC0AA412DA8B900000DF7B7 /* iob-history-prepare.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA402DA8B8F7000DF7B7 /* iob-history-prepare.js */; };
 		3BC26E552D7418830066ACD6 /* IobSuspendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC26E542D7418830066ACD6 /* IobSuspendTests.swift */; };
 		3BC4053B2D931620006A03E9 /* IobJsonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC4053A2D931620006A03E9 /* IobJsonTests.swift */; };
 		3BCE75B32D4B38AE009E9453 /* InsulinSensitivities+Convert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */; };
@@ -297,7 +301,6 @@
 		3BF92F312D86DEE9006B545A /* meal.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BF92F292D86DEE9006B545A /* meal.js */; };
 		3BF92F322D86DEE9006B545A /* glucose-get-last.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BF92F262D86DEE9006B545A /* glucose-get-last.js */; };
 		3BF92F332D86DEE9006B545A /* iob.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BF92F272D86DEE9006B545A /* iob.js */; };
-		3BF92F342D86DEE9006B545A /* iob-history.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BF92F282D86DEE9006B545A /* iob-history.js */; };
 		3BF92F352D86DEE9006B545A /* basal-set-temp.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BF92F242D86DEE9006B545A /* basal-set-temp.js */; };
 		3BF92F362D86DEE9006B545A /* autotune-core.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BF92F222D86DEE9006B545A /* autotune-core.js */; };
 		3BF92F382D86E10B006B545A /* OpenAPSFixed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF92F372D86E106006B545A /* OpenAPSFixed.swift */; };
@@ -1094,6 +1097,10 @@
 		3B5F45B52D6A239000F70982 /* DoubleApproximateMatching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleApproximateMatching.swift; sourceTree = "<group>"; };
 		3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainLoadingView.swift; sourceTree = "<group>"; };
 		3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataInitializationCoordinator.swift; sourceTree = "<group>"; };
+		3BC0AA3A2DA74C87000DF7B7 /* iob-total.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-total.js"; sourceTree = "<group>"; };
+		3BC0AA3C2DA817EC000DF7B7 /* iob-calculate.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-calculate.js"; sourceTree = "<group>"; };
+		3BC0AA3D2DA817EC000DF7B7 /* iob-history.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-history.js"; sourceTree = "<group>"; };
+		3BC0AA402DA8B8F7000DF7B7 /* iob-history-prepare.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-history-prepare.js"; sourceTree = "<group>"; };
 		3BC26E542D7418830066ACD6 /* IobSuspendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobSuspendTests.swift; sourceTree = "<group>"; };
 		3BC4053A2D931620006A03E9 /* IobJsonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobJsonTests.swift; sourceTree = "<group>"; };
 		3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InsulinSensitivities+Convert.swift"; sourceTree = "<group>"; };
@@ -1113,7 +1120,6 @@
 		3BF92F252D86DEE9006B545A /* determine-basal.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "determine-basal.js"; sourceTree = "<group>"; };
 		3BF92F262D86DEE9006B545A /* glucose-get-last.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "glucose-get-last.js"; sourceTree = "<group>"; };
 		3BF92F272D86DEE9006B545A /* iob.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = iob.js; sourceTree = "<group>"; };
-		3BF92F282D86DEE9006B545A /* iob-history.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-history.js"; sourceTree = "<group>"; };
 		3BF92F292D86DEE9006B545A /* meal.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = meal.js; sourceTree = "<group>"; };
 		3BF92F2A2D86DEE9006B545A /* profile.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = profile.js; sourceTree = "<group>"; };
 		3BF92F372D86E106006B545A /* OpenAPSFixed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSFixed.swift; sourceTree = "<group>"; };
@@ -2703,6 +2709,7 @@
 		3BF92F2B2D86DEE9006B545A /* bundle */ = {
 			isa = PBXGroup;
 			children = (
+				3BC0AA402DA8B8F7000DF7B7 /* iob-history-prepare.js */,
 				3BF92F212D86DEE9006B545A /* autosens.js */,
 				3BF92F222D86DEE9006B545A /* autotune-core.js */,
 				3BF92F232D86DEE9006B545A /* autotune-prep.js */,
@@ -2710,7 +2717,9 @@
 				3BF92F252D86DEE9006B545A /* determine-basal.js */,
 				3BF92F262D86DEE9006B545A /* glucose-get-last.js */,
 				3BF92F272D86DEE9006B545A /* iob.js */,
-				3BF92F282D86DEE9006B545A /* iob-history.js */,
+				3BC0AA3C2DA817EC000DF7B7 /* iob-calculate.js */,
+				3BC0AA3D2DA817EC000DF7B7 /* iob-history.js */,
+				3BC0AA3A2DA74C87000DF7B7 /* iob-total.js */,
 				3BF92F292D86DEE9006B545A /* meal.js */,
 				3BF92F2A2D86DEE9006B545A /* profile.js */,
 			);
@@ -3973,9 +3982,12 @@
 				3BF92F312D86DEE9006B545A /* meal.js in Resources */,
 				3BF92F322D86DEE9006B545A /* glucose-get-last.js in Resources */,
 				3BF92F332D86DEE9006B545A /* iob.js in Resources */,
-				3BF92F342D86DEE9006B545A /* iob-history.js in Resources */,
 				3BF92F352D86DEE9006B545A /* basal-set-temp.js in Resources */,
 				3BF92F362D86DEE9006B545A /* autotune-core.js in Resources */,
+				3BC0AA3B2DA74C87000DF7B7 /* iob-total.js in Resources */,
+				3BC0AA3E2DA817EC000DF7B7 /* iob-calculate.js in Resources */,
+				3BC0AA3F2DA817EC000DF7B7 /* iob-history.js in Resources */,
+				3BC0AA412DA8B900000DF7B7 /* iob-history-prepare.js in Resources */,
 				3BF92F3A2D86F1AA006B545A /* iob-error-log.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

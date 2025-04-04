@@ -15,6 +15,30 @@ final class OpenAPSFixed {
         return try JSONBridge.to(pumpHistorySwift.sorted(by: { $0.timestamp > $1.timestamp }))
     }
 
+    func iobHistory(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON, zeroTempDuration: JSON) async throws -> JSON {
+        let testBundle = Bundle(for: OpenAPSFixed.self)
+        let pumphistory: JSON = try! sortPumpHistory(pumpHistory: pumphistory)
+        let result = try await withCheckedThrowingContinuation { continuation in
+            jsWorker.inCommonContext { worker in
+                worker.evaluateBatch(scripts: [
+                    Script(name: "prepare/log.js"),
+                    Script.fromTestingBundle(name: "iob-history.js", bundle: testBundle),
+                    Script.fromTestingBundle(name: "iob-history-prepare.js", bundle: testBundle)
+                ])
+
+                let result = worker.call(function: "generate", with: [
+                    pumphistory,
+                    profile,
+                    clock,
+                    autosens,
+                    zeroTempDuration
+                ])
+                continuation.resume(returning: result)
+            }
+        }
+        return result
+    }
+
     func iobJavascript(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) async -> OrefFunctionResult {
         do {
             let testBundle = Bundle(for: OpenAPSFixed.self)

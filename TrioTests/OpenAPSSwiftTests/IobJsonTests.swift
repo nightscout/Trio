@@ -18,22 +18,60 @@ class BundleReference {}
 /// You can find more information about it from the `trio-oref-logs` repo.
 @Suite("IoB using real pump history JSON", .serialized) struct IobJsonTests {
     private var originalTZ: String? = ProcessInfo.processInfo.environment["TZ"]
+    private var originalDefaultTimeZone: TimeZone? = TimeZone.current
 
     // Helper function to set timezone
     private func setTimezone(identifier: String) {
+        // Set environment variable
         setenv("TZ", identifier, 1)
         tzset() // Make the change take effect
+
+        // Force update the default TimeZone
+        // This is the critical missing piece
+        if let timeZone = TimeZone(identifier: identifier) {
+            TimeZone.ReferenceType.default = timeZone
+
+            // For extra assurance, you can log to verify
+            print("Timezone set to: \(TimeZone.current.identifier)")
+        } else {
+            print("Failed to create TimeZone with identifier: \(identifier)")
+        }
     }
 
     // Helper function to reset timezone
     private func resetTimezone() {
-        // Restore system timezone
+        // Restore system timezone from environment
         if let originalTZ = originalTZ {
             setenv("TZ", originalTZ, 1)
         } else {
             unsetenv("TZ")
         }
         tzset()
+
+        // Restore original default TimeZone
+        if let originalTimeZone = originalDefaultTimeZone {
+            TimeZone.ReferenceType.default = originalTimeZone
+        }
+    }
+
+    struct IobHistoryResult: Codable {
+        var insulin: Decimal?
+        var rate: Decimal?
+        var duration: Decimal?
+        var timestamp: String?
+        var started_at: String?
+        var created_at: String?
+        var date: Decimal?
+
+        enum CodingKeys: String, CodingKey {
+            case insulin
+            case rate
+            case duration
+            case timestamp
+            case started_at
+            case created_at
+            case date
+        }
     }
 
     // Note: This test case has a memory leak so limit your inputs
@@ -65,8 +103,8 @@ class BundleReference {}
 
             setTimezone(identifier: algorithmComparison.timezone)
 
-            try await checkFixedJsAgainstSwift(iobInputs: algorithmComparison.iobInput!)
-            try await checkBundleJsAgainstSwift(iobInputs: algorithmComparison.iobInput!)
+            try await checkFixedJsAgainstSwift(iobInputs: iobInputs)
+            try await checkBundleJsAgainstSwift(iobInputs: iobInputs)
 
             resetTimezone()
         }
@@ -140,6 +178,91 @@ class BundleReference {}
         #expect(comparison.resultType == .valueDifference)
     }
 
+    func checkHistoryConsistency(swiftTreatments: [ComputedPumpHistoryEvent], jsTreatments: [IobHistoryResult]) {
+        let swiftNetBolus = swiftTreatments.compactMap(\.insulin).filter({ $0 >= 0.1 }).reduce(0, +)
+        let jsNetBolus = jsTreatments.compactMap(\.insulin).filter({ $0 >= 0.1 }).reduce(0, +)
+
+        let swiftNetBasal = swiftTreatments.compactMap(\.insulin).filter({ $0 < 0.1 }).reduce(0, +)
+        let jsNetBasal = jsTreatments.compactMap(\.insulin).filter({ $0 < 0.1 }).reduce(0, +)
+
+        #expect(swiftNetBasal == jsNetBasal)
+        #expect(swiftNetBolus == jsNetBolus)
+    }
+
+    func checkRunningBasal(swiftTreatments: [ComputedPumpHistoryEvent], jsTreatments: [IobHistoryResult]) {
+        let swiftBasals = swiftTreatments.filter({ $0.rate != nil }).filter({ $0.duration! > 0 })
+        let jsBasals = jsTreatments.filter({ $0.rate != nil }).filter({ $0.duration! > 0 })
+
+        #expect(swiftBasals.count == jsBasals.count)
+        for (swift, js) in zip(swiftBasals, jsBasals) {
+            #expect(Decimal(swift.date) == js.date!)
+            #expect(swift.duration!.isWithin(0.01, of: js.duration!))
+            #expect(swift.rate == js.rate)
+
+            let start = js.date!
+            let end = js.date! + js.duration! * 60 * 1000
+            let swiftTempBolus = swiftTreatments
+                .filter({ Decimal($0.date) >= start && Decimal($0.date) < end && $0.insulin != nil && $0.insulin! < 0.1 })
+                .map({ $0.insulin! }).reduce(0, +)
+            let jsTempBolus = jsTreatments
+                .filter({ $0.date! >= start && $0.date! < end && $0.insulin != nil && $0.insulin! < 0.1 }).map({ $0.insulin! })
+                .reduce(0, +)
+
+            if swiftTempBolus != jsTempBolus {
+                print("temp bolus @ \(swift.timestamp) mismatch swift: \(swiftTempBolus) js: \(jsTempBolus)")
+            }
+            #expect(swiftTempBolus == jsTempBolus)
+        }
+    }
+
+    @Test("Debug utility for checking iob-history", .enabled(if: false)) func debugIobHistory() async throws {
+        let testBundle = Bundle(for: BundleReference.self)
+        let path = testBundle.path(forResource: "iob-error-log", ofType: "json")!
+        let data = try Data(contentsOf: URL(fileURLWithPath: path))
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        let algorithmComparison = try decoder.decode(AlgorithmComparison.self, from: data)
+        let iobInputs = algorithmComparison.iobInput!
+
+        setTimezone(identifier: algorithmComparison.timezone)
+
+        let swiftIobHistory = try IobHistory.calcTempTreatments(
+            history: iobInputs.history.map { $0.computedEvent() },
+            profile: iobInputs.profile,
+            clock: iobInputs.clock,
+            autosens: iobInputs.autosens,
+            zeroTempDuration: nil
+        )
+
+        let openAps = OpenAPSFixed()
+        let jsIobHistoryRaw = try await openAps.iobHistory(
+            pumphistory: iobInputs.history,
+            profile: JSONBridge.to(iobInputs.profile),
+            clock: iobInputs.clock,
+            autosens: JSONBridge.to(iobInputs.autosens),
+            zeroTempDuration: RawJSON.null
+        )
+        let jsIobHistory = try JSONDecoder().decode([IobHistoryResult].self, from: jsIobHistoryRaw.rawJSON.data(using: .utf8)!)
+
+        let encoder = JSONCoding.encoder
+        var output = try encoder.encode(swiftIobHistory)
+        var sharedDir = FileManager.default.temporaryDirectory
+        var outputURL = sharedDir.appendingPathComponent("swift_treatments.json")
+        print("Writing to: \(outputURL.path)")
+        try output.write(to: outputURL)
+
+        output = try encoder.encode(jsIobHistory)
+        sharedDir = FileManager.default.temporaryDirectory
+        outputURL = sharedDir.appendingPathComponent("js_treatments.json")
+        print("Writing to: \(outputURL.path)")
+        try output.write(to: outputURL)
+
+        checkHistoryConsistency(swiftTreatments: swiftIobHistory, jsTreatments: jsIobHistory)
+        checkRunningBasal(swiftTreatments: swiftIobHistory, jsTreatments: jsIobHistory)
+
+        resetTimezone()
+    }
+
     /// simple utility for creating inputs for Javascript for use in testing
     @Test("format inputs for Javascript", .enabled(if: false)) func generateJavascriptInputs() throws {
         let testBundle = Bundle(for: BundleReference.self)
@@ -161,6 +284,8 @@ class BundleReference {}
 
         try output.write(to: outputURL)
 
+        setTimezone(identifier: algorithmComparison.timezone)
+
         let treatments = try IobHistory.calcTempTreatments(
             history: iobInputs.history.map { $0.computedEvent() },
             profile: iobInputs.profile,
@@ -168,6 +293,12 @@ class BundleReference {}
             autosens: iobInputs.autosens,
             zeroTempDuration: nil
         )
+
+        let iobSomething = try IobCalculation.iobTotal(treatments: treatments, profile: iobInputs.profile, time: iobInputs.clock)
+
+        resetTimezone()
+
+        print(iobSomething.prettyPrintedJSON!)
 
         let treatmentsOut = try encoder.encode(treatments)
         let treatmentsUrl = sharedDir.appendingPathComponent("treatments.json")
