@@ -173,7 +173,7 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
         switch self {
         case .maxIOB: return String(localized: "Max IOB", comment: "Max IOB")
         case .maxBolus: return String(localized: "Max Bolus")
-        case .maxBasal: return String(localized: "Max Basal")
+        case .maxBasal: return String(localized: "Max Basal Rate")
         case .maxCOB: return String(localized: "Max COB", comment: "Max COB")
         case .minimumSafetyThreshold: return String(localized: "Minimum Safety Threshold")
         }

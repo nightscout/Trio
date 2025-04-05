@@ -94,8 +94,9 @@ struct DeliveryLimitsStepView: View {
 
     private func displayText(for substep: DeliveryLimitSubstep, decimalValue: Decimal) -> Text {
         switch substep {
-        case .maxBasal,
-             .maxBolus,
+        case .maxBasal:
+            return Text("\(decimalValue) \(String(localized: "U/hr", comment: "Insulin unit per hour abbreviation"))")
+        case .maxBolus,
              .maxIOB:
             return Text("\(decimalValue) \(String(localized: "U", comment: "Insulin unit abbreviation"))")
         case .maxCOB:
