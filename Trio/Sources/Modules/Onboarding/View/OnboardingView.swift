@@ -300,9 +300,6 @@ extension Onboarding {
                 }
             }
             .onAppear(perform: configureView)
-            .onAppear {
-                debug(.nightscout, "CURRENT NS CONNECTION STATE: isConnectedToNS=\(state.isConnectedToNS)")
-            }
         }
     }
 }

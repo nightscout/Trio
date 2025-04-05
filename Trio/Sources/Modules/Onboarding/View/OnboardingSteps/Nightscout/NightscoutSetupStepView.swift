@@ -31,8 +31,5 @@ struct NightscoutSetupStepView: View {
                 .buttonStyle(.plain)
             }
         }
-        .onAppear {
-            debug(.nightscout, "CURRENT NS CONNECTION STATE: isConnectedToNS=\(state.isConnectedToNS)")
-        }
     }
 }
