@@ -33,7 +33,6 @@
   "glucoseColorScheme" : "staticColor",
   "xGridLines" : true,
   "yGridLines" : true,
-  "timeInRangeChartStyle" : "vertical",
   "rulerMarks" : true,
   "forecastDisplayType": "cone",
   "maxCarbs": 250,
@@ -48,5 +47,6 @@
   "lockScreenView": "simple",
   "useCalendar": false,
   "displayCalendarIOBandCOB": false,
-  "displayCalendarEmojis": false
+  "displayCalendarEmojis": false,
+  "timeInRangeType": "timeInTightRange"
 }

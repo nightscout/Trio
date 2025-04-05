@@ -391,8 +391,6 @@ extension Treatments {
             }
             .sheet(isPresented: $state.showInfo) {
                 PopupView(state: state)
-                    .presentationDetents([.fraction(0.9), .large])
-                    .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $showPresetSheet, onDismiss: {
                 showPresetSheet = false
@@ -421,6 +419,28 @@ extension Treatments {
             }
         }
 
+        @State private var showConfirmDialogForBolusing = false
+
+        private var bolusWarning: (shouldConfirm: Bool, warningMessage: String, color: Color) {
+            let isGlucoseVeryLow = state.currentBG < 54
+            let isForecastVeryLow = state.minPredBG < 54
+
+            // Only warn when enacting a bolus via pump
+            guard !state.externalInsulin, state.amount > 0 else {
+                return (false, "", .primary)
+            }
+
+            let warningMessage = isGlucoseVeryLow ? String(localized: "Glucose is very low.") :
+                isForecastVeryLow ? String(localized: "Glucose forecast is very low.") :
+                ""
+
+            let warningColor: Color = isGlucoseVeryLow ? .red : colorScheme == .dark ? .orange : .accentColor
+
+            let shouldConfirm = state.confirmBolus && (isGlucoseVeryLow || isForecastVeryLow)
+
+            return (shouldConfirm, warningMessage, warningColor)
+        }
+
         var treatmentButton: some View {
             var treatmentButtonBackground = Color(.systemBlue)
             if limitExceeded {
@@ -429,26 +449,54 @@ extension Treatments {
                 treatmentButtonBackground = Color(.systemGray)
             }
 
-            return Button {
-                state.invokeTreatmentsTask()
-            } label: {
-                HStack {
-                    if state.isBolusInProgress && state
-                        .amount > 0 && !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
-                    {
-                        ProgressView()
+            return Section {
+                Button {
+                    if bolusWarning.shouldConfirm {
+                        showConfirmDialogForBolusing = true
+                    } else {
+                        state.invokeTreatmentsTask()
                     }
-                    taskButtonLabel
+                } label: {
+                    HStack {
+                        if state.isBolusInProgress && state.amount > 0 &&
+                            !state.externalInsulin && (state.carbs == 0 || state.fat == 0 || state.protein == 0)
+                        {
+                            ProgressView()
+                        }
+                        taskButtonLabel
+                    }
+                    .font(.headline)
+                    .foregroundStyle(Color.white)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .frame(height: 35)
                 }
-                .font(.headline)
-                .foregroundStyle(Color.white)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .frame(height: 35)
+                .disabled(disableTaskButton)
+                .listRowBackground(treatmentButtonBackground)
+                .shadow(radius: 3)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .confirmationDialog(
+                    bolusWarning.warningMessage + " Bolus \(state.amount.description) U?",
+                    isPresented: $showConfirmDialogForBolusing,
+                    titleVisibility: .visible
+                ) {
+                    Button("Cancel", role: .cancel) {}
+                    Button(
+                        bolusWarning.warningMessage.isEmpty ? "Enact Bolus" : "Ignore Warning and Enact Bolus",
+                        role: bolusWarning.warningMessage.isEmpty ? nil : .destructive
+                    ) {
+                        state.invokeTreatmentsTask()
+                    }
+                }
+            } header: {
+                if !bolusWarning.warningMessage.isEmpty {
+                    Text(bolusWarning.warningMessage)
+                        .textCase(nil)
+                        .font(.subheadline)
+                        .foregroundColor(bolusWarning.color)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.top, -22)
+                }
             }
-            .disabled(disableTaskButton)
-            .listRowBackground(treatmentButtonBackground)
-            .shadow(radius: 3)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
 
         private var taskButtonLabel: some View {

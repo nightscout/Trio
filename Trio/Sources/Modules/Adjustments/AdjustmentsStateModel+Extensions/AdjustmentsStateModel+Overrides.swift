@@ -232,6 +232,9 @@ extension Adjustments.StateModel {
                 // execute sequentially instead of concurrently
                 await self.updateLatestOverrideConfigurationOfState(from: id)
                 await self.setCurrentOverride(from: id)
+
+                // perform determine basal sync to immediately apply override changes
+                try await apsManager.determineBasalSync()
             } catch {
                 debug(
                     .default,

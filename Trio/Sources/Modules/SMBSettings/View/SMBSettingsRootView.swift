@@ -262,7 +262,7 @@ extension SMBSettings {
                             Text(
                                 "𝒳 = Max SMB Basal Minutes"
                             )
-                            Text("(𝒳 ÷ 60) × current basal rate")
+                            Text("(𝒳 / 60) × current basal rate")
                         }
 
                         VStack(alignment: .leading, spacing: 10) {
@@ -308,7 +308,7 @@ extension SMBSettings {
                             Text(
                                 "𝒳 = Max UAM SMB Basal Minutes"
                             )
-                            Text("(𝒳 ÷ 60) × current basal rate")
+                            Text("(𝒳 / 60) × current basal rate")
                         }
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
@@ -341,58 +341,6 @@ extension SMBSettings {
                             "Maximum allowed positive percent change in glucose level to permit SMBs. If the difference in glucose is greater than this, Trio will disable SMBs."
                         )
                         Text("Note: This setting has a hard-coded cap of 40%")
-                    }
-                )
-
-                SettingInputSection(
-                    decimalValue: $state.smbDeliveryRatio,
-                    booleanValue: $booleanPlaceholder,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "SMB Delivery Ratio", comment: "SMB Delivery Ratio")
-                        }
-                    ),
-                    units: state.units,
-                    type: .decimal("smbDeliveryRatio"),
-                    label: String(localized: "SMB Delivery Ratio", comment: "SMB Delivery Ratio"),
-                    miniHint: String(localized: "Percentage of calculated insulin required that is given as SMB."),
-                    verboseHint:
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: 50%").bold()
-                        Text(
-                            "Once the total insulin required is calculated, this safety limit specifies what percentage of the insulin required can be delivered as an SMB."
-                        )
-                        Text(
-                            "Due to SMBs potentially occurring every 5 minutes with each loop cycle, it is important to set this value to a reasonable level that allows Trio to safely zero temp should dosing needs suddenly change. Increase this value with caution."
-                        )
-                        Text("Note: Allowed range is 30 - 70%")
-                    }
-                )
-
-                SettingInputSection(
-                    decimalValue: $state.smbInterval,
-                    booleanValue: $booleanPlaceholder,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "SMB Interval", comment: "SMB Interval")
-                        }
-                    ),
-                    units: state.units,
-                    type: .decimal("smbInterval"),
-                    label: String(localized: "SMB Interval", comment: "SMB Interval"),
-                    miniHint: String(localized: "Minimum minutes since the last SMB or manual bolus to allow an automated SMB."),
-                    verboseHint:
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: 3 min").bold()
-                        Text(
-                            "This is the minimum number of minutes since the last SMB or manual bolus before Trio will permit an automated SMB."
-                        )
                     }
                 )
             }
