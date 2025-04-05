@@ -82,8 +82,8 @@ struct CarbRatioStepView: View {
                                         .carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber
                                 )
                             Text(
-                                "45g ÷ \(formatter.string(from: state.carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber) ?? "--") = \(String(format: "%.1f", insulinNeeded))" +
-                                    " " + String(localized: "U")
+                                "45 \(String(localized: "g", comment: "Gram abbreviation")) / \(formatter.string(from: state.carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber) ?? "--")  = \(String(format: "%.1f", insulinNeeded))" +
+                                    " " + String(localized: "U", comment: "Insulin unit abbreviation")
                             )
                             .font(.system(.body, design: .monospaced))
                             .foregroundColor(.orange)

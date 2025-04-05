@@ -10,12 +10,12 @@ struct NightscoutLoginStepView: View {
                 .padding(.horizontal)
 
             HStack {
-                TextField("URL", text: $state.url)
+                TextField("URL", text: $state.nightscoutUrl)
                     .disableAutocorrection(true)
                     .textContentType(.URL)
                     .autocapitalization(.none)
                     .keyboardType(.URL)
-                if state.message.isNotEmpty && !state.isValidURL {
+                if state.nightscoutResponseMessage.isNotEmpty && !state.isValidNightscoutURL {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
                 }
@@ -24,7 +24,7 @@ struct NightscoutLoginStepView: View {
                 .cornerRadius(10)
 
             HStack {
-                SecureField("API secret", text: $state.secret)
+                SecureField("API secret", text: $state.nightscoutSecret)
                     .disableAutocorrection(true)
                     .autocapitalization(.none)
                     .textContentType(.password)
@@ -41,21 +41,21 @@ struct NightscoutLoginStepView: View {
                 state.connectToNightscout()
             }) {
                 HStack {
-                    if state.connecting {
+                    if state.isConnectingToNS {
                         ProgressView().padding(.trailing, 10)
                     }
-                    Text(state.connecting ? "Connecting..." : "Connect to Nightscout")
+                    Text(state.isConnectingToNS ? "Connecting..." : "Connect to Nightscout")
                         .bold()
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.vertical, 8)
             }
-            .disabled(state.isConnectedToNS || state.url.isEmpty || state.secret.isEmpty)
+            .disabled(state.isConnectedToNS || state.nightscoutUrl.isEmpty || state.nightscoutSecret.isEmpty)
             .buttonStyle(.borderedProminent)
 
-            if state.message.isNotEmpty {
+            if state.nightscoutResponseMessage.isNotEmpty {
                 VStack(alignment: .center) {
-                    Text(state.message)
+                    Text(state.nightscoutResponseMessage)
                         .font(.subheadline)
                         .foregroundStyle(Color.orange)
                 }

@@ -27,6 +27,7 @@ struct NightscoutImportStepView: View {
                     )
                     .font(.headline)
                     .padding(.horizontal)
+                    .multilineTextAlignment(.leading)
 
                     ForEach([NightscoutImportOption.useImport, NightscoutImportOption.skipImport], id: \.self) { option in
                         Button(action: {
@@ -61,6 +62,7 @@ struct NightscoutImportStepView: View {
                     .padding(.horizontal)
                     .font(.footnote)
                     .foregroundStyle(Color.secondary)
+                    .multilineTextAlignment(.leading)
                 }
             }
         }

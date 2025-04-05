@@ -56,6 +56,7 @@ struct DeliveryLimitsStepView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
+                .multilineTextAlignment(.leading)
         }
     }
 
@@ -100,8 +101,8 @@ struct DeliveryLimitsStepView: View {
         case .maxCOB:
             return Text("\(decimalValue) \(String(localized: "g", comment: "Gram abbreviation"))")
         case .minimumSafetyThreshold:
-            let value = state.units == .mgdL ? decimalValue : decimalValue.asMmolL
-            return Text("\(decimalValue) \(state.units.rawValue)")
+            let optionallyParsedValue = state.units == .mgdL ? decimalValue : decimalValue.asMmolL
+            return Text("\(optionallyParsedValue) \(state.units.rawValue)")
         }
     }
 }

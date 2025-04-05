@@ -25,8 +25,8 @@ struct UnitSelectionStepView: View {
             HStack {
                 Text("Pump Model")
                 Spacer()
-                Picker("Pump Model", selection: $state.pumpModel) {
-                    ForEach(PumpOptionsForOnboardingUnits.allCases, id: \.self) { pumpModel in
+                Picker("Pump Model", selection: $state.pumpOptionForOnboardingUnits) {
+                    ForEach(PumpOptionForOnboardingUnits.allCases, id: \.self) { pumpModel in
                         Text(pumpModel.displayName).tag(pumpModel)
                     }
                 }
@@ -41,6 +41,7 @@ struct UnitSelectionStepView: View {
             .padding(.horizontal)
             .font(.footnote)
             .foregroundStyle(Color.secondary)
+            .multilineTextAlignment(.leading)
         }
     }
 }

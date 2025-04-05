@@ -284,7 +284,7 @@ enum DiagnostisSharingOption: String, Equatable, CaseIterable, Identifiable {
     }
 }
 
-enum PumpOptionsForOnboardingUnits: String, Equatable, CaseIterable, Identifiable {
+enum PumpOptionForOnboardingUnits: String, Equatable, CaseIterable, Identifiable {
     case minimed
     case omnipodEros
     case omnipodDash
@@ -295,7 +295,7 @@ enum PumpOptionsForOnboardingUnits: String, Equatable, CaseIterable, Identifiabl
     var displayName: String {
         switch self {
         case .minimed:
-            return "Medtronic 5xx / 7xx"
+            return "Medtronic"
         case .omnipodEros:
             return "Omnipod Eros"
         case .omnipodDash:

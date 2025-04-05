@@ -16,17 +16,26 @@ extension Onboarding {
         @State private var animationOpacity: Double = 0
         @State private var isAnimating = false
 
+        // Conditional button states for Nightscout substeps
+        private var didSelectNightscoutSetupOption: Bool {
+            currentNightscoutSubstep == .setupSelection && state
+                .nightscoutSetupOption == .noSelection
+        }
+
+        private var hasValidNightscoutConnection: Bool {
+            currentNightscoutSubstep == .connectToNightscout && !state.isConnectedToNS
+        }
+
+        private var didSelectNightscoutImportOption: Bool {
+            currentNightscoutSubstep == .importFromNightscout && state.nightscoutImportOption == .noSelection
+        }
+
         private var shouldDisableNextButton: Bool {
-            currentStep == .nightscout &&
-                (
-                    currentNightscoutSubstep == .setupSelection && state
-                        .nightscoutSetupOption == .noSelection
-                ) ||
-                (
-                    currentNightscoutSubstep == .connectToNightscout && state.url.isEmpty && !state
-                        .isValidURL && state.secret.isEmpty
-                )
-                || (currentNightscoutSubstep == .importFromNightscout && state.nightscoutImportOption == .noSelection)
+            (currentStep == .nightscout && didSelectNightscoutSetupOption)
+                ||
+                (currentStep == .nightscout && hasValidNightscoutConnection)
+                ||
+                (currentStep == .nightscout && didSelectNightscoutImportOption)
         }
 
         var body: some View {
@@ -126,7 +135,7 @@ extension Onboarding {
                                         case .nightscout:
                                             switch currentNightscoutSubstep {
                                             case .setupSelection:
-                                                NightscoutStepView(state: state)
+                                                NightscoutSetupStepView(state: state)
                                             case .connectToNightscout:
                                                 NightscoutLoginStepView(state: state)
                                             case .importFromNightscout:
@@ -155,6 +164,16 @@ extension Onboarding {
                                 .padding(.bottom, 80) // Make room for buttons at bottom
                             }
                             .onChange(of: currentStep) { _, _ in
+                                withAnimation {
+                                    scrollProxy.scrollTo("top", anchor: .top)
+                                }
+                            }
+                            .onChange(of: currentNightscoutSubstep) { _, _ in
+                                withAnimation {
+                                    scrollProxy.scrollTo("top", anchor: .top)
+                                }
+                            }
+                            .onChange(of: currentDeliverySubstep) { _, _ in
                                 withAnimation {
                                     scrollProxy.scrollTo("top", anchor: .top)
                                 }
@@ -287,6 +306,9 @@ extension Onboarding {
                 }
             }
             .onAppear(perform: configureView)
+            .onAppear {
+                debug(.nightscout, "CURRENT NS CONNECTION STATE: isConnectedToNS=\(state.isConnectedToNS)")
+            }
         }
     }
 }

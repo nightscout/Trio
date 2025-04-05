@@ -6,41 +6,41 @@ import SwiftUI
 
 extension Onboarding.StateModel {
     func connectToNightscout() {
-        if let CheckURL = url.last, CheckURL == "/" {
-            let fixedURL = url.dropLast()
-            url = String(fixedURL)
+        if let CheckURL = nightscoutUrl.last, CheckURL == "/" {
+            let fixedURL = nightscoutUrl.dropLast()
+            nightscoutUrl = String(fixedURL)
         }
 
-        guard let url = URL(string: url), self.url.hasPrefix("https://") else {
-            message = "Invalid URL"
-            isValidURL = false
+        guard let nightscoutUrl = URL(string: nightscoutUrl), self.nightscoutUrl.hasPrefix("https://") else {
+            nightscoutResponseMessage = "Invalid URL"
+            isValidNightscoutURL = false
             return
         }
 
-        connecting = true
-        isValidURL = true
-        message = ""
+        isConnectingToNS = true
+        isValidNightscoutURL = true
+        nightscoutResponseMessage = ""
 
-        NightscoutAPI(url: url, secret: secret).checkConnection()
+        NightscoutAPI(url: nightscoutUrl, secret: nightscoutSecret).checkConnection()
             .receive(on: DispatchQueue.main)
             .sink { completion in
                 switch completion {
                 case .finished: break
                 case let .failure(error):
-                    self.message = "Error: \(error.localizedDescription)"
+                    self.nightscoutResponseMessage = "Error: \(error.localizedDescription)"
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    self.connecting = false
+                    self.isConnectingToNS = false
                 }
             } receiveValue: {
-                self.keychain.setValue(self.url, forKey: NightscoutConfig.Config.urlKey)
-                self.keychain.setValue(self.secret, forKey: NightscoutConfig.Config.secretKey)
+                self.keychain.setValue(self.nightscoutUrl, forKey: NightscoutConfig.Config.urlKey)
+                self.keychain.setValue(self.nightscoutSecret, forKey: NightscoutConfig.Config.secretKey)
                 self.isConnectedToNS = true
             }
             .store(in: &lifetime)
     }
 
-    private var nightscoutAPI: NightscoutAPI? {
+    var nightscoutAPI: NightscoutAPI? {
         guard let urlString = keychain.getValue(String.self, forKey: NightscoutConfig.Config.urlKey),
               let url = URL(string: urlString),
               let secret = keychain.getValue(String.self, forKey: NightscoutConfig.Config.secretKey)

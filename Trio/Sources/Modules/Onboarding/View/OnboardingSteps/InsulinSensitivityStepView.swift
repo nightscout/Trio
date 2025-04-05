@@ -91,8 +91,8 @@ struct InsulinSensitivityStepView: View {
                             .padding(.horizontal)
 
                             Text(
-                                "\(numberFormatter.string(from: aboveTarget as NSNumber) ?? "--") ÷ \(numberFormatter.string(from: isfValue as NSNumber) ?? "--") = \(String(format: "%.1f", Double(insulinNeeded)))" +
-                                    " " + String(localized: "U")
+                                "\(numberFormatter.string(from: aboveTarget as NSNumber) ?? "--") / \(numberFormatter.string(from: isfValue as NSNumber) ?? "--") = \(String(format: "%.1f", Double(insulinNeeded)))" +
+                                    " " + String(localized: "U", comment: "Insulin unit abbreviation")
                             )
                             .font(.system(.body, design: .monospaced))
                             .foregroundColor(.red)

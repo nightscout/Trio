@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct NightscoutStepView: View {
+struct NightscoutSetupStepView: View {
     @Bindable var state: Onboarding.StateModel
 
     var body: some View {
@@ -8,6 +8,7 @@ struct NightscoutStepView: View {
             Text("Nightscout use is entirely optional. You can also setup Nightscout at a later time.")
                 .font(.headline)
                 .padding(.horizontal)
+                .multilineTextAlignment(.leading)
 
             ForEach([NightscoutSetupOption.setupNightscout, NightscoutSetupOption.skipNightscoutSetup], id: \.self) { option in
                 Button(action: {
@@ -29,6 +30,9 @@ struct NightscoutStepView: View {
                 }
                 .buttonStyle(.plain)
             }
+        }
+        .onAppear {
+            debug(.nightscout, "CURRENT NS CONNECTION STATE: isConnectedToNS=\(state.isConnectedToNS)")
         }
     }
 }

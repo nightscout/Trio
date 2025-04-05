@@ -23,19 +23,19 @@ extension Onboarding {
 
         var nightscoutSetupOption: NightscoutSetupOption = .noSelection
         var nightscoutImportOption: NightscoutImportOption = .noSelection
-        var url = ""
-        var secret = ""
-        var message = ""
-        var isValidURL: Bool = false
-        var connecting: Bool = false
+        var nightscoutUrl = ""
+        var nightscoutSecret = ""
+        var nightscoutResponseMessage = ""
+        var isValidNightscoutURL: Bool = false
+        var isConnectingToNS: Bool = false
         var isConnectedToNS: Bool = false
         var nightscoutImportErrors: [String] = []
         var nightscoutImportStatus: ImportStatus = .finished
 
-        // MARK: - Units and Pump Model
+        // MARK: - Units and Pump Omboarding Option
 
         var units: GlucoseUnits = .mgdL
-        var pumpModel: PumpOptionsForOnboardingUnits = .omnipodDash
+        var pumpOptionForOnboardingUnits: PumpOptionForOnboardingUnits = .omnipodDash
 
         // MARK: - Time Values (shared)
 
@@ -52,7 +52,7 @@ extension Onboarding {
         // MARK: - Basal Profile
 
         var basalRatePickerSetting: PickerSetting {
-            switch pumpModel {
+            switch pumpOptionForOnboardingUnits {
             case .dana,
                  .minimed:
                 return PickerSetting(value: 0.1, step: 0.1, min: 0.1, max: 30, type: .insulinUnit)
@@ -96,8 +96,11 @@ extension Onboarding {
 
         override func subscribe() {
             // Keychain items are not removed, even after uninstalling the app. Attempt to read them initially.
-            url = keychain.getValue(String.self, forKey: NightscoutConfig.Config.urlKey) ?? ""
-            secret = keychain.getValue(String.self, forKey: NightscoutConfig.Config.secretKey) ?? ""
+            nightscoutUrl = keychain.getValue(String.self, forKey: NightscoutConfig.Config.urlKey) ?? ""
+            nightscoutSecret = keychain.getValue(String.self, forKey: NightscoutConfig.Config.secretKey) ?? ""
+            isConnectedToNS = false
+            isConnectingToNS = false
+            isValidNightscoutURL = false
         }
 
         // MARK: - Helpers
