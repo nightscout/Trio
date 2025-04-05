@@ -355,7 +355,7 @@
 		BD432CA12D2F4E3600D1EB79 /* WatchMessageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */; };
 		BD432CA22D2F4E4000D1EB79 /* WatchMessageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */; };
 		BD47FD132D88AA700043966B /* OnboardingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD122D88AA6B0043966B /* OnboardingManager.swift */; };
-		BD47FD172D88AAF50043966B /* OnboardingStepViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD162D88AAEF0043966B /* OnboardingStepViews.swift */; };
+		BD47FD172D88AAF50043966B /* CompletedStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD162D88AAEF0043966B /* CompletedStepView.swift */; };
 		BD47FD192D88AAFE0043966B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD182D88AAF90043966B /* OnboardingView.swift */; };
 		BD47FD1B2D88AB4F0043966B /* OnboardingStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD1A2D88AB4A0043966B /* OnboardingStateModel.swift */; };
 		BD47FDD72D8B64D20043966B /* CarbRatioStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FDD62D8B64CC0043966B /* CarbRatioStepView.swift */; };
@@ -639,6 +639,7 @@
 		DDEBB05C2D89E9050032305D /* TimeInRangeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */; };
 		DDF68FFC2D9ECF7F008BF16C /* OnboardingStateModel+Nightscout.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF68FFB2D9ECF77008BF16C /* OnboardingStateModel+Nightscout.swift */; };
 		DDF6902C2DA028D3008BF16C /* DiagnosticsStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF6902B2DA028D3008BF16C /* DiagnosticsStepView.swift */; };
+		DDF6905C2DA0AFC5008BF16C /* WelcomeStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF6905B2DA0AFC5008BF16C /* WelcomeStepView.swift */; };
 		DDF847DD2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847DC2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift */; };
 		DDF847DF2C5C28780049BB3B /* LiveActivitySettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847DE2C5C28780049BB3B /* LiveActivitySettingsProvider.swift */; };
 		DDF847E12C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E02C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift */; };
@@ -1134,7 +1135,7 @@
 		BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataObserver.swift; sourceTree = "<group>"; };
 		BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchMessageKeys.swift; sourceTree = "<group>"; };
 		BD47FD122D88AA6B0043966B /* OnboardingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingManager.swift; sourceTree = "<group>"; };
-		BD47FD162D88AAEF0043966B /* OnboardingStepViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStepViews.swift; sourceTree = "<group>"; };
+		BD47FD162D88AAEF0043966B /* CompletedStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedStepView.swift; sourceTree = "<group>"; };
 		BD47FD182D88AAF90043966B /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		BD47FD1A2D88AB4A0043966B /* OnboardingStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStateModel.swift; sourceTree = "<group>"; };
 		BD47FDD62D8B64CC0043966B /* CarbRatioStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbRatioStepView.swift; sourceTree = "<group>"; };
@@ -1423,6 +1424,7 @@
 		DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeInRangeType.swift; sourceTree = "<group>"; };
 		DDF68FFB2D9ECF77008BF16C /* OnboardingStateModel+Nightscout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnboardingStateModel+Nightscout.swift"; sourceTree = "<group>"; };
 		DDF6902B2DA028D3008BF16C /* DiagnosticsStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsStepView.swift; sourceTree = "<group>"; };
+		DDF6905B2DA0AFC5008BF16C /* WelcomeStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeStepView.swift; sourceTree = "<group>"; };
 		DDF847DC2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsDataFlow.swift; sourceTree = "<group>"; };
 		DDF847DE2C5C28780049BB3B /* LiveActivitySettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsProvider.swift; sourceTree = "<group>"; };
 		DDF847E02C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsStateModel.swift; sourceTree = "<group>"; };
@@ -2749,11 +2751,12 @@
 		BD47FDD52D8B64AE0043966B /* OnboardingSteps */ = {
 			isa = PBXGroup;
 			children = (
+				DDF6905B2DA0AFC5008BF16C /* WelcomeStepView.swift */,
 				DDF6902B2DA028D3008BF16C /* DiagnosticsStepView.swift */,
 				DD3F1F8E2D9E151200DCE7B3 /* Nightscout */,
 				DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */,
 				DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */,
-				BD47FD162D88AAEF0043966B /* OnboardingStepViews.swift */,
+				BD47FD162D88AAEF0043966B /* CompletedStepView.swift */,
 				BD47FDDC2D8B65AD0043966B /* GlucoseTargetStepView.swift */,
 				BD47FDDA2D8B65960043966B /* BasalProfileStepView.swift */,
 				BD47FDD82D8B65730043966B /* InsulinSensitivityStepView.swift */,
@@ -4261,7 +4264,7 @@
 				CE7CA3542A064973004BE681 /* TempPresetsIntentRequest.swift in Sources */,
 				58A3D5442C96DE11003F90FC /* TempTargetStored+Helper.swift in Sources */,
 				DD6B7CB42C7B71F700B75029 /* ForecastDisplayType.swift in Sources */,
-				BD47FD172D88AAF50043966B /* OnboardingStepViews.swift in Sources */,
+				BD47FD172D88AAF50043966B /* CompletedStepView.swift in Sources */,
 				DDEBB05C2D89E9050032305D /* TimeInRangeType.swift in Sources */,
 				DD5DC9F32CF3D9DD00AB8703 /* AdjustmentsStateModel+TempTargets.swift in Sources */,
 				BD47FDDB2D8B659B0043966B /* BasalProfileStepView.swift in Sources */,
@@ -4308,6 +4311,7 @@
 				DD9ECB682CA99F4500AA7C45 /* TrioRemoteControl.swift in Sources */,
 				38569353270B5E350002C50D /* CGMRootView.swift in Sources */,
 				69A31254F2451C20361D172F /* TreatmentsStateModel.swift in Sources */,
+				DDF6905C2DA0AFC5008BF16C /* WelcomeStepView.swift in Sources */,
 				1967DFC029D053AC00759F30 /* IconSelection.swift in Sources */,
 				19D4E4EB29FC6A9F00351451 /* Charts.swift in Sources */,
 				BDC531162D10629000088832 /* ContactPicture.swift in Sources */,

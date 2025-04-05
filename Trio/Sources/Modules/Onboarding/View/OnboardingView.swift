@@ -61,94 +61,104 @@ extension Onboarding {
                         .padding(.top)
 
                         // Step content
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: 20) {
-                                // Header
-                                if currentStep != .welcome && currentStep != .completed {
-                                    HStack {
-                                        if currentStep == .nightscout {
-                                            Image(currentStep.iconName)
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 60, height: 60)
+                        ScrollViewReader { scrollProxy in
+                            ScrollView {
+                                VStack(alignment: .leading, spacing: 20) {
+                                    // Scroll position marker at top
+                                    Color.clear.frame(height: 0).id("top")
 
-                                        } else {
-                                            Image(systemName: currentStep.iconName)
-                                                .font(.system(size: 40))
-                                                .foregroundColor(currentStep.accentColor)
-                                                .frame(width: 60, height: 60)
-                                                .background(
-                                                    Circle()
-                                                        .fill(currentStep.accentColor.opacity(0.2))
-                                                )
+                                    // Header
+                                    if currentStep != .welcome && currentStep != .completed {
+                                        HStack {
+                                            if currentStep == .nightscout {
+                                                Image(currentStep.iconName)
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 60, height: 60)
+
+                                            } else {
+                                                Image(systemName: currentStep.iconName)
+                                                    .font(.system(size: 40))
+                                                    .foregroundColor(currentStep.accentColor)
+                                                    .frame(width: 60, height: 60)
+                                                    .background(
+                                                        Circle()
+                                                            .fill(currentStep.accentColor.opacity(0.2))
+                                                    )
+                                            }
+
+                                            VStack(alignment: .leading) {
+                                                Text(currentStep.title)
+                                                    .font(.largeTitle)
+                                                    .fontWeight(.bold)
+                                                    .foregroundColor(.primary)
+
+                                                Text(currentStep.description)
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.secondary)
+                                                    .fixedSize(horizontal: false, vertical: true)
+                                            }
                                         }
+                                        .padding([.horizontal, .top])
+                                    }
 
-                                        VStack(alignment: .leading) {
-                                            Text(currentStep.title)
-                                                .font(.largeTitle)
-                                                .fontWeight(.bold)
-                                                .foregroundColor(.primary)
+                                    // Animation container (for steps that include animations)
+                                    //                                AnimationPlaceholder(for: currentStep)
+                                    //                                    .padding()
+                                    //                                    .scaleEffect(animationScale)
+                                    //                                    .opacity(animationOpacity)
+                                    //                                    .onAppear {
+                                    //                                        withAnimation(.easeInOut(duration: 0.7)) {
+                                    //                                            animationOpacity = 1
+                                    //                                            animationScale = 1.0
+                                    //                                        }
+                                    //                                        // Start pulse animation
+                                    //                                        isAnimating = true
+                                    //                                    }
 
-                                            Text(currentStep.description)
-                                                .font(.subheadline)
-                                                .foregroundColor(.secondary)
-                                                .fixedSize(horizontal: false, vertical: true)
+                                    // Step-specific content
+                                    Group {
+                                        switch currentStep {
+                                        case .welcome:
+                                            WelcomeStepView()
+                                        case .diagnostics:
+                                            DiagnosticsStepView(state: state)
+                                        case .nightscout:
+                                            switch currentNightscoutSubstep {
+                                            case .setupSelection:
+                                                NightscoutStepView(state: state)
+                                            case .connectToNightscout:
+                                                NightscoutLoginStepView(state: state)
+                                            case .importFromNightscout:
+                                                NightscoutImportStepView(state: state)
+                                            }
+                                        case .unitSelection:
+                                            UnitSelectionStepView(state: state)
+                                        case .glucoseTarget:
+                                            GlucoseTargetStepView(state: state)
+                                        case .basalProfile:
+                                            BasalProfileStepView(state: state)
+                                        case .carbRatio:
+                                            CarbRatioStepView(state: state)
+                                        case .insulinSensitivity:
+                                            InsulinSensitivityStepView(state: state)
+                                        case .deliveryLimits:
+                                            DeliveryLimitsStepView(state: state, substep: currentDeliverySubstep)
+                                        case .completed:
+                                            CompletedStepView()
                                         }
                                     }
-                                    .padding([.horizontal, .top])
+                                    .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                                    .padding(.horizontal)
+                                    .id(currentStep.id) // Force view recreation when step changes
                                 }
-
-                                // Animation container (for steps that include animations)
-//                                AnimationPlaceholder(for: currentStep)
-//                                    .padding()
-//                                    .scaleEffect(animationScale)
-//                                    .opacity(animationOpacity)
-//                                    .onAppear {
-//                                        withAnimation(.easeInOut(duration: 0.7)) {
-//                                            animationOpacity = 1
-//                                            animationScale = 1.0
-//                                        }
-//                                        // Start pulse animation
-//                                        isAnimating = true
-//                                    }
-
-                                // Step-specific content
-                                Group {
-                                    switch currentStep {
-                                    case .welcome:
-                                        WelcomeStepView()
-                                    case .diagnostics:
-                                        DiagnosticsStepView(state: state)
-                                    case .nightscout:
-                                        switch currentNightscoutSubstep {
-                                        case .setupSelection:
-                                            NightscoutStepView(state: state)
-                                        case .connectToNightscout:
-                                            NightscoutLoginStepView(state: state)
-                                        case .importFromNightscout:
-                                            NightscoutImportStepView(state: state)
-                                        }
-                                    case .unitSelection:
-                                        UnitSelectionStepView(state: state)
-                                    case .glucoseTarget:
-                                        GlucoseTargetStepView(state: state)
-                                    case .basalProfile:
-                                        BasalProfileStepView(state: state)
-                                    case .carbRatio:
-                                        CarbRatioStepView(state: state)
-                                    case .insulinSensitivity:
-                                        InsulinSensitivityStepView(state: state)
-                                    case .deliveryLimits:
-                                        DeliveryLimitsStepView(state: state, substep: currentDeliverySubstep)
-                                    case .completed:
-                                        CompletedStepView()
-                                    }
-                                }
-                                .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
-                                .padding(.horizontal)
-                                .id(currentStep.id) // Force view recreation when step changes
+                                .padding(.bottom, 80) // Make room for buttons at bottom
                             }
-                            .padding(.bottom, 80) // Make room for buttons at bottom
+                            .onChange(of: currentStep) { _, _ in
+                                withAnimation {
+                                    scrollProxy.scrollTo("top", anchor: .top)
+                                }
+                            }
                         }
 
                         Spacer()
@@ -161,7 +171,8 @@ extension Onboarding {
                                     withAnimation {
                                         if currentStep == .completed {
                                             currentStep = .deliveryLimits
-                                            currentDeliverySubstep = .maxCOB // ensure we land on the last substep visually
+                                            currentDeliverySubstep =
+                                                .minimumSafetyThreshold // ensure we land on the last substep visually
                                         } else if currentStep == .nightscout {
                                             if currentNightscoutSubstep == .setupSelection {
                                                 // First substep: go to previous main step

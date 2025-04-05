@@ -1,42 +1,5 @@
 import SwiftUI
 
-/// Welcome step view shown at the beginning of onboarding.
-struct WelcomeStepView: View {
-    var body: some View {
-        VStack(alignment: .center, spacing: 20) {
-            Image("trioCircledNoBackground")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 100)
-                .padding()
-
-            Text("Hi there!")
-                .font(.title2)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.center)
-
-            Text(
-                "Welcome to Trio - an automated insulin delivery system for iOS based on the OpenAPS algorithm with adaptations."
-            )
-            .multilineTextAlignment(.center)
-            .foregroundColor(.secondary)
-
-            Text(
-                "Trio is designed to help manage your diabetes efficiently. To get the most out of the app, we'll guide you through setting up some essential parameters."
-            )
-            .multilineTextAlignment(.center)
-            .foregroundColor(.secondary)
-
-            Text("Let's go through a few quick steps to ensure Trio works optimally for you.")
-                .multilineTextAlignment(.center)
-                .foregroundColor(.primary)
-                .bold()
-        }
-        .padding()
-        .frame(maxWidth: .infinity)
-    }
-}
-
 /// Completed step view shown at the end of onboarding.
 struct CompletedStepView: View {
     var body: some View {
@@ -66,10 +29,9 @@ struct CompletedStepView: View {
             .cornerRadius(12)
 
             Text("Remember, you can adjust these settings at any time in the app settings if needed.")
-                .font(.caption)
-                .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.top)
+                .foregroundColor(.primary)
+                .bold()
         }
         .padding()
         .frame(maxWidth: .infinity)

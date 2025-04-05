@@ -4,11 +4,10 @@ struct UnitSelectionStepView: View {
     @Bindable var state: Onboarding.StateModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 20) {
             Text("Please choose from the options below.")
                 .font(.headline)
-
-            Spacer(minLength: 20)
+                .padding(.horizontal)
 
             HStack {
                 Text("Glucose Units")
@@ -39,7 +38,7 @@ struct UnitSelectionStepView: View {
             Text(
                 "Note: Choosing your pump model determines which increments for setting up your basal rates are available. You will pair your actual pump after finishing the onboarding process."
             )
-            .padding(.vertical)
+            .padding(.horizontal)
             .font(.footnote)
             .foregroundStyle(Color.secondary)
         }

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Represents the different steps in the onboarding process.
-enum OnboardingStep: Int, CaseIterable, Identifiable {
+enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     case welcome
     case diagnostics
     case nightscout

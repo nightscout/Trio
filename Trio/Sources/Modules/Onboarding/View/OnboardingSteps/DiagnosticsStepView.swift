@@ -7,6 +7,7 @@ struct DiagnosticsStepView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("If you prefer not to share this anonymized data, you can opt-out of data sharing.")
                 .font(.headline)
+                .padding(.horizontal)
 
             ForEach(DiagnostisSharingOption.allCases, id: \.self) { option in
                 Button(action: {
@@ -41,6 +42,7 @@ struct DiagnosticsStepView: View {
                     "Trio diagnostic data is sent to a Google Firebase Crashlytics project, which is securely maintained and accessed only by the Trio team."
                 )
             }
+            .padding(.horizontal)
             .font(.footnote)
             .foregroundStyle(Color.secondary)
         }
