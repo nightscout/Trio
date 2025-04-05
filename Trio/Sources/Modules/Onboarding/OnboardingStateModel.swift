@@ -415,6 +415,7 @@ extension Onboarding {
             var preferencesCopy = settingsManager.preferences
             preferencesCopy.maxIOB = maxIOB
             preferencesCopy.maxCOB = maxCOB
+            preferencesCopy.threshold_setting = minimumSafetyThreshold
             settingsManager.preferences = preferencesCopy
         }
 
