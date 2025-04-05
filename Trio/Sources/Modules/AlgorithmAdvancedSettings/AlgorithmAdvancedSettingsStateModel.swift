@@ -22,6 +22,8 @@ extension AlgorithmAdvancedSettings {
         @Published var remainingCarbsCap: Decimal = 90
         @Published var noisyCGMTargetMultiplier: Decimal = 1.3
         @Published var insulinActionCurve: Decimal = 10
+        @Published var smbDeliveryRatio: Decimal = 0.5
+        @Published var smbInterval: Decimal = 3
 
         var pumpSettings: PumpSettings {
             provider.settings()
@@ -45,6 +47,8 @@ extension AlgorithmAdvancedSettings {
             subscribePreferencesSetting(\.remainingCarbsCap, on: $remainingCarbsCap) { remainingCarbsCap = $0 }
             subscribePreferencesSetting(\.noisyCGMTargetMultiplier, on: $noisyCGMTargetMultiplier) {
                 noisyCGMTargetMultiplier = $0 }
+            subscribePreferencesSetting(\.smbDeliveryRatio, on: $smbDeliveryRatio) { smbDeliveryRatio = $0 }
+            subscribePreferencesSetting(\.smbInterval, on: $smbInterval) { smbInterval = $0 }
 
             insulinActionCurve = pumpSettings.insulinActionCurve
         }
