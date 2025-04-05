@@ -37,10 +37,16 @@ struct DiagnosticsStepView: View {
                     Text(
                         "•  App diagnostic insights help us enhance app stability, ensure safety for all users, and enable us to quickly identify and resolve critical issues."
                     )
-                    Text("•  Trio collects the App state on crash, device, iOS and general system info, and crash stack trace.")
+                    Text("•  Trio collects the app's state on crash, device, iOS and general system info, and a stack trace.")
+                    Text(
+                        "•  Trio does not collect any health related data, e.g. glucose readings, insulin rates or doses, meal data, setting values, or similar."
+                    )
+                    Text(
+                        "•  Trio does not track any usage metrics or any other personal data about users other than the used iPhone model and iOS version."
+                    )
                 }
                 Text(
-                    "Trio diagnostic data is sent to a Google Firebase Crashlytics project, which is securely maintained and accessed only by the Trio team."
+                    "Diagnostics are sent to a Google Firebase Crashlytics project, which is securely maintained and accessed only by the Trio team."
                 )
             }
             .multilineTextAlignment(.leading)
