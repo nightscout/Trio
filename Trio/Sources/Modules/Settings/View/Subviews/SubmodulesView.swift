@@ -5,7 +5,10 @@ struct SubmodulesView: View {
 
     var body: some View {
         List {
-            Section {
+            Section(header: Text("Trio")) {
+                KeyValueRow(key: buildDetails.trioBranch, value: buildDetails.trioCommitSHA)
+            }
+            Section(header: Text("Submodules")) {
                 ForEach(buildDetails.submodules.sorted(by: { $0.key < $1.key }), id: \.key) { name, info in
                     KeyValueRow(key: name, value: info.commitSHA)
                 }
