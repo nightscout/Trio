@@ -5,6 +5,7 @@
 //  Created by Marvin Polscheit on 19.03.25.
 //
 import Charts
+import Foundation
 import SwiftUI
 import UIKit
 
@@ -13,6 +14,7 @@ struct GlucoseTargetStepView: View {
     @Bindable var state: Onboarding.StateModel
     @State private var refreshUI = UUID() // to update chart when slider value changes
     @State private var therapyItems: [TherapySettingItem] = []
+    @State private var now = Date()
 
     // Formatter for glucose values
     private var numberFormatter: NumberFormatter {
@@ -28,10 +30,6 @@ struct GlucoseTargetStepView: View {
         formatter.timeStyle = .short
         return formatter
     }
-
-    // For chart scaling
-    private let chartScale = Calendar.current
-        .date(from: DateComponents(year: 2001, month: 01, day: 01, hour: 0, minute: 0, second: 0))
 
     var body: some View {
         LazyVStack {
@@ -83,33 +81,19 @@ struct GlucoseTargetStepView: View {
             ForEach(Array(state.targetItems.enumerated()), id: \.element.id) { index, item in
                 let displayValue = state.targetRateValues[item.lowIndex]
 
-                let tzOffset = TimeZone.current.secondsFromGMT() * -1
-                let startDate = Date(timeIntervalSinceReferenceDate: state.targetTimeValues[item.timeIndex])
-                    .addingTimeInterval(TimeInterval(tzOffset))
-                let endDate = state.targetItems.count > index + 1 ?
-                    Date(
-                        timeIntervalSinceReferenceDate: state
-                            .targetTimeValues[state.targetItems[index + 1].timeIndex]
-                    )
-                    .addingTimeInterval(TimeInterval(tzOffset)) :
-                    Date(timeIntervalSinceReferenceDate: state.targetTimeValues.last!).addingTimeInterval(30 * 60)
-                    .addingTimeInterval(TimeInterval(tzOffset))
+                let startDate = Calendar.current
+                    .startOfDay(for: now)
+                    .addingTimeInterval(state.targetTimeValues[item.timeIndex])
 
-                RectangleMark(
-                    xStart: .value("start", startDate),
-                    xEnd: .value("end", endDate),
-                    yStart: .value("rate-start", displayValue),
-                    yEnd: .value("rate-end", 0)
-                ).foregroundStyle(
-                    .linearGradient(
-                        colors: [
-                            Color.green.opacity(0.6),
-                            Color.green.opacity(0.1)
-                        ],
-                        startPoint: .bottom,
-                        endPoint: .top
-                    )
-                ).alignsMarkStylesWithPlotArea()
+                var offset: TimeInterval {
+                    if state.targetItems.count > index + 1 {
+                        return state.targetTimeValues[state.targetItems[index + 1].timeIndex]
+                    } else {
+                        return state.targetTimeValues.last! + 30 * 60
+                    }
+                }
+
+                let endDate = Calendar.current.startOfDay(for: now).addingTimeInterval(offset)
 
                 LineMark(x: .value("End Date", startDate), y: .value("Ratio", displayValue))
                     .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.green)
@@ -126,7 +110,7 @@ struct GlucoseTargetStepView: View {
             }
         }
         .chartXScale(
-            domain: Calendar.current.startOfDay(for: chartScale!) ... Calendar.current.startOfDay(for: chartScale!)
+            domain: Calendar.current.startOfDay(for: now) ... Calendar.current.startOfDay(for: now)
                 .addingTimeInterval(60 * 60 * 24)
         )
         .chartYAxis {
@@ -135,5 +119,9 @@ struct GlucoseTargetStepView: View {
                 AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
             }
         }
+        .chartYScale(
+            domain: (state.units == .mgdL ? Decimal(72) : Decimal(72).asMmolL) ...
+                (state.units == .mgdL ? Decimal(180) : Decimal(180).asMmolL)
+        )
     }
 }

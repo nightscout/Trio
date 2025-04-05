@@ -13,10 +13,7 @@ struct CarbRatioStepView: View {
     @Bindable var state: Onboarding.StateModel
     @State private var refreshUI = UUID() // to update chart when slider value changes
     @State private var therapyItems: [TherapySettingItem] = []
-
-    // For chart scaling
-    private let chartScale = Calendar.current
-        .date(from: DateComponents(year: 2001, month: 01, day: 01, hour: 0, minute: 0, second: 0))
+    @State private var now = Date()
 
     private var formatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -133,17 +130,19 @@ struct CarbRatioStepView: View {
             ForEach(Array(state.carbRatioItems.enumerated()), id: \.element.id) { index, item in
                 let displayValue = state.carbRatioRateValues[item.rateIndex]
 
-                let tzOffset = TimeZone.current.secondsFromGMT() * -1
-                let startDate = Date(timeIntervalSinceReferenceDate: state.carbRatioTimeValues[item.timeIndex])
-                    .addingTimeInterval(TimeInterval(tzOffset))
-                let endDate = state.carbRatioItems.count > index + 1 ?
-                    Date(
-                        timeIntervalSinceReferenceDate: state
-                            .carbRatioTimeValues[state.carbRatioItems[index + 1].timeIndex]
-                    )
-                    .addingTimeInterval(TimeInterval(tzOffset)) :
-                    Date(timeIntervalSinceReferenceDate: state.carbRatioTimeValues.last!).addingTimeInterval(30 * 60)
-                    .addingTimeInterval(TimeInterval(tzOffset))
+                let startDate = Calendar.current
+                    .startOfDay(for: now)
+                    .addingTimeInterval(state.carbRatioTimeValues[item.timeIndex])
+
+                var offset: TimeInterval {
+                    if state.carbRatioItems.count > index + 1 {
+                        return state.carbRatioTimeValues[state.carbRatioItems[index + 1].timeIndex]
+                    } else {
+                        return state.carbRatioTimeValues.last! + 30 * 60
+                    }
+                }
+
+                let endDate = Calendar.current.startOfDay(for: now).addingTimeInterval(offset)
 
                 RectangleMark(
                     xStart: .value("start", startDate),
@@ -176,7 +175,7 @@ struct CarbRatioStepView: View {
             }
         }
         .chartXScale(
-            domain: Calendar.current.startOfDay(for: chartScale!) ... Calendar.current.startOfDay(for: chartScale!)
+            domain: Calendar.current.startOfDay(for: now) ... Calendar.current.startOfDay(for: now)
                 .addingTimeInterval(60 * 60 * 24)
         )
         .chartYAxis {

@@ -13,6 +13,7 @@ struct InsulinSensitivityStepView: View {
     @Bindable var state: Onboarding.StateModel
     @State private var refreshUI = UUID() // to update chart when slider value changes
     @State private var therapyItems: [TherapySettingItem] = []
+    @State private var now = Date()
 
     // For chart scaling
     private let chartScale = Calendar.current
@@ -145,17 +146,19 @@ struct InsulinSensitivityStepView: View {
             ForEach(Array(state.isfItems.enumerated()), id: \.element.id) { index, item in
                 let displayValue = state.isfRateValues[item.rateIndex]
 
-                let tzOffset = TimeZone.current.secondsFromGMT() * -1
-                let startDate = Date(timeIntervalSinceReferenceDate: state.isfTimeValues[item.timeIndex])
-                    .addingTimeInterval(TimeInterval(tzOffset))
-                let endDate = state.isfItems.count > index + 1 ?
-                    Date(
-                        timeIntervalSinceReferenceDate: state
-                            .isfTimeValues[state.isfItems[index + 1].timeIndex]
-                    )
-                    .addingTimeInterval(TimeInterval(tzOffset)) :
-                    Date(timeIntervalSinceReferenceDate: state.isfTimeValues.last!).addingTimeInterval(30 * 60)
-                    .addingTimeInterval(TimeInterval(tzOffset))
+                let startDate = Calendar.current
+                    .startOfDay(for: now)
+                    .addingTimeInterval(state.isfTimeValues[item.timeIndex])
+
+                var offset: TimeInterval {
+                    if state.isfItems.count > index + 1 {
+                        return state.isfTimeValues[state.isfItems[index + 1].timeIndex]
+                    } else {
+                        return state.isfTimeValues.last! + 30 * 60
+                    }
+                }
+
+                let endDate = Calendar.current.startOfDay(for: now).addingTimeInterval(offset)
 
                 RectangleMark(
                     xStart: .value("start", startDate),
@@ -188,7 +191,7 @@ struct InsulinSensitivityStepView: View {
             }
         }
         .chartXScale(
-            domain: Calendar.current.startOfDay(for: chartScale!) ... Calendar.current.startOfDay(for: chartScale!)
+            domain: Calendar.current.startOfDay(for: now) ... Calendar.current.startOfDay(for: now)
                 .addingTimeInterval(60 * 60 * 24)
         )
         .chartYAxis {
