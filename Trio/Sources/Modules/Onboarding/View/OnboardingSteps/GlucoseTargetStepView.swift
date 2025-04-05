@@ -79,7 +79,8 @@ struct GlucoseTargetStepView: View {
     private var glucoseTargetChart: some View {
         Chart {
             ForEach(Array(state.targetItems.enumerated()), id: \.element.id) { index, item in
-                let displayValue = state.targetRateValues[item.lowIndex]
+                let rawValue = state.targetRateValues[item.lowIndex]
+                let displayValue = state.units == .mgdL ? rawValue : rawValue.asMmolL
 
                 let startDate = Calendar.current
                     .startOfDay(for: now)
