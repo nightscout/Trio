@@ -164,19 +164,13 @@ extension Onboarding {
                                 .padding(.bottom, 80) // Make room for buttons at bottom
                             }
                             .onChange(of: currentStep) { _, _ in
-                                withAnimation {
-                                    scrollProxy.scrollTo("top", anchor: .top)
-                                }
+                                scrollProxy.scrollTo("top", anchor: .top)
                             }
                             .onChange(of: currentNightscoutSubstep) { _, _ in
-                                withAnimation {
-                                    scrollProxy.scrollTo("top", anchor: .top)
-                                }
+                                scrollProxy.scrollTo("top", anchor: .top)
                             }
                             .onChange(of: currentDeliverySubstep) { _, _ in
-                                withAnimation {
-                                    scrollProxy.scrollTo("top", anchor: .top)
-                                }
+                                scrollProxy.scrollTo("top", anchor: .top)
                             }
                         }
 
