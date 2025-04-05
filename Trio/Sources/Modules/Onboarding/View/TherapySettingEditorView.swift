@@ -109,8 +109,12 @@ struct TherapySettingEditorView: View {
         .listStyle(.plain)
         .scrollDisabled(true)
         .scrollContentBackground(.hidden)
-        .frame(height: 55 + CGFloat(items.count) * 45 + (items.contains(where: { $0.id == selectedItemID }) ? 230 : 0))
         // 55 for header row, item counts x 45 for every entry row + 230 for a visible picker row
+        .frame(height: 55 + CGFloat(items.count) * 45 + (items.contains(where: { $0.id == selectedItemID }) ? 230 : 0))
+        .onAppear {
+            // ensure picker is closed when view appears
+            selectedItemID = nil
+        }
     }
 
     @ViewBuilder private func timeValuePickerRow(
@@ -167,7 +171,7 @@ struct TherapySettingEditorView: View {
     private func validateTherapySettingItems() {
         // validates therapy items (i.e. parsed therapy settings into wrapper class)
         let newItems = Array(Set(items)).sorted { $0.time < $1.time }
-        if let first = newItems.first {
+        if var first = newItems.first {
             first.time = 0
         }
 
@@ -200,7 +204,7 @@ struct TherapySettingEditorView: View {
     }
 }
 
-class TherapySettingItem: Identifiable, Equatable, Hashable {
+struct TherapySettingItem: Identifiable, Equatable, Hashable {
     var id = UUID()
     var time: TimeInterval = 0 // seconds since start of day
     var value: Decimal = 0

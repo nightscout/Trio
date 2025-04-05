@@ -105,7 +105,7 @@ extension Onboarding {
 
         // MARK: - Helpers
 
-        /// Finds the index of the closest Decimal value in the given array.
+        /// Finds the index of the closest `Decimal` value in the given array.
         /// - Parameters:
         ///   - value: The value to match.
         ///   - array: The array to search in.
@@ -116,7 +116,7 @@ extension Onboarding {
             })?.offset ?? 0
         }
 
-        /// Finds the index of the closest TimeInterval value in the given array.
+        /// Finds the index of the closest `TimeInterval` value in the given array.
         /// - Parameters:
         ///   - value: The time value to match.
         ///   - array: The array to search in.
