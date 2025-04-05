@@ -13,8 +13,8 @@ struct NightscoutImportStepView: View {
                     Spacer(minLength: 150)
                     CustomProgressView(
                         text: String(
-                            localized: "Importing Profile...",
-                            comment: "Progress text when importing profile via Nightscout"
+                            localized: "Importing Settings...",
+                            comment: "Progress text when importing settings via Nightscout"
                         )
                     )
                 }
