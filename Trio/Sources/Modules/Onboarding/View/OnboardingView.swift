@@ -3,9 +3,15 @@ import Swinject
 
 /// The main onboarding view that manages navigation between onboarding steps.
 extension Onboarding {
+    private enum NavigationDirection {
+        case forward
+        case backward
+    }
+
     struct RootView: BaseView {
         let resolver: Resolver
         @State var state = StateModel()
+        @State private var navigationDirection: NavigationDirection = .forward
         let onboardingManager: OnboardingManager
         @State private var currentStep: OnboardingStep = .welcome
         @State private var currentDeliverySubstep: DeliveryLimitSubstep = .maxIOB
@@ -157,7 +163,11 @@ extension Onboarding {
                                             CompletedStepView()
                                         }
                                     }
-                                    .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                                    .transition(
+                                        navigationDirection == .forward
+                                            ? .asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading))
+                                            : .asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing))
+                                    )
                                     .padding(.horizontal)
                                     .id(currentStep.id) // Force view recreation when step changes
                                 }
@@ -181,6 +191,7 @@ extension Onboarding {
                             // Back button
                             if currentStep != .welcome {
                                 Button(action: {
+                                    navigationDirection = .backward
                                     withAnimation {
                                         if currentStep == .completed {
                                             currentStep = .deliveryLimits
@@ -228,6 +239,7 @@ extension Onboarding {
 
                             // Next/Finish button
                             Button(action: {
+                                navigationDirection = .forward
                                 withAnimation {
                                     if currentStep == .completed {
                                         state.saveOnboardingData()
