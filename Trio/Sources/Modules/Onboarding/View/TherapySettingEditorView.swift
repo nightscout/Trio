@@ -8,7 +8,6 @@ struct TherapySettingEditorView: View {
     var validateOnDelete: (() -> Void)?
 
     @State private var selectedItemID: UUID?
-    @State private var refreshUI = UUID() // to update list and UI picker value(s) change(s)
 
     var body: some View {
         List {
@@ -47,7 +46,10 @@ struct TherapySettingEditorView: View {
                         HStack {
                             HStack {
                                 Text(displayText(for: unit, decimalValue: item.value))
-                                    .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
+                                    .foregroundStyle(
+                                        selectedItemID == item.id ? Color.accentColor : Color
+                                            .primary
+                                    )
                                 Text(unit.displayName)
                                     .foregroundStyle(Color.secondary)
                             }
@@ -60,12 +62,10 @@ struct TherapySettingEditorView: View {
                                 let time = timeOptions[timeIndex]
                                 let date = Date(timeIntervalSince1970: time)
                                 let timeString = timeFormatter.string(from: date)
-                                Text(timeString)
-                                    .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
+                                Text(timeString).foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
                             }
                         }
                         .contentShape(Rectangle())
-                        .id(refreshUI) // force list update
                     }
                     .buttonStyle(.plain)
 
@@ -114,6 +114,7 @@ struct TherapySettingEditorView: View {
         .onAppear {
             // ensure picker is closed when view appears
             selectedItemID = nil
+            validateTherapySettingItems()
         }
     }
 
@@ -123,13 +124,21 @@ struct TherapySettingEditorView: View {
         valueOptions: [Decimal],
         unit: TherapySettingUnit
     ) -> some View {
+        // Compute unavailable times (already taken by other entries)
+        let takenTimes = Set(items.filter { $0.id != item.wrappedValue.id }.map(\.time))
+        // Allow current selection even if it’s in the set of taken times.
+        let availableTimes = timeOptions.filter { $0 == item.wrappedValue.time || !takenTimes.contains($0) }
+        // Determine if this is first item in list (which is locked to 00:00)
+        var isFirstItem: Bool {
+            items.first == item.wrappedValue
+        }
+
         VStack(spacing: 8) {
             HStack {
                 Picker("Value", selection: Binding(
                     get: { Double(item.wrappedValue.value) },
                     set: {
                         item.wrappedValue.value = Decimal($0)
-                        refreshUI = UUID()
                     }
                 )) {
                     ForEach(valueOptions, id: \.self) { value in
@@ -141,17 +150,23 @@ struct TherapySettingEditorView: View {
 
                 Picker("Time", selection: Binding(
                     get: { item.wrappedValue.time },
-                    set: {
-                        item.wrappedValue.time = $0
-                        validateTherapySettingItems()
-                        refreshUI = UUID()
+                    set: { newTime in
+                        // Only update if new time is either not taken, or it is the current value
+                        if newTime == item.wrappedValue.time || !takenTimes.contains(newTime) {
+                            item.wrappedValue.time = newTime
+                            validateTherapySettingItems()
+                        }
                     }
                 )) {
-                    ForEach(timeOptions, id: \.self) { time in
+                    ForEach(availableTimes, id: \.self) { time in
                         Text(timeFormatter.string(from: Date(timeIntervalSince1970: time)))
                             .tag(time)
+                            .foregroundStyle(item.wrappedValue.time != 0 ? Color.primary : Color.secondary)
                     }
                 }
+                // Lock time picker if first item and make it slightly opague
+                .opacity(isFirstItem ? 0.5 : 1)
+                .disabled(isFirstItem)
                 .frame(maxWidth: .infinity)
                 .clipped()
             }
@@ -171,11 +186,8 @@ struct TherapySettingEditorView: View {
     private func validateTherapySettingItems() {
         // validates therapy items (i.e. parsed therapy settings into wrapper class)
         let newItems = Array(Set(items)).sorted { $0.time < $1.time }
-        if var first = newItems.first {
+        if var first = newItems.first, first.time != 0 {
             first.time = 0
-        }
-
-        if items != newItems {
             items = newItems
         }
 
