@@ -9,6 +9,7 @@ enum OnboardingNavigationDirection {
 /// Represents the different steps in the onboarding process.
 enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     case welcome
+    case startupGuide
     case diagnostics
     case nightscout
     case unitSelection
@@ -35,6 +36,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         switch self {
         case .welcome:
             return String(localized: "Welcome to Trio")
+        case .startupGuide:
+            return String(localized: "Startup Guide")
         case .diagnostics:
             return String(localized: "Diagnostics")
         case .nightscout:
@@ -62,6 +65,10 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         case .welcome:
             return String(
                 localized: "Trio is a powerful app that helps you manage your diabetes. Let's get started by setting up a few important parameters that will help Trio work effectively for you."
+            )
+        case .startupGuide:
+            return String(
+                localized: "Trio comes with a helpful Startup Guide designed to walk you through each step of your onboarding journey. We recommend opening it now and following along as you go — side by side."
             )
         case .diagnostics:
             return String(
@@ -107,6 +114,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         switch self {
         case .welcome:
             return "hand.wave.fill"
+        case .startupGuide:
+            return "list.bullet.clipboard.fill"
         case .diagnostics:
             return "waveform.badge.magnifyingglass"
         case .nightscout:
@@ -151,6 +160,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
              .deliveryLimits,
              .diagnostics,
              .nightscout,
+             .startupGuide,
              .unitSelection,
              .welcome:
             return Color.blue
@@ -356,4 +366,19 @@ enum NightscoutSubstep: Int, CaseIterable, Identifiable {
     case importFromNightscout
 
     var id: Int { rawValue }
+}
+
+struct BulletPoint: View {
+    let text: String
+
+    init(_ text: String) {
+        self.text = text
+    }
+
+    var body: some View {
+        HStack(alignment: .top) {
+            Text("•")
+            Text(text)
+        }
+    }
 }

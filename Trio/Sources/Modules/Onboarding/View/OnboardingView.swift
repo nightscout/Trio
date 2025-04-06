@@ -131,6 +131,8 @@ extension Onboarding {
                                         switch currentStep {
                                         case .welcome:
                                             WelcomeStepView()
+                                        case .startupGuide:
+                                            StartupGuideStepView()
                                         case .diagnostics:
                                             DiagnosticsStepView(state: state)
                                         case .nightscout:

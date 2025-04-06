@@ -644,6 +644,7 @@
 		DDF691032DA2CA1E008BF16C /* AppDiagnosticsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF691022DA2CA14008BF16C /* AppDiagnosticsProvider.swift */; };
 		DDF691052DA2CA23008BF16C /* AppDiagnosticsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF691042DA2CA20008BF16C /* AppDiagnosticsStateModel.swift */; };
 		DDF691072DA2CA2D008BF16C /* AppDiagnosticsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF691062DA2CA28008BF16C /* AppDiagnosticsRootView.swift */; };
+		DDF691372DA30332008BF16C /* StartupGuideStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF691362DA30332008BF16C /* StartupGuideStepView.swift */; };
 		DDF847DD2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847DC2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift */; };
 		DDF847DF2C5C28780049BB3B /* LiveActivitySettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847DE2C5C28780049BB3B /* LiveActivitySettingsProvider.swift */; };
 		DDF847E12C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E02C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift */; };
@@ -1433,6 +1434,7 @@
 		DDF691022DA2CA14008BF16C /* AppDiagnosticsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticsProvider.swift; sourceTree = "<group>"; };
 		DDF691042DA2CA20008BF16C /* AppDiagnosticsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticsStateModel.swift; sourceTree = "<group>"; };
 		DDF691062DA2CA28008BF16C /* AppDiagnosticsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticsRootView.swift; sourceTree = "<group>"; };
+		DDF691362DA30332008BF16C /* StartupGuideStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupGuideStepView.swift; sourceTree = "<group>"; };
 		DDF847DC2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsDataFlow.swift; sourceTree = "<group>"; };
 		DDF847DE2C5C28780049BB3B /* LiveActivitySettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsProvider.swift; sourceTree = "<group>"; };
 		DDF847E02C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsStateModel.swift; sourceTree = "<group>"; };
@@ -2760,6 +2762,7 @@
 		BD47FDD52D8B64AE0043966B /* OnboardingSteps */ = {
 			isa = PBXGroup;
 			children = (
+				DDF691362DA30332008BF16C /* StartupGuideStepView.swift */,
 				DDF6905B2DA0AFC5008BF16C /* WelcomeStepView.swift */,
 				DDF6902B2DA028D3008BF16C /* DiagnosticsStepView.swift */,
 				DD3F1F8E2D9E151200DCE7B3 /* Nightscout */,
@@ -4216,6 +4219,7 @@
 				DD1745502C55CA5500211FAC /* UnitsLimitsSettingsProvider.swift in Sources */,
 				581AC4392BE22ED10038760C /* JSONConverter.swift in Sources */,
 				BD4064D12C4ED26900582F43 /* CoreDataObserver.swift in Sources */,
+				DDF691372DA30332008BF16C /* StartupGuideStepView.swift in Sources */,
 				58645B9B2CA2D24F008AFCE7 /* CarbSetup.swift in Sources */,
 				38E44536274E411700EC9A94 /* Disk.swift in Sources */,
 				19A910362A24D6D700C8951B /* DateFilter.swift in Sources */,
