@@ -10,7 +10,7 @@ struct DiagnosticsStepView: View {
                 .padding(.horizontal)
                 .multilineTextAlignment(.leading)
 
-            ForEach(DiagnostisSharingOption.allCases, id: \.self) { option in
+            ForEach(DiagnosticsSharingOption.allCases, id: \.self) { option in
                 Button(action: {
                     state.diagnosticsSharingOption = option
                 }) {

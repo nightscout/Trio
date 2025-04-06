@@ -268,7 +268,7 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
     }
 }
 
-enum DiagnostisSharingOption: String, Equatable, CaseIterable, Identifiable {
+enum DiagnosticsSharingOption: String, Equatable, CaseIterable, Identifiable {
     case enabled
     case disabled
 

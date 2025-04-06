@@ -17,7 +17,7 @@ extension Onboarding {
 
         // MARK: - App Diagnostics
 
-        var diagnosticsSharingOption: DiagnostisSharingOption = .enabled
+        var diagnosticsSharingOption: DiagnosticsSharingOption = .enabled
 
         // MARK: - Nightscout Setup
 
