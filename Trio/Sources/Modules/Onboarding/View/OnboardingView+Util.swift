@@ -1,5 +1,11 @@
 import SwiftUI
 
+/// Represents the navigation direction in the onboarding flow
+enum OnboardingNavigationDirection {
+    case forward
+    case backward
+}
+
 /// Represents the different steps in the onboarding process.
 enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     case welcome
@@ -7,7 +13,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     case nightscout
     case unitSelection
     case glucoseTarget
-    case basalProfile
+    case basalRates
     case carbRatio
     case insulinSensitivity
     case deliveryLimits
@@ -36,13 +42,13 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         case .unitSelection:
             return String(localized: "Units & Pump")
         case .glucoseTarget:
-            return String(localized: "Glucose Target")
-        case .basalProfile:
-            return String(localized: "Basal Profile")
+            return String(localized: "Glucose Targets")
+        case .basalRates:
+            return String(localized: "Basal Rates")
         case .carbRatio:
-            return String(localized: "Carbohydrate Ratio")
+            return String(localized: "Carb Ratios")
         case .insulinSensitivity:
-            return String(localized: "Insulin Sensitivity")
+            return String(localized: "Insulin Sensitivities")
         case .deliveryLimits:
             return String(localized: "Delivery Limits")
         case .completed:
@@ -73,7 +79,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return String(
                 localized: "Your glucose target is the blood glucose level you aim to maintain. Trio will use this to calculate insulin doses and provide recommendations."
             )
-        case .basalProfile:
+        case .basalRates:
             return String(
                 localized: "Your basal profile represents the amount of background insulin you need throughout the day. This helps Trio calculate your insulin needs."
             )
@@ -87,7 +93,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             )
         case .deliveryLimits:
             return String(
-                localized: "Trio offers various delivery limits which represent the maximum amount of insulin it can deliver at a time. This helps ensure safe and effective experience."
+                localized: "Trio includes several safety limits for insulin delivery and carbohydrate entry, helping ensure a safe and effective experience."
             )
         case .completed:
             return String(
@@ -109,7 +115,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return "numbers.rectangle"
         case .glucoseTarget:
             return "target"
-        case .basalProfile:
+        case .basalRates:
             return "chart.xyaxis.line"
         case .carbRatio:
             return "fork.knife"
@@ -150,7 +156,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return Color.blue
         case .glucoseTarget:
             return Color.green
-        case .basalProfile:
+        case .basalRates:
             return Color.purple
         case .carbRatio:
             return Color.orange

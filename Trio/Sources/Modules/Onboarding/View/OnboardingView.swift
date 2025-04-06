@@ -3,15 +3,10 @@ import Swinject
 
 /// The main onboarding view that manages navigation between onboarding steps.
 extension Onboarding {
-    private enum NavigationDirection {
-        case forward
-        case backward
-    }
-
     struct RootView: BaseView {
         let resolver: Resolver
         @State var state = StateModel()
-        @State private var navigationDirection: NavigationDirection = .forward
+        @State private var navigationDirection: OnboardingNavigationDirection = .forward
         let onboardingManager: OnboardingManager
         @State private var currentStep: OnboardingStep = .welcome
         @State private var currentDeliverySubstep: DeliveryLimitSubstep = .maxIOB
@@ -151,7 +146,7 @@ extension Onboarding {
                                             UnitSelectionStepView(state: state)
                                         case .glucoseTarget:
                                             GlucoseTargetStepView(state: state)
-                                        case .basalProfile:
+                                        case .basalRates:
                                             BasalProfileStepView(state: state)
                                         case .carbRatio:
                                             CarbRatioStepView(state: state)
