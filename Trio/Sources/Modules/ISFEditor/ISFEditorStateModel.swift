@@ -2,6 +2,16 @@ import CoreData
 import Observation
 import SwiftUI
 
+extension [Decimal] {
+    func findClosestIndex(to target: Element) -> Int? {
+        guard !isEmpty else { return nil }
+
+        return enumerated().min(by: {
+            abs($0.element - target) < abs($1.element - target)
+        })?.offset
+    }
+}
+
 extension ISFEditor {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
@@ -19,7 +29,16 @@ extension ISFEditor {
             var values = stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
 
             if units == .mmolL {
-                values = values.filter { Int(truncating: $0 as NSNumber) % 2 == 0 }
+                var mmolValues = values.filter { Int(truncating: $0 as NSNumber) % 2 == 0 }
+                // check for any missing values
+                var valuesInMmolSet = Set(mmolValues.map(\.asMmolL))
+                for value in values {
+                    let valueInMmmol = value.asMmolL
+                    if valuesInMmolSet.insert(valueInMmmol).inserted {
+                        mmolValues.append(value)
+                    }
+                }
+                values = mmolValues.sorted()
             }
 
             return values
@@ -43,8 +62,16 @@ extension ISFEditor {
 
             items = profile.sensitivities.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
-                let rateIndex = rateValues.firstIndex(of: value.sensitivity) ?? 0
-                return Item(rateIndex: rateIndex, timeIndex: timeIndex)
+                var rateIndex = rateValues.firstIndex(of: value.sensitivity)
+                if rateIndex == nil {
+                    // try to look up the closest value
+                    if let min = rateValues.first, let max = rateValues.last {
+                        if value.sensitivity >= (min - 1), value.sensitivity <= (max + 1) {
+                            rateIndex = rateValues.findClosestIndex(to: value.sensitivity)
+                        }
+                    }
+                }
+                return Item(rateIndex: rateIndex ?? 0, timeIndex: timeIndex)
             }
 
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
