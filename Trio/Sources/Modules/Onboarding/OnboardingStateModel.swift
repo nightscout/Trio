@@ -397,10 +397,10 @@ extension Onboarding {
             saveISFValues()
         }
 
-        /// Persists the current diagnostics sharing option to a local property list file.
+        /// Persists the current diagnostics sharing option to UserDefaults as a boolean.
         func applyDiagnostics() {
-            @PersistedProperty(key: "DiagnosticsSharingState") var storedDiagnosticsOption: String?
-            storedDiagnosticsOption = diagnosticsSharingOption.rawValue
+            let booleanValue: Bool = diagnosticsSharingOption == .enabled
+            UserDefaults.standard.set(booleanValue, forKey: "DiagnosticsSharing")
         }
 
         /// Applies the selected glucose units to the app's settings.

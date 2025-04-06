@@ -640,6 +640,10 @@
 		DDF68FFC2D9ECF7F008BF16C /* OnboardingStateModel+Nightscout.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF68FFB2D9ECF77008BF16C /* OnboardingStateModel+Nightscout.swift */; };
 		DDF6902C2DA028D3008BF16C /* DiagnosticsStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF6902B2DA028D3008BF16C /* DiagnosticsStepView.swift */; };
 		DDF6905C2DA0AFC5008BF16C /* WelcomeStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF6905B2DA0AFC5008BF16C /* WelcomeStepView.swift */; };
+		DDF691012DA2CA11008BF16C /* AppDiagnosticsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF691002DA2CA0B008BF16C /* AppDiagnosticsDataFlow.swift */; };
+		DDF691032DA2CA1E008BF16C /* AppDiagnosticsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF691022DA2CA14008BF16C /* AppDiagnosticsProvider.swift */; };
+		DDF691052DA2CA23008BF16C /* AppDiagnosticsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF691042DA2CA20008BF16C /* AppDiagnosticsStateModel.swift */; };
+		DDF691072DA2CA2D008BF16C /* AppDiagnosticsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF691062DA2CA28008BF16C /* AppDiagnosticsRootView.swift */; };
 		DDF847DD2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847DC2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift */; };
 		DDF847DF2C5C28780049BB3B /* LiveActivitySettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847DE2C5C28780049BB3B /* LiveActivitySettingsProvider.swift */; };
 		DDF847E12C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E02C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift */; };
@@ -1425,6 +1429,10 @@
 		DDF68FFB2D9ECF77008BF16C /* OnboardingStateModel+Nightscout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnboardingStateModel+Nightscout.swift"; sourceTree = "<group>"; };
 		DDF6902B2DA028D3008BF16C /* DiagnosticsStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsStepView.swift; sourceTree = "<group>"; };
 		DDF6905B2DA0AFC5008BF16C /* WelcomeStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeStepView.swift; sourceTree = "<group>"; };
+		DDF691002DA2CA0B008BF16C /* AppDiagnosticsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticsDataFlow.swift; sourceTree = "<group>"; };
+		DDF691022DA2CA14008BF16C /* AppDiagnosticsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticsProvider.swift; sourceTree = "<group>"; };
+		DDF691042DA2CA20008BF16C /* AppDiagnosticsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticsStateModel.swift; sourceTree = "<group>"; };
+		DDF691062DA2CA28008BF16C /* AppDiagnosticsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticsRootView.swift; sourceTree = "<group>"; };
 		DDF847DC2C5C28720049BB3B /* LiveActivitySettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsDataFlow.swift; sourceTree = "<group>"; };
 		DDF847DE2C5C28780049BB3B /* LiveActivitySettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsProvider.swift; sourceTree = "<group>"; };
 		DDF847E02C5C287F0049BB3B /* LiveActivitySettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsStateModel.swift; sourceTree = "<group>"; };
@@ -1785,6 +1793,7 @@
 		3811DE0325C9D31700A708ED /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				DDF690FE2DA2C9EE008BF16C /* AppDiagnostics */,
 				BD47FD142D88AACC0043966B /* Onboarding */,
 				DDD163032C4C67B400CD525A /* Adjustments */,
 				DD1745382C55BF8B00211FAC /* AlgorithmAdvancedSettings */,
@@ -3400,6 +3409,25 @@
 			path = "Classes+Properties";
 			sourceTree = "<group>";
 		};
+		DDF690FE2DA2C9EE008BF16C /* AppDiagnostics */ = {
+			isa = PBXGroup;
+			children = (
+				DDF691042DA2CA20008BF16C /* AppDiagnosticsStateModel.swift */,
+				DDF691022DA2CA14008BF16C /* AppDiagnosticsProvider.swift */,
+				DDF691002DA2CA0B008BF16C /* AppDiagnosticsDataFlow.swift */,
+				DDF690FF2DA2CA03008BF16C /* View */,
+			);
+			path = AppDiagnostics;
+			sourceTree = "<group>";
+		};
+		DDF690FF2DA2CA03008BF16C /* View */ = {
+			isa = PBXGroup;
+			children = (
+				DDF691062DA2CA28008BF16C /* AppDiagnosticsRootView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
 		DDF847DB2C5C28550049BB3B /* LiveActivitySettings */ = {
 			isa = PBXGroup;
 			children = (
@@ -4011,6 +4039,7 @@
 				DD1745482C55C61D00211FAC /* AutosensSettingsStateModel.swift in Sources */,
 				DD1745462C55C61500211FAC /* AutosensSettingsProvider.swift in Sources */,
 				DDA6E2852D2361F800C2988C /* LoopStatusView.swift in Sources */,
+				DDF691012DA2CA11008BF16C /* AppDiagnosticsDataFlow.swift in Sources */,
 				DDA6E3202D258E0500C2988C /* OverrideHelpView.swift in Sources */,
 				DDA6E2502D22187500C2988C /* ChartLegendView.swift in Sources */,
 				3811DEAF25C9D88300A708ED /* KeyValueStorage.swift in Sources */,
@@ -4110,6 +4139,7 @@
 				DD940BAC2CA75889000830A5 /* DynamicGlucoseColor.swift in Sources */,
 				3883581C25EE79BB00E024B2 /* TextFieldWithToolBar.swift in Sources */,
 				58D08B302C8DEA7500AA37D3 /* ForecastView.swift in Sources */,
+				DDF691072DA2CA2D008BF16C /* AppDiagnosticsRootView.swift in Sources */,
 				6B1A8D2E2B156EEF00E76752 /* LiveActivityManager.swift in Sources */,
 				581516A92BCEEDF800BF67D7 /* NSPredicates.swift in Sources */,
 				DD4FFF332D458EE600B6CFF9 /* GarminWatchState.swift in Sources */,
@@ -4334,6 +4364,7 @@
 				58645B992CA2D1A4008AFCE7 /* GlucoseSetup.swift in Sources */,
 				7BCFACB97C821041BA43A114 /* ManualTempBasalRootView.swift in Sources */,
 				38E44534274E411700EC9A94 /* Disk+InternalHelpers.swift in Sources */,
+				DDF691052DA2CA23008BF16C /* AppDiagnosticsStateModel.swift in Sources */,
 				38A00B2325FC2B55006BC0B0 /* LRUCache.swift in Sources */,
 				DDD163122C4C689900CD525A /* AdjustmentsStateModel.swift in Sources */,
 				BD47FDD72D8B64D20043966B /* CarbRatioStepView.swift in Sources */,
@@ -4366,6 +4397,7 @@
 				DD88C8E22C50420800F2D558 /* DefinitionRow.swift in Sources */,
 				B7C465E9472624D8A2BE2A6A /* (null) in Sources */,
 				71D44AAB2CA5F5EA0036EE9E /* AlertPermissionsChecker.swift in Sources */,
+				DDF691032DA2CA1E008BF16C /* AppDiagnosticsProvider.swift in Sources */,
 				320D030F724170A637F06D50 /* (null) in Sources */,
 				19E1F7E829D082D0005C8D20 /* IconConfigDataFlow.swift in Sources */,
 				5A2325522BFCBF55003518CA /* NightscoutUploadView.swift in Sources */,
