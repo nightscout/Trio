@@ -68,7 +68,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             )
         case .startupGuide:
             return String(
-                localized: "Trio comes with a helpful Startup Guide designed to walk you through each step of your onboarding journey. We recommend opening it now and following along as you go — side by side."
+                localized: "Trio comes with a helpful Startup Guide. We recommend opening it now and following along as you go — side by side."
             )
         case .diagnostics:
             return String(

@@ -10,9 +10,10 @@ struct StartupGuideStepView: View {
     @Environment(\.openURL) var openURL
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(alignment: .leading, spacing: 20) {
             Text("Before you begin…")
                 .font(.title.bold())
+                .padding(.horizontal)
 
             VStack(alignment: .leading, spacing: 10) {
                 BulletPoint(String(localized: "Take a deep breath — you've got this."))
