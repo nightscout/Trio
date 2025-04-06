@@ -26,22 +26,9 @@ extension ISFEditor {
         let timeValues = stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 }
 
         var rateValues: [Decimal] {
-            var values = stride(from: 9, to: 540.01, by: 1.0).map { Decimal($0) }
-
-            if units == .mmolL {
-                var mmolValues = values.filter { Int(truncating: $0 as NSNumber) % 2 == 0 }
-                // check for any missing values
-                var valuesInMmolSet = Set(mmolValues.map(\.asMmolL))
-                for value in values {
-                    let valueInMmmol = value.asMmolL
-                    if valuesInMmolSet.insert(valueInMmmol).inserted {
-                        mmolValues.append(value)
-                    }
-                }
-                values = mmolValues.sorted()
-            }
-
-            return values
+            let settingsProvider = PickerSettingsProvider.shared
+            let sensitivityPickerSetting = PickerSetting(value: 100, step: 1, min: 9, max: 540, type: .glucose)
+            return settingsProvider.generatePickerValues(from: sensitivityPickerSetting, units: units)
         }
 
         var canAdd: Bool {
