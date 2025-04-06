@@ -20,7 +20,10 @@ struct CompletedStepView: View {
             .foregroundColor(.secondary)
 
             VStack(alignment: .leading, spacing: 12) {
-                ForEach(OnboardingStep.allCases.filter { $0 != .welcome && $0 != .completed }, id: \.self) { step in
+                ForEach(
+                    OnboardingStep.allCases.filter { $0 != .welcome && $0 != .startupGuide && $0 != .completed },
+                    id: \.self
+                ) { step in
                     SettingItemView(step: step, icon: step.iconName, title: step.title)
                 }
             }
