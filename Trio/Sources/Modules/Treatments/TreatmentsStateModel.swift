@@ -743,7 +743,6 @@ extension Treatments.StateModel {
 
             let determination = await determinationFetchContext.perform {
                 let determinationObject = determinationObjects.first
-                let eventualBG = determinationObject?.eventualBG?.intValue
 
                 let forecastsSet = determinationObject?.forecasts ?? []
                 let predictions = Predictions(
@@ -820,11 +819,19 @@ extension Treatments.StateModel {
         debug(.bolusState, "updateForecasts fired")
         if let forecastData = forecastData {
             simulatedDetermination = forecastData
+            debugPrint("\(DebuggingIdentifiers.failed) minPredBG: \(minPredBG)")
         } else {
             simulatedDetermination = await Task { [self] in
                 debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
                 return await apsManager.simulateDetermineBasal(simulatedCarbsAmount: carbs, simulatedBolusAmount: amount)
             }.value
+
+            // Update evBG and minPredBG from simulated determination
+            if let simDetermination = simulatedDetermination {
+                evBG = Decimal(simDetermination.eventualBG ?? 0)
+                minPredBG = simDetermination.minPredBGFromReason ?? 0
+                debugPrint("\(DebuggingIdentifiers.inProgress) minPredBG: \(minPredBG)")
+            }
         }
 
         predictionsForChart = simulatedDetermination?.predictions
