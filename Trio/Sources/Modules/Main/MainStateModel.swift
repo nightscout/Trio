@@ -218,17 +218,22 @@ extension Main {
             if message.title == "" {
                 switch message.type {
                 case .info:
-                    if message.content.range(of: "error", options: .caseInsensitive) != nil {
+                    if message.content.range(of: "error", options: .caseInsensitive) != nil || message.content
+                        .range(of: String(localized: "Error"), options: .caseInsensitive) != nil
+                    {
                         message.title = String(localized: "Error", comment: "Error title")
                     } else {
                         message.title = String(localized: "Info", comment: "Info title")
                     }
-                    if APSError.pumpMatches(message: message.content) {
+                    if APSError.pumpWarningMatches(message: message.content) {
                         message.subtype = .pump
                         let lastLoopMinutes = Int((Date().timeIntervalSince(apsManager.lastLoopDate) - 30) / 60) + 1
                         if lastLoopMinutes > 10 {
                             message.type = .error
                         }
+                    } else if APSError.pumpErrorMatches(message: message.content) {
+                        message.subtype = .pump
+                        message.type = .error
                     }
                 case .warning:
                     message.title = String(localized: "Warning", comment: "Warning title")

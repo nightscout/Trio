@@ -50,8 +50,12 @@ enum APSError: LocalizedError {
         }
     }
 
-    static func pumpMatches(message: String) -> Bool {
-        message.contains(String(localized: "Pump Error")) || message.contains(String(localized: "Invalid Pump State")) || message
+    static func pumpErrorMatches(message: String) -> Bool {
+        message.contains(String(localized: "Pump Error"))
+    }
+
+    static func pumpWarningMatches(message: String) -> Bool {
+        message.contains(String(localized: "Invalid Pump State")) || message
             .contains("PumpMessage") || message
             .contains("PumpOpsError") || message.contains("RileyLink")
     }
