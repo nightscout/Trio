@@ -102,6 +102,10 @@ extension Onboarding {
             isConnectedToNS = false
             isConnectingToNS = false
             isValidNightscoutURL = false
+
+            // Attempt to fetch existing therapy settings and delivery limits from file
+            fetchExistingTherapySettingsFromFile()
+            fetchExistingDeliveryLimtisFromFile()
         }
 
         // MARK: - Helpers
@@ -111,7 +115,7 @@ extension Onboarding {
         ///   - value: The value to match.
         ///   - array: The array to search in.
         /// - Returns: Closest index in array.
-        private func closestIndex(for value: Decimal, in array: [Decimal]) -> Int {
+        func closestIndex(for value: Decimal, in array: [Decimal]) -> Int {
             array.enumerated().min(by: {
                 abs($0.element - value) < abs($1.element - value)
             })?.offset ?? 0
@@ -122,7 +126,7 @@ extension Onboarding {
         ///   - value: The time value to match.
         ///   - array: The array to search in.
         /// - Returns: Closest index in array.
-        private func closestIndex(for value: TimeInterval, in array: [TimeInterval]) -> Int {
+        func closestIndex(for value: TimeInterval, in array: [TimeInterval]) -> Int {
             array.enumerated().min(by: {
                 abs($0.element - value) < abs($1.element - value)
             })?.offset ?? 0
@@ -134,6 +138,82 @@ extension Onboarding {
             formatter.timeZone = TimeZone(secondsFromGMT: 0)
             formatter.dateFormat = "HH:mm:ss"
             return formatter
+        }
+
+        // MARK: - Fetch existing therapy settings from file
+
+        /// Loads existing therapy settings from the provider and maps them into UI editor items.
+        ///
+        /// This function processes therapy-related configurations (glucose targets, basal rates,
+        /// carb ratios, and insulin sensitivity factors) stored in file-backed models from the provider.
+        /// It calculates the closest matching indices for time and rate values to map them to corresponding
+        /// `Editor.Item` models for use in the UI.
+        ///
+        /// - Populates:
+        ///   - `targetItems` and `initialTargetItems` with glucose target entries.
+        ///   - `basalProfileItems` and `initialBasalProfileItems` with basal rate entries.
+        ///   - `carbRatioItems` and `initialCarbRatioItems` with carbohydrate ratio entries.
+        ///   - `isfItems` and `initialISFItems` with insulin sensitivity factor entries.
+        func fetchExistingTherapySettingsFromFile() {
+            targetItems = provider.glucoseTargetsOnFile.targets.map { value in
+                let timeIndex = closestIndex(for: TimeInterval(Double(value.offset * 60)), in: targetTimeValues)
+                let lowIndex = closestIndex(for: value.low, in: targetRateValues)
+                let highIndex = closestIndex(for: value.high, in: targetRateValues)
+                return TargetsEditor.Item(lowIndex: lowIndex, highIndex: highIndex, timeIndex: timeIndex)
+            }
+            initialTargetItems = targetItems
+                .map { TargetsEditor.Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
+
+            basalProfileItems = provider.basalProfileOnFile.map { value in
+                let timeIndex = closestIndex(for: TimeInterval(Double(value.minutes * 60)), in: basalProfileTimeValues)
+                let rateIndex = closestIndex(for: value.rate, in: basalProfileRateValues)
+                return BasalProfileEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
+            }
+            initialBasalProfileItems = basalProfileItems
+                .map { BasalProfileEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+
+            carbRatioItems = provider.carbRatiosOnFile.schedule.map { value in
+                let timeIndex = closestIndex(for: TimeInterval(Double(value.offset * 60)), in: carbRatioTimeValues)
+                let rateIndex = closestIndex(for: value.ratio, in: carbRatioRateValues)
+                return CarbRatioEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
+            }
+
+            initialCarbRatioItems = carbRatioItems.map { CarbRatioEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+
+            isfItems = provider.isfOnFile.sensitivities.map { value in
+                let timeIndex = closestIndex(for: TimeInterval(Double(value.offset * 60)), in: isfTimeValues)
+                let rateIndex = closestIndex(for: value.sensitivity, in: isfRateValues)
+
+                return ISFEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
+            }
+
+            initialISFItems = isfItems.map { ISFEditor.Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+        }
+
+        /// Loads delivery limit settings (Units, Max IOB, Max COB, Max Bolus, Max Basal) from the provider.
+        ///
+        /// Retrieves pump-related safety and delivery limits from both the provider's
+        /// file-backed pump settings and app-specific preferences. These values are used
+        /// to pre-fill the delivery limits editor in the onboarding or settings UI.
+        ///
+        /// - Populates:
+        ///   - `maxBolus` and `maxBasal` from file-based pump settings.
+        ///   - `maxIOB`, `maxCOB`, and `minimumSafetyThreshold` from app preferences.
+        ///   - `units` from app settings.
+        func fetchExistingDeliveryLimtisFromFile() {
+            units = settingsManager.settings.units
+
+            let pumpSettingsFromFile = provider.pumpSettingsFromFile
+
+            if let pumpSettingsFromFile = pumpSettingsFromFile {
+                maxBolus = pumpSettingsFromFile.maxBolus
+                maxBasal = pumpSettingsFromFile.maxBasal
+            }
+
+            let preferences = settingsManager.preferences
+            maxIOB = preferences.maxIOB
+            maxCOB = preferences.maxCOB
+            minimumSafetyThreshold = preferences.threshold_setting
         }
 
         // MARK: - Get Therapy Items
