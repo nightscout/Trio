@@ -80,7 +80,6 @@ extension NightscoutConfig {
             if let CheckURL = url.last, CheckURL == "/" {
                 let fixedURL = url.dropLast()
                 url = String(fixedURL)
-                url = String(fixedURL)
             }
 
             guard let url = URL(string: url), self.url.hasPrefix("https://") else {

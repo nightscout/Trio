@@ -356,7 +356,7 @@
 		BD432CA22D2F4E4000D1EB79 /* WatchMessageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */; };
 		BD47FD132D88AA700043966B /* OnboardingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD122D88AA6B0043966B /* OnboardingManager.swift */; };
 		BD47FD172D88AAF50043966B /* CompletedStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD162D88AAEF0043966B /* CompletedStepView.swift */; };
-		BD47FD192D88AAFE0043966B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD182D88AAF90043966B /* OnboardingView.swift */; };
+		BD47FD192D88AAFE0043966B /* OnboardingRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD182D88AAF90043966B /* OnboardingRootView.swift */; };
 		BD47FD1B2D88AB4F0043966B /* OnboardingStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FD1A2D88AB4A0043966B /* OnboardingStateModel.swift */; };
 		BD47FDD72D8B64D20043966B /* CarbRatioStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FDD62D8B64CC0043966B /* CarbRatioStepView.swift */; };
 		BD47FDD92D8B657D0043966B /* InsulinSensitivityStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FDD82D8B65730043966B /* InsulinSensitivityStepView.swift */; };
@@ -1141,7 +1141,7 @@
 		BD432CA02D2F4E3300D1EB79 /* WatchMessageKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchMessageKeys.swift; sourceTree = "<group>"; };
 		BD47FD122D88AA6B0043966B /* OnboardingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingManager.swift; sourceTree = "<group>"; };
 		BD47FD162D88AAEF0043966B /* CompletedStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedStepView.swift; sourceTree = "<group>"; };
-		BD47FD182D88AAF90043966B /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		BD47FD182D88AAF90043966B /* OnboardingRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingRootView.swift; sourceTree = "<group>"; };
 		BD47FD1A2D88AB4A0043966B /* OnboardingStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStateModel.swift; sourceTree = "<group>"; };
 		BD47FDD62D8B64CC0043966B /* CarbRatioStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbRatioStepView.swift; sourceTree = "<group>"; };
 		BD47FDD82D8B65730043966B /* InsulinSensitivityStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsulinSensitivityStepView.swift; sourceTree = "<group>"; };
@@ -2753,7 +2753,7 @@
 				DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorView.swift */,
 				DD3F1F862D9DDB1200DCE7B3 /* AnimationPlaceholder.swift */,
 				DDC38E0F2D9B376900ADCB46 /* OnboardingView+Util.swift */,
-				BD47FD182D88AAF90043966B /* OnboardingView.swift */,
+				BD47FD182D88AAF90043966B /* OnboardingRootView.swift */,
 				BD47FDD52D8B64AE0043966B /* OnboardingSteps */,
 			);
 			path = View;
@@ -3991,7 +3991,7 @@
 				5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */,
 				38569348270B5DFB0002C50D /* GlucoseSource.swift in Sources */,
 				CEE9A6582BBB418300EB5194 /* CalibrationsStateModel.swift in Sources */,
-				BD47FD192D88AAFE0043966B /* OnboardingView.swift in Sources */,
+				BD47FD192D88AAFE0043966B /* OnboardingRootView.swift in Sources */,
 				CEB434E328B8F9DB00B70274 /* BluetoothStateManager.swift in Sources */,
 				BDC2EA452C3043B000E5BBD0 /* OverrideStorage.swift in Sources */,
 				3811DE4225C9D4A100A708ED /* SettingsDataFlow.swift in Sources */,
