@@ -1,3 +1,4 @@
+import FirebaseCrashlytics
 import Observation
 import SwiftUI
 
@@ -24,6 +25,7 @@ extension AppDiagnostics {
         func applyDiagnostics() {
             let booleanValue: Bool = diagnosticsSharingOption == .enabled
             UserDefaults.standard.set(booleanValue, forKey: "DiagnosticsSharing")
+            Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(booleanValue)
         }
     }
 }

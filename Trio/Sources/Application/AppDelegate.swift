@@ -14,12 +14,12 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
         let userDefaults = UserDefaults.standard
         // Default to `true` if the key doesn't exist
         let crashReportingEnabled: Bool = userDefaults.getValue(Bool.self, forKey: "DiagnosticsSharing") ?? true
-        
+
         // The docs say that changes to this don't take effect until
         // the next app boot, but this is fine since the app will need
         // to boot after a crash
         Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(crashReportingEnabled)
-        
+
         return true
     }
 

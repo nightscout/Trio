@@ -1,4 +1,5 @@
 import Combine
+import FirebaseCrashlytics
 import Foundation
 import LoopKit
 import Observation
@@ -401,6 +402,7 @@ extension Onboarding {
         func applyDiagnostics() {
             let booleanValue: Bool = diagnosticsSharingOption == .enabled
             UserDefaults.standard.set(booleanValue, forKey: "DiagnosticsSharing")
+            Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(booleanValue)
         }
 
         /// Applies the selected glucose units to the app's settings.
