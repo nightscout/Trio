@@ -503,16 +503,9 @@ extension Onboarding {
 
         /// Saves pump delivery limits to persistent storage and broadcasts changes.
         func applyToPumpSettings() {
-            let defaultDIA = settingsProvider.settings.insulinPeakTime.value
+            let defaultDIA = settingsProvider.settings.dia.value
             let pumpSettings = PumpSettings(insulinActionCurve: defaultDIA, maxBolus: maxBolus, maxBasal: maxBasal)
             fileStorage.save(pumpSettings, as: OpenAPS.Settings.settings)
-
-            // TODO: Evaluate whether broadcasting this early is needed
-            // DispatchQueue.main.async {
-            //     self.broadcaster.notify(PumpSettingsObserver.self, on: DispatchQueue.main) {
-            //         $0.pumpSettingsDidChange(pumpSettings)
-            //     }
-            // }
         }
     }
 }
