@@ -103,7 +103,8 @@ extension Onboarding {
             isConnectingToNS = false
             isValidNightscoutURL = false
 
-            // Attempt to fetch existing therapy settings and delivery limits from file
+            // Attempt to fetch existing units, therapy settings and delivery limits from file
+            units = settingsManager.settings.units
             fetchExistingTherapySettingsFromFile()
             fetchExistingDeliveryLimtisFromFile()
         }
@@ -201,8 +202,6 @@ extension Onboarding {
         ///   - `maxIOB`, `maxCOB`, and `minimumSafetyThreshold` from app preferences.
         ///   - `units` from app settings.
         func fetchExistingDeliveryLimtisFromFile() {
-            units = settingsManager.settings.units
-
             let pumpSettingsFromFile = provider.pumpSettingsFromFile
 
             if let pumpSettingsFromFile = pumpSettingsFromFile {
