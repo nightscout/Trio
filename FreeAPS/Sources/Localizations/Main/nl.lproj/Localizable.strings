@@ -215,7 +215,7 @@
 "for" = "voor";
 
 /*  Temp target set for ... minutes */
-"min" = "min";
+"min" = "min.";
 
 /*  */
 "Autotune" = "Autotune";
@@ -233,7 +233,7 @@
 "Run now" = "Nu uitvoeren";
 
 /*  */
-"Last run" = "Laatste berekening";
+"Last run" = "Laatst uitgevoerd";
 
 /*  */
 "Sensitivity" = "Gevoeligheid";
@@ -272,7 +272,7 @@
 "Carb Ratios" = "Koolhydraten ratio's";
 
 /*  */
-"Ratio" = "Ratio";
+"Ratio" = "Verhouding";
 
 /*  */
 "Autosens" = "Gevoeligheidsdetectie (Autosens)";
@@ -432,28 +432,28 @@ Enact a temp Basal or a temp target */
 "Max Carbs" = "Max koolhydraten";
 
 /* Max setting */
-"Max Fat" = "Max Fat";
+"Max Fat" = "Max. vat";
 
 /* Max setting */
-"Max Protein" = "Max Protein";
+"Max Protein" = "Max proteïne";
 
 /* Max setting */
-"Limit Per Entry" = "Limit Per Entry";
+"Limit Per Entry" = "Limiet per Invoer";
 
 /* Max Carbs limit exceeded */
-"Max Carbs of" = "Max Carbs of";
+"Max Carbs of" = "Maximaal aantal koolhydraten van";
 
 /* Max Fat limit exceeded */
-"Max Fat of" = "Max Fat of";
+"Max Fat of" = "Max. vat van";
 
 /* Max Protein limit exceeded */
-"Max Protein of" = "Max Protein of";
+"Max Protein of" = "Max proteïne van";
 
 /* Max Bolus limit exceeded */
-"Max Bolus of" = "Max Bolus of";
+"Max Bolus of" = "Max bolus van";
 
 /* Limit Exceeded label */
-"exceeded" = "exceeded";
+"exceeded" = "overschreden";
 
 /* */
 "Pump Settings" = "Pomp instellingen";
@@ -492,13 +492,13 @@ Enact a temp Basal or a temp target */
 "0 U/hr" = "0 E/uur";
 
 /* abbreviation for days */
-"d" = "d";
+"d" = "D";
 
 /* abbreviation for hours */
 "h" = "u";
 
 /* abbreviation for minutes */
-"m" = "m";
+"m" = "min";
 
 /*  */
 "Closed loop" = "Actieve loop";
@@ -513,19 +513,19 @@ Enact a temp Basal or a temp target */
 "Pump" = "Pomp";
 
 /* */
-"Watch" = "Watch";
+"Watch" = "Horloge";
 
 /* */
 "Watch Configuration" = "Watch configuratie";
 
 /* */
-"Apple Watch" = "Apple Watch";
+"Apple Watch" = "Apple horloge";
 
 /* */
 "Display on Watch" = "Weergave op horloge";
 
 /* */
-"Garmin Watch" = "Garmin Watch";
+"Garmin Watch" = "Garmin horloge";
 
 /* */
 "Add devices" = "Apparaten toevoegen";
@@ -579,7 +579,7 @@ Enact a temp Basal or a temp target */
 "History" = "Geschiedenis";
 
 /* Nightscout option */
-"Upload" = "Upload";
+"Upload" = "Uploaden";
 
 /* Nightscout option */
 "Allow Uploads" = "Uploaden toestaan";
@@ -642,7 +642,7 @@ Enact a temp Basal or a temp target */
 "External" = "Extern";
 
 /* */
-"Other" = "Anders";
+"Other" = "anders";
 
 /* */
 "Libre Transmitter" = "Libre zender";
@@ -678,7 +678,7 @@ Enact a temp Basal or a temp target */
 "Meter glucose" = "Meter glucosewaarde";
 
 /* */
-"Info" = "Info";
+"Info" = "Informatie";
 
 /*v*/
 "Slope" = "Toename";
@@ -1050,7 +1050,7 @@ Enact a temp Basal or a temp target */
 "Also add source info" = "Voeg ook bron info toe";
 
 /* */
-"Carbs Required Threshold" = "Koolhydraten vereist drempelwaarde";
+"Carbs Required Threshold" = "Koolhydraten vereist grenswaarde";
 
 /* */
 "Carbs required: %d g" = "Koolhydraten vereist: %d g";
@@ -1170,7 +1170,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Bewaar als je normale basaalstanden";
 
 /* */
-"Save on Pump" = "Opslaan op pomp";
+"Save on Pump" = "Bespaar op pomp";
 
 /* Debug option view Pump History */
 "Pump History" = "Pomp geschiedenis";
@@ -1226,13 +1226,13 @@ Enact a temp Basal or a temp target */
 
 /* New ALerts ------------------------- */
 /* Info title */
-"Info" = "Info";
+"Info" = "Informatie";
 
 /* Warning title */
 "Warning" = "Waarschuwing";
 
 /* Error title */
-"Error" = "Fout";
+"Error" = "Foutmelding";
 
 /* Manual temp basal mode */
 "Manual" = "Handmatig";
@@ -1261,7 +1261,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Activeer";
 
 /* Header */
-"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
+"Fat and Protein Conversion Settings" = "Vet en proteïne conversieinstellingen";
 
 /* Delay */
 "Delay In Minutes" = "Vertraging in minuten";
@@ -1279,7 +1279,7 @@ Enact a temp Basal or a temp target */
 "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Dit laat je vet en eiwit omzetten in toekomstige koolhydraten met behulp van de Warschau-formule. Deze formule verdeelt de koolhydraten over een zelf in te stellen tijdsduur van 5-12 uur.\n\nDe vertraging is de tijd tussen nu en de eerste toekomstige koolhydrateninvoer. Het interval in minuten is het aantal minuten tussen elke invoer. Als je een korter interval kiest, wordt het resultaat gelijkmatiger. Goede keuzes zijn bijvoorbeeld 10, 15, 20, 30 of 60 minuten.\n\nDe aanpassingsfactor bepaalt het effect van vet en eiwit op de waarden. Een factor van 1,0 betekent volledig effect (de oorspronkelijke Warschau-methode), en 0,5 betekent half effect.\n\nLet op dat je mogelijk moet opmerken dat je normale koolhydratenverhouding moet verhogen tot een hoger getal wanneer je vet en eiwit toevoegt. Daarom is het het beste om te beginnen met een factor van ongeveer 0,5 om het jezelf makkelijk te maken.\n\nStandaardinstellingen zijn een tijdslimiet van 8 uur, een interval van 30 minuten, een factor van 0,5 en een vertraging van 60 minuten";
 
 /* FPU Settings Title */
-"Fat and Protein" = "Fat and Protein";
+"Fat and Protein" = "Vet en proteïne";
 
 /* Display fat and protein entities */
 "Fat & Protein" = "Vetten & eiwitten";
@@ -1294,7 +1294,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Eiwit";
 
 /* Service Section */
-"Meal Settings" = "Meal Settings";
+"Meal Settings" = "Maaltijd Instellingen";
 
 /* Service Section */
 "Profile Override" = "Overschrijf profiel";
@@ -1362,7 +1362,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Profieloverschrijving annuleren?";
 
 /* Alert */
-"Cancel Temp Target" = "Annuleer tijdelijk doel";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Terug naar normaal?";
@@ -1425,7 +1425,7 @@ Enact a temp Basal or a temp target */
 "Save and continue" = "Bewaar en ga verder";
 
 /* */
-"Save as Preset" = "Bewaar als voorinstelling";
+"Save as Preset" = "Opslaan als voorinstelling";
 
 /* */
 "Predictions" = "Voorspellingen";
@@ -1475,7 +1475,7 @@ Enact a temp Basal or a temp target */
 "Eventual Glucose > Target Glucose, but glucose is predicted to drop down to " = "Voospelde glucose > doelglucose, maar de glucose wordt voorspeld dat de glucose eerst omlaag zal gaan tot ";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
-"which is below your Threshold (" = "die onder je drempelwaarde ligt (";
+"which is below your Threshold (" = "die onder je grenswaarde ligt (";
 
 /* Bolus pop-up / Alert string. Make translations concise! */
 "Eventual Glucose > Target Glucose, but glucose is climbing slower than expected. Expected: " = "Voorspelde glucose > doelglucose maar de glucose daalt sneller dan verwacht.. Verwacht: ";
@@ -1506,7 +1506,7 @@ Enact a temp Basal or a temp target */
 "Deactivate Pod" = "Deactiveer pod";
 
 /* */
-"Deactivating..." = "Uitschakelen...";
+"Deactivating..." = "Deactiveren...";
 
 "Pair Pod" = "Koppel Pod";
 
@@ -1575,7 +1575,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Verander Pod nu. Insuline levering stopt over %1$@ of wanneer er geen insuline meer over is.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Waarde";
+"Rate" = "Beoordelen";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ voor %2$@";
@@ -1604,7 +1604,7 @@ Enact a temp Basal or a temp target */
 "This PumpManager has not been configured with a maximum basal rate because it was added before manual temp basal was a feature. Please go to therapy settings -> delivery limits and set a new maximum basal rate." = "Deze Pompmanager is niet geconfigureerd met een maximale basaalstand omdat het is toegevoegd voordat handmatig tijdelijke basaal een functie was. Ga naar therapie instellingen -> afleverlimieten en stel een nieuwe maximale basaalstand in.";
 
 /* description label for active time pod details row */
-"Active Time" = "Activatie tijd";
+"Active Time" = "Actieve tijd";
 
 /* description label for total delivery pod details row */
 "Total Delivery" = "Totaal afgegeven";
@@ -1613,7 +1613,7 @@ Enact a temp Basal or a temp target */
 "Add Omnipod Dash" = "Omnipod Dash toevoegen";
 
 /* */
-"Insert Cannula" = "Plaats canulle";
+"Insert Cannula" = "Plaats canule";
 
 /* */
 "Check Cannula" = "Check canule";
@@ -1647,7 +1647,7 @@ Enact a temp Basal or a temp target */
 "Day" = "Dag";
 
 /* */
-"Week" = "Week";
+"Week" = "week";
 
 /* */
 "Month" = "Maand";
@@ -1662,10 +1662,10 @@ Enact a temp Basal or a temp target */
 "Allow Upload of Statistics to NS" = "Uploaden van statistieken naar NS toestaan";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "Laag";
+"Low" = "laag";
 
 /* High Glucose Threshold in Statistics settings */
-"High" = "Hoog";
+"High" = "hoog";
 
 /* In Range */
 "In Range" = "Binnen bereik";
@@ -1728,7 +1728,7 @@ Enact a temp Basal or a temp target */
 "Low (<" = "Laag (<";
 
 /* SD */
-"SD" = "SD";
+"SD" = "SA";
 
 /* CV */
 "CV" = "CV";
@@ -1910,7 +1910,7 @@ Enact a temp Basal or a temp target */
 "Allow SMB With High Temptarget" = "Sta SMB met hoog doel toe";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Sta SMB met hoog doel toe";
+"Allow SMB With High Temptarget" = "SMB met hoog Tijdelijk streefdoel toestaan";
 
 /* "Allow SMB With High Temptarget" */
 "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Standaard uit. Als het aangezet wordt zullen altijd supermicrobolussen (SMBs) gebruikt worden (mits elders aangezet), zelfs bij hoog tijdelijk doel (> 5,5 mmol/L).";
@@ -2030,10 +2030,10 @@ Enact a temp Basal or a temp target */
 "Time of maximum blood glucose lowering effect of insulin, in minutes. Beware: Oref assumes for ultra-rapid (Lyumjev) & rapid-acting (Fiasp) curves minimal (35 & 50 min) and maximal (100 & 120 min) applicable insulinPeakTimes. Using a custom insulinPeakTime outside these bounds will result in issues with Trio, longer loop calculations and possible red loops." = "Tijd van maximale bloedglucose verlagend effect van insuline in hele minuten (insuline piek tijd). Let op: Oref gaat er van uit dat ultra-snelle (Lyumjev) & snelle werking (Fiasp) curves minimaal (35 & 50 min) en maximaal (100 en 120 min) hebben als insulinPeakTimes. Het gebruik van een aangepaste insulinPeakTime buiten deze grenzen leidt tot problemen met Trio, langere loopberekeningen en mogelijke een rode Loop.";
 
 /* Headline "Carbs Req Threshold" */
-"Carbs Req Threshold" = "Koolhydraten vereist drempel";
+"Carbs Req Threshold" = "Koolhydraten vereist grenswaarde";
 
 /* "Carbs Req Threshold" */
-"Grams of carbsReq to trigger a pushover. Defaults to 1 (for 1 gram of carbohydrate). Can be increased if you only want to get Pushover for carbsReq at X threshold." = "Aantal gram koolhydraten benodigd om een push bericht te versturen. Standaard ingesteld op 1 (voor 1 gram aan koolhydraten). Kan worden verhoogd als u alleen push berichten wilt krijgen boven de ingestelde drempelwaarde.";
+"Grams of carbsReq to trigger a pushover. Defaults to 1 (for 1 gram of carbohydrate). Can be increased if you only want to get Pushover for carbsReq at X threshold." = "Aantal gram koolhydraten benodigd om een push bericht te versturen. Standaard ingesteld op 1 (voor 1 gram aan koolhydraten). Kan worden verhoogd als u alleen push berichten wilt krijgen boven de ingestelde grenswaarde.";
 
 /* Headline "Noisy CGM Target Multiplier" */
 "Noisy CGM Target Multiplier" = "CGM doelvermenigvuldiger met ruis";
@@ -2053,13 +2053,13 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ISF constant" = "Dynamische ISF-constante aanpassen";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Dynamische ISF-constante aanpassen";
+"Adjust Dynamic ISF constant" = "Dynamisch ISF constante aanpassen";
 
 /* Enable Dynamic ISF, Headline */
 "Enable Dynamic ISF" = "Dynamische ISF inschakelen";
 
 /* Headline "Enable Dynamic ISF" */
-"Enable Dynamic ISF" = "Dynamische ISF inschakelen";
+"Enable Dynamic ISF" = "Dynamisch ISF inschakelen";
 
 /* Enable Dynamic ISF */
 "Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Bereken bij elke loopcyclus een nieuwe ISF (Insulin Sensitivity Factor). De nieuwe ISF wordt bepaald door de huidige bloedsuikerspiegel (BG), de totale dagelijkse dosis insuline (TDD) van de afgelopen 24 uur of een gemiddelde daarvan, en een aanpassingsfactor (standaard 1). De dynamische ISF en CR (Carb Ratio) worden beperkt door de minimum- en maximumwaarden die zijn ingesteld in uw autosens.min/max grenzen. De dynamische ratio vervangt de autosens.ratio:/n/n
@@ -2085,7 +2085,7 @@ Eenvoudig gezegd, de Dynamische Carb Ratio past de koolhydraatverhouding aan op 
 "Activate Dynamic Carb Ratio (CR)" = "Dynamische koolhydraat verhouding activeren (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Dynamische ISF-constante aanpassen";
+"Adjust Dynamic ISF constant" = "Dynamisch ISF constante aanpassen";
 
 /* Adjust Dynamic ISF constant */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Verander de dynamische verhoudingen met een vaste waarde, die standaard op 0,5 staat. Als je deze waarde verhoogt, zal de aanpassing van je ISF voor hoge of lage bloedsuikerwaarden groter zijn. De grootte van de correctie is beperkt door de instellingen voor Autosens min/max. Voor de Sigmoid-functie wordt een startwaarde van 0,4 tot 0,5 aanbevolen. Voor de logaritmische formule is er geen vastgestelde norm, maar voor de meeste gebruikers is een waarde tussen 0,5 en 0,8 passender.";
@@ -2103,10 +2103,10 @@ Eenvoudig gezegd, de Dynamische Carb Ratio past de koolhydraatverhouding aan op 
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Gebruikt een Sigmoid functie voor ISF (en voor CR, indien ingeschakeld), in plaats van de standaard logaritmische formule. Vereist een geactiveerde dynamische ISF instelling.\n\nDe instelling aanpassing past de helling van de curve aan (Y: Dynamische verhouding, X: Bloedglucose). Een lagere waarde ==> minder steil = minder agressief.\n\nDe autosens.min/max instellingen bepalen zowel de max/min grenzen voor de dynamische ratio als hoeveel de dynamische ratio wordt aangepast. Als AF de helling van de curve is, is autosens.min/max de hoogte van de grafiek, het Y-interval, waarbij Y: dynamische verhouding. De curve zal altijd een sigmoïde vorm hebben, ongeacht de autosens.min/max instellingen, wat betekent dat deze instellingen grote gevolgen hebben voor het resultaat van de berekende dynamische ISF. Wees voorzichtig met het instellen van een te hoge autosens.max waarde. Met een goede profiel-ISF instelling zal het waarschijnlijk nooit nodig zijn deze hoger in te stellen dan 1,5.\n\nEen Autosens max grens > 1,5 is niet aan te raden bij gebruik van de Sigmoid functie.";
 
 /* Headline Threshold Setting */
-"Minimum Safety Threshold (mg/dL)" = "Minimum Safety Threshold (mg/dL)";
+"Minimum Safety Threshold (mg/dL)" = "Minimale veiligheidsgrenswaarde (mg/dL)";
 
 /* Minimum Safety Threshold */
-"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.";
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "Alle insuline wordt geschorst als je glucose lager uitvalt dan de veiligheidsgrens.\n\nmoet ingesteld worden tussen 60 en 120 mg/dL.\nOm te converteren vanaf mmol/L, vermenigvuldigen met 18.\n\nOpmerking: Basaal kan worden hervat als er een negatief IOB is en glucose sneller stijgt dan voorspeld.";
 
 /* Header */
 "Calculator settings" = "Calculator instellingen";
@@ -2165,7 +2165,7 @@ Eenvoudig gezegd, de Dynamische Carb Ratio past de koolhydraatverhouding aan op 
 "Enable adjustment of basal based on the ratio of current TDD / 7 day average TDD" = "Aanpassing van basaal inschakelen op basis van de verhouding van huidige TDD / 7 dag gemiddelde TDD";
 
 /* Headline "Max Delta-BG Threshold SMB" */
-"Max Delta-BG Threshold SMB" = "Max Delta-BG drempelwaarde SMB";
+"Max Delta-BG Threshold SMB" = "Max Delta-BG grenswaarde SMB";
 
 /* Max Delta-BG Threshold SMB */
 "Defaults to 0.2 (20%). Maximum positive percentual change of BG level to use SMB, above that will disable SMB. Hardcoded cap of 40%. For UAM fully-closed-loop 30% is advisable. Observe in log and popup (maxDelta 27 > 20% of BG 100 - disabling SMB!)." = "Staat standaard op 0,2 (20%). Maximale positieve procentuele verandering van BG-niveau om SMB te gebruiken, daarboven wordt SMB uitgeschakeld. Hardcoded maximum van 40%. Voor volledig gesloten UAM-loop is 30% raadzaam. Zie in log en popup (maxDelta 27 > 20% van BG 100 - uitschakelen SMB!).";
