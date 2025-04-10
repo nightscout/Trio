@@ -73,8 +73,8 @@ extension Treatments {
             debounce?.cancel()
             debounce = DispatchWorkItem { [self] in
                 Task {
-                    state.insulinCalculated = await state.calculateInsulin()
                     await state.updateForecasts()
+                    state.insulinCalculated = await state.calculateInsulin()
                 }
             }
             if let debounce = debounce {

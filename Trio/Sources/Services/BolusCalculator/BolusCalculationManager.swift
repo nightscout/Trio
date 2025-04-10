@@ -4,7 +4,8 @@ import Swinject
 
 protocol BolusCalculationManager {
     func calculateInsulin(input: CalculationInput) async -> CalculationResult
-    func handleBolusCalculation(carbs: Decimal, useFattyMealCorrection: Bool, useSuperBolus: Bool) async -> CalculationResult
+    func handleBolusCalculation(carbs: Decimal, useFattyMealCorrection: Bool, useSuperBolus: Bool, minPredBG: Decimal?) async
+        -> CalculationResult
 }
 
 final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
@@ -280,7 +281,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     private func prepareCalculationInput(
         carbs: Decimal,
         useFattyMealCorrection: Bool,
-        useSuperBolus: Bool
+        useSuperBolus: Bool,
+        minPredBG: Decimal?
     ) async throws -> CalculationInput {
         do {
             // Get settings
@@ -296,7 +298,6 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             let currentISF = await getCurrentSettingValue(for: .isf)
 
             // Get max IOB and max COB
-
             let preferences = await getPreferences()
             let maxIOB = preferences.maxIOB
             let maxCOB = preferences.maxCOB
@@ -347,7 +348,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
                 maxBolus: maxBolus,
                 maxIOB: maxIOB,
                 maxCOB: maxCOB,
-                minPredBG: bolusVars.minPredBG
+                minPredBG: minPredBG ?? bolusVars.minPredBG
             )
         } catch {
             debug(
@@ -365,45 +366,56 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     func calculateInsulin(input: CalculationInput) async -> CalculationResult {
         // insulin needed for the current blood glucose
         let targetDifference = input.currentBG - input.target
+        debug(.default, "Target difference: \(targetDifference)")
 
         let targetDifferenceInsulin = targetDifference / input.isf
+        debug(.default, "Target difference insulin: \(targetDifferenceInsulin)")
 
         // more or less insulin because of bg trend in the last 15 minutes
         let fifteenMinutesInsulin = input.deltaBG / input.isf
+        debug(.default, "15min insulin: \(fifteenMinutesInsulin)")
 
         // determine whole COB for which we want to dose insulin for and then determine insulin for wholeCOB
         let wholeCob = min(Decimal(input.cob) + input.carbs, input.maxCOB)
         let wholeCobInsulin = wholeCob / input.carbRatio
+        debug(.default, "Whole COB: \(wholeCob), COB insulin: \(wholeCobInsulin)")
 
         // determine how much the calculator reduces/ increases the bolus because of IOB
         let iobInsulinReduction = (-1) * input.iob
+        debug(.default, "IOB reduction: \(iobInsulinReduction)")
 
         // adding everything together
         // add a calc for the case that no fifteenMinInsulin is available
         let wholeCalc: Decimal
         if input.deltaBG != 0 {
             wholeCalc = (targetDifferenceInsulin + iobInsulinReduction + wholeCobInsulin + fifteenMinutesInsulin)
+            debug(.default, "Whole calc (with delta): \(wholeCalc)")
         } else {
             // add (rare) case that no glucose value is available -> maybe display warning?
             // if no bg is available, ?? sets its value to 0
             if input.currentBG == 0 {
                 wholeCalc = (iobInsulinReduction + wholeCobInsulin)
+                debug(.default, "Whole calc (no BG): \(wholeCalc)")
             } else {
                 wholeCalc = (targetDifferenceInsulin + iobInsulinReduction + wholeCobInsulin)
+                debug(.default, "Whole calc (no delta): \(wholeCalc)")
             }
         }
 
         // apply custom factor at the end of the calculations
         // apply custom factor if fatty meal toggle in bolus calc config settings is on and the box for fatty meals is checked (in RootView)
         var factoredInsulin = wholeCalc
+        debug(.default, "Initial factored insulin: \(factoredInsulin)")
 
         // Apply Recommended Bolus Percentage (input.fraction) and if selected apply Fatty Meal Bolus Percentage (input.fattyMealFactor)
         // If factoredInsulin is negative, though, don't apply either
         if factoredInsulin > 0 {
             factoredInsulin *= input.fraction
+            debug(.default, "After fraction (\(input.fraction)): \(factoredInsulin)")
 
             if input.useFattyMealCorrectionFactor {
                 factoredInsulin *= input.fattyMealFactor
+                debug(.default, "After fatty meal factor (\(input.fattyMealFactor)): \(factoredInsulin)")
             }
         }
 
@@ -412,24 +424,34 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         if input.useSuperBolus {
             superBolusInsulin = input.sweetMealFactor * input.basal
             factoredInsulin += superBolusInsulin
+            debug(.default, "After super bolus (\(superBolusInsulin)): \(factoredInsulin)")
         }
 
         // the final result for recommended insulin amount
         var insulinCalculated: Decimal
         let isLoopStale = Date().timeIntervalSince(apsManager.lastLoopDate) > 15 * 60
+        debug(.default, "Loop stale: \(isLoopStale), currentBG: \(input.currentBG), minPredBG: \(input.minPredBG)")
 
         // don't recommend insulin when current glucose or minPredBG is < 54 or last sucessful loop was over 15 minutes ago
         if input.currentBG < 54 || input.minPredBG < 54 || isLoopStale {
             insulinCalculated = 0
+            debug(.default, "Insulin set to 0 due to safety check - BG < 54 or stale loop")
         } else {
             // no negative insulinCalculated
             insulinCalculated = max(factoredInsulin, 0)
+            debug(.default, "After max(0): \(insulinCalculated)")
+
             // don't exceed maxBolus
             insulinCalculated = min(insulinCalculated, input.maxBolus)
+            debug(.default, "After maxBolus (\(input.maxBolus)): \(insulinCalculated)")
+
             // don't exceed maxIOB
             insulinCalculated = min(insulinCalculated, input.maxIOB - input.iob)
+            debug(.default, "After maxIOB check (\(input.maxIOB) - \(input.iob)): \(insulinCalculated)")
+
             // round calculated recommendation to allowed bolus increment
             insulinCalculated = apsManager.roundBolus(amount: insulinCalculated)
+            debug(.default, "Final rounded insulin: \(insulinCalculated)")
         }
 
         return CalculationResult(
@@ -452,17 +474,20 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     ///   - carbs: Amount of carbohydrates to be consumed
     ///   - useFattyMealCorrection: Whether to apply fatty meal correction
     ///   - useSuperBolus: Whether to use super bolus calculation
+    ///   - minPredBG: Minimum Predicted Glucose determined by Oref
     /// - Returns: CalculationResult containing the calculated insulin dose and details
     func handleBolusCalculation(
         carbs: Decimal,
         useFattyMealCorrection: Bool,
-        useSuperBolus: Bool
+        useSuperBolus: Bool,
+        minPredBG: Decimal? = nil
     ) async -> CalculationResult {
         do {
             let input = try await prepareCalculationInput(
                 carbs: carbs,
                 useFattyMealCorrection: useFattyMealCorrection,
-                useSuperBolus: useSuperBolus
+                useSuperBolus: useSuperBolus,
+                minPredBG: minPredBG
             )
             let result = await calculateInsulin(input: input)
             return result

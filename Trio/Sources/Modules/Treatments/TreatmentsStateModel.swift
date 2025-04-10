@@ -374,7 +374,8 @@ extension Treatments {
             let result = await bolusCalculationManager.handleBolusCalculation(
                 carbs: carbs,
                 useFattyMealCorrection: useFattyMealCorrectionFactor,
-                useSuperBolus: useSuperBolus
+                useSuperBolus: useSuperBolus,
+                minPredBG: minPredBG
             )
 
             // Update state properties with calculation results on main thread
