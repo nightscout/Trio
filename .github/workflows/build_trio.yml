@@ -273,7 +273,8 @@ jobs:
 
       # Update entitlement background sound
       - name: Update entitlement background sound
-        run: sed -i -e 's/<string>bluetooth-central<\/string>/<string>bluetooth-central<\/string><string>audio<\/string>/g' FreeAPSTest/Info.plist
+        run: sed -i -e 's/<string>bluetooth-central<\/string>/<string>bluetooth-central<\/string><string>audio<\/string>/g' Trio/FreeAPSTest/Info.plist
+
 
 
       - name: Fastlane Build & Archive
