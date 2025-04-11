@@ -5,7 +5,7 @@ extension AppDiagnostics {
     struct RootView: BaseView {
         let resolver: Resolver
 
-        @StateObject var state = StateModel()
+        @State var state = StateModel()
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
@@ -40,9 +40,9 @@ extension AppDiagnostics {
                             }
                             .padding()
                         }
-                        .onChange(of: state.diagnosticsSharingOption, { _, _ in
+                        .onChange(of: state.diagnosticsSharingOption) {
                             state.applyDiagnostics()
-                        })
+                        }
                     }
                 ).listRowBackground(Color.chart)
 
