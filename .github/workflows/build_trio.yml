@@ -271,9 +271,8 @@ jobs:
       - name: Sync clock
         run: sudo sntp -sS time.windows.com
 
-      # Update entitlement background sound
       - name: Update entitlement background sound
-        run: sed -i -e 's/<string>bluetooth-central<\/string>/<string>bluetooth-central<\/string><string>audio<\/string>/g' freeAPSTest/Info.plist
+        run: sed -i -e 's/<string>bluetooth-central<\/string>/<string>bluetooth-central<\/string><string>audio<\/string>/g' FreeAPS/Resources/Info.plist
 
 
 
