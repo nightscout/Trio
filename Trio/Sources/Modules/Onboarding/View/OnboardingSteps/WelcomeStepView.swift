@@ -4,11 +4,7 @@ import SwiftUI
 struct WelcomeStepView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 20) {
-            Image("trioCircledNoBackground")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 100)
-                .padding()
+            PulsingLogoAnimation()
 
             Text("Hi there!")
                 .font(.title2)
