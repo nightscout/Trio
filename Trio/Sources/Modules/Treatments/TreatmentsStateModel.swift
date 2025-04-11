@@ -371,11 +371,16 @@ extension Treatments {
 
         /// Calculate insulin recommendation
         func calculateInsulin() async -> Decimal {
+            // Safely get minPredBG on main thread
+            let localMinPredBG = await MainActor.run {
+                minPredBG
+            }
+
             let result = await bolusCalculationManager.handleBolusCalculation(
                 carbs: carbs,
                 useFattyMealCorrection: useFattyMealCorrectionFactor,
                 useSuperBolus: useSuperBolus,
-                minPredBG: minPredBG
+                minPredBG: localMinPredBG
             )
 
             // Update state properties with calculation results on main thread
