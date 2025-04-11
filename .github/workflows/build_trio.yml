@@ -284,6 +284,8 @@ jobs:
           FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
           FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      - name: Increment build number
+        run: fastlane run increment_build_number
 
       # Upload to TestFlight
       - name: Fastlane upload to TestFlight
