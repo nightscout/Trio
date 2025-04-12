@@ -112,21 +112,7 @@ extension Onboarding {
                                         }
                                         .padding([.horizontal, .top])
                                     }
-
-                                    // Animation container (for steps that include animations)
-                                    //                                AnimationPlaceholder(for: currentStep)
-                                    //                                    .padding()
-                                    //                                    .scaleEffect(animationScale)
-                                    //                                    .opacity(animationOpacity)
-                                    //                                    .onAppear {
-                                    //                                        withAnimation(.easeInOut(duration: 0.7)) {
-                                    //                                            animationOpacity = 1
-                                    //                                            animationScale = 1.0
-                                    //                                        }
-                                    //                                        // Start pulse animation
-                                    //                                        isAnimating = true
-                                    //                                    }
-
+                                    
                                     // Step-specific content
                                     Group {
                                         switch currentStep {
