@@ -53,7 +53,9 @@ enum OrefFunction: String, Codable {
                 "bolusiob": 0.25,
                 "netbasalinsulin": 0.25,
                 "bolusinsulin": 0.25,
-                "duration": 0.1
+                // Please see this issue for context on duration:
+                // https://github.com/nightscout/Trio-dev/issues/453
+                "duration": 120
             ]
         }
     }
