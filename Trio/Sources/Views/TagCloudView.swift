@@ -116,7 +116,7 @@ struct TagCloudView: View {
     // TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
     private func formatGlucoseTags(_ tag: String, isMmolL: Bool) -> String {
         let patterns = [
-            "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",
+            "(?:ISF|Target):\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",
             "Dev:\\s*-?\\d+\\.?\\d*",
             "BGI:\\s*-?\\d+\\.?\\d*",
             "Target:\\s*-?\\d+\\.?\\d*",
@@ -143,14 +143,16 @@ struct TagCloudView: View {
             let glucoseValueString = String(tag[range])
 
             if glucoseValueString.contains("→") {
-                // -- Handle ISF: X→Y
+                // -- Handle ISF: X→Y or Target: X→Y
                 let values = glucoseValueString.components(separatedBy: "→")
-                // For example "ISF: 162"
-                let firstNumber = values[0].components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
+                let prefixAndFirstNumber = values[0].components(separatedBy: ":")
+                guard prefixAndFirstNumber.count == 2 else { continue }
+                let prefix = prefixAndFirstNumber[0].trimmingCharacters(in: .whitespaces)
+                let firstNumber = prefixAndFirstNumber[1].trimmingCharacters(in: .whitespaces)
                 let secondNumber = values[1].trimmingCharacters(in: .whitespaces)
                 let firstValue = convertToMmolL(firstNumber)
                 let secondValue = convertToMmolL(secondNumber)
-                let formattedString = "ISF: \(firstValue)→\(secondValue)"
+                let formattedString = "\(prefix): \(firstValue)→\(secondValue)"
                 updatedTag.replaceSubrange(range, with: formattedString)
 
             } else if glucoseValueString.starts(with: "Dev:") {
