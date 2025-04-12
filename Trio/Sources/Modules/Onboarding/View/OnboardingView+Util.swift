@@ -10,6 +10,7 @@ enum OnboardingNavigationDirection {
 enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     case welcome
     case startupGuide
+    case overview
     case diagnostics
     case nightscout
     case unitSelection
@@ -38,6 +39,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return String(localized: "Welcome to Trio")
         case .startupGuide:
             return String(localized: "Startup Guide")
+        case .overview:
+            return String(localized: "Overview")
         case .diagnostics:
             return String(localized: "Diagnostics")
         case .nightscout:
@@ -69,6 +72,10 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         case .startupGuide:
             return String(
                 localized: "Trio comes with a helpful Startup Guide. We recommend opening it now and following along as you go — side by side."
+            )
+        case .overview:
+            return String(
+                localized: "Trio's Onboarding consists of several steps. It takes about 5-10 minutes to complete. We'll guide you through each step."
             )
         case .diagnostics:
             return String(
@@ -116,6 +123,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return "hand.wave.fill"
         case .startupGuide:
             return "list.bullet.clipboard.fill"
+        case .overview:
+            return "checklist.unchecked"
         case .diagnostics:
             return "waveform.badge.magnifyingglass"
         case .nightscout:
@@ -160,6 +169,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
              .deliveryLimits,
              .diagnostics,
              .nightscout,
+             .overview,
              .startupGuide,
              .unitSelection,
              .welcome:
@@ -174,6 +184,10 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return Color.red
         }
     }
+}
+
+var nonInfoOnboardingSteps: [OnboardingStep] { OnboardingStep.allCases
+    .filter { $0 != .welcome && $0 != .startupGuide && $0 != .overview && $0 != .completed }
 }
 
 enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
@@ -380,5 +394,71 @@ struct BulletPoint: View {
             Text("•")
             Text(text)
         }
+    }
+}
+
+enum OnboardingSettingItemType: Equatable, CaseIterable, Identifiable {
+    case overview
+    case complete
+
+    var id: UUID {
+        UUID()
+    }
+}
+
+/// A reusable view for displaying setting items in the completed step.
+struct SettingItemView: View {
+    let step: OnboardingStep
+    let icon: String
+    let title: String
+    let type: OnboardingSettingItemType
+
+    private var accentColor: Color {
+        switch type {
+        case .overview:
+            Color.blue
+        case .complete:
+            Color.green
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            if step == .nightscout {
+                Image(icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 24)
+                    .colorMultiply(accentColor)
+            } else {
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                    .foregroundStyle(accentColor)
+                    .frame(width: 40)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.headline)
+            }
+
+            Spacer()
+
+            switch type {
+            case .overview:
+                let index = nonInfoOnboardingSteps.firstIndex(of: step) ?? 0
+                let stepNumber = index + 1
+                Text(stepNumber.description)
+                    .bold()
+                    .frame(width: 32, height: 32, alignment: .center)
+                    .background(accentColor)
+                    .foregroundStyle(.white)
+                    .clipShape(Capsule())
+            case .complete:
+                Image(systemName: "checkmark")
+                    .foregroundStyle(accentColor)
+            }
+        }
+        .padding(.vertical, 8)
     }
 }

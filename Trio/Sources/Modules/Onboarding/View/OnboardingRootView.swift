@@ -51,24 +51,25 @@ extension Onboarding {
                     .ignoresSafeArea()
 
                     VStack(spacing: 0) {
-                        // Progress bar
-                        OnboardingProgressBar(
-                            currentStep: currentStep,
-                            currentSubstep: {
-                                switch currentStep {
-                                case .deliveryLimits: return currentDeliverySubstep.rawValue
-                                case .nightscout: return currentNightscoutSubstep.rawValue
-                                default: return nil
-                                }
-                            }(),
-                            stepsWithSubsteps: [
-                                .nightscout: NightscoutSubstep.allCases.count,
-                                .deliveryLimits: DeliveryLimitSubstep.allCases.count
-                            ],
-                            nightscoutSetupOption: state.nightscoutSetupOption
-                        )
-
-                        .padding(.top)
+                        if (nonInfoOnboardingSteps + [OnboardingStep.overview, OnboardingStep.completed]).contains(currentStep) {
+                            // Progress bar
+                            OnboardingProgressBar(
+                                currentStep: currentStep,
+                                currentSubstep: {
+                                    switch currentStep {
+                                    case .deliveryLimits: return currentDeliverySubstep.rawValue
+                                    case .nightscout: return currentNightscoutSubstep.rawValue
+                                    default: return nil
+                                    }
+                                }(),
+                                stepsWithSubsteps: [
+                                    .nightscout: NightscoutSubstep.allCases.count,
+                                    .deliveryLimits: DeliveryLimitSubstep.allCases.count
+                                ],
+                                nightscoutSetupOption: state.nightscoutSetupOption
+                            )
+                            .padding(.top)
+                        }
 
                         // Step content
                         ScrollViewReader { scrollProxy in
@@ -133,6 +134,8 @@ extension Onboarding {
                                             WelcomeStepView()
                                         case .startupGuide:
                                             StartupGuideStepView()
+                                        case .overview:
+                                            OverviewStepView()
                                         case .diagnostics:
                                             DiagnosticsStepView(state: state)
                                         case .nightscout:
@@ -345,12 +348,8 @@ struct OnboardingProgressBar: View {
         .padding(.horizontal)
     }
 
-    private var visibleSteps: [OnboardingStep] {
-        OnboardingStep.allCases.filter { $0 != .welcome && $0 != .completed }
-    }
-
     private var renderedSteps: [(id: String, step: OnboardingStep, substeps: Int?)] {
-        visibleSteps.map {
+        nonInfoOnboardingSteps.map {
             (id: "\($0.rawValue)", step: $0, substeps: stepsWithSubsteps[$0])
         }
     }
@@ -359,8 +358,8 @@ struct OnboardingProgressBar: View {
         // If currentStep is .completed, fill everything
         if currentStep == .completed { return 1.0 }
 
-        if let currentIndex = visibleSteps.firstIndex(of: currentStep),
-           let stepIndex = visibleSteps.firstIndex(of: step),
+        if let currentIndex = nonInfoOnboardingSteps.firstIndex(of: currentStep),
+           let stepIndex = nonInfoOnboardingSteps.firstIndex(of: step),
            stepIndex < currentIndex
         {
             return 1.0
@@ -377,8 +376,8 @@ struct OnboardingProgressBar: View {
         // Handle special case: Nightscout was skipped
         if step == .nightscout,
            nightscoutSetupOption == .skipNightscoutSetup,
-           let currentIndex = visibleSteps.firstIndex(of: currentStep),
-           let nightscoutIndex = visibleSteps.firstIndex(of: .nightscout),
+           let currentIndex = nonInfoOnboardingSteps.firstIndex(of: currentStep),
+           let nightscoutIndex = nonInfoOnboardingSteps.firstIndex(of: .nightscout),
            currentIndex > nightscoutIndex
         {
             return 1.0

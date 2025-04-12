@@ -599,6 +599,7 @@
 		DDAA29852D2D1D9E006546A1 /* AdjustmentsRootView+TempTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAA29842D2D1D98006546A1 /* AdjustmentsRootView+TempTargets.swift */; };
 		DDB37CC52D05048F00D99BF4 /* ContactImageStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */; };
 		DDB37CC72D05127500D99BF4 /* FontExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC62D05127500D99BF4 /* FontExtensions.swift */; };
+		DDBD53FC2DAA903100F940A6 /* OverviewStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDBD53FB2DAA903100F940A6 /* OverviewStepView.swift */; };
 		DDC38E102D9B377800ADCB46 /* OnboardingView+Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC38E0F2D9B376900ADCB46 /* OnboardingView+Util.swift */; };
 		DDCAE8332D78D4A800B1BB51 /* TherapySettingsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */; };
 		DDCE790F2D6F97FC000A4D7A /* SubmodulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */; };
@@ -1391,6 +1392,7 @@
 		DDB37CC32D05044D00D99BF4 /* ContactTrickEntryStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactTrickEntryStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageStorage.swift; sourceTree = "<group>"; };
 		DDB37CC62D05127500D99BF4 /* FontExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtensions.swift; sourceTree = "<group>"; };
+		DDBD53FB2DAA903100F940A6 /* OverviewStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewStepView.swift; sourceTree = "<group>"; };
 		DDC38E0F2D9B376900ADCB46 /* OnboardingView+Util.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnboardingView+Util.swift"; sourceTree = "<group>"; };
 		DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingsUtil.swift; sourceTree = "<group>"; };
 		DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmodulesView.swift; sourceTree = "<group>"; };
@@ -2769,6 +2771,7 @@
 		BD47FDD52D8B64AE0043966B /* OnboardingSteps */ = {
 			isa = PBXGroup;
 			children = (
+				DDBD53FB2DAA903100F940A6 /* OverviewStepView.swift */,
 				BD10516C2DA986DC007C6D89 /* LogoAnimation.swift */,
 				DDF691362DA30332008BF16C /* StartupGuideStepView.swift */,
 				DDF6905B2DA0AFC5008BF16C /* WelcomeStepView.swift */,
@@ -3993,6 +3996,7 @@
 				DDF847E82C5DABA30049BB3B /* WatchConfigAppleWatchView.swift in Sources */,
 				3811DF1025CAAAE200A708ED /* APSManager.swift in Sources */,
 				3870FF4725EC187A0088248F /* BloodGlucose.swift in Sources */,
+				DDBD53FC2DAA903100F940A6 /* OverviewStepView.swift in Sources */,
 				38A0364225ED069400FCBB52 /* TempBasal.swift in Sources */,
 				DD3F1F872D9DDB1200DCE7B3 /* AnimationPlaceholder.swift in Sources */,
 				3811DE1725C9D40400A708ED /* Screen.swift in Sources */,

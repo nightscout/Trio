@@ -21,10 +21,10 @@ struct CompletedStepView: View {
 
             VStack(alignment: .leading, spacing: 12) {
                 ForEach(
-                    OnboardingStep.allCases.filter { $0 != .welcome && $0 != .startupGuide && $0 != .completed },
+                    nonInfoOnboardingSteps,
                     id: \.self
                 ) { step in
-                    SettingItemView(step: step, icon: step.iconName, title: step.title)
+                    SettingItemView(step: step, icon: step.iconName, title: step.title, type: .complete)
                 }
             }
             .padding()
@@ -38,40 +38,5 @@ struct CompletedStepView: View {
         }
         .padding()
         .frame(maxWidth: .infinity)
-    }
-}
-
-/// A reusable view for displaying setting items in the completed step.
-struct SettingItemView: View {
-    let step: OnboardingStep
-    let icon: String
-    let title: String
-
-    var body: some View {
-        HStack(spacing: 15) {
-            if step == .nightscout {
-                Image(icon)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 40, height: 24)
-                    .colorMultiply(Color.green)
-            } else {
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(.green)
-                    .frame(width: 40)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.headline)
-            }
-
-            Spacer()
-
-            Image(systemName: "checkmark")
-                .foregroundColor(.green)
-        }
-        .padding(.vertical, 8)
     }
 }

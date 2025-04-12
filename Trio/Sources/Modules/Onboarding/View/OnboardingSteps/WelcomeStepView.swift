@@ -6,6 +6,8 @@ struct WelcomeStepView: View {
         VStack(alignment: .center, spacing: 20) {
             PulsingLogoAnimation()
 
+            Spacer(minLength: 10)
+
             Text("Hi there!")
                 .font(.title2)
                 .fontWeight(.bold)
