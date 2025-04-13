@@ -47,89 +47,6 @@ extension NightscoutConfig {
                         }
                     ).listRowBackground(Color.chart)
 
-                    Section {
-                        VStack {
-                            Button {
-                                importAlert = Alert(
-                                    title: Text("Import Therapy Settings?"),
-                                    message: Text("Are you sure you want to import profile settings from Nightscout?\n\n")
-                                        + Text("This will overwrite the following Trio therapy settings:\n")
-                                        + Text("• Basal Rates\n")
-                                        + Text("• Insulin Sensitivities\n")
-                                        + Text("• Carb Ratios\n")
-                                        + Text("• Glucose Targets\n")
-                                        + Text("• Duration of Insulin Action"),
-                                    primaryButton: .default(
-                                        Text("Yes, Import!"),
-                                        action: {
-                                            Task {
-                                                await state.importSettings()
-                                                if state.importStatus == .failed, state.importErrors.isNotEmpty,
-                                                   let errorMessage = state.importErrors.first
-                                                {
-                                                    DispatchQueue.main.async {
-                                                        importAlert = Alert(
-                                                            title: Text("Import Failed"),
-                                                            message: Text(errorMessage.description),
-                                                            dismissButton: .default(Text("OK"))
-                                                        )
-                                                        isImportAlertPresented = true
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ),
-                                    secondaryButton: .cancel()
-                                )
-                                isImportAlertPresented = true
-                            } label: {
-                                Text("Import Settings")
-                                    .font(.title3) }
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .buttonStyle(.bordered)
-                                .disabled(state.url.isEmpty || state.connecting)
-
-                            HStack(alignment: .center) {
-                                Text(
-                                    "Import therapy settings from Nightscout.\nSee hint for the list of settings available for import."
-                                )
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                                .lineLimit(nil)
-                                Spacer()
-                                Button(
-                                    action: {
-                                        hintLabel = String(localized: "Import Settings from Nightscout")
-                                        selectedVerboseHint =
-                                            AnyView(
-                                                VStack(alignment: .leading, spacing: 10) {
-                                                    Text(
-                                                        "This will overwrite the following Trio therapy settings:"
-                                                    )
-                                                    VStack(alignment: .leading) {
-                                                        Text("• Basal Rates")
-                                                        Text("• Insulin Sensitivities")
-                                                        Text("• Carb Ratios")
-                                                        Text("• Glucose Targets")
-                                                        Text("• Duration of Insulin Action")
-                                                    }
-                                                }
-                                            )
-                                        shouldDisplayHint.toggle()
-                                    },
-                                    label: {
-                                        HStack {
-                                            Image(systemName: "questionmark.circle")
-                                        }
-                                    }
-                                ).buttonStyle(BorderlessButtonStyle())
-                                    .alert(isPresented: $isImportAlertPresented) {
-                                        importAlert ?? Alert(title: Text("Unknown Error"))
-                                    }
-                            }.padding(.top)
-                        }.padding(.vertical)
-                    }.listRowBackground(Color.chart)
-
                     Section(
                         content:
                         {
@@ -189,18 +106,7 @@ extension NightscoutConfig {
                     ).listRowBackground(Color.chart)
                 }
                 .listSectionSpacing(sectionSpacing)
-                .blur(radius: state.importStatus == .running ? 5 : 0)
-
-                if state.importStatus == .running {
-                    CustomProgressView(text: String(
-                        localized: "Importing Profile...",
-                        comment: "Progress text when importing profile via Nightscout"
-                    ))
-                }
             }
-            .fullScreenCover(isPresented: $state.isImportResultReviewPresented, content: {
-                NightscoutImportResultView(resolver: resolver, state: state)
-            })
             .sheet(isPresented: $shouldDisplayHint) {
                 SettingInputHintView(
                     hintDetent: $hintDetent,

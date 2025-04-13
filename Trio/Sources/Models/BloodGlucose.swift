@@ -157,11 +157,13 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
     }
 }
 
-enum GlucoseUnits: String, JSON, Equatable {
+enum GlucoseUnits: String, JSON, Equatable, CaseIterable, Identifiable {
     case mgdL = "mg/dL"
     case mmolL = "mmol/L"
 
     static let exchangeRate: Decimal = 0.0555
+
+    var id: String { rawValue }
 }
 
 extension Int {

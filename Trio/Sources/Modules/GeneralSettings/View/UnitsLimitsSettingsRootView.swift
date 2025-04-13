@@ -95,16 +95,16 @@ extension UnitsLimitsSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Max Basal")
+                            hintLabel = String(localized: "Max Basal Rate")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxBasal"),
-                    label: String(localized: "Max Basal"),
+                    label: String(localized: "Max Basal Rate"),
                     miniHint: String(localized: "Largest basal rate allowed."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: 2 units").bold()
+                        Text("Default: 2 \(String(localized: "U/hr", comment: "Insulin unit per hour abbreviation"))").bold()
                         Text(
                             "This is the maximum basal rate allowed to be set or scheduled. This applies to both automatic and manual basal rates."
                         )

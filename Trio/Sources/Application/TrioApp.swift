@@ -1,4 +1,3 @@
-import ActivityKit
 import BackgroundTasks
 import CoreData
 import Foundation
@@ -8,6 +7,7 @@ import Swinject
 extension Notification.Name {
     static let initializationCompleted = Notification.Name("initializationCompleted")
     static let initializationError = Notification.Name("initializationError")
+    static let onboardingCompleted = Notification.Name("onboardingCompleted")
 }
 
 @main struct TrioApp: App {
@@ -19,6 +19,8 @@ extension Notification.Name {
     @AppStorage("colorSchemePreference") private var colorSchemePreference: ColorSchemeOption = .systemDefault
 
     let coreDataStack = CoreDataStack.shared
+    let onboardingManager = OnboardingManager.shared
+
     class InitState {
         var complete = false
         var error = false
@@ -33,6 +35,7 @@ extension Notification.Name {
     @State private var appState = AppState()
     @State private var showLoadingView = true
     @State private var showLoadingError = false
+    @State private var showOnboardingView = false
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -80,6 +83,29 @@ extension Notification.Name {
     }
 
     init() {
+        let notificationCenter = Foundation.NotificationCenter.default
+        notificationCenter.addObserver(
+            forName: .initializationCompleted,
+            object: nil,
+            queue: .main
+        ) { [self] _ in
+            showLoadingView = false
+        }
+        notificationCenter.addObserver(
+            forName: .initializationError,
+            object: nil,
+            queue: .main
+        ) { [self] _ in
+            showLoadingError = true
+        }
+        notificationCenter.addObserver(
+            forName: .onboardingCompleted,
+            object: nil,
+            queue: .main
+        ) { [self] _ in
+            showOnboardingView = false
+        }
+
         let submodulesInfo = BuildDetails.shared.submodules.map { key, value in
             "\(key): \(value.branch) \(value.commitSHA)"
         }.joined(separator: ", ")
@@ -198,7 +224,11 @@ extension Notification.Name {
                     .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
                         self.showLoadingError = true
                     }
-
+            } else if onboardingManager.shouldShowOnboarding {
+                // Show onboarding if needed
+                Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
+                    .preferredColorScheme(colorScheme(for: .dark) ?? nil)
+                    .transition(.opacity)
             } else {
                 Main.RootView(resolver: resolver)
                     .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)

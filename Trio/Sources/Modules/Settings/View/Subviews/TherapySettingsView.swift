@@ -29,10 +29,10 @@ struct TherapySettingsView: BaseView {
             Section(
                 header: Text("Basic Insulin Rates & Targets"),
                 content: {
-                    Text("Basal Rates").navigationLink(to: .basalProfileEditor, from: self)
-                    Text("Insulin Sensitivities").navigationLink(to: .isfEditor, from: self)
-                    Text("Carb Ratios").navigationLink(to: .crEditor, from: self)
                     Text("Glucose Targets").navigationLink(to: .targetsEditor, from: self)
+                    Text("Basal Rates").navigationLink(to: .basalProfileEditor, from: self)
+                    Text("Carb Ratios").navigationLink(to: .crEditor, from: self)
+                    Text("Insulin Sensitivities").navigationLink(to: .isfEditor, from: self)
                 }
             )
             .listRowBackground(Color.chart)
