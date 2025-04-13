@@ -43,7 +43,6 @@
   "adjustmentFactor" : 0.8,
   "adjustmentFactorSigmoid" : 0.5,
   "sigmoid" : false,
-  "enableDynamicCR" : false,
   "useNewFormula" : false,
   "useWeightedAverage" : false,
   "weightPercentage" : 0.35,

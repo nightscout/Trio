@@ -1,13 +1,24 @@
-oref0 branch: removeTDDCalc - git version: 73d6d6c
+oref0 branch: tcd-fixes - git version: af8f79c
 
 Last commits:
-73d6d6c webpack for Trio-dev
-5c6ce4b remove TDD calculation
+af8f79c Fix typo; remove enableDynamicCR setting from profile/index.js
+ffb9374 Always add minPredBG to rT object
+814b629 Remove dynamicCR
+4b62fe2 Lower min carb ratio to 1 g/U (down from 3)
+33d6b02 Merge pull request #39 from mountrcg/removeTDDCalc
+a4e46fc Merge pull request #42 from kingst/fix-date-undefined
+9a39c57 var -> let in tests
+ad3b5bb Fixes an incorrect undefined check
+ae14e0d Merge pull request #38 from kingst/profile-carbs-fix
+9df2270 Merge pull request #40 from mountrcg/maxAbsorptionTime
 a542ed3 use guarded maxAbsorptionTime
 4c77757 Revert "reduce dynISF logging"
 1567c76 use variable name maxMealAbsorptionTime
+bdcdf69 also remove insulin distribution and fix sonarcloud issue
 61b4f85 reduce dynISF logging
 0fe81c1 introduce maxAbsorptionTime to orefmaxAbsorptionTime
+5c6ce4b remove TDD calculation
+c8e7b32 Always check for bad carb ratios in profile
 ade267d Merge pull request #37 from mountrcg/tdd-pumpdataCheck
 46deecb remove dynisf check on pumpdata calc
 2f258b2 Merge pull request #36 from mountrcg/fixTDDcheck

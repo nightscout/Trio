@@ -73,7 +73,6 @@ function defaults ( ) {
     , adjustmentFactor: 0.8
     , adjustmentFactorSigmoid: 0.5
     , useNewFormula: false
-    , enableDynamicCR: false
     , sigmoid: false
     , weightPercentage: 0.65
     , tddAdjBasal: false // Enable adjustment of basal based on the ratio of 24 h : 10 day average TDD
@@ -105,7 +104,6 @@ function displayedDefaults () {
     profile.adjustmentFactor = allDefaults.adjustmentFactor;
     profile.adjustmentFactorSigmoid = allDefaults.adjustmentFactorSigmoid;
     profile.useNewFormula = allDefaults.useNewFormula;
-    profile.enableDynamicCR = allDefaults.enableDynamicCR;
     profile.sigmoid = allDefaults.sigmoid;
     profile.weightPercentage = allDefaults.weightPercentage;
     profile.tddAdjBasal = allDefaults.tddAdjBasal;
