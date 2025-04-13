@@ -145,14 +145,14 @@ struct TagCloudView: View {
             if glucoseValueString.contains("→") {
                 // -- Handle ISF: X→Y or Target: X→Y
                 let values = glucoseValueString.components(separatedBy: "→")
-                let prefixAndFirstNumber = values[0].components(separatedBy: ":")
-                guard prefixAndFirstNumber.count == 2 else { continue }
-                let prefix = prefixAndFirstNumber[0].trimmingCharacters(in: .whitespaces)
-                let firstNumber = prefixAndFirstNumber[1].trimmingCharacters(in: .whitespaces)
+                let targetOrISFAndFirstNumber = values[0].components(separatedBy: ":")
+                guard targetOrISFAndFirstNumber.count == 2 else { continue }
+                let targetOrISF = targetOrISFAndFirstNumber[0].trimmingCharacters(in: .whitespaces)
+                let firstNumber = targetOrISFAndFirstNumber[1].trimmingCharacters(in: .whitespaces)
                 let secondNumber = values[1].trimmingCharacters(in: .whitespaces)
                 let firstValue = convertToMmolL(firstNumber)
                 let secondValue = convertToMmolL(secondNumber)
-                let formattedString = "\(prefix): \(firstValue)→\(secondValue)"
+                let formattedString = "\(targetOrISF): \(firstValue)→\(secondValue)"
                 updatedTag.replaceSubrange(range, with: formattedString)
 
             } else if glucoseValueString.starts(with: "Dev:") {
