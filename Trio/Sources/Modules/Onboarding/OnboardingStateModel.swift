@@ -44,7 +44,7 @@ extension Onboarding {
 
         // MARK: - Carb Ratio
 
-        let carbRatioPickerSetting = PickerSetting(value: 3, step: 0.1, min: 3, max: 50, type: .gram)
+        let carbRatioPickerSetting = PickerSetting(value: 10, step: 0.1, min: 1, max: 50, type: .gram)
         var carbRatioItems: [CarbRatioEditor.Item] = []
         var initialCarbRatioItems: [CarbRatioEditor.Item] = []
         var carbRatioTimeValues: [TimeInterval] { sharedTimeValues }
