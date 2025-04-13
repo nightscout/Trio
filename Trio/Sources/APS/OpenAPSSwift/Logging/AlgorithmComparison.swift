@@ -91,21 +91,11 @@ struct AlgorithmComparison: Codable {
     let swiftException: AlgorithmException?
     let comparisonError: AlgorithmException?
     let version: String?
+    let isSimulator: Bool?
+    let isDebugBuild: Bool?
 
     // Inputs for mismatches
     let iobInput: IobInputs?
-
-    #if targetEnvironment(simulator)
-        static let isSimulator = true
-    #else
-        static let isSimulator = false
-    #endif
-
-    #if DEBUG
-        static let isDebugBuild = true
-    #else
-        static let isDebugBuild = false
-    #endif
 
     init(
         function: OrefFunction,
@@ -132,6 +122,18 @@ struct AlgorithmComparison: Codable {
         self.comparisonError = comparisonError
         iobInput = iobInputs
         timezone = TimeZone.current.identifier
-        version = "1"
+        version = "2"
+
+        #if targetEnvironment(simulator)
+            isSimulator = true
+        #else
+            isSimulator = false
+        #endif
+
+        #if DEBUG
+            isDebugBuild = true
+        #else
+            isDebugBuild = false
+        #endif
     }
 }

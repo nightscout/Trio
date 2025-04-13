@@ -523,7 +523,7 @@ import Testing
         #expect(treatments.netInsulin().isWithin(0.01, of: 0.2))
     }
 
-    @Test("should produce -0.5 IoB") func zerosIoBAroundSuspend() async throws {
+    @Test("should produce -0.7 IoB") func zerosIoBAroundSuspend() async throws {
         let basalprofile = [
             BasalProfileEntry(
                 start: "00:00:00",
@@ -564,16 +564,16 @@ import Testing
         profile.maxDailyBasal = 0.65
         profile.suspendZerosIob = true
 
+        let autosens = Autosens(ratio: 1.4, newisf: 29)
+
         let treatments = try IobHistory.calcTempTreatments(
             history: pumpHistory,
             profile: profile,
             clock: now,
-            autosens: nil,
+            autosens: autosens,
             zeroTempDuration: nil
         )
 
-        let tempBasals = treatments.filter { $0.type == .tempBasal }
-        print(treatments)
-        #expect(treatments.netInsulin().isWithin(0.01, of: -0.5))
+        #expect(treatments.netInsulin().isWithin(0.01, of: -0.7))
     }
 }
