@@ -30,6 +30,10 @@ struct UnitSelectionStepView: View {
                         Text(pumpModel.displayName).tag(pumpModel)
                     }
                 }
+                .onChange(of: state.pumpOptionForOnboardingUnits, { _, _ in
+                    // Reset basal profile and related values when pump model changes
+                    state.basalProfileItems = []
+                })
             }
             .padding()
             .background(Color.chart.opacity(0.65))
