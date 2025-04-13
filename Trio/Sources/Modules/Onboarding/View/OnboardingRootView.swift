@@ -112,7 +112,7 @@ extension Onboarding {
                                         }
                                         .padding([.horizontal, .top])
                                     }
-                                    
+
                                     // Step-specific content
                                     Group {
                                         switch currentStep {

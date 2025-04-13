@@ -54,12 +54,14 @@ extension Onboarding {
 
         var basalRatePickerSetting: PickerSetting {
             switch pumpOptionForOnboardingUnits {
-            case .dana,
-                 .minimed:
-                return PickerSetting(value: 0.1, step: 0.1, min: 0.1, max: 30, type: .insulinUnit)
-            case .omnipodDash,
-                 .omnipodEros:
-                return PickerSetting(value: 0.5, step: 0.05, min: 0.05, max: 30, type: .insulinUnit)
+            case .dana:
+                return PickerSetting(value: 0.05, step: 0.05, min: 0, max: 3, type: .insulinUnitPerHour)
+            case .minimed:
+                return PickerSetting(value: 0.05, step: 0.05, min: 0, max: 35, type: .insulinUnitPerHour)
+            case .omnipodDash:
+                return PickerSetting(value: 0.05, step: 0.05, min: 0, max: 30, type: .insulinUnitPerHour)
+            case .omnipodEros:
+                return PickerSetting(value: 0.05, step: 0.05, min: 0.05, max: 30, type: .insulinUnitPerHour)
             }
         }
 
