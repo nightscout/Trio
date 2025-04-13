@@ -65,7 +65,15 @@ enum SettingItems {
         SettingItem(
             title: "Units and Limits",
             view: .unitsAndLimits,
-            searchContents: ["Glucose Units", "Max Basal", "Max Bolus", "Max IOB", "Max COB", "Minimum Safety Threshold"],
+            searchContents: [
+                "Glucose Units",
+                "Max Basal",
+                "Max Bolus",
+                "Max IOB",
+                "Max COB",
+                "Minimum Safety Threshold",
+                "Delivery Limits"
+            ],
             path: ["Therapy Settings", "Units and Limits"]
         ),
         SettingItem(title: "Basal Rates", view: .basalProfileEditor, path: ["Therapy Settings"]),

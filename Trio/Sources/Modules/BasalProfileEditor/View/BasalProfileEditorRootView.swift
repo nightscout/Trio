@@ -176,7 +176,7 @@ extension BasalProfileEditor {
                 state.calculateChartData()
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
-            .navigationTitle("Basal Profile")
+            .navigationTitle("Basal Rates")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar(content: {
                 ToolbarItem(placement: .topBarTrailing) {
