@@ -111,8 +111,14 @@ extension Notification.Name {
                     cleanupOldData()
 
                     self.initState.complete = true
+
+                    // Notifications handling
+                    // Notify of completed initialization
                     Foundation.NotificationCenter.default.post(name: .initializationCompleted, object: nil)
                     UIApplication.shared.registerForRemoteNotifications()
+                    // Cancel scheduled not looping notifications when app was completely shut down and has now re-initialized completely
+                    self.clearNotLoopingNotifications()
+
                     do {
                         try await BuildDetails.shared.handleExpireDateChange()
                     } catch {
@@ -131,6 +137,31 @@ extension Notification.Name {
                 }
             }
         }
+    }
+
+    /// Clears any delivered and pending notifications related to non-looping alerts.
+    /// It targets the following notifications:
+    /// - `noLoopFirstNotification`: The first notification for non-looping alerts.
+    /// - `noLoopSecondNotification`: The second notification for non-looping alerts.
+    ///
+    /// It ensures that any notifications that have already been shown to the user, as well as
+    /// any that are scheduled for the future, are removed when the system no longer needs to
+    /// alert about non-looping conditions.
+    ///
+    /// This function is typically used when the app was completely shut down and restarted,
+    /// i.e., underwent a fresh initialization and boot-up,  to avoid bogus not looping notifications
+    /// due to dangling "zombie" pending notification requests.
+    ///
+    /// Delivered notifications are cleared for completeness.
+    private func clearNotLoopingNotifications() {
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [
+            BaseUserNotificationsManager.Identifier.noLoopFirstNotification.rawValue,
+            BaseUserNotificationsManager.Identifier.noLoopSecondNotification.rawValue
+        ])
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [
+            BaseUserNotificationsManager.Identifier.noLoopFirstNotification.rawValue,
+            BaseUserNotificationsManager.Identifier.noLoopSecondNotification.rawValue
+        ])
     }
 
     /// Attempts to initialize the CoreDataStack again after a previous failure.
