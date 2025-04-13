@@ -1353,7 +1353,7 @@ extension BaseNightscoutManager {
     // TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
     func parseReasonGlucoseValuesToMmolL(_ reason: String) -> String {
         let patterns = [
-            "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*", // ISF with arrow
+            "(?:ISF|Target):\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*", // ISF or Target with arrow
             "Dev:\\s*-?\\d+\\.?\\d*", // Dev pattern
             "BGI:\\s*-?\\d+\\.?\\d*", // BGI pattern
             "Target:\\s*-?\\d+\\.?\\d*", // Target pattern
@@ -1382,13 +1382,16 @@ extension BaseNightscoutManager {
             let glucoseValueString = String(reason[range])
 
             if glucoseValueString.contains("→") {
-                // Handle ISF: X→Y
+                // Handle ISF: X→Y or Target: X→Y
                 let values = glucoseValueString.components(separatedBy: "→")
-                let firstNumber = values[0].components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
+                let targetOrISFAndFirstNumber = values[0].components(separatedBy: ":")
+                guard targetOrISFAndFirstNumber.count == 2 else { continue }
+                let targetOrISF = targetOrISFAndFirstNumber[0].trimmingCharacters(in: .whitespaces)
+                let firstNumber = targetOrISFAndFirstNumber[1].trimmingCharacters(in: .whitespaces)
                 let secondNumber = values[1].trimmingCharacters(in: .whitespaces)
                 let firstValue = convertToMmolL(firstNumber)
                 let secondValue = convertToMmolL(secondNumber)
-                let formattedString = "ISF: \(firstValue)→\(secondValue)"
+                let formattedString = "\(targetOrISF): \(firstValue)→\(secondValue)"
                 updatedReason.replaceSubrange(range, with: formattedString)
 
             } else if glucoseValueString.contains("Eventual BG"), glucoseValueString.contains("<") {
