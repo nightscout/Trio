@@ -1,6 +1,7 @@
-oref0 branch: tcd-fixes - git version: ffb9374
+oref0 branch: tcd-fixes - git version: af8f79c
 
 Last commits:
+af8f79c Fix typo; remove enableDynamicCR setting from profile/index.js
 ffb9374 Always add minPredBG to rT object
 814b629 Remove dynamicCR
 4b62fe2 Lower min carb ratio to 1 g/U (down from 3)

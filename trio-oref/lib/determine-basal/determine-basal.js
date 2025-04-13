@@ -358,7 +358,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     console.log(logOutPut);
 
-    if (!dynISFenabledR) {
+    if (!dynISFenabled) {
         tddReason += "";
     } else if (dynISFenabled && profile.tddAdjBasal) {
         tddReason += dynamicISFLog + formula + limitLog + afLog + basal_ratio_log;
