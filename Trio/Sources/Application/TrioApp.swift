@@ -165,7 +165,7 @@ extension Notification.Name {
         }
     }
 
-    /// Clears any delivered and pending notifications related to non-looping alerts.
+    /// Clears any legacy (Trio 0.2.x) delivered and pending notifications related to non-looping alerts.
     /// It targets the following notifications:
     /// - `noLoopFirstNotification`: The first notification for non-looping alerts.
     /// - `noLoopSecondNotification`: The second notification for non-looping alerts.
@@ -176,7 +176,8 @@ extension Notification.Name {
     ///
     /// This function is typically used when the app was completely shut down and restarted,
     /// i.e., underwent a fresh initialization and boot-up,  to avoid bogus not looping notifications
-    /// due to dangling "zombie" pending notification requests.
+    /// due to dangling "zombie" pending notification requests for users that update from
+    /// old Trio versions to the new generation of the app.
     ///
     /// Delivered notifications are cleared for completeness.
     private func clearNotLoopingNotifications() {
