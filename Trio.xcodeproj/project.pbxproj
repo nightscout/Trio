@@ -562,6 +562,8 @@
 		DD498F2B2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
 		DD498F2C2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
 		DD498F2D2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
+		DD4A00212DAEEED800AB7387 /* OnboardingView+AlgorithmUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4A00202DAEEEC400AB7387 /* OnboardingView+AlgorithmUtil.swift */; };
+		DD4A00242DAEF5E400AB7387 /* AlgorithmSubstepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4A00232DAEF5DC00AB7387 /* AlgorithmSubstepView.swift */; };
 		DD4AFFF12DADB59100AB7387 /* AlgorithmSettingsStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4AFFF02DADB59100AB7387 /* AlgorithmSettingsStepView.swift */; };
 		DD4C57A82D73ADEA001BFF2C /* RestartLiveActivityIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4C57A72D73ADEA001BFF2C /* RestartLiveActivityIntent.swift */; };
 		DD4C57AA2D73B3E2001BFF2C /* RestartLiveActivityIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4C57A92D73B3D9001BFF2C /* RestartLiveActivityIntentRequest.swift */; };
@@ -1352,6 +1354,8 @@
 		DD3F1F8A2D9E08B200DCE7B3 /* NightscoutLoginStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutLoginStepView.swift; sourceTree = "<group>"; };
 		DD3F1F8C2D9E0E0000DCE7B3 /* NightscoutSetupStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutSetupStepView.swift; sourceTree = "<group>"; };
 		DD3F1F8F2D9E153A00DCE7B3 /* NightscoutImportStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutImportStepView.swift; sourceTree = "<group>"; };
+		DD4A00202DAEEEC400AB7387 /* OnboardingView+AlgorithmUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnboardingView+AlgorithmUtil.swift"; sourceTree = "<group>"; };
+		DD4A00232DAEF5DC00AB7387 /* AlgorithmSubstepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmSubstepView.swift; sourceTree = "<group>"; };
 		DD4AFFF02DADB59100AB7387 /* AlgorithmSettingsStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmSettingsStepView.swift; sourceTree = "<group>"; };
 		DD4C57A72D73ADEA001BFF2C /* RestartLiveActivityIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartLiveActivityIntent.swift; sourceTree = "<group>"; };
 		DD4C57A92D73B3D9001BFF2C /* RestartLiveActivityIntentRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartLiveActivityIntentRequest.swift; sourceTree = "<group>"; };
@@ -2759,6 +2763,7 @@
 		BD47FD152D88AAD80043966B /* View */ = {
 			isa = PBXGroup;
 			children = (
+				DD4A00202DAEEEC400AB7387 /* OnboardingView+AlgorithmUtil.swift */,
 				DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorView.swift */,
 				DDC38E0F2D9B376900ADCB46 /* OnboardingView+Util.swift */,
 				BD47FD182D88AAF90043966B /* OnboardingRootView.swift */,
@@ -2770,7 +2775,7 @@
 		BD47FDD52D8B64AE0043966B /* OnboardingSteps */ = {
 			isa = PBXGroup;
 			children = (
-				DD4AFFF02DADB59100AB7387 /* AlgorithmSettingsStepView.swift */,
+				DD4A00222DAEF5CD00AB7387 /* AlgorithmSettings */,
 				DDBD53FB2DAA903100F940A6 /* OverviewStepView.swift */,
 				BD10516C2DA986DC007C6D89 /* LogoAnimation.swift */,
 				DDF691362DA30332008BF16C /* StartupGuideStepView.swift */,
@@ -3240,6 +3245,15 @@
 				DD3F1F8A2D9E08B200DCE7B3 /* NightscoutLoginStepView.swift */,
 			);
 			path = Nightscout;
+			sourceTree = "<group>";
+		};
+		DD4A00222DAEF5CD00AB7387 /* AlgorithmSettings */ = {
+			isa = PBXGroup;
+			children = (
+				DD4A00232DAEF5DC00AB7387 /* AlgorithmSubstepView.swift */,
+				DD4AFFF02DADB59100AB7387 /* AlgorithmSettingsStepView.swift */,
+			);
+			path = AlgorithmSettings;
 			sourceTree = "<group>";
 		};
 		DD4C57A42D73ADDA001BFF2C /* LiveActivity */ = {
@@ -4023,6 +4037,7 @@
 				38192E04261B82FA0094D973 /* ReachabilityManager.swift in Sources */,
 				38E44539274E411700EC9A94 /* Disk+UIImage.swift in Sources */,
 				3BAD36CC2D7D420E00CC298D /* CoreDataInitializationCoordinator.swift in Sources */,
+				DD4A00242DAEF5E400AB7387 /* AlgorithmSubstepView.swift in Sources */,
 				388E595C25AD948C0019842D /* TrioApp.swift in Sources */,
 				38FEF3FC2737E53800574A46 /* MainStateModel.swift in Sources */,
 				DD1745352C55AE7E00211FAC /* TargetBehavoirRootView.swift in Sources */,
@@ -4484,6 +4499,7 @@
 				DDE1796F2C910127003CDDB7 /* OrefDetermination+CoreDataProperties.swift in Sources */,
 				DDE179702C910127003CDDB7 /* OverrideStored+CoreDataClass.swift in Sources */,
 				DD9ECB742CA9A0C300AA7C45 /* RemoteControlConfig.swift in Sources */,
+				DD4A00212DAEEED800AB7387 /* OnboardingView+AlgorithmUtil.swift in Sources */,
 				DDE179712C910127003CDDB7 /* OverrideStored+CoreDataProperties.swift in Sources */,
 				CD78BB94E43B249D60CC1A1B /* GlucoseNotificationSettingsRootView.swift in Sources */,
 				CE7CA3502A064973004BE681 /* CancelTempPresetIntent.swift in Sources */,

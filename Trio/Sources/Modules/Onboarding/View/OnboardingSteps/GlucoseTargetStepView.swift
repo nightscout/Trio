@@ -97,10 +97,10 @@ struct GlucoseTargetStepView: View {
                 let endDate = Calendar.current.startOfDay(for: now).addingTimeInterval(offset)
 
                 LineMark(x: .value("End Date", startDate), y: .value("Ratio", displayValue))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.green)
+                    .lineStyle(.init(lineWidth: 2.5)).foregroundStyle(Color.green)
 
                 LineMark(x: .value("Start Date", endDate), y: .value("Ratio", displayValue))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.green)
+                    .lineStyle(.init(lineWidth: 2.5)).foregroundStyle(Color.green)
             }
         }
         .id(refreshUI) // Force chart update
