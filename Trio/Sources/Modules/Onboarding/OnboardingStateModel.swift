@@ -95,6 +95,28 @@ extension Onboarding {
         var maxCOB: Decimal = 120
         var minimumSafetyThreshold: Decimal = 60
 
+        // MARK: - Algorithm Settings Defaults
+
+        var autosensMin: Decimal = 0.7
+        var autosensMax: Decimal = 1.2
+        var rewindResetsAutosens: Bool = false
+        var enableSMBAlways: Bool = false
+        var enableSMBWithCOB: Bool = false
+        var enableSMBWithTempTarget: Bool = false
+        var enableSMBAfterCarbs: Bool = false
+        var enableSMBWithHighGlucoseTarget: Bool = false
+        var highGlucoseTarget: Decimal = 110
+        var allowSMBWithHighTempTarget: Bool = false
+        var enableUAM: Bool = false
+        var maxSMBMinutes: Decimal = 30
+        var maxUAMMinutes: Decimal = 30
+        var maxDeltaGlucoseThreshold: Decimal = 0.2
+        var highTempTargetRaisesSensitivity: Bool = false
+        var lowTempTargetLowersSensitivity: Bool = false
+        var sensitivityRaisesTarget: Bool = false
+        var resistanceLowersTarget: Bool = false
+        var halfBasalTarget: Decimal = 160
+
         // MARK: - Subscribe
 
         override func subscribe() {

@@ -137,19 +137,22 @@ extension SMBSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = String(localized: "Enable SMB With High BG", comment: "Enable SMB With High BG")
+                                hintLabel = String(
+                                    localized: "Enable SMB With High Glucose",
+                                    comment: "Enable SMB With High Glucose"
+                                )
                             }
                         ),
                         units: state.units,
                         type: .conditionalDecimal("enableSMB_high_bg_target"),
-                        label: String(localized: "Enable SMB With High BG", comment: "Enable SMB With High BG"),
-                        conditionalLabel: "High BG Target",
-                        miniHint: String(localized: "Allow SMB when glucose is above the High BG Target value."),
+                        label: String(localized: "Enable SMB With High Glucose", comment: "Enable SMB With High Glucose"),
+                        conditionalLabel: String(localized: "High Glucose Target"),
+                        miniHint: String(localized: "Allow SMB when glucose is above the High Glucose Target value."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
-                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when glucose reading is above the value set as High BG Target."
+                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when glucose reading is above the value set as High Glucose Target."
                             )
                             Text(
                                 "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."

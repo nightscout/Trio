@@ -19,6 +19,10 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     case carbRatio
     case insulinSensitivity
     case deliveryLimits
+    case algorithmSettings
+//    case autosensSettings
+//    case smbSettings
+//    case targetBehavior
     case completed
 
     var id: Int { rawValue }
@@ -57,6 +61,14 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return String(localized: "Insulin Sensitivities")
         case .deliveryLimits:
             return String(localized: "Delivery Limits")
+        case .algorithmSettings:
+            return String(localized: "Algorithm Settings")
+//        case .autosensSettings:
+//            return String(localized: "Autosens")
+//        case .smbSettings:
+//            return String(localized: "Super Micro Bolus (SMB)")
+//        case .targetBehavior:
+//            return String(localized: "Target Behavior")
         case .completed:
             return String(localized: "All Set!")
         }
@@ -109,6 +121,22 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return String(
                 localized: "Trio includes several safety limits for insulin delivery and carbohydrate entry, helping ensure a safe and effective experience."
             )
+        case .algorithmSettings:
+            return String(
+                localized: "Trio includes several algorithm settings that allow you to customize the oref algorithm behavior to suit your specific needs."
+            )
+//        case .autosensSettings:
+//            return String(
+//                localized: "Auto-sensitivity (Autosens) adjusts insulin delivery based on observed sensitivity or resistance."
+//            )
+//        case .smbSettings:
+//            return String(
+//                localized: "SMB (Super Micro Bolus) is an oref algorithm feature that delivers small frequent boluses instead of temporary basals for faster glucose control."
+//            )
+//        case .targetBehavior:
+//            return String(
+//                localized: "Target Behavior allows you to adjust how temporary targets influence ISF, basal, and auto-targeting based on sensitivity or resistance."
+//            )
         case .completed:
             return String(
                 localized: "Great job! You've completed the initial setup of Trio. You can always adjust these settings later in the app."
@@ -123,7 +151,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return "hand.wave.fill"
         case .startupGuide:
             return "list.bullet.clipboard.fill"
-        case .overview:
+        case .algorithmSettings,
+             .overview:
             return "checklist.unchecked"
         case .diagnostics:
             return "waveform.badge.magnifyingglass"
@@ -141,6 +170,11 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return "drop.fill"
         case .deliveryLimits:
             return "slider.horizontal.3"
+//        case .autosensSettings,
+//             .deliveryLimits,
+//             .smbSettings,
+//             .targetBehavior:
+//            return "slider.horizontal.3"
         case .completed:
             return "checkmark.circle.fill"
         }
@@ -165,12 +199,16 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     /// The accent color to use for this step.
     var accentColor: Color {
         switch self {
-        case .completed,
+        case .algorithmSettings,
+//             .autosensSettings,
+             .completed,
              .deliveryLimits,
              .diagnostics,
              .nightscout,
              .overview,
+//             .smbSettings,
              .startupGuide,
+//             .targetBehavior,
              .unitSelection,
              .welcome:
             return Color.blue
@@ -298,6 +336,336 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
     }
 }
 
+enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
+    case autosensMin
+    case autosensMax
+    case rewindResetsAutosens
+    case enableSMBAlways
+    case enableSMBWithCOB
+    case enableSMBWithTempTarget
+    case enableSMBAfterCarbs
+    case enableSMBWithHighGlucoseTarget
+    case allowSMBWithHighTempTarget
+    case enableUAM
+    case maxSMBMinutes
+    case maxUAMMinutes
+    case maxDeltaGlucoseThreshold
+    case highTempTargetRaisesSensitivity
+    case lowTempTargetLowersSensitivity
+    case sensitivityRaisesTarget
+    case resistanceLowersTarget
+    case halfBasalTarget
+
+    var id: Int { rawValue }
+
+    var title: String {
+        switch self {
+        case .autosensMin: return String(localized: "Autosens Min", comment: "Autosens Min")
+        case .autosensMax: return String(localized: "Autosens Max", comment: "Autosens Max")
+        case .rewindResetsAutosens: return String(localized: "Rewind Resets Autosens", comment: "Rewind Resets Autosens")
+        case .enableSMBAlways: return String(localized: "Enable SMB Always", comment: "Enable SMB Always")
+        case .enableSMBWithCOB: return String(localized: "Enable SMB With COB", comment: "Enable SMB With COB")
+        case .enableSMBWithTempTarget: return String(
+                localized: "Enable SMB With Temptarget",
+                comment: "Enable SMB With Temptarget"
+            )
+        case .enableSMBAfterCarbs: return String(localized: "Enable SMB After Carbs", comment: "Enable SMB After Carbs")
+        case .enableSMBWithHighGlucoseTarget: return String(
+                localized: "Enable SMB With High BG",
+                comment: "Enable SMB With High BG"
+            )
+        case .allowSMBWithHighTempTarget: return String(
+                localized: "Allow SMB With High Temptarget",
+                comment: "Allow SMB With High Temptarget"
+            )
+        case .enableUAM: return String(localized: "Enable UAM", comment: "Enable UAM")
+        case .maxSMBMinutes: return String(localized: "Max SMB Basal Minutes", comment: "Max SMB Basal Minutes")
+        case .maxUAMMinutes: return String(localized: "Max UAM Basal Minutes", comment: "Max UAM Basal Minutes")
+        case .maxDeltaGlucoseThreshold: return String(localized: "Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold")
+        case .highTempTargetRaisesSensitivity: return String(
+                localized: "High Temp Target Raises Sensitivity",
+                comment: "High Temp Target Raises Sensitivity"
+            )
+        case .lowTempTargetLowersSensitivity: return String(
+                localized: "High Temp Target Raises Sensitivity",
+                comment: "High Temp Target Raises Sensitivity"
+            )
+        case .sensitivityRaisesTarget: return String(localized: "Sensitivity Raises Target", comment: "Sensitivity Raises Target")
+        case .resistanceLowersTarget: return String(localized: "Resistance Lowers Target", comment: "Resistance Lowers Target")
+        case .halfBasalTarget: return String(localized: "Half Basal Exercise Target", comment: "Half Basal Exercise Target")
+        }
+    }
+
+    func hint(units: GlucoseUnits) -> String {
+        switch self {
+        case .autosensMin: return String(localized: "Lower limit of the Autosens Ratio.")
+        case .autosensMax: return String(localized: "Upper limit of the Autosens Ratio.")
+        case .rewindResetsAutosens: return String(localized: "Pump rewind initiates a reset in Autosens Ratio.")
+        case .enableSMBAlways: return String(localized: "Allow SMBs at all times except when a high Temp Target is set.")
+        case .enableSMBWithCOB: return String(localized: "Allow SMB when carbs are on board.")
+        case .enableSMBWithTempTarget: return String(
+                localized: "Allow SMB when a manual Temporary Target is set under \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue)."
+            )
+        case .enableSMBAfterCarbs: return String(localized: "Allow SMB for 6 hrs after a carb entry.")
+        case .enableSMBWithHighGlucoseTarget: return String(localized: "Allow SMB when glucose is above the High BG Target value.")
+        case .allowSMBWithHighTempTarget: return String(
+                localized: "Allow SMB when a manual Temporary Target is set greater than \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue)."
+            )
+        case .enableUAM: return String(localized: "Enable Unannounced Meals SMB.")
+        case .maxSMBMinutes: return String(localized: "Limits the size of a single Super Micro Bolus (SMB) dose.")
+        case .maxUAMMinutes: return String(localized: "Limits the size of a single Unannounced Meal (UAM) SMB dose.")
+        case .maxDeltaGlucoseThreshold: return String(localized: "Disables SMBs if last two glucose values differ by more than this percent.")
+        case .highTempTargetRaisesSensitivity: return String(
+                localized: "Increase sensitivity when glucose is above target if a manual Temp Target > \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) is set."
+            )
+        case .lowTempTargetLowersSensitivity: return String(
+                localized: "Decrease sensitivity when glucose is below target if a manual Temp Target < \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) is set."
+            )
+        case .sensitivityRaisesTarget: return String(localized: "Raise target glucose if when Autosens Ratio is >1.")
+        case .resistanceLowersTarget: return String(localized: "Lower target glucose when Autosens Ratio is <1.")
+        case .halfBasalTarget: return String(localized: "Scales down your basal rate to 50% at this value.")
+        }
+    }
+
+    func description(units: GlucoseUnits) -> any View {
+        switch self {
+        case .autosensMin:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: 70%").bold()
+                Text(
+                    "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
+                )
+                Text(
+                    "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
+                )
+                Text(
+                    "Tip: Decreasing this value allows automatic adjustments of basal rates to be lower, ISF to be higher, and CR to be higher."
+                )
+            }
+        case .autosensMax:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: 120%").bold()
+                Text(
+                    "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
+                )
+                Text(
+                    "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
+                )
+                Text(
+                    "Tip: Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower."
+                )
+            }
+        case .rewindResetsAutosens:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "This feature resets the Autosens Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change."
+                )
+                Text(
+                    "Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours."
+                )
+                Text(
+                    "Tip: If you usually rewind your pump independently of site changes, you may want to consider disabling this feature."
+                )
+            }
+        case .enableSMBAlways:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: OFF").bold()
+                Text(
+                    "When enabled, Super Micro Boluses (SMBs) will always be allowed if dosing calculations determine insulin is needed via the SMB delivery method, except when a high Temp Target is set. Enabling SMB Always will remove redundant \"Enable SMB\" options when this setting is enacted."
+                )
+                Text(
+                    "Note: If you would like to allow SMBs when a high Temp Target is set, enable the \"Allow SMBs with High Temptarget\" setting."
+                )
+            }
+        case .enableSMBWithCOB:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: OFF").bold()
+                Text(
+                    "When the carb on board (COB) forecast line is active, enabling this feature allows Trio to use Super Micro Boluses (SMB) to deliver the insulin required."
+                )
+                Text(
+                    "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                )
+            }
+        case .enableSMBWithTempTarget:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: OFF").bold()
+                Text(
+                    "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) at times when a manual Temporary Target under \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) is set."
+                )
+                Text(
+                    "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                )
+            }
+        case .enableSMBAfterCarbs:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: OFF").bold()
+                Text(
+                    "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) for 6 hours after a carb entry, regardless of whether there are active carbs on board (COB)."
+                )
+                Text(
+                    "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                )
+            }
+        case .enableSMBWithHighGlucoseTarget:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: OFF").bold()
+                Text(
+                    "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when glucose reading is above the value set as High BG Target."
+                )
+                Text(
+                    "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                )
+            }
+        case .allowSMBWithHighTempTarget:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: OFF").bold()
+                Text(
+                    "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when a manual Temporary Target above \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) is set."
+                )
+                Text(
+                    "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
+                )
+                Text(
+                    "Warning: High Temp Targets are often set when recovering from lows. If you use High Temp Targets for that purpose, this feature should remain disabled."
+                ).bold()
+            }
+        case .enableUAM:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: OFF").bold()
+                Text(
+                    "Enabling the UAM (Unannounced Meals) feature allows the system to detect and respond to unexpected rises in glucose readings caused by unannounced or miscalculated carbs, meals high in fat or protein, or other factors like adrenaline."
+                )
+                Text(
+                    "It uses the SMB (Super Micro Bolus) algorithm to deliver insulin in small amounts to correct glucose spikes. UAM also works in reverse, reducing or stopping SMBs if glucose levels drop unexpectedly."
+                )
+                Text(
+                    "This feature ensures more accurate insulin adjustments when carb entries are missing or incorrect."
+                )
+            }
+        case .maxSMBMinutes:
+            return VStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Default: 30 minutes").bold()
+                        Text("(50% current basal rate)").bold()
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(
+                            "This is a limit on the size of a single SMB. One SMB can only be as large as this many minutes of your current profile basal rate."
+                        )
+                        Text(
+                            "To calculate the maximum SMB allowed based on this setting, use the following formula:"
+                        )
+                    }
+                }
+                VStack(alignment: .center, spacing: 5) {
+                    Text(
+                        "𝒳 = Max SMB Basal Minutes"
+                    )
+                    Text("(𝒳 / 60) × current basal rate")
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(
+                        "Warning: Increasing this value above 90 minutes may impact Trio's ability to effectively zero temp and prevent lows."
+                    ).bold()
+                    Text("Note: SMBs must be enabled to use this limit.")
+                }
+            }
+        case .maxUAMMinutes:
+            return VStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Default: 30 minutes").bold()
+                        Text("(50% current basal rate)").bold()
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(
+                            "This is a limit on the size of a single UAM SMB. One UAM SMB can only be as large as this many minutes of your current profile basal rate."
+                        )
+                        Text(
+                            "To calculate the maximum UAM SMB allowed based on this setting, use the following formula:"
+                        )
+                    }
+                }
+                VStack(alignment: .center, spacing: 5) {
+                    Text(
+                        "𝒳 = Max UAM SMB Basal Minutes"
+                    )
+                    Text("(𝒳 / 60) × current basal rate")
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(
+                        "Warning: Increasing this value above 60 minutes may impact Trio's ability to effectively zero temp and prevent lows."
+                    ).bold()
+                    Text("Note: UAM SMBs must be enabled to use this limit.")
+                }
+            }
+        case .maxDeltaGlucoseThreshold:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: 20% increase").bold()
+                Text(
+                    "Maximum allowed positive percent change in glucose level to permit SMBs. If the difference in glucose is greater than this, Trio will disable SMBs."
+                )
+                Text("Note: This setting has a hard-coded cap of 40%")
+            }
+        case .highTempTargetRaisesSensitivity:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: OFF").bold()
+                Text(
+                    "When this feature is enabled, manually setting a temporary target above \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) will decrease the Autosens Ratio used for ISF and basal adjustments, resulting in less insulin delivered overall. This scales with the temporary target set; the higher the temp target, the lower the Autosens Ratio used."
+                )
+                Text(
+                    "If Half Basal Exercise Target is set to \(units == .mgdL ? "160" : 160.formattedAsMmolL) \(units.rawValue), a temp target of \(units == .mgdL ? "120" : 120.formattedAsMmolL) \(units.rawValue) uses an Autosens Ratio of 0.75. A temp target of \(units == .mgdL ? "140" : 140.formattedAsMmolL) \(units.rawValue) uses an Autosens Ratio of 0.6."
+                )
+                Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target")
+            }
+        case .lowTempTargetLowersSensitivity:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: OFF").bold()
+                Text(
+                    "When this feature is enabled, setting a temporary target below \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) will increase the Autosens Ratio used for ISF and basal adjustments, resulting in more insulin delivered overall. This scales with the temporary target set; the lower the Temp Target, the higher the Autosens Ratio used. It requires Algorithm Settings > Autosens > Autosens Max to be set to > 100% to work."
+                )
+                Text(
+                    "If Half Basal Exercise Target is \(units == .mgdL ? "160" : 160.formattedAsMmolL) \(units.rawValue), a Temp Target of \(units == .mgdL ? "95" : 95.formattedAsMmolL) \(units.rawValue) uses an Autosens Ratio of 1.09. A Temp Target of \(units == .mgdL ? "85" : 85.formattedAsMmolL) \(units.rawValue) uses an Autosens Ratio of 1.33."
+                )
+                Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target")
+            }
+        case .sensitivityRaisesTarget:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: OFF").bold()
+                Text(
+                    "Enabling this feature causes Trio to automatically raise the targeted glucose if it detects an increase in insulin sensitivity from your baseline."
+                )
+            }
+        case .resistanceLowersTarget:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Default: OFF").bold()
+                Text(
+                    "Enabling this feature causes Trio to automatically reduce the targeted glucose if it detects a decrease in sensitivity (resistance) from your baseline."
+                )
+            }
+        case .halfBasalTarget:
+            return VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "Default: \(units == .mgdL ? "160" : 160.formattedAsMmolL) \(units.rawValue)"
+                )
+                .bold()
+                Text(
+                    "The Half Basal Exercise Target allows you to scale down your basal insulin during exercise or scale up your basal insulin when eating soon when a temporary glucose target is set."
+                )
+                Text(
+                    "For example, at a temp target of \(units == .mgdL ? "160" : 160.formattedAsMmolL) \(units.rawValue), your basal is reduced to 50%, but this scales depending on the target (e.g., 75% at \(units == .mgdL ? "120" : 120.formattedAsMmolL) \(units.rawValue), 60% at \(units == .mgdL ? "140" : 140.formattedAsMmolL) \(units.rawValue))."
+                )
+                Text(
+                    "Note: This setting is only utilized if the settings \"Low Temp Target Lowers Sensitivity\" OR \"High Temp Target Raises Sensitivity\" are enabled."
+                )
+            }
+        }
+    }
+}
+
 enum DiagnosticsSharingOption: String, Equatable, CaseIterable, Identifiable {
     case enabled
     case disabled
@@ -403,6 +771,22 @@ enum OnboardingSettingItemType: Equatable, CaseIterable, Identifiable {
 
     var id: UUID {
         UUID()
+    }
+}
+
+enum OnboardingInputSectionType: Equatable {
+    case decimal
+    case boolean
+
+    static func == (lhs: OnboardingInputSectionType, rhs: OnboardingInputSectionType) -> Bool {
+        switch (lhs, rhs) {
+        case (.boolean, .boolean):
+            return true
+        case (.decimal, .decimal):
+            return true
+        default:
+            return false
+        }
     }
 }
 

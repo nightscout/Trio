@@ -8,9 +8,12 @@ extension Onboarding {
         @State var state = StateModel()
         @State private var navigationDirection: OnboardingNavigationDirection = .forward
         let onboardingManager: OnboardingManager
+
+        // Step management
         @State private var currentStep: OnboardingStep = .welcome
-        @State private var currentDeliverySubstep: DeliveryLimitSubstep = .maxIOB
         @State private var currentNightscoutSubstep: NightscoutSubstep = .setupSelection
+        @State private var currentDeliverySubstep: DeliveryLimitSubstep = .maxIOB
+        @State private var currentAlgorithmSubstep: AlgorithmSettingsSubstep = .autosensMin
 
         // Animation states
         @State private var animationScale: CGFloat = 1.0
@@ -59,12 +62,14 @@ extension Onboarding {
                                     switch currentStep {
                                     case .deliveryLimits: return currentDeliverySubstep.rawValue
                                     case .nightscout: return currentNightscoutSubstep.rawValue
+                                    case .algorithmSettings: return currentAlgorithmSubstep.rawValue
                                     default: return nil
                                     }
                                 }(),
                                 stepsWithSubsteps: [
                                     .nightscout: NightscoutSubstep.allCases.count,
-                                    .deliveryLimits: DeliveryLimitSubstep.allCases.count
+                                    .deliveryLimits: DeliveryLimitSubstep.allCases.count,
+                                    .algorithmSettings: AlgorithmSettingsSubstep.allCases.count
                                 ],
                                 nightscoutSetupOption: state.nightscoutSetupOption
                             )
@@ -145,6 +150,8 @@ extension Onboarding {
                                             InsulinSensitivityStepView(state: state)
                                         case .deliveryLimits:
                                             DeliveryLimitsStepView(state: state, substep: currentDeliverySubstep)
+                                        case .algorithmSettings:
+                                            AlgorithmSettingsStepView(state: state, substep: currentAlgorithmSubstep)
                                         case .completed:
                                             CompletedStepView()
                                         }
@@ -180,9 +187,9 @@ extension Onboarding {
                                     navigationDirection = .backward
                                     withAnimation {
                                         if currentStep == .completed {
-                                            currentStep = .deliveryLimits
-                                            currentDeliverySubstep =
-                                                .minimumSafetyThreshold // ensure we land on the last substep visually
+                                            currentStep = .algorithmSettings
+                                            currentAlgorithmSubstep =
+                                                .halfBasalTarget // ensure we land on the last substep visually
                                         } else if currentStep == .nightscout {
                                             if currentNightscoutSubstep == .setupSelection {
                                                 // First substep: go to previous main step
@@ -205,7 +212,19 @@ extension Onboarding {
                                                 currentDeliverySubstep = previousSub
                                             } else if let previousMainStep = currentStep.previous {
                                                 currentStep = previousMainStep
-                                                currentDeliverySubstep = .maxIOB // reset to first substep for later return
+                                                currentDeliverySubstep =
+                                                    .maxIOB // reset to first substep for later return
+                                            }
+                                        } else if currentStep == .algorithmSettings {
+                                            if let previousSub = AlgorithmSettingsSubstep(
+                                                rawValue: currentAlgorithmSubstep
+                                                    .rawValue - 1
+                                            ) {
+                                                currentAlgorithmSubstep = previousSub
+                                            } else if let previousMainStep = currentStep.previous {
+                                                currentStep = previousMainStep
+                                                currentAlgorithmSubstep = .autosensMin // reset to first substep for later return
+                                                currentDeliverySubstep = .minimumSafetyThreshold // set delivery limits to last
                                             }
                                         } else if let previous = currentStep.previous {
                                             currentStep = previous
@@ -261,6 +280,16 @@ extension Onboarding {
                                         } else if let next = currentStep.next {
                                             currentStep = next
                                             currentDeliverySubstep = .maxIOB
+                                        }
+                                    } else if currentStep == .algorithmSettings {
+                                        if let nextSub = AlgorithmSettingsSubstep(
+                                            rawValue: currentAlgorithmSubstep
+                                                .rawValue + 1
+                                        ) {
+                                            currentAlgorithmSubstep = nextSub
+                                        } else if let next = currentStep.next {
+                                            currentStep = next
+                                            currentAlgorithmSubstep = .autosensMin
                                         }
                                     } else if let next = currentStep.next {
                                         currentStep = next

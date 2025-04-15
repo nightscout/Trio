@@ -58,6 +58,9 @@ struct DeliveryLimitsStepView: View {
                 .padding(.horizontal)
                 .multilineTextAlignment(.leading)
         }
+        .onDisappear {
+            shouldDisplayPicker = false
+        }
     }
 
     @ViewBuilder private func deliveryLimitInputSection(
