@@ -26,10 +26,6 @@ jobs:
       new_certificate_needed: ${{ steps.set_output.outputs.new_certificate_needed }}
 
     steps:
-      # Uncomment to manually select latest Xcode if needed
-      #- name: Select Latest Xcode
-      #  run: "sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer"
-      
       # Checks-out the repo
       - name: Checkout Repo
         uses: actions/checkout@v4
