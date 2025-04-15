@@ -120,6 +120,57 @@ extension Notification.Name {
         deferredInitialization()
     }
 
+    func printPendingNotifications() {
+        let notificationCenter = UNUserNotificationCenter.current()
+
+        notificationCenter.getPendingNotificationRequests { requests in
+            if requests.isEmpty {
+                print("No pending notifications found.")
+            } else {
+                print("Found \(requests.count) pending notifications:")
+
+                for (index, request) in requests.enumerated() {
+                    print("\n--- Notification #\(index + 1) ---")
+                    print("Identifier: \(request.identifier)")
+
+                    // Content details
+                    let content = request.content
+                    print("Title: \(content.title)")
+                    print("Subtitle: \(content.subtitle)")
+                    print("Body: \(content.body)")
+                    print("Badge: \(String(describing: content.badge))")
+                    print("Sound: \(content.sound?.description ?? "None")")
+                    print("Category: \(content.categoryIdentifier)")
+
+                    // User info (custom data)
+                    print("User Info: \(content.userInfo)")
+
+                    // Trigger details
+                    if let trigger = request.trigger {
+                        if let dateTrigger = trigger as? UNCalendarNotificationTrigger {
+                            print("Type: Calendar Trigger")
+                            print("Next Trigger Date: \(dateTrigger.nextTriggerDate()?.description ?? "None")")
+                            print("Repeats: \(dateTrigger.repeats)")
+                        } else if let intervalTrigger = trigger as? UNTimeIntervalNotificationTrigger {
+                            print("Type: Time Interval Trigger")
+                            print("Time Interval: \(intervalTrigger.timeInterval) seconds")
+                            print("Next Trigger Date: \(intervalTrigger.nextTriggerDate()?.description ?? "None")")
+                            print("Repeats: \(intervalTrigger.repeats)")
+                        } else if let locationTrigger = trigger as? UNLocationNotificationTrigger {
+                            print("Type: Location Trigger")
+                            print("Region: \(locationTrigger.region.description)")
+                            print("Repeats: \(locationTrigger.repeats)")
+                        } else if trigger is UNPushNotificationTrigger {
+                            print("Type: Push Notification Trigger")
+                        }
+                    } else {
+                        print("Trigger: None")
+                    }
+                }
+            }
+        }
+    }
+
     /// Handles the deferred initialization of core components.
     ///
     /// Performs CoreDataStack initialization asynchronously and notifies the UI
@@ -143,7 +194,9 @@ extension Notification.Name {
                     Foundation.NotificationCenter.default.post(name: .initializationCompleted, object: nil)
                     UIApplication.shared.registerForRemoteNotifications()
                     // Cancel scheduled not looping notifications when app was completely shut down and has now re-initialized completely
+                    printPendingNotifications()
                     self.clearNotLoopingNotifications()
+                    printPendingNotifications()
 
                     do {
                         try await BuildDetails.shared.handleExpireDateChange()
