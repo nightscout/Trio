@@ -377,7 +377,7 @@ enum LiveActivityItem: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     static var defaultItems: [LiveActivityItem] {
-        [.currentGlucoseLarge, .iob, .cob, .updatedLabel]
+        [.currentGlucose, .iob, .cob, .updatedLabel]
     }
 
     var displayName: String {
