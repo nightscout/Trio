@@ -12,8 +12,9 @@ struct StartupGuideStepView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Before you begin…")
-                .font(.title.bold())
                 .padding(.horizontal)
+                .font(.title3)
+                .bold()
 
             VStack(alignment: .leading, spacing: 10) {
                 BulletPoint(String(localized: "Take a deep breath — you've got this."))
@@ -31,7 +32,18 @@ struct StartupGuideStepView: View {
                         .cornerRadius(8)
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
-                .padding([.top, .horizontal])
+                .padding(.horizontal)
+            }.padding(.horizontal)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Already using Trio and updating from an older version?").bold()
+                BulletPoint(String(localized: "Your therapy settings, pump, and CGM configurations will be carried over."))
+                BulletPoint(
+                    String(
+                        localized: "Your algorithm settings (previously called \"OpenAPS settings\") will be reset to defaults."
+                    )
+                )
+                BulletPoint(String(localized: "We recommend reviewing them carefully — Trio will guide you step-by-step."))
             }.padding(.horizontal)
 
             HStack {

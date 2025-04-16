@@ -14,16 +14,86 @@ struct OverviewStepView: View {
                 .padding(.horizontal)
 
             VStack(alignment: .center, spacing: 12) {
-                ForEach(
-                    nonInfoOnboardingSteps,
-                    id: \.self
-                ) { step in
-                    SettingItemView(step: step, icon: step.iconName, title: step.title, type: .overview)
-                }
+                overviewItem(
+                    stepIndex: 1,
+                    title: String(localized: "Prepare Trio"),
+                    duration: "3-5",
+                    description: String(
+                        localized: "Configure diagnostics sharing, optionally sync with Nightscout, and enter essentials."
+                    )
+                )
+
+                Divider()
+
+                overviewItem(
+                    stepIndex: 2,
+                    title: String(localized: "Therapy Settings"),
+                    duration: "5-10",
+                    description: String(
+                        localized: "Define your glucose target, basal rates, carb ratios, and insulin sensitivity."
+                    )
+                )
+
+                Divider()
+
+                overviewItem(
+                    stepIndex: 3,
+                    title: String(localized: "Delivery Limits"),
+                    duration: "3-5",
+                    description: String(
+                        localized: "Set boundaries for insulin delivery and carb entries to help Trio keep you safe."
+                    )
+                )
+
+                Divider()
+
+                overviewItem(
+                    stepIndex: 4,
+                    title: String(localized: "Algorithm Settings"),
+                    duration: "5-10",
+                    description: String(
+                        localized: "Customize Trio’s algorithm features. Most users start with the recommended settings."
+                    )
+                )
             }
             .padding()
             .background(Color.chart.opacity(0.65))
             .cornerRadius(10)
         }
+    }
+
+    @ViewBuilder private func overviewItem(
+        stepIndex: Int,
+        title: String,
+        duration: String,
+        description: String
+    ) -> some View {
+        VStack(alignment: .leading) {
+            HStack {
+                HStack(spacing: 14) {
+                    stepCount(stepIndex)
+                    Text(title).font(.headline)
+                }
+
+                Spacer()
+
+                Text("\(duration) \(String(localized: "min"))")
+                    .font(.subheadline)
+            }
+
+            Text(description)
+                .font(.footnote)
+                .foregroundStyle(Color.secondary)
+                .padding(.vertical, 8)
+        }
+    }
+
+    @ViewBuilder private func stepCount(_ count: Int) -> some View {
+        Text(count.description)
+            .font(.subheadline.bold())
+            .frame(width: 26, height: 26, alignment: .center)
+            .background(Color.blue)
+            .foregroundStyle(.white)
+            .clipShape(Capsule())
     }
 }

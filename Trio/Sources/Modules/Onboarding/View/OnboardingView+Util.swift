@@ -62,7 +62,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         case .deliveryLimits:
             return String(localized: "Delivery Limits")
         case .algorithmSettings:
-            return String(localized: "Algorithm")
+            return String(localized: "Algorithm Settings")
         case .autosensSettings:
             return String(localized: "Autosens")
         case .smbSettings:
@@ -87,7 +87,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             )
         case .overview:
             return String(
-                localized: "Trio's Onboarding consists of several steps. It takes about 5-10 minutes to complete. We'll guide you through each step."
+                localized: "Trio's Onboarding takes about 15-30 minutes to complete. We'll guide you through each step."
             )
         case .diagnostics:
             return String(

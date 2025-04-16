@@ -24,19 +24,22 @@ struct AlgorithmSettingsStepView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 Text(
-                    "Trio’s algorithm can automatically adapt insulin delivery based on inputs and glucose forecsasts. Your algorithm settings play a major part in accurate and effective dosing."
-                )
+                    "Trio can automatically adapt insulin delivery based on inputs and glucose forecasts. Your algorithm settings play a major part in accurate and effective dosing."
+                ).multilineTextAlignment(.leading)
+
+                Text("In the next few steps, you’ll configure your algorithm settings for")
+                BulletPoint(String(localized: "Autosens"))
+                BulletPoint(String(localized: "Super Micro Bolus (SMB)"))
+                BulletPoint(String(localized: "Target Behavior"))
 
                 Text("Our strong recommendation is to ")
                     + Text("leave everything on default").bold()
                     + Text(" as a beginner.")
 
                 Text("Only adjust these settings if you’re an advanced or returning user who knows what they’re doing.")
+                    .multilineTextAlignment(.leading)
             }
             .padding(.horizontal)
-
-            Divider()
-                .padding(.horizontal)
 
             VStack(alignment: .leading, spacing: 10) {
                 Text("A few important notes:")

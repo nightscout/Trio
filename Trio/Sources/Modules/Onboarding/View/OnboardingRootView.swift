@@ -238,7 +238,7 @@ struct OnboardingStepContent: View {
 
                             VStack(alignment: .leading) {
                                 Text(currentStep.title)
-                                    .font(.largeTitle)
+                                    .font(.title)
                                     .fontWeight(.bold)
                                     .foregroundColor(.primary)
 
@@ -387,7 +387,7 @@ struct OnboardingNavigationButtons: View {
                 currentDeliverySubstep = previousSub
             } else if let previous = currentStep.previous {
                 currentStep = previous
-                currentDeliverySubstep = .maxIOB
+                currentDeliverySubstep = .minimumSafetyThreshold
             }
 
         case .autosensSettings:
@@ -395,7 +395,7 @@ struct OnboardingNavigationButtons: View {
                 currentAutosensSubstep = previous
             } else if let previousStep = currentStep.previous {
                 currentStep = previousStep
-                currentAutosensSubstep = .autosensMin
+                currentAutosensSubstep = .rewindResetsAutosens
             }
 
         case .smbSettings:
@@ -403,7 +403,7 @@ struct OnboardingNavigationButtons: View {
                 currentSMBSubstep = previous
             } else if let previousStep = currentStep.previous {
                 currentStep = previousStep
-                currentSMBSubstep = .enableSMBAlways
+                currentSMBSubstep = .maxDeltaGlucoseThreshold
             }
 
         case .targetBehavior:
@@ -411,7 +411,7 @@ struct OnboardingNavigationButtons: View {
                 currentTargetBehaviorSubstep = previous
             } else if let previousStep = currentStep.previous {
                 currentStep = previousStep
-                currentTargetBehaviorSubstep = .highTempTargetRaisesSensitivity
+                currentTargetBehaviorSubstep = .halfBasalTarget
             }
 
         default:

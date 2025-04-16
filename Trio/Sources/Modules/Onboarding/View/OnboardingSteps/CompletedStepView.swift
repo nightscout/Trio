@@ -5,7 +5,7 @@ struct CompletedStepView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 20) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 80))
+                .font(.system(size: 60))
                 .foregroundColor(.green)
 
             Text("You're All Set!")
@@ -14,7 +14,7 @@ struct CompletedStepView: View {
                 .multilineTextAlignment(.center)
 
             Text(
-                "You've successfully completed the initial setup of Trio. Tap 'Get Started' to save your settings and get ready to start using Trio."
+                "You've successfully completed the initial setup of Trio. Tap 'Get Started' to save your settings and start using Trio."
             )
             .multilineTextAlignment(.center)
             .foregroundColor(.secondary)

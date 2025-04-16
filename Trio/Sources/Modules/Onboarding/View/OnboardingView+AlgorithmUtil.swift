@@ -163,7 +163,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
         switch self {
         case .autosensMin:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: 70%").bold()
+                Text("Default: 70%").bold().foregroundStyle(Color.primary)
                 Text(
                     "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
                 )
@@ -176,7 +176,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             }
         case .autosensMax:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: 120%").bold()
+                Text("Default: 120%").bold().foregroundStyle(Color.primary)
                 Text(
                     "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
                 )
@@ -188,20 +188,24 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
                 )
             }
         case .rewindResetsAutosens:
-            return VStack(alignment: .leading, spacing: 8) {
-                Text(
-                    "This feature resets the Autosens Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change."
-                )
-                Text(
-                    "Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours."
-                )
-                Text(
-                    "Tip: If you usually rewind your pump independently of site changes, you may want to consider disabling this feature."
-                )
+            return VStack(alignment: .leading, spacing: 5) {
+                Text("Default: ON").bold().foregroundStyle(Color.primary)
+                Text("Medtronic Users Only").bold()
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(
+                        "This feature resets the Autosens Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change."
+                    )
+                    Text(
+                        "Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours."
+                    )
+                    Text(
+                        "Tip: If you usually rewind your pump independently of site changes, you may want to consider disabling this feature."
+                    )
+                }
             }
         case .enableSMBAlways:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: OFF").bold()
+                Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
                     "When enabled, Super Micro Boluses (SMBs) will always be allowed if dosing calculations determine insulin is needed via the SMB delivery method, except when a high Temp Target is set. Enabling SMB Always will remove redundant \"Enable SMB\" options when this setting is enacted."
                 )
@@ -211,7 +215,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             }
         case .enableSMBWithCOB:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: OFF").bold()
+                Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
                     "When the carb on board (COB) forecast line is active, enabling this feature allows Trio to use Super Micro Boluses (SMB) to deliver the insulin required."
                 )
@@ -221,7 +225,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             }
         case .enableSMBWithTempTarget:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: OFF").bold()
+                Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
                     "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) at times when a manual Temporary Target under \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) is set."
                 )
@@ -231,7 +235,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             }
         case .enableSMBAfterCarbs:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: OFF").bold()
+                Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
                     "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) for 6 hours after a carb entry, regardless of whether there are active carbs on board (COB)."
                 )
@@ -241,7 +245,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             }
         case .enableSMBWithHighGlucoseTarget:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: OFF").bold()
+                Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
                     "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when glucose reading is above the value set as High BG Target."
                 )
@@ -251,7 +255,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             }
         case .allowSMBWithHighTempTarget:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: OFF").bold()
+                Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
                     "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when a manual Temporary Target above \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) is set."
                 )
@@ -264,7 +268,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             }
         case .enableUAM:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: OFF").bold()
+                Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
                     "Enabling the UAM (Unannounced Meals) feature allows the system to detect and respond to unexpected rises in glucose readings caused by unannounced or miscalculated carbs, meals high in fat or protein, or other factors like adrenaline."
                 )
@@ -279,8 +283,8 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             return VStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 8) {
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("Default: 30 minutes").bold()
-                        Text("(50% current basal rate)").bold()
+                        Text("Default: 30 minutes").bold().foregroundStyle(Color.primary)
+                        Text("(50% current basal rate)")
                     }
                     VStack(alignment: .leading, spacing: 8) {
                         Text(
@@ -309,9 +313,10 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             return VStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 8) {
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("Default: 30 minutes").bold()
-                        Text("(50% current basal rate)").bold()
+                        Text("Default: 30 minutes").bold().foregroundStyle(Color.primary)
+                        Text("(50% current basal rate)")
                     }
+
                     VStack(alignment: .leading, spacing: 8) {
                         Text(
                             "This is a limit on the size of a single UAM SMB. One UAM SMB can only be as large as this many minutes of your current profile basal rate."
@@ -336,7 +341,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             }
         case .maxDeltaGlucoseThreshold:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: 20% increase").bold()
+                Text("Default: 20% increase").bold().foregroundStyle(Color.primary)
                 Text(
                     "Maximum allowed positive percent change in glucose level to permit SMBs. If the difference in glucose is greater than this, Trio will disable SMBs."
                 )
@@ -344,7 +349,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             }
         case .highTempTargetRaisesSensitivity:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: OFF").bold()
+                Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
                     "When this feature is enabled, manually setting a temporary target above \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) will decrease the Autosens Ratio used for ISF and basal adjustments, resulting in less insulin delivered overall. This scales with the temporary target set; the higher the temp target, the lower the Autosens Ratio used."
                 )
@@ -355,7 +360,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             }
         case .lowTempTargetLowersSensitivity:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: OFF").bold()
+                Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
                     "When this feature is enabled, setting a temporary target below \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) will increase the Autosens Ratio used for ISF and basal adjustments, resulting in more insulin delivered overall. This scales with the temporary target set; the lower the Temp Target, the higher the Autosens Ratio used. It requires Algorithm Settings > Autosens > Autosens Max to be set to > 100% to work."
                 )
@@ -366,14 +371,14 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             }
         case .sensitivityRaisesTarget:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: OFF").bold()
+                Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
                     "Enabling this feature causes Trio to automatically raise the targeted glucose if it detects an increase in insulin sensitivity from your baseline."
                 )
             }
         case .resistanceLowersTarget:
             return VStack(alignment: .leading, spacing: 8) {
-                Text("Default: OFF").bold()
+                Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
                     "Enabling this feature causes Trio to automatically reduce the targeted glucose if it detects a decrease in sensitivity (resistance) from your baseline."
                 )
@@ -383,7 +388,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
                 Text(
                     "Default: \(units == .mgdL ? "160" : 160.formattedAsMmolL) \(units.rawValue)"
                 )
-                .bold()
+                .bold().foregroundStyle(Color.primary)
                 Text(
                     "The Half Basal Exercise Target allows you to scale down your basal insulin during exercise or scale up your basal insulin when eating soon when a temporary glucose target is set."
                 )

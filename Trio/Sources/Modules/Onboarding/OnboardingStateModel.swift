@@ -517,11 +517,39 @@ extension Onboarding {
 
         /// Applies the selected delivery preferences to the app's settings.
         func applyToPreferences() {
-            var preferencesCopy = settingsManager.preferences
-            preferencesCopy.maxIOB = maxIOB
-            preferencesCopy.maxCOB = maxCOB
-            preferencesCopy.threshold_setting = minimumSafetyThreshold
-            settingsManager.preferences = preferencesCopy
+            var preferences = Preferences()
+
+            // delivery limits (those that are preference-bound, not pump-settings-bound
+            preferences.maxIOB = maxIOB
+            preferences.maxCOB = maxCOB
+            preferences.threshold_setting = minimumSafetyThreshold
+
+            // autosens
+            preferences.autosensMin = autosensMin
+            preferences.autosensMax = autosensMax
+            preferences.rewindResetsAutosens = rewindResetsAutosens
+
+            // smb settings
+            preferences.enableSMBAlways = enableSMBAlways
+            preferences.enableSMBWithCOB = enableSMBWithCOB
+            preferences.enableSMBWithTemptarget = enableSMBWithTempTarget
+            preferences.enableSMBAfterCarbs = enableSMBAfterCarbs
+            preferences.enableSMB_high_bg = enableSMBWithHighGlucoseTarget
+            preferences.enableSMB_high_bg_target = highGlucoseTarget
+            preferences.allowSMBWithHighTemptarget = allowSMBWithHighTempTarget
+            preferences.enableUAM = enableUAM
+            preferences.maxSMBBasalMinutes = maxSMBMinutes
+            preferences.maxUAMSMBBasalMinutes = maxUAMMinutes
+            preferences.maxDeltaBGthreshold = maxDeltaGlucoseThreshold
+
+            // target behavior
+            preferences.highTemptargetRaisesSensitivity = highTempTargetRaisesSensitivity
+            preferences.lowTemptargetLowersSensitivity = lowTempTargetLowersSensitivity
+            preferences.sensitivityRaisesTarget = sensitivityRaisesTarget
+            preferences.resistanceLowersTarget = resistanceLowersTarget
+            preferences.halfBasalExerciseTarget = halfBasalTarget
+
+            settingsManager.preferences = preferences
         }
 
         /// Saves pump delivery limits to persistent storage and broadcasts changes.
