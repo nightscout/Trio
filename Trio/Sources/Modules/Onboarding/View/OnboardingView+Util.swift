@@ -66,7 +66,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         case .autosensSettings:
             return String(localized: "Autosens")
         case .smbSettings:
-            return String(localized: "Super Micro Bolus (SMB)")
+            return String(localized: "Super Micro Bolus")
         case .targetBehavior:
             return String(localized: "Target Behavior")
         case .completed:
@@ -437,15 +437,6 @@ struct BulletPoint: View {
     }
 }
 
-enum OnboardingSettingItemType: Equatable, CaseIterable, Identifiable {
-    case overview
-    case complete
-
-    var id: UUID {
-        UUID()
-    }
-}
-
 enum OnboardingInputSectionType: Equatable {
     case decimal
     case boolean
@@ -459,62 +450,5 @@ enum OnboardingInputSectionType: Equatable {
         default:
             return false
         }
-    }
-}
-
-/// A reusable view for displaying setting items in the completed step.
-struct SettingItemView: View {
-    let step: OnboardingStep
-    let icon: String
-    let title: String
-    let type: OnboardingSettingItemType
-
-    private var accentColor: Color {
-        switch type {
-        case .overview:
-            Color.blue
-        case .complete:
-            Color.green
-        }
-    }
-
-    var body: some View {
-        HStack(spacing: 10) {
-            if step == .nightscout {
-                Image(icon)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 40, height: 24)
-                    .colorMultiply(accentColor)
-            } else {
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundStyle(accentColor)
-                    .frame(width: 40)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.headline)
-            }
-
-            Spacer()
-
-            switch type {
-            case .overview:
-                let index = nonInfoOnboardingSteps.firstIndex(of: step) ?? 0
-                let stepNumber = index + 1
-                Text(stepNumber.description)
-                    .bold()
-                    .frame(width: 32, height: 32, alignment: .center)
-                    .background(accentColor)
-                    .foregroundStyle(.white)
-                    .clipShape(Capsule())
-            case .complete:
-                Image(systemName: "checkmark")
-                    .foregroundStyle(accentColor)
-            }
-        }
-        .padding(.vertical, 8)
     }
 }
