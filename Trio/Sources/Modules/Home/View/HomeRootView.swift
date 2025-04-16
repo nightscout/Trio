@@ -1061,8 +1061,8 @@ extension Home {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 40))
                             .foregroundStyle(Color.tabBar)
-                            .padding(.bottom, 1)
-                            .padding(.horizontal, 22.5)
+                            .padding(.vertical, 2)
+                            .padding(.horizontal, 24)
                     }
                 )
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
