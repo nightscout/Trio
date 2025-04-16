@@ -3,6 +3,8 @@ import SwiftUI
 struct DiagnosticsStepView: View {
     @Bindable var state: Onboarding.StateModel
 
+    @State private var shouldPresentPrivacyPolicy: Bool = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("If you prefer not to share this anonymized data, you can opt-out of data sharing.")
@@ -31,6 +33,23 @@ struct DiagnosticsStepView: View {
                 .buttonStyle(.plain)
             }
 
+            Toggle(isOn: $state.hasAcceptedPrivacyPolicy) {
+                HStack {
+                    Text("I have read and accept the")
+                    Button("Privacy Policy") {
+                        shouldPresentPrivacyPolicy = true
+                    }
+                    .foregroundColor(.accentColor)
+                    .underline()
+                }
+                .font(.footnote)
+                .bold()
+            }
+            .toggleStyle(CheckboxToggleStyle(tint: Color.accentColor))
+            .padding(.horizontal)
+            .disabled(state.diagnosticsSharingOption == .disabled)
+            .opacity(state.diagnosticsSharingOption == .disabled ? 0.35 : 1)
+
             VStack(alignment: .leading, spacing: 8) {
                 Text("Why does Trio collect this data?").bold()
                 VStack(alignment: .leading, spacing: 4) {
@@ -54,5 +73,15 @@ struct DiagnosticsStepView: View {
             .font(.footnote)
             .foregroundStyle(Color.secondary)
         }
+        .sheet(isPresented: $shouldPresentPrivacyPolicy) {
+            PrivacyPolicyView()
+        }
+    }
+}
+
+struct PrivacyPolicyView: View {
+    var body: some View {
+        Text("Privacy Policy").font(.headline)
+        Text("Placeholder until policy is final.")
     }
 }

@@ -19,6 +19,11 @@ extension Onboarding {
         // MARK: - App Diagnostics
 
         var diagnosticsSharingOption: DiagnosticsSharingOption = .enabled
+        var hasAcceptedPrivacyPolicy: Bool = false
+
+        // MARK: - Important Startup Notes
+
+        var hasReadImportantStartupNotes: Bool = false
 
         // MARK: - Nightscout Setup
 
@@ -95,7 +100,9 @@ extension Onboarding {
         var maxCOB: Decimal = 120
         var minimumSafetyThreshold: Decimal = 60
 
-        // MARK: - Algorithm Settings Defaults
+        // MARK: - Algorithm Settings Defaults & State
+
+        var hasReadAlgorithmSetupInformation: Bool = false
 
         var autosensMin: Decimal = 0.7
         var autosensMax: Decimal = 1.2

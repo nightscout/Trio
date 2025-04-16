@@ -57,6 +57,14 @@ struct AlgorithmSettingsStepView: View {
                 )
             }
             .padding(.horizontal)
+
+            Divider()
+
+            Toggle(isOn: $state.hasReadAlgorithmSetupInformation) {
+                Text("Got it! I'm ready to continue.").padding(.leading, 6).bold()
+            }
+            .toggleStyle(CheckboxToggleStyle(tint: Color.blue))
+            .padding(.horizontal)
         }
     }
 }

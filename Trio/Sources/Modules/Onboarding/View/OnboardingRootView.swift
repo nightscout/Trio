@@ -36,12 +36,19 @@ extension Onboarding {
             currentNightscoutSubstep == .importFromNightscout && state.nightscoutImportOption == .noSelection
         }
 
+        // Next button conditional
         private var shouldDisableNextButton: Bool {
-            (currentStep == .nightscout && didSelectNightscoutSetupOption)
+            (currentStep == .startupGuide && !state.hasReadImportantStartupNotes)
+                ||
+                (currentStep == .diagnostics && state.diagnosticsSharingOption == .enabled && !state.hasAcceptedPrivacyPolicy)
+                ||
+                (currentStep == .nightscout && didSelectNightscoutSetupOption)
                 ||
                 (currentStep == .nightscout && hasValidNightscoutConnection)
                 ||
                 (currentStep == .nightscout && didSelectNightscoutImportOption)
+                ||
+                (currentStep == .algorithmSettings && !state.hasReadAlgorithmSetupInformation)
         }
 
         var body: some View {
@@ -80,6 +87,9 @@ extension Onboarding {
                                 nightscoutSetupOption: state.nightscoutSetupOption
                             )
                             .padding(.top)
+                        } else {
+                            // avoid letting content scroll beneath the status bar / dynamic island for content views with no progress bar (which adds top spacing)
+                            Color.clear.frame(height: 1)
                         }
 
                         OnboardingStepContent(
@@ -256,7 +266,7 @@ struct OnboardingStepContent: View {
                         case .welcome:
                             WelcomeStepView()
                         case .startupGuide:
-                            StartupGuideStepView()
+                            StartupGuideStepView(state: state)
                         case .overview:
                             OverviewStepView()
                         case .diagnostics:
@@ -307,6 +317,12 @@ struct OnboardingStepContent: View {
             .onChange(of: currentStep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
             .onChange(of: currentNightscoutSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
             .onChange(of: currentDeliverySubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
+            .safeAreaInset(edge: .top) {
+                // avoid letting content scroll beneath the status bar / dynamic island for content views with not progress bar (which adds top spacing)
+                if currentStep == .startupGuide || currentStep == .completed {
+                    Color.clear.frame(height: 0)
+                }
+            }
         }
     }
 }
@@ -432,11 +448,6 @@ struct OnboardingNavigationButtons: View {
 
     private func handleNextNavigation() {
         switch currentStep {
-        case .completed:
-            state.saveOnboardingData()
-            onboardingManager.completeOnboarding()
-            Foundation.NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
-
         case .nightscout:
             if currentNightscoutSubstep != .importFromNightscout {
                 if currentNightscoutSubstep == .setupSelection,
@@ -488,6 +499,11 @@ struct OnboardingNavigationButtons: View {
                 currentStep = nextStep
                 currentTargetBehaviorSubstep = .highTempTargetRaisesSensitivity
             }
+
+        case .completed:
+            state.saveOnboardingData()
+            onboardingManager.completeOnboarding()
+            Foundation.NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
 
         default:
             if let next = currentStep.next {

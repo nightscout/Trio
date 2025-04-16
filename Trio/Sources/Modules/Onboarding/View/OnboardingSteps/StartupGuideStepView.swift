@@ -7,6 +7,8 @@
 import SwiftUI
 
 struct StartupGuideStepView: View {
+    @Bindable var state: Onboarding.StateModel
+
     @Environment(\.openURL) var openURL
 
     var body: some View {
@@ -53,6 +55,14 @@ struct StartupGuideStepView: View {
                     + Text("your progress will not be saved.").bold()
             }
             .multilineTextAlignment(.leading)
+            .padding(.horizontal)
+
+            Divider()
+
+            Toggle(isOn: $state.hasReadImportantStartupNotes) {
+                Text("Got it! I'm ready to continue.").padding(.leading, 6).bold()
+            }
+            .toggleStyle(CheckboxToggleStyle(tint: Color.blue))
             .padding(.horizontal)
         }
     }
