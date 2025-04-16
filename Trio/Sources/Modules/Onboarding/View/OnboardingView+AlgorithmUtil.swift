@@ -119,8 +119,9 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
                 comment: "High Temp Target Raises Sensitivity"
             )
         case .lowTempTargetLowersSensitivity: return String(
-                localized: "High Temp Target Raises Sensitivity",
-                comment: "High Temp Target Raises Sensitivity"
+                localized:
+                "Low Temp Target Lowers Sensitivity",
+                comment: "Low Temp Target Lowers Sensitivity"
             )
         case .sensitivityRaisesTarget: return String(localized: "Sensitivity Raises Target", comment: "Sensitivity Raises Target")
         case .resistanceLowersTarget: return String(localized: "Resistance Lowers Target", comment: "Resistance Lowers Target")

@@ -85,6 +85,7 @@ struct OverviewStepView: View {
                 .font(.footnote)
                 .foregroundStyle(Color.secondary)
                 .padding(.vertical, 8)
+                .multilineTextAlignment(.leading)
         }
     }
 

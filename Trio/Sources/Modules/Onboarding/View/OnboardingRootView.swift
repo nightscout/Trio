@@ -390,12 +390,19 @@ struct OnboardingNavigationButtons: View {
                 currentDeliverySubstep = .minimumSafetyThreshold
             }
 
+        case .algorithmSettings:
+            if let previous = currentStep.previous {
+                currentStep = previous
+                currentDeliverySubstep = .minimumSafetyThreshold
+                currentAutosensSubstep = .autosensMin
+            }
+
         case .autosensSettings:
             if let previous = AutosensSettingsSubstep(rawValue: currentAutosensSubstep.rawValue - 1) {
                 currentAutosensSubstep = previous
             } else if let previousStep = currentStep.previous {
                 currentStep = previousStep
-                currentAutosensSubstep = .rewindResetsAutosens
+                currentAutosensSubstep = .autosensMin
             }
 
         case .smbSettings:
@@ -403,7 +410,8 @@ struct OnboardingNavigationButtons: View {
                 currentSMBSubstep = previous
             } else if let previousStep = currentStep.previous {
                 currentStep = previousStep
-                currentSMBSubstep = .maxDeltaGlucoseThreshold
+                currentSMBSubstep = .enableSMBAlways
+                currentAutosensSubstep = .rewindResetsAutosens
             }
 
         case .targetBehavior:
@@ -411,7 +419,8 @@ struct OnboardingNavigationButtons: View {
                 currentTargetBehaviorSubstep = previous
             } else if let previousStep = currentStep.previous {
                 currentStep = previousStep
-                currentTargetBehaviorSubstep = .halfBasalTarget
+                currentTargetBehaviorSubstep = .highTempTargetRaisesSensitivity
+                currentSMBSubstep = .maxDeltaGlucoseThreshold
             }
 
         default:
