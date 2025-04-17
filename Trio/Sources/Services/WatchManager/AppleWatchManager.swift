@@ -588,7 +588,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     let result = await bolusCalculationManager.handleBolusCalculation(
                         carbs: Decimal(carbs),
                         useFattyMealCorrection: false,
-                        useSuperBolus: false
+                        useSuperBolus: false,
+                        minPredBG: 60 // TODO:
                     )
 
                     // Send recommendation back to watch
