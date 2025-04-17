@@ -53,7 +53,7 @@ about you or how you use Trio.
 We use anonymous crash report information exclusively to:
 
 - Identify and fix bugs and crashes
-- Improve the Trio's stability
+- Improve Trio's stability
 
 We do not use this information for any other purpose, such as
 analytics, marketing, or user profiling.
