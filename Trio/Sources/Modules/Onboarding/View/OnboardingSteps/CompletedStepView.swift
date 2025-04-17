@@ -24,7 +24,9 @@ struct CompletedStepView: View {
                     stepIndex: 1,
                     title: String(localized: "Prepare Trio"),
                     steps: [.diagnostics, .nightscout, .unitSelection],
-                    description: "App diagnostics sharing, Nightscout setup, and unit and pump model selection are all complete."
+                    description: String(
+                        localized: "App diagnostics sharing, Nightscout setup, and unit and pump model selection are all complete."
+                    )
                 )
 
                 Divider()
@@ -33,7 +35,9 @@ struct CompletedStepView: View {
                     stepIndex: 2,
                     title: String(localized: "Therapy Settings"),
                     steps: [.glucoseTarget, .basalRates, .carbRatio, .insulinSensitivity],
-                    description: "Glucose target, basal rates, carb ratios, and insulin sensitivity match your needs."
+                    description: String(
+                        localized: "Glucose target, basal rates, carb ratios, and insulin sensitivity match your needs."
+                    )
                 )
 
                 Divider()
@@ -42,7 +46,9 @@ struct CompletedStepView: View {
                     stepIndex: 3,
                     title: String(localized: "Delivery Limits"),
                     steps: [.deliveryLimits],
-                    description: "Safety boundaries for insulin delivery and carb entries are set to help Trio keep you safe."
+                    description: String(
+                        localized: "Safety boundaries for insulin delivery and carb entries are set to help Trio keep you safe."
+                    )
                 )
 
                 Divider()
@@ -51,7 +57,7 @@ struct CompletedStepView: View {
                     stepIndex: 4,
                     title: String(localized: "Algorithm Settings"),
                     steps: [.autosensSettings, .smbSettings, .targetBehavior],
-                    description: "Trio’s algorithm features are customized to fit your preferences and needs."
+                    description: String(localized: "Trio’s algorithm features are customized to fit your preferences and needs.")
                 )
             }
             .padding()

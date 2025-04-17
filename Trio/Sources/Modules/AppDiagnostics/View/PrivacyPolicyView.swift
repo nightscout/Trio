@@ -213,6 +213,7 @@ struct PrivacyPolicyView: View {
                 .font(.footnote)
                 .foregroundStyle(Color.secondary)
                 .listRowBackground(Color.clear)
+                .fixedSize(horizontal: false, vertical: true)
                 .multilineTextAlignment(.leading)
             }
             .scrollContentBackground(.hidden)
@@ -227,6 +228,6 @@ struct PrivacyPolicyView: View {
             }
             .buttonStyle(.bordered)
             .padding([.top, .horizontal])
-        }
+        }.ignoresSafeArea(edges: .top)
     }
 }

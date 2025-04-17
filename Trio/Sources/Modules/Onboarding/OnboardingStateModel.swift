@@ -106,7 +106,7 @@ extension Onboarding {
 
         var autosensMin: Decimal = 0.7
         var autosensMax: Decimal = 1.2
-        var rewindResetsAutosens: Bool = false
+        var rewindResetsAutosens: Bool = true
         var enableSMBAlways: Bool = false
         var enableSMBWithCOB: Bool = false
         var enableSMBWithTempTarget: Bool = false

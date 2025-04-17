@@ -347,9 +347,9 @@ enum DiagnosticsSharingOption: String, Equatable, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .enabled:
-            return "Enable Sharing"
+            return String(localized: "Enable Sharing")
         case .disabled:
-            return "Disable Sharing"
+            return String(localized: "Disable Sharing")
         }
     }
 }
@@ -433,6 +433,8 @@ struct BulletPoint: View {
         HStack(alignment: .top) {
             Text("•")
             Text(text)
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
         }
     }
 }

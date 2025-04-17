@@ -283,10 +283,8 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
         case .maxSMBMinutes:
             return VStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 8) {
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Default: 30 minutes").bold().foregroundStyle(Color.primary)
-                        Text("(50% current basal rate)")
-                    }
+                    Text("Default: 30 minutes").bold().foregroundStyle(Color.primary)
+                    Text("(50% current basal rate)")
                     VStack(alignment: .leading, spacing: 8) {
                         Text(
                             "This is a limit on the size of a single SMB. One SMB can only be as large as this many minutes of your current profile basal rate."
@@ -313,10 +311,8 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
         case .maxUAMMinutes:
             return VStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 8) {
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Default: 30 minutes").bold().foregroundStyle(Color.primary)
-                        Text("(50% current basal rate)")
-                    }
+                    Text("Default: 30 minutes").bold().foregroundStyle(Color.primary)
+                    Text("(50% current basal rate)")
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text(
@@ -345,6 +341,9 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
                 Text("Default: 20% increase").bold().foregroundStyle(Color.primary)
                 Text(
                     "Maximum allowed positive percent change in glucose level to permit SMBs. If the difference in glucose is greater than this, Trio will disable SMBs."
+                )
+                Text(
+                    "This is a safety limitation to avoid high SMB doses when glucose is rising abnormally fast, such as after a meal or with a very jumpy CGM sensor."
                 )
                 Text("Note: This setting has a hard-coded cap of 40%")
             }

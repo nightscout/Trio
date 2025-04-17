@@ -30,7 +30,7 @@ struct OverviewStepView: View {
                     title: String(localized: "Therapy Settings"),
                     duration: "5-10",
                     description: String(
-                        localized: "Define your glucose target, basal rates, carb ratios, and insulin sensitivity."
+                        localized: "Define your glucose targets, basal rates, carb ratios, and insulin sensitivities."
                     )
                 )
 
