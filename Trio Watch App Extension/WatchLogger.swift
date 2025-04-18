@@ -24,9 +24,16 @@ final class WatchLogger {
         }
     }
 
-    func log(_ message: String) {
-        let timestamp = ISO8601DateFormatter().string(from: Date())
-        let entry = "[\(timestamp)] \(message)"
+    private var dateFormatter: DateFormatter {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+        return dateFormatter
+    }
+
+    func log(_ message: String, function: String = #function, file: String = #fileID, line: Int = #line) {
+        let shortFile = (file as NSString).lastPathComponent
+        let timestamp = dateFormatter.string(from: Date())
+        let entry = "[\(timestamp)] [\(shortFile):\(line)] \(function) → \(message)"
         logs.append(entry)
 
         if logs.count > maxEntries {

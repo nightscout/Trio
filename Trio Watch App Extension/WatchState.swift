@@ -96,6 +96,7 @@ import WatchConnectivity
             session.delegate = self
             session.activate()
             self.session = session
+            WatchLogger.shared.log("⌚️ WCSession setup complete.")
         } else {
             WatchLogger.shared.log("⌚️ WCSession is not supported on this device")
         }
@@ -104,6 +105,8 @@ import WatchConnectivity
     // MARK: – Handle Acknowledgement Messages FROM Phone
 
     func handleAcknowledgment(success: Bool, message: String, isFinal: Bool = true) {
+        WatchLogger.shared.log("Handling acknowledgment: \(message), success: \(success), isFinal: \(isFinal)")
+
         if success {
             WatchLogger.shared.log("⌚️ Acknowledgment received: \(message)")
             acknowledgementStatus = .success
@@ -122,6 +125,7 @@ import WatchConnectivity
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 self.showAcknowledgmentBanner = false
                 self.showSyncingAnimation = false // Just ensure this is 100% set to false
+                WatchLogger.shared.log("Cleared ack banner and syncing animation")
             }
         }
     }
@@ -247,109 +251,6 @@ import WatchConnectivity
         }
     }
 
-    /// Handles incoming messages from the paired iPhone when Phone is in the background
-//    func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
-//        WatchLogger.shared.log("⌚️ Watch received data: \(userInfo)")
-//
-//        if let stateDict = userInfo[WatchMessageKeys.watchState] as? [String: Any] {
-//                WatchLogger.shared.log("📥 Found WatchState in userInfo")
-//
-//                if let snapshot = WatchStateSnapshot(from: stateDict) {
-//                    WatchLogger.shared.log("📥 Parsed snapshot: \(snapshot.date)")
-//
-//                    Task {
-//                        await WatchStateModel.shared.handleIncomingSnapshot(snapshot)
-//                    }
-//                } else {
-//                    WatchLogger.shared.log("❌ Failed to parse WatchState snapshot from userInfo")
-//                }
-//            }
-//        // If the message has a nested "watchState" dictionary with date as TimeInterval
-//        if let watchStateDict = userInfo[WatchMessageKeys.watchState] as? [String: Any],
-//           let timestamp = watchStateDict[WatchMessageKeys.date] as? TimeInterval
-//        {
-//            let date = Date(timeIntervalSince1970: timestamp)
-//
-//            // Check if it's not older than 15 min
-//            if date >= Date().addingTimeInterval(-15 * 60) {
-//                WatchLogger.shared.log("⌚️ Handling watchState from \(date)")
-//                processWatchMessage(userInfo)
-//            } else {
-//                WatchLogger.shared.log("⌚️ Received outdated watchState data (\(date))")
-//                DispatchQueue.main.async {
-//                    self.showSyncingAnimation = false
-//                }
-//            }
-//            return
-//        }
-//
-//        // Else if the message is an "ack" at the top level
-//        // e.g. { "acknowledged": true, "message": "Started Temp Target...", "date": Date(...) }
-//        else if
-//            let acknowledged = userInfo[WatchMessageKeys.acknowledged] as? Bool,
-//            let ackMessage = userInfo[WatchMessageKeys.message] as? String
-//        {
-//            WatchLogger.shared.log("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged)")
-//            DispatchQueue.main.async {
-//                // For ack messages, we do NOT show “Syncing...”
-//                self.showSyncingAnimation = false
-//            }
-//            processWatchMessage(userInfo)
-//            return
-//
-//                    // Recommended bolus is also not part of the WatchState message, hence the extra condition here
-//        } else if
-//            let recommendedBolus = userInfo[WatchMessageKeys.recommendedBolus] as? NSNumber
-//        {
-//            WatchLogger.shared.log("⌚️ Received recommended bolus: \(recommendedBolus)")
-//            self.recommendedBolus = recommendedBolus.decimalValue
-//            showBolusCalculationProgress = false
-//            return
-//
-//                    // Handle bolus progress updates
-//        } else if
-//            let timestamp = userInfo[WatchMessageKeys.bolusProgressTimestamp] as? TimeInterval,
-//            let progress = userInfo[WatchMessageKeys.bolusProgress] as? Double,
-//            let activeBolusAmount = userInfo[WatchMessageKeys.activeBolusAmount] as? Double,
-//            let deliveredAmount = userInfo[WatchMessageKeys.deliveredAmount] as? Double
-//        {
-//            let date = Date(timeIntervalSince1970: timestamp)
-//
-//            // Check if it's not older than 5 min
-//            if date >= Date().addingTimeInterval(-5 * 60) {
-//                WatchLogger.shared.log("⌚️ Handling bolusProgress (sent at \(date))")
-//                DispatchQueue.main.async {
-//                    if !self.isBolusCanceled {
-//                        self.bolusProgress = progress
-//                        self.activeBolusAmount = activeBolusAmount
-//                        self.deliveredAmount = deliveredAmount
-//                    }
-//                }
-//            } else {
-//                WatchLogger.shared.log("⌚️ Received outdated bolus progress (sent at \(date))")
-//                DispatchQueue.main.async {
-//                    self.bolusProgress = 0
-//                    self.activeBolusAmount = 0
-//                }
-//            }
-//            return
-//
-//                    // Handle bolus cancellation
-//        } else if
-//            userInfo[WatchMessageKeys.bolusCanceled] as? Bool == true
-//        {
-//            DispatchQueue.main.async {
-//                self.bolusProgress = 0
-//                self.activeBolusAmount = 0
-//            }
-//            return
-//        } else {
-//            WatchLogger.shared.log("⌚️ Faulty data. Skipping...")
-//            DispatchQueue.main.async {
-//                self.showSyncingAnimation = false
-//            }
-//        }
-//    }
     func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
         guard let snapshot = WatchStateSnapshot(from: userInfo) else {
             print("⌚️ Invalid snapshot received")
@@ -407,6 +308,8 @@ import WatchConnectivity
     /// it will show a syncing animation and request a new watch state update from the iPhone app.
     private func forceConditionalWatchStateUpdate() {
         guard let lastUpdateTimestamp = lastWatchStateUpdate else {
+            WatchLogger.shared.log("Forcing initial WatchState update")
+
             // If there's no recorded timestamp, we must force a fresh update immediately.
             showSyncingAnimation = true
             requestWatchStateUpdate()
@@ -415,6 +318,7 @@ import WatchConnectivity
 
         let now = Date().timeIntervalSince1970
         let secondsSinceUpdate = now - lastUpdateTimestamp
+        WatchLogger.shared.log("Time since last update: \(secondsSinceUpdate) seconds")
 
         // If more than 15 seconds have elapsed since the last update, force an(other) update.
         if secondsSinceUpdate > 15 {
@@ -470,7 +374,7 @@ import WatchConnectivity
            let lastTimestamp = lastWatchStateUpdate,
            incomingTimestamp <= lastTimestamp
         {
-            WatchLogger.shared.log("⚠️ Skipping UI update — outdated WatchState (\(incomingTimestamp))")
+            WatchLogger.shared.log("Skipping UI update — outdated WatchState (\(incomingTimestamp))")
             return
         }
 
@@ -478,6 +382,8 @@ import WatchConnectivity
         DispatchQueue.main.async {
             self.showSyncingAnimation = true
         }
+
+        WatchLogger.shared.log("Merging new WatchState data with keys: \(newData.keys.joined(separator: ", "))")
 
         // 2) Merge data into our pendingData
         pendingData.merge(newData) { _, newVal in newVal }
@@ -487,6 +393,7 @@ import WatchConnectivity
 
         // 4) Create and schedule a new finalization
         let workItem = DispatchWorkItem { [self] in
+            WatchLogger.shared.log("⏳ Debounced update fired")
             self.finalizePendingData()
         }
         finalizeWorkItem = workItem
@@ -496,6 +403,8 @@ import WatchConnectivity
     /// Applies all pending data to the watch state in one shot
     private func finalizePendingData() {
         guard !pendingData.isEmpty else {
+            WatchLogger.shared.log("⚠️ finalizePendingData called with empty data")
+
             // If we have no actual data, just end syncing
             DispatchQueue.main.async {
                 self.showSyncingAnimation = false
@@ -515,12 +424,17 @@ import WatchConnectivity
         DispatchQueue.main.async {
             self.showSyncingAnimation = false
         }
+
+        WatchLogger.shared.log("✅ Watch UI update complete")
     }
 
     /// Updates the UI properties
     private func processRawDataForWatchState(_ message: [String: Any]) {
+        WatchLogger.shared.log("Processing raw WatchState data with keys: \(message.keys.joined(separator: ", "))")
+
         if let timestamp = message[WatchMessageKeys.date] as? TimeInterval {
             lastWatchStateUpdate = timestamp
+            WatchLogger.shared.log("Updated lastWatchStateUpdate: \(timestamp)")
         }
 
         if let currentGlucose = message[WatchMessageKeys.currentGlucose] as? String {
