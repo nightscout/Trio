@@ -15,11 +15,13 @@ struct NotificationPermissionStepView: View {
                 .bold()
                 .multilineTextAlignment(.leading)
 
-            Text("Trio can notify of different events when you use it. You must Trio to send you notifications to work properly.")
-                .font(.body)
-                .multilineTextAlignment(.leading)
-                .foregroundColor(Color.secondary)
-                .padding(.bottom)
+            Text(
+                "Trio can notify of different events when you use it. You must allow Trio to send you notifications to work properly."
+            )
+            .font(.body)
+            .multilineTextAlignment(.leading)
+            .foregroundColor(Color.secondary)
+            .padding(.bottom)
 
             VStack(alignment: .leading, spacing: 20) {
                 HStack(spacing: 12) {
