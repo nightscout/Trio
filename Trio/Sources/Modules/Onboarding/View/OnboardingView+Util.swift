@@ -23,6 +23,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     case autosensSettings
     case smbSettings
     case targetBehavior
+    case notifications
+    case bluetooth
     case completed
 
     var id: Int { rawValue }
@@ -69,6 +71,10 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return String(localized: "Super Micro Bolus")
         case .targetBehavior:
             return String(localized: "Target Behavior")
+        case .notifications:
+            return String(localized: "Notifications")
+        case .bluetooth:
+            return String(localized: "Bluetooth")
         case .completed:
             return String(localized: "All Set!")
         }
@@ -137,6 +143,10 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return String(
                 localized: "Target Behavior allows you to adjust how temporary targets influence ISF, basal, and auto-targeting based on sensitivity or resistance."
             )
+        case .notifications:
+            return "Allow Trio to send you Notifications. These may include alerts, sounds, and icon badges."
+        case .bluetooth:
+            return String(localized: "Allow Trio to use Bluetooth to communicate with your insulin pump and CGM.")
         case .completed:
             return String(
                 localized: "Great job! You've completed the initial setup of Trio. You can always adjust these settings later in the app."
@@ -177,6 +187,10 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return "bolt.fill"
         case .targetBehavior:
             return "gyroscope"
+        case .notifications:
+            return "bell.badge.fill"
+        case .bluetooth:
+            return "logo.bluetooth.capsule.portrait.fill"
         case .completed:
             return "checkmark.circle.fill"
         }
@@ -203,10 +217,12 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         switch self {
         case .algorithmSettings,
              .autosensSettings,
+             .bluetooth,
              .completed,
              .deliveryLimits,
              .diagnostics,
              .nightscout,
+             .notifications,
              .overview,
              .smbSettings,
              .startupGuide,

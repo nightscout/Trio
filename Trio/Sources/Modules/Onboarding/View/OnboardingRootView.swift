@@ -235,6 +235,15 @@ struct OnboardingStepContent: View {
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 60, height: 60)
+                            } else if currentStep == .bluetooth {
+                                Image(currentStep.iconName)
+                                    .font(.system(size: 40))
+                                    .foregroundColor(currentStep.accentColor)
+                                    .frame(width: 60, height: 60)
+                                    .background(
+                                        Circle()
+                                            .fill(currentStep.accentColor.opacity(0.2))
+                                    )
                             } else {
                                 Image(systemName: currentStep.iconName)
                                     .font(.system(size: 40))
@@ -300,6 +309,14 @@ struct OnboardingStepContent: View {
                             AlgorithmSubstepView(state: state, substep: currentSMBSubstep)
                         case .targetBehavior:
                             AlgorithmSubstepView(state: state, substep: currentTargetBehaviorSubstep)
+                        case .notifications:
+                            NotificationPermissionStepView()
+                        case .bluetooth:
+                            BluetoothPermissionStepView(
+                                state: state,
+                                bluetoothManager: state.bluetoothManager,
+                                currentStep: $currentStep
+                            )
                         case .completed:
                             CompletedStepView()
                         }
@@ -499,6 +516,20 @@ struct OnboardingNavigationButtons: View {
                 currentStep = nextStep
                 currentTargetBehaviorSubstep = .highTempTargetRaisesSensitivity
             }
+
+        case .notifications:
+            currentTargetBehaviorSubstep = .halfBasalTarget
+            if let next = currentStep.next {
+                DispatchQueue.main.async {
+                    state.notificationsManager.requestNotificationPermissions { granted in
+                        state.hasNotificationsGranted = granted
+                        currentStep = next
+                    }
+                }
+            }
+
+        case .bluetooth:
+            state.shouldDisplayBluetoothRequestAlert = true
 
         case .completed:
             state.saveOnboardingData()

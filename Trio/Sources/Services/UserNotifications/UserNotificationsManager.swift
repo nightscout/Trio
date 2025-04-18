@@ -8,7 +8,9 @@ import Swinject
 import UIKit
 import UserNotifications
 
-protocol UserNotificationsManager {}
+protocol UserNotificationsManager {
+    func requestNotificationPermissions(completion: @escaping (Bool) -> Void)
+}
 
 enum GlucoseSourceKey: String {
     case transmitterBattery
@@ -88,7 +90,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         broadcaster.register(BolusFailureObserver.self, observer: self)
         broadcaster.register(pumpNotificationObserver.self, observer: self)
         broadcaster.register(alertMessageNotificationObserver.self, observer: self)
-        requestNotificationPermissionsIfNeeded()
+//        requestNotificationPermissionsIfNeeded()
         Task {
             await sendGlucoseNotification()
         }
@@ -384,20 +386,23 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         return body
     }
 
-    private func requestNotificationPermissionsIfNeeded() {
-        center.getNotificationSettings { settings in
-            debug(.service, "UNUserNotificationCenter.authorizationStatus: \(String(describing: settings.authorizationStatus))")
-            if ![.authorized, .provisional].contains(settings.authorizationStatus) {
-                self.requestNotificationPermissions()
-            }
-        }
-    }
+//    private func requestNotificationPermissionsIfNeeded() {
+//        center.getNotificationSettings { settings in
+//            debug(.service, "UNUserNotificationCenter.authorizationStatus: \(String(describing: settings.authorizationStatus))")
+//            if ![.authorized, .provisional].contains(settings.authorizationStatus) {
+//                self.requestNotificationPermissions()
+//            }
+//        }
+//    }
 
-    private func requestNotificationPermissions() {
+    func requestNotificationPermissions(completion: @escaping (Bool) -> Void) {
         debug(.service, "requestNotificationPermissions")
         center.requestAuthorization(options: [.badge, .sound, .alert]) { granted, error in
             if granted {
                 debug(.service, "requestNotificationPermissions was granted")
+                DispatchQueue.main.async {
+                    completion(granted)
+                }
             } else {
                 warning(.service, "requestNotificationPermissions failed", error: error)
             }

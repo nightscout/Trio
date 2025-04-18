@@ -23,7 +23,6 @@ struct CompletedStepView: View {
                 completedItemsView(
                     stepIndex: 1,
                     title: String(localized: "Prepare Trio"),
-                    steps: [.diagnostics, .nightscout, .unitSelection],
                     description: String(
                         localized: "App diagnostics sharing, Nightscout setup, and unit and pump model selection are all complete."
                     )
@@ -34,7 +33,6 @@ struct CompletedStepView: View {
                 completedItemsView(
                     stepIndex: 2,
                     title: String(localized: "Therapy Settings"),
-                    steps: [.glucoseTarget, .basalRates, .carbRatio, .insulinSensitivity],
                     description: String(
                         localized: "Glucose target, basal rates, carb ratios, and insulin sensitivity match your needs."
                     )
@@ -45,7 +43,6 @@ struct CompletedStepView: View {
                 completedItemsView(
                     stepIndex: 3,
                     title: String(localized: "Delivery Limits"),
-                    steps: [.deliveryLimits],
                     description: String(
                         localized: "Safety boundaries for insulin delivery and carb entries are set to help Trio keep you safe."
                     )
@@ -56,8 +53,15 @@ struct CompletedStepView: View {
                 completedItemsView(
                     stepIndex: 4,
                     title: String(localized: "Algorithm Settings"),
-                    steps: [.autosensSettings, .smbSettings, .targetBehavior],
                     description: String(localized: "Trio’s algorithm features are customized to fit your preferences and needs.")
+                )
+
+                Divider()
+
+                completedItemsView(
+                    stepIndex: 5,
+                    title: String(localized: "Permission Requests"),
+                    description: String(localized: "Notifications and Bluetooth permissions are handled to your liking.")
                 )
             }
             .padding()
@@ -77,7 +81,6 @@ struct CompletedStepView: View {
     @ViewBuilder private func completedItemsView(
         stepIndex: Int,
         title: String,
-        steps _: [OnboardingStep],
         description: String
     ) -> some View {
         VStack(alignment: .leading, spacing: 10) {

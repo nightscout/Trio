@@ -660,6 +660,8 @@
 		DDF847E62C5D66490049BB3B /* AddMealPresetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E52C5D66490049BB3B /* AddMealPresetView.swift */; };
 		DDF847E82C5DABA30049BB3B /* WatchConfigAppleWatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E72C5DABA30049BB3B /* WatchConfigAppleWatchView.swift */; };
 		DDF847EA2C5DABAC0049BB3B /* WatchConfigGarminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E92C5DABAC0049BB3B /* WatchConfigGarminView.swift */; };
+		DDFF202F2DB1D14500AB8A96 /* NotificationPermissionStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF202E2DB1D14500AB8A96 /* NotificationPermissionStepView.swift */; };
+		DDFF20312DB1D15500AB8A96 /* BluetoothPermissionStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF20302DB1D15500AB8A96 /* BluetoothPermissionStepView.swift */; };
 		E00EEC0327368630002FF094 /* ServiceAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFD27368630002FF094 /* ServiceAssembly.swift */; };
 		E00EEC0427368630002FF094 /* SecurityAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFE27368630002FF094 /* SecurityAssembly.swift */; };
 		E00EEC0527368630002FF094 /* StorageAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFF27368630002FF094 /* StorageAssembly.swift */; };
@@ -1457,6 +1459,8 @@
 		DDF847E52C5D66490049BB3B /* AddMealPresetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddMealPresetView.swift; sourceTree = "<group>"; };
 		DDF847E72C5DABA30049BB3B /* WatchConfigAppleWatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigAppleWatchView.swift; sourceTree = "<group>"; };
 		DDF847E92C5DABAC0049BB3B /* WatchConfigGarminView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigGarminView.swift; sourceTree = "<group>"; };
+		DDFF202E2DB1D14500AB8A96 /* NotificationPermissionStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPermissionStepView.swift; sourceTree = "<group>"; };
+		DDFF20302DB1D15500AB8A96 /* BluetoothPermissionStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothPermissionStepView.swift; sourceTree = "<group>"; };
 		E00EEBFD27368630002FF094 /* ServiceAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceAssembly.swift; sourceTree = "<group>"; };
 		E00EEBFE27368630002FF094 /* SecurityAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SecurityAssembly.swift; sourceTree = "<group>"; };
 		E00EEBFF27368630002FF094 /* StorageAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StorageAssembly.swift; sourceTree = "<group>"; };
@@ -2780,6 +2784,8 @@
 		BD47FDD52D8B64AE0043966B /* OnboardingSteps */ = {
 			isa = PBXGroup;
 			children = (
+				DDFF20302DB1D15500AB8A96 /* BluetoothPermissionStepView.swift */,
+				DDFF202E2DB1D14500AB8A96 /* NotificationPermissionStepView.swift */,
 				DD4A00222DAEF5CD00AB7387 /* AlgorithmSettings */,
 				DDBD53FB2DAA903100F940A6 /* OverviewStepView.swift */,
 				DDF691362DA30332008BF16C /* StartupGuideStepView.swift */,
@@ -4190,6 +4196,7 @@
 				3811DEAB25C9D88300A708ED /* HTTPResponseStatus.swift in Sources */,
 				3811DE5F25C9D4D500A708ED /* ProgressBar.swift in Sources */,
 				BD249D8C2D42FC2C00412DEB /* GlucoseDistributionChart.swift in Sources */,
+				DDFF20312DB1D15500AB8A96 /* BluetoothPermissionStepView.swift in Sources */,
 				38E87408274F9AD000975559 /* UserNotificationsManager.swift in Sources */,
 				DD3F1F902D9E153F00DCE7B3 /* NightscoutImportStepView.swift in Sources */,
 				CE82E02528E867BA00473A9C /* AlertStorage.swift in Sources */,
@@ -4265,6 +4272,7 @@
 				9825E5E923F0B8FA80C8C7C7 /* NightscoutConfigStateModel.swift in Sources */,
 				DDA6E3222D25901100C2988C /* TempTargetHelpView.swift in Sources */,
 				58645B9D2CA2D275008AFCE7 /* DeterminationSetup.swift in Sources */,
+				DDFF202F2DB1D14500AB8A96 /* NotificationPermissionStepView.swift in Sources */,
 				491D6FBD2D56741C00C49F67 /* TempTargetStored+CoreDataProperties.swift in Sources */,
 				491D6FBE2D56741C00C49F67 /* TempTargetRunStored+CoreDataClass.swift in Sources */,
 				491D6FBF2D56741C00C49F67 /* TempTargetRunStored+CoreDataProperties.swift in Sources */,

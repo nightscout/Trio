@@ -55,6 +55,17 @@ struct OverviewStepView: View {
                         localized: "Customize Trio’s algorithm features. Most users start with the recommended settings."
                     )
                 )
+
+                Divider()
+
+                overviewItem(
+                    stepIndex: 5,
+                    title: String(localized: "Permission Requests"),
+                    duration: "1",
+                    description: String(
+                        localized: "Authorize Trio to send notifications and use Bluetooth. You must allow both for Trio to work properly."
+                    )
+                )
             }
             .padding()
             .background(Color.chart.opacity(0.65))

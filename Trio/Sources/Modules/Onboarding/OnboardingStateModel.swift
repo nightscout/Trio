@@ -13,6 +13,8 @@ extension Onboarding {
         @ObservationIgnored @Injected() var broadcaster: Broadcaster!
         @ObservationIgnored @Injected() var keychain: Keychain!
         @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
+        @ObservationIgnored @Injected() var notificationsManager: UserNotificationsManager!
+        @ObservationIgnored @Injected() var bluetoothManager: BluetoothStateManager!
 
         private let settingsProvider = PickerSettingsProvider.shared
 
@@ -123,6 +125,13 @@ extension Onboarding {
         var sensitivityRaisesTarget: Bool = false
         var resistanceLowersTarget: Bool = false
         var halfBasalTarget: Decimal = 160
+
+        // MARK: - Permission Requests
+
+        var hasNotificationsGranted = false
+
+        var shouldDisplayBluetoothRequestAlert: Bool = false
+        var hasBluetoothGranted = false
 
         // MARK: - Subscribe
 
