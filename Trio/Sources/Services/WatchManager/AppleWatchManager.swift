@@ -396,30 +396,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     // MARK: - Send to Watch
 
-    /// Sends the state of type WatchState to the connected Watch
-    /// - Parameter state: Current WatchState containing glucose data to be sent
-    @MainActor func sendDataToWatch(_ state: WatchState) async {
-        guard let session = session else { return }
-
-        guard session.isPaired else {
-            debug(.watchManager, "⌚️❌ No Watch is paired")
-            return
-        }
-
-        guard session.isWatchAppInstalled else {
-            debug(.watchManager, "⌚️❌ Trio Watch app is")
-            return
-        }
-
-        guard session.activationState == .activated else {
-            let activationStateString = "\(session.activationState)"
-            debug(.watchManager, "⌚️ Watch session activationState = \(activationStateString). Reactivating...")
-            session.activate()
-            return
-        }
-
-        let message: [String: Any] = [
-            WatchMessageKeys.date: Date().timeIntervalSince1970,
+    func watchStateToDictionary(from state: WatchState) -> [String: Any] {
+        [
+            WatchMessageKeys.date: state.date.timeIntervalSince1970,
             WatchMessageKeys.currentGlucose: state.currentGlucose ?? "--",
             WatchMessageKeys.currentGlucoseColorString: state.currentGlucoseColorString ?? "#ffffff",
             WatchMessageKeys.trend: state.trend ?? "",
@@ -453,8 +432,41 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.maxFat: state.maxFat,
             WatchMessageKeys.maxProtein: state.maxProtein,
             WatchMessageKeys.bolusIncrement: state.bolusIncrement,
-            WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster
+            WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster,
+            WatchMessageKeys.units: state.units.rawValue
         ]
+    }
+
+    /// Sends the state of type WatchState to the connected Watch
+    /// - Parameter state: Current WatchState containing glucose data to be sent
+    @MainActor func sendDataToWatch(_ state: WatchState) async {
+        guard let session = session else { return }
+
+        guard session.isPaired else {
+            debug(.watchManager, "⌚️❌ No Watch is paired")
+            return
+        }
+
+        guard session.isWatchAppInstalled else {
+            debug(.watchManager, "⌚️❌ Trio Watch app is")
+            return
+        }
+
+        guard session.activationState == .activated else {
+            let activationStateString = "\(session.activationState)"
+            debug(.watchManager, "⌚️ Watch session activationState = \(activationStateString). Reactivating...")
+            session.activate()
+            return
+        }
+
+        // Skip if we already sent this state or older
+        let lastSent = WatchStateSnapshot.loadLatestDateFromDisk()
+        guard lastSent < state.date else {
+            debug(.watchManager, "🕐 Skipping push — newer or equal state already sent")
+            return
+        }
+
+        let message: [String: Any] = watchStateToDictionary(from: state)
 
         // if session is reachable, it means watch App is in the foreground -> send watchState as message
         // if session is not reachable, it means it's in background -> send watchState as userInfo
@@ -462,8 +474,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             session.sendMessage([WatchMessageKeys.watchState: message], replyHandler: nil) { error in
                 debug(.watchManager, "❌ Error sending watch state: \(error.localizedDescription)")
             }
+            WatchStateSnapshot.saveLatestDateToDisk(state.date)
         } else {
+            WatchStateSnapshot.saveLatestDateToDisk(state.date)
             session.transferUserInfo([WatchMessageKeys.watchState: message])
+            debug(.watchManager, "📤 Transferred new WatchState snapshot via userInfo")
         }
     }
 
@@ -503,7 +518,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
         DispatchQueue.main.async { [weak self] in
-            // Check Watch State Update Request first
+            if let logs = message["watchLogs"] as? String {
+                SimpleLogReporter.appendToWatchLog(logs)
+            }
+
             if let requestWatchUpdate = message[WatchMessageKeys.requestWatchUpdate] as? String,
                requestWatchUpdate == WatchMessageKeys.watchState
             {
@@ -598,12 +616,18 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     ]
 
                     if let session = self.session, session.isReachable {
-                        print("📱 Sending recommendedBolus: \(result.insulinCalculated)")
+                        debug(.watchManager, "📱 Sending recommendedBolus: \(result.insulinCalculated)")
                         session.sendMessage(recommendationMessage, replyHandler: nil)
                     }
                 }
                 return
             }
+        }
+    }
+
+    func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
+        if let logs = userInfo["watchLogs"] as? String {
+            SimpleLogReporter.appendToWatchLog(logs)
         }
     }
 
@@ -989,7 +1013,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         if session.activationState != .activated {
             session.activate()
             // Then, queue data for eventual delivery in the background
-            session.transferUserInfo(message)
+//            session.transferUserInfo(message)
             return
         }
 
@@ -999,10 +1023,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             session.sendMessage(message, replyHandler: nil) { error in
                 debug(.watchManager, "❌ Error sending bolus progress: \(error.localizedDescription)")
             }
-        } else {
-            // Fallback to be double safe: queue userInfo for eventual delivery
-            session.transferUserInfo(message)
         }
+//        else {
+//            // Fallback to be double safe: queue userInfo for eventual delivery
+//            session.transferUserInfo(message)
+//        }
     }
 
     private func sendBolusCanceledMessageToWatch() {
@@ -1087,3 +1112,26 @@ extension BaseWatchManager {
         return nil
     }
 }
+
+// extension BaseWatchManager {
+//    func pushWatchStateToWatch(_ state: WatchState) {
+//        guard let session = session else { return }
+//
+//        // Skip if we already sent this state or older
+//        let lastSent = WatchStateSnapshot.loadLatestDateFromDisk()
+//        guard lastSent < state.date else {
+//            debug(.watchManager, "🕐 Skipping push — newer or equal state already sent")
+//            return
+//        }
+//
+//        let message: [String: Any] = [
+//            WatchMessageKeys.date: state.date.timeIntervalSince1970,
+//            WatchMessageKeys.watchState: watchStateToDictionary(from: state)
+//        ]
+//
+//        WatchStateSnapshot.saveLatestDateToDisk(state.date)
+//        session.transferUserInfo(message)
+//
+//        debug(.watchManager, "📤 Transferred new WatchState snapshot via userInfo")
+//    }
+// }

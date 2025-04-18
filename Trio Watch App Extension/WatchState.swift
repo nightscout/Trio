@@ -97,7 +97,7 @@ import WatchConnectivity
             session.activate()
             self.session = session
         } else {
-            print("⌚️ WCSession is not supported on this device")
+            WatchLogger.shared.log("⌚️ WCSession is not supported on this device")
         }
     }
 
@@ -105,11 +105,11 @@ import WatchConnectivity
 
     func handleAcknowledgment(success: Bool, message: String, isFinal: Bool = true) {
         if success {
-            print("⌚️ Acknowledgment received: \(message)")
+            WatchLogger.shared.log("⌚️ Acknowledgment received: \(message)")
             acknowledgementStatus = .success
             acknowledgmentMessage = "\(message)"
         } else {
-            print("⌚️ Acknowledgment failed: \(message)")
+            WatchLogger.shared.log("⌚️ Acknowledgment failed: \(message)")
             DispatchQueue.main.async {
                 self.showCommsAnimation = false // Hide progress animation
             }
@@ -133,25 +133,25 @@ import WatchConnectivity
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         DispatchQueue.main.async {
             if let error = error {
-                print("⌚️ Watch session activation failed: \(error.localizedDescription)")
+                WatchLogger.shared.log("⌚️ Watch session activation failed: \(error.localizedDescription)")
                 return
             }
 
             if activationState == .activated {
-                print("⌚️ Watch session activated with state: \(activationState.rawValue)")
+                WatchLogger.shared.log("⌚️ Watch session activated with state: \(activationState.rawValue)")
 
                 self.forceConditionalWatchStateUpdate()
 
                 self.isReachable = session.isReachable
 
-                print("⌚️ Watch isReachable after activation: \(session.isReachable)")
+                WatchLogger.shared.log("⌚️ Watch isReachable after activation: \(session.isReachable)")
             }
         }
     }
 
     /// Handles incoming messages from the paired iPhone when Phone is in the foreground
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
-        print("⌚️ Watch received data: \(message)")
+        WatchLogger.shared.log("⌚️ Watch received data: \(message)")
 
         // If the message has a nested "watchState" dictionary with date as TimeInterval
         if let watchStateDict = message[WatchMessageKeys.watchState] as? [String: Any],
@@ -161,10 +161,10 @@ import WatchConnectivity
 
             // Check if it's not older than 15 min
             if date >= Date().addingTimeInterval(-15 * 60) {
-                print("⌚️ Handling watchState from \(date)")
+                WatchLogger.shared.log("⌚️ Handling watchState from \(date)")
                 processWatchMessage(message)
             } else {
-                print("⌚️ Received outdated watchState data (\(date))")
+                WatchLogger.shared.log("⌚️ Received outdated watchState data (\(date))")
                 DispatchQueue.main.async {
                     self.showSyncingAnimation = false
                 }
@@ -178,7 +178,7 @@ import WatchConnectivity
             let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
             let ackMessage = message[WatchMessageKeys.message] as? String
         {
-            print("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged)")
+            WatchLogger.shared.log("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged)")
             DispatchQueue.main.async {
                 // For ack messages, we do NOT show “Syncing...”
                 self.showSyncingAnimation = false
@@ -190,7 +190,7 @@ import WatchConnectivity
         } else if
             let recommendedBolus = message[WatchMessageKeys.recommendedBolus] as? NSNumber
         {
-            print("⌚️ Received recommended bolus: \(recommendedBolus)")
+            WatchLogger.shared.log("⌚️ Received recommended bolus: \(recommendedBolus)")
 
             DispatchQueue.main.async {
                 self.recommendedBolus = recommendedBolus.decimalValue
@@ -210,7 +210,7 @@ import WatchConnectivity
 
             // Check if it's not older than 5 min
             if date >= Date().addingTimeInterval(-5 * 60) {
-                print("⌚️ Handling bolusProgress (sent at \(date))")
+                WatchLogger.shared.log("⌚️ Handling bolusProgress (sent at \(date))")
                 DispatchQueue.main.async {
                     if !self.isBolusCanceled {
                         self.bolusProgress = progress
@@ -219,7 +219,7 @@ import WatchConnectivity
                     }
                 }
             } else {
-                print("⌚️ Received outdated bolus progress (sent at \(date))")
+                WatchLogger.shared.log("⌚️ Received outdated bolus progress (sent at \(date))")
                 DispatchQueue.main.async {
                     self.bolusProgress = 0
                     self.activeBolusAmount = 0
@@ -240,7 +240,7 @@ import WatchConnectivity
             }
             return
         } else {
-            print("⌚️ Faulty data. Skipping...")
+            WatchLogger.shared.log("⌚️ Faulty data. Skipping...")
             DispatchQueue.main.async {
                 self.showSyncingAnimation = false
             }
@@ -248,93 +248,133 @@ import WatchConnectivity
     }
 
     /// Handles incoming messages from the paired iPhone when Phone is in the background
+//    func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
+//        WatchLogger.shared.log("⌚️ Watch received data: \(userInfo)")
+//
+//        if let stateDict = userInfo[WatchMessageKeys.watchState] as? [String: Any] {
+//                WatchLogger.shared.log("📥 Found WatchState in userInfo")
+//
+//                if let snapshot = WatchStateSnapshot(from: stateDict) {
+//                    WatchLogger.shared.log("📥 Parsed snapshot: \(snapshot.date)")
+//
+//                    Task {
+//                        await WatchStateModel.shared.handleIncomingSnapshot(snapshot)
+//                    }
+//                } else {
+//                    WatchLogger.shared.log("❌ Failed to parse WatchState snapshot from userInfo")
+//                }
+//            }
+//        // If the message has a nested "watchState" dictionary with date as TimeInterval
+//        if let watchStateDict = userInfo[WatchMessageKeys.watchState] as? [String: Any],
+//           let timestamp = watchStateDict[WatchMessageKeys.date] as? TimeInterval
+//        {
+//            let date = Date(timeIntervalSince1970: timestamp)
+//
+//            // Check if it's not older than 15 min
+//            if date >= Date().addingTimeInterval(-15 * 60) {
+//                WatchLogger.shared.log("⌚️ Handling watchState from \(date)")
+//                processWatchMessage(userInfo)
+//            } else {
+//                WatchLogger.shared.log("⌚️ Received outdated watchState data (\(date))")
+//                DispatchQueue.main.async {
+//                    self.showSyncingAnimation = false
+//                }
+//            }
+//            return
+//        }
+//
+//        // Else if the message is an "ack" at the top level
+//        // e.g. { "acknowledged": true, "message": "Started Temp Target...", "date": Date(...) }
+//        else if
+//            let acknowledged = userInfo[WatchMessageKeys.acknowledged] as? Bool,
+//            let ackMessage = userInfo[WatchMessageKeys.message] as? String
+//        {
+//            WatchLogger.shared.log("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged)")
+//            DispatchQueue.main.async {
+//                // For ack messages, we do NOT show “Syncing...”
+//                self.showSyncingAnimation = false
+//            }
+//            processWatchMessage(userInfo)
+//            return
+//
+//                    // Recommended bolus is also not part of the WatchState message, hence the extra condition here
+//        } else if
+//            let recommendedBolus = userInfo[WatchMessageKeys.recommendedBolus] as? NSNumber
+//        {
+//            WatchLogger.shared.log("⌚️ Received recommended bolus: \(recommendedBolus)")
+//            self.recommendedBolus = recommendedBolus.decimalValue
+//            showBolusCalculationProgress = false
+//            return
+//
+//                    // Handle bolus progress updates
+//        } else if
+//            let timestamp = userInfo[WatchMessageKeys.bolusProgressTimestamp] as? TimeInterval,
+//            let progress = userInfo[WatchMessageKeys.bolusProgress] as? Double,
+//            let activeBolusAmount = userInfo[WatchMessageKeys.activeBolusAmount] as? Double,
+//            let deliveredAmount = userInfo[WatchMessageKeys.deliveredAmount] as? Double
+//        {
+//            let date = Date(timeIntervalSince1970: timestamp)
+//
+//            // Check if it's not older than 5 min
+//            if date >= Date().addingTimeInterval(-5 * 60) {
+//                WatchLogger.shared.log("⌚️ Handling bolusProgress (sent at \(date))")
+//                DispatchQueue.main.async {
+//                    if !self.isBolusCanceled {
+//                        self.bolusProgress = progress
+//                        self.activeBolusAmount = activeBolusAmount
+//                        self.deliveredAmount = deliveredAmount
+//                    }
+//                }
+//            } else {
+//                WatchLogger.shared.log("⌚️ Received outdated bolus progress (sent at \(date))")
+//                DispatchQueue.main.async {
+//                    self.bolusProgress = 0
+//                    self.activeBolusAmount = 0
+//                }
+//            }
+//            return
+//
+//                    // Handle bolus cancellation
+//        } else if
+//            userInfo[WatchMessageKeys.bolusCanceled] as? Bool == true
+//        {
+//            DispatchQueue.main.async {
+//                self.bolusProgress = 0
+//                self.activeBolusAmount = 0
+//            }
+//            return
+//        } else {
+//            WatchLogger.shared.log("⌚️ Faulty data. Skipping...")
+//            DispatchQueue.main.async {
+//                self.showSyncingAnimation = false
+//            }
+//        }
+//    }
     func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
-        print("⌚️ Watch received data: \(userInfo)")
-
-        // If the message has a nested "watchState" dictionary with date as TimeInterval
-        if let watchStateDict = userInfo[WatchMessageKeys.watchState] as? [String: Any],
-           let timestamp = watchStateDict[WatchMessageKeys.date] as? TimeInterval
-        {
-            let date = Date(timeIntervalSince1970: timestamp)
-
-            // Check if it's not older than 15 min
-            if date >= Date().addingTimeInterval(-15 * 60) {
-                print("⌚️ Handling watchState from \(date)")
-                processWatchMessage(userInfo)
-            } else {
-                print("⌚️ Received outdated watchState data (\(date))")
-                DispatchQueue.main.async {
-                    self.showSyncingAnimation = false
-                }
-            }
+        guard let snapshot = WatchStateSnapshot(from: userInfo) else {
+            print("⌚️ Invalid snapshot received")
             return
         }
 
-        // Else if the message is an "ack" at the top level
-        // e.g. { "acknowledged": true, "message": "Started Temp Target...", "date": Date(...) }
-        else if
-            let acknowledged = userInfo[WatchMessageKeys.acknowledged] as? Bool,
-            let ackMessage = userInfo[WatchMessageKeys.message] as? String
-        {
-            print("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged)")
-            DispatchQueue.main.async {
-                // For ack messages, we do NOT show “Syncing...”
-                self.showSyncingAnimation = false
-            }
-            processWatchMessage(userInfo)
-            return
+        let lastProcessed = WatchStateSnapshot.loadLatestDateFromDisk()
 
-                    // Recommended bolus is also not part of the WatchState message, hence the extra condition here
-        } else if
-            let recommendedBolus = userInfo[WatchMessageKeys.recommendedBolus] as? NSNumber
-        {
-            print("⌚️ Received recommended bolus: \(recommendedBolus)")
-            self.recommendedBolus = recommendedBolus.decimalValue
-            showBolusCalculationProgress = false
+        guard snapshot.date > lastProcessed else {
+            print("⌚️ Ignoring outdated or duplicate WatchState snapshot")
             return
+        }
 
-                    // Handle bolus progress updates
-        } else if
-            let timestamp = userInfo[WatchMessageKeys.bolusProgressTimestamp] as? TimeInterval,
-            let progress = userInfo[WatchMessageKeys.bolusProgress] as? Double,
-            let activeBolusAmount = userInfo[WatchMessageKeys.activeBolusAmount] as? Double,
-            let deliveredAmount = userInfo[WatchMessageKeys.deliveredAmount] as? Double
-        {
-            let date = Date(timeIntervalSince1970: timestamp)
+        WatchStateSnapshot.saveLatestDateToDisk(snapshot.date)
 
-            // Check if it's not older than 5 min
-            if date >= Date().addingTimeInterval(-5 * 60) {
-                print("⌚️ Handling bolusProgress (sent at \(date))")
-                DispatchQueue.main.async {
-                    if !self.isBolusCanceled {
-                        self.bolusProgress = progress
-                        self.activeBolusAmount = activeBolusAmount
-                        self.deliveredAmount = deliveredAmount
-                    }
-                }
-            } else {
-                print("⌚️ Received outdated bolus progress (sent at \(date))")
-                DispatchQueue.main.async {
-                    self.bolusProgress = 0
-                    self.activeBolusAmount = 0
-                }
-            }
-            return
+        DispatchQueue.main.async {
+            self.scheduleUIUpdate(with: snapshot.payload)
+        }
+    }
 
-                    // Handle bolus cancellation
-        } else if
-            userInfo[WatchMessageKeys.bolusCanceled] as? Bool == true
-        {
-            DispatchQueue.main.async {
-                self.bolusProgress = 0
-                self.activeBolusAmount = 0
-            }
-            return
-        } else {
-            print("⌚️ Faulty data. Skipping...")
-            DispatchQueue.main.async {
-                self.showSyncingAnimation = false
-            }
+    func session(_: WCSession, didFinish _: WCSessionUserInfoTransfer, error: (any Error)?) {
+        if let error = error {
+            WatchLogger.shared.log("⌚️ transferUserInfo failed with error: \(error.localizedDescription)")
+            WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
+            WatchLogger.shared.persistLogsLocally()
         }
     }
 
@@ -342,7 +382,7 @@ import WatchConnectivity
     /// Updates the local reachability status
     func sessionReachabilityDidChange(_ session: WCSession) {
         DispatchQueue.main.async {
-            print("⌚️ Watch reachability changed: \(session.isReachable)")
+            WatchLogger.shared.log("⌚️ Watch reachability changed: \(session.isReachable)")
 
             if session.isReachable {
                 self.forceConditionalWatchStateUpdate()
@@ -395,7 +435,7 @@ import WatchConnectivity
                     self.showSyncingAnimation = false
                 }
 
-                print("⌚️ Received acknowledgment: \(ackMessage), success: \(acknowledged)")
+                WatchLogger.shared.log("⌚️ Received acknowledgment: \(ackMessage), success: \(acknowledged)")
 
                 switch ackMessage {
                 case "Saving carbs...":
@@ -426,6 +466,14 @@ import WatchConnectivity
 
     /// Accumulate new data, set isSyncing, and debounce final update
     private func scheduleUIUpdate(with newData: [String: Any]) {
+        if let incomingTimestamp = newData[WatchMessageKeys.date] as? TimeInterval,
+           let lastTimestamp = lastWatchStateUpdate,
+           incomingTimestamp <= lastTimestamp
+        {
+            WatchLogger.shared.log("⚠️ Skipping UI update — outdated WatchState (\(incomingTimestamp))")
+            return
+        }
+
         // 1) Mark as syncing
         DispatchQueue.main.async {
             self.showSyncingAnimation = true
@@ -455,7 +503,7 @@ import WatchConnectivity
             return
         }
 
-        print("⌚️ Finalizing pending data: \(pendingData)")
+        WatchLogger.shared.log("⌚️ Finalizing pending data")
 
         // Actually set your main UI properties here
         processRawDataForWatchState(pendingData)
@@ -561,10 +609,8 @@ import WatchConnectivity
         }
 
         if let maxBolusValue = message[WatchMessageKeys.maxBolus] {
-            print("⌚️ Received maxBolus: \(maxBolusValue) of type \(type(of: maxBolusValue))")
             if let decimalValue = (maxBolusValue as? NSNumber)?.decimalValue {
                 maxBolus = decimalValue
-                print("⌚️ Converted maxBolus to: \(decimalValue)")
             }
         }
 

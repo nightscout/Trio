@@ -5,6 +5,7 @@ enum WatchMessageKeys {
     static let watchState = "watchState"
     static let acknowledged = "acknowledged"
     static let message = "message"
+    static let units = "units"
 
     // Treatment Keys
     static let bolus = "bolus"
