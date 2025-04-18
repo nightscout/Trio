@@ -48,14 +48,16 @@ struct StartupGuideStepView: View {
                 BulletPoint(String(localized: "We recommend reviewing them carefully — Trio will guide you step-by-step."))
             }.padding(.horizontal)
 
-            HStack {
-                Text("You can pause at any time. Just be aware: if you ")
-                    + Text("force quit").bold()
-                    + Text(" the app before finishing onboarding, ")
-                    + Text("your progress will not be saved.").bold()
-            }
-            .multilineTextAlignment(.leading)
-            .padding(.horizontal)
+            VStack(alignment: .leading, spacing: 10) {
+                Text("One last thing, before you begin...").bold()
+                HStack {
+                    Text("You can pause at any time. Just be aware: if you ")
+                        + Text("force quit").bold()
+                        + Text(" the app before finishing onboarding, ")
+                        + Text("your progress will not be saved.").bold()
+                }
+            }.multilineTextAlignment(.leading)
+                .padding(.horizontal)
 
             Divider()
 
