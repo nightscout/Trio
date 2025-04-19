@@ -30,7 +30,7 @@ final class WatchLogger {
         return dateFormatter
     }
 
-    func log(_ message: String, function: String = #function, file: String = #fileID, line: Int = #line) {
+    func log(_ message: String, force: Bool = false, function: String = #function, file: String = #fileID, line: Int = #line) {
         let shortFile = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         let entry = "[\(timestamp)] [\(shortFile):\(line)] \(function) → \(message)"
@@ -41,7 +41,7 @@ final class WatchLogger {
         }
 
         print(entry)
-        flushIfNeeded(force: false)
+        flushIfNeeded(force: force)
     }
 
     func flushIfNeeded(force: Bool = false) {

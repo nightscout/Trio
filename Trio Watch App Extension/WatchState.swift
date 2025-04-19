@@ -137,7 +137,7 @@ import WatchConnectivity
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         DispatchQueue.main.async {
             if let error = error {
-                WatchLogger.shared.log("⌚️ Watch session activation failed: \(error.localizedDescription)")
+                WatchLogger.shared.log("⌚️ Watch session activation failed: \(error.localizedDescription)", force: true)
                 return
             }
 
@@ -253,14 +253,14 @@ import WatchConnectivity
 
     func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
         guard let snapshot = WatchStateSnapshot(from: userInfo) else {
-            print("⌚️ Invalid snapshot received")
+            WatchLogger.shared.log("⌚️ Invalid snapshot received", force: true)
             return
         }
 
         let lastProcessed = WatchStateSnapshot.loadLatestDateFromDisk()
 
         guard snapshot.date > lastProcessed else {
-            print("⌚️ Ignoring outdated or duplicate WatchState snapshot")
+            WatchLogger.shared.log("⌚️ Ignoring outdated or duplicate WatchState snapshot", force: true)
             return
         }
 
