@@ -12,13 +12,13 @@ extension WatchState {
             WatchLogger.shared.log("⌚️ Bolus request aborted: session unreachable")
             return
         }
-        
+
         isBolusCanceled = false // Reset canceled state when starting new bolus
         activeBolusAmount = Double(truncating: amount as NSNumber) // Set active bolus amount
 
         WatchLogger.shared.log("⌚️ Sending bolus request: \(amount)U")
-                WatchLogger.shared.log("⌚️ isBolusCanceled = false, activeBolusAmount = \(activeBolusAmount)")
-        
+        WatchLogger.shared.log("⌚️ isBolusCanceled = false, activeBolusAmount = \(activeBolusAmount)")
+
         let message: [String: Any] = [
             WatchMessageKeys.bolus: amount
         ]
@@ -38,10 +38,10 @@ extension WatchState {
     ///   - date: The timestamp for the carb entry (defaults to current time)
     func sendCarbsRequest(_ amount: Int, _ date: Date = Date()) {
         guard let session = session, session.isReachable else {
-                    WatchLogger.shared.log("⌚️ Carbs request aborted: session unreachable")
-                    return
-                }
-        
+            WatchLogger.shared.log("⌚️ Carbs request aborted: session unreachable")
+            return
+        }
+
         WatchLogger.shared.log("⌚️ Sending carbs request: \(amount)g at \(date)")
 
         let message: [String: Any] = [
@@ -54,17 +54,17 @@ extension WatchState {
         }
 
         // Display pending communication animation
-                WatchLogger.shared.log("⌚️ showCommsAnimation = true")
+        WatchLogger.shared.log("⌚️ showCommsAnimation = true")
     }
 
     /// Sends a request to cancel the current override preset to the paired iPhone
     func sendCancelOverrideRequest() {
         guard let session = session, session.isReachable else {
-                    WatchLogger.shared.log("⌚️ Cancel override request aborted: session unreachable")
-                    return
-                }
+            WatchLogger.shared.log("⌚️ Cancel override request aborted: session unreachable")
+            return
+        }
 
-                WatchLogger.shared.log("⌚️ Sending cancel override request")
+        WatchLogger.shared.log("⌚️ Sending cancel override request")
 
         let message: [String: Any] = [
             WatchMessageKeys.cancelOverride: true
@@ -83,11 +83,11 @@ extension WatchState {
     /// - Parameter presetName: The name of the override preset to activate
     func sendActivateOverrideRequest(presetName: String) {
         guard let session = session, session.isReachable else {
-                    WatchLogger.shared.log("⌚️ Activate override request aborted: session unreachable")
-                    return
-                }
+            WatchLogger.shared.log("⌚️ Activate override request aborted: session unreachable")
+            return
+        }
 
-                WatchLogger.shared.log("⌚️ Sending activate override request for preset: \(presetName)")
+        WatchLogger.shared.log("⌚️ Sending activate override request for preset: \(presetName)")
 
         let message: [String: Any] = [
             WatchMessageKeys.activateOverride: presetName
@@ -105,11 +105,11 @@ extension WatchState {
     /// Sends a request to cancel the current temporary target to the paired iPhone
     func sendCancelTempTargetRequest() {
         guard let session = session, session.isReachable else {
-                    WatchLogger.shared.log("⌚️ Cancel temp target request aborted: session unreachable")
-                    return
-                }
+            WatchLogger.shared.log("⌚️ Cancel temp target request aborted: session unreachable")
+            return
+        }
 
-                WatchLogger.shared.log("⌚️ Sending cancel temp target request")
+        WatchLogger.shared.log("⌚️ Sending cancel temp target request")
 
         let message: [String: Any] = [
             WatchMessageKeys.cancelTempTarget: true
@@ -128,11 +128,11 @@ extension WatchState {
     /// - Parameter presetName: The name of the temporary target preset to activate
     func sendActivateTempTargetRequest(presetName: String) {
         guard let session = session, session.isReachable else {
-                    WatchLogger.shared.log("⌚️ Activate temp target request aborted: session unreachable")
-                    return
-                }
+            WatchLogger.shared.log("⌚️ Activate temp target request aborted: session unreachable")
+            return
+        }
 
-                WatchLogger.shared.log("⌚️ Sending activate temp target request for preset: \(presetName)")
+        WatchLogger.shared.log("⌚️ Sending activate temp target request for preset: \(presetName)")
 
         let message: [String: Any] = [
             WatchMessageKeys.activateTempTarget: presetName
@@ -152,12 +152,12 @@ extension WatchState {
         isBolusCanceled = true
 
         guard let session = session, session.isReachable else {
-                    WatchLogger.shared.log("⌚️ Cancel bolus request aborted: session unreachable")
-                    return
-                }
+            WatchLogger.shared.log("⌚️ Cancel bolus request aborted: session unreachable")
+            return
+        }
 
-                WatchLogger.shared.log("⌚️ Sending cancel bolus request. bolusCanceled = true")
-                WatchLogger.shared.log("⌚️ Resetting bolusProgress and activeBolusAmount to 0")
+        WatchLogger.shared.log("⌚️ Sending cancel bolus request. bolusCanceled = true")
+        WatchLogger.shared.log("⌚️ Resetting bolusProgress and activeBolusAmount to 0")
 
         let message: [String: Any] = [
             WatchMessageKeys.cancelBolus: true
@@ -180,11 +180,11 @@ extension WatchState {
     /// Sends a request to calculate a bolus recommendation based on the current carbs amount
     func requestBolusRecommendation() {
         guard let session = session, session.isReachable else {
-                    WatchLogger.shared.log("⌚️ Bolus recommendation request aborted: session unreachable")
-                    return
-                }
+            WatchLogger.shared.log("⌚️ Bolus recommendation request aborted: session unreachable")
+            return
+        }
 
-                WatchLogger.shared.log("⌚️ Requesting bolus recommendation for carbs: \(carbsAmount)")
+        WatchLogger.shared.log("⌚️ Requesting bolus recommendation for carbs: \(carbsAmount)")
 
         let message: [String: Any] = [
             WatchMessageKeys.requestBolusRecommendation: true,
@@ -201,26 +201,26 @@ extension WatchState {
 
     func requestWatchStateUpdate() {
         guard let session = session else {
-                    WatchLogger.shared.log("⌚️ No session available for state update")
-                    return
-                }
+            WatchLogger.shared.log("⌚️ No session available for state update")
+            return
+        }
 
-                guard session.activationState == .activated else {
-                    WatchLogger.shared.log("⌚️ Session not activated. Activating...")
-                    session.activate()
-                    return
-                }
+        guard session.activationState == .activated else {
+            WatchLogger.shared.log("⌚️ Session not activated. Activating...")
+            session.activate()
+            return
+        }
 
         if session.isReachable {
-                    WatchLogger.shared.log("⌚️ Requesting WatchState update from iPhone")
+            WatchLogger.shared.log("⌚️ Requesting WatchState update from iPhone")
 
-                    let message = [WatchMessageKeys.requestWatchUpdate: WatchMessageKeys.watchState]
+            let message = [WatchMessageKeys.requestWatchUpdate: WatchMessageKeys.watchState]
 
-                    session.sendMessage(message, replyHandler: nil) { error in
-                        WatchLogger.shared.log("⌚️ Error requesting WatchState update: \(error.localizedDescription)")
-                    }
-                } else {
-                    WatchLogger.shared.log("⌚️ Phone not reachable for WatchState update")
-                }
+            session.sendMessage(message, replyHandler: nil) { error in
+                WatchLogger.shared.log("⌚️ Error requesting WatchState update: \(error.localizedDescription)")
+            }
+        } else {
+            WatchLogger.shared.log("⌚️ Phone not reachable for WatchState update")
+        }
     }
 }
