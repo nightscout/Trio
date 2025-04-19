@@ -106,18 +106,28 @@ import WatchConnectivity
         if success {
             WatchLogger.shared.log("⌚️ Acknowledgment received: \(message)")
             acknowledgementStatus = .success
-            acknowledgmentMessage = "\(message)"
+            acknowledgmentMessage = message
+
+            // Hide progress animation
+            DispatchQueue.main.async {
+                self.showCommsAnimation = false
+            }
         } else {
             WatchLogger.shared.log("⌚️ Acknowledgment failed: \(message)")
+
+            // Hide progress animation
             DispatchQueue.main.async {
-                self.showCommsAnimation = false // Hide progress animation
+                self.showCommsAnimation = false
             }
             acknowledgementStatus = .failure
             acknowledgmentMessage = "\(message)"
         }
 
         if isFinal {
-            showAcknowledgmentBanner = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                self.showAcknowledgmentBanner = true
+            }
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 self.showAcknowledgmentBanner = false
                 self.showSyncingAnimation = false // Just ensure this is 100% set to false

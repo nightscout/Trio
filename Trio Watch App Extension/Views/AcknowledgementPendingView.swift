@@ -28,13 +28,13 @@ struct AcknowledgementPendingView: View {
                 if state.isMealBolusCombo {
                     ProgressView()
                     Text(state.mealBolusStep.rawValue).multilineTextAlignment(.center)
-                } else if state.showCommsAnimation {
-                    ProgressView()
-                    Text("Processing…")
                 } else if state.showAcknowledgmentBanner {
                     statusIcon.padding()
                     Text(state.acknowledgmentMessage).multilineTextAlignment(.center)
                         .foregroundStyle(state.acknowledgementStatus == .failure ? Color.loopRed : Color.primary)
+                } else if state.showCommsAnimation {
+                    ProgressView()
+                    Text("Processing…")
                 }
             }
             .padding()
