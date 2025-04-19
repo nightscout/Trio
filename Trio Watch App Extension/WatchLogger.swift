@@ -12,8 +12,8 @@ final class WatchLogger {
 
     private var logs: [String] = []
     private let maxEntries = 300
-    private let flushInterval: TimeInterval = 15 * 60
-    private let flushSizeThreshold = 150
+    private let flushInterval: TimeInterval = 7.5 * 60
+    private let flushSizeThreshold = 75
 
     private var lastFlush = Date()
     private let session = WCSession.default
@@ -46,7 +46,7 @@ final class WatchLogger {
 
     func flushIfNeeded(force: Bool = false) {
         let now = Date()
-        let shouldFlush = force || logs.count >= flushSizeThreshold || now.timeIntervalSince(lastFlush) >= flushInterval
+        let shouldFlush = force || now.timeIntervalSince(lastFlush) >= flushInterval || logs.count >= flushSizeThreshold
 
         if shouldFlush {
             flushToPhone()
