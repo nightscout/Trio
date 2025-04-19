@@ -77,7 +77,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             .store(in: &subscriptions)
 
         registerHandlers()
-        subscribeToBolusProgress()
     }
 
     private func registerHandlers() {
@@ -968,73 +967,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         }
                     }
                 }
-            }
-        }
-    }
-
-    /// Subscribes to bolus progress updates and sends progress or cancellation messages to the Watch
-    private func subscribeToBolusProgress() {
-        var wasBolusActive = false
-
-        apsManager.bolusProgress
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] progress in
-                if let progress = progress {
-                    wasBolusActive = true
-                    Task {
-                        await self?.sendBolusProgressToWatch(progress: progress)
-                    }
-                } else if wasBolusActive {
-                    // Only if a bolus was previously active and now nil is received,
-                    // the bolus was cancelled
-                    wasBolusActive = false
-                    self?.activeBolusAmount = 0.0
-
-                    debug(.watchManager, "📱 Bolus cancelled from phone")
-                    self?.sendBolusCanceledMessageToWatch()
-                }
-            }
-            .store(in: &subscriptions)
-    }
-
-    /// Sends bolus progress updates to the Watch
-    /// - Parameter progress: The current bolus progress as a Decimal
-    private func sendBolusProgressToWatch(progress: Decimal?) async {
-        guard let session = session, let progress = progress, let pumpManager = apsManager.pumpManager else { return }
-
-        let message: [String: Any] = [
-            WatchMessageKeys.bolusProgressTimestamp: Date().timeIntervalSince1970,
-            WatchMessageKeys.bolusProgress: Double(truncating: progress as NSNumber),
-            WatchMessageKeys.activeBolusAmount: activeBolusAmount,
-            WatchMessageKeys.deliveredAmount: pumpManager
-                .roundToSupportedBolusVolume(units: activeBolusAmount * Double(truncating: progress as NSNumber))
-        ]
-        // If the session is not yet activated, try to activate
-        if session.activationState != .activated {
-            session.activate()
-            // Then, queue data for eventual delivery in the background
-//            session.transferUserInfo(message)
-            return
-        }
-
-        // If we reach here, session should be .activated
-        if session.isReachable {
-            // Real-time ephemeral
-            session.sendMessage(message, replyHandler: nil) { error in
-                debug(.watchManager, "❌ Error sending bolus progress: \(error.localizedDescription)")
-            }
-        }
-//        else {
-//            // Fallback to be double safe: queue userInfo for eventual delivery
-//            session.transferUserInfo(message)
-//        }
-    }
-
-    private func sendBolusCanceledMessageToWatch() {
-        if let session = session, session.isReachable {
-            let message: [String: Any] = [WatchMessageKeys.bolusCanceled: true]
-            session.sendMessage(message, replyHandler: nil) { error in
-                debug(.watchManager, "❌ Error sending bolus cancellation to watch: \(error.localizedDescription)")
             }
         }
     }

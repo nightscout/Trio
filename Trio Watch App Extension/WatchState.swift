@@ -36,9 +36,9 @@ import WatchConnectivity
     var bolusAmount: Double = 0.0
     var confirmationProgress: Double = 0.0
 
-    var bolusProgress: Double = 0.0
-    var activeBolusAmount: Double = 0.0
-    var deliveredAmount: Double = 0.0
+//    var bolusProgress: Double = 0.0
+//    var activeBolusAmount: Double = 0.0
+//    var deliveredAmount: Double = 0.0
     var isBolusCanceled = false
 
     // Safety limits
@@ -65,13 +65,9 @@ import WatchConnectivity
     var mealBolusStep: MealBolusStep = .savingCarbs
     var isMealBolusCombo: Bool = false
 
-    var showBolusProgressOverlay: Bool {
-        (!showAcknowledgmentBanner || !showCommsAnimation) && bolusProgress > 0 && bolusProgress < 1.0 && !isBolusCanceled
-    }
-
     var recommendedBolus: Decimal = 0
 
-    // Debouncing and batch processing helpers
+    // MARK: - Debouncing and batch processing helpers
 
     /// Temporary storage for new data arriving via WatchConnectivity.
     private var pendingData: [String: Any] = [:]
@@ -201,47 +197,6 @@ import WatchConnectivity
                 self.showBolusCalculationProgress = false
             }
 
-            return
-
-                    // Handle bolus progress updates
-        } else if
-            let timestamp = message[WatchMessageKeys.bolusProgressTimestamp] as? TimeInterval,
-            let progress = message[WatchMessageKeys.bolusProgress] as? Double,
-            let activeBolusAmount = message[WatchMessageKeys.activeBolusAmount] as? Double,
-            let deliveredAmount = message[WatchMessageKeys.deliveredAmount] as? Double
-        {
-            let date = Date(timeIntervalSince1970: timestamp)
-
-            // Check if it's not older than 5 min
-            if date >= Date().addingTimeInterval(-5 * 60) {
-                WatchLogger.shared.log("⌚️ Handling bolusProgress (sent at \(date))")
-                DispatchQueue.main.async {
-                    if !self.isBolusCanceled {
-                        self.bolusProgress = progress
-                        self.activeBolusAmount = activeBolusAmount
-                        self.deliveredAmount = deliveredAmount
-                    }
-                }
-            } else {
-                WatchLogger.shared.log("⌚️ Received outdated bolus progress (sent at \(date))")
-                DispatchQueue.main.async {
-                    self.bolusProgress = 0
-                    self.activeBolusAmount = 0
-                }
-            }
-            return
-
-                    // Handle bolus cancellation
-        } else if
-            message[WatchMessageKeys.bolusCanceled] as? Bool == true
-        {
-            DispatchQueue.main.async {
-                self.bolusProgress = 0
-                self.activeBolusAmount = 0
-                self
-                    .isBolusCanceled =
-                    false /// Reset flag to ensure a bolus progress is also shown after canceling bolus from watch
-            }
             return
         } else {
             WatchLogger.shared.log("⌚️ Faulty data. Skipping...")
@@ -509,17 +464,6 @@ import WatchConnectivity
                 else { return nil }
                 return TempTargetPresetWatch(name: name, isEnabled: isEnabled)
             }
-        }
-
-        if let bolusProgress = message[WatchMessageKeys.bolusProgress] as? Double {
-            if !isBolusCanceled {
-                self.bolusProgress = bolusProgress
-            }
-        }
-
-        if let bolusWasCanceled = message[WatchMessageKeys.bolusCanceled] as? Bool, bolusWasCanceled {
-            bolusProgress = 0
-            activeBolusAmount = 0
         }
 
         if let maxBolusValue = message[WatchMessageKeys.maxBolus] {

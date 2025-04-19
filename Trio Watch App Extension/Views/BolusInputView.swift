@@ -142,15 +142,6 @@ struct BolusInputView: View {
                     .clipShape(Circle())
             }
         }
-        .blur(radius: state.showBolusProgressOverlay ? 3 : 0)
-        .overlay {
-            if state.showBolusProgressOverlay {
-                BolusProgressOverlay(state: state) {
-                    state.shouldNavigateToRoot = false
-                    navigationPath.append(NavigationDestinations.acknowledgmentPending)
-                }.transition(.opacity)
-            }
-        }
         .onAppear {
             // Set initial bolus amount to recommended value
             // Only do this if user has not updated amount previously, e.g., when navigating to next and then back to this view

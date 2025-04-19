@@ -14,10 +14,9 @@ extension WatchState {
         }
 
         isBolusCanceled = false // Reset canceled state when starting new bolus
-        activeBolusAmount = Double(truncating: amount as NSNumber) // Set active bolus amount
 
         WatchLogger.shared.log("⌚️ Sending bolus request: \(amount)U")
-        WatchLogger.shared.log("⌚️ isBolusCanceled = false, activeBolusAmount = \(activeBolusAmount)")
+        WatchLogger.shared.log("⌚️ isBolusCanceled = false")
 
         let message: [String: Any] = [
             WatchMessageKeys.bolus: amount
@@ -157,7 +156,6 @@ extension WatchState {
         }
 
         WatchLogger.shared.log("⌚️ Sending cancel bolus request. bolusCanceled = true")
-        WatchLogger.shared.log("⌚️ Resetting bolusProgress and activeBolusAmount to 0")
 
         let message: [String: Any] = [
             WatchMessageKeys.cancelBolus: true
@@ -166,11 +164,6 @@ extension WatchState {
         session.sendMessage(message, replyHandler: nil) { error in
             WatchLogger.shared.log("Error sending cancel bolus request: \(error.localizedDescription)")
         }
-
-        // Reset when cancelled
-        bolusProgress = 0
-        activeBolusAmount = 0
-        WatchLogger.shared.log("⌚️ reset bolusProgress and activeBolusAmount to 0")
 
         // Display pending communication animation
         showCommsAnimation = true
@@ -194,9 +187,6 @@ extension WatchState {
         session.sendMessage(message, replyHandler: nil) { error in
             WatchLogger.shared.log("Error requesting bolus recommendation: \(error.localizedDescription)")
         }
-
-        showBolusCalculationProgress = true
-        WatchLogger.shared.log("⌚️ showBolusCalculationProgress = true")
     }
 
     func requestWatchStateUpdate() {
