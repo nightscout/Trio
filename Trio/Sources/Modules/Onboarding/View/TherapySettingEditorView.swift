@@ -250,7 +250,7 @@ struct TherapySettingItem: Identifiable, Equatable, Hashable {
     }
 }
 
-/// Convenience extension to ease copying of existing `TherapySettingItem`s 
+/// Convenience extension to ease copying of existing `TherapySettingItem`s
 extension TherapySettingItem {
     init(copying item: TherapySettingItem, newID: Bool = false) {
         id = newID ? UUID() : item.id

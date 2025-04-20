@@ -45,8 +45,8 @@ extension BasalProfileEditor {
                     ).foregroundStyle(
                         .linearGradient(
                             colors: [
-                                Color.insulin.opacity(0.6),
-                                Color.insulin.opacity(0.1)
+                                Color.purple.opacity(0.6),
+                                Color.purple.opacity(0.1)
                             ],
                             startPoint: .bottom,
                             endPoint: .top
@@ -54,10 +54,10 @@ extension BasalProfileEditor {
                     ).alignsMarkStylesWithPlotArea()
 
                     LineMark(x: .value("End Date", endDate), y: .value("Amount", profile.amount))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.purple)
 
                     LineMark(x: .value("Start Date", startDate), y: .value("Amount", profile.amount))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.purple)
                 }
             }
             .chartXAxis {
