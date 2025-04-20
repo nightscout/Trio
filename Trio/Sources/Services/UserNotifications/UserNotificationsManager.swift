@@ -40,7 +40,7 @@ protocol pumpNotificationObserver {
 }
 
 final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, Injectable {
-    private enum Identifier: String {
+    enum Identifier: String {
         case glucoseNotification = "Trio.glucoseNotification"
         case carbsRequiredNotification = "Trio.carbsRequiredNotification"
         case noLoopFirstNotification = "Trio.noLoopFirstNotification"

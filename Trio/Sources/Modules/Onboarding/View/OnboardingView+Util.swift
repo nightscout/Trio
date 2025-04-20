@@ -105,7 +105,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             )
         case .unitSelection:
             return String(
-                localized: "Before you can begin with configuring your therapy settigns, Trio needs to know which units you use for your glucose and insulin measurements (based on your pump model)."
+                localized: "Before you can begin with configuring your therapy settings, Trio needs to know which units you use for your glucose and insulin measurements (based on your pump model)."
             )
         case .glucoseTarget:
             return String(

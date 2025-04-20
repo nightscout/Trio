@@ -137,8 +137,14 @@ extension Notification.Name {
                     cleanupOldData()
 
                     self.initState.complete = true
+
+                    // Notifications handling
+                    // Notify of completed initialization
                     Foundation.NotificationCenter.default.post(name: .initializationCompleted, object: nil)
                     UIApplication.shared.registerForRemoteNotifications()
+                    // Cancel scheduled not looping notifications when app was completely shut down and has now re-initialized completely
+                    self.clearNotLoopingNotifications()
+
                     do {
                         try await BuildDetails.shared.handleExpireDateChange()
                     } catch {
@@ -157,6 +163,34 @@ extension Notification.Name {
                 }
             }
         }
+    }
+
+    /// Clears any legacy (Trio 0.2.x) delivered and pending notifications related to non-looping alerts.
+    /// It targets the following notifications:
+    /// - `noLoopFirstNotification`: The first notification for non-looping alerts.
+    /// - `noLoopSecondNotification`: The second notification for non-looping alerts.
+    ///
+    /// It ensures that any notifications that have already been shown to the user, as well as
+    /// any that are scheduled for the future, are removed when the system no longer needs to
+    /// alert about non-looping conditions.
+    ///
+    /// This function is typically used when the app was completely shut down and restarted,
+    /// i.e., underwent a fresh initialization and boot-up,  to avoid bogus not looping notifications
+    /// due to dangling "zombie" pending notification requests for users that update from
+    /// old Trio versions to the new generation of the app.
+    ///
+    /// Delivered notifications are cleared for completeness.
+    private func clearNotLoopingNotifications() {
+        let legacyNoLoopFirstNotification = "FreeAPS.noLoopFirstNotification"
+        let legacyNoLoopSecondNotification = "FreeAPS.noLoopSecondNotification"
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [
+            legacyNoLoopFirstNotification,
+            legacyNoLoopSecondNotification
+        ])
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [
+            legacyNoLoopFirstNotification,
+            legacyNoLoopSecondNotification
+        ])
     }
 
     /// Attempts to initialize the CoreDataStack again after a previous failure.
