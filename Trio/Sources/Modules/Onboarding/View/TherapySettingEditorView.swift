@@ -38,6 +38,11 @@ struct TherapySettingEditorView: View {
             .padding(.vertical, 5)
 
             ForEach($items) { $item in
+                // Determine if this is first item in list (which is locked to 00:00)
+                var isFirstItem: Bool {
+                    items.first == $item.wrappedValue
+                }
+
                 VStack(spacing: 0) {
                     Button {
                         selectedItemID = selectedItemID == item.id ? nil : item.id
@@ -116,6 +121,9 @@ struct TherapySettingEditorView: View {
             selectedItemID = nil
             validateTherapySettingItems()
         }
+        .onChange(of: items, { _, _ in
+            validateTherapySettingItems()
+        })
     }
 
     @ViewBuilder private func timeValuePickerRow(
@@ -185,11 +193,17 @@ struct TherapySettingEditorView: View {
 
     private func validateTherapySettingItems() {
         // validates therapy items (i.e. parsed therapy settings into wrapper class)
-        let newItems = Array(Set(items)).sorted { $0.time < $1.time }
-        if var first = newItems.first, first.time != 0 {
-            first.time = 0
-            items = newItems
+        var newItems = Array(Set(items)).sorted { $0.time < $1.time }
+        if !newItems.isEmpty {
+            var first = newItems[0]
+            if first.time != 0 {
+                first.time = 0
+            }
+            newItems[0] = first
         }
+
+        // force ALL items to have new UUIDs (to enforce binding update)
+        items = newItems.map { TherapySettingItem(copying: $0, newID: true) }
 
         // validates underlying "raw" therapy setting (i.e. item of type basal, target, isf, carb ratio)
         validateOnDelete?()
@@ -233,6 +247,15 @@ struct TherapySettingItem: Identifiable, Equatable, Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(time)
         hasher.combine(value)
+    }
+}
+
+/// Convenience extension to ease copying of existing `TherapySettingItem`s 
+extension TherapySettingItem {
+    init(copying item: TherapySettingItem, newID: Bool = false) {
+        id = newID ? UUID() : item.id
+        time = item.time
+        value = item.value
     }
 }
 

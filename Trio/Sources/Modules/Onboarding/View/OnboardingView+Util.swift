@@ -144,7 +144,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
                 localized: "Target Behavior allows you to adjust how temporary targets influence ISF, basal, and auto-targeting based on sensitivity or resistance."
             )
         case .notifications:
-            return "Allow Trio to send you Notifications. These may include alerts, sounds, and icon badges."
+            return String(localized: " Allow Trio to send you Notifications. These may include alerts, sounds, and icon badges.")
         case .bluetooth:
             return String(localized: "Allow Trio to use Bluetooth to communicate with your insulin pump and CGM.")
         case .completed:

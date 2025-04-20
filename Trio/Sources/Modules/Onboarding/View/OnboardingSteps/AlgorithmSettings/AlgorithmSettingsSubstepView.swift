@@ -1,12 +1,12 @@
 //
-//  AlgorithmSubstepView.swift
+//  AlgorithmSettingsSubstepView.swift
 //  Trio
 //
 //  Created by Cengiz Deniz on 15.04.25.
 //
 import SwiftUI
 
-struct AlgorithmSubstepView<Substep: AlgorithmSubstepProtocol & RawRepresentable>: View where Substep.RawValue == Int {
+struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepresentable>: View where Substep.RawValue == Int {
     @Bindable var state: Onboarding.StateModel
     let substep: Substep
 
@@ -73,7 +73,8 @@ struct AlgorithmSubstepView<Substep: AlgorithmSubstepProtocol & RawRepresentable
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
                         booleanValue: $state.enableSMBWithCOB,
-                        type: OnboardingInputSectionType.boolean
+                        type: OnboardingInputSectionType.boolean,
+                        disabled: state.enableSMBAlways
                     )
                 case .enableSMBWithTempTarget:
                     algorithmSettingsInput(
@@ -82,7 +83,8 @@ struct AlgorithmSubstepView<Substep: AlgorithmSubstepProtocol & RawRepresentable
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
                         booleanValue: $state.enableSMBWithTempTarget,
-                        type: OnboardingInputSectionType.boolean
+                        type: OnboardingInputSectionType.boolean,
+                        disabled: state.enableSMBAlways
                     )
                 case .enableSMBAfterCarbs:
                     algorithmSettingsInput(
@@ -91,7 +93,8 @@ struct AlgorithmSubstepView<Substep: AlgorithmSubstepProtocol & RawRepresentable
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
                         booleanValue: $state.enableSMBAfterCarbs,
-                        type: OnboardingInputSectionType.boolean
+                        type: OnboardingInputSectionType.boolean,
+                        disabled: state.enableSMBAlways
                     )
                 case .enableSMBWithHighGlucoseTarget:
                     algorithmSettingsInput(
@@ -100,7 +103,8 @@ struct AlgorithmSubstepView<Substep: AlgorithmSubstepProtocol & RawRepresentable
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
                         booleanValue: $state.enableSMBWithHighGlucoseTarget,
-                        type: OnboardingInputSectionType.boolean
+                        type: OnboardingInputSectionType.boolean,
+                        disabled: state.enableSMBAlways
                     )
                     if state.enableSMBWithHighGlucoseTarget {
                         algorithmSettingsInput(
@@ -109,7 +113,8 @@ struct AlgorithmSubstepView<Substep: AlgorithmSubstepProtocol & RawRepresentable
                             setting: settingsProvider.settings.enableSMB_high_bg_target,
                             decimalValue: $state.highGlucoseTarget,
                             booleanValue: $booleanPlaceholder,
-                            type: OnboardingInputSectionType.decimal
+                            type: OnboardingInputSectionType.decimal,
+                            disabled: state.enableSMBAlways
                         )
                     }
                 case .allowSMBWithHighTempTarget:
@@ -211,7 +216,8 @@ struct AlgorithmSubstepView<Substep: AlgorithmSubstepProtocol & RawRepresentable
                 .padding(.horizontal)
                 .multilineTextAlignment(.leading)
         }
-        .onDisappear {
+        .onAppear {
+            // Ensure picker view is closed, when switching between setting steps
             shouldDisplayPicker = false
         }
     }
@@ -222,46 +228,58 @@ struct AlgorithmSubstepView<Substep: AlgorithmSubstepProtocol & RawRepresentable
         setting: PickerSetting?,
         decimalValue: Binding<Decimal>,
         booleanValue: Binding<Bool>,
-        type: OnboardingInputSectionType
+        type: OnboardingInputSectionType,
+        disabled: Bool = false /// parameter only relevant for `Enable SMB Always` dependent settings
     ) -> some View {
         VStack {
-            switch type {
-            case .boolean:
-                Toggle(isOn: booleanValue) {
-                    Text(label)
-                }.tint(Color.accentColor)
-            case .decimal:
-                Group {
-                    HStack {
+            VStack {
+                switch type {
+                case .boolean:
+                    Toggle(isOn: booleanValue) {
                         Text(label)
-                        Spacer()
-                        displayText(for: substep, decimalValue: decimalValue.wrappedValue, units: state.units)
-                            .foregroundColor(!displayPicker.wrappedValue ? .primary : .accentColor)
-                            .onTapGesture {
-                                displayPicker.wrappedValue.toggle()
-                            }
-                    }
+                    }.tint(Color.accentColor)
+                        .disabled(disabled)
+                case .decimal:
+                    Group {
+                        HStack {
+                            Text(label)
+                            Spacer()
+                            displayText(for: substep, decimalValue: decimalValue.wrappedValue, units: state.units)
+                                .foregroundColor(!displayPicker.wrappedValue ? .primary : .accentColor)
+                                .onTapGesture {
+                                    displayPicker.wrappedValue.toggle()
+                                }
+                        }.disabled(disabled)
 
-                    if displayPicker.wrappedValue {
-                        Picker(selection: decimalValue, label: Text(label)) {
-                            if let setting = setting {
-                                ForEach(
-                                    settingsProvider.generatePickerValues(from: setting, units: state.units),
-                                    id: \.self
-                                ) { value in
-                                    displayText(for: substep, decimalValue: value, units: state.units).tag(value)
+                        if displayPicker.wrappedValue {
+                            Picker(selection: decimalValue, label: Text(label)) {
+                                if let setting = setting {
+                                    ForEach(
+                                        settingsProvider.generatePickerValues(from: setting, units: state.units),
+                                        id: \.self
+                                    ) { value in
+                                        displayText(for: substep, decimalValue: value, units: state.units).tag(value)
+                                    }
                                 }
                             }
+                            .disabled(disabled)
+                            .pickerStyle(WheelPickerStyle())
+                            .frame(maxWidth: .infinity)
                         }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(maxWidth: .infinity)
                     }
                 }
             }
+            .padding()
+            .background(Color.chart.opacity(0.65))
+            .cornerRadius(10)
+
+            if disabled {
+                Text("Setting cannot be changed for as long as \"Enable SMB Always\" is enabled.")
+                    .font(.footnote)
+                    .foregroundColor(Color.orange)
+                    .padding()
+            }
         }
-        .padding()
-        .background(Color.chart.opacity(0.65))
-        .cornerRadius(10)
     }
 
     private func displayText(for substep: Substep, decimalValue: Decimal, units: GlucoseUnits) -> Text {

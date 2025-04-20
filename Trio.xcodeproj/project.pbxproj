@@ -563,7 +563,7 @@
 		DD498F2C2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
 		DD498F2D2D692BEA00AAEA30 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8A9134292D63D9A1007F8874 /* Localizable.xcstrings */; };
 		DD4A00212DAEEED800AB7387 /* OnboardingView+AlgorithmUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4A00202DAEEEC400AB7387 /* OnboardingView+AlgorithmUtil.swift */; };
-		DD4A00242DAEF5E400AB7387 /* AlgorithmSubstepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4A00232DAEF5DC00AB7387 /* AlgorithmSubstepView.swift */; };
+		DD4A00242DAEF5E400AB7387 /* AlgorithmSettingsSubstepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4A00232DAEF5DC00AB7387 /* AlgorithmSettingsSubstepView.swift */; };
 		DD4AFFF12DADB59100AB7387 /* AlgorithmSettingsStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4AFFF02DADB59100AB7387 /* AlgorithmSettingsStepView.swift */; };
 		DD4C57A82D73ADEA001BFF2C /* RestartLiveActivityIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4C57A72D73ADEA001BFF2C /* RestartLiveActivityIntent.swift */; };
 		DD4C57AA2D73B3E2001BFF2C /* RestartLiveActivityIntentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4C57A92D73B3D9001BFF2C /* RestartLiveActivityIntentRequest.swift */; };
@@ -1359,7 +1359,7 @@
 		DD3F1F8C2D9E0E0000DCE7B3 /* NightscoutSetupStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutSetupStepView.swift; sourceTree = "<group>"; };
 		DD3F1F8F2D9E153A00DCE7B3 /* NightscoutImportStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutImportStepView.swift; sourceTree = "<group>"; };
 		DD4A00202DAEEEC400AB7387 /* OnboardingView+AlgorithmUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnboardingView+AlgorithmUtil.swift"; sourceTree = "<group>"; };
-		DD4A00232DAEF5DC00AB7387 /* AlgorithmSubstepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmSubstepView.swift; sourceTree = "<group>"; };
+		DD4A00232DAEF5DC00AB7387 /* AlgorithmSettingsSubstepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmSettingsSubstepView.swift; sourceTree = "<group>"; };
 		DD4AFFF02DADB59100AB7387 /* AlgorithmSettingsStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmSettingsStepView.swift; sourceTree = "<group>"; };
 		DD4C57A72D73ADEA001BFF2C /* RestartLiveActivityIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartLiveActivityIntent.swift; sourceTree = "<group>"; };
 		DD4C57A92D73B3D9001BFF2C /* RestartLiveActivityIntentRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartLiveActivityIntentRequest.swift; sourceTree = "<group>"; };
@@ -3260,7 +3260,7 @@
 		DD4A00222DAEF5CD00AB7387 /* AlgorithmSettings */ = {
 			isa = PBXGroup;
 			children = (
-				DD4A00232DAEF5DC00AB7387 /* AlgorithmSubstepView.swift */,
+				DD4A00232DAEF5DC00AB7387 /* AlgorithmSettingsSubstepView.swift */,
 				DD4AFFF02DADB59100AB7387 /* AlgorithmSettingsStepView.swift */,
 			);
 			path = AlgorithmSettings;
@@ -4058,7 +4058,7 @@
 				38192E04261B82FA0094D973 /* ReachabilityManager.swift in Sources */,
 				38E44539274E411700EC9A94 /* Disk+UIImage.swift in Sources */,
 				3BAD36CC2D7D420E00CC298D /* CoreDataInitializationCoordinator.swift in Sources */,
-				DD4A00242DAEF5E400AB7387 /* AlgorithmSubstepView.swift in Sources */,
+				DD4A00242DAEF5E400AB7387 /* AlgorithmSettingsSubstepView.swift in Sources */,
 				DDB0E3742DB1BAC1004B826F /* LogoBurstSplash.swift in Sources */,
 				388E595C25AD948C0019842D /* TrioApp.swift in Sources */,
 				38FEF3FC2737E53800574A46 /* MainStateModel.swift in Sources */,

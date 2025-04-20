@@ -304,11 +304,11 @@ struct OnboardingStepContent: View {
                         case .algorithmSettings:
                             AlgorithmSettingsStepView(state: state)
                         case .autosensSettings:
-                            AlgorithmSubstepView(state: state, substep: currentAutosensSubstep)
+                            AlgorithmSettingsSubstepView(state: state, substep: currentAutosensSubstep)
                         case .smbSettings:
-                            AlgorithmSubstepView(state: state, substep: currentSMBSubstep)
+                            AlgorithmSettingsSubstepView(state: state, substep: currentSMBSubstep)
                         case .targetBehavior:
-                            AlgorithmSubstepView(state: state, substep: currentTargetBehaviorSubstep)
+                            AlgorithmSettingsSubstepView(state: state, substep: currentTargetBehaviorSubstep)
                         case .notifications:
                             NotificationPermissionStepView()
                         case .bluetooth:
@@ -420,7 +420,7 @@ struct OnboardingNavigationButtons: View {
                 currentDeliverySubstep = previousSub
             } else if let previous = currentStep.previous {
                 currentStep = previous
-                currentDeliverySubstep = .minimumSafetyThreshold
+                currentDeliverySubstep = .maxIOB
             }
 
         case .algorithmSettings:

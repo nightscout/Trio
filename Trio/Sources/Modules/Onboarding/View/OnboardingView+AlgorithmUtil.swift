@@ -206,9 +206,15 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             }
         case .enableSMBAlways:
             return VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    "Enabling SMB Always will disable other subsequent \"Enable SMB\" options during Onboarding."
+                )
+                .padding(.bottom)
+                .foregroundStyle(Color.orange)
+
                 Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
-                    "When enabled, Super Micro Boluses (SMBs) will always be allowed if dosing calculations determine insulin is needed via the SMB delivery method, except when a high Temp Target is set. Enabling SMB Always will remove redundant \"Enable SMB\" options when this setting is enacted."
+                    "When enabled, Super Micro Boluses (SMBs) will always be allowed if dosing calculations determine insulin is needed via the SMB delivery method, except when a high Temp Target is set."
                 )
                 Text(
                     "Note: If you would like to allow SMBs when a high Temp Target is set, enable the \"Allow SMBs with High Temptarget\" setting."
