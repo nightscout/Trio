@@ -36,11 +36,6 @@ import WatchConnectivity
     var bolusAmount: Double = 0.0
     var confirmationProgress: Double = 0.0
 
-//    var bolusProgress: Double = 0.0
-//    var activeBolusAmount: Double = 0.0
-//    var deliveredAmount: Double = 0.0
-    var isBolusCanceled = false
-
     // Safety limits
     var maxBolus: Decimal = 10
     var maxCarbs: Decimal = 250
@@ -186,9 +181,10 @@ import WatchConnectivity
         // e.g. { "acknowledged": true, "message": "Started Temp Target...", "date": Date(...) }
         else if
             let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
-            let ackMessage = message[WatchMessageKeys.message] as? String
+            let ackMessage = message[WatchMessageKeys.message] as? String,
+            let ackCodeRaw = message[WatchMessageKeys.ackCode] as? String
         {
-            WatchLogger.shared.log("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged)")
+            WatchLogger.shared.log("⌚️ Handling ack with message: \(ackMessage), success: \(acknowledged), ackCode: \(ackCodeRaw)")
             DispatchQueue.main.async {
                 // For ack messages, we do NOT show “Syncing...”
                 self.showSyncingAnimation = false
@@ -298,7 +294,9 @@ import WatchConnectivity
         DispatchQueue.main.async {
             // 1) Acknowledgment logic
             if let acknowledged = message[WatchMessageKeys.acknowledged] as? Bool,
-               let ackMessage = message[WatchMessageKeys.message] as? String
+               let ackMessage = message[WatchMessageKeys.message] as? String,
+               let ackCodeRaw = message[WatchMessageKeys.ackCode] as? String,
+               let ackCode = AcknowledgmentCode(rawValue: ackCodeRaw)
             {
                 DispatchQueue.main.async {
                     self.showSyncingAnimation = false
@@ -306,18 +304,18 @@ import WatchConnectivity
 
                 WatchLogger.shared.log("⌚️ Received acknowledgment: \(ackMessage), success: \(acknowledged)")
 
-                switch ackMessage {
-                case "Saving carbs...":
+                switch ackCode {
+                case .savingCarbs:
                     self.isMealBolusCombo = true
                     self.mealBolusStep = .savingCarbs
                     self.showCommsAnimation = true
                     self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
-                case "Enacting bolus...":
+                case .enactingBolus:
                     self.isMealBolusCombo = true
                     self.mealBolusStep = .enactingBolus
                     self.showCommsAnimation = true
                     self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: false)
-                case "Carbs and bolus logged successfully":
+                case .comboComplete:
                     self.isMealBolusCombo = false
                     self.handleAcknowledgment(success: acknowledged, message: ackMessage, isFinal: true)
                 default:

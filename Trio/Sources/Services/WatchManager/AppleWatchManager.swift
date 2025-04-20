@@ -481,7 +481,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
     }
 
-    func sendAcknowledgment(toWatch success: Bool, message: String = "") {
+    func sendAcknowledgment(toWatch success: Bool, message: String = "", ackCode: AcknowledgmentCode) {
         guard let session = session, session.isReachable else {
             debug(.watchManager, "⌚️ Watch not reachable for acknowledgment")
             return
@@ -489,7 +489,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
         let ackMessage: [String: Any] = [
             WatchMessageKeys.acknowledged: success,
-            WatchMessageKeys.message: message
+            WatchMessageKeys.message: message,
+            WatchMessageKeys.ackCode: ackCode.rawValue
         ]
 
         session.sendMessage(ackMessage, replyHandler: nil) { error in
@@ -581,20 +582,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 self?.handleCancelTempTarget()
             }
 
-            // Handle bolus cancellation
-            if message[WatchMessageKeys.cancelBolus] as? Bool == true {
-                Task {
-                    await self?.apsManager.cancelBolus { [self] success, message in
-                        // Acknowledge success or error of bolus
-                        self?.sendAcknowledgment(toWatch: success, message: message)
-                    }
-                    debug(.watchManager, "📱 Bolus cancelled from watch")
-
-                    // perform determine basal sync, otherwise you could end up with too much IOB when opening the calculator again
-                    try await self?.apsManager.determineBasalSync()
-                }
-            }
-
             if message[WatchMessageKeys.requestBolusRecommendation] as? Bool == true {
                 let carbs = message[WatchMessageKeys.carbs] as? Int ?? 0
 
@@ -660,7 +647,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         Task {
             await apsManager.enactBolus(amount: Double(amount), isSMB: false) { success, message in
                 // Acknowledge success or error of bolus
-                self.sendAcknowledgment(toWatch: success, message: message)
+                self.sendAcknowledgment(
+                    toWatch: success,
+                    message: message,
+                    ackCode: success == true ? .genericSuccess : .genericFailure
+                )
             }
             debug(.watchManager, "📱 Enacted bolus via APS Manager: \(amount)U")
         }
@@ -694,13 +685,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         message: String(
                             localized: "Carbs logged successfully.",
                             comment: "Success message sent to watch when carbs are logged successfully"
-                        )
+                        ),
+                        ackCode: .carbsLogged
                     )
                 } catch {
                     debug(.watchManager, "❌ Error saving carbs: \(error.localizedDescription)")
 
                     // Acknowledge failure
-                    self.sendAcknowledgment(toWatch: false, message: "Error logging carbs")
+                    self.sendAcknowledgment(toWatch: false, message: "Error logging carbs", ackCode: .genericFailure)
                 }
             }
         }
@@ -719,7 +711,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 // Notify Watch: "Saving carbs..."
                 self.sendAcknowledgment(
                     toWatch: true,
-                    message: String(localized: "Saving Carbs...", comment: "Successful message sent to watch when saving carbs")
+                    message: String(localized: "Saving Carbs...", comment: "Successful message sent to watch when saving carbs"),
+                    ackCode: .savingCarbs
                 )
 
                 // Save carbs entry in Core Data
@@ -743,14 +736,19 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     message: String(
                         localized: "Enacting bolus...",
                         comment: "Successful message sent to watch when enacting bolus"
-                    )
+                    ),
+                    ackCode: .enactingBolus
                 )
 
                 // Enact bolus via APS Manager
                 let bolusDouble = NSDecimalNumber(decimal: bolusAmount).doubleValue
                 await apsManager.enactBolus(amount: bolusDouble, isSMB: false) { success, message in
                     // Acknowledge success or error of bolus
-                    self.sendAcknowledgment(toWatch: success, message: message)
+                    self.sendAcknowledgment(
+                        toWatch: success,
+                        message: message,
+                        ackCode: success == true ? .genericSuccess : .genericFailure
+                    )
                 }
                 debug(.watchManager, "📱 Enacted bolus from watch via APS Manager: \(bolusDouble) U")
                 // Notify Watch: "Carbs and bolus logged successfully"
@@ -759,12 +757,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     message: String(
                         localized: "Carbs and Bolus logged successfully.",
                         comment: "Successful message sent to watch when logging carbs and bolus"
-                    )
+                    ),
+                    ackCode: .comboComplete
                 )
 
             } catch {
                 debug(.watchManager, "❌ Error processing combined request: \(error.localizedDescription)")
-                sendAcknowledgment(toWatch: false, message: "Failed to log carbs and bolus")
+                sendAcknowledgment(toWatch: false, message: "Failed to log carbs and bolus", ackCode: .genericFailure)
             }
         }
     }
@@ -794,14 +793,26 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                             )
 
                             // Acknowledge cancellation success
-                            self.sendAcknowledgment(toWatch: true, message: "Stopped Override successfully.")
+                            self.sendAcknowledgment(
+                                toWatch: true,
+                                message: "Stopped Override successfully.",
+                                ackCode: .overrideStopped
+                            )
                         } catch {
                             debug(.watchManager, "❌ Error cancelling override: \(error.localizedDescription)")
                             // Acknowledge cancellation error
-                            self.sendAcknowledgment(toWatch: false, message: "Error stopping Override.")
+                            self.sendAcknowledgment(toWatch: false, message: "Error stopping Override.", ackCode: .genericFailure)
                         }
                     }
                 }
+            } else {
+                debug(.watchManager, "❌ No active override found.")
+                self.sendAcknowledgment(
+                    toWatch: false,
+                    message: "No active override found.",
+                    ackCode: .genericFailure
+                )
+                return
             }
         }
     }
@@ -810,49 +821,83 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         Task {
             let context = CoreDataStack.shared.newTaskContext()
 
+            debug(.watchManager, "📱 Fetching all override presets...")
+
             // Fetch all presets to find the one to activate
             let presetIds = try await overrideStorage.fetchForOverridePresets()
             let presets: [OverrideStored] = try await CoreDataStack.shared
                 .getNSManagedObject(with: presetIds, context: context)
 
-            // Check for active override
-            if let activeOverrideId = try await overrideStorage.fetchLatestActiveOverride() {
-                let activeOverride = await context.perform {
-                    context.object(with: activeOverrideId) as? OverrideStored
-                }
+            debug(.watchManager, "📱 Checking for active override...")
 
-                // Deactivate if exists
-                if let override = activeOverride {
-                    await context.perform {
-                        override.enabled = false
+            do {
+                // Check for active override
+                if let activeOverrideId = try await overrideStorage.fetchLatestActiveOverride() {
+                    let activeOverride = await context.perform {
+                        context.object(with: activeOverrideId) as? OverrideStored
                     }
+
+                    // Deactivate, if necessary
+                    if let override = activeOverride {
+                        await context.perform {
+                            override.enabled = false
+                        }
+                    }
+                } else {
+                    debug(.watchManager, "📱 Currently no override is active... proceeding to activate override: \(presetName)")
                 }
+            } catch {
+                debug(.watchManager, "❌ Error while checking for active override: \(error.localizedDescription)")
+                self.sendAcknowledgment(
+                    toWatch: false,
+                    message: "Failed to load active override.",
+                    ackCode: .genericFailure
+                )
+                return
             }
 
             // Activate the selected preset
             await context.perform {
-                if let presetToActivate = presets.first(where: { $0.name == presetName }) {
-                    presetToActivate.enabled = true
-                    presetToActivate.date = Date()
+                guard let presetToActivate = presets
+                    .first(where: { $0.name?.trimmingCharacters(in: .whitespacesAndNewlines) == presetName })
+                else {
+                    debug(.watchManager, "❌ No matching preset found for name: \"\(presetName)\" in \(presets.map(\.name))")
+                    self.sendAcknowledgment(
+                        toWatch: false,
+                        message: "Preset not found: \(presetName)",
+                        ackCode: .genericFailure
+                    )
+                    return
+                }
 
-                    do {
-                        guard context.hasChanges else { return }
-                        try context.save()
-                        debug(.watchManager, "📱 Successfully activated override: \(presetName)")
+                presetToActivate.enabled = true
+                presetToActivate.date = Date()
 
-                        // Send notification to update Adjustments UI
-                        Foundation.NotificationCenter.default.post(
-                            name: .didUpdateOverrideConfiguration,
-                            object: nil
-                        )
+                do {
+                    guard context.hasChanges else { return }
+                    try context.save()
+                    debug(.watchManager, "📱 Successfully activated override: \(presetName)")
 
-                        // Acknowledge activation success
-                        self.sendAcknowledgment(toWatch: true, message: "Started Override \"\(presetName)\" successfully.")
-                    } catch {
-                        debug(.watchManager, "❌ Error activating override: \(error.localizedDescription)")
-                        // Acknowledge activation error
-                        self.sendAcknowledgment(toWatch: false, message: "Error activating Override \"\(presetName)\".")
-                    }
+                    // Send notification to update Adjustments UI
+                    Foundation.NotificationCenter.default.post(
+                        name: .didUpdateOverrideConfiguration,
+                        object: nil
+                    )
+
+                    // Acknowledge activation success
+                    self.sendAcknowledgment(
+                        toWatch: true,
+                        message: "Started Override \"\(presetName)\" successfully.",
+                        ackCode: .overrideStarted
+                    )
+                } catch {
+                    debug(.watchManager, "❌ Error activating override: \(error.localizedDescription)")
+                    // Acknowledge activation error
+                    self.sendAcknowledgment(
+                        toWatch: false,
+                        message: "Error activating Override \"\(presetName)\".",
+                        ackCode: .genericFailure
+                    )
                 }
             }
         }
@@ -920,11 +965,19 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         )
 
                         // Acknowledge activation success
-                        self.sendAcknowledgment(toWatch: true, message: "Started Temp Target \"\(presetName)\" successfully.")
+                        self.sendAcknowledgment(
+                            toWatch: true,
+                            message: "Started Temp Target \"\(presetName)\" successfully.",
+                            ackCode: .tempTargetStarted
+                        )
                     } catch {
                         debug(.watchManager, "❌ Error activating temp target: \(error.localizedDescription)")
                         // Acknowledge activation error
-                        self.sendAcknowledgment(toWatch: false, message: "Error activating Temp Target \"\(presetName)\".")
+                        self.sendAcknowledgment(
+                            toWatch: false,
+                            message: "Error activating Temp Target \"\(presetName)\".",
+                            ackCode: .genericFailure
+                        )
                     }
                 }
             }
@@ -959,11 +1012,19 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                             )
 
                             // Acknowledge cancellation success
-                            self.sendAcknowledgment(toWatch: true, message: "Stopped Temp Target successfully.")
+                            self.sendAcknowledgment(
+                                toWatch: true,
+                                message: "Stopped Temp Target successfully.",
+                                ackCode: .tempTargetStopped
+                            )
                         } catch {
                             debug(.watchManager, "❌ Error stopping temp target: \(error.localizedDescription)")
                             // Acknowledge cancellation error
-                            self.sendAcknowledgment(toWatch: false, message: "Error stopping Temp Target.")
+                            self.sendAcknowledgment(
+                                toWatch: false,
+                                message: "Error stopping Temp Target.",
+                                ackCode: .genericFailure
+                            )
                         }
                     }
                 }
@@ -1045,25 +1106,17 @@ extension BaseWatchManager {
     }
 }
 
-// extension BaseWatchManager {
-//    func pushWatchStateToWatch(_ state: WatchState) {
-//        guard let session = session else { return }
-//
-//        // Skip if we already sent this state or older
-//        let lastSent = WatchStateSnapshot.loadLatestDateFromDisk()
-//        guard lastSent < state.date else {
-//            debug(.watchManager, "🕐 Skipping push — newer or equal state already sent")
-//            return
-//        }
-//
-//        let message: [String: Any] = [
-//            WatchMessageKeys.date: state.date.timeIntervalSince1970,
-//            WatchMessageKeys.watchState: watchStateToDictionary(from: state)
-//        ]
-//
-//        WatchStateSnapshot.saveLatestDateToDisk(state.date)
-//        session.transferUserInfo(message)
-//
-//        debug(.watchManager, "📤 Transferred new WatchState snapshot via userInfo")
-//    }
-// }
+extension BaseWatchManager {
+    enum AcknowledgmentCode: String, Codable {
+        case savingCarbs = "saving_carbs"
+        case enactingBolus = "enacting_bolus"
+        case comboComplete = "combo_complete"
+        case carbsLogged = "carbs_logged"
+        case overrideStarted = "override_started"
+        case overrideStopped = "override_stopped"
+        case tempTargetStarted = "temp_target_started"
+        case tempTargetStopped = "temp_target_stopped"
+        case genericSuccess = "success"
+        case genericFailure = "failure"
+    }
+}

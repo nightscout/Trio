@@ -1,11 +1,12 @@
 enum WatchMessageKeys {
     // Request/Response Keys
     static let date = "date"
+    static let units = "units"
     static let requestWatchUpdate = "requestWatchUpdate"
     static let watchState = "watchState"
     static let acknowledged = "acknowledged"
+    static let ackCode = "ackCode"
     static let message = "message"
-    static let units = "units"
 
     // Treatment Keys
     static let bolus = "bolus"

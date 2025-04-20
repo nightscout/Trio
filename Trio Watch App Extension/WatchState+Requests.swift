@@ -13,10 +13,7 @@ extension WatchState {
             return
         }
 
-        isBolusCanceled = false // Reset canceled state when starting new bolus
-
         WatchLogger.shared.log("⌚️ Sending bolus request: \(amount)U")
-        WatchLogger.shared.log("⌚️ isBolusCanceled = false")
 
         let message: [String: Any] = [
             WatchMessageKeys.bolus: amount
@@ -53,6 +50,7 @@ extension WatchState {
         }
 
         // Display pending communication animation
+        showCommsAnimation = true
         WatchLogger.shared.log("⌚️ showCommsAnimation = true")
     }
 
@@ -139,30 +137,6 @@ extension WatchState {
 
         session.sendMessage(message, replyHandler: nil) { error in
             WatchLogger.shared.log("⌚️ Error sending activate temp target request: \(error.localizedDescription)")
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
-        WatchLogger.shared.log("⌚️ showCommsAnimation = true")
-    }
-
-    /// Sends a request to cancel the current bolus delivery to the paired iPhone
-    func sendCancelBolusRequest() {
-        isBolusCanceled = true
-
-        guard let session = session, session.isReachable else {
-            WatchLogger.shared.log("⌚️ Cancel bolus request aborted: session unreachable")
-            return
-        }
-
-        WatchLogger.shared.log("⌚️ Sending cancel bolus request. bolusCanceled = true")
-
-        let message: [String: Any] = [
-            WatchMessageKeys.cancelBolus: true
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            WatchLogger.shared.log("Error sending cancel bolus request: \(error.localizedDescription)")
         }
 
         // Display pending communication animation
