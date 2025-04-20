@@ -38,11 +38,6 @@ struct TherapySettingEditorView: View {
             .padding(.vertical, 5)
 
             ForEach($items) { $item in
-                // Determine if this is first item in list (which is locked to 00:00)
-                var isFirstItem: Bool {
-                    items.first == $item.wrappedValue
-                }
-
                 VStack(spacing: 0) {
                     Button {
                         selectedItemID = selectedItemID == item.id ? nil : item.id
