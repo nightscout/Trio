@@ -272,13 +272,6 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
             .padding()
             .background(Color.chart.opacity(0.65))
             .cornerRadius(10)
-
-            if disabled {
-                Text("Setting cannot be changed for as long as \"Enable SMB Always\" is enabled.")
-                    .font(.footnote)
-                    .foregroundColor(Color.orange)
-                    .padding()
-            }
         }
     }
 

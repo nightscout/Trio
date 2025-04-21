@@ -207,7 +207,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
         case .enableSMBAlways:
             return VStack(alignment: .leading, spacing: 8) {
                 Text(
-                    "Enabling SMB Always will disable other subsequent \"Enable SMB\" options during Onboarding."
+                    "Enabling SMB Always will disable some of the subsequent \"Enable SMB\" options during Onboarding. These redundant options will be skipped."
                 )
                 .padding(.bottom)
                 .foregroundStyle(Color.orange)

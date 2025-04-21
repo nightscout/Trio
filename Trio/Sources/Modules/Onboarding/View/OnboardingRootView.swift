@@ -440,7 +440,14 @@ struct OnboardingNavigationButtons: View {
 
         case .smbSettings:
             if let previous = SMBSettingsSubstep(rawValue: currentSMBSubstep.rawValue - 1) {
-                currentSMBSubstep = previous
+                /// If user has activated setting `.enableSMBAlways`, when navigating backwards
+                /// skip other redundant "Enable SMB"-settings and go straight to `enableSMBAlways`
+                /// from current substep `.allowSMBWithHighTempTarget`.
+                if state.enableSMBAlways, currentSMBSubstep == .allowSMBWithHighTempTarget {
+                    currentSMBSubstep = .enableSMBAlways
+                } else {
+                    currentSMBSubstep = previous
+                }
             } else if let previousStep = currentStep.previous {
                 currentStep = previousStep
                 currentSMBSubstep = .enableSMBAlways
@@ -503,7 +510,14 @@ struct OnboardingNavigationButtons: View {
 
         case .smbSettings:
             if let next = SMBSettingsSubstep(rawValue: currentSMBSubstep.rawValue + 1) {
-                currentSMBSubstep = next
+                /// If user has activated setting `.enableSMBAlways`, when navigating forward
+                /// skip other redundant "Enable SMB"-settings and go straight to `.allowSMBWithHighTempTarget`
+                /// from current substep `.enableSMBAlways`.
+                if state.enableSMBAlways, currentSMBSubstep == .enableSMBAlways {
+                    currentSMBSubstep = .allowSMBWithHighTempTarget
+                } else {
+                    currentSMBSubstep = next
+                }
             } else if let nextStep = currentStep.next {
                 currentStep = nextStep
                 currentSMBSubstep = .enableSMBAlways
