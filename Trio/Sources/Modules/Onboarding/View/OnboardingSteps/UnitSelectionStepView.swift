@@ -30,9 +30,15 @@ struct UnitSelectionStepView: View {
                         Text(pumpModel.displayName).tag(pumpModel)
                     }
                 }
-                .onChange(of: state.pumpOptionForOnboardingUnits, { _, _ in
-                    // Reset basal profile and related values when pump model changes
+                .onChange(of: state.pumpOptionForOnboardingUnits, { _, newValue in
+                    // Reset therapy settings and related values when pump model changes
+                    state.targetItems = []
                     state.basalProfileItems = []
+                    state.carbRatioItems = []
+                    state.isfItems = []
+
+                    // Conditionally set rewind setting, if pump model is MDT
+                    state.rewindResetsAutosens = newValue == .minimed
                 })
             }
             .padding()

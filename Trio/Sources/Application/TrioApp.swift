@@ -35,7 +35,7 @@ extension Notification.Name {
     @State private var appState = AppState()
     @State private var showLoadingView = true
     @State private var showLoadingError = false
-    @State private var showOnboardingView = false
+    @State private var showOnboardingCompletedSplash = false
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -103,7 +103,7 @@ extension Notification.Name {
             object: nil,
             queue: .main
         ) { [self] _ in
-            showOnboardingView = false
+            showOnboardingCompletedSplash = true
         }
 
         let submodulesInfo = BuildDetails.shared.submodules.map { key, value in
@@ -205,40 +205,59 @@ extension Notification.Name {
 
     var body: some Scene {
         WindowGroup {
-            if self.showLoadingView {
-                Main.LoadingView(showError: $showLoadingError, retry: retryCoreDataInitialization)
-                    .onAppear {
-                        if self.initState.complete {
+            ZStack {
+                if self.showLoadingView {
+                    Main.LoadingView(showError: $showLoadingError, retry: retryCoreDataInitialization)
+                        .onAppear {
+                            if self.initState.complete {
+                                Task { @MainActor in
+                                    try? await Task.sleep(for: .seconds(1.8))
+                                    self.showLoadingView = false
+                                }
+                            }
+                            if self.initState.error {
+                                self.showLoadingError = true
+                            }
+                        }
+                        .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationCompleted)) { _ in
                             Task { @MainActor in
                                 try? await Task.sleep(for: .seconds(1.8))
                                 self.showLoadingView = false
                             }
                         }
-                        if self.initState.error {
+                        .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
                             self.showLoadingError = true
                         }
+                } else if showOnboardingCompletedSplash {
+                    LogoBurstSplash(isActive: $showOnboardingCompletedSplash) {
+                        Main.RootView(resolver: resolver)
+                            .preferredColorScheme(colorScheme(for: colorSchemePreference))
+                            .environment(
+                                \.managedObjectContext,
+                                coreDataStack.persistentContainer.viewContext
+                            )
+                            .environment(appState)
+                            .environmentObject(Icons())
+                            .onOpenURL(perform: handleURL)
                     }
-                    .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationCompleted)) { _ in
-                        Task { @MainActor in
-                            try? await Task.sleep(for: .seconds(1.8))
-                            self.showLoadingView = false
-                        }
-                    }
-                    .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
-                        self.showLoadingError = true
-                    }
-            } else if onboardingManager.shouldShowOnboarding {
-                // Show onboarding if needed
-                Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
-                    .preferredColorScheme(colorScheme(for: .dark) ?? nil)
-                    .transition(.opacity)
-            } else {
-                Main.RootView(resolver: resolver)
-                    .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
-                    .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
-                    .environment(appState)
-                    .environmentObject(Icons())
-                    .onOpenURL(perform: handleURL)
+                } else if onboardingManager.shouldShowOnboarding {
+                    // Show onboarding if needed
+                    Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
+                        .preferredColorScheme(colorScheme(for: .dark) ?? nil)
+                        .transition(.opacity)
+                } else {
+                    Main.RootView(resolver: resolver)
+                        .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
+                        .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
+                        .environment(appState)
+                        .environmentObject(Icons())
+                        .onOpenURL(perform: handleURL)
+                }
+            }
+            .onReceive(Foundation.NotificationCenter.default.publisher(for: .onboardingCompleted)) { _ in
+                Task { @MainActor in
+                    self.showOnboardingCompletedSplash = true
+                }
             }
         }
         .onChange(of: scenePhase) { _, newScenePhase in

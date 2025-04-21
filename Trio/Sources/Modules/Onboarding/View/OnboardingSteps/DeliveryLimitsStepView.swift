@@ -10,9 +10,15 @@ struct DeliveryLimitsStepView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(substep.hint)
+            Text(substep.title)
                 .padding(.horizontal)
-                .font(.headline)
+                .font(.title3)
+                .bold()
+            Text(substep.hint)
+                .font(.subheadline)
+                .multilineTextAlignment(.leading)
+                .padding(.horizontal)
+                .foregroundStyle(Color.secondary)
 
             switch substep {
             case .maxIOB:
@@ -57,6 +63,9 @@ struct DeliveryLimitsStepView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
                 .multilineTextAlignment(.leading)
+        }
+        .onDisappear {
+            shouldDisplayPicker = false
         }
     }
 
