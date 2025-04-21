@@ -1,16 +1,6 @@
 import CoreData
 import Foundation
 
-// MARK: - Protocol Definition
-
-/// A protocol that ensures a Data Transfer Object (DTO) can be stored in Core Data.
-/// It requires a method to map the DTO to its corresponding Core Data managed object.
-protocol ImportableDTO: Decodable {
-    associatedtype ManagedObject: NSManagedObject
-    /// Converts the DTO into a Core Data managed object.
-    func store(in context: NSManagedObjectContext) -> ManagedObject
-}
-
 // MARK: - JSONImporter Class with Generic Import Function
 
 /// Class responsible for importing JSON data into Core Data.
@@ -142,4 +132,14 @@ extension JSONImporter {
             dateDecodingStrategy: .iso8601
         )
     }
+}
+
+// MARK: - Protocol Definition
+
+/// A protocol that ensures a Data Transfer Object (DTO) can be stored in Core Data.
+/// It requires a method to map the DTO to its corresponding Core Data managed object.
+protocol ImportableDTO: Decodable {
+    associatedtype ManagedObject: NSManagedObject
+    /// Converts the DTO into a Core Data managed object.
+    func store(in context: NSManagedObjectContext) -> ManagedObject
 }

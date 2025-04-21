@@ -378,9 +378,9 @@
 		BD54A9732D281ABC00F9C1EE /* TempTargetPresetWatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD54A9722D281A9C00F9C1EE /* TempTargetPresetWatch.swift */; };
 		BD54A9742D281AEF00F9C1EE /* TempTargetPresetWatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD54A9722D281A9C00F9C1EE /* TempTargetPresetWatch.swift */; };
 		BD6EB2D62C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6EB2D52C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift */; };
-		BD793CC52CE8ABAD00D669AC /* MigrationScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD793CC42CE8ABA700D669AC /* MigrationScript.swift */; };
 		BD793CB02CE7C61500D669AC /* OverrideRunStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */; };
 		BD793CB22CE8033500D669AC /* TempTargetRunStored.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD793CB12CE8032E00D669AC /* TempTargetRunStored.swift */; };
+		BD793CC52CE8ABAD00D669AC /* JSONImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD793CC42CE8ABA700D669AC /* JSONImporter.swift */; };
 		BD7DA9A52AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A42AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift */; };
 		BD7DA9A72AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */; };
 		BD7DA9A92AE06E9200601B20 /* BolusCalculatorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */; };
@@ -539,6 +539,7 @@
 		DD1745502C55CA5500211FAC /* UnitsLimitsSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD17454F2C55CA5500211FAC /* UnitsLimitsSettingsProvider.swift */; };
 		DD1745522C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745512C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift */; };
 		DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1745542C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift */; };
+		DD1D0BC72DB6BCDE005BD5A1 /* JSONImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1D0BC62DB6BCDE005BD5A1 /* JSONImporterTests.swift */; };
 		DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */; };
 		DD1E53592D273F26008F32A4 /* LoopStatusHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1E53582D273F20008F32A4 /* LoopStatusHelpView.swift */; };
 		DD21FCB52C6952AD00AF2C25 /* DecimalPickerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */; };
@@ -1171,9 +1172,9 @@
 		BD54A9702D281A7A00F9C1EE /* TempTargetPresetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetPresetsView.swift; sourceTree = "<group>"; };
 		BD54A9722D281A9C00F9C1EE /* TempTargetPresetWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetPresetWatch.swift; sourceTree = "<group>"; };
 		BD6EB2D52C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityWidgetConfiguration.swift; sourceTree = "<group>"; };
-		BD793CC42CE8ABA700D669AC /* MigrationScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationScript.swift; sourceTree = "<group>"; };
 		BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+helper.swift"; sourceTree = "<group>"; };
 		BD793CB12CE8032E00D669AC /* TempTargetRunStored.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetRunStored.swift; sourceTree = "<group>"; };
+		BD793CC42CE8ABA700D669AC /* JSONImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONImporter.swift; sourceTree = "<group>"; };
 		BD7DA9A42AE06DFC00601B20 /* BolusCalculatorConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigDataFlow.swift; sourceTree = "<group>"; };
 		BD7DA9A62AE06E2B00601B20 /* BolusCalculatorConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorConfigProvider.swift; sourceTree = "<group>"; };
 		BD7DA9A82AE06E9200601B20 /* BolusCalculatorStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculatorStateModel.swift; sourceTree = "<group>"; };
@@ -1339,6 +1340,7 @@
 		DD17454F2C55CA5500211FAC /* UnitsLimitsSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsLimitsSettingsProvider.swift; sourceTree = "<group>"; };
 		DD1745512C55CA5D00211FAC /* UnitsLimitsSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsLimitsSettingsStateModel.swift; sourceTree = "<group>"; };
 		DD1745542C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsLimitsSettingsRootView.swift; sourceTree = "<group>"; };
+		DD1D0BC62DB6BCDE005BD5A1 /* JSONImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONImporterTests.swift; sourceTree = "<group>"; };
 		DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildDetails.swift; sourceTree = "<group>"; };
 		DD1E53582D273F20008F32A4 /* LoopStatusHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopStatusHelpView.swift; sourceTree = "<group>"; };
 		DD21FCB42C6952AD00AF2C25 /* DecimalPickerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalPickerSettings.swift; sourceTree = "<group>"; };
@@ -2524,6 +2526,7 @@
 		38FCF3EE25E9028E0078B0D1 /* TrioTests */ = {
 			isa = PBXGroup;
 			children = (
+				DD1D0BC62DB6BCDE005BD5A1 /* JSONImporterTests.swift */,
 				BD8FC05C2D6618BE00B95AED /* BolusCalculatorTests */,
 				BD8FC0552D66187700B95AED /* CoreDataTests */,
 				38FCF3F125E9028E0078B0D1 /* Info.plist */,
@@ -2629,7 +2632,7 @@
 		587A54C82BCDCE0F009D38E2 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				BD793CC42CE8ABA700D669AC /* MigrationScript.swift */,
+				BD793CC42CE8ABA700D669AC /* JSONImporter.swift */,
 				3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */,
 				BDF34F8F2C10CF8C00D51995 /* CoreDataStack.swift */,
 				BD4064D02C4ED26900582F43 /* CoreDataObserver.swift */,
@@ -3987,7 +3990,7 @@
 				BD47FDDD2D8B65B10043966B /* GlucoseTargetStepView.swift in Sources */,
 				19D466A329AA2B80004D5F33 /* MealSettingsDataFlow.swift in Sources */,
 				3811DEB225C9D88300A708ED /* KeychainItemAccessibility.swift in Sources */,
-				BD793CC52CE8ABAD00D669AC /* MigrationScript.swift in Sources */,
+				BD793CC52CE8ABAD00D669AC /* JSONImporter.swift in Sources */,
 				38AEE73D25F0200C0013F05B /* TrioSettings.swift in Sources */,
 				38FCF3FD25E997A80078B0D1 /* PumpHistoryStorage.swift in Sources */,
 				58645BA72CA2D390008AFCE7 /* ChartAxisSetup.swift in Sources */,
@@ -4551,6 +4554,7 @@
 				CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */,
 				BD8FC0622D6619E600B95AED /* OverrideStorageTests.swift in Sources */,
 				BD8FC0592D66189700B95AED /* TestAssembly.swift in Sources */,
+				DD1D0BC72DB6BCDE005BD5A1 /* JSONImporterTests.swift in Sources */,
 				BD8FC0662D661A0000B95AED /* GlucoseStorageTests.swift in Sources */,
 				BD8FC05B2D6618AF00B95AED /* DeterminationStorageTests.swift in Sources */,
 				CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */,

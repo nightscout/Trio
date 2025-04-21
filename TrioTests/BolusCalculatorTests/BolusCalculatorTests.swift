@@ -332,13 +332,15 @@ import Testing
 
     @Test("Calculate insulin with zero carbs") func testZeroCarbsCalculation() async throws {
         // Given
-        let carbs: Decimal = 0
+        let carbs: Decimal = 0.0
+        let minPredBG: Decimal = 80.0
 
         // When
         let result = await calculator.handleBolusCalculation(
             carbs: carbs,
             useFattyMealCorrection: false,
-            useSuperBolus: false
+            useSuperBolus: false,
+            minPredBG: minPredBG,
         )
 
         // Then
