@@ -458,9 +458,14 @@ extension UserInterfaceSettings {
                                                         "Time in Tight Range (TITR):"
                                                     )
                                                     .bold()
-                                                    Text(
-                                                        "Uses the fairly established Time in Tight Range definition, which is defined as time between \(state.units == .mgdL ? Decimal(70) : 70.asMmolL) and \(state.units == .mgdL ? Decimal(140) : 140.asMmolL) \(state.units.rawValue)."
-                                                    )
+                                                    let titrBottomThreshold =
+                                                        "\(state.units == .mgdL ? Decimal(70) : 70.asMmolL)"
+                                                    let titrTopThreshold =
+                                                        "\(state.units == .mgdL ? Decimal(140) : 140.asMmolL)"
+                                                    Text(String(
+                                                        localized: "Uses the fairly established Time in Tight Range definition, which is defined as time between \(titrBottomThreshold) and \(titrTopThreshold)  \(state.units.rawValue).",
+                                                        comment: "Time in Tight Range (TITR) verbose hint description"
+                                                    ))
                                                 }
                                                 VStack(
                                                     alignment: .leading,
@@ -470,9 +475,14 @@ extension UserInterfaceSettings {
                                                         "Time in Normoglycemia (TING):"
                                                     )
                                                     .bold()
-                                                    Text(
-                                                        "Uses the very new – first discussed at ATTD 2025 in Amsterdam, NL – Time in Normoglycemia definition, which adopts its range as all values between the normoglycemic minimum threshold (\(state.units == .mgdL ? Decimal(63) : 63.asMmolL) \(state.units.rawValue)) and \(state.units == .mgdL ? Decimal(140) : 140.asMmolL) \(state.units.rawValue)."
-                                                    )
+                                                    let tingBottomThreshold =
+                                                        "\(state.units == .mgdL ? Decimal(63) : 63.asMmolL)"
+                                                    let tingTopThreshold =
+                                                        "\(state.units == .mgdL ? Decimal(140) : 140.asMmolL)"
+                                                    Text(String(
+                                                        localized: "Uses the very new – first discussed at ATTD 2025 in Amsterdam, NL – Time in Normoglycemia definition, which adopts its range as all values between the normoglycemic minimum threshold (\(tingBottomThreshold) \(state.units.rawValue)) and \(tingTopThreshold) \(state.units.rawValue).",
+                                                        comment: "Time in Normoglycemia (TING) verbose hint description"
+                                                    ))
                                                 }
                                             }
                                         )
