@@ -367,10 +367,12 @@ extension DataTable {
                                 action: {
                                     alertGlucoseToDelete = glucose
 
+                                    let glucoseToDisplay = state.units == .mgdL ? glucose.glucose
+                                        .description : Int(glucose.glucose).formattedAsMmolL
                                     alertTitle = String(localized: "Delete Glucose?", comment: "Alert title for deleting glucose")
                                     alertMessage = Formatter.dateFormatter
-                                        .string(from: glucose.date ?? Date()) + ", " +
-                                        (Formatter.decimalFormatterWithTwoFractionDigits.string(for: glucose.glucose) ?? "0")
+                                        .string(from: glucose.date ?? Date()) + ", " + glucoseToDisplay + " " + state.units
+                                        .rawValue
 
                                     isRemoveHistoryItemAlertPresented = true
                                 }

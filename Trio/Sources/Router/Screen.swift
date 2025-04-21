@@ -15,7 +15,7 @@ enum Screen: Identifiable, Hashable {
     case isfEditor
     case crEditor
     case targetsEditor
-    case bolus
+    case treatmentView
     case manualTempBasal
     case dataTable
     case cgm
@@ -48,6 +48,7 @@ enum Screen: Identifiable, Hashable {
     case targetBehavior
     case algorithmAdvancedSettings
     case unitsAndLimits
+    case appDiagnostics
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -81,7 +82,7 @@ extension Screen {
             CarbRatioEditor.RootView(resolver: resolver)
         case .targetsEditor:
             TargetsEditor.RootView(resolver: resolver)
-        case .bolus:
+        case .treatmentView:
             Treatments.RootView(resolver: resolver)
         case .manualTempBasal:
             ManualTempBasal.RootView(resolver: resolver)
@@ -147,6 +148,8 @@ extension Screen {
             AlgorithmAdvancedSettings.RootView(resolver: resolver)
         case .unitsAndLimits:
             UnitsLimitsSettings.RootView(resolver: resolver)
+        case .appDiagnostics:
+            AppDiagnostics.RootView(resolver: resolver)
         }
     }
 
