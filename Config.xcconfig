@@ -7,6 +7,7 @@ BUNDLE_IDENTIFIER = org.nightscout.$(DEVELOPMENT_TEAM).trio
 APP_ICON = trioBlack
 APP_URL_SCHEME = Trio
 
+// Optional overrides
 #include? "../../ConfigOverride.xcconfig"
+#include? "../ConfigOverride.xcconfig"
 #include? "ConfigOverride.xcconfig"
-#include? "../../ConfigOverride.xcconfig"

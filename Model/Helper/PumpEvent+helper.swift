@@ -12,6 +12,32 @@ extension PumpEventStored {
         }
         return request
     }
+
+    // Preview
+    @discardableResult static func makePreviewEvents(count: Int, provider: CoreDataStack) -> [PumpEventStored] {
+        let context = provider.persistentContainer.viewContext
+        let events = (0 ..< count).map { index -> PumpEventStored in
+            let event = PumpEventStored(context: context)
+            event.id = UUID().uuidString
+            event.timestamp = Date.now.addingTimeInterval(Double(index) * -300) // Every 5 minutes
+            event.type = EventType.bolus.rawValue
+            event.isUploadedToNS = false
+            event.isUploadedToHealth = false
+            event.isUploadedToTidepool = false
+
+            // Add a bolus
+            let bolus = BolusStored(context: context)
+            bolus.amount = 2.5 as NSDecimalNumber
+            bolus.isExternal = false
+            bolus.isSMB = false
+            bolus.pumpEvent = event
+
+            return event
+        }
+
+        try? context.save()
+        return events
+    }
 }
 
 public extension PumpEventStored {
@@ -63,9 +89,18 @@ extension NSPredicate {
         return NSPredicate(format: "timestamp >= %@", date as NSDate)
     }
 
+    static var pumpHistoryForStats: NSPredicate {
+        let date = Date.threeMonthsAgo
+        return NSPredicate(format: "pumpEvent.timestamp >= %@", date as NSDate)
+    }
+
     static var recentPumpHistory: NSPredicate {
         let date = Date.twentyMinutesAgo
-        return NSPredicate(format: "timestamp >= %@", date as NSDate)
+        return NSPredicate(
+            format: "type == %@ AND timestamp >= %@",
+            PumpEventStored.EventType.tempBasal.rawValue,
+            date as NSDate
+        )
     }
 
     static var lastPumpBolus: NSPredicate {
@@ -100,8 +135,10 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
     case bolus(BolusDTO)
     case tempBasal(TempBasalDTO)
     case tempBasalDuration(TempBasalDurationDTO)
-    case pumpSuspend(PumpSuspendDTO)
-    case pumpResume(PumpResumeDTO)
+    case suspend(SuspendDTO)
+    case resume(ResumeDTO)
+    case rewind(RewindDTO)
+    case prime(PrimeDTO)
     case unknown(String) // Catch-all for unknown types
 
     func encode(to encoder: Encoder) throws {
@@ -112,10 +149,14 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
             try tempBasal.encode(to: encoder)
         case let .tempBasalDuration(tempBasalDuration):
             try tempBasalDuration.encode(to: encoder)
-        case let .pumpSuspend(pumpSuspend):
-            try pumpSuspend.encode(to: encoder)
-        case let .pumpResume(pumpResume):
-            try pumpResume.encode(to: encoder)
+        case let .suspend(suspend):
+            try suspend.encode(to: encoder)
+        case let .resume(resume):
+            try resume.encode(to: encoder)
+        case let .rewind(rewind):
+            try rewind.encode(to: encoder)
+        case let .prime(prime):
+            try prime.encode(to: encoder)
         case let .unknown(type):
             debugPrint("⚠️ Skipping unknown type during encoding: \(type)")
         }
@@ -148,11 +189,11 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
             let tempBasalDurationDTO = try singleValueContainer.decode(TempBasalDurationDTO.self)
             self = .tempBasalDuration(tempBasalDurationDTO)
         case "PumpSuspend":
-            let pumpSuspendDTO = try singleValueContainer.decode(PumpSuspendDTO.self)
-            self = .pumpSuspend(pumpSuspendDTO)
+            let SuspendDTO = try singleValueContainer.decode(SuspendDTO.self)
+            self = .suspend(SuspendDTO)
         case "PumpResume":
-            let pumpResumeDTO = try singleValueContainer.decode(PumpResumeDTO.self)
-            self = .pumpResume(pumpResumeDTO)
+            let ResumeDTO = try singleValueContainer.decode(ResumeDTO.self)
+            self = .resume(ResumeDTO)
         default:
             debugPrint("⚠️ Unknown _type value: \(type)")
             self = .unknown(type)
@@ -167,7 +208,7 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
         pumpEvent.isUploadedToNS = true
         pumpEvent.isUploadedToHealth = true
         pumpEvent.isUploadedToTidepool = true
-        
+
         switch self {
         case let .bolus(bolusDTO):
             pumpEvent.id = bolusDTO.id
@@ -177,7 +218,7 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
             let bolus = BolusStored(context: context)
             bolus.amount = NSDecimalNumber(value: bolusDTO.amount)
             bolus.isExternal = bolusDTO.isExternal
-            bolus.isSMB = bolusDTO.isSMB ?? false
+            bolus.isSMB = bolusDTO.isSMB
             pumpEvent.bolus = bolus
 
             return pumpEvent
@@ -205,17 +246,31 @@ enum PumpEventDTO: Encodable, Decodable, ImportableDTO {
 
             return pumpEvent
 
-        case let .pumpSuspend(pumpSuspendDTO):
-            pumpEvent.id = pumpSuspendDTO.id
-            pumpEvent.timestamp = ISO8601DateFormatter().date(from: pumpSuspendDTO.timestamp)
-            pumpEvent.type = pumpSuspendDTO._type
+        case let .suspend(SuspendDTO):
+            pumpEvent.id = SuspendDTO.id
+            pumpEvent.timestamp = ISO8601DateFormatter().date(from: SuspendDTO.timestamp)
+            pumpEvent.type = SuspendDTO._type
 
             return pumpEvent
-            
-        case let .pumpResume(pumpResumeDTO):
-            pumpEvent.id = pumpResumeDTO.id
-            pumpEvent.timestamp = ISO8601DateFormatter().date(from: pumpResumeDTO.timestamp)
-            pumpEvent.type = pumpResumeDTO._type
+
+        case let .resume(ResumeDTO):
+            pumpEvent.id = ResumeDTO.id
+            pumpEvent.timestamp = ISO8601DateFormatter().date(from: ResumeDTO.timestamp)
+            pumpEvent.type = ResumeDTO._type
+
+            return pumpEvent
+
+        case let .rewind(RewindDTO):
+            pumpEvent.id = RewindDTO.id
+            pumpEvent.timestamp = ISO8601DateFormatter().date(from: RewindDTO.timestamp)
+            pumpEvent.type = RewindDTO._type
+
+            return pumpEvent
+
+        case let .prime(PrimeDTO):
+            pumpEvent.id = PrimeDTO.id
+            pumpEvent.timestamp = ISO8601DateFormatter().date(from: PrimeDTO.timestamp)
+            pumpEvent.type = PrimeDTO._type
 
             return pumpEvent
 
@@ -233,9 +288,9 @@ struct BolusDTO: Codable {
     var timestamp: String
     var amount: Double
     var isExternal: Bool
-    var isSMB: Bool?
-    var duration: Int?
-    var _type: String = "Bolus"
+    var isSMB: Bool = false
+    var duration: Int
+    var _type: String = EventType.bolus.rawValue
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -253,14 +308,14 @@ struct TempBasalDTO: Codable {
     var timestamp: String
     var temp: String
     var rate: Double
-    var _type: String = "TempBasal"
+    var _type: String = EventType.tempBasal.rawValue
 }
 
 struct TempBasalDurationDTO: Codable {
     var id: String
     var timestamp: String
     var duration: Int
-    var _type: String = "TempBasalDuration"
+    var _type: String = EventType.tempBasalDuration.rawValue
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -270,18 +325,28 @@ struct TempBasalDurationDTO: Codable {
     }
 }
 
-struct PumpSuspendDTO: Codable {
+struct SuspendDTO: Codable {
     var id: String
     var timestamp: String
-    var reason: String?
-    var _type: String = "PumpSuspend"
+    var _type: String = EventType.pumpSuspend.rawValue
 }
 
-struct PumpResumeDTO: Codable {
+struct ResumeDTO: Codable {
     var id: String
     var timestamp: String
-    var reason: String?
-    var _type: String = "PumpResume"
+    var _type: String = EventType.pumpResume.rawValue
+}
+
+struct RewindDTO: Codable {
+    var id: String
+    var timestamp: String
+    var _type: String = EventType.rewind.rawValue
+}
+
+struct PrimeDTO: Codable {
+    var id: String
+    var timestamp: String
+    var _type: String = EventType.prime.rawValue
 }
 
 // Extension with helper functions to map pump events to DTO objects via uniform masking enum
@@ -333,5 +398,53 @@ extension PumpEventStored {
             duration: Int(tempBasal.duration)
         )
         return .tempBasalDuration(tempBasalDurationDTO)
+    }
+
+    func toSuspendDTO() -> PumpEventDTO? {
+        guard let id = id, let timestamp = timestamp, let type = type, type == EventType.pumpSuspend.rawValue else {
+            return nil
+        }
+
+        let suspendDTO = SuspendDTO(
+            id: id,
+            timestamp: PumpEventStored.dateFormatter.string(from: timestamp)
+        )
+        return .suspend(suspendDTO)
+    }
+
+    func toResumeDTO() -> PumpEventDTO? {
+        guard let id = id, let timestamp = timestamp, let type = type, type == EventType.pumpResume.rawValue else {
+            return nil
+        }
+
+        let resumeDTO = ResumeDTO(
+            id: id,
+            timestamp: PumpEventStored.dateFormatter.string(from: timestamp)
+        )
+        return .resume(resumeDTO)
+    }
+
+    func toRewindDTO() -> PumpEventDTO? {
+        guard let id = id, let timestamp = timestamp, let type = type, type == EventType.rewind.rawValue else {
+            return nil
+        }
+
+        let rewindDTO = RewindDTO(
+            id: id,
+            timestamp: PumpEventStored.dateFormatter.string(from: timestamp)
+        )
+        return .rewind(rewindDTO)
+    }
+
+    func toPrimeDTO() -> PumpEventDTO? {
+        guard let id = id, let timestamp = timestamp, let type = type, type == EventType.prime.rawValue else {
+            return nil
+        }
+
+        let primeDTO = PrimeDTO(
+            id: id,
+            timestamp: PumpEventStored.dateFormatter.string(from: timestamp)
+        )
+        return .prime(primeDTO)
     }
 }

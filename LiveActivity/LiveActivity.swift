@@ -11,8 +11,7 @@ struct LiveActivity: Widget {
 
             var glucoseColor: Color {
                 let state = context.state
-                let detailedState = state.detailedViewState
-                let isMgdL = detailedState?.unit == "mg/dL"
+                let isMgdL = state.unit == "mg/dL"
 
                 // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
                 let hardCodedLow = isMgdL ? Decimal(55) : 55.asMmolL
@@ -85,7 +84,7 @@ private extension LiveActivityAttributes.ContentState {
         rotationDegrees: 0,
         cob: 20,
         iob: 1.5,
-        unit: GlucoseUnits.mgdL.rawValue,
+        tdd: 43.21,
         isOverrideActive: false,
         overrideName: "Exercise",
         overrideDate: Date().addingTimeInterval(-3600),
@@ -99,6 +98,7 @@ private extension LiveActivityAttributes.ContentState {
     // Use mmol/l notation with decimal point as well for the same reason, it uses up to 4 characters, while mg/dl uses up to 3
     static var testWide: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
+            unit: "mg/dL",
             bg: "00.0",
             direction: "→",
             change: "+0.0",
@@ -114,6 +114,7 @@ private extension LiveActivityAttributes.ContentState {
 
     static var testVeryWide: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
+            unit: "mg/dL",
             bg: "00.0",
             direction: "↑↑",
             change: "+0.0",
@@ -129,6 +130,7 @@ private extension LiveActivityAttributes.ContentState {
 
     static var testSuperWide: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
+            unit: "mg/dL",
             bg: "00.0",
             direction: "↑↑↑",
             change: "+0.0",
@@ -145,6 +147,7 @@ private extension LiveActivityAttributes.ContentState {
     // 2 characters for BG, 1 character for change is the minimum that will be shown
     static var testNarrow: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
+            unit: "mg/dL",
             bg: "00",
             direction: "↑",
             change: "+0",
@@ -160,6 +163,7 @@ private extension LiveActivityAttributes.ContentState {
 
     static var testMedium: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
+            unit: "mg/dL",
             bg: "000",
             direction: "↗︎",
             change: "+00",
@@ -175,6 +179,7 @@ private extension LiveActivityAttributes.ContentState {
 
     static var testExpired: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
+            unit: "mg/dL",
             bg: "--",
             direction: nil,
             change: "--",
@@ -190,6 +195,7 @@ private extension LiveActivityAttributes.ContentState {
 
     static var testWideDetailed: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
+            unit: "mg/dL",
             bg: "00.0",
             direction: "→",
             change: "+0.0",
@@ -205,6 +211,7 @@ private extension LiveActivityAttributes.ContentState {
 
     static var testVeryWideDetailed: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
+            unit: "mg/dL",
             bg: "00.0",
             direction: "↑↑",
             change: "+0.0",
@@ -220,6 +227,7 @@ private extension LiveActivityAttributes.ContentState {
 
     static var testSuperWideDetailed: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
+            unit: "mg/dL",
             bg: "00.0",
             direction: "↑↑↑",
             change: "+0.0",
@@ -236,6 +244,7 @@ private extension LiveActivityAttributes.ContentState {
     // 2 characters for BG, 1 character for change is the minimum that will be shown
     static var testNarrowDetailed: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
+            unit: "mg/dL",
             bg: "00",
             direction: "↑",
             change: "+0",
@@ -251,6 +260,7 @@ private extension LiveActivityAttributes.ContentState {
 
     static var testMediumDetailed: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
+            unit: "mg/dL",
             bg: "000",
             direction: "↗︎",
             change: "+00",
@@ -266,6 +276,7 @@ private extension LiveActivityAttributes.ContentState {
 
     static var testExpiredDetailed: LiveActivityAttributes.ContentState {
         LiveActivityAttributes.ContentState(
+            unit: "mg/dL",
             bg: "--",
             direction: nil,
             change: "--",

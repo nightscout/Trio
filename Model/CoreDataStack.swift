@@ -9,43 +9,21 @@ class CoreDataStack: ObservableObject {
     private var notificationToken: NSObjectProtocol?
     private let inMemory: Bool
 
+    let persistentContainer: NSPersistentContainer
+
+    private let maxRetries = 3
+    private let initializationCoordinator = CoreDataInitializationCoordinator()
+
     private init(inMemory: Bool = false) {
         self.inMemory = inMemory
 
-        // Observe Core Data remote change notifications on the queue where the changes were made
-        notificationToken = Foundation.NotificationCenter.default.addObserver(
-            forName: .NSPersistentStoreRemoteChange,
-            object: nil,
-            queue: nil
-        ) { _ in
-            Task {
-                await self.fetchPersistentHistory()
-            }
-        }
-    }
+        // Initialize persistent container immediately
+        persistentContainer = NSPersistentContainer(
+            name: "TrioCoreDataPersistentContainer",
+            managedObjectModel: Self.managedObjectModel
+        )
 
-    deinit {
-        if let observer = notificationToken {
-            Foundation.NotificationCenter.default.removeObserver(observer)
-        }
-    }
-
-    /// A persistent history token used for fetching transactions from the store
-    /// Save the last token to User defaults
-    private var lastToken: NSPersistentHistoryToken? {
-        get {
-            UserDefaults.standard.lastHistoryToken
-        }
-        set {
-            UserDefaults.standard.lastHistoryToken = newValue
-        }
-    }
-
-    /// A persistent container to set up the Core Data Stack
-    lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "TrioCoreDataPersistentContainer")
-
-        guard let description = container.persistentStoreDescriptions.first else {
+        guard let description = persistentContainer.persistentStoreDescriptions.first else {
             fatalError("Failed \(DebuggingIdentifiers.failed) to retrieve a persistent store description")
         }
 
@@ -66,19 +44,57 @@ class CoreDataStack: ObservableObject {
         description.shouldMigrateStoreAutomatically = true
         description.shouldInferMappingModelAutomatically = true
 
-        container.loadPersistentStores { _, error in
-            if let error = error as NSError? {
-                fatalError("Unresolved Error \(DebuggingIdentifiers.failed) \(error), \(error.userInfo)")
-            }
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = false
+        persistentContainer.viewContext.name = "viewContext"
+        /// - Tag: viewContextmergePolicy
+        persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        persistentContainer.viewContext.undoManager = nil
+        persistentContainer.viewContext.shouldDeleteInaccessibleFaults = true
+    }
+
+    deinit {
+        if let observer = notificationToken {
+            Foundation.NotificationCenter.default.removeObserver(observer)
+        }
+    }
+
+    /// A persistent history token used for fetching transactions from the store
+    /// Save the last token to User defaults
+    private var lastToken: NSPersistentHistoryToken? {
+        get {
+            UserDefaults.standard.lastHistoryToken
+        }
+        set {
+            UserDefaults.standard.lastHistoryToken = newValue
+        }
+    }
+
+    // Factory method for tests
+    static func createForTests() async throws -> CoreDataStack {
+        let stack = CoreDataStack(inMemory: true)
+        try await stack.initializeStack()
+        return stack
+    }
+
+    // Used for Canvas Preview
+    static func preview() async throws -> CoreDataStack {
+        let stack = CoreDataStack(inMemory: true)
+        try await stack.initializeStack()
+        return stack
+    }
+
+    // Shared managed object model
+    static var managedObjectModel: NSManagedObjectModel = {
+        let bundle = Bundle(for: CoreDataStack.self)
+        guard let url = bundle.url(forResource: "TrioCoreDataPersistentContainer", withExtension: "momd") else {
+            fatalError("Failed \(DebuggingIdentifiers.failed) to locate momd file")
         }
 
-        container.viewContext.automaticallyMergesChangesFromParent = false
-        container.viewContext.name = "viewContext"
-        /// - Tag: viewContextmergePolicy
-        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        container.viewContext.undoManager = nil
-        container.viewContext.shouldDeleteInaccessibleFaults = true
-        return container
+        guard let model = NSManagedObjectModel(contentsOf: url) else {
+            fatalError("Failed \(DebuggingIdentifiers.failed) to load momd file")
+        }
+
+        return model
     }()
 
     /// Creates and configures a private queue context
@@ -98,14 +114,14 @@ class CoreDataStack: ObservableObject {
         do {
             try await fetchPersistentHistoryTransactionsAndChanges()
         } catch {
-            debugPrint("\(error.localizedDescription)")
+            debug(.coreData, "\(error.localizedDescription)")
         }
     }
 
     private func fetchPersistentHistoryTransactionsAndChanges() async throws {
         let taskContext = newTaskContext()
         taskContext.name = "persistentHistoryContext"
-//        debugPrint("Start fetching persistent history changes from the store ... \(DebuggingIdentifiers.inProgress)")
+//        debug(.coreData,"Start fetching persistent history changes from the store ... \(DebuggingIdentifiers.inProgress)")
 
         try await taskContext.perform {
             // Execute the persistent history change since the last transaction
@@ -120,7 +136,7 @@ class CoreDataStack: ObservableObject {
     }
 
     private func mergePersistentHistoryChanges(from history: [NSPersistentHistoryTransaction]) {
-//        debugPrint("Received \(history.count) persistent history transactions")
+//        debug(.coreData,"Received \(history.count) persistent history transactions")
         // Update view context with objectIDs from history change request
         /// - Tag: mergeChanges
         let viewContext = persistentContainer.viewContext
@@ -142,11 +158,105 @@ class CoreDataStack: ObservableObject {
             let deleteHistoryTokensRequest = NSPersistentHistoryChangeRequest.deleteHistory(before: date)
             do {
                 try taskContext.execute(deleteHistoryTokensRequest)
-                debugPrint("\(DebuggingIdentifiers.succeeded) Successfully deleted persistent history before \(date)")
+                debug(.coreData, "\(DebuggingIdentifiers.succeeded) Successfully deleted persistent history from before \(date)")
             } catch {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) Failed to delete persistent history before \(date): \(error.localizedDescription)"
+                debug(
+                    .coreData,
+                    "\(DebuggingIdentifiers.failed) Failed to delete persistent history from before \(date): \(error.localizedDescription)"
                 )
+            }
+        }
+    }
+
+    private func setupPersistentStoreChangeNotifications() {
+        // Observe Core Data remote change notifications on the queue where the changes were made
+        notificationToken = Foundation.NotificationCenter.default.addObserver(
+            forName: .NSPersistentStoreRemoteChange,
+            object: nil,
+            queue: nil
+        ) { _ in
+            Task {
+                await self.fetchPersistentHistory()
+            }
+        }
+
+        debug(.coreData, "Set up persistent store change notifications")
+    }
+
+    /// Loads the persistent stores asynchronously.
+    ///
+    /// Converts the synchronous NSPersistentContainer loading process into an async/await compatible
+    /// function using a continuation.
+    ///
+    /// - Throws: Any errors encountered during the loading of persistent stores.
+    /// - Returns: Void once stores are loaded successfully
+    private func loadPersistentStores() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            persistentContainer.loadPersistentStores { storeDescription, error in
+                if let error = error {
+                    warning(.coreData, "Failed to load persistent stores: \(error.localizedDescription)")
+                    continuation.resume(throwing: error)
+                } else {
+                    debug(.coreData, "Successfully loaded persistent store: \(storeDescription.url?.absoluteString ?? "unknown")")
+                    continuation.resume(returning: ())
+                }
+            }
+        }
+    }
+
+    /// Public entry point for initializing the CoreData stack.
+    ///
+    /// Uses the initialization coordinator to ensure initialization happens only once,
+    /// even with concurrent calls. Subsequent calls will wait for the original initialization
+    /// to complete.
+    ///
+    /// - Throws: Any errors that occur during initialization.
+    /// - Returns: Void once initialization is complete.
+    func initializeStack() async throws {
+        try await initializationCoordinator.ensureInitialized {
+            try await self.initializeStack(retryCount: 0)
+        }
+    }
+
+    /// Private implementation of the initialization process with retry capability.
+    ///
+    /// Handles the actual initialization work including store loading, verification,
+    /// notification setup, and error handling with retry logic.
+    ///
+    /// - Parameter retryCount: The current retry attempt number, starting at 0.
+    /// - Throws: CoreDataError or any other error if initialization fails after all retries.
+    /// - Returns: Void when initialization completes successfully.
+    private func initializeStack(retryCount: Int) async throws {
+        do {
+            // Load stores asynchronously
+            try await loadPersistentStores()
+
+            // Verify the store is loaded
+            guard persistentContainer.persistentStoreCoordinator.persistentStores.isEmpty == false else {
+                let error = CoreDataError.storeNotInitializedError(function: #function, file: #file)
+                throw error
+            }
+
+            setupPersistentStoreChangeNotifications()
+
+            debug(.coreData, "Core Data stack initialized successfully")
+
+        } catch {
+            debug(.coreData, "Failed to initialize Core Data stack: \(error.localizedDescription)")
+
+            // If we still have retries left, try again after a delay
+            if retryCount < maxRetries {
+                debug(.coreData, "Retrying initialization (\(retryCount + 1)/\(maxRetries))")
+
+                // Wait before retrying
+                try await Task.sleep(for: .seconds(1))
+
+                // Retry the initialization
+                try await initializeStack(retryCount: retryCount + 1)
+            } else {
+                // We've exhausted our retries
+                debug(.coreData, "Core Data initialization failed after \(maxRetries) attempts")
+                throw error
             }
         }
     }
@@ -159,7 +269,7 @@ extension CoreDataStack {
     ///  - Tag: synchronousDelete
     func deleteObject(identifiedBy objectID: NSManagedObjectID) async {
         let viewContext = persistentContainer.viewContext
-        debugPrint("Start deleting data from the store ...\(DebuggingIdentifiers.inProgress)")
+        debug(.coreData, "Start deleting data from the store ...\(DebuggingIdentifiers.inProgress)")
 
         await viewContext.perform {
             do {
@@ -168,9 +278,9 @@ extension CoreDataStack {
 
                 guard viewContext.hasChanges else { return }
                 try viewContext.save()
-                debugPrint("Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
+                debug(.coreData, "Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
             } catch {
-                debugPrint("Failed to delete data: \(error.localizedDescription)")
+                debug(.coreData, "Failed to delete data: \(error.localizedDescription)")
             }
         }
     }
@@ -181,7 +291,9 @@ extension CoreDataStack {
         _ objectType: T.Type,
         dateKey: String,
         days: Int,
-        isPresetKey: String? = nil
+        isPresetKey: String? = nil,
+        callingFunction: String = #function,
+        callingClass: String = #fileID
     ) async throws {
         let taskContext = newTaskContext()
         taskContext.name = "deleteContext"
@@ -209,7 +321,7 @@ extension CoreDataStack {
 
             // Guard check if there are NSManagedObjects older than the specified days
             guard !objectIDs.isEmpty else {
-//                debugPrint("No objects found older than \(days) days.")
+//                debug(.coreData,"No objects found older than \(days) days.")
                 return
             }
 
@@ -220,15 +332,15 @@ extension CoreDataStack {
                       let batchDeleteResult = fetchResult as? NSBatchDeleteResult,
                       let success = batchDeleteResult.result as? Bool, success
                 else {
-                    debugPrint("Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
-                    throw CoreDataError.batchDeleteError
+                    debug(.coreData, "Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
+                    throw CoreDataError.batchDeleteError(function: callingFunction, file: callingClass)
                 }
             }
 
-            debugPrint("Successfully deleted data older than \(days) days. \(DebuggingIdentifiers.succeeded)")
+            debug(.coreData, "Successfully deleted data older than \(days) days. \(DebuggingIdentifiers.succeeded)")
         } catch {
-            debugPrint("Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
-            throw CoreDataError.batchDeleteError
+            debug(.coreData, "Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
+            throw CoreDataError.unexpectedError(error: error, function: callingFunction, file: callingClass)
         }
     }
 
@@ -237,7 +349,9 @@ extension CoreDataStack {
         childType: Child.Type,
         dateKey: String,
         days: Int,
-        relationshipKey: String // The key of the Child Entity that links to the parent Entity
+        relationshipKey: String, // The key of the Child Entity that links to the parent Entity
+        callingFunction: String = #function,
+        callingClass: String = #fileID
     ) async throws {
         let taskContext = newTaskContext()
         taskContext.name = "deleteContext"
@@ -257,7 +371,7 @@ extension CoreDataStack {
             }
 
             guard !parentObjectIDs.isEmpty else {
-//                debugPrint("No \(parentType) objects found older than \(days) days.")
+//                debug(.coreData,"No \(parentType) objects found older than \(days) days.")
                 return
             }
 
@@ -271,7 +385,7 @@ extension CoreDataStack {
             }
 
             guard !childObjectIDs.isEmpty else {
-//                debugPrint("No \(childType) objects found related to \(parentType) objects older than \(days) days.")
+//                debug(.coreData,"No \(childType) objects found related to \(parentType) objects older than \(days) days.")
                 return
             }
 
@@ -282,17 +396,18 @@ extension CoreDataStack {
                       let batchDeleteResult = fetchResult as? NSBatchDeleteResult,
                       let success = batchDeleteResult.result as? Bool, success
                 else {
-                    debugPrint("Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
-                    throw CoreDataError.batchDeleteError
+                    debug(.coreData, "Failed to execute batch delete request \(DebuggingIdentifiers.failed)")
+                    throw CoreDataError.batchDeleteError(function: callingFunction, file: callingClass)
                 }
             }
 
-            debugPrint(
+            debug(
+                .coreData,
                 "Successfully deleted \(childType) data related to \(parentType) objects older than \(days) days. \(DebuggingIdentifiers.succeeded)"
             )
         } catch {
-            debugPrint("Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
-            throw CoreDataError.batchDeleteError
+            debug(.coreData, "Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
+            throw CoreDataError.unexpectedError(error: error, function: callingFunction, file: callingClass)
         }
     }
 }
@@ -313,59 +428,8 @@ extension CoreDataStack {
         propertiesToFetch: [String]? = nil,
         callingFunction: String = #function,
         callingClass: String = #fileID
-    ) -> [T] {
-        let request = NSFetchRequest<T>(entityName: String(describing: type))
-        request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
-        request.predicate = predicate
-        if let limit = fetchLimit {
-            request.fetchLimit = limit
-        }
-        if let batchSize = batchSize {
-            request.fetchBatchSize = batchSize
-        }
-        if let propertiesTofetch = propertiesToFetch {
-            request.propertiesToFetch = propertiesTofetch
-            request.resultType = .managedObjectResultType
-        } else {
-            request.resultType = .managedObjectResultType
-        }
-
-        context.name = "fetchContext"
-        context.transactionAuthor = "fetchEntities"
-
-        var result: [T]?
-
-        /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
-        context.performAndWait {
-            do {
-//                debugPrint(
-//                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on Thread: \(Thread.current)"
-//                )
-                result = try context.fetch(request)
-            } catch let error as NSError {
-                debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on Thread: \(Thread.current)"
-                )
-            }
-        }
-
-        return result ?? []
-    }
-
-    // Fetch Async
-    func fetchEntitiesAsync<T: NSManagedObject>(
-        ofType type: T.Type,
-        onContext context: NSManagedObjectContext,
-        predicate: NSPredicate,
-        key: String,
-        ascending: Bool,
-        fetchLimit: Int? = nil,
-        batchSize: Int? = nil,
-        propertiesToFetch: [String]? = nil,
-        callingFunction: String = #function,
-        callingClass: String = #fileID
-    ) async -> Any {
-        let request: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: String(describing: type))
+    ) throws -> [Any] {
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: type))
         request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
         request.predicate = predicate
         if let limit = fetchLimit {
@@ -384,21 +448,73 @@ extension CoreDataStack {
         context.name = "fetchContext"
         context.transactionAuthor = "fetchEntities"
 
-        return await context.perform {
+        /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
+        return try context.performAndWait {
             do {
-//                debugPrint(
-//                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.succeeded) on Thread: \(Thread.current)"
-//                )
                 if propertiesToFetch != nil {
                     return try context.fetch(request) as? [[String: Any]] ?? []
                 } else {
                     return try context.fetch(request) as? [T] ?? []
                 }
             } catch let error as NSError {
-                debugPrint(
-                    "Fetching \(T.self) in \(callingFunction) from \(callingClass): \(DebuggingIdentifiers.failed) \(error) on Thread: \(Thread.current)"
+                throw CoreDataError.fetchError(
+                    function: callingFunction,
+                    file: callingClass
                 )
-                return []
+            }
+        }
+    }
+
+    // Fetch Async
+    func fetchEntitiesAsync<T: NSManagedObject>(
+        ofType type: T.Type,
+        onContext context: NSManagedObjectContext,
+        predicate: NSPredicate,
+        key: String,
+        ascending: Bool,
+        fetchLimit: Int? = nil,
+        batchSize: Int? = nil,
+        propertiesToFetch: [String]? = nil,
+        relationshipKeyPathsForPrefetching: [String]? = nil,
+        callingFunction: String = #function,
+        callingClass: String = #fileID
+    ) async throws -> Any {
+        let request: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: String(describing: type))
+        request.sortDescriptors = [NSSortDescriptor(key: key, ascending: ascending)]
+        request.predicate = predicate
+
+        if let limit = fetchLimit {
+            request.fetchLimit = limit
+        }
+        if let batchSize = batchSize {
+            request.fetchBatchSize = batchSize
+        }
+        if let propertiesToFetch = propertiesToFetch {
+            request.propertiesToFetch = propertiesToFetch
+            request.resultType = .dictionaryResultType
+        } else {
+            request.resultType = .managedObjectResultType
+        }
+        if let prefetchKeyPaths = relationshipKeyPathsForPrefetching {
+            request.relationshipKeyPathsForPrefetching = prefetchKeyPaths
+        }
+
+        context.name = "fetchContext"
+        context.transactionAuthor = "fetchEntities"
+
+        return try await context.perform {
+            do {
+                if propertiesToFetch != nil {
+                    return try context.fetch(request) as? [[String: Any]] ?? []
+                } else {
+                    return try context.fetch(request) as? [T] ?? []
+                }
+            } catch let error as NSError {
+                throw CoreDataError.unexpectedError(
+                    error: error,
+                    function: callingFunction,
+                    file: callingClass
+                )
             }
         }
     }
@@ -406,9 +522,11 @@ extension CoreDataStack {
     // Get NSManagedObject
     func getNSManagedObject<T: NSManagedObject>(
         with ids: [NSManagedObjectID],
-        context: NSManagedObjectContext
-    ) async -> [T] {
-        await context.perform {
+        context: NSManagedObjectContext,
+        callingFunction: String = #function,
+        callingClass: String = #fileID
+    ) async throws -> [T] {
+        try await context.perform {
             var objects = [T]()
             do {
                 for id in ids {
@@ -416,10 +534,13 @@ extension CoreDataStack {
                         objects.append(object)
                     }
                 }
+                return objects
             } catch {
-                debugPrint("Failed to fetch objects: \(error.localizedDescription)")
+                throw CoreDataError.fetchError(
+                    function: callingFunction,
+                    file: callingClass
+                )
             }
-            return objects
         }
     }
 }
@@ -436,7 +557,7 @@ extension CoreDataStack {
         do {
             try context.save()
         } catch {
-            debugPrint("Error saving context \(DebuggingIdentifiers.failed): \(error)")
+            debug(.coreData, "Error saving context \(DebuggingIdentifiers.failed): \(error)")
         }
     }
 }
@@ -452,11 +573,13 @@ extension NSManagedObjectContext {
         do {
             guard onContext.hasChanges else { return }
             try onContext.save()
-//            debugPrint(
-//                "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
-//            )
+            debug(
+                .coreData,
+                "Saving to Core Data successful in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.succeeded)"
+            )
         } catch let error as NSError {
-            debugPrint(
+            debug(
+                .coreData,
                 "Saving to Core Data failed in \(callingFunction) in \(callingClass): \(DebuggingIdentifiers.failed) with error \(error), \(error.userInfo)"
             )
             throw error

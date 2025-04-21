@@ -37,10 +37,10 @@ class JSONImporter {
     ) async {
         let hasImported = UserDefaults.standard.bool(forKey: userDefaultsKey)
 
-            guard !hasImported else {
-                debugPrint("\(filePathComponent) already imported. Skipping import.")
-                return
-            }
+        guard !hasImported else {
+            debugPrint("\(filePathComponent) already imported. Skipping import.")
+            return
+        }
 
         do {
             // Get the file path for the JSON file

@@ -1,6 +1,6 @@
 //
 //  LiveActivityCOBLabelView.swift
-//  FreeAPS
+//  Trio
 //
 //  Created by Cengiz Deniz on 17.10.24.
 //
@@ -22,7 +22,7 @@ struct LiveActivityCOBLabelView: View {
                     .foregroundStyle(context.isStale ? .secondary : .primary)
                     .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
 
-                Text("g")
+                Text(String(localized: "g", comment: "gram of carbs"))
                     .font(.headline).fontWeight(.bold)
                     .foregroundStyle(context.isStale ? .secondary : .primary)
                     .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))

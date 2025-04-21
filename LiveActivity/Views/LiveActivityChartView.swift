@@ -1,6 +1,6 @@
 //
 //  LiveActivityChartView.swift
-//  FreeAPS
+//  Trio
 //
 //  Created by Cengiz Deniz on 17.10.24.
 //
@@ -17,7 +17,7 @@ struct LiveActivityChartView: View {
 
     var body: some View {
         let state = context.state
-        let isMgdL: Bool = additionalState.unit == "mg/dL"
+        let isMgdL: Bool = state.unit == "mg/dL"
 
         // Determine scale
         let minValue = min(additionalState.chart.min() ?? 39, 39) as Decimal
@@ -84,7 +84,7 @@ struct LiveActivityChartView: View {
                 AxisValueLabel().foregroundStyle(.primary).font(.footnote)
             }
         }
-        .chartYScale(domain: additionalState.unit == "mg/dL" ? minValue ... maxValue : minValue.asMmolL ... maxValue.asMmolL)
+        .chartYScale(domain: state.unit == "mg/dL" ? minValue ... maxValue : minValue.asMmolL ... maxValue.asMmolL)
         .chartYAxis(.hidden)
         .chartPlotStyle { plotContent in
             plotContent
@@ -123,7 +123,7 @@ struct LiveActivityChartView: View {
 
     private func drawChart(yAxisRuleMarkMin _: Decimal, yAxisRuleMarkMax _: Decimal) -> some ChartContent {
         ForEach(additionalState.chart.indices, id: \.self) { index in
-            let isMgdL = additionalState.unit == "mg/dL"
+            let isMgdL = context.state.unit == "mg/dL"
             let currentValue = additionalState.chart[index]
             let displayValue = isMgdL ? currentValue : currentValue.asMmolL
             let chartDate = additionalState.chartDate[index] ?? Date()
@@ -144,7 +144,9 @@ struct LiveActivityChartView: View {
             let pointMark = PointMark(
                 x: .value("Time", chartDate),
                 y: .value("Value", displayValue)
-            ).symbolSize(16)
+            )
+            .symbolSize(16)
+            .shadow(color: Color.black.opacity(0.25), radius: 2, x: 0, y: 0)
 
             pointMark.foregroundStyle(pointMarkColor)
         }
