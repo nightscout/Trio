@@ -55,7 +55,8 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
                         booleanValue: $state.rewindResetsAutosens,
-                        type: OnboardingInputSectionType.boolean
+                        type: OnboardingInputSectionType.boolean,
+                        disabled: state.pumpOptionForOnboardingUnits != .minimed
                     )
                 case .enableSMBAlways:
                     algorithmSettingsInput(
