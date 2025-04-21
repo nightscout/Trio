@@ -1353,7 +1353,8 @@ extension BaseNightscoutManager {
     // TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
     func parseReasonGlucoseValuesToMmolL(_ reason: String) -> String {
         let patterns = [
-            "(?:ISF|Target):\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*", // ISF or Target with arrow
+            "(?:ISF|Target):\\s*-?\\d+\\.?\\d*(?:→-?\\d+\\.?\\d*)+",
+            // ISF or Target with any number of “→value” segments after the first number
             "Dev:\\s*-?\\d+\\.?\\d*", // Dev pattern
             "BGI:\\s*-?\\d+\\.?\\d*", // BGI pattern
             "Target:\\s*-?\\d+\\.?\\d*", // Target pattern
@@ -1382,17 +1383,17 @@ extension BaseNightscoutManager {
             let glucoseValueString = String(reason[range])
 
             if glucoseValueString.contains("→") {
-                // Handle ISF: X→Y or Target: X→Y
-                let values = glucoseValueString.components(separatedBy: "→")
-                let targetOrISFAndFirstNumber = values[0].components(separatedBy: ":")
-                guard targetOrISFAndFirstNumber.count == 2 else { continue }
-                let targetOrISF = targetOrISFAndFirstNumber[0].trimmingCharacters(in: .whitespaces)
-                let firstNumber = targetOrISFAndFirstNumber[1].trimmingCharacters(in: .whitespaces)
-                let secondNumber = values[1].trimmingCharacters(in: .whitespaces)
-                let firstValue = convertToMmolL(firstNumber)
-                let secondValue = convertToMmolL(secondNumber)
-                let formattedString = "\(targetOrISF): \(firstValue)→\(secondValue)"
-                updatedReason.replaceSubrange(range, with: formattedString)
+                // Handle ISF: X→Y… or Target: X→Y→Z…
+                let parts = glucoseValueString.components(separatedBy: ":")
+                guard parts.count == 2 else { continue }
+                let targetOrISF = parts[0].trimmingCharacters(in: .whitespaces)
+                let values = parts[1]
+                    .components(separatedBy: "→")
+                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                let convertedValues = values.map { convertToMmolL($0) }
+                let joined = convertedValues.joined(separator: "→")
+                let rebuilt = "\(targetOrISF): \(joined)"
+                updatedReason.replaceSubrange(range, with: rebuilt)
 
             } else if glucoseValueString.contains("Eventual BG"), glucoseValueString.contains("<") {
                 // Handle Eventual BG XX < target
