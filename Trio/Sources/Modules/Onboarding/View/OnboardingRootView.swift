@@ -8,9 +8,14 @@ extension Onboarding {
         @State var state = StateModel()
         @State private var navigationDirection: OnboardingNavigationDirection = .forward
         let onboardingManager: OnboardingManager
+
+        // Step management
         @State private var currentStep: OnboardingStep = .welcome
-        @State private var currentDeliverySubstep: DeliveryLimitSubstep = .maxIOB
         @State private var currentNightscoutSubstep: NightscoutSubstep = .setupSelection
+        @State private var currentDeliverySubstep: DeliveryLimitSubstep = .maxIOB
+        @State private var currentAutosensSubstep: AutosensSettingsSubstep = .autosensMin
+        @State private var currentSMBSubstep: SMBSettingsSubstep = .enableSMBAlways
+        @State private var currentTargetBehaviorSubstep: TargetBehaviorSubstep = .highTempTargetRaisesSensitivity
 
         // Animation states
         @State private var animationScale: CGFloat = 1.0
@@ -31,12 +36,19 @@ extension Onboarding {
             currentNightscoutSubstep == .importFromNightscout && state.nightscoutImportOption == .noSelection
         }
 
+        // Next button conditional
         private var shouldDisableNextButton: Bool {
-            (currentStep == .nightscout && didSelectNightscoutSetupOption)
+            (currentStep == .startupGuide && !state.hasReadImportantStartupNotes)
+                ||
+                (currentStep == .diagnostics && state.diagnosticsSharingOption == .enabled && !state.hasAcceptedPrivacyPolicy)
+                ||
+                (currentStep == .nightscout && didSelectNightscoutSetupOption)
                 ||
                 (currentStep == .nightscout && hasValidNightscoutConnection)
                 ||
                 (currentStep == .nightscout && didSelectNightscoutImportOption)
+                ||
+                (currentStep == .algorithmSettings && !state.hasReadAlgorithmSetupInformation)
         }
 
         var body: some View {
@@ -59,225 +71,52 @@ extension Onboarding {
                                     switch currentStep {
                                     case .deliveryLimits: return currentDeliverySubstep.rawValue
                                     case .nightscout: return currentNightscoutSubstep.rawValue
+                                    case .autosensSettings: return currentAutosensSubstep.rawValue
+                                    case .smbSettings: return currentSMBSubstep.rawValue
+                                    case .targetBehavior: return currentTargetBehaviorSubstep.rawValue
                                     default: return nil
                                     }
                                 }(),
                                 stepsWithSubsteps: [
                                     .nightscout: NightscoutSubstep.allCases.count,
-                                    .deliveryLimits: DeliveryLimitSubstep.allCases.count
+                                    .deliveryLimits: DeliveryLimitSubstep.allCases.count,
+                                    .autosensSettings: AutosensSettingsSubstep.allCases.count,
+                                    .smbSettings: SMBSettingsSubstep.allCases.count,
+                                    .targetBehavior: TargetBehaviorSubstep.allCases.count
                                 ],
                                 nightscoutSetupOption: state.nightscoutSetupOption
                             )
                             .padding(.top)
+                        } else {
+                            // avoid letting content scroll beneath the status bar / dynamic island for content views with no progress bar (which adds top spacing)
+                            Color.clear.frame(height: 1)
                         }
 
-                        // Step content
-                        ScrollViewReader { scrollProxy in
-                            ScrollView {
-                                VStack(alignment: .leading, spacing: 20) {
-                                    // Scroll position marker at top
-                                    Color.clear.frame(height: 0).id("top")
-
-                                    // Header
-                                    if currentStep != .welcome && currentStep != .completed {
-                                        HStack {
-                                            if currentStep == .nightscout {
-                                                Image(currentStep.iconName)
-                                                    .resizable()
-                                                    .scaledToFit()
-                                                    .frame(width: 60, height: 60)
-
-                                            } else {
-                                                Image(systemName: currentStep.iconName)
-                                                    .font(.system(size: 40))
-                                                    .foregroundColor(currentStep.accentColor)
-                                                    .frame(width: 60, height: 60)
-                                                    .background(
-                                                        Circle()
-                                                            .fill(currentStep.accentColor.opacity(0.2))
-                                                    )
-                                            }
-
-                                            VStack(alignment: .leading) {
-                                                Text(currentStep.title)
-                                                    .font(.largeTitle)
-                                                    .fontWeight(.bold)
-                                                    .foregroundColor(.primary)
-
-                                                Text(currentStep.description)
-                                                    .font(.subheadline)
-                                                    .foregroundColor(.secondary)
-                                                    .fixedSize(horizontal: false, vertical: true)
-                                            }
-                                        }
-                                        .padding([.horizontal, .top])
-                                    }
-
-                                    // Step-specific content
-                                    Group {
-                                        switch currentStep {
-                                        case .welcome:
-                                            WelcomeStepView()
-                                        case .startupGuide:
-                                            StartupGuideStepView()
-                                        case .overview:
-                                            OverviewStepView()
-                                        case .diagnostics:
-                                            DiagnosticsStepView(state: state)
-                                        case .nightscout:
-                                            switch currentNightscoutSubstep {
-                                            case .setupSelection:
-                                                NightscoutSetupStepView(state: state)
-                                            case .connectToNightscout:
-                                                NightscoutLoginStepView(state: state)
-                                            case .importFromNightscout:
-                                                NightscoutImportStepView(state: state)
-                                            }
-                                        case .unitSelection:
-                                            UnitSelectionStepView(state: state)
-                                        case .glucoseTarget:
-                                            GlucoseTargetStepView(state: state)
-                                        case .basalRates:
-                                            BasalProfileStepView(state: state)
-                                        case .carbRatio:
-                                            CarbRatioStepView(state: state)
-                                        case .insulinSensitivity:
-                                            InsulinSensitivityStepView(state: state)
-                                        case .deliveryLimits:
-                                            DeliveryLimitsStepView(state: state, substep: currentDeliverySubstep)
-                                        case .completed:
-                                            CompletedStepView()
-                                        }
-                                    }
-                                    .transition(
-                                        navigationDirection == .forward
-                                            ? .asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading))
-                                            : .asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing))
-                                    )
-                                    .padding(.horizontal)
-                                    .id(currentStep.id) // Force view recreation when step changes
-                                }
-                                .padding(.bottom, 80) // Make room for buttons at bottom
-                            }
-                            .onChange(of: currentStep) { _, _ in
-                                scrollProxy.scrollTo("top", anchor: .top)
-                            }
-                            .onChange(of: currentNightscoutSubstep) { _, _ in
-                                scrollProxy.scrollTo("top", anchor: .top)
-                            }
-                            .onChange(of: currentDeliverySubstep) { _, _ in
-                                scrollProxy.scrollTo("top", anchor: .top)
-                            }
-                        }
+                        OnboardingStepContent(
+                            currentStep: $currentStep,
+                            currentNightscoutSubstep: $currentNightscoutSubstep,
+                            currentDeliverySubstep: $currentDeliverySubstep,
+                            currentAutosensSubstep: $currentAutosensSubstep,
+                            currentSMBSubstep: $currentSMBSubstep,
+                            currentTargetBehaviorSubstep: $currentTargetBehaviorSubstep,
+                            state: state,
+                            navigationDirection: navigationDirection
+                        )
 
                         Spacer()
 
-                        // Navigation buttons
-                        HStack {
-                            // Back button
-                            if currentStep != .welcome {
-                                Button(action: {
-                                    navigationDirection = .backward
-                                    withAnimation {
-                                        if currentStep == .completed {
-                                            currentStep = .deliveryLimits
-                                            currentDeliverySubstep =
-                                                .minimumSafetyThreshold // ensure we land on the last substep visually
-                                        } else if currentStep == .nightscout {
-                                            if currentNightscoutSubstep == .setupSelection {
-                                                // First substep: go to previous main step
-                                                if let previousMainStep = currentStep.previous {
-                                                    currentStep = previousMainStep
-                                                    currentNightscoutSubstep = .setupSelection // reset substep
-                                                }
-                                            } else {
-                                                // Go back one substep
-                                                currentNightscoutSubstep = NightscoutSubstep(
-                                                    rawValue: currentNightscoutSubstep
-                                                        .rawValue - 1
-                                                )!
-                                            }
-                                        } else if currentStep == .deliveryLimits {
-                                            if let previousSub = DeliveryLimitSubstep(
-                                                rawValue: currentDeliverySubstep
-                                                    .rawValue - 1
-                                            ) {
-                                                currentDeliverySubstep = previousSub
-                                            } else if let previousMainStep = currentStep.previous {
-                                                currentStep = previousMainStep
-                                                currentDeliverySubstep = .maxIOB // reset to first substep for later return
-                                            }
-                                        } else if let previous = currentStep.previous {
-                                            currentStep = previous
-                                        }
-                                    }
-                                }) {
-                                    HStack {
-                                        Image(systemName: "chevron.left")
-                                        Text("Back")
-                                    }
-                                    .padding()
-                                    .foregroundColor(.primary)
-                                }
-                            }
-
-                            Spacer()
-
-                            // Next/Finish button
-                            Button(action: {
-                                navigationDirection = .forward
-                                withAnimation {
-                                    if currentStep == .completed {
-                                        state.saveOnboardingData()
-                                        onboardingManager.completeOnboarding()
-                                        Foundation.NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
-                                    } else if currentStep == .nightscout {
-                                        if currentNightscoutSubstep != .importFromNightscout {
-                                            // Handle conditional skip
-                                            if currentNightscoutSubstep == .setupSelection,
-                                               state.nightscoutSetupOption == .skipNightscoutSetup,
-                                               let next = currentStep.next
-                                            {
-                                                currentStep = next
-                                            } else {
-                                                currentNightscoutSubstep = NightscoutSubstep(
-                                                    rawValue: currentNightscoutSubstep
-                                                        .rawValue + 1
-                                                )!
-                                            }
-                                        } else if currentNightscoutSubstep == .importFromNightscout,
-                                                  state.nightscoutImportOption == .useImport
-                                        {
-                                            // TODO: trigger import, show animation, then proceed to next step
-                                            Task {
-                                                await state.importSettingsFromNightscout(currentStep: $currentStep)
-                                            }
-                                        } else if let next = currentStep.next {
-                                            currentStep = next
-                                        }
-                                    } else if currentStep == .deliveryLimits {
-                                        if let nextSub = DeliveryLimitSubstep(rawValue: currentDeliverySubstep.rawValue + 1) {
-                                            currentDeliverySubstep = nextSub
-                                        } else if let next = currentStep.next {
-                                            currentStep = next
-                                            currentDeliverySubstep = .maxIOB
-                                        }
-                                    } else if let next = currentStep.next {
-                                        currentStep = next
-                                    }
-                                }
-                            }) {
-                                HStack {
-                                    Text(currentStep == .completed ? "Get Started" : "Next")
-                                    Image(systemName: "chevron.right")
-                                }
-                                .padding()
-                                .foregroundColor(.white)
-                                .background(Capsule().fill(!shouldDisableNextButton ? Color.blue : Color(.systemGray)))
-                            }.disabled(shouldDisableNextButton)
-                        }
-                        .padding(.horizontal)
-                        .padding(.bottom)
+                        OnboardingNavigationButtons(
+                            currentStep: $currentStep,
+                            currentNightscoutSubstep: $currentNightscoutSubstep,
+                            currentDeliverySubstep: $currentDeliverySubstep,
+                            currentAutosensSubstep: $currentAutosensSubstep,
+                            currentSMBSubstep: $currentSMBSubstep,
+                            currentTargetBehaviorSubstep: $currentTargetBehaviorSubstep,
+                            onboardingManager: onboardingManager,
+                            state: state,
+                            shouldDisableNextButton: shouldDisableNextButton,
+                            navigationDirectionChanged: { navigationDirection = $0 }
+                        )
                     }
                 }
                 .navigationBarHidden(true)
@@ -370,6 +209,352 @@ struct OnboardingProgressBar: View {
         }
 
         return 0.0
+    }
+}
+
+struct OnboardingStepContent: View {
+    @Binding var currentStep: OnboardingStep
+    @Binding var currentNightscoutSubstep: NightscoutSubstep
+    @Binding var currentDeliverySubstep: DeliveryLimitSubstep
+    @Binding var currentAutosensSubstep: AutosensSettingsSubstep
+    @Binding var currentSMBSubstep: SMBSettingsSubstep
+    @Binding var currentTargetBehaviorSubstep: TargetBehaviorSubstep
+    @Bindable var state: Onboarding.StateModel
+    var navigationDirection: OnboardingNavigationDirection
+
+    var body: some View {
+        ScrollViewReader { scrollProxy in
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 20) {
+                    Color.clear.frame(height: 0).id("top")
+
+                    if currentStep != .welcome && currentStep != .completed {
+                        HStack {
+                            if currentStep == .nightscout {
+                                Image(currentStep.iconName)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 60, height: 60)
+                            } else if currentStep == .bluetooth {
+                                Image(currentStep.iconName)
+                                    .font(.system(size: 40))
+                                    .foregroundColor(currentStep.accentColor)
+                                    .frame(width: 60, height: 60)
+                                    .background(
+                                        Circle()
+                                            .fill(currentStep.accentColor.opacity(0.2))
+                                    )
+                            } else {
+                                Image(systemName: currentStep.iconName)
+                                    .font(.system(size: 40))
+                                    .foregroundColor(currentStep.accentColor)
+                                    .frame(width: 60, height: 60)
+                                    .background(
+                                        Circle()
+                                            .fill(currentStep.accentColor.opacity(0.2))
+                                    )
+                            }
+
+                            VStack(alignment: .leading) {
+                                Text(currentStep.title)
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
+
+                                Text(currentStep.description)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .padding([.horizontal, .top])
+                    }
+
+                    Group {
+                        switch currentStep {
+                        case .welcome:
+                            WelcomeStepView()
+                        case .startupGuide:
+                            StartupGuideStepView(state: state)
+                        case .overview:
+                            OverviewStepView()
+                        case .diagnostics:
+                            DiagnosticsStepView(state: state)
+                        case .nightscout:
+                            switch currentNightscoutSubstep {
+                            case .setupSelection:
+                                NightscoutSetupStepView(state: state)
+                            case .connectToNightscout:
+                                NightscoutLoginStepView(state: state)
+                            case .importFromNightscout:
+                                NightscoutImportStepView(state: state)
+                            }
+                        case .unitSelection:
+                            UnitSelectionStepView(state: state)
+                        case .glucoseTarget:
+                            GlucoseTargetStepView(state: state)
+                        case .basalRates:
+                            BasalProfileStepView(state: state)
+                        case .carbRatio:
+                            CarbRatioStepView(state: state)
+                        case .insulinSensitivity:
+                            InsulinSensitivityStepView(state: state)
+                        case .deliveryLimits:
+                            DeliveryLimitsStepView(state: state, substep: currentDeliverySubstep)
+                        case .algorithmSettings:
+                            AlgorithmSettingsStepView(state: state)
+                        case .autosensSettings:
+                            AlgorithmSettingsSubstepView(state: state, substep: currentAutosensSubstep)
+                        case .smbSettings:
+                            AlgorithmSettingsSubstepView(state: state, substep: currentSMBSubstep)
+                        case .targetBehavior:
+                            AlgorithmSettingsSubstepView(state: state, substep: currentTargetBehaviorSubstep)
+                        case .notifications:
+                            NotificationPermissionStepView()
+                        case .bluetooth:
+                            BluetoothPermissionStepView(
+                                state: state,
+                                bluetoothManager: state.bluetoothManager,
+                                currentStep: $currentStep
+                            )
+                        case .completed:
+                            CompletedStepView()
+                        }
+                    }
+                    .transition(
+                        navigationDirection == .forward
+                            ? .asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading))
+                            : .asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing))
+                    )
+                    .padding(.horizontal)
+                    .id(currentStep.id)
+                }
+                .padding(.bottom, 80)
+            }
+            .onChange(of: currentStep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
+            .onChange(of: currentNightscoutSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
+            .onChange(of: currentDeliverySubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
+            .safeAreaInset(edge: .top) {
+                // avoid letting content scroll beneath the status bar / dynamic island for content views with not progress bar (which adds top spacing)
+                if currentStep == .startupGuide || currentStep == .completed {
+                    Color.clear.frame(height: 0)
+                }
+            }
+        }
+    }
+}
+
+struct OnboardingNavigationButtons: View {
+    @Binding var currentStep: OnboardingStep
+    @Binding var currentNightscoutSubstep: NightscoutSubstep
+    @Binding var currentDeliverySubstep: DeliveryLimitSubstep
+    @Binding var currentAutosensSubstep: AutosensSettingsSubstep
+    @Binding var currentSMBSubstep: SMBSettingsSubstep
+    @Binding var currentTargetBehaviorSubstep: TargetBehaviorSubstep
+
+    let onboardingManager: OnboardingManager
+    @Bindable var state: Onboarding.StateModel
+    var shouldDisableNextButton: Bool
+    var navigationDirectionChanged: (OnboardingNavigationDirection) -> Void
+
+    var body: some View {
+        HStack {
+            if currentStep != .welcome {
+                Button(action: {
+                    navigationDirectionChanged(.backward)
+                    withAnimation {
+                        handleBackNavigation()
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
+                    }
+                    .padding()
+                    .foregroundColor(.primary)
+                }
+            }
+
+            Spacer()
+
+            Button(action: {
+                navigationDirectionChanged(.forward)
+                withAnimation {
+                    handleNextNavigation()
+                }
+            }) {
+                HStack {
+                    Text(currentStep == .completed ? "Get Started" : "Next")
+                    Image(systemName: "chevron.right")
+                }
+                .padding()
+                .foregroundColor(.white)
+                .background(Capsule().fill(!shouldDisableNextButton ? Color.blue : Color(.systemGray)))
+            }
+            .disabled(shouldDisableNextButton)
+        }
+        .padding(.horizontal)
+        .padding(.bottom)
+    }
+
+    // MARK: - Navigation Logic
+
+    private func handleBackNavigation() {
+        switch currentStep {
+        case .completed:
+            currentStep = .targetBehavior
+            currentTargetBehaviorSubstep = .halfBasalTarget
+
+        case .nightscout:
+            if currentNightscoutSubstep == .setupSelection,
+               let previous = currentStep.previous
+            {
+                currentStep = previous
+                currentNightscoutSubstep = .setupSelection
+            } else {
+                currentNightscoutSubstep = NightscoutSubstep(rawValue: currentNightscoutSubstep.rawValue - 1)!
+            }
+
+        case .deliveryLimits:
+            if let previousSub = DeliveryLimitSubstep(rawValue: currentDeliverySubstep.rawValue - 1) {
+                currentDeliverySubstep = previousSub
+            } else if let previous = currentStep.previous {
+                currentStep = previous
+                currentDeliverySubstep = .maxIOB
+            }
+
+        case .algorithmSettings:
+            if let previous = currentStep.previous {
+                currentStep = previous
+                currentDeliverySubstep = .minimumSafetyThreshold
+                currentAutosensSubstep = .autosensMin
+            }
+
+        case .autosensSettings:
+            if let previous = AutosensSettingsSubstep(rawValue: currentAutosensSubstep.rawValue - 1) {
+                currentAutosensSubstep = previous
+            } else if let previousStep = currentStep.previous {
+                currentStep = previousStep
+                currentAutosensSubstep = .autosensMin
+            }
+
+        case .smbSettings:
+            if let previous = SMBSettingsSubstep(rawValue: currentSMBSubstep.rawValue - 1) {
+                /// If user has activated setting `.enableSMBAlways`, when navigating backwards
+                /// skip other redundant "Enable SMB"-settings and go straight to `enableSMBAlways`
+                /// from current substep `.allowSMBWithHighTempTarget`.
+                if state.enableSMBAlways, currentSMBSubstep == .allowSMBWithHighTempTarget {
+                    currentSMBSubstep = .enableSMBAlways
+                } else {
+                    currentSMBSubstep = previous
+                }
+            } else if let previousStep = currentStep.previous {
+                currentStep = previousStep
+                currentSMBSubstep = .enableSMBAlways
+                currentAutosensSubstep = .rewindResetsAutosens
+            }
+
+        case .targetBehavior:
+            if let previous = TargetBehaviorSubstep(rawValue: currentTargetBehaviorSubstep.rawValue - 1) {
+                currentTargetBehaviorSubstep = previous
+            } else if let previousStep = currentStep.previous {
+                currentStep = previousStep
+                currentTargetBehaviorSubstep = .highTempTargetRaisesSensitivity
+                currentSMBSubstep = .maxDeltaGlucoseThreshold
+            }
+
+        default:
+            if let previous = currentStep.previous {
+                currentStep = previous
+            }
+        }
+    }
+
+    private func handleNextNavigation() {
+        switch currentStep {
+        case .nightscout:
+            if currentNightscoutSubstep != .importFromNightscout {
+                if currentNightscoutSubstep == .setupSelection,
+                   state.nightscoutSetupOption == .skipNightscoutSetup,
+                   let next = currentStep.next
+                {
+                    currentStep = next
+                } else {
+                    currentNightscoutSubstep = NightscoutSubstep(rawValue: currentNightscoutSubstep.rawValue + 1)!
+                }
+            } else if currentNightscoutSubstep == .importFromNightscout,
+                      state.nightscoutImportOption == .useImport
+            {
+                Task {
+                    await state.importSettingsFromNightscout(currentStep: $currentStep)
+                }
+            } else if let next = currentStep.next {
+                currentStep = next
+            }
+
+        case .deliveryLimits:
+            if let next = DeliveryLimitSubstep(rawValue: currentDeliverySubstep.rawValue + 1) {
+                currentDeliverySubstep = next
+            } else if let nextStep = currentStep.next {
+                currentStep = nextStep
+                currentDeliverySubstep = .maxIOB
+            }
+
+        case .autosensSettings:
+            if let next = AutosensSettingsSubstep(rawValue: currentAutosensSubstep.rawValue + 1) {
+                currentAutosensSubstep = next
+            } else if let nextStep = currentStep.next {
+                currentStep = nextStep
+                currentAutosensSubstep = .autosensMin
+            }
+
+        case .smbSettings:
+            if let next = SMBSettingsSubstep(rawValue: currentSMBSubstep.rawValue + 1) {
+                /// If user has activated setting `.enableSMBAlways`, when navigating forward
+                /// skip other redundant "Enable SMB"-settings and go straight to `.allowSMBWithHighTempTarget`
+                /// from current substep `.enableSMBAlways`.
+                if state.enableSMBAlways, currentSMBSubstep == .enableSMBAlways {
+                    currentSMBSubstep = .allowSMBWithHighTempTarget
+                } else {
+                    currentSMBSubstep = next
+                }
+            } else if let nextStep = currentStep.next {
+                currentStep = nextStep
+                currentSMBSubstep = .enableSMBAlways
+            }
+
+        case .targetBehavior:
+            if let next = TargetBehaviorSubstep(rawValue: currentTargetBehaviorSubstep.rawValue + 1) {
+                currentTargetBehaviorSubstep = next
+            } else if let nextStep = currentStep.next {
+                currentStep = nextStep
+                currentTargetBehaviorSubstep = .highTempTargetRaisesSensitivity
+            }
+
+        case .notifications:
+            currentTargetBehaviorSubstep = .halfBasalTarget
+            if let next = currentStep.next {
+                DispatchQueue.main.async {
+                    state.notificationsManager.requestNotificationPermissions { granted in
+                        state.hasNotificationsGranted = granted
+                        currentStep = next
+                    }
+                }
+            }
+
+        case .bluetooth:
+            state.shouldDisplayBluetoothRequestAlert = true
+
+        case .completed:
+            state.saveOnboardingData()
+            onboardingManager.completeOnboarding()
+            Foundation.NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
+
+        default:
+            if let next = currentStep.next {
+                currentStep = next
+            }
+        }
     }
 }
 

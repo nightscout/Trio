@@ -208,8 +208,8 @@ extension ISFEditor {
                     ).foregroundStyle(
                         .linearGradient(
                             colors: [
-                                Color.insulin.opacity(0.6),
-                                Color.insulin.opacity(0.1)
+                                Color.red.opacity(0.6),
+                                Color.red.opacity(0.1)
                             ],
                             startPoint: .bottom,
                             endPoint: .top
@@ -217,10 +217,10 @@ extension ISFEditor {
                     ).alignsMarkStylesWithPlotArea()
 
                     LineMark(x: .value("End Date", startDate), y: .value("ISF", displayValueFloat ?? 0))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.red)
 
                     LineMark(x: .value("Start Date", endDate), y: .value("ISF", displayValueFloat ?? 0))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.red)
                 }
             }
             .chartXAxis {

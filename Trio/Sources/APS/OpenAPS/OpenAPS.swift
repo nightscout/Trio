@@ -227,10 +227,10 @@ final class OpenAPS {
             if let tempBasalDTO = event.toTempBasalDTOEnum() {
                 eventDTOs.append(tempBasalDTO)
             }
-            if let pumpSuspendDTO = event.toPumpSuspendDTO() {
+            if let pumpSuspendDTO = event.toSuspendDTO() {
                 eventDTOs.append(pumpSuspendDTO)
             }
-            if let pumpResumeDTO = event.toPumpResumeDTO() {
+            if let pumpResumeDTO = event.toResumeDTO() {
                 eventDTOs.append(pumpResumeDTO)
             }
             if let rewindDTO = event.toRewindDTO() {

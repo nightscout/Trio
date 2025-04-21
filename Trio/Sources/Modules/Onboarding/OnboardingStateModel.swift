@@ -13,12 +13,19 @@ extension Onboarding {
         @ObservationIgnored @Injected() var broadcaster: Broadcaster!
         @ObservationIgnored @Injected() var keychain: Keychain!
         @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
+        @ObservationIgnored @Injected() var notificationsManager: UserNotificationsManager!
+        @ObservationIgnored @Injected() var bluetoothManager: BluetoothStateManager!
 
         private let settingsProvider = PickerSettingsProvider.shared
 
         // MARK: - App Diagnostics
 
         var diagnosticsSharingOption: DiagnosticsSharingOption = .enabled
+        var hasAcceptedPrivacyPolicy: Bool = false
+
+        // MARK: - Important Startup Notes
+
+        var hasReadImportantStartupNotes: Bool = false
 
         // MARK: - Nightscout Setup
 
@@ -94,6 +101,37 @@ extension Onboarding {
         var maxIOB: Decimal = 0
         var maxCOB: Decimal = 120
         var minimumSafetyThreshold: Decimal = 60
+
+        // MARK: - Algorithm Settings Defaults & State
+
+        var hasReadAlgorithmSetupInformation: Bool = false
+
+        var autosensMin: Decimal = 0.7
+        var autosensMax: Decimal = 1.2
+        var rewindResetsAutosens: Bool = true
+        var enableSMBAlways: Bool = false
+        var enableSMBWithCOB: Bool = false
+        var enableSMBWithTempTarget: Bool = false
+        var enableSMBAfterCarbs: Bool = false
+        var enableSMBWithHighGlucoseTarget: Bool = false
+        var highGlucoseTarget: Decimal = 110
+        var allowSMBWithHighTempTarget: Bool = false
+        var enableUAM: Bool = false
+        var maxSMBMinutes: Decimal = 30
+        var maxUAMMinutes: Decimal = 30
+        var maxDeltaGlucoseThreshold: Decimal = 0.2
+        var highTempTargetRaisesSensitivity: Bool = false
+        var lowTempTargetLowersSensitivity: Bool = false
+        var sensitivityRaisesTarget: Bool = false
+        var resistanceLowersTarget: Bool = false
+        var halfBasalTarget: Decimal = 160
+
+        // MARK: - Permission Requests
+
+        var hasNotificationsGranted = false
+
+        var shouldDisplayBluetoothRequestAlert: Bool = false
+        var hasBluetoothGranted = false
 
         // MARK: - Subscribe
 
@@ -495,11 +533,39 @@ extension Onboarding {
 
         /// Applies the selected delivery preferences to the app's settings.
         func applyToPreferences() {
-            var preferencesCopy = settingsManager.preferences
-            preferencesCopy.maxIOB = maxIOB
-            preferencesCopy.maxCOB = maxCOB
-            preferencesCopy.threshold_setting = minimumSafetyThreshold
-            settingsManager.preferences = preferencesCopy
+            var preferences = Preferences()
+
+            // delivery limits (those that are preference-bound, not pump-settings-bound
+            preferences.maxIOB = maxIOB
+            preferences.maxCOB = maxCOB
+            preferences.threshold_setting = minimumSafetyThreshold
+
+            // autosens
+            preferences.autosensMin = autosensMin
+            preferences.autosensMax = autosensMax
+            preferences.rewindResetsAutosens = rewindResetsAutosens
+
+            // smb settings
+            preferences.enableSMBAlways = enableSMBAlways
+            preferences.enableSMBWithCOB = enableSMBWithCOB
+            preferences.enableSMBWithTemptarget = enableSMBWithTempTarget
+            preferences.enableSMBAfterCarbs = enableSMBAfterCarbs
+            preferences.enableSMB_high_bg = enableSMBWithHighGlucoseTarget
+            preferences.enableSMB_high_bg_target = highGlucoseTarget
+            preferences.allowSMBWithHighTemptarget = allowSMBWithHighTempTarget
+            preferences.enableUAM = enableUAM
+            preferences.maxSMBBasalMinutes = maxSMBMinutes
+            preferences.maxUAMSMBBasalMinutes = maxUAMMinutes
+            preferences.maxDeltaBGthreshold = maxDeltaGlucoseThreshold
+
+            // target behavior
+            preferences.highTemptargetRaisesSensitivity = highTempTargetRaisesSensitivity
+            preferences.lowTemptargetLowersSensitivity = lowTempTargetLowersSensitivity
+            preferences.sensitivityRaisesTarget = sensitivityRaisesTarget
+            preferences.resistanceLowersTarget = resistanceLowersTarget
+            preferences.halfBasalExerciseTarget = halfBasalTarget
+
+            settingsManager.preferences = preferences
         }
 
         /// Saves pump delivery limits to persistent storage and broadcasts changes.

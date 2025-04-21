@@ -3,6 +3,8 @@ import SwiftUI
 struct DiagnosticsStepView: View {
     @Bindable var state: Onboarding.StateModel
 
+    @State private var shouldDisplayPrivacyPolicy: Bool = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("If you prefer not to share this anonymized data, you can opt-out of data sharing.")
@@ -31,18 +33,45 @@ struct DiagnosticsStepView: View {
                 .buttonStyle(.plain)
             }
 
+            Toggle(isOn: $state.hasAcceptedPrivacyPolicy) {
+                HStack {
+                    Text("I have read and accept the")
+                    Button("Privacy Policy") {
+                        shouldDisplayPrivacyPolicy = true
+                    }
+                    .foregroundColor(.accentColor)
+                    .underline()
+                }
+                .font(.footnote)
+                .bold()
+            }
+            .toggleStyle(CheckboxToggleStyle(tint: Color.accentColor))
+            .padding(.horizontal)
+            .disabled(state.diagnosticsSharingOption == .disabled)
+            .opacity(state.diagnosticsSharingOption == .disabled ? 0.35 : 1)
+
             VStack(alignment: .leading, spacing: 8) {
                 Text("Why does Trio collect this data?").bold()
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(
-                        "•  App diagnostic insights help us enhance app stability, ensure safety for all users, and enable us to quickly identify and resolve critical issues."
+                    BulletPoint(
+                        String(
+                            localized: "App diagnostic insights help us enhance app stability, ensure safety for all users, and enable us to quickly identify and resolve critical issues."
+                        )
                     )
-                    Text("•  Trio collects the app's state on crash, device, iOS and general system info, and a stack trace.")
-                    Text(
-                        "•  Trio does not collect any health related data, e.g. glucose readings, insulin rates or doses, meal data, setting values, or similar."
+                    BulletPoint(
+                        String(
+                            localized: "Trio collects the app's state on crash, device, iOS and general system info, and a stack trace."
+                        )
                     )
-                    Text(
-                        "•  Trio does not track any usage metrics or any other personal data about users other than the used iPhone model and iOS version."
+                    BulletPoint(
+                        String(
+                            localized: "Trio does not collect any health related data, e.g. glucose readings, insulin rates or doses, meal data, setting values, or similar."
+                        )
+                    )
+                    BulletPoint(
+                        String(
+                            localized: "Trio does not track any usage metrics or any other personal data about users other than the used iPhone model and iOS version."
+                        )
                     )
                 }
                 Text(
@@ -53,6 +82,9 @@ struct DiagnosticsStepView: View {
             .padding(.horizontal)
             .font(.footnote)
             .foregroundStyle(Color.secondary)
+        }
+        .sheet(isPresented: $shouldDisplayPrivacyPolicy) {
+            PrivacyPolicyView()
         }
     }
 }

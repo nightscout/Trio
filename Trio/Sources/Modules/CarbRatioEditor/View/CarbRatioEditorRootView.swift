@@ -201,8 +201,8 @@ extension CarbRatioEditor {
                     ).foregroundStyle(
                         .linearGradient(
                             colors: [
-                                Color.insulin.opacity(0.6),
-                                Color.insulin.opacity(0.1)
+                                Color.orange.opacity(0.6),
+                                Color.orange.opacity(0.1)
                             ],
                             startPoint: .bottom,
                             endPoint: .top
@@ -210,10 +210,10 @@ extension CarbRatioEditor {
                     ).alignsMarkStylesWithPlotArea()
 
                     LineMark(x: .value("End Date", startDate), y: .value("Ratio", displayValue))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.orange)
 
                     LineMark(x: .value("Start Date", endDate), y: .value("Ratio", displayValue))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.orange)
                 }
             }
             .chartXAxis {

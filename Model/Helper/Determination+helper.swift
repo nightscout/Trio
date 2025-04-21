@@ -94,7 +94,6 @@ extension NSPredicate {
 
 /// Data Transfer Object for the enacted.json.
 struct DeterminationDTO: Decodable, ImportableDTO {
-    let tdd: Decimal?
     let threshold: Decimal?
     let timestamp: String?
     let insulinForManualBolus: Decimal?
@@ -113,14 +112,12 @@ struct DeterminationDTO: Decodable, ImportableDTO {
     let duration: Decimal?
     let temp: String?
     let insulinReq: Decimal?
-    let insulin: Insulin?
     let deliverAt: String?
     let reason: String?
     let iob: Decimal?
     let reservoir: Decimal?
 
     enum CodingKeys: String, CodingKey {
-        case tdd = "TDD"
         case threshold
         case timestamp
         case insulinForManualBolus
@@ -139,7 +136,6 @@ struct DeterminationDTO: Decodable, ImportableDTO {
         case duration
         case temp
         case insulinReq
-        case insulin
         case deliverAt
         case reason
         case iob = "IOB"
@@ -163,7 +159,6 @@ struct DeterminationDTO: Decodable, ImportableDTO {
         determinationEntity.expectedDelta = expectedDelta.map { NSDecimalNumber(decimal: $0) }
         determinationEntity.rate = rate.map { NSDecimalNumber(decimal: $0) }
         determinationEntity.reason = reason
-        determinationEntity.totalDailyDose = tdd.map { NSDecimalNumber(decimal: $0) }
         determinationEntity.reservoir = reservoir.map { NSDecimalNumber(decimal: $0) }
         determinationEntity.duration = duration.map { NSDecimalNumber(decimal: $0) }
         determinationEntity.currentTarget = currentTarget.map { NSDecimalNumber(decimal: $0) }

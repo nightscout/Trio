@@ -10,12 +10,14 @@ extension AppDiagnostics {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
+        @State private var shouldDisplayPrivacyPolicy: Bool = false
+
         var body: some View {
             List {
                 Section(
                     header: Text("Anonymized Data Sharing"),
                     content: {
-                        VStack {
+                        VStack(alignment: .leading) {
                             ForEach(DiagnosticsSharingOption.allCases, id: \.self) { option in
                                 Button(action: {
                                     state.diagnosticsSharingOption = option
@@ -50,17 +52,25 @@ extension AppDiagnostics {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Why does Trio collect this data?").bold()
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(
-                                "•  App diagnostic insights help us enhance app stability, ensure safety for all users, and enable us to quickly identify and resolve critical issues."
+                            BulletPoint(
+                                String(
+                                    localized: "App diagnostic insights help us enhance app stability, ensure safety for all users, and enable us to quickly identify and resolve critical issues."
+                                )
                             )
-                            Text(
-                                "•  Trio collects the app's state on crash, device, iOS and general system info, and a stack trace."
+                            BulletPoint(
+                                String(
+                                    localized: "Trio collects the app's state on crash, device, iOS and general system info, and a stack trace."
+                                )
                             )
-                            Text(
-                                "•  Trio does not collect any health related data, e.g. glucose readings, insulin rates or doses, meal data, setting values, or similar."
+                            BulletPoint(
+                                String(
+                                    localized: "Trio does not collect any health related data, e.g. glucose readings, insulin rates or doses, meal data, setting values, or similar."
+                                )
                             )
-                            Text(
-                                "•  Trio does not track any usage metrics or any other personal data about users other than the used iPhone model and iOS version."
+                            BulletPoint(
+                                String(
+                                    localized: "Trio does not track any usage metrics or any other personal data about users other than the used iPhone model and iOS version."
+                                )
                             )
                         }
                         Text(
@@ -77,6 +87,16 @@ extension AppDiagnostics {
             .onAppear(perform: configureView)
             .navigationBarTitle("App Diagnostics")
             .navigationBarTitleDisplayMode(.automatic)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Privacy Policy") {
+                        shouldDisplayPrivacyPolicy = true
+                    }
+                }
+            }
+            .sheet(isPresented: $shouldDisplayPrivacyPolicy) {
+                PrivacyPolicyView()
+            }
         }
     }
 }
