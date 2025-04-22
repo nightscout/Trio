@@ -88,13 +88,13 @@ jobs:
 
   # Nuke Certs if needed, and if the repository variable ENABLE_NUKE_CERTS is set to 'true', or if FORCE_NUKE_CERTS is set to 'true', which will always force certs to be nuked
   nuke_certs:
-    name: Nuke certificates
-    needs: [validate, create_certs]
-    runs-on: macos-14
-    if: ${{ (needs.create_certs.outputs.new_certificate_needed == 'true' && vars.ENABLE_NUKE_CERTS == 'true') || vars.FORCE_NUKE_CERTS == 'true' }}
-    steps:
-      - name: Output from step id 'check_certs'
-        run: echo "new_certificate_needed=${{ needs.create_certs.outputs.new_certificate_needed }}"
+      name: Nuke certificates
+      needs: [validate, create_certs]
+      runs-on: macos-15
+      if: ${{ (needs.create_certs.outputs.new_certificate_needed == 'true' && vars.ENABLE_NUKE_CERTS == 'true') || vars.FORCE_NUKE_CERTS == 'true' }}
+      steps:
+        - name: Output from step id 'check_certs'
+          run: echo "new_certificate_needed=${{ needs.create_certs.outputs.new_certificate_needed }}"
 
       - name: Checkout repository
         uses: actions/checkout@v4
