@@ -192,6 +192,11 @@ extension Onboarding.StateModel {
         userPreferredUnitsFromImport: String,
         currentStep: Binding<OnboardingStep>
     ) {
+        /// First, very important: assign `units` so that `xxxRateValues` contain the proper values
+        /// and array has the correct number of elements.
+        /// If not done here, this may lead to index-out-of-bound errors for users importing mmol/L settings.
+        units = userPreferredUnitsFromImport.contains("mmol") ? .mmolL : .mgdL
+
         // Parse: targetsProfile → targetItems
         targetItems = targetsProfile.targets.map { entry in
             let timeIndex = targetTimeValues.firstIndex(where: { Int($0) == entry.offset * 60 }) ?? 0
@@ -233,8 +238,6 @@ extension Onboarding.StateModel {
             return ISFEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
         }
         initialISFItems = isfItems
-
-        units = userPreferredUnitsFromImport.contains("mmol") ? .mmolL : .mgdL
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.nightscoutImportStatus = .finished

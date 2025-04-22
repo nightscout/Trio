@@ -15,7 +15,7 @@ enum Screen: Identifiable, Hashable {
     case isfEditor
     case crEditor
     case targetsEditor
-    case bolus
+    case treatmentView
     case manualTempBasal
     case dataTable
     case cgm
@@ -82,7 +82,7 @@ extension Screen {
             CarbRatioEditor.RootView(resolver: resolver)
         case .targetsEditor:
             TargetsEditor.RootView(resolver: resolver)
-        case .bolus:
+        case .treatmentView:
             Treatments.RootView(resolver: resolver)
         case .manualTempBasal:
             ManualTempBasal.RootView(resolver: resolver)

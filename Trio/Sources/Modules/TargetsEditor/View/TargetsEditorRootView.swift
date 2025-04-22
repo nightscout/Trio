@@ -193,10 +193,10 @@ extension TargetsEditor {
                         .addingTimeInterval(state.timeValues.last! + 30 * 60)
 
                     LineMark(x: .value("End Date", startDate), y: .value("Target", displayValueFloat ?? 0.0))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.green.gradient)
+                        .lineStyle(.init(lineWidth: 2.5)).foregroundStyle(Color.green.gradient)
 
                     LineMark(x: .value("Start Date", endDate), y: .value("Target", displayValueFloat ?? 0.0))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.green.gradient)
+                        .lineStyle(.init(lineWidth: 2.5)).foregroundStyle(Color.green.gradient)
                 }
             }
             .chartXAxis {

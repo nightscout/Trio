@@ -19,6 +19,12 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     case carbRatio
     case insulinSensitivity
     case deliveryLimits
+    case algorithmSettings
+    case autosensSettings
+    case smbSettings
+    case targetBehavior
+    case notifications
+    case bluetooth
     case completed
 
     var id: Int { rawValue }
@@ -57,6 +63,18 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return String(localized: "Insulin Sensitivities")
         case .deliveryLimits:
             return String(localized: "Delivery Limits")
+        case .algorithmSettings:
+            return String(localized: "Algorithm Settings")
+        case .autosensSettings:
+            return String(localized: "Autosens")
+        case .smbSettings:
+            return String(localized: "Super Micro Bolus")
+        case .targetBehavior:
+            return String(localized: "Target Behavior")
+        case .notifications:
+            return String(localized: "Notifications")
+        case .bluetooth:
+            return String(localized: "Bluetooth")
         case .completed:
             return String(localized: "All Set!")
         }
@@ -75,7 +93,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             )
         case .overview:
             return String(
-                localized: "Trio's Onboarding consists of several steps. It takes about 5-10 minutes to complete. We'll guide you through each step."
+                localized: "Trio's Onboarding takes about 15-30 minutes to complete. We'll guide you through each step."
             )
         case .diagnostics:
             return String(
@@ -87,7 +105,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             )
         case .unitSelection:
             return String(
-                localized: "Before you can begin with configuring your therapy settigns, Trio needs to know which units you use for your glucose and insulin measurements (based on your pump model)."
+                localized: "Before you can begin with configuring your therapy settings, Trio needs to know which units you use for your glucose and insulin measurements (based on your pump model)."
             )
         case .glucoseTarget:
             return String(
@@ -109,6 +127,26 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return String(
                 localized: "Trio includes several safety limits for insulin delivery and carbohydrate entry, helping ensure a safe and effective experience."
             )
+        case .algorithmSettings:
+            return String(
+                localized: "Trio includes several algorithm settings that allow you to customize the oref algorithm behavior to suit your specific needs."
+            )
+        case .autosensSettings:
+            return String(
+                localized: "Auto-sensitivity (Autosens) adjusts insulin delivery based on observed sensitivity or resistance."
+            )
+        case .smbSettings:
+            return String(
+                localized: "SMB (Super Micro Bolus) is an oref algorithm feature that delivers small frequent boluses instead of temporary basals for faster glucose control."
+            )
+        case .targetBehavior:
+            return String(
+                localized: "Target Behavior allows you to adjust how temporary targets influence ISF, basal, and auto-targeting based on sensitivity or resistance."
+            )
+        case .notifications:
+            return String(localized: " Allow Trio to send you Notifications. These may include alerts, sounds, and icon badges.")
+        case .bluetooth:
+            return String(localized: "Allow Trio to use Bluetooth to communicate with your insulin pump and CGM.")
         case .completed:
             return String(
                 localized: "Great job! You've completed the initial setup of Trio. You can always adjust these settings later in the app."
@@ -141,6 +179,18 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return "drop.fill"
         case .deliveryLimits:
             return "slider.horizontal.3"
+        case .algorithmSettings:
+            return "gearshape.2.fill"
+        case .autosensSettings:
+            return "dial.low.fill"
+        case .smbSettings:
+            return "bolt.fill"
+        case .targetBehavior:
+            return "gyroscope"
+        case .notifications:
+            return "bell.badge.fill"
+        case .bluetooth:
+            return "logo.bluetooth.capsule.portrait.fill"
         case .completed:
             return "checkmark.circle.fill"
         }
@@ -165,12 +215,18 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     /// The accent color to use for this step.
     var accentColor: Color {
         switch self {
-        case .completed,
+        case .algorithmSettings,
+             .autosensSettings,
+             .bluetooth,
+             .completed,
              .deliveryLimits,
              .diagnostics,
              .nightscout,
+             .notifications,
              .overview,
+             .smbSettings,
              .startupGuide,
+             .targetBehavior,
              .unitSelection,
              .welcome:
             return Color.blue
@@ -307,9 +363,9 @@ enum DiagnosticsSharingOption: String, Equatable, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .enabled:
-            return "Enable Sharing"
+            return String(localized: "Enable Sharing")
         case .disabled:
-            return "Disable Sharing"
+            return String(localized: "Disable Sharing")
         }
     }
 }
@@ -393,72 +449,24 @@ struct BulletPoint: View {
         HStack(alignment: .top) {
             Text("•")
             Text(text)
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
         }
     }
 }
 
-enum OnboardingSettingItemType: Equatable, CaseIterable, Identifiable {
-    case overview
-    case complete
+enum OnboardingInputSectionType: Equatable {
+    case decimal
+    case boolean
 
-    var id: UUID {
-        UUID()
-    }
-}
-
-/// A reusable view for displaying setting items in the completed step.
-struct SettingItemView: View {
-    let step: OnboardingStep
-    let icon: String
-    let title: String
-    let type: OnboardingSettingItemType
-
-    private var accentColor: Color {
-        switch type {
-        case .overview:
-            Color.blue
-        case .complete:
-            Color.green
+    static func == (lhs: OnboardingInputSectionType, rhs: OnboardingInputSectionType) -> Bool {
+        switch (lhs, rhs) {
+        case (.boolean, .boolean):
+            return true
+        case (.decimal, .decimal):
+            return true
+        default:
+            return false
         }
-    }
-
-    var body: some View {
-        HStack(spacing: 10) {
-            if step == .nightscout {
-                Image(icon)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 40, height: 24)
-                    .colorMultiply(accentColor)
-            } else {
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundStyle(accentColor)
-                    .frame(width: 40)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.headline)
-            }
-
-            Spacer()
-
-            switch type {
-            case .overview:
-                let index = nonInfoOnboardingSteps.firstIndex(of: step) ?? 0
-                let stepNumber = index + 1
-                Text(stepNumber.description)
-                    .bold()
-                    .frame(width: 32, height: 32, alignment: .center)
-                    .background(accentColor)
-                    .foregroundStyle(.white)
-                    .clipShape(Capsule())
-            case .complete:
-                Image(systemName: "checkmark")
-                    .foregroundStyle(accentColor)
-            }
-        }
-        .padding(.vertical, 8)
     }
 }

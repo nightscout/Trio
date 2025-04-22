@@ -7,13 +7,16 @@
 import SwiftUI
 
 struct StartupGuideStepView: View {
+    @Bindable var state: Onboarding.StateModel
+
     @Environment(\.openURL) var openURL
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Before you begin…")
-                .font(.title.bold())
                 .padding(.horizontal)
+                .font(.title3)
+                .bold()
 
             VStack(alignment: .leading, spacing: 10) {
                 BulletPoint(String(localized: "Take a deep breath — you've got this."))
@@ -31,16 +34,37 @@ struct StartupGuideStepView: View {
                         .cornerRadius(8)
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
-                .padding([.top, .horizontal])
+                .padding(.horizontal)
             }.padding(.horizontal)
 
-            HStack {
-                Text("You can pause at any time. Just be aware: if you ")
-                    + Text("force quit").bold()
-                    + Text(" the app before finishing onboarding, ")
-                    + Text("your progress will not be saved.").bold()
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Already using Trio and updating from an older version?").bold()
+                BulletPoint(String(localized: "Your therapy settings, pump, and CGM configurations will be carried over."))
+                BulletPoint(
+                    String(
+                        localized: "Your algorithm settings (previously called \"OpenAPS settings\") will be reset to defaults."
+                    )
+                )
+                BulletPoint(String(localized: "We recommend reviewing them carefully — Trio will guide you step-by-step."))
+            }.padding(.horizontal)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("One last thing, before you begin...").bold()
+                HStack {
+                    Text("You can pause at any time. Just be aware: if you ")
+                        + Text("force quit").bold()
+                        + Text(" the app before finishing onboarding, ")
+                        + Text("your progress will not be saved.").bold()
+                }
+            }.multilineTextAlignment(.leading)
+                .padding(.horizontal)
+
+            Divider()
+
+            Toggle(isOn: $state.hasReadImportantStartupNotes) {
+                Text("Got it! I'm ready to continue.").padding(.leading, 6).bold()
             }
-            .multilineTextAlignment(.leading)
+            .toggleStyle(CheckboxToggleStyle(tint: Color.blue))
             .padding(.horizontal)
         }
     }

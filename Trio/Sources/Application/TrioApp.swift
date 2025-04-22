@@ -35,7 +35,7 @@ extension Notification.Name {
     @State private var appState = AppState()
     @State private var showLoadingView = true
     @State private var showLoadingError = false
-    @State private var showOnboardingView = false
+    @State private var showOnboardingCompletedSplash = false
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -103,7 +103,7 @@ extension Notification.Name {
             object: nil,
             queue: .main
         ) { [self] _ in
-            showOnboardingView = false
+            showOnboardingCompletedSplash = true
         }
 
         let submodulesInfo = BuildDetails.shared.submodules.map { key, value in
@@ -137,8 +137,14 @@ extension Notification.Name {
                     cleanupOldData()
 
                     self.initState.complete = true
+
+                    // Notifications handling
+                    // Notify of completed initialization
                     Foundation.NotificationCenter.default.post(name: .initializationCompleted, object: nil)
                     UIApplication.shared.registerForRemoteNotifications()
+                    // Cancel scheduled not looping notifications when app was completely shut down and has now re-initialized completely
+                    self.clearNotLoopingNotifications()
+
                     do {
                         try await BuildDetails.shared.handleExpireDateChange()
                     } catch {
@@ -159,6 +165,34 @@ extension Notification.Name {
         }
     }
 
+    /// Clears any legacy (Trio 0.2.x) delivered and pending notifications related to non-looping alerts.
+    /// It targets the following notifications:
+    /// - `noLoopFirstNotification`: The first notification for non-looping alerts.
+    /// - `noLoopSecondNotification`: The second notification for non-looping alerts.
+    ///
+    /// It ensures that any notifications that have already been shown to the user, as well as
+    /// any that are scheduled for the future, are removed when the system no longer needs to
+    /// alert about non-looping conditions.
+    ///
+    /// This function is typically used when the app was completely shut down and restarted,
+    /// i.e., underwent a fresh initialization and boot-up,  to avoid bogus not looping notifications
+    /// due to dangling "zombie" pending notification requests for users that update from
+    /// old Trio versions to the new generation of the app.
+    ///
+    /// Delivered notifications are cleared for completeness.
+    private func clearNotLoopingNotifications() {
+        let legacyNoLoopFirstNotification = "FreeAPS.noLoopFirstNotification"
+        let legacyNoLoopSecondNotification = "FreeAPS.noLoopSecondNotification"
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [
+            legacyNoLoopFirstNotification,
+            legacyNoLoopSecondNotification
+        ])
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [
+            legacyNoLoopFirstNotification,
+            legacyNoLoopSecondNotification
+        ])
+    }
+
     /// Attempts to initialize the CoreDataStack again after a previous failure.
     ///
     /// Resets error states and triggers the initialization process from the beginning. Called in response
@@ -171,40 +205,59 @@ extension Notification.Name {
 
     var body: some Scene {
         WindowGroup {
-            if self.showLoadingView {
-                Main.LoadingView(showError: $showLoadingError, retry: retryCoreDataInitialization)
-                    .onAppear {
-                        if self.initState.complete {
+            ZStack {
+                if self.showLoadingView {
+                    Main.LoadingView(showError: $showLoadingError, retry: retryCoreDataInitialization)
+                        .onAppear {
+                            if self.initState.complete {
+                                Task { @MainActor in
+                                    try? await Task.sleep(for: .seconds(1.8))
+                                    self.showLoadingView = false
+                                }
+                            }
+                            if self.initState.error {
+                                self.showLoadingError = true
+                            }
+                        }
+                        .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationCompleted)) { _ in
                             Task { @MainActor in
                                 try? await Task.sleep(for: .seconds(1.8))
                                 self.showLoadingView = false
                             }
                         }
-                        if self.initState.error {
+                        .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
                             self.showLoadingError = true
                         }
+                } else if showOnboardingCompletedSplash {
+                    LogoBurstSplash(isActive: $showOnboardingCompletedSplash) {
+                        Main.RootView(resolver: resolver)
+                            .preferredColorScheme(colorScheme(for: colorSchemePreference))
+                            .environment(
+                                \.managedObjectContext,
+                                coreDataStack.persistentContainer.viewContext
+                            )
+                            .environment(appState)
+                            .environmentObject(Icons())
+                            .onOpenURL(perform: handleURL)
                     }
-                    .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationCompleted)) { _ in
-                        Task { @MainActor in
-                            try? await Task.sleep(for: .seconds(1.8))
-                            self.showLoadingView = false
-                        }
-                    }
-                    .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
-                        self.showLoadingError = true
-                    }
-            } else if onboardingManager.shouldShowOnboarding {
-                // Show onboarding if needed
-                Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
-                    .preferredColorScheme(colorScheme(for: .dark) ?? nil)
-                    .transition(.opacity)
-            } else {
-                Main.RootView(resolver: resolver)
-                    .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
-                    .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
-                    .environment(appState)
-                    .environmentObject(Icons())
-                    .onOpenURL(perform: handleURL)
+                } else if onboardingManager.shouldShowOnboarding {
+                    // Show onboarding if needed
+                    Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
+                        .preferredColorScheme(colorScheme(for: .dark) ?? nil)
+                        .transition(.opacity)
+                } else {
+                    Main.RootView(resolver: resolver)
+                        .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
+                        .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
+                        .environment(appState)
+                        .environmentObject(Icons())
+                        .onOpenURL(perform: handleURL)
+                }
+            }
+            .onReceive(Foundation.NotificationCenter.default.publisher(for: .onboardingCompleted)) { _ in
+                Task { @MainActor in
+                    self.showOnboardingCompletedSplash = true
+                }
             }
         }
         .onChange(of: scenePhase) { _, newScenePhase in

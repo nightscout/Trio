@@ -76,14 +76,9 @@ struct InsulinSensitivityStepView: View {
                             // Current glucose is 40 mg/dL or 2.2 mmol/L above target
                             let aboveTarget = state.units == .mgdL ? Decimal(40) : 40.asMmolL
 
-                            let isfValue = state.isfRateValues.isEmpty || state.isfItems.isEmpty ?
-                                Double(truncating: 50 as NSNumber) :
-                                Double(
-                                    truncating: state
-                                        .isfRateValues[state.isfItems.first!.rateIndex] as NSNumber
-                                )
+                            let isfValue = state.units == .mgdL ? Decimal(50) : 50.asMmolL
 
-                            let insulinNeeded = aboveTarget / Decimal(isfValue)
+                            let insulinNeeded = aboveTarget / isfValue
 
                             Text(
                                 "If you are \(numberFormatter.string(from: aboveTarget as NSNumber) ?? "--") \(state.units.rawValue) above target:"
