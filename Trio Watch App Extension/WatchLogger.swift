@@ -5,9 +5,9 @@ actor WatchLogger {
     static let shared = WatchLogger()
 
     private var logs: [String] = []
-    private let maxEntries = 3000
+    private let maxEntries = 500
     private let flushInterval: TimeInterval = 3 * 60
-    private let flushSizeThreshold = 1000
+    private let flushSizeThreshold = 100
     private var lastFlush = Date()
 
     private let session = WCSession.default
@@ -24,6 +24,7 @@ actor WatchLogger {
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
         return formatter
     }
+
     private func startFlushTimer() async {
         timerTask = Task {
             while true {
@@ -59,14 +60,11 @@ actor WatchLogger {
 
         if shouldFlush {
             await flushToPhone()
-        } else {
-            await log("⌚️ Skipping flush — force: \(force), logs: \(logs.count), interval: \(now.timeIntervalSince(lastFlush))")
         }
     }
 
     private func flushToPhone() async {
         guard !logs.isEmpty else {
-            await log("⌚️ No logs to flush")
             return
         }
 
@@ -77,15 +75,12 @@ actor WatchLogger {
         }
 
         if session.isReachable {
-            await log("⌚️ Sending logs to phone: \(logs.count) entries")
-            session.sendMessage(payload, replyHandler: nil) { error in
+            session.sendMessage(payload, replyHandler: nil) { _ in
                 Task {
-                    await self.log("⌚️ Failed to flush logs to phone: \(error.localizedDescription)")
                     await self.persistLogsLocally()
                 }
             }
         } else {
-            await log("⌚️ Phone not reachable, persisting logs locally")
             await persistLogsLocally()
         }
 
@@ -115,15 +110,13 @@ actor WatchLogger {
         let fullLog = logs.joined(separator: "\n") + "\n"
         if let data = fullLog.data(using: .utf8) {
             if let handle = try? FileHandle(forWritingTo: logFile) {
-                _ = try? handle.seekToEnd()
+                try? handle.seekToEnd()
                 handle.write(data)
                 try? handle.close()
             } else {
                 try? data.write(to: logFile)
             }
         }
-
-        await log("⌚️ Persisted \(logs.count) logs locally to \(logFile.lastPathComponent)")
     }
 
     func flushPersistedLogs() async {
@@ -143,15 +136,13 @@ actor WatchLogger {
         }
 
         if session.isReachable {
-            await log("⌚️ Sending persisted logs to phone")
-            session.sendMessage(payload, replyHandler: nil) { error in
+            session.sendMessage(payload, replyHandler: nil) { _ in
                 Task {
-                    await self.log("⌚️ Failed to resend persisted logs: \(error.localizedDescription)")
+                    await self.persistLogsLocally()
                 }
             }
             try? FileManager.default.removeItem(at: logFile)
         } else {
-            await log("⌚️ Transferring persisted logs via userInfo")
             _ = session.transferUserInfo(payload)
             try? FileManager.default.removeItem(at: logFile)
         }
