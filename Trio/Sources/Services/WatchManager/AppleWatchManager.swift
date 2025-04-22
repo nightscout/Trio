@@ -560,6 +560,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 self?.handleCombinedRequest(bolusAmount: Decimal(bolusAmount), carbsAmount: Decimal(carbsAmount), date: date)
             } else {
                 debug(.watchManager, "📱 Invalid or incomplete data received from watch. Received:  \(message)")
+                // Acknowledge failure
+                self?.sendAcknowledgment(
+                    toWatch: false,
+                    message: "Error! Invalid or incomplete data received from watch.",
+                    ackCode: .genericFailure
+                )
             }
 
             if message[WatchMessageKeys.cancelOverride] as? Bool == true {
@@ -675,7 +681,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 carbEntry.isUploadedToNS = false
 
                 do {
-                    guard context.hasChanges else { return }
+                    guard context.hasChanges else {
+                        // Acknowledge failure
+                        self.sendAcknowledgment(
+                            toWatch: false,
+                            message: "Error! Something went wrong when processing your request.",
+                            ackCode: .genericFailure
+                        )
+                        return
+                    }
                     try context.save()
                     debug(.watchManager, "📱 Saved carbs from watch: \(amount)g at \(date)")
 
@@ -725,7 +739,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     carbEntry.isFPU = false // set this to false to ensure watch-entered carbs are displayed in main chart
                     carbEntry.isUploadedToNS = false
 
-                    guard context.hasChanges else { return }
+                    guard context.hasChanges else {
+                        // Acknowledge failure
+                        self.sendAcknowledgment(
+                            toWatch: false,
+                            message: "Error! Something went wrong when processing your request.",
+                            ackCode: .genericFailure
+                        )
+                        return
+                    }
                     try context.save()
                     debug(.watchManager, "📱 Saved carbs from watch: \(carbsAmount) g at \(date)")
                 }
@@ -782,7 +804,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         activeOverride.enabled = false
 
                         do {
-                            guard context.hasChanges else { return }
+                            guard context.hasChanges else {
+                                // Acknowledge failure
+                                self.sendAcknowledgment(
+                                    toWatch: false,
+                                    message: "Error! Something went wrong when processing your request.",
+                                    ackCode: .genericFailure
+                                )
+                                return
+                            }
                             try context.save()
                             debug(.watchManager, "📱 Successfully stopped override")
 
@@ -874,7 +904,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 presetToActivate.date = Date()
 
                 do {
-                    guard context.hasChanges else { return }
+                    guard context.hasChanges else {
+                        // Acknowledge failure
+                        self.sendAcknowledgment(
+                            toWatch: false,
+                            message: "Error! Something went wrong when processing your request.",
+                            ackCode: .genericFailure
+                        )
+                        return
+                    }
                     try context.save()
                     debug(.watchManager, "📱 Successfully activated override: \(presetName)")
 
@@ -933,7 +971,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     presetToActivate.date = Date()
 
                     do {
-                        guard context.hasChanges else { return }
+                        guard context.hasChanges else {
+                            // Acknowledge failure
+                            self.sendAcknowledgment(
+                                toWatch: false,
+                                message: "Error! Something went wrong when processing your request.",
+                                ackCode: .genericFailure
+                            )
+                            return
+                        }
                         try context.save()
                         debug(.watchManager, "📱 Successfully activated temp target: \(presetName)")
 
@@ -998,7 +1044,15 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         activeTempTarget.enabled = false
 
                         do {
-                            guard context.hasChanges else { return }
+                            guard context.hasChanges else {
+                                // Acknowledge failure
+                                self.sendAcknowledgment(
+                                    toWatch: false,
+                                    message: "Error! Something went wrong when processing your request.",
+                                    ackCode: .genericFailure
+                                )
+                                return
+                            }
                             try context.save()
                             debug(.watchManager, "📱 Successfully cancelled temp target")
 
