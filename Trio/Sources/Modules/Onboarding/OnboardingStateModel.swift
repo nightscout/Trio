@@ -106,9 +106,20 @@ extension Onboarding {
 
         var hasReadAlgorithmSetupInformation: Bool = false
 
+        // Autosens Settings
         var autosensMin: Decimal = 0.7
         var autosensMax: Decimal = 1.2
         var rewindResetsAutosens: Bool = true
+
+        var filteredAutosensSettingsSubsteps: [AutosensSettingsSubstep] {
+            if pumpOptionForOnboardingUnits == .minimed || pumpOptionForOnboardingUnits == .dana {
+                return AutosensSettingsSubstep.allCases
+            } else {
+                return [AutosensSettingsSubstep.autosensMin, AutosensSettingsSubstep.autosensMax]
+            }
+        }
+
+        // SMB Settings
         var enableSMBAlways: Bool = false
         var enableSMBWithCOB: Bool = false
         var enableSMBWithTempTarget: Bool = false
@@ -120,6 +131,8 @@ extension Onboarding {
         var maxSMBMinutes: Decimal = 30
         var maxUAMMinutes: Decimal = 30
         var maxDeltaGlucoseThreshold: Decimal = 0.2
+
+        // Target Behavior
         var highTempTargetRaisesSensitivity: Bool = false
         var lowTempTargetLowersSensitivity: Bool = false
         var sensitivityRaisesTarget: Bool = false
