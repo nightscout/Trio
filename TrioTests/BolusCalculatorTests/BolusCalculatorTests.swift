@@ -338,7 +338,8 @@ import Testing
         let result = await calculator.handleBolusCalculation(
             carbs: carbs,
             useFattyMealCorrection: false,
-            useSuperBolus: false
+            useSuperBolus: false,
+            minPredBG: nil
         )
 
         // Then
