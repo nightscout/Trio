@@ -38,7 +38,7 @@ struct UnitSelectionStepView: View {
                     state.isfItems = []
 
                     // Conditionally set rewind setting, if pump model is MDT
-                    state.rewindResetsAutosens = newValue == .minimed
+                    state.rewindResetsAutosens = (newValue == .minimed || newValue == .dana)
                 })
             }
             .padding()
