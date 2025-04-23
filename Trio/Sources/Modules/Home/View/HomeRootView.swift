@@ -81,6 +81,18 @@ extension Home {
             }
         }
 
+        private func sendTestNotifications() { // TODO: REMOVE!!!
+            info(.apsManager, "Invalid Glucose (Not enough glucose data).")
+            info(.apsManager, "Invalid Algorithm Response (Determine basal failed).")
+            info(.apsManager, "Manual Temporary Basal Rate (Loop not possible during the manual basal temp). Looping suspended.")
+            info(.apsManager, "Pump Error (Communication Failure).")
+            info(.apsManager, "Pump Error (RileyLink reported unknown command).") // RileyLink
+            info(.apsManager, "Pump Error (Invalid response during PumpMessage(carelink ...)).") // PumpOpsError
+            info(.apsManager, "Pump Error (Command(PumpOpsError.device-error...RileyLinkBLEKit...)).") // PumpOpsError
+            info(.apsManager, "Invalid Pump State (Pump not set)")
+            info(.apsManager, "Command(PumpOpsError.device-error...RileyLinkBLEKit...).") // PumpOpsError
+        }
+
         @ViewBuilder func pumpTimezoneView(_ badgeImage: UIImage, _ badgeColor: Color) -> some View {
             HStack {
                 Image(uiImage: badgeImage.withRenderingMode(.alwaysTemplate))
@@ -390,6 +402,7 @@ extension Home {
                 )
                 .onTapGesture {
                     state.isLoopStatusPresented = true
+                    sendTestNotifications() // TODO: remove!!
                 }
                 .onLongPressGesture {
                     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
