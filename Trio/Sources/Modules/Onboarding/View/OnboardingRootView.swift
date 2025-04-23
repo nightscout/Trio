@@ -436,6 +436,13 @@ struct OnboardingNavigationButtons: View {
             } else if let previousStep = currentStep.previous {
                 currentStep = previousStep
                 currentAutosensSubstep = .autosensMin
+
+                /// Skip Autosens substep `.rewindResetsAutosens` if pump model is not `.minimed`.
+                if state.pumpOptionForOnboardingUnits == .minimed || state.pumpOptionForOnboardingUnits == .dana {
+                    currentAutosensSubstep = .rewindResetsAutosens
+                } else {
+                    currentAutosensSubstep = .autosensMax
+                }
             }
 
         case .smbSettings:
@@ -451,13 +458,6 @@ struct OnboardingNavigationButtons: View {
             } else if let previousStep = currentStep.previous {
                 currentStep = previousStep
                 currentSMBSubstep = .enableSMBAlways
-
-                /// Skip Autosens substep `.rewindResetsAutosens` if pump model is not `.minimed`.
-                if state.pumpOptionForOnboardingUnits == .minimed || state.pumpOptionForOnboardingUnits == .dana {
-                    currentAutosensSubstep = .rewindResetsAutosens
-                } else {
-                    currentAutosensSubstep = .autosensMax
-                }
             }
 
         case .targetBehavior:
@@ -510,7 +510,7 @@ struct OnboardingNavigationButtons: View {
             if let next = AutosensSettingsSubstep(rawValue: currentAutosensSubstep.rawValue + 1) {
                 /// Skip Autosens substep `.rewindResetsAutosens` if pump model is not `.minimed`.
                 if currentAutosensSubstep == .autosensMax,
-                   (state.pumpOptionForOnboardingUnits != .minimed || state.pumpOptionForOnboardingUnits != .dana),
+                   state.pumpOptionForOnboardingUnits != .minimed || state.pumpOptionForOnboardingUnits != .dana,
                    let nextMainStep = currentStep.next
                 {
                     currentStep = nextMainStep
