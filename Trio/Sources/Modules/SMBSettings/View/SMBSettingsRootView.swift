@@ -315,7 +315,7 @@ extension SMBSettings {
                         }
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "Warning: Increasing this value above 60 minutes may impact Trio's ability to effectively zero temp and prevent lows."
+                                "Warning: Increasing this value above 90 minutes may impact Trio's ability to effectively zero temp and prevent lows."
                             ).bold()
                             Text("Note: UAM SMBs must be enabled to use this limit.")
                         }
