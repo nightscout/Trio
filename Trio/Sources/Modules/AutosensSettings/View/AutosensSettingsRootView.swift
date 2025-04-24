@@ -204,7 +204,7 @@ extension AutosensSettings {
                     miniHint: String(localized: "Pump rewind initiates a reset in Sensitivity Ratio."),
                     verboseHint: VStack(alignment: .leading, spacing: 5) {
                         Text("Default: ON").bold()
-                        Text("Medtronic Users Only").bold()
+                        Text("Medtronic and Dana Users Only").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
                                 "This feature resets the Sensitivity Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change."

@@ -191,7 +191,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
         case .rewindResetsAutosens:
             return VStack(alignment: .leading, spacing: 5) {
                 Text("Default: ON").bold().foregroundStyle(Color.primary)
-                Text("Medtronic Users Only").bold()
+                Text("Medtronic and Dana Users Only").bold()
                 VStack(alignment: .leading, spacing: 8) {
                     Text(
                         "This feature resets the Autosens Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change."

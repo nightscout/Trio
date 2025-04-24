@@ -80,7 +80,7 @@ extension Onboarding {
                                 stepsWithSubsteps: [
                                     .nightscout: NightscoutSubstep.allCases.count,
                                     .deliveryLimits: DeliveryLimitSubstep.allCases.count,
-                                    .autosensSettings: AutosensSettingsSubstep.allCases.count,
+                                    .autosensSettings: state.filteredAutosensSettingsSubsteps.count,
                                     .smbSettings: SMBSettingsSubstep.allCases.count,
                                     .targetBehavior: TargetBehaviorSubstep.allCases.count
                                 ],
@@ -431,11 +431,14 @@ struct OnboardingNavigationButtons: View {
             }
 
         case .autosensSettings:
-            if let previous = AutosensSettingsSubstep(rawValue: currentAutosensSubstep.rawValue - 1) {
-                currentAutosensSubstep = previous
+            let steps = state.filteredAutosensSettingsSubsteps
+            if let current = steps.firstIndex(of: currentAutosensSubstep),
+               current > 0
+            {
+                currentAutosensSubstep = steps[current - 1]
             } else if let previousStep = currentStep.previous {
                 currentStep = previousStep
-                currentAutosensSubstep = .autosensMin
+                currentAutosensSubstep = steps.first ?? .autosensMin
             }
 
         case .smbSettings:
@@ -452,10 +455,12 @@ struct OnboardingNavigationButtons: View {
                 currentStep = previousStep
                 currentSMBSubstep = .enableSMBAlways
 
-                /// Skip Autosens substep `.rewindResetsAutosens` if pump model is not `.minimed`.
-                if state.pumpOptionForOnboardingUnits == .minimed || state.pumpOptionForOnboardingUnits == .dana {
+                switch state.pumpOptionForOnboardingUnits {
+                case .dana,
+                     .minimed:
                     currentAutosensSubstep = .rewindResetsAutosens
-                } else {
+                case .omnipodDash,
+                     .omnipodEros:
                     currentAutosensSubstep = .autosensMax
                 }
             }
@@ -507,19 +512,14 @@ struct OnboardingNavigationButtons: View {
             }
 
         case .autosensSettings:
-            if let next = AutosensSettingsSubstep(rawValue: currentAutosensSubstep.rawValue + 1) {
-                /// Skip Autosens substep `.rewindResetsAutosens` if pump model is not `.minimed`.
-                if currentAutosensSubstep == .autosensMax,
-                   state.pumpOptionForOnboardingUnits != .minimed || state.pumpOptionForOnboardingUnits != .dana,
-                   let nextMainStep = currentStep.next
-                {
-                    currentStep = nextMainStep
-                } else {
-                    currentAutosensSubstep = next
-                }
+            let steps = state.filteredAutosensSettingsSubsteps
+            if let current = steps.firstIndex(of: currentAutosensSubstep),
+               current + 1 < steps.count
+            {
+                currentAutosensSubstep = steps[current + 1]
             } else if let nextStep = currentStep.next {
                 currentStep = nextStep
-                currentAutosensSubstep = .autosensMin
+                currentAutosensSubstep = steps.first ?? .autosensMin
             }
 
         case .smbSettings:
