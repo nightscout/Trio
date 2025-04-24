@@ -19,6 +19,19 @@ enum AcknowledgementStatus: String, CaseIterable {
     case pending
 }
 
+enum AcknowledgmentCode: String, Codable {
+    case savingCarbs = "saving_carbs"
+    case enactingBolus = "enacting_bolus"
+    case comboComplete = "combo_complete"
+    case carbsLogged = "carbs_logged"
+    case overrideStarted = "override_started"
+    case overrideStopped = "override_stopped"
+    case tempTargetStarted = "temp_target_started"
+    case tempTargetStopped = "temp_target_stopped"
+    case genericSuccess = "success"
+    case genericFailure = "failure"
+}
+
 enum WatchSize {
     case watch40mm
     case watch41mm

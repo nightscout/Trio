@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-struct WatchState: Hashable, Equatable, Sendable, Encodable {
+struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     var date: Date
     var currentGlucose: String?
     var currentGlucoseColorString: String?

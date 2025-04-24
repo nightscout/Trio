@@ -16,6 +16,17 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
 
     private let settingsProvider = PickerSettingsProvider.shared
 
+    private var shouldDisableRewindResetsAutosens: Bool {
+        switch state.pumpOptionForOnboardingUnits {
+        case .dana,
+             .minimed:
+            return false
+        case .omnipodDash,
+             .omnipodEros:
+            return true
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(substep.title)
@@ -55,7 +66,8 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
                         booleanValue: $state.rewindResetsAutosens,
-                        type: OnboardingInputSectionType.boolean
+                        type: OnboardingInputSectionType.boolean,
+                        disabled: shouldDisableRewindResetsAutosens
                     )
                 case .enableSMBAlways:
                     algorithmSettingsInput(

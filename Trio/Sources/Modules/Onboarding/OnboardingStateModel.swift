@@ -107,9 +107,20 @@ extension Onboarding {
 
         var hasReadAlgorithmSetupInformation: Bool = false
 
+        // Autosens Settings
         var autosensMin: Decimal = 0.7
         var autosensMax: Decimal = 1.2
         var rewindResetsAutosens: Bool = true
+
+        var filteredAutosensSettingsSubsteps: [AutosensSettingsSubstep] {
+            if pumpOptionForOnboardingUnits == .minimed || pumpOptionForOnboardingUnits == .dana {
+                return AutosensSettingsSubstep.allCases
+            } else {
+                return [AutosensSettingsSubstep.autosensMin, AutosensSettingsSubstep.autosensMax]
+            }
+        }
+
+        // SMB Settings
         var enableSMBAlways: Bool = false
         var enableSMBWithCOB: Bool = false
         var enableSMBWithTempTarget: Bool = false
@@ -121,6 +132,8 @@ extension Onboarding {
         var maxSMBMinutes: Decimal = 30
         var maxUAMMinutes: Decimal = 30
         var maxDeltaGlucoseThreshold: Decimal = 0.2
+
+        // Target Behavior
         var highTempTargetRaisesSensitivity: Bool = false
         var lowTempTargetLowersSensitivity: Bool = false
         var sensitivityRaisesTarget: Bool = false
@@ -180,6 +193,46 @@ extension Onboarding {
             formatter.timeZone = TimeZone(secondsFromGMT: 0)
             formatter.dateFormat = "HH:mm:ss"
             return formatter
+        }
+
+        /// Remaps therapy items affected by a glucose unit change (mg/dL vs mmol/L).
+        ///
+        /// This function updates glucose target and insulin sensitivity (ISF) items to use the closest valid index
+        /// from the newly available rate arrays, preserving the original value intent.
+        ///
+        /// Call this after the user changes the unit selection.
+        ///
+        /// See also: `UnitSelectionStepView` `.onChange()` handlers.
+        func remapTherapyItemsForChangedUnits() {
+            // Targets
+            targetItems = targetItems.map { item in
+                let newLowIndex = closestIndex(for: targetRateValues[item.lowIndex], in: targetRateValues)
+                let newTimeIndex = closestIndex(for: targetTimeValues[item.timeIndex], in: targetTimeValues)
+                return TargetsEditor.Item(lowIndex: newLowIndex, highIndex: newLowIndex, timeIndex: newTimeIndex)
+            }
+
+            // ISF
+            isfItems = isfItems.map { item in
+                let newRateIndex = closestIndex(for: isfRateValues[item.rateIndex], in: isfRateValues)
+                let newTimeIndex = closestIndex(for: isfTimeValues[item.timeIndex], in: isfTimeValues)
+                return ISFEditor.Item(rateIndex: newRateIndex, timeIndex: newTimeIndex)
+            }
+        }
+
+        /// Remaps therapy items affected by a pump model change.
+        ///
+        /// This function updates basal profile items to use the closest valid index
+        /// from the updated basal rate and time arrays, preserving the user's settings.
+        ///
+        /// Call this after the user selects a new pump model.
+        ///
+        /// See also: `UnitSelectionStepView` `.onChange()` handlers.
+        func remapTherapyItemsForChangedPumpModel() {
+            basalProfileItems = basalProfileItems.map { item in
+                let newRateIndex = closestIndex(for: basalProfileRateValues[item.rateIndex], in: basalProfileRateValues)
+                let newTimeIndex = closestIndex(for: basalProfileTimeValues[item.timeIndex], in: basalProfileTimeValues)
+                return BasalProfileEditor.Item(rateIndex: newRateIndex, timeIndex: newTimeIndex)
+            }
         }
 
         // MARK: - Fetch existing therapy settings from file

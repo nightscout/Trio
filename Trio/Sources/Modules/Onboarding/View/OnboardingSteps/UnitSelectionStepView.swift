@@ -31,14 +31,12 @@ struct UnitSelectionStepView: View {
                     }
                 }
                 .onChange(of: state.pumpOptionForOnboardingUnits, { _, newValue in
-                    // Reset therapy settings and related values when pump model changes
-                    state.targetItems = []
-                    state.basalProfileItems = []
-                    state.carbRatioItems = []
-                    state.isfItems = []
-
-                    // Conditionally set rewind setting, if pump model is MDT
-                    state.rewindResetsAutosens = newValue == .minimed
+                    state.remapTherapyItemsForChangedPumpModel()
+                    // Conditionally set rewind setting, if pump model is Medtronic (.minimed) or Dana (i/RS)
+                    state.rewindResetsAutosens = (newValue == .minimed || newValue == .dana)
+                })
+                .onChange(of: state.units, { _, _ in
+                    state.remapTherapyItemsForChangedUnits()
                 })
             }
             .padding()

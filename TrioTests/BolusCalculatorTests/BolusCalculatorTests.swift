@@ -340,7 +340,7 @@ import Testing
             carbs: carbs,
             useFattyMealCorrection: false,
             useSuperBolus: false,
-            minPredBG: minPredBG,
+            minPredBG: minPredBG
         )
 
         // Then

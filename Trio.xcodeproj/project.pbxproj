@@ -662,6 +662,9 @@
 		DDF847E62C5D66490049BB3B /* AddMealPresetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E52C5D66490049BB3B /* AddMealPresetView.swift */; };
 		DDF847E82C5DABA30049BB3B /* WatchConfigAppleWatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E72C5DABA30049BB3B /* WatchConfigAppleWatchView.swift */; };
 		DDF847EA2C5DABAC0049BB3B /* WatchConfigGarminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E92C5DABAC0049BB3B /* WatchConfigGarminView.swift */; };
+		DDFF204A2DB29EF500AB8A96 /* WatchLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF20492DB29EF500AB8A96 /* WatchLogger.swift */; };
+		DDFF204E2DB2C00B00AB8A96 /* WatchStateSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF204D2DB2C00B00AB8A96 /* WatchStateSnapshot.swift */; };
+		DDFF20502DB2C11900AB8A96 /* WatchStateSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF204F2DB2C11900AB8A96 /* WatchStateSnapshot.swift */; };
 		DDFF202F2DB1D14500AB8A96 /* NotificationPermissionStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF202E2DB1D14500AB8A96 /* NotificationPermissionStepView.swift */; };
 		DDFF20312DB1D15500AB8A96 /* BluetoothPermissionStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF20302DB1D15500AB8A96 /* BluetoothPermissionStepView.swift */; };
 		E00EEC0327368630002FF094 /* ServiceAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00EEBFD27368630002FF094 /* ServiceAssembly.swift */; };
@@ -1463,6 +1466,9 @@
 		DDF847E52C5D66490049BB3B /* AddMealPresetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddMealPresetView.swift; sourceTree = "<group>"; };
 		DDF847E72C5DABA30049BB3B /* WatchConfigAppleWatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigAppleWatchView.swift; sourceTree = "<group>"; };
 		DDF847E92C5DABAC0049BB3B /* WatchConfigGarminView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigGarminView.swift; sourceTree = "<group>"; };
+		DDFF20492DB29EF500AB8A96 /* WatchLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogger.swift; sourceTree = "<group>"; };
+		DDFF204D2DB2C00B00AB8A96 /* WatchStateSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchStateSnapshot.swift; sourceTree = "<group>"; };
+		DDFF204F2DB2C11900AB8A96 /* WatchStateSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchStateSnapshot.swift; sourceTree = "<group>"; };
 		DDFF202E2DB1D14500AB8A96 /* NotificationPermissionStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPermissionStepView.swift; sourceTree = "<group>"; };
 		DDFF20302DB1D15500AB8A96 /* BluetoothPermissionStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothPermissionStepView.swift; sourceTree = "<group>"; };
 		E00EEBFD27368630002FF094 /* ServiceAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceAssembly.swift; sourceTree = "<group>"; };
@@ -2290,6 +2296,7 @@
 		388E5A5925B6F0250019842D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				DDFF204F2DB2C11900AB8A96 /* WatchStateSnapshot.swift */,
 				DDEBB05B2D89E9050032305D /* TimeInRangeType.swift */,
 				3B2F77852D7E52ED005ED9FA /* TDD.swift */,
 				DD4FFF322D458EE600B6CFF9 /* GarminWatchState.swift */,
@@ -2931,6 +2938,8 @@
 		BDFF7A9C2D25FA730016C40C /* Trio Watch App Extension */ = {
 			isa = PBXGroup;
 			children = (
+				DDFF204D2DB2C00B00AB8A96 /* WatchStateSnapshot.swift */,
+				DDFF20492DB29EF500AB8A96 /* WatchLogger.swift */,
 				BDA25EE52D260D5800035F34 /* WatchState.swift */,
 				BDAE3FFF2D372BA8009C12B1 /* WatchState+Requests.swift */,
 				DD3A3CEC2D29CFBA00AE478E /* Helper */,
@@ -4070,6 +4079,7 @@
 				388E595C25AD948C0019842D /* TrioApp.swift in Sources */,
 				38FEF3FC2737E53800574A46 /* MainStateModel.swift in Sources */,
 				DD1745352C55AE7E00211FAC /* TargetBehavoirRootView.swift in Sources */,
+				DDFF20502DB2C11900AB8A96 /* WatchStateSnapshot.swift in Sources */,
 				5887527C2BD986E1008B081D /* OpenAPSBattery.swift in Sources */,
 				38569348270B5DFB0002C50D /* GlucoseSource.swift in Sources */,
 				CEE9A6582BBB418300EB5194 /* CalibrationsStateModel.swift in Sources */,
@@ -4597,6 +4607,7 @@
 				BD54A95C2D2808A300F9C1EE /* OverridePresetWatch.swift in Sources */,
 				BD54A9592D27FB7800F9C1EE /* OverridePresetsView.swift in Sources */,
 				BDA25F1E2D26D5DD00035F34 /* GlucoseChartView.swift in Sources */,
+				DDFF204E2DB2C00B00AB8A96 /* WatchStateSnapshot.swift in Sources */,
 				DD6F63CC2D27F615007D94CF /* TreatmentMenuView.swift in Sources */,
 				DD3A3CE72D29C93F00AE478E /* Helper+Extensions.swift in Sources */,
 				DD246F062D2836AA0027DDE0 /* GlucoseTrendView.swift in Sources */,
@@ -4608,6 +4619,7 @@
 				BDA25EE62D260D5E00035F34 /* WatchState.swift in Sources */,
 				BD04ECCE2D29952A008C5FEB /* BolusProgressOverlay.swift in Sources */,
 				DD09D5C92D29F3D0000D82C9 /* AcknowledgementPendingView.swift in Sources */,
+				DDFF204A2DB29EF500AB8A96 /* WatchLogger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
