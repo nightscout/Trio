@@ -96,25 +96,25 @@ jobs:
         - name: Output from step id 'check_certs'
           run: echo "new_certificate_needed=${{ needs.create_certs.outputs.new_certificate_needed }}"
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
+        - name: Checkout repository
+          uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: bundle install
+        - name: Install dependencies
+          run: bundle install
 
-      - name: Run Fastlane nuke_certs
-        run: |
-          set -e # Set error immediately after this step if error occurs
-          bundle exec fastlane nuke_certs
+        - name: Run Fastlane nuke_certs
+          run: |
+            set -e # Set error immediately after this step if error occurs
+            bundle exec fastlane nuke_certs
 
-      - name: Recreate Distribution certificate after nuking
-        run: |
-          set -e # Set error immediately after this step if error occurs
-          bundle exec fastlane certs
+        - name: Recreate Distribution certificate after nuking
+          run: |
+            set -e # Set error immediately after this step if error occurs
+            bundle exec fastlane certs
 
-      - name: Add success annotations for nuke and certificate recreation
-        if: ${{ success() }}
-        run: |
-          echo "::warning::⚠️ All Distribution certificates and TestFlight profiles have been revoked and recreated."
-          echo "::warning::❗️ If you have other apps being distributed by GitHub Actions / Fastlane / TestFlight that does not renew certificates automatically, please run the '3. Create Certificates' workflow for each of these apps to allow these apps to be built."
-          echo "::warning::✅ But don't worry about your existing TestFlight builds, they will keep working!"
+        - name: Add success annotations for nuke and certificate recreation
+          if: ${{ success() }}
+          run: |
+            echo "::warning::⚠️ All Distribution certificates and TestFlight profiles have been revoked and recreated."
+            echo "::warning::❗️ If you have other apps being distributed by GitHub Actions / Fastlane / TestFlight that does not renew certificates automatically, please run the '3. Create Certificates' workflow for each of these apps to allow these apps to be built."
+            echo "::warning::✅ But don't worry about your existing TestFlight builds, they will keep working!"
