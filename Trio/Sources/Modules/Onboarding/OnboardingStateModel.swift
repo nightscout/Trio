@@ -142,6 +142,7 @@ extension Onboarding {
         // MARK: - Permission Requests
 
         var hasNotificationsGranted = false
+        var shouldDisplayCustomNotificationAlert: Bool = false
 
         var shouldDisplayBluetoothRequestAlert: Bool = false
         var hasBluetoothGranted = false

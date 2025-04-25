@@ -310,7 +310,7 @@ struct OnboardingStepContent: View {
                         case .targetBehavior:
                             AlgorithmSettingsSubstepView(state: state, substep: currentTargetBehaviorSubstep)
                         case .notifications:
-                            NotificationPermissionStepView()
+                            NotificationPermissionStepView(state: state, currentStep: $currentStep)
                         case .bluetooth:
                             BluetoothPermissionStepView(
                                 state: state,
@@ -547,10 +547,23 @@ struct OnboardingNavigationButtons: View {
 
         case .notifications:
             currentTargetBehaviorSubstep = .halfBasalTarget
+
             if let next = currentStep.next {
-                DispatchQueue.main.async {
-                    state.notificationsManager.requestNotificationPermissions { granted in
-                        state.hasNotificationsGranted = granted
+                state.notificationsManager.getNotificationSettings { notificationSettings in
+                    switch notificationSettings.authorizationStatus {
+                    case .notDetermined:
+                        state.notificationsManager.requestNotificationPermissions { granted in
+                            state.hasNotificationsGranted = granted
+                            currentStep = next
+                        }
+                    case .denied:
+                        state.shouldDisplayCustomNotificationAlert = true
+                    case .authorized,
+                         .ephemeral,
+                         .provisional:
+                        currentStep = next
+                        break
+                    @unknown default:
                         currentStep = next
                     }
                 }

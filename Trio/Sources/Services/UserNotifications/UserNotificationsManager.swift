@@ -9,6 +9,7 @@ import UIKit
 import UserNotifications
 
 protocol UserNotificationsManager {
+    func getNotificationSettings(completionHandler: @escaping (UNNotificationSettings) -> Void)
     func requestNotificationPermissions(completion: @escaping (Bool) -> Void)
 }
 
@@ -61,7 +62,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
     @Persisted(key: "UserNotificationsManager.snoozeUntilDate") private var snoozeUntilDate: Date = .distantPast
 
-    private let center = UNUserNotificationCenter.current()
+    private let notificationCenter = UNUserNotificationCenter.current()
     private var lifetime = Lifetime()
 
     private let viewContext = CoreDataStack.shared.persistentContainer.viewContext
@@ -77,7 +78,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
     init(resolver: Resolver) {
         super.init()
-        center.delegate = self
+        notificationCenter.delegate = self
         injectServices(resolver)
 
         coreDataPublisher =
@@ -132,7 +133,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     private func addAppBadge(glucose: Int?) {
         guard let glucose = glucose, settingsManager.settings.glucoseBadge else {
             DispatchQueue.main.async {
-                self.center.setBadgeCount(0) { error in
+                self.notificationCenter.setBadgeCount(0) { error in
                     guard let error else {
                         return
                     }
@@ -150,7 +151,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         }
 
         DispatchQueue.main.async {
-            self.center.setBadgeCount(badge) { error in
+            self.notificationCenter.setBadgeCount(badge) { error in
                 guard let error else {
                     return
                 }
@@ -386,18 +387,17 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
         return body
     }
 
-//    private func requestNotificationPermissionsIfNeeded() {
-//        center.getNotificationSettings { settings in
-//            debug(.service, "UNUserNotificationCenter.authorizationStatus: \(String(describing: settings.authorizationStatus))")
-//            if ![.authorized, .provisional].contains(settings.authorizationStatus) {
-//                self.requestNotificationPermissions()
-//            }
-//        }
-//    }
+    func getNotificationSettings(completionHandler: @escaping (UNNotificationSettings) -> Void) {
+        notificationCenter.getNotificationSettings { settings in
+            DispatchQueue.main.async {
+                completionHandler(settings)
+            }
+        }
+    }
 
     func requestNotificationPermissions(completion: @escaping (Bool) -> Void) {
         debug(.service, "requestNotificationPermissions")
-        center.requestAuthorization(options: [.badge, .sound, .alert]) { granted, error in
+        notificationCenter.requestAuthorization(options: [.badge, .sound, .alert]) { granted, error in
             if granted {
                 debug(.service, "requestNotificationPermissions was granted")
                 DispatchQueue.main.async {
@@ -432,8 +432,8 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             .title : (identifier == .alertMessageNotification ? alertIdentifier + content.body : alertIdentifier)
         if deleteOld {
             DispatchQueue.main.async {
-                self.center.removeDeliveredNotifications(withIdentifiers: [alertIdentifier])
-                self.center.removePendingNotificationRequests(withIdentifiers: [alertIdentifier])
+                self.notificationCenter.removeDeliveredNotifications(withIdentifiers: [alertIdentifier])
+                self.notificationCenter.removePendingNotificationRequests(withIdentifiers: [alertIdentifier])
             }
         }
         if alertPermissionsChecker.notificationsDisabled {
@@ -444,7 +444,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
 
         let request = UNNotificationRequest(identifier: alertIdentifier, content: content, trigger: trigger)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.center.add(request) { error in
+            self.notificationCenter.add(request) { error in
                 if let error = error {
                     warning(.service, "Unable to addNotificationRequest", error: error)
                     return
@@ -563,8 +563,8 @@ extension BaseUserNotificationsManager: pumpNotificationObserver {
     func pumpRemoveNotification() {
         let identifier: Identifier = .pumpNotification
         DispatchQueue.main.async {
-            self.center.removeDeliveredNotifications(withIdentifiers: [identifier.rawValue])
-            self.center.removePendingNotificationRequests(withIdentifiers: [identifier.rawValue])
+            self.notificationCenter.removeDeliveredNotifications(withIdentifiers: [identifier.rawValue])
+            self.notificationCenter.removePendingNotificationRequests(withIdentifiers: [identifier.rawValue])
         }
     }
 }
