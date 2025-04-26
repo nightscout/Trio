@@ -24,7 +24,7 @@ extension PumpConfig {
                     Section(
                         header: Text("Pump Integration to Trio"),
                         content: {
-                            if bluetoothManager.bluetoothAuthorization != .authorize d{
+                            if bluetoothManager.bluetoothAuthorization != .authorized {
                                 HStack {
                                     Image(systemName: "exclamationmark.triangle.fill")
                                         .foregroundStyle(.red)
