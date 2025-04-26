@@ -3,24 +3,13 @@ import LoopKit
 import LoopKitUI
 import Swinject
 
-protocol BluetoothStateManager: BluetoothProvider {
-//    var isBluetoothAuthorized: Bool { get }
-//    var isBluetoothDenied: Bool { get }
-}
+protocol BluetoothStateManager: BluetoothProvider {}
 
 public class BaseBluetoothStateManager: NSObject, BluetoothStateManager, Injectable {
     private var completion: ((BluetoothAuthorization) -> Void)?
     private var centralManager: CBCentralManager?
     private var bluetoothObservers = WeakSynchronizedSet<BluetoothObserver>()
-
-//    public var isBluetoothAuthorized: Bool {
-//        bluetoothAuthorization == .authorized
-//    }
-//
-//    public var isBluetoothDenied: Bool {
-//        bluetoothAuthorization == .denied || bluetoothAuthorization == .restricted
-//    }
-
+    
     init(resolver: Resolver) {
         super.init()
         injectServices(resolver)

@@ -11,7 +11,6 @@ struct CurrentGlucoseView: View {
     var currentGlucoseTarget: Decimal
     let glucoseColorScheme: GlucoseColorScheme
     let glucose: [GlucoseStored] // This contains the last two glucose values, no matter if its manual or a cgm reading
-    let bluetoothManager: BluetoothStateManager?
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [
         Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
@@ -42,26 +41,7 @@ struct CurrentGlucoseView: View {
     var body: some View {
         let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
 
-        if let bluetoothManager = bluetoothManager, bluetoothManager.bluetoothAuthorization != .authorized {
-            VStack(alignment: .center, spacing: 12) {
-                HStack {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.red)
-                        .font(.system(size: 20))
-                    Text("Bluetooth Access Required")
-                        .font(.caption)
-                        .bold()
-                }
-                Text("Enable Bluetooth in Settings")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .onTapGesture {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
-                }
-            }
-        } else if cgmAvailable {
+        if cgmAvailable {
             ZStack {
                 TrendShape(gradient: angularGradient, color: triangleColor)
                     .rotationEffect(.degrees(rotationDegrees))

@@ -37,19 +37,9 @@ extension CGMSettings {
                         content: {
                             if bluetoothManager.bluetoothAuthorization != .authorized {
                                 HStack {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .foregroundStyle(.red)
-                                    Text("Bluetooth Access Required")
-                                        .foregroundColor(.red)
                                     Spacer()
-                                    Button(action: {
-                                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                                            UIApplication.shared.open(url)
-                                        }
-                                    }) {
-                                        Text("Enable")
-                                            .foregroundColor(.blue)
-                                    }
+                                    BluetoothRequiredView()
+                                    Spacer()
                                 }
                             } else {
                                 let cgmState = state.cgmCurrent

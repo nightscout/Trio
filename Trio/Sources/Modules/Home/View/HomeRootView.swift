@@ -126,8 +126,7 @@ extension Home {
                 cgmAvailable: state.cgmAvailable,
                 currentGlucoseTarget: state.currentGlucoseTarget,
                 glucoseColorScheme: state.glucoseColorScheme,
-                glucose: state.latestTwoGlucoseValues,
-                bluetoothManager: state.bluetoothManager
+                glucose: state.latestTwoGlucoseValues
             ).scaleEffect(0.9)
                 .onTapGesture {
                     if !state.cgmAvailable {
@@ -150,8 +149,7 @@ extension Home {
                 expiresAtDate: state.pumpExpiresAtDate,
                 timerDate: state.timerDate,
                 pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
-                battery: state.batteryFromPersistence,
-                bluetoothManager: state.bluetoothManager
+                battery: state.batteryFromPersistence
             )
             .onTapGesture {
                 if state.pumpDisplayState == nil {
@@ -846,20 +844,26 @@ extension Home {
         @ViewBuilder func mainViewElements(_ geo: GeometryProxy) -> some View {
             VStack(spacing: 0) {
                 ZStack {
-                    /// glucose bobble
-                    glucoseView
+                    if let apsManager = state.apsManager, let bluetoothManager = apsManager.bluetoothManager,
+                       bluetoothManager.bluetoothAuthorization != .authorized
+                    {
+                        BluetoothRequiredView()
+                    } else {
+                        /// right panel with loop status and evBG
+                        HStack {
+                            Spacer()
+                            rightHeaderPanel(geo)
+                        }.padding(.trailing, 20)
 
-                    /// right panel with loop status and evBG
-                    HStack {
-                        Spacer()
-                        rightHeaderPanel(geo)
-                    }.padding(.trailing, 20)
+                        /// glucose bobble
+                        glucoseView
 
-                    /// left panel with pump related info
-                    HStack {
-                        pumpView
-                        Spacer()
-                    }.padding(.leading, 20)
+                        /// left panel with pump related info
+                        HStack {
+                            pumpView
+                            Spacer()
+                        }.padding(.leading, 20)
+                    }
                 }
                 .padding(.top, 10)
                 .safeAreaInset(edge: .top, spacing: 0) {
