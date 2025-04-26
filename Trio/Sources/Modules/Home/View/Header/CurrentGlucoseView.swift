@@ -11,7 +11,7 @@ struct CurrentGlucoseView: View {
     var currentGlucoseTarget: Decimal
     let glucoseColorScheme: GlucoseColorScheme
     let glucose: [GlucoseStored] // This contains the last two glucose values, no matter if its manual or a cgm reading
-    let bluetoothManager: BluetoothStateManager
+    let bluetoothManager: BluetoothStateManager?
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [
         Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
@@ -42,7 +42,7 @@ struct CurrentGlucoseView: View {
     var body: some View {
         let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
 
-        if bluetoothManager.bluetoothAuthorization != .authorized {
+        if let bluetoothManager = bluetoothManager, bluetoothManager.bluetoothAuthorization != .authorized {
             VStack(alignment: .center, spacing: 12) {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")

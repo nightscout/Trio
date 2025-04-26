@@ -8,7 +8,7 @@ struct PumpView: View {
     let timerDate: Date
     let pumpStatusHighlightMessage: String?
     let battery: [OpenAPS_Battery]
-    let bluetoothManager: BluetoothStateManager
+    let bluetoothManager: BluetoothStateManager?
     @Environment(\.colorScheme) var colorScheme
 
     private var batteryFormatter: NumberFormatter {
@@ -18,7 +18,7 @@ struct PumpView: View {
     }
 
     var body: some View {
-        if bluetoothManager.bluetoothAuthorization != .authorized {
+        if let bluetoothManager = bluetoothManager, bluetoothManager.bluetoothAuthorization != .authorized {
             VStack(alignment: .center, spacing: 12) {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
