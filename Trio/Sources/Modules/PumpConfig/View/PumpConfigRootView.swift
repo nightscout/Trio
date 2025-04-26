@@ -5,8 +5,8 @@ extension PumpConfig {
     struct RootView: BaseView {
         let resolver: Resolver
         let displayClose: Bool
+        let bluetoothManager: BluetoothStateManager
         @StateObject var state = StateModel()
-
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: AnyView?
@@ -24,7 +24,23 @@ extension PumpConfig {
                     Section(
                         header: Text("Pump Integration to Trio"),
                         content: {
-                            if let pumpState = state.pumpState {
+                            if bluetoothManager.bluetoothAuthorization != .authorize d{
+                                HStack {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundStyle(.red)
+                                    Text("Bluetooth Access Required")
+                                        .foregroundColor(.red)
+                                    Spacer()
+                                    Button(action: {
+                                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                                            UIApplication.shared.open(url)
+                                        }
+                                    }) {
+                                        Text("Enable")
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                            } else if let pumpState = state.pumpState {
                                 Button {
                                     state.setupPump = true
                                 } label: {

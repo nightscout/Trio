@@ -126,7 +126,8 @@ extension Home {
                 cgmAvailable: state.cgmAvailable,
                 currentGlucoseTarget: state.currentGlucoseTarget,
                 glucoseColorScheme: state.glucoseColorScheme,
-                glucose: state.latestTwoGlucoseValues
+                glucose: state.latestTwoGlucoseValues,
+                bluetoothManager: state.bluetoothManager
             ).scaleEffect(0.9)
                 .onTapGesture {
                     if !state.cgmAvailable {
@@ -149,7 +150,8 @@ extension Home {
                 expiresAtDate: state.pumpExpiresAtDate,
                 timerDate: state.timerDate,
                 pumpStatusHighlightMessage: state.pumpStatusHighlightMessage,
-                battery: state.batteryFromPersistence
+                battery: state.batteryFromPersistence,
+                bluetoothManager: state.bluetoothManager
             )
             .onTapGesture {
                 if state.pumpDisplayState == nil {

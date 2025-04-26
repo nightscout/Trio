@@ -6,14 +6,14 @@ extension CGMSettings {
     struct RootView: BaseView {
         let resolver: Resolver
         let displayClose: Bool
+        let bluetoothManager: BluetoothStateManager
         @StateObject var state = StateModel()
-
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
-        @State private var booleanPlaceholder: Bool = false
+        @State private var booleanPlaceholdre: Bool = false
         @State var showCGMSelection: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
@@ -35,48 +35,66 @@ extension CGMSettings {
                     Section(
                         header: Text("CGM Integration to Trio"),
                         content: {
-                            let cgmState = state.cgmCurrent
-                            if cgmState.type != .none {
-                                Button {
-                                    state.shouldDisplayCGMSetupSheet = true
-                                } label: {
-                                    HStack {
-                                        Image(systemName: "sensor.tag.radiowaves.forward.fill")
-                                        Text(cgmState.displayName)
+                            if bluetoothManager.bluetoothAuthorization != .authorized {
+                                HStack {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundStyle(.red)
+                                    Text("Bluetooth Access Required")
+                                        .foregroundColor(.red)
+                                    Spacer()
+                                    Button(action: {
+                                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                                            UIApplication.shared.open(url)
+                                        }
+                                    }) {
+                                        Text("Enable")
+                                            .foregroundColor(.blue)
                                     }
-                                    .frame(maxWidth: .infinity, minHeight: 50, alignment: .center)
-                                    .font(.title2)
-                                }.padding()
+                                }
                             } else {
-                                VStack {
+                                let cgmState = state.cgmCurrent
+                                if cgmState.type != .none {
                                     Button {
-                                        showCGMSelection.toggle()
+                                        state.shouldDisplayCGMSetupSheet = true
                                     } label: {
-                                        Text("Add CGM")
-                                            .font(.title3) }
-                                        .frame(maxWidth: .infinity, alignment: .center)
-                                        .buttonStyle(.bordered)
+                                        HStack {
+                                            Image(systemName: "sensor.tag.radiowaves.forward.fill")
+                                            Text(cgmState.displayName)
+                                        }
+                                        .frame(maxWidth: .infinity, minHeight: 50, alignment: .center)
+                                        .font(.title2)
+                                    }.padding()
+                                } else {
+                                    VStack {
+                                        Button {
+                                            showCGMSelection.toggle()
+                                        } label: {
+                                            Text("Add CGM")
+                                                .font(.title3) }
+                                            .frame(maxWidth: .infinity, alignment: .center)
+                                            .buttonStyle(.bordered)
 
-                                    HStack(alignment: .center) {
-                                        Text(
-                                            "Pair your CGM with Trio. See hint for compatible devices."
-                                        )
-                                        .font(.footnote)
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(nil)
-                                        Spacer()
-                                        Button(
-                                            action: {
-                                                shouldDisplayHint.toggle()
-                                            },
-                                            label: {
-                                                HStack {
-                                                    Image(systemName: "questionmark.circle")
+                                        HStack(alignment: .center) {
+                                            Text(
+                                                "Pair your CGM with Trio. See hint for compatible devices."
+                                            )
+                                            .font(.footnote)
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(nil)
+                                            Spacer()
+                                            Button(
+                                                action: {
+                                                    shouldDisplayHint.toggle()
+                                                },
+                                                label: {
+                                                    HStack {
+                                                        Image(systemName: "questionmark.circle")
+                                                    }
                                                 }
-                                            }
-                                        ).buttonStyle(BorderlessButtonStyle())
-                                    }.padding(.top)
-                                }.padding(.vertical)
+                                            ).buttonStyle(BorderlessButtonStyle())
+                                        }.padding(.top)
+                                    }.padding(.vertical)
+                                }
                             }
                         }
                     )

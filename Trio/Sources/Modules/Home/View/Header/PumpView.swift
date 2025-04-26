@@ -8,7 +8,7 @@ struct PumpView: View {
     let timerDate: Date
     let pumpStatusHighlightMessage: String?
     let battery: [OpenAPS_Battery]
-
+    let bluetoothManager: BluetoothStateManager
     @Environment(\.colorScheme) var colorScheme
 
     private var batteryFormatter: NumberFormatter {
@@ -18,7 +18,26 @@ struct PumpView: View {
     }
 
     var body: some View {
-        if let pumpStatusHighlightMessage = pumpStatusHighlightMessage { // display message instead pump info
+        if bluetoothManager.bluetoothAuthorization != .authorized {
+            VStack(alignment: .center, spacing: 12) {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 20))
+                    Text("Bluetooth Access Required")
+                        .font(.caption)
+                        .bold()
+                }
+                Text("Enable Bluetooth in Settings")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .onTapGesture {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+        } else if let pumpStatusHighlightMessage = pumpStatusHighlightMessage { // display message instead pump info
             VStack(alignment: .center) {
                 Text(pumpStatusHighlightMessage).font(.footnote).fontWeight(.bold)
                     .multilineTextAlignment(.center).frame(maxWidth: /*@START_MENU_TOKEN@*/ .infinity/*@END_MENU_TOKEN@*/)
