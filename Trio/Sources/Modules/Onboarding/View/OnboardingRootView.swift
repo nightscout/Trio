@@ -15,6 +15,7 @@ extension Onboarding {
         @State private var currentStartupSubstep: StartupSubstep = .startupGuide
         @State private var currentNightscoutSubstep: NightscoutSubstep = .setupSelection
         @State private var currentDeliverySubstep: DeliveryLimitSubstep = .maxIOB
+        @State private var currentAlgorithmSettingsOverviewSubstep: AlgorithmSettingsOverviewSubstep = .contents
         @State private var currentAutosensSubstep: AutosensSettingsSubstep = .autosensMin
         @State private var currentSMBSubstep: SMBSettingsSubstep = .enableSMBAlways
         @State private var currentTargetBehaviorSubstep: TargetBehaviorSubstep = .highTempTargetRaisesSensitivity
@@ -66,8 +67,6 @@ extension Onboarding {
 
         // Next button conditional
         private var shouldDisableNextButton: Bool {
-//            (currentStep == .startupGuide && !state.hasReadImportantStartupNotes)
-//                ||
             (currentStep == .diagnostics && state.diagnosticsSharingOption == .enabled && !state.hasAcceptedPrivacyPolicy)
                 ||
                 (currentStep == .nightscout && didSelectNightscoutSetupOption)
@@ -75,8 +74,6 @@ extension Onboarding {
                 (currentStep == .nightscout && hasValidNightscoutConnection)
                 ||
                 (currentStep == .nightscout && didSelectNightscoutImportOption)
-//                ||
-//                (currentStep == .algorithmSettings && !state.hasReadAlgorithmSetupInformation)
         }
 
         var body: some View {
@@ -100,6 +97,7 @@ extension Onboarding {
                                     switch currentStep {
                                     case .deliveryLimits: return currentDeliverySubstep.rawValue
                                     case .nightscout: return currentNightscoutSubstep.rawValue
+                                    case .algorithmSettings: return currentAlgorithmSettingsOverviewSubstep.rawValue
                                     case .autosensSettings: return currentAutosensSubstep.rawValue
                                     case .smbSettings: return currentSMBSubstep.rawValue
                                     case .targetBehavior: return currentTargetBehaviorSubstep.rawValue
@@ -109,6 +107,7 @@ extension Onboarding {
                                 stepsWithSubsteps: [
                                     .nightscout: NightscoutSubstep.allCases.count,
                                     .deliveryLimits: DeliveryLimitSubstep.allCases.count,
+                                    .algorithmSettings: AlgorithmSettingsOverviewSubstep.allCases.count,
                                     .autosensSettings: state.filteredAutosensSettingsSubsteps.count,
                                     .smbSettings: SMBSettingsSubstep.allCases.count,
                                     .targetBehavior: TargetBehaviorSubstep.allCases.count
@@ -126,6 +125,7 @@ extension Onboarding {
                             currentStartupSubstep: $currentStartupSubstep,
                             currentNightscoutSubstep: $currentNightscoutSubstep,
                             currentDeliverySubstep: $currentDeliverySubstep,
+                            currentAlgorithmSettingsOverviewSubstep: $currentAlgorithmSettingsOverviewSubstep,
                             currentAutosensSubstep: $currentAutosensSubstep,
                             currentSMBSubstep: $currentSMBSubstep,
                             currentTargetBehaviorSubstep: $currentTargetBehaviorSubstep,
@@ -140,6 +140,7 @@ extension Onboarding {
                             currentStartupSubstep: $currentStartupSubstep,
                             currentNightscoutSubstep: $currentNightscoutSubstep,
                             currentDeliverySubstep: $currentDeliverySubstep,
+                            currentAlgorithmSettingsOverviewSubstep: $currentAlgorithmSettingsOverviewSubstep,
                             currentAutosensSubstep: $currentAutosensSubstep,
                             currentSMBSubstep: $currentSMBSubstep,
                             currentTargetBehaviorSubstep: $currentTargetBehaviorSubstep,
@@ -273,6 +274,7 @@ struct OnboardingStepContent: View {
     @Binding var currentStartupSubstep: StartupSubstep
     @Binding var currentNightscoutSubstep: NightscoutSubstep
     @Binding var currentDeliverySubstep: DeliveryLimitSubstep
+    @Binding var currentAlgorithmSettingsOverviewSubstep: AlgorithmSettingsOverviewSubstep
     @Binding var currentAutosensSubstep: AutosensSettingsSubstep
     @Binding var currentSMBSubstep: SMBSettingsSubstep
     @Binding var currentTargetBehaviorSubstep: TargetBehaviorSubstep
@@ -366,7 +368,12 @@ struct OnboardingStepContent: View {
                         case .deliveryLimits:
                             DeliveryLimitsStepView(state: state, substep: currentDeliverySubstep)
                         case .algorithmSettings:
-                            AlgorithmSettingsStepView(state: state)
+                            switch currentAlgorithmSettingsOverviewSubstep {
+                            case .contents:
+                                AlgorithmSettingsContentsStepView(state: state)
+                            case .importantNotes:
+                                AlgorithmSettingsImportantNotesStepView(state: state)
+                            }
                         case .autosensSettings:
                             AlgorithmSettingsSubstepView(state: state, substep: currentAutosensSubstep)
                         case .smbSettings:
@@ -399,6 +406,7 @@ struct OnboardingStepContent: View {
             .onChange(of: currentStartupSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
             .onChange(of: currentNightscoutSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
             .onChange(of: currentDeliverySubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
+            .onChange(of: currentAlgorithmSettingsOverviewSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
             .onChange(of: currentAutosensSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
             .onChange(of: currentSMBSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
             .onChange(of: currentTargetBehaviorSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
@@ -417,6 +425,7 @@ struct OnboardingNavigationButtons: View {
     @Binding var currentStartupSubstep: StartupSubstep
     @Binding var currentNightscoutSubstep: NightscoutSubstep
     @Binding var currentDeliverySubstep: DeliveryLimitSubstep
+    @Binding var currentAlgorithmSettingsOverviewSubstep: AlgorithmSettingsOverviewSubstep
     @Binding var currentAutosensSubstep: AutosensSettingsSubstep
     @Binding var currentSMBSubstep: SMBSettingsSubstep
     @Binding var currentTargetBehaviorSubstep: TargetBehaviorSubstep
@@ -504,7 +513,12 @@ struct OnboardingNavigationButtons: View {
             }
 
         case .algorithmSettings:
-            if let previous = currentStep.previous {
+            if let previousSub = AlgorithmSettingsOverviewSubstep(
+                rawValue: currentAlgorithmSettingsOverviewSubstep
+                    .rawValue - 1
+            ) {
+                currentAlgorithmSettingsOverviewSubstep = previousSub
+            } else if let previous = currentStep.previous {
                 currentStep = previous
                 currentDeliverySubstep = .minimumSafetyThreshold
                 currentAutosensSubstep = .autosensMin
@@ -522,6 +536,8 @@ struct OnboardingNavigationButtons: View {
             }
 
         case .smbSettings:
+            currentAlgorithmSettingsOverviewSubstep = .importantNotes
+
             if let previous = SMBSettingsSubstep(rawValue: currentSMBSubstep.rawValue - 1) {
                 /// If user has activated setting `.enableSMBAlways`, when navigating backwards
                 /// skip other redundant "Enable SMB"-settings and go straight to `enableSMBAlways`
@@ -607,6 +623,14 @@ struct OnboardingNavigationButtons: View {
             } else if let nextStep = currentStep.next {
                 currentStep = nextStep
                 currentDeliverySubstep = .maxIOB
+            }
+
+        case .algorithmSettings:
+            if let next = AlgorithmSettingsOverviewSubstep(rawValue: currentAlgorithmSettingsOverviewSubstep.rawValue + 1) {
+                currentAlgorithmSettingsOverviewSubstep = next
+            } else if let nextStep = currentStep.next {
+                currentStep = nextStep
+                currentAlgorithmSettingsOverviewSubstep = .contents
             }
 
         case .autosensSettings:

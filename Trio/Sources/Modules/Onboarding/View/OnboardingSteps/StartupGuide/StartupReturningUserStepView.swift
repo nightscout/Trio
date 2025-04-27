@@ -39,27 +39,11 @@ struct StartupReturningUserStepView: View {
                     .stroke(Color.orange, lineWidth: 2)
             )
             .cornerRadius(10)
-//
-//            VStack(alignment: .leading, spacing: 10) {
-//                HStack(alignment: .top, spacing: 10) {
-//                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Color.bgDarkBlue, Color.orange)
-//                        .symbolRenderingMode(.palette)
-//                    Text("Important").foregroundStyle(Color.orange)
-//                }.bold()
-//
-//                Text("Your algorithm settings (previously called \"OpenAPS settings\") are reset to defaults.")
-//            }
-//            .frame(maxWidth: .infinity)
-//            .padding()
-//            .background(Color.chart.opacity(0.65))
-//            .overlay(
-//                RoundedRectangle(cornerRadius: 10)
-//                    .stroke(Color.orange, lineWidth: 2)
-//            )
-//            .cornerRadius(10)
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("Here's what you can expect to be preserved:").bold()
+                Text("Here's what you can expect to be preserved:")
+                    .font(.headline)
+                    .padding(.bottom, 4)
 
                 BulletPoint(String(localized: "Your pump and CGM configurations are retained and fully functional."))
                 BulletPoint(
