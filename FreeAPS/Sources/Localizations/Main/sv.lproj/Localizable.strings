@@ -16,7 +16,7 @@
 /* Continue after added carbs without bolus */
 "Continue without bolus" = "Fortsätt utan bolus";
 
-/* Alert when adding large amount without bolusing. Don't remove the " " */
+/* Alert when adding large amount without bolusing */
 "\nAmount is more than your Max Bolus setting! \nAre you sure you want to add " = "\nDetta är mer insulin än din maxdos-inställning! \nÄr du säker på att du vill lägga till ";
 
 /* Header */
@@ -152,7 +152,7 @@
 "Delete preset \"%@\"" = "Ta bort förval \"%@\"";
 
 /* Duration of target temp or temp basal */
-"Duration" = "Duration";
+"Duration" = "Varaktighet";
 
 /*  */
 "Enact Temp Target" = "Tillfälliga målvärden";
@@ -432,28 +432,28 @@ Enact a temp Basal or a temp target */
 "Max Carbs" = "Max antal kolhydrater";
 
 /* Max setting */
-"Max Fat" = "Max Fat";
+"Max Fat" = "Max fett";
 
 /* Max setting */
-"Max Protein" = "Max Protein";
+"Max Protein" = "Max protein";
 
 /* Max setting */
-"Limit Per Entry" = "Limit Per Entry";
+"Limit Per Entry" = "Begränsa per post";
 
 /* Max Carbs limit exceeded */
-"Max Carbs of" = "Max Carbs of";
+"Max Carbs of" = "Max kolhydrater av";
 
 /* Max Fat limit exceeded */
-"Max Fat of" = "Max Fat of";
+"Max Fat of" = "Max fett av";
 
 /* Max Protein limit exceeded */
-"Max Protein of" = "Max Protein of";
+"Max Protein of" = "Max Protein av";
 
 /* Max Bolus limit exceeded */
-"Max Bolus of" = "Max Bolus of";
+"Max Bolus of" = "Max bolus av";
 
 /* Limit Exceeded label */
-"exceeded" = "exceeded";
+"exceeded" = "överskriden";
 
 /* */
 "Pump Settings" = "Pumpinställningar";
@@ -519,7 +519,7 @@ Enact a temp Basal or a temp target */
 "Watch Configuration" = "Inställningar för klocka";
 
 /* */
-"Apple Watch" = "Apple Watch";
+"Apple Watch" = "Apple Klocka";
 
 /* */
 "Display on Watch" = "Visa på klocka";
@@ -642,7 +642,7 @@ Enact a temp Basal or a temp target */
 "External" = "Externt";
 
 /* */
-"Other" = "Annan";
+"Other" = "Annat";
 
 /* */
 "Libre Transmitter" = "Libre-sändare";
@@ -678,7 +678,7 @@ Enact a temp Basal or a temp target */
 "Meter glucose" = "Glukosmätarvärde";
 
 /* */
-"Info" = "Info";
+"Info" = "Information";
 
 /*v*/
 "Slope" = "Lutning";
@@ -1170,7 +1170,7 @@ Enact a temp Basal or a temp target */
 "Save as your Normal Basal Rates" = "Spara som dina vanliga basalinställningar";
 
 /* */
-"Save on Pump" = "Spara till pump";
+"Save on Pump" = "Spara på pumpen";
 
 /* Debug option view Pump History */
 "Pump History" = "Pumphistorik";
@@ -1226,7 +1226,7 @@ Enact a temp Basal or a temp target */
 
 /* New ALerts ------------------------- */
 /* Info title */
-"Info" = "Info";
+"Info" = "Information";
 
 /* Warning title */
 "Warning" = "Varning";
@@ -1261,7 +1261,7 @@ Enact a temp Basal or a temp target */
 "Enable" = "Aktivera";
 
 /* Header */
-"Fat and Protein Conversion Settings" = "Fat and Protein Conversion Settings";
+"Fat and Protein Conversion Settings" = "Inställningar för fett- och proteinkonvertering";
 
 /* Delay */
 "Delay In Minutes" = "Fördröjning";
@@ -1279,7 +1279,7 @@ Enact a temp Basal or a temp target */
 "Allows fat and protein to be converted into future carb equivalents using the Warsaw formula of kilocalories divided by 10.\n\nThis spreads the carb equivilants over a maximum duration setting that can be configured from 5-12 hours.\n\nDelay is time from now until the first future carb entry.\n\nInterval in minutes is how many minutes are between entries. The shorter the interval, the smoother the result. 10, 15, 20, 30, or 60 are reasonable choices.\n\nAdjustment factor is how much effect the fat and protein has on the entries. 1.0 is full effect (original Warsaw Method) and 0.5 is half effect. Note that you may find that your normal carb ratio needs to increase to a larger number if you begin adding fat and protein entries. For this reason, it is best to start with a factor of about 0.5 to ease into it.\n\nDefault settings: Time Cap: 8 h, Interval: 30 min, Factor: 0.5, Delay 60 min" = "Omvandlar fett och protein till kolhydratekvivalenter, enligt Warsawa-metoden: antal kilokalorier delat med 10.\n\nDetta sprider ut kolydraterna över ett framtida tidsintervall med maximal duration enligt inställningen för max tid, 5-12 timmar.\n\nIntervall i minuter bestämmer hur många minuter mellan kolhydratposterna. Ju kortare intervall, desto jämnare resultat, men också fler poster att behöva radera om du ångrar dig. 10, 15, 20, 30, or 60 är exempel på alternativ\n\nFördrjöjning är tiden från nu till första framtida kolhydratpost.\n\nAJustering tillåter indivudell justering av formulan. 1.0 betyder full effekt, 0.5 skapar halva mängden kolhydrater. Observera att om du alltid matar in fett och kolhydrater kan du behöva öka din insulinkvot. Av denna anledning kan det vara lämpligt att börja med 0.5.\n\nStandardinställningar: Max tid: 8 h, Intervall: 30 min, Faktor: 0.5, Fördröjning 60 min";
 
 /* FPU Settings Title */
-"Fat and Protein" = "Fat and Protein";
+"Fat and Protein" = "Fett och protein";
 
 /* Display fat and protein entities */
 "Fat & Protein" = "Fett & protein";
@@ -1294,7 +1294,7 @@ Enact a temp Basal or a temp target */
 "Protein" = "Protein";
 
 /* Service Section */
-"Meal Settings" = "Meal Settings";
+"Meal Settings" = "Måltids inställningar";
 
 /* Service Section */
 "Profile Override" = "Undantag från dina sparade profiler";
@@ -1362,7 +1362,7 @@ Enact a temp Basal or a temp target */
 "Cancel Profile Override" = "Avbryt Profil";
 
 /* Alert */
-"Cancel Temp Target" = "Avbryt tillfälligt målvärde";
+"Cancel Temp Target" = "Cancel Temp Target";
 
 /* Alert */
 "Return to Normal?" = "Tillbaka till normal profil?";
@@ -1575,7 +1575,7 @@ Enact a temp Basal or a temp target */
 "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." = "Byt podd nu. Insulintillförsel kommer att stoppas om %1$@ eller när insulinet är slut.";
 
 /* Label text for temporary basal rate summary */
-"Rate" = "Värde";
+"Rate" = "Betygsätt";
 
 /* Summary string for temporary basal rate configuration page */
 "%1$@ for %2$@" = "%1$@ i %2$@";
@@ -1662,10 +1662,10 @@ Enact a temp Basal or a temp target */
 "Allow Upload of Statistics to NS" = "Ladda upp till Nightscout";
 
 /* Low Glucose Threshold in Statistics settings */
-"Low" = "Lågt";
+"Low" = "Låg";
 
 /* High Glucose Threshold in Statistics settings */
-"High" = "Högt";
+"High" = "Hög";
 
 /* In Range */
 "In Range" = "Normalvärde";
@@ -1752,7 +1752,7 @@ Enact a temp Basal or a temp target */
 "Interval" = "Intervall";
 
 /* Median loop interval */
-"Duration" = "Duration";
+"Duration" = "Varaktighet";
 
 /* "Display SD */
 "Display SD instead of CV" = "Visa SD istället för CV";
@@ -1910,7 +1910,7 @@ Enact a temp Basal or a temp target */
 "Allow SMB With High Temptarget" = "Tillåt SMB vid högt temporärt målvärde";
 
 /* Headline "Allow SMB With High Temptarget" */
-"Allow SMB With High Temptarget" = "Tillåt SMB vid högt temporärt målvärde";
+"Allow SMB With High Temptarget" = "Tillåt SMB med högt tempmål";
 
 /* "Allow SMB With High Temptarget" */
 "Defaults to false. When true, allows supermicrobolus (if otherwise enabled) even with high temp targets (> 100 mg/dl)." = "Av som standard. När läge på, tillåts SMB:ar även vid höga temporära målvärden.";
@@ -2053,13 +2053,13 @@ Enact a temp Basal or a temp target */
 "Adjust Dynamic ISF constant" = "Ändra AF-konstant";
 
 /* Adjust Dynamic ISF constant */
-"Adjust Dynamic ISF constant" = "Ändra AF-konstant";
+"Adjust Dynamic ISF constant" = "Justera dynamisk ISF-konstant";
 
 /* Enable Dynamic ISF, Headline */
 "Enable Dynamic ISF" = "Aktivera dynamisk insulinkänslighet (ISF)";
 
 /* Headline "Enable Dynamic ISF" */
-"Enable Dynamic ISF" = "Aktivera dynamisk insulinkänslighet (ISF)";
+"Enable Dynamic ISF" = "Aktivera dynamisk ISF";
 
 /* Enable Dynamic ISF */
 "Calculate a new ISF with every loop cycle. New ISF will be based on current BG, TDD of insulin (past 24 hours or a weighted average) and an Adjustment Factor (default is 1).\n\nDynamic ISF and CR ratios will be limited by your autosens.min/max limits.\n\nDynamic ratio replaces the autosens.ratio: New ISF = Static ISF / Dynamic ratio,\nDynamic ratio = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - InsulinPeakTimeInMinutes" = "Beräkna ny insulinkänslighet varje loopcykel. Ny ISF (insulinkänslighet) beräknas på nuvarande blodsocker, TDD (insulin senaste 24 timmarna, eller ett viktad genomsnitt) och AF-konstant (standardvärde är 1).\n\nDynamiska ISF och CR (kolhydratkvot) kvoter begränsas av dina autosens.min/max-inställningar.\n\nDynamiska kvoterna ersätter autosens-kvoten: Ny ISF =inställd ISF / dynamisk kvot,\nDynamisk kvot = profile.sens * adjustmentFactor * tdd * Math.log(BG/insulinFactor+1) / 1800,\ninsulinFactor = 120 - tiden, i minuter, för insulinets maximala blodsockersänkande effekt.";
@@ -2077,7 +2077,7 @@ Enact a temp Basal or a temp target */
 "Activate Dynamic Carb Ratio (CR)" = "Aktivera dynamisk insulinkvot (CR)";
 
 /* Headline "Adjust Dynamic ISF constant" */
-"Adjust Dynamic ISF constant" = "Ändra AF-konstant";
+"Adjust Dynamic ISF constant" = "Justera dynamisk ISF-konstant";
 
 /* Adjust Dynamic ISF constant */
 "Adjust Dynamic ratios by a constant. Default is 0.5. The higher the value, the larger the correction of your ISF will be for a high or a low BG. Maximum correction is determined by the Autosens min/max settings. For Sigmoid function an adjustment factor of 0.4 - 0.5 is recommended to begin with. For the logaritmic formula there is less consensus, but starting with 0.5 - 0.8 is more appropiate for most users" = "Individuell justering (en multipel) av hur din insulinkänslighet räknas ut. Stnadarvärde är 0.5. Ett högre värde betyder mer aggressiv justering. Maximal insulinkänslighet och minimal insulinkänslighet bestäms av Autosens min/max inställningar och av din schemalagda inställning för insulinkänslighet.\n\nFör S-formad dynamisk inställning rekommendaras att börja med 0.3-0-4. För logaritmisk inställning rekommenderas att börja med 0.5-0.8";
@@ -2095,10 +2095,10 @@ Enact a temp Basal or a temp target */
 "Use a sigmoid function for ISF (and for CR, when enabled), instead of the default Logarithmic formula. Requires the Dynamic ISF setting to be enabled in settings\n\nThe Adjustment setting adjusts the slope of the curve (Y: Dynamic ratio, X: Blood Glucose). A lower value ==> less steep == less aggressive.\n\nThe autosens.min/max settings determines both the max/min limits for the dynamic ratio AND how much the dynamic ratio is adjusted. If AF is the slope of the curve, the autosens.min/max is the height of the graph, the Y-interval, where Y: dynamic ratio. The curve will always have a sigmoid shape, no matter which autosens.min/max settings are used, meaning these settings have big consequences for the outcome of the computed dynamic ISF. Please be careful setting a too high autosens.max value. With a proper profile ISF setting, you will probably never need it to be higher than 1.5\n\nAn Autosens.max limit > 1.5 is not advisable when using the sigmoid function." = "Använd en sigmoidfunktion för ISF (och för CR, när det är aktiverat), istället för den logaritmiska standardformeln. Kräver att den dynamiska ISF-inställningen är aktiverad i inställningarna\n\nJusteringsinställningen justerar lutningen på kurvan (Y: Dynamiskt förhållande, X: Blodglukos). Ett lägre värde ==> mindre brant == mindre aggressiv.\n\nAutosens. in/max inställningar bestämmer både max/min gränsen för det dynamiska förhållandet OCH hur mycket det dynamiska förhållandet justeras. Om AF är sluttningen av kurvan, autosens. in/max är höjden på grafen, Y-intervallet, där Y: dynamiskt förhållande. Kurvan kommer alltid att ha en sigmoid form, oavsett vilken autosens. in/max inställningar används, vilket innebär att dessa inställningar har stora konsekvenser för resultatet av den beräknade dynamiska ISF. Var försiktig med att ställa in ett för högt autosens.max värde. Med en korrekt profil ISF inställning, kommer du förmodligen aldrig behöver det att vara högre än 1.\n\nEn autosens.max gräns > 1.5 är inte lämpligt när du använder sigmoid-funktionen.";
 
 /* Headline Threshold Setting */
-"Minimum Safety Threshold (mg/dL)" = "Minimum Safety Threshold (mg/dL)";
+"Minimum Safety Threshold (mg/dL)" = "Minsta säkerhetströskel (mg/dL)";
 
 /* Minimum Safety Threshold */
-"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted.";
+"All insulin will be suspended if your glucose is predicted to drop below the safety threshold.\n\nMust be set between 60-120 mg/dL.\nTo convert from mmol/L, multiply by 18.\n\nNote: Basal may be resumed if there's negative IOB and glucose is rising faster than predicted." = "Allt insulin kommer att stängas av om din glukos förutspås sjunka under säkerhetströskeln.\n\nMåste anges mellan 60-120 mg/dL.\nKonvertera från mmol/L, multiplicera med 18.\n\nObs: Basal kan återupptas om det finns negativ IOB och glukos stiger snabbare än väntat.";
 
 /* Header */
 "Calculator settings" = "Boluskalkylatorinställning";
