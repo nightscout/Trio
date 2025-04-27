@@ -11,6 +11,8 @@ extension Onboarding {
 
         // Step management
         @State private var currentChapter: OnboardingChapter = .prepareTrio
+        @State private var showingChapterCompletion: OnboardingChapter? = nil
+
         @State private var currentStep: OnboardingStep = .welcome
         @State private var currentStartupSubstep: StartupSubstep = .startupGuide
         @State private var currentNightscoutSubstep: NightscoutSubstep = .setupSelection
@@ -92,6 +94,7 @@ extension Onboarding {
                             // Progress bar
                             OnboardingProgressBar(
                                 currentChapter: currentChapter,
+                                shouldDisplayChapterTitle: showingChapterCompletion == nil,
                                 currentStep: currentStep,
                                 currentSubstep: {
                                     switch currentStep {
@@ -122,6 +125,7 @@ extension Onboarding {
 
                         OnboardingStepContent(
                             currentStep: $currentStep,
+                            showingChapterCompletion: $showingChapterCompletion,
                             currentStartupSubstep: $currentStartupSubstep,
                             currentNightscoutSubstep: $currentNightscoutSubstep,
                             currentDeliverySubstep: $currentDeliverySubstep,
@@ -137,6 +141,7 @@ extension Onboarding {
 
                         OnboardingNavigationButtons(
                             currentStep: $currentStep,
+                            showingChapterCompletion: $showingChapterCompletion,
                             currentStartupSubstep: $currentStartupSubstep,
                             currentNightscoutSubstep: $currentNightscoutSubstep,
                             currentDeliverySubstep: $currentDeliverySubstep,
@@ -178,6 +183,7 @@ extension Onboarding {
 /// A progress bar that shows the user's progress through the onboarding process.
 struct OnboardingProgressBar: View {
     let currentChapter: OnboardingChapter
+    let shouldDisplayChapterTitle: Bool
     let currentStep: OnboardingStep
     let currentSubstep: Int?
     let stepsWithSubsteps: [OnboardingStep: Int]
@@ -185,10 +191,14 @@ struct OnboardingProgressBar: View {
 
     private let capsuleSize = CGFloat(UIFont.preferredFont(forTextStyle: .subheadline).pointSize) * 1.3
 
+    private var shouldShowCurrentChapter: Bool {
+        shouldDisplayChapterTitle && currentStep != .overview && currentStep != .completed
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // only show this for the actual chapters, not the overview of chapters
-            if currentStep != .overview {
+            // only show this for the actual chapters, not the overview of chapters or completed view
+            if shouldShowCurrentChapter {
                 HStack(spacing: CGFloat(UIFont.preferredFont(forTextStyle: .subheadline).pointSize)) {
                     Text("\(currentChapter.rawValue + 1)")
                         .font(.subheadline)
@@ -271,6 +281,7 @@ struct OnboardingProgressBar: View {
 
 struct OnboardingStepContent: View {
     @Binding var currentStep: OnboardingStep
+    @Binding var showingChapterCompletion: OnboardingChapter?
     @Binding var currentStartupSubstep: StartupSubstep
     @Binding var currentNightscoutSubstep: NightscoutSubstep
     @Binding var currentDeliverySubstep: DeliveryLimitSubstep
@@ -287,118 +298,84 @@ struct OnboardingStepContent: View {
                 VStack(alignment: .leading, spacing: 20) {
                     Color.clear.frame(height: 0).id("top")
 
-                    if currentStep != .welcome && currentStep != .completed {
-                        HStack {
-                            if currentStep == .nightscout {
-                                Image(currentStep.iconName)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 60, height: 60)
-                            } else if currentStep == .bluetooth {
-                                Image(currentStep.iconName)
-                                    .font(.system(size: 40))
-                                    .foregroundColor(currentStep.accentColor)
-                                    .frame(width: 60, height: 60)
-                                    .background(
-                                        Circle()
-                                            .fill(currentStep.accentColor.opacity(0.2))
-                                    )
-                            } else {
-                                Image(systemName: currentStep.iconName)
-                                    .font(.system(size: 40))
-                                    .foregroundColor(currentStep.accentColor)
-                                    .frame(width: 60, height: 60)
-                                    .background(
-                                        Circle()
-                                            .fill(currentStep.accentColor.opacity(0.2))
-                                    )
-                            }
+                    if currentStep != .welcome, currentStep != .completed, showingChapterCompletion == nil {
+                        contentHeader
+                    }
 
-                            VStack(alignment: .leading) {
-                                Text(currentStep.title)
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.primary)
-
-                                Text(currentStep.description)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                    .fixedSize(horizontal: false, vertical: true)
+                    if let chapter = showingChapterCompletion {
+                        CompletedStepView(isOnboardingCompleted: false, currentChapter: chapter)
+                    } else {
+                        Group {
+                            switch currentStep {
+                            case .welcome:
+                                WelcomeStepView()
+                            case .startupInfo:
+                                switch currentStartupSubstep {
+                                case .startupGuide:
+                                    StartupGuideStepView(state: state)
+                                case .returningUser:
+                                    StartupReturningUserStepView(state: state)
+                                case .forceCloseWarning:
+                                    StartupForceCloseWarningStepView(state: state)
+                                }
+                            case .overview:
+                                OverviewStepView()
+                            case .diagnostics:
+                                DiagnosticsStepView(state: state)
+                            case .nightscout:
+                                switch currentNightscoutSubstep {
+                                case .setupSelection:
+                                    NightscoutSetupStepView(state: state)
+                                case .connectToNightscout:
+                                    NightscoutLoginStepView(state: state)
+                                case .importFromNightscout:
+                                    NightscoutImportStepView(state: state)
+                                }
+                            case .unitSelection:
+                                UnitSelectionStepView(state: state)
+                            case .glucoseTarget:
+                                GlucoseTargetStepView(state: state)
+                            case .basalRates:
+                                BasalProfileStepView(state: state)
+                            case .carbRatio:
+                                CarbRatioStepView(state: state)
+                            case .insulinSensitivity:
+                                InsulinSensitivityStepView(state: state)
+                            case .deliveryLimits:
+                                DeliveryLimitsStepView(state: state, substep: currentDeliverySubstep)
+                            case .algorithmSettings:
+                                switch currentAlgorithmSettingsOverviewSubstep {
+                                case .contents:
+                                    AlgorithmSettingsContentsStepView(state: state)
+                                case .importantNotes:
+                                    AlgorithmSettingsImportantNotesStepView(state: state)
+                                }
+                            case .autosensSettings:
+                                AlgorithmSettingsSubstepView(state: state, substep: currentAutosensSubstep)
+                            case .smbSettings:
+                                AlgorithmSettingsSubstepView(state: state, substep: currentSMBSubstep)
+                            case .targetBehavior:
+                                AlgorithmSettingsSubstepView(state: state, substep: currentTargetBehaviorSubstep)
+                            case .notifications:
+                                NotificationPermissionStepView(state: state, currentStep: $currentStep)
+                            case .bluetooth:
+                                BluetoothPermissionStepView(
+                                    state: state,
+                                    bluetoothManager: state.bluetoothManager,
+                                    currentStep: $currentStep
+                                )
+                            case .completed:
+                                CompletedStepView(isOnboardingCompleted: true, currentChapter: nil)
                             }
                         }
+                        .transition(
+                            navigationDirection == .forward
+                                ? .asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading))
+                                : .asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing))
+                        )
                         .padding(.horizontal)
+                        .id(currentStep.id)
                     }
-
-                    Group {
-                        switch currentStep {
-                        case .welcome:
-                            WelcomeStepView()
-                        case .startupInfo:
-                            switch currentStartupSubstep {
-                            case .startupGuide:
-                                StartupGuideStepView(state: state)
-                            case .returningUser:
-                                StartupReturningUserStepView(state: state)
-                            case .forceCloseWarning:
-                                StartupForceCloseWarningStepView(state: state)
-                            }
-                        case .overview:
-                            OverviewStepView()
-                        case .diagnostics:
-                            DiagnosticsStepView(state: state)
-                        case .nightscout:
-                            switch currentNightscoutSubstep {
-                            case .setupSelection:
-                                NightscoutSetupStepView(state: state)
-                            case .connectToNightscout:
-                                NightscoutLoginStepView(state: state)
-                            case .importFromNightscout:
-                                NightscoutImportStepView(state: state)
-                            }
-                        case .unitSelection:
-                            UnitSelectionStepView(state: state)
-                        case .glucoseTarget:
-                            GlucoseTargetStepView(state: state)
-                        case .basalRates:
-                            BasalProfileStepView(state: state)
-                        case .carbRatio:
-                            CarbRatioStepView(state: state)
-                        case .insulinSensitivity:
-                            InsulinSensitivityStepView(state: state)
-                        case .deliveryLimits:
-                            DeliveryLimitsStepView(state: state, substep: currentDeliverySubstep)
-                        case .algorithmSettings:
-                            switch currentAlgorithmSettingsOverviewSubstep {
-                            case .contents:
-                                AlgorithmSettingsContentsStepView(state: state)
-                            case .importantNotes:
-                                AlgorithmSettingsImportantNotesStepView(state: state)
-                            }
-                        case .autosensSettings:
-                            AlgorithmSettingsSubstepView(state: state, substep: currentAutosensSubstep)
-                        case .smbSettings:
-                            AlgorithmSettingsSubstepView(state: state, substep: currentSMBSubstep)
-                        case .targetBehavior:
-                            AlgorithmSettingsSubstepView(state: state, substep: currentTargetBehaviorSubstep)
-                        case .notifications:
-                            NotificationPermissionStepView(state: state, currentStep: $currentStep)
-                        case .bluetooth:
-                            BluetoothPermissionStepView(
-                                state: state,
-                                bluetoothManager: state.bluetoothManager,
-                                currentStep: $currentStep
-                            )
-                        case .completed:
-                            CompletedStepView()
-                        }
-                    }
-                    .transition(
-                        navigationDirection == .forward
-                            ? .asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading))
-                            : .asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing))
-                    )
-                    .padding(.horizontal)
-                    .id(currentStep.id)
                 }
                 .padding(.bottom, 80)
             }
@@ -418,10 +395,53 @@ struct OnboardingStepContent: View {
             }
         }
     }
+
+    private var contentHeader: some View {
+        HStack {
+            if currentStep == .nightscout {
+                Image(currentStep.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 60, height: 60)
+            } else if currentStep == .bluetooth {
+                Image(currentStep.iconName)
+                    .font(.system(size: 40))
+                    .foregroundColor(currentStep.accentColor)
+                    .frame(width: 60, height: 60)
+                    .background(
+                        Circle()
+                            .fill(currentStep.accentColor.opacity(0.2))
+                    )
+            } else {
+                Image(systemName: currentStep.iconName)
+                    .font(.system(size: 40))
+                    .foregroundColor(currentStep.accentColor)
+                    .frame(width: 60, height: 60)
+                    .background(
+                        Circle()
+                            .fill(currentStep.accentColor.opacity(0.2))
+                    )
+            }
+
+            VStack(alignment: .leading) {
+                Text(currentStep.title)
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+
+                Text(currentStep.description)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.horizontal)
+    }
 }
 
 struct OnboardingNavigationButtons: View {
     @Binding var currentStep: OnboardingStep
+    @Binding var showingChapterCompletion: OnboardingChapter?
     @Binding var currentStartupSubstep: StartupSubstep
     @Binding var currentNightscoutSubstep: NightscoutSubstep
     @Binding var currentDeliverySubstep: DeliveryLimitSubstep
@@ -478,6 +498,11 @@ struct OnboardingNavigationButtons: View {
     // MARK: - Navigation Logic
 
     private func handleBackNavigation() {
+        if showingChapterCompletion != nil {
+            showingChapterCompletion = nil
+            return
+        }
+
         switch currentStep {
         case .startupInfo:
             if let previousSub = StartupSubstep(rawValue: currentStartupSubstep.rawValue - 1) {
@@ -588,6 +613,19 @@ struct OnboardingNavigationButtons: View {
     }
 
     private func handleNextNavigation() {
+        if showingChapterCompletion != nil {
+            showingChapterCompletion = nil
+            if let next = currentStep.next {
+                currentStep = next
+            }
+            return
+        }
+
+        if let chapter = currentStep.chapterCompletion {
+            showingChapterCompletion = chapter
+            return
+        }
+
         switch currentStep {
         case .startupInfo:
             if let next = StartupSubstep(rawValue: currentStartupSubstep.rawValue + 1) {
@@ -620,9 +658,9 @@ struct OnboardingNavigationButtons: View {
         case .deliveryLimits:
             if let next = DeliveryLimitSubstep(rawValue: currentDeliverySubstep.rawValue + 1) {
                 currentDeliverySubstep = next
-            } else if let nextStep = currentStep.next {
-                currentStep = nextStep
-                currentDeliverySubstep = .maxIOB
+            } else {
+                currentDeliverySubstep = .minimumSafetyThreshold
+                showingChapterCompletion = .deliveryLimits
             }
 
         case .algorithmSettings:

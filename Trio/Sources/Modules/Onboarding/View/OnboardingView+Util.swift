@@ -321,6 +321,23 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return Color.red
         }
     }
+
+    var chapterCompletion: OnboardingChapter? {
+        switch self {
+        case .unitSelection:
+            return .prepareTrio
+        case .insulinSensitivity:
+            return .therapySettings
+        case .deliveryLimits:
+            // ❗ Delivery limits depends on the substep, not just the step.
+            // Skip here
+            return nil
+        case .targetBehavior:
+            return .algorithmSettings
+        default:
+            return nil
+        }
+    }
 }
 
 var nonInfoOnboardingSteps: [OnboardingStep] { OnboardingStep.allCases
