@@ -6,6 +6,92 @@ enum OnboardingNavigationDirection {
     case backward
 }
 
+enum OnboardingChapter: Int, CaseIterable {
+    case prepareTrio
+    case therapySettings
+    case deliveryLimits
+    case algorithmSettings
+    case permissionRequests
+
+    var id: Int { rawValue }
+
+    var title: String {
+        switch self {
+        case .prepareTrio:
+            return String(localized: "Prepare Trio")
+        case .therapySettings:
+            return String(localized: "Therapy Settings")
+        case .deliveryLimits:
+            return String(localized: "Delivery Limits")
+        case .algorithmSettings:
+            return String(localized: "Algorithm Settings")
+        case .permissionRequests:
+            return String(localized: "Permission Requests")
+        }
+    }
+
+    var overviewDescription: String {
+        switch self {
+        case .prepareTrio:
+            return String(
+                localized: "Configure diagnostics sharing, optionally sync with Nightscout, and enter essentials."
+            )
+        case .therapySettings:
+            return String(
+                localized: "Define your glucose targets, basal rates, carb ratios, and insulin sensitivities."
+            )
+        case .deliveryLimits:
+            return String(
+                localized: "Set boundaries for insulin delivery and carb entries to help Trio keep you safe."
+            )
+        case .algorithmSettings:
+            return String(
+                localized: "Customize Trio’s algorithm features. Most users start with the recommended settings."
+            )
+        case .permissionRequests:
+            return String(
+                localized: "Authorize Trio to send notifications and use Bluetooth. You must allow both for Trio to work properly."
+            )
+        }
+    }
+
+    var duration: String {
+        switch self {
+        case .prepareTrio:
+            return "3-5"
+        case .therapySettings:
+            return "5-10"
+        case .deliveryLimits:
+            return "3-5"
+        case .algorithmSettings:
+            return "5-10"
+        case .permissionRequests:
+            return "1"
+        }
+    }
+
+    var completedDescription: String {
+        switch self {
+        case .prepareTrio:
+            return String(
+                localized: "App diagnostics sharing, Nightscout setup, and unit and pump model selection are all complete."
+            )
+        case .therapySettings:
+            return String(
+                localized: "Glucose target, basal rates, carb ratios, and insulin sensitivity match your needs."
+            )
+        case .deliveryLimits:
+            return String(
+                localized: "Safety boundaries for insulin delivery and carb entries are set to help Trio keep you safe."
+            )
+        case .algorithmSettings:
+            return String(localized: "Trio’s algorithm features are customized to fit your preferences and needs.")
+        case .permissionRequests:
+            return String(localized: "Notifications and Bluetooth permissions are handled to your liking.")
+        }
+    }
+}
+
 /// Represents the different steps in the onboarding process.
 enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     case welcome

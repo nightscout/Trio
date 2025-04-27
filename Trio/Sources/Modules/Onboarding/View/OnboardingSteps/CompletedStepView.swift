@@ -20,49 +20,17 @@ struct CompletedStepView: View {
             .foregroundColor(.secondary)
 
             VStack(alignment: .leading, spacing: 12) {
-                completedItemsView(
-                    stepIndex: 1,
-                    title: String(localized: "Prepare Trio"),
-                    description: String(
-                        localized: "App diagnostics sharing, Nightscout setup, and unit and pump model selection are all complete."
+                ForEach(Array(OnboardingChapter.allCases.enumerated()), id: \.element.id) { index, chapter in
+                    completedItemsView(
+                        stepIndex: index + 1,
+                        title: chapter.title,
+                        description: chapter.completedDescription
                     )
-                )
 
-                Divider()
-
-                completedItemsView(
-                    stepIndex: 2,
-                    title: String(localized: "Therapy Settings"),
-                    description: String(
-                        localized: "Glucose target, basal rates, carb ratios, and insulin sensitivity match your needs."
-                    )
-                )
-
-                Divider()
-
-                completedItemsView(
-                    stepIndex: 3,
-                    title: String(localized: "Delivery Limits"),
-                    description: String(
-                        localized: "Safety boundaries for insulin delivery and carb entries are set to help Trio keep you safe."
-                    )
-                )
-
-                Divider()
-
-                completedItemsView(
-                    stepIndex: 4,
-                    title: String(localized: "Algorithm Settings"),
-                    description: String(localized: "Trio’s algorithm features are customized to fit your preferences and needs.")
-                )
-
-                Divider()
-
-                completedItemsView(
-                    stepIndex: 5,
-                    title: String(localized: "Permission Requests"),
-                    description: String(localized: "Notifications and Bluetooth permissions are handled to your liking.")
-                )
+                    if index < OnboardingChapter.allCases.count {
+                        Divider()
+                    }
+                }
             }
             .padding()
             .background(Color.green.opacity(0.1))

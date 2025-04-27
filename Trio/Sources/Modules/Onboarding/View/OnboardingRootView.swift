@@ -148,29 +148,32 @@ struct OnboardingProgressBar: View {
     let stepsWithSubsteps: [OnboardingStep: Int]
     let nightscoutSetupOption: NightscoutSetupOption
 
-    var body: some View {
-        HStack(spacing: 4) {
-            ForEach(renderedSteps, id: \.id) { step in
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 4)
-                        .cornerRadius(2)
+    private let capsuleSize = CGFloat(UIFont.preferredFont(forTextStyle: .subheadline).pointSize) * 1.3
 
-                    GeometryReader { geo in
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 4) {
+                ForEach(renderedSteps, id: \.id) { step in
+                    ZStack(alignment: .leading) {
                         Rectangle()
-                            .fill(Color.blue)
-                            .frame(
-                                width: geo.size.width * fillFraction(for: step.step, totalSubsteps: step.substeps),
-                                height: 4
-                            )
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 4)
                             .cornerRadius(2)
+
+                        GeometryReader { geo in
+                            Rectangle()
+                                .fill(Color.blue)
+                                .frame(
+                                    width: geo.size.width * fillFraction(for: step.step, totalSubsteps: step.substeps),
+                                    height: 4
+                                )
+                                .cornerRadius(2)
+                        }
                     }
+                    .frame(height: 4)
                 }
-                .frame(height: 4)
             }
-        }
-        .padding(.horizontal)
+        }.padding(.horizontal)
     }
 
     private var renderedSteps: [(id: String, step: OnboardingStep, substeps: Int?)] {
@@ -267,7 +270,7 @@ struct OnboardingStepContent: View {
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
-                        .padding([.horizontal, .top])
+                        .padding(.horizontal)
                     }
 
                     Group {
@@ -401,10 +404,6 @@ struct OnboardingNavigationButtons: View {
 
     private func handleBackNavigation() {
         switch currentStep {
-        case .completed:
-            currentStep = .targetBehavior
-            currentTargetBehaviorSubstep = .halfBasalTarget
-
         case .nightscout:
             if currentNightscoutSubstep == .setupSelection,
                let previous = currentStep.previous
@@ -473,6 +472,16 @@ struct OnboardingNavigationButtons: View {
                 currentTargetBehaviorSubstep = .highTempTargetRaisesSensitivity
                 currentSMBSubstep = .maxDeltaGlucoseThreshold
             }
+
+        case .notifications:
+            currentTargetBehaviorSubstep = .halfBasalTarget
+
+            if let previous = currentStep.previous {
+                currentStep = previous
+            }
+
+        case .completed:
+            currentStep = .bluetooth
 
         default:
             if let previous = currentStep.previous {
