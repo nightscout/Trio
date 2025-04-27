@@ -95,7 +95,7 @@ enum OnboardingChapter: Int, CaseIterable {
 /// Represents the different steps in the onboarding process.
 enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     case welcome
-    case startupGuide
+    case startupInfo
     case overview
     case diagnostics
     case nightscout
@@ -119,17 +119,12 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         self == .deliveryLimits
     }
 
-    var substeps: [DeliveryLimitSubstep] {
-        guard hasSubsteps else { return [] }
-        return DeliveryLimitSubstep.allCases
-    }
-
     /// The title to display for this onboarding step.
     var title: String {
         switch self {
         case .welcome:
             return String(localized: "Welcome to Trio")
-        case .startupGuide:
+        case .startupInfo:
             return String(localized: "Startup Guide")
         case .overview:
             return String(localized: "Overview")
@@ -173,7 +168,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return String(
                 localized: "Trio is a powerful app that helps you manage your diabetes. Let's get started by setting up a few important parameters that will help Trio work effectively for you."
             )
-        case .startupGuide:
+        case .startupInfo:
             return String(
                 localized: "Trio comes with a helpful Startup Guide. We recommend opening it now and following along as you go — side by side."
             )
@@ -245,7 +240,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         switch self {
         case .welcome:
             return "hand.wave.fill"
-        case .startupGuide:
+        case .startupInfo:
             return "list.bullet.clipboard.fill"
         case .overview:
             return "checklist.unchecked"
@@ -311,7 +306,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
              .notifications,
              .overview,
              .smbSettings,
-             .startupGuide,
+             .startupInfo,
              .targetBehavior,
              .unitSelection,
              .welcome:
@@ -329,7 +324,15 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
 }
 
 var nonInfoOnboardingSteps: [OnboardingStep] { OnboardingStep.allCases
-    .filter { $0 != .welcome && $0 != .startupGuide && $0 != .overview && $0 != .completed }
+    .filter { $0 != .welcome && $0 != .startupInfo && $0 != .overview && $0 != .completed }
+}
+
+enum StartupSubstep: Int, CaseIterable, Identifiable {
+    case startupGuide
+    case returningUser
+    case forceCloseWarning
+
+    var id: Int { rawValue }
 }
 
 enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {

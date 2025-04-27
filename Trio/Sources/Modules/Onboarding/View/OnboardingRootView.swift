@@ -12,6 +12,7 @@ extension Onboarding {
         // Step management
         @State private var currentChapter: OnboardingChapter = .prepareTrio
         @State private var currentStep: OnboardingStep = .welcome
+        @State private var currentStartupSubstep: StartupSubstep = .startupGuide
         @State private var currentNightscoutSubstep: NightscoutSubstep = .setupSelection
         @State private var currentDeliverySubstep: DeliveryLimitSubstep = .maxIOB
         @State private var currentAutosensSubstep: AutosensSettingsSubstep = .autosensMin
@@ -65,17 +66,17 @@ extension Onboarding {
 
         // Next button conditional
         private var shouldDisableNextButton: Bool {
-            (currentStep == .startupGuide && !state.hasReadImportantStartupNotes)
-                ||
-                (currentStep == .diagnostics && state.diagnosticsSharingOption == .enabled && !state.hasAcceptedPrivacyPolicy)
+//            (currentStep == .startupGuide && !state.hasReadImportantStartupNotes)
+//                ||
+            (currentStep == .diagnostics && state.diagnosticsSharingOption == .enabled && !state.hasAcceptedPrivacyPolicy)
                 ||
                 (currentStep == .nightscout && didSelectNightscoutSetupOption)
                 ||
                 (currentStep == .nightscout && hasValidNightscoutConnection)
                 ||
                 (currentStep == .nightscout && didSelectNightscoutImportOption)
-                ||
-                (currentStep == .algorithmSettings && !state.hasReadAlgorithmSetupInformation)
+//                ||
+//                (currentStep == .algorithmSettings && !state.hasReadAlgorithmSetupInformation)
         }
 
         var body: some View {
@@ -122,6 +123,7 @@ extension Onboarding {
 
                         OnboardingStepContent(
                             currentStep: $currentStep,
+                            currentStartupSubstep: $currentStartupSubstep,
                             currentNightscoutSubstep: $currentNightscoutSubstep,
                             currentDeliverySubstep: $currentDeliverySubstep,
                             currentAutosensSubstep: $currentAutosensSubstep,
@@ -135,6 +137,7 @@ extension Onboarding {
 
                         OnboardingNavigationButtons(
                             currentStep: $currentStep,
+                            currentStartupSubstep: $currentStartupSubstep,
                             currentNightscoutSubstep: $currentNightscoutSubstep,
                             currentDeliverySubstep: $currentDeliverySubstep,
                             currentAutosensSubstep: $currentAutosensSubstep,
@@ -267,6 +270,7 @@ struct OnboardingProgressBar: View {
 
 struct OnboardingStepContent: View {
     @Binding var currentStep: OnboardingStep
+    @Binding var currentStartupSubstep: StartupSubstep
     @Binding var currentNightscoutSubstep: NightscoutSubstep
     @Binding var currentDeliverySubstep: DeliveryLimitSubstep
     @Binding var currentAutosensSubstep: AutosensSettingsSubstep
@@ -327,8 +331,15 @@ struct OnboardingStepContent: View {
                         switch currentStep {
                         case .welcome:
                             WelcomeStepView()
-                        case .startupGuide:
-                            StartupGuideStepView(state: state)
+                        case .startupInfo:
+                            switch currentStartupSubstep {
+                            case .startupGuide:
+                                StartupGuideStepView(state: state)
+                            case .returningUser:
+                                StartupReturningUserStepView(state: state)
+                            case .forceCloseWarning:
+                                StartupForceCloseWarningStepView(state: state)
+                            }
                         case .overview:
                             OverviewStepView()
                         case .diagnostics:
@@ -385,11 +396,15 @@ struct OnboardingStepContent: View {
                 .padding(.bottom, 80)
             }
             .onChange(of: currentStep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
+            .onChange(of: currentStartupSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
             .onChange(of: currentNightscoutSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
             .onChange(of: currentDeliverySubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
+            .onChange(of: currentAutosensSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
+            .onChange(of: currentSMBSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
+            .onChange(of: currentTargetBehaviorSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
             .safeAreaInset(edge: .top) {
                 // avoid letting content scroll beneath the status bar / dynamic island for content views with not progress bar (which adds top spacing)
-                if currentStep == .startupGuide || currentStep == .completed {
+                if currentStep == .startupInfo || currentStep == .completed {
                     Color.clear.frame(height: 0)
                 }
             }
@@ -399,6 +414,7 @@ struct OnboardingStepContent: View {
 
 struct OnboardingNavigationButtons: View {
     @Binding var currentStep: OnboardingStep
+    @Binding var currentStartupSubstep: StartupSubstep
     @Binding var currentNightscoutSubstep: NightscoutSubstep
     @Binding var currentDeliverySubstep: DeliveryLimitSubstep
     @Binding var currentAutosensSubstep: AutosensSettingsSubstep
@@ -454,6 +470,21 @@ struct OnboardingNavigationButtons: View {
 
     private func handleBackNavigation() {
         switch currentStep {
+        case .startupInfo:
+            if let previousSub = StartupSubstep(rawValue: currentStartupSubstep.rawValue - 1) {
+                currentStartupSubstep = previousSub
+            } else if let previous = currentStep.previous {
+                currentStep = previous
+                currentStartupSubstep = .startupGuide
+            }
+
+        case .overview:
+            currentStartupSubstep = .forceCloseWarning
+
+            if let previous = currentStep.previous {
+                currentStep = previous
+            }
+
         case .nightscout:
             if currentNightscoutSubstep == .setupSelection,
                let previous = currentStep.previous
@@ -542,6 +573,14 @@ struct OnboardingNavigationButtons: View {
 
     private func handleNextNavigation() {
         switch currentStep {
+        case .startupInfo:
+            if let next = StartupSubstep(rawValue: currentStartupSubstep.rawValue + 1) {
+                currentStartupSubstep = next
+            } else if let nextStep = currentStep.next {
+                currentStep = nextStep
+                currentStartupSubstep = .startupGuide
+            }
+
         case .nightscout:
             if currentNightscoutSubstep != .importFromNightscout {
                 if currentNightscoutSubstep == .setupSelection,
