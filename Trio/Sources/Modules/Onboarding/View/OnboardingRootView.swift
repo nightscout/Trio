@@ -10,12 +10,39 @@ extension Onboarding {
         let onboardingManager: OnboardingManager
 
         // Step management
+        @State private var currentChapter: OnboardingChapter = .prepareTrio
         @State private var currentStep: OnboardingStep = .welcome
         @State private var currentNightscoutSubstep: NightscoutSubstep = .setupSelection
         @State private var currentDeliverySubstep: DeliveryLimitSubstep = .maxIOB
         @State private var currentAutosensSubstep: AutosensSettingsSubstep = .autosensMin
         @State private var currentSMBSubstep: SMBSettingsSubstep = .enableSMBAlways
         @State private var currentTargetBehaviorSubstep: TargetBehaviorSubstep = .highTempTargetRaisesSensitivity
+
+        private func updateCurrentChapter() {
+            switch currentStep {
+            case .diagnostics,
+                 .nightscout,
+                 .unitSelection:
+                currentChapter = .prepareTrio
+            case .basalRates,
+                 .carbRatio,
+                 .glucoseTarget,
+                 .insulinSensitivity:
+                currentChapter = .therapySettings
+            case .deliveryLimits:
+                currentChapter = .deliveryLimits
+            case .algorithmSettings,
+                 .autosensSettings,
+                 .smbSettings,
+                 .targetBehavior:
+                currentChapter = .algorithmSettings
+            case .bluetooth,
+                 .notifications:
+                currentChapter = .permissionRequests
+            default:
+                break
+            }
+        }
 
         // Animation states
         @State private var animationScale: CGFloat = 1.0
@@ -66,6 +93,7 @@ extension Onboarding {
                         if (nonInfoOnboardingSteps + [OnboardingStep.overview, OnboardingStep.completed]).contains(currentStep) {
                             // Progress bar
                             OnboardingProgressBar(
+                                currentChapter: currentChapter,
                                 currentStep: currentStep,
                                 currentSubstep: {
                                     switch currentStep {
@@ -135,6 +163,8 @@ extension Onboarding {
                     }
                     isAnimating = true
                 }
+
+                updateCurrentChapter()
             }
             .onAppear(perform: configureView)
         }
@@ -143,6 +173,7 @@ extension Onboarding {
 
 /// A progress bar that shows the user's progress through the onboarding process.
 struct OnboardingProgressBar: View {
+    let currentChapter: OnboardingChapter
     let currentStep: OnboardingStep
     let currentSubstep: Int?
     let stepsWithSubsteps: [OnboardingStep: Int]
@@ -152,6 +183,25 @@ struct OnboardingProgressBar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            // only show this for the actual chapters, not the overview of chapters
+            if currentStep != .overview {
+                HStack(spacing: CGFloat(UIFont.preferredFont(forTextStyle: .subheadline).pointSize)) {
+                    Text("\(currentChapter.rawValue + 1)")
+                        .font(.subheadline)
+                        .fontWeight(.heavy)
+                        .frame(width: capsuleSize, height: capsuleSize, alignment: .center)
+                        .background(Color.blue)
+                        .foregroundStyle(Color.bgDarkBlue)
+                        .clipShape(Capsule())
+                    Text(currentChapter.title)
+                        .font(.subheadline)
+                        .kerning(capsuleSize / 4)
+                        .textCase(.uppercase)
+                        .bold()
+                        .foregroundStyle(Color.secondary)
+                }
+            }
+
             HStack(spacing: 4) {
                 ForEach(renderedSteps, id: \.id) { step in
                     ZStack(alignment: .leading) {

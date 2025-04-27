@@ -27,7 +27,7 @@ struct CompletedStepView: View {
                         description: chapter.completedDescription
                     )
 
-                    if index < OnboardingChapter.allCases.count {
+                    if index < (OnboardingChapter.allCases.count - 1) {
                         Divider()
                     }
                 }

@@ -22,7 +22,7 @@ struct OverviewStepView: View {
                         description: chapter.overviewDescription
                     )
 
-                    if index < OnboardingChapter.allCases.count {
+                    if index < (OnboardingChapter.allCases.count - 1) {
                         Divider()
                     }
                 }
