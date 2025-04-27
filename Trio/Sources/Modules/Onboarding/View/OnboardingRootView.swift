@@ -659,6 +659,8 @@ struct OnboardingNavigationButtons: View {
             if let next = DeliveryLimitSubstep(rawValue: currentDeliverySubstep.rawValue + 1) {
                 currentDeliverySubstep = next
             } else {
+                /// Setting delivery substep to the last substep (`.minimumSafetyThreshold`) and `showingChapterCompletion` to non-`nil`
+                /// prompts display of chapter completion screen; if user navigates back, it stays at correct substep.
                 currentDeliverySubstep = .minimumSafetyThreshold
                 showingChapterCompletion = .deliveryLimits
             }
@@ -700,9 +702,11 @@ struct OnboardingNavigationButtons: View {
         case .targetBehavior:
             if let next = TargetBehaviorSubstep(rawValue: currentTargetBehaviorSubstep.rawValue + 1) {
                 currentTargetBehaviorSubstep = next
-            } else if let nextStep = currentStep.next {
-                currentStep = nextStep
-                currentTargetBehaviorSubstep = .highTempTargetRaisesSensitivity
+            } else {
+                /// Setting target behavior substep to the last substep (`.halfBasalTarget`) and `showingChapterCompletion` to non-`nil`
+                /// prompts display of chapter completion screen; if user navigates back, it stays at correct substep.
+                currentTargetBehaviorSubstep = .halfBasalTarget
+                showingChapterCompletion = .algorithmSettings
             }
 
         case .notifications:

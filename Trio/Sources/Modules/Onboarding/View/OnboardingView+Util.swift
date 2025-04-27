@@ -329,11 +329,13 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         case .insulinSensitivity:
             return .therapySettings
         case .deliveryLimits:
-            // ❗ Delivery limits depends on the substep, not just the step.
+            // ❗ Delivery Limits depends on the substep, not just the step.
             // Skip here
             return nil
         case .targetBehavior:
-            return .algorithmSettings
+            // ❗ Target Behavior depends on the substep, not just the step.
+            // Skip here
+            return nil
         default:
             return nil
         }
