@@ -16,7 +16,6 @@ extension Onboarding {
         @ObservationIgnored @Injected() var notificationsManager: UserNotificationsManager!
         @ObservationIgnored @Injected() var bluetoothManager: BluetoothStateManager!
 
-        private let coreDataStack = CoreDataStack.shared
         private let settingsProvider = PickerSettingsProvider.shared
 
         // MARK: - App Diagnostics
@@ -143,6 +142,7 @@ extension Onboarding {
         // MARK: - Permission Requests
 
         var hasNotificationsGranted = false
+        var shouldDisplayCustomNotificationAlert: Bool = false
 
         var shouldDisplayBluetoothRequestAlert: Bool = false
         var hasBluetoothGranted = false
@@ -569,7 +569,6 @@ extension Onboarding {
             saveBasalProfile()
             saveCarbRatios()
             saveISFValues()
-            migrateDataFromJSON()
         }
 
         /// Persists the current diagnostics sharing option to UserDefaults as a boolean.
@@ -628,21 +627,6 @@ extension Onboarding {
             let defaultDIA = settingsProvider.settings.dia.value
             let pumpSettings = PumpSettings(insulinActionCurve: defaultDIA, maxBolus: maxBolus, maxBasal: maxBasal)
             fileStorage.save(pumpSettings, as: OpenAPS.Settings.settings)
-        }
-
-        func migrateDataFromJSON() {
-            Task {
-                let importer = JSONImporter(context: coreDataStack.newTaskContext())
-                async let importPumpHistory: () = importer.importPumpHistoryIfNeeded()
-                async let importCarbHistory: () = importer.importCarbHistoryIfNeeded()
-                async let importGlucoseHistory: () = importer.importGlucoseHistoryIfNeeded()
-                async let importDeterminationHistory: () = importer.importDeterminationHistoryIfNeeded()
-
-                await importPumpHistory
-                await importCarbHistory
-                await importGlucoseHistory
-                await importDeterminationHistory
-            }
         }
     }
 }

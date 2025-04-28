@@ -70,39 +70,6 @@ extension CarbEntryStored {
     }
 }
 
-// MARK: - CarbEntryDTO and Conformance to ImportableDTO
-
-/// Data Transfer Object for Carb entries.
-struct CarbEntryDTO: Decodable, ImportableDTO {
-    var id: UUID?
-    var carbs: Double
-    var date: Date?
-    var fat: Double?
-    var protein: Double?
-    var isFPU: Bool?
-    var note: String?
-    var enteredBy: String?
-
-    // Conformance to ImportableDTO
-    typealias ManagedObject = CarbEntryStored
-
-    /// Stores the DTO in Core Data by mapping it to the corresponding managed object.
-    func store(in context: NSManagedObjectContext) -> CarbEntryStored {
-        let carbEntry = CarbEntryStored(context: context)
-        carbEntry.id = id ?? UUID()
-        carbEntry.carbs = carbs
-        carbEntry.date = date ?? Date()
-        carbEntry.fat = fat ?? 0.0
-        carbEntry.protein = protein ?? 0.0
-        carbEntry.isFPU = isFPU ?? false
-        carbEntry.note = note
-        carbEntry.isUploadedToNS = true
-        carbEntry.isUploadedToHealth = true
-        carbEntry.isUploadedToTidepool = true
-        return carbEntry
-    }
-}
-
 extension CarbEntryStored: Encodable {
     enum CodingKeys: String, CodingKey {
         case actualDate

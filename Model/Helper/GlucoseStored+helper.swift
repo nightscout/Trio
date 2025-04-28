@@ -132,56 +132,6 @@ extension NSPredicate {
     }
 }
 
-struct GlucoseEntryDTO: Decodable, ImportableDTO {
-    var id: UUID?
-    var date: Date?
-    var glucose: Int
-    var direction: String?
-    var isManual: Bool?
-
-    // Custom initializer to handle numeric dates
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decodeIfPresent(UUID.self, forKey: .id)
-        glucose = try container.decode(Int.self, forKey: .glucose)
-        direction = try container.decodeIfPresent(String.self, forKey: .direction)
-        isManual = try container.decodeIfPresent(Bool.self, forKey: .isManual) ?? false
-
-        // Handle numeric date
-        if let timestamp = try? container.decode(Double.self, forKey: .date) {
-            // Assuming the timestamp is in milliseconds
-            date = Date(timeIntervalSince1970: timestamp / 1000)
-        } else {
-            date = nil
-        }
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case date
-        case glucose
-        case direction
-        case isManual
-    }
-
-    // Conformance to ImportableDTO
-    typealias ManagedObject = GlucoseStored
-
-    func store(in context: NSManagedObjectContext) -> GlucoseStored {
-        let glucoseEntry = GlucoseStored(context: context)
-        glucoseEntry.id = id ?? UUID()
-        glucoseEntry.date = date ?? Date()
-        glucoseEntry.glucose = Int16(glucose)
-        glucoseEntry.direction = direction
-        glucoseEntry.isManual = isManual ?? false
-        glucoseEntry.isUploadedToNS = true
-        glucoseEntry.isUploadedToHealth = true
-        glucoseEntry.isUploadedToTidepool = true
-
-        return glucoseEntry
-    }
-}
-
 extension GlucoseStored: Encodable {
     enum CodingKeys: String, CodingKey {
         case date

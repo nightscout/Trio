@@ -1,7 +1,6 @@
-import CoreData
 import Foundation
 
-struct Determination: JSON, Equatable, Decodable {
+struct Determination: JSON, Equatable {
     let id: UUID?
     var reason: String
     let units: Decimal?

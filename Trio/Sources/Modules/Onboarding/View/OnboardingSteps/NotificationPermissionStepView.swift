@@ -8,6 +8,9 @@ import SwiftUI
 import UserNotifications
 
 struct NotificationPermissionStepView: View {
+    @Bindable var state: Onboarding.StateModel
+    var currentStep: Binding<OnboardingStep>
+
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Allow Notifications")
@@ -64,5 +67,32 @@ struct NotificationPermissionStepView: View {
                 .foregroundColor(Color.secondary)
                 .padding(.top)
         }.padding(.horizontal)
+            .background(
+                SystemAlert(
+                    isPresented: $state.shouldDisplayCustomNotificationAlert,
+                    title: String(localized: "Notifications for “Trio” are Disabled"),
+                    message: String(
+                        localized: "After completing onboarding, a red banner will appear on Trio's main screen to guide you to the iOS Settings app, where you can enable notifications."
+                    ),
+                    allowTitle: String(localized: "Got it!"),
+                    denyTitle: String(localized: "Cancel"),
+                    onAllow: {
+                        DispatchQueue.main.async {
+                            state.shouldDisplayCustomNotificationAlert = false
+                            if let next = currentStep.wrappedValue.next {
+                                currentStep.wrappedValue = next
+                            }
+                        }
+                    },
+                    onDeny: {
+                        DispatchQueue.main.async {
+                            state.shouldDisplayCustomNotificationAlert = false
+                            if let next = currentStep.wrappedValue.next {
+                                currentStep.wrappedValue = next
+                            }
+                        }
+                    }
+                )
+            )
     }
 }
