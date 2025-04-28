@@ -1,95 +1,78 @@
 import CoreData
 import Foundation
 
-// MARK: - JSONImporter Class with Generic Import Function
+/// Migration-specific errors that might happen during migration
+enum JSONImporterError: Error {
+    case missingGlucoseValueInGlucoseEntry
+}
 
-/// Class responsible for importing JSON data into Core Data.
+// MARK: - JSONImporter Class
+
+/// Responsible for importing JSON data into Core Data.
+///
+/// The importer handles two important states:
+/// - JSON files stored in the file system that contain data to import
+/// - Existing entries in CoreData that should not be duplicated
+///
+/// Imports are performed when a JSON file exists. The importer checks
+/// CoreData for existing entries to avoid duplicating records from partial imports.
 class JSONImporter {
     private let context: NSManagedObjectContext
-    private let fileManager = FileManager.default
+    private let coreDataStack: CoreDataStack
 
     /// Initializes the importer with a Core Data context.
-    init(context: NSManagedObjectContext) {
+    init(context: NSManagedObjectContext, coreDataStack: CoreDataStack) {
         self.context = context
+        self.coreDataStack = coreDataStack
     }
 
-    /// Generic function to import data from a JSON file into Core Data.
+    /// Reads and parses a JSON file from the file system.
+    ///
     /// - Parameters:
-    ///   - userDefaultsKey: Key to check if data has already been imported.
-    ///   - filePathComponent: Path component of the JSON file.
-    ///   - dtoType: The DTO type conforming to `ImportableDTO`.
-    ///   - dateDecodingStrategy: The date decoding strategy for JSON decoding.
-    func importDataIfNeeded<T: ImportableDTO>(
-        userDefaultsKey: String,
-        filePathComponent: String,
-        dtoType _: T.Type,
-        dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .iso8601
-    ) async {
-        let hasImported = UserDefaults.standard.bool(forKey: userDefaultsKey)
+    ///   - url: The URL of the JSON file to read.
+    /// - Returns: A decoded object of the specified type.
+    /// - Throws: An error if the file cannot be read or decoded.
+    private func readJsonFile<T: Decodable>(url: URL) throws -> T {
+        let data = try Data(contentsOf: url)
+        let decoder = JSONCoding.decoder
+        decoder.dateDecodingStrategy = .millisecondsSince1970
+        return try decoder.decode(T.self, from: data)
+    }
 
-        guard !hasImported else {
-            debugPrint("\(filePathComponent) already imported. Skipping import.")
-            return
-        }
+    /// Retrieves the set of dates for all glucose values currently stored in CoreData.
+    ///
+    /// - Returns: A set of dates corresponding to existing glucose readings.
+    /// - Throws: An error if the fetch operation fails.
+    private func fetchGlucoseDates() async throws -> Set<Date> {
+        let allReadings = try await coreDataStack.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: context,
+            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            key: "date",
+            ascending: false
+        ) as? [GlucoseStored] ?? []
 
-        do {
-            // Get the file path for the JSON file
-            guard let filePath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
-                .first?
-                .appendingPathComponent(filePathComponent),
-                fileManager.fileExists(atPath: filePath.path)
-            else {
-                debugPrint("\(DebuggingIdentifiers.failed) File not found: \(filePathComponent).")
-                return
+        return Set(allReadings.compactMap(\.date))
+    }
+
+    /// Imports glucose history from a JSON file into CoreData.
+    ///
+    /// The function reads glucose data from the provided JSON file and stores new entries
+    /// in CoreData, skipping entries with dates that already exist in the database.
+    ///
+    /// - Parameters:
+    ///   - url: The URL of the JSON file containing glucose history.
+    /// - Throws:
+    ///   - JSONImporterError.missingGlucoseValueInGlucoseEntry if a glucose entry is missing a value.
+    ///   - An error if the file cannot be read or decoded.
+    ///   - An error if the CoreData operation fails.
+    func importGlucoseHistory(url: URL) async throws {
+        let glucoseHistory: [Glucose] = try readJsonFile(url: url)
+        let existingDates = try await fetchGlucoseDates()
+        for glucoseEntry in glucoseHistory {
+            if !existingDates.contains(glucoseEntry.date) {
+                try glucoseEntry.store(in: context)
             }
-
-            let data = try Data(contentsOf: filePath)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = dateDecodingStrategy
-
-            var entries: [T] = []
-
-            do {
-                // Decode as either an array or as a single object
-                if let array = try? decoder.decode([T].self, from: data) {
-                    debugPrint("\(DebuggingIdentifiers.succeeded) Decoded \(array.count) entries as an array.")
-                    entries = array
-                } else if let singleObject = try? decoder.decode(T.self, from: data) {
-                    debugPrint("\(DebuggingIdentifiers.succeeded) Decoded a single object.")
-                    entries = [singleObject]
-                } else {
-                    debugPrint(
-                        "\(DebuggingIdentifiers.failed) Failed to decode \(filePathComponent) as either an array or a single object."
-                    )
-                    return
-                }
-            }
-
-            // Save the DTOs into Core Data
-            await context.perform {
-                for entry in entries {
-                    _ = entry.store(in: self.context)
-                }
-
-                do {
-                    guard self.context.hasChanges else {
-                        return
-                    }
-                    try self.context.save()
-                    debugPrint("\(DebuggingIdentifiers.succeeded) \(filePathComponent) successfully imported into Core Data.")
-                } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) Failed to save \(filePathComponent) to Core Data: \(error)")
-                }
-            }
-
-            // Delete the JSON file after successful import
-            try fileManager.removeItem(at: filePath)
-            debugPrint("\(DebuggingIdentifiers.succeeded) \(filePathComponent) deleted after successful import.")
-
-            // Update UserDefaults to indicate that the data has been imported
-            UserDefaults.standard.set(true, forKey: userDefaultsKey)
-        } catch {
-            debugPrint("\(DebuggingIdentifiers.failed) Error importing \(filePathComponent): \(error)")
         }
     }
 }
@@ -97,49 +80,5 @@ class JSONImporter {
 // MARK: - Extension for Specific Import Functions
 
 extension JSONImporter {
-    func importPumpHistoryIfNeeded() async {
-        await importDataIfNeeded(
-            userDefaultsKey: "pumpHistoryImported",
-            filePathComponent: OpenAPS.Monitor.pumpHistory,
-            dtoType: PumpEventDTO.self,
-            dateDecodingStrategy: .iso8601
-        )
-    }
-
-    func importCarbHistoryIfNeeded() async {
-        await importDataIfNeeded(
-            userDefaultsKey: "carbHistoryImported",
-            filePathComponent: OpenAPS.Monitor.carbHistory,
-            dtoType: CarbEntryDTO.self,
-            dateDecodingStrategy: .iso8601
-        )
-    }
-
-    func importGlucoseHistoryIfNeeded() async {
-        await importDataIfNeeded(
-            userDefaultsKey: "glucoseHistoryImported",
-            filePathComponent: OpenAPS.Monitor.glucose,
-            dtoType: GlucoseEntryDTO.self,
-            dateDecodingStrategy: .iso8601
-        )
-    }
-
-    func importDeterminationHistoryIfNeeded() async {
-        await importDataIfNeeded(
-            userDefaultsKey: "enactedHistoryImported",
-            filePathComponent: OpenAPS.Enact.enacted,
-            dtoType: DeterminationDTO.self,
-            dateDecodingStrategy: .iso8601
-        )
-    }
-}
-
-// MARK: - Protocol Definition
-
-/// A protocol that ensures a Data Transfer Object (DTO) can be stored in Core Data.
-/// It requires a method to map the DTO to its corresponding Core Data managed object.
-protocol ImportableDTO: Decodable {
-    associatedtype ManagedObject: NSManagedObject
-    /// Converts the DTO into a Core Data managed object.
-    func store(in context: NSManagedObjectContext) -> ManagedObject
+    func importGlucoseHistoryIfNeeded() async {}
 }

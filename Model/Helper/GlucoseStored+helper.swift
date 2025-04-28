@@ -174,3 +174,21 @@ extension GlucoseStored {
         BloodGlucose.Direction(rawValue: direction ?? "")
     }
 }
+
+extension Glucose {
+    func store(in context: NSManagedObjectContext) throws {
+        guard let glucoseValue = glucose ?? sgv else {
+            throw JSONImporterError.missingGlucoseValueInGlucoseEntry
+        }
+
+        let glucoseEntry = GlucoseStored(context: context)
+        glucoseEntry.id = _id.flatMap({ UUID(uuidString: $0) }) ?? UUID()
+        glucoseEntry.date = date
+        glucoseEntry.glucose = Int16(glucoseValue)
+        glucoseEntry.direction = direction?.rawValue
+        glucoseEntry.isManual = type == .manual
+        glucoseEntry.isUploadedToNS = true
+        glucoseEntry.isUploadedToHealth = true
+        glucoseEntry.isUploadedToTidepool = true
+    }
+}

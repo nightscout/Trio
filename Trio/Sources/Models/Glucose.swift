@@ -1,6 +1,6 @@
 import Foundation
 
-struct Glucose: JSON {
+struct Glucose: JSON, Decodable {
     let sgv: Int?
     let glucose: Int?
     let type: GlucoseType
@@ -8,6 +8,7 @@ struct Glucose: JSON {
     let date: Date
     let filtered: Double?
     let direction: Direction?
+    let _id: String?
 }
 
 enum GlucoseType: String, JSON {
