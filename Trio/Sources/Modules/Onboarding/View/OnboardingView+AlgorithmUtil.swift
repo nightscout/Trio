@@ -68,6 +68,13 @@ extension View {
     }
 }
 
+enum AlgorithmSettingsOverviewSubstep: Int, CaseIterable, Identifiable {
+    case contents
+    case importantNotes
+
+    var id: Int { rawValue }
+}
+
 enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
     case autosensMin
     case autosensMax

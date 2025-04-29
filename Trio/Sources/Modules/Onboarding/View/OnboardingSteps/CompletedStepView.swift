@@ -2,91 +2,75 @@ import SwiftUI
 
 /// Completed step view shown at the end of onboarding.
 struct CompletedStepView: View {
+    let isOnboardingCompleted: Bool
+    let currentChapter: OnboardingChapter?
+
     var body: some View {
         VStack(alignment: .center, spacing: 20) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 60))
-                .foregroundColor(.green)
+            if isOnboardingCompleted {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 60))
+                    .foregroundColor(.green)
 
-            Text("You're All Set!")
-                .font(.title)
-                .fontWeight(.bold)
+                Text("You're All Set!")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
+
+                Text(
+                    "You've successfully completed the initial setup of Trio. Tap 'Get Started' to save your settings and start using Trio."
+                )
                 .multilineTextAlignment(.center)
-
-            Text(
-                "You've successfully completed the initial setup of Trio. Tap 'Get Started' to save your settings and start using Trio."
-            )
-            .multilineTextAlignment(.center)
-            .foregroundColor(.secondary)
+                .foregroundColor(.secondary)
+            }
 
             VStack(alignment: .leading, spacing: 12) {
-                completedItemsView(
-                    stepIndex: 1,
-                    title: String(localized: "Prepare Trio"),
-                    description: String(
-                        localized: "App diagnostics sharing, Nightscout setup, and unit and pump model selection are all complete."
+                ForEach(Array(OnboardingChapter.allCases.enumerated()), id: \.element.id) { index, chapter in
+                    completedItemsView(
+                        stepIndex: index + 1,
+                        title: chapter.title,
+                        description: chapter.completedDescription,
+                        isCompleted: isChapterCompleted(chapter)
                     )
-                )
 
-                Divider()
-
-                completedItemsView(
-                    stepIndex: 2,
-                    title: String(localized: "Therapy Settings"),
-                    description: String(
-                        localized: "Glucose target, basal rates, carb ratios, and insulin sensitivity match your needs."
-                    )
-                )
-
-                Divider()
-
-                completedItemsView(
-                    stepIndex: 3,
-                    title: String(localized: "Delivery Limits"),
-                    description: String(
-                        localized: "Safety boundaries for insulin delivery and carb entries are set to help Trio keep you safe."
-                    )
-                )
-
-                Divider()
-
-                completedItemsView(
-                    stepIndex: 4,
-                    title: String(localized: "Algorithm Settings"),
-                    description: String(localized: "Trio’s algorithm features are customized to fit your preferences and needs.")
-                )
-
-                Divider()
-
-                completedItemsView(
-                    stepIndex: 5,
-                    title: String(localized: "Permission Requests"),
-                    description: String(localized: "Notifications and Bluetooth permissions are handled to your liking.")
-                )
+                    if index < (OnboardingChapter.allCases.count - 1) {
+                        Divider()
+                    }
+                }
             }
             .padding()
             .background(Color.green.opacity(0.1))
             .cornerRadius(12)
 
-            Text("Remember, you can adjust these settings at any time in the app settings if needed.")
-                .multilineTextAlignment(.center)
-                .foregroundColor(.primary)
-                .bold()
+            if isOnboardingCompleted {
+                Text("Remember, you can adjust these settings at any time in the app settings if needed.")
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.primary)
+                    .bold()
+            }
         }
         .padding()
         .frame(maxWidth: .infinity)
+    }
+
+    /// Determines if a chapter should be marked as completed
+    private func isChapterCompleted(_ chapter: OnboardingChapter) -> Bool {
+        guard let currentChapter else { return isOnboardingCompleted }
+        if isOnboardingCompleted { return true }
+        return chapter.id <= currentChapter.id
     }
 
     /// A reusable view for displaying setting items in the completed step.
     @ViewBuilder private func completedItemsView(
         stepIndex: Int,
         title: String,
-        description: String
+        description: String,
+        isCompleted: Bool
     ) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 HStack(spacing: 14) {
-                    stepCount(stepIndex)
+                    stepCount(stepIndex, isCompleted: isCompleted)
                     Text(title)
                         .font(.headline)
                         .bold()
@@ -94,8 +78,8 @@ struct CompletedStepView: View {
 
                 Spacer()
 
-                Image(systemName: "checkmark")
-                    .foregroundStyle(Color.green)
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isCompleted ? Color.green : Color.secondary)
                     .font(.headline)
                     .bold()
             }
@@ -108,16 +92,19 @@ struct CompletedStepView: View {
         }
     }
 
-    @ViewBuilder private func stepCount(_ count: Int) -> some View {
+    @ViewBuilder private func stepCount(_ count: Int, isCompleted: Bool) -> some View {
         Text(count.description)
             .font(.subheadline.bold())
             .frame(width: 26, height: 26, alignment: .center)
-            .background(Color.green)
+            .background(isCompleted ? Color.green : Color.secondary)
             .foregroundStyle(Color.bgDarkerDarkBlue)
             .clipShape(Capsule())
     }
 }
 
 #Preview {
-    CompletedStepView()
+    CompletedStepView(
+        isOnboardingCompleted: true,
+        currentChapter: nil
+    )
 }
