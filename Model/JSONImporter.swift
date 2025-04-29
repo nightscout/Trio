@@ -4,6 +4,7 @@ import Foundation
 /// Migration-specific errors that might happen during migration
 enum JSONImporterError: Error {
     case missingGlucoseValueInGlucoseEntry
+    case tempBasalAndDurationMismatch
 }
 
 // MARK: - JSONImporter Class
@@ -91,6 +92,40 @@ class JSONImporter {
             try self.context.save()
         }
     }
+
+    private func combineTempBasalAndDuration(pumpHistory: [PumpHistoryEvent]) throws -> [PumpHistoryEvent] {
+        let tempBasal = pumpHistory.filter({ $0.type == .tempBasal }).sorted { $0.timestamp < $1.timestamp }
+        let tempBasalDuration = pumpHistory.filter({ $0.type == .tempBasalDuration }).sorted { $0.timestamp < $1.timestamp }
+        let nonTempBasal = pumpHistory.filter { $0.type != .tempBasal && $0.type != .tempBasalDuration }
+
+        guard tempBasal.count == tempBasalDuration.count else {
+            throw JSONImporterError.tempBasalAndDurationMismatch
+        }
+
+        let combinedTempBasal = try zip(tempBasal, tempBasalDuration).map { rate, duration in
+            guard rate.timestamp == duration.timestamp else {
+                throw JSONImporterError.tempBasalAndDurationMismatch
+            }
+            return PumpHistoryEvent(
+                id: duration.id,
+                type: .tempBasal,
+                timestamp: duration.timestamp,
+                duration: duration.durationMin,
+                rate: rate.rate,
+                temp: rate.temp
+            )
+        }
+
+        return (combinedTempBasal + nonTempBasal).sorted { $0.timestamp < $1.timestamp }
+    }
+
+    func importPumpHistory(url: URL, now _: Date) async throws {
+        let pumpHistoryRaw: [PumpHistoryEvent] = try readJsonFile(url: url)
+        let pumpHistory = try combineTempBasalAndDuration(pumpHistory: pumpHistoryRaw)
+        for pumpEntry in pumpHistory {
+            try pumpEntry.store(in: context)
+        }
+    }
 }
 
 // MARK: - Extension for Specific Import Functions
@@ -111,6 +146,32 @@ extension BloodGlucose {
         glucoseEntry.isUploadedToNS = true
         glucoseEntry.isUploadedToHealth = true
         glucoseEntry.isUploadedToTidepool = true
+    }
+}
+
+extension PumpHistoryEvent {
+    func store(in context: NSManagedObjectContext) throws {
+        let pumpEntry = PumpEventStored(context: context)
+        pumpEntry.id = id
+        pumpEntry.timestamp = timestamp
+        pumpEntry.type = type.rawValue
+        pumpEntry.isUploadedToNS = true
+        pumpEntry.isUploadedToHealth = true
+        pumpEntry.isUploadedToTidepool = true
+
+        if type == .bolus {
+            let bolusEntry = BolusStored(context: context)
+            bolusEntry.amount = amount.flatMap { NSDecimalNumber(decimal: $0) }
+            bolusEntry.isSMB = isSMB ?? false
+            bolusEntry.isExternal = isExternal ?? false
+            pumpEntry.bolus = bolusEntry
+        } else if type == .tempBasal {
+            let tempEntry = TempBasalStored(context: context)
+            tempEntry.rate = rate.flatMap { NSDecimalNumber(decimal: $0) }
+            tempEntry.duration = duration.flatMap({ Int16($0) }) ?? 0
+            tempEntry.tempType = temp?.rawValue
+            pumpEntry.tempBasal = tempEntry
+        }
     }
 }
 
