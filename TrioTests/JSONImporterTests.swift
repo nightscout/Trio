@@ -13,7 +13,7 @@ import Testing
 
 class BundleReference {}
 
-@Suite("JSON Importer Tests") struct JSONImporterTests: Injectable {
+@Suite("JSON Importer Tests", .serialized) struct JSONImporterTests: Injectable {
     var coreDataStack: CoreDataStack!
     var context: NSManagedObjectContext!
     var importer: JSONImporter!
@@ -58,7 +58,7 @@ class BundleReference {}
         let path = testBundle.path(forResource: "glucose", ofType: "json")!
         let url = URL(filePath: path)
 
-        // more than 24 hours past the most recent entry
+        // more than 24 hours in the future from the most recent entry
         let now = Date("2025-04-29T19:32:52.000Z")!
         try await importer.importGlucoseHistory(url: url, now: now)
 

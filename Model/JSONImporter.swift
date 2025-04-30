@@ -74,8 +74,21 @@ class JSONImporter {
         // only import glucose values from the last 24 hours that don't exist
         let glucoseHistory = glucoseHistoryFull
             .filter { $0.dateString >= twentyFourHoursAgo && $0.dateString <= now && !existingDates.contains($0.dateString) }
-        for glucoseEntry in glucoseHistory {
-            try glucoseEntry.store(in: context)
+
+        // Create a background context for batch processing
+        let backgroundContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        backgroundContext.parent = context
+
+        try await backgroundContext.perform {
+            for glucoseEntry in glucoseHistory {
+                try glucoseEntry.store(in: backgroundContext)
+            }
+
+            try backgroundContext.save()
+        }
+
+        try await context.perform {
+            try self.context.save()
         }
     }
 }
