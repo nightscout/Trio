@@ -80,6 +80,7 @@ class JSONImporter {
     ///
     /// - Parameters:
     ///   - url: The URL of the JSON file containing glucose history.
+    ///   - now: The current time, used to skip old entries
     /// - Throws:
     ///   - JSONImporterError.missingGlucoseValueInGlucoseEntry if a glucose entry is missing a value.
     ///   - An error if the file cannot be read or decoded.
@@ -110,6 +111,7 @@ class JSONImporter {
         }
     }
 
+    /// combines tempBasal and tempBasalDuration events into one PumpHistoryEvent
     private func combineTempBasalAndDuration(pumpHistory: [PumpHistoryEvent]) throws -> [PumpHistoryEvent] {
         let tempBasal = pumpHistory.filter({ $0.type == .tempBasal }).sorted { $0.timestamp < $1.timestamp }
         let tempBasalDuration = pumpHistory.filter({ $0.type == .tempBasalDuration }).sorted { $0.timestamp < $1.timestamp }
@@ -136,6 +138,18 @@ class JSONImporter {
         return (combinedTempBasal + nonTempBasal).sorted { $0.timestamp < $1.timestamp }
     }
 
+    /// Imports pump history from a JSON file into CoreData.
+    ///
+    /// The function reads pump history data from the provided JSON file and stores new entries
+    /// in CoreData, skipping entries with timestamps that already exist in the database.
+    ///
+    /// - Parameters:
+    ///   - url: The URL of the JSON file containing pump history.
+    ///   - now: The current time, used to skip old entries
+    /// - Throws:
+    ///   - JSONImporterError.tempBasalAndDurationMismatch if we can't match tempBasals with their duration.
+    ///   - An error if the file cannot be read or decoded.
+    ///   - An error if the CoreData operation fails.
     func importPumpHistory(url: URL, now: Date) async throws {
         let twentyFourHoursAgo = now - 24.hours.timeInterval
         let pumpHistoryRaw: [PumpHistoryEvent] = try readJsonFile(url: url)
@@ -144,8 +158,21 @@ class JSONImporter {
             .filter { $0.timestamp >= twentyFourHoursAgo && $0.timestamp <= now && !existingTimestamps.contains($0.timestamp) }
 
         let pumpHistory = try combineTempBasalAndDuration(pumpHistory: pumpHistoryFiltered)
-        for pumpEntry in pumpHistory {
-            try pumpEntry.store(in: context)
+
+        // Create a background context for batch processing
+        let backgroundContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        backgroundContext.parent = context
+
+        try await backgroundContext.perform {
+            for pumpEntry in pumpHistory {
+                try pumpEntry.store(in: backgroundContext)
+            }
+
+            try backgroundContext.save()
+        }
+
+        try await context.perform {
+            try self.context.save()
         }
     }
 }
@@ -172,6 +199,7 @@ extension BloodGlucose {
 }
 
 extension PumpHistoryEvent {
+    /// Helper function to convert `PumpHistoryEvent` to `PumpEventStored` while importing JSON pump histories
     func store(in context: NSManagedObjectContext) throws {
         let pumpEntry = PumpEventStored(context: context)
         pumpEntry.id = id

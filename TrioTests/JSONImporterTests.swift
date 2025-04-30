@@ -124,6 +124,7 @@ class BundleReference {}
             }
         }
 
+        // see the scripts/pump-history-stats.py file for where these come from
         #expect(parsedHistory.count == 77)
         #expect(bolusCount == 23)
         #expect(smbCount == 21)
@@ -133,6 +134,25 @@ class BundleReference {}
         #expect(durationTotal == 900)
         #expect(suspendCount == 1)
         #expect(resumeCount == 1)
+    }
+
+    @Test("Skipping old pump history entries") func testSkipOldPumpHistoryEntries() async throws {
+        let testBundle = Bundle(for: BundleReference.self)
+        let path = testBundle.path(forResource: "pumphistory-24h-zoned", ofType: "json")!
+        let url = URL(filePath: path)
+
+        let now = Date("2025-04-30T01:33:58.000Z")!
+        try await importer.importPumpHistory(url: url, now: now)
+
+        let allReadings = try await coreDataStack.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            key: "timestamp",
+            ascending: false
+        ) as? [PumpEventStored] ?? []
+
+        #expect(allReadings.isEmpty)
     }
 }
 
