@@ -96,7 +96,7 @@ class JSONImporter {
 // MARK: - Extension for Specific Import Functions
 
 extension BloodGlucose {
-    /// Helper function to convert BloodGlucose to GlucoseStorage while importing JSON glucose entries
+    /// Helper function to convert `BloodGlucose` to `GlucoseStored` while importing JSON glucose entries
     func store(in context: NSManagedObjectContext) throws {
         guard let glucoseValue = glucose ?? sgv else {
             throw JSONImporterError.missingGlucoseValueInGlucoseEntry
