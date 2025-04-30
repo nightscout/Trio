@@ -5,6 +5,9 @@ import Foundation
 enum JSONImporterError: Error {
     case missingGlucoseValueInGlucoseEntry
     case tempBasalAndDurationMismatch
+    case missingRequiredPropertyInPumpEntry
+    case suspendResumePumpEventMismatch
+    case duplicatePumpEvents
 }
 
 // MARK: - JSONImporter Class
@@ -138,6 +141,32 @@ class JSONImporter {
         return (combinedTempBasal + nonTempBasal).sorted { $0.timestamp < $1.timestamp }
     }
 
+    /// checks for pumpHistory inconsistencies that might cause issues if we import these events into CoreData
+    private func checkForInconsistencies(pumpHistory: [PumpHistoryEvent]) throws {
+        // make sure that pump suspends / resumes match up
+        let suspendsAndResumes = pumpHistory.filter({ $0.type == .pumpSuspend || $0.type == .pumpResume })
+            .sorted { $0.timestamp < $1.timestamp }
+
+        for (current, next) in zip(suspendsAndResumes, suspendsAndResumes.dropFirst()) {
+            guard current.type != next.type else {
+                throw JSONImporterError.suspendResumePumpEventMismatch
+            }
+        }
+
+        // check for duplicate events
+        struct TypeTimestamp: Hashable {
+            let timestamp: Date
+            let type: EventType
+        }
+
+        let duplicates = Dictionary(grouping: pumpHistory) { TypeTimestamp(timestamp: $0.timestamp, type: $0.type) }
+            .values.first(where: { $0.count > 1 })
+
+        if duplicates != nil {
+            throw JSONImporterError.duplicatePumpEvents
+        }
+    }
+
     /// Imports pump history from a JSON file into CoreData.
     ///
     /// The function reads pump history data from the provided JSON file and stores new entries
@@ -158,6 +187,7 @@ class JSONImporter {
             .filter { $0.timestamp >= twentyFourHoursAgo && $0.timestamp <= now && !existingTimestamps.contains($0.timestamp) }
 
         let pumpHistory = try combineTempBasalAndDuration(pumpHistory: pumpHistoryFiltered)
+        try checkForInconsistencies(pumpHistory: pumpHistory)
 
         // Create a background context for batch processing
         let backgroundContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
@@ -210,15 +240,21 @@ extension PumpHistoryEvent {
         pumpEntry.isUploadedToTidepool = true
 
         if type == .bolus {
+            guard let amount = amount else {
+                throw JSONImporterError.missingRequiredPropertyInPumpEntry
+            }
             let bolusEntry = BolusStored(context: context)
-            bolusEntry.amount = amount.flatMap { NSDecimalNumber(decimal: $0) }
+            bolusEntry.amount = NSDecimalNumber(decimal: amount)
             bolusEntry.isSMB = isSMB ?? false
             bolusEntry.isExternal = isExternal ?? false
             pumpEntry.bolus = bolusEntry
         } else if type == .tempBasal {
+            guard let rate = rate, let duration = duration else {
+                throw JSONImporterError.missingRequiredPropertyInPumpEntry
+            }
             let tempEntry = TempBasalStored(context: context)
-            tempEntry.rate = rate.flatMap { NSDecimalNumber(decimal: $0) }
-            tempEntry.duration = duration.flatMap({ Int16($0) }) ?? 0
+            tempEntry.rate = NSDecimalNumber(decimal: rate)
+            tempEntry.duration = Int16(duration)
             tempEntry.tempType = temp?.rawValue
             pumpEntry.tempBasal = tempEntry
         }
