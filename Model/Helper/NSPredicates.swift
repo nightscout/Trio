@@ -120,4 +120,8 @@ extension NSPredicate {
         let date = Date.threeMonthsAgo
         return NSPredicate(format: "date >= %@", date as NSDate)
     }
+
+    static func predicateForDateBetween(start: Date, end: Date) -> NSPredicate {
+        NSPredicate(format: "date >= %@ AND date <= %@", start as NSDate, end as NSDate)
+    }
 }

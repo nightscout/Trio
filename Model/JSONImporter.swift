@@ -40,13 +40,14 @@ class JSONImporter {
 
     /// Retrieves the set of dates for all glucose values currently stored in CoreData.
     ///
+    /// - Parameters: the start and end dates to fetch glucose values, inclusive
     /// - Returns: A set of dates corresponding to existing glucose readings.
     /// - Throws: An error if the fetch operation fails.
-    private func fetchGlucoseDates() async throws -> Set<Date> {
+    private func fetchGlucoseDates(start: Date, end: Date) async throws -> Set<Date> {
         let allReadings = try await coreDataStack.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
-            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            predicate: .predicateForDateBetween(start: start, end: end),
             key: "date",
             ascending: false
         ) as? [GlucoseStored] ?? []
@@ -65,13 +66,16 @@ class JSONImporter {
     ///   - JSONImporterError.missingGlucoseValueInGlucoseEntry if a glucose entry is missing a value.
     ///   - An error if the file cannot be read or decoded.
     ///   - An error if the CoreData operation fails.
-    func importGlucoseHistory(url: URL) async throws {
-        let glucoseHistory: [BloodGlucose] = try readJsonFile(url: url)
-        let existingDates = try await fetchGlucoseDates()
+    func importGlucoseHistory(url: URL, now: Date) async throws {
+        let twentyFourHoursAgo = now - 24.hours.timeInterval
+        let glucoseHistoryFull: [BloodGlucose] = try readJsonFile(url: url)
+        let existingDates = try await fetchGlucoseDates(start: twentyFourHoursAgo, end: now)
+
+        // only import glucose values from the last 24 hours that don't exist
+        let glucoseHistory = glucoseHistoryFull
+            .filter { $0.dateString >= twentyFourHoursAgo && $0.dateString <= now && !existingDates.contains($0.dateString) }
         for glucoseEntry in glucoseHistory {
-            if !existingDates.contains(glucoseEntry.dateString) {
-                try glucoseEntry.store(in: context)
-            }
+            try glucoseEntry.store(in: context)
         }
     }
 }

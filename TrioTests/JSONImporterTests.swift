@@ -30,9 +30,10 @@ class BundleReference {}
         let path = testBundle.path(forResource: "glucose", ofType: "json")!
         let url = URL(filePath: path)
 
-        try await importer.importGlucoseHistory(url: url)
+        let now = Date("2025-04-28T19:32:52.000Z")!
+        try await importer.importGlucoseHistory(url: url, now: now)
         // run the import againt to check our deduplication logic
-        try await importer.importGlucoseHistory(url: url)
+        try await importer.importGlucoseHistory(url: url, now: now)
 
         let allReadings = try await coreDataStack.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
@@ -50,5 +51,25 @@ class BundleReference {}
 
         let manualCount = allReadings.filter({ $0.isManual }).count
         #expect(manualCount == 1)
+    }
+
+    @Test("Skip importing old glucose values") func testSkipImportOldGlucoseValues() async throws {
+        let testBundle = Bundle(for: BundleReference.self)
+        let path = testBundle.path(forResource: "glucose", ofType: "json")!
+        let url = URL(filePath: path)
+
+        // more than 24 hours past the most recent entry
+        let now = Date("2025-04-29T19:32:52.000Z")!
+        try await importer.importGlucoseHistory(url: url, now: now)
+
+        let allReadings = try await coreDataStack.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: context,
+            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            key: "date",
+            ascending: false
+        ) as? [GlucoseStored] ?? []
+
+        #expect(allReadings.isEmpty)
     }
 }
