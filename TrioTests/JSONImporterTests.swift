@@ -44,9 +44,9 @@ class BundleReference {}
 
         #expect(allReadings.count == 274)
         #expect(allReadings.first?.glucose == 115)
-        #expect(allReadings.first?.date == Date(timeIntervalSince1970: 1_745_868_771.726578))
+        #expect(allReadings.first?.date == Date("2025-04-28T19:32:51.727Z"))
         #expect(allReadings.last?.glucose == 127)
-        #expect(allReadings.last?.date == Date(timeIntervalSince1970: 1_745_782_670.3270996))
+        #expect(allReadings.last?.date == Date("2025-04-27T19:37:50.327Z"))
 
         let manualCount = allReadings.filter({ $0.isManual }).count
         #expect(manualCount == 1)

@@ -35,7 +35,6 @@ class JSONImporter {
     private func readJsonFile<T: Decodable>(url: URL) throws -> T {
         let data = try Data(contentsOf: url)
         let decoder = JSONCoding.decoder
-        decoder.dateDecodingStrategy = .millisecondsSince1970
         return try decoder.decode(T.self, from: data)
     }
 
@@ -67,10 +66,10 @@ class JSONImporter {
     ///   - An error if the file cannot be read or decoded.
     ///   - An error if the CoreData operation fails.
     func importGlucoseHistory(url: URL) async throws {
-        let glucoseHistory: [Glucose] = try readJsonFile(url: url)
+        let glucoseHistory: [BloodGlucose] = try readJsonFile(url: url)
         let existingDates = try await fetchGlucoseDates()
         for glucoseEntry in glucoseHistory {
-            if !existingDates.contains(glucoseEntry.date) {
+            if !existingDates.contains(glucoseEntry.dateString) {
                 try glucoseEntry.store(in: context)
             }
         }
@@ -78,6 +77,24 @@ class JSONImporter {
 }
 
 // MARK: - Extension for Specific Import Functions
+
+extension BloodGlucose {
+    func store(in context: NSManagedObjectContext) throws {
+        guard let glucoseValue = glucose ?? sgv else {
+            throw JSONImporterError.missingGlucoseValueInGlucoseEntry
+        }
+
+        let glucoseEntry = GlucoseStored(context: context)
+        glucoseEntry.id = _id.flatMap({ UUID(uuidString: $0) }) ?? UUID()
+        glucoseEntry.date = dateString
+        glucoseEntry.glucose = Int16(glucoseValue)
+        glucoseEntry.direction = direction?.rawValue
+        glucoseEntry.isManual = type == "Manual"
+        glucoseEntry.isUploadedToNS = true
+        glucoseEntry.isUploadedToHealth = true
+        glucoseEntry.isUploadedToTidepool = true
+    }
+}
 
 extension JSONImporter {
     func importGlucoseHistoryIfNeeded() async {}

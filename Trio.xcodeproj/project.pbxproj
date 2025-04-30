@@ -104,7 +104,6 @@
 		383420D625FFE38C002D46C1 /* LoopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 383420D525FFE38C002D46C1 /* LoopView.swift */; };
 		383420D925FFEB3F002D46C1 /* Popup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 383420D825FFEB3F002D46C1 /* Popup.swift */; };
 		383948D625CD4D8900E91849 /* FileStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 383948D525CD4D8900E91849 /* FileStorage.swift */; };
-		383948DA25CD64D500E91849 /* Glucose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 383948D925CD64D500E91849 /* Glucose.swift */; };
 		384E803425C385E60086DB71 /* JavaScriptWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 384E803325C385E60086DB71 /* JavaScriptWorker.swift */; };
 		384E803825C388640086DB71 /* Script.swift in Sources */ = {isa = PBXBuildFile; fileRef = 384E803725C388640086DB71 /* Script.swift */; };
 		38569347270B5DFB0002C50D /* CGMType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38569344270B5DFA0002C50D /* CGMType.swift */; };
@@ -922,7 +921,6 @@
 		383420D525FFE38C002D46C1 /* LoopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopView.swift; sourceTree = "<group>"; };
 		383420D825FFEB3F002D46C1 /* Popup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Popup.swift; sourceTree = "<group>"; };
 		383948D525CD4D8900E91849 /* FileStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStorage.swift; sourceTree = "<group>"; };
-		383948D925CD64D500E91849 /* Glucose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glucose.swift; sourceTree = "<group>"; };
 		384E803325C385E60086DB71 /* JavaScriptWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JavaScriptWorker.swift; sourceTree = "<group>"; };
 		384E803725C388640086DB71 /* Script.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Script.swift; sourceTree = "<group>"; };
 		38569344270B5DFA0002C50D /* CGMType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGMType.swift; sourceTree = "<group>"; };
@@ -2321,7 +2319,6 @@
 				3811DF0125CA9FEA00A708ED /* Credentials.swift */,
 				E592A36F2CEEC01E009A472C /* ContactTrickEntry.swift */,
 				38AEE73C25F0200C0013F05B /* TrioSettings.swift */,
-				383948D925CD64D500E91849 /* Glucose.swift */,
 				382C133625F13A1E00715CE1 /* InsulinSensitivities.swift */,
 				38887CCD25F5725200944304 /* IOBEntry.swift */,
 				DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */,
@@ -4061,7 +4058,6 @@
 				DDBD53FC2DAA903100F940A6 /* OverviewStepView.swift in Sources */,
 				38A0364225ED069400FCBB52 /* TempBasal.swift in Sources */,
 				3811DE1725C9D40400A708ED /* Screen.swift in Sources */,
-				383948DA25CD64D500E91849 /* Glucose.swift in Sources */,
 				CE94598029E9E3BD0047C9C6 /* WatchConfigDataFlow.swift in Sources */,
 				388E596C25AD95110019842D /* OpenAPS.swift in Sources */,
 				E00EEC0527368630002FF094 /* StorageAssembly.swift in Sources */,
