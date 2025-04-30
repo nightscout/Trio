@@ -56,6 +56,23 @@ class JSONImporter {
         return Set(allReadings.compactMap(\.date))
     }
 
+    /// Retrieves the set of timestamps for all pump evets currently stored in CoreData.
+    ///
+    /// - Parameters: the start and end dates to fetch pump events, inclusive
+    /// - Returns: A set of dates corresponding to existing pump events.
+    /// - Throws: An error if the fetch operation fails.
+    private func fetchPumpTimestamps(start: Date, end: Date) async throws -> Set<Date> {
+        let allReadings = try await coreDataStack.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: .predicateForTimestampBetween(start: start, end: end),
+            key: "timestamp",
+            ascending: false
+        ) as? [PumpEventStored] ?? []
+
+        return Set(allReadings.compactMap(\.timestamp))
+    }
+
     /// Imports glucose history from a JSON file into CoreData.
     ///
     /// The function reads glucose data from the provided JSON file and stores new entries
@@ -119,9 +136,14 @@ class JSONImporter {
         return (combinedTempBasal + nonTempBasal).sorted { $0.timestamp < $1.timestamp }
     }
 
-    func importPumpHistory(url: URL, now _: Date) async throws {
+    func importPumpHistory(url: URL, now: Date) async throws {
+        let twentyFourHoursAgo = now - 24.hours.timeInterval
         let pumpHistoryRaw: [PumpHistoryEvent] = try readJsonFile(url: url)
-        let pumpHistory = try combineTempBasalAndDuration(pumpHistory: pumpHistoryRaw)
+        let existingTimestamps = try await fetchPumpTimestamps(start: twentyFourHoursAgo, end: now)
+        let pumpHistoryFiltered = pumpHistoryRaw
+            .filter { $0.timestamp >= twentyFourHoursAgo && $0.timestamp <= now && !existingTimestamps.contains($0.timestamp) }
+
+        let pumpHistory = try combineTempBasalAndDuration(pumpHistory: pumpHistoryFiltered)
         for pumpEntry in pumpHistory {
             try pumpEntry.store(in: context)
         }

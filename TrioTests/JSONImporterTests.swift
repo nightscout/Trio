@@ -80,6 +80,8 @@ class BundleReference {}
 
         let now = Date("2025-04-29T01:33:58.000Z")!
         try await importer.importPumpHistory(url: url, now: now)
+        // test out deduplication logic
+        try await importer.importPumpHistory(url: url, now: now)
 
         let allReadings = try await coreDataStack.fetchEntitiesAsync(
             ofType: PumpEventStored.self,

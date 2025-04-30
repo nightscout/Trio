@@ -124,4 +124,8 @@ extension NSPredicate {
     static func predicateForDateBetween(start: Date, end: Date) -> NSPredicate {
         NSPredicate(format: "date >= %@ AND date <= %@", start as NSDate, end as NSDate)
     }
+
+    static func predicateForTimestampBetween(start: Date, end: Date) -> NSPredicate {
+        NSPredicate(format: "timestamp >= %@ AND timestamp <= %@", start as NSDate, end as NSDate)
+    }
 }
