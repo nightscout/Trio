@@ -128,11 +128,13 @@ class JSONImporter {
         let carbHistoryFull: [CarbsEntry] = try readJsonFile(url: url)
         let existingDates = try await fetchCarbEntryDates(start: twentyFourHoursAgo, end: now)
 
-        // only import carb entries from the last 24 hours that do not exist yet in Core Data
+        // Only import carb entries from the last 24 hours that do not exist yet in Core Data
+        // Only import "true" carb entries; ignore all FPU entries (aka carb equivalents)
         let carbHistory = carbHistoryFull
             .filter {
-                ($0.actualDate ?? $0.createdAt) >= twentyFourHoursAgo && ($0.actualDate ?? $0.createdAt) <= now && !existingDates
-                    .contains($0.actualDate ?? $0.createdAt) && $0.isFPU ?? false == false }
+                let dateToCheck = $0.actualDate ?? $0.createdAt
+                return dateToCheck >= twentyFourHoursAgo && dateToCheck <= now && !existingDates.contains(dateToCheck) && $0
+                    .isFPU ?? false == false }
 
         // Create a background context for batch processing
         let backgroundContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
