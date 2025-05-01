@@ -4,6 +4,7 @@ import Foundation
 /// Migration-specific errors that might happen during migration
 enum JSONImporterError: Error {
     case missingGlucoseValueInGlucoseEntry
+    case missingCarbsValueInCarbEntry
 }
 
 // MARK: - JSONImporter Class
@@ -55,6 +56,23 @@ class JSONImporter {
         return Set(allReadings.compactMap(\.date))
     }
 
+    /// Retrieves the set of timestamps for all carb entries currently stored in CoreData.
+    ///
+    /// - Parameters: the start and end dates to fetch carb entries, inclusive
+    /// - Returns: A set of dates corresponding to existing carb entries.
+    /// - Throws: An error if the fetch operation fails.
+    private func fetchCarbEntryDates(start: Date, end: Date) async throws -> Set<Date> {
+        let allCarbEntryDates = try await coreDataStack.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: context,
+            predicate: .predicateForDateBetween(start: start, end: end),
+            key: "date",
+            ascending: false
+        ) as? [CarbEntryStored] ?? []
+
+        return Set(allCarbEntryDates.compactMap(\.date))
+    }
+
     /// Imports glucose history from a JSON file into CoreData.
     ///
     /// The function reads glucose data from the provided JSON file and stores new entries
@@ -91,6 +109,47 @@ class JSONImporter {
             try self.context.save()
         }
     }
+
+    /// Imports carb history from a JSON file into CoreData.
+    ///
+    /// The function reads carb entries data from the provided JSON file and stores new entries
+    /// in CoreData, skipping entries with dates that already exist in the database.
+    /// We ignore all FPU entries (aka carb equivalents) when performing an import.
+    ///
+    /// - Parameters:
+    ///   - url: The URL of the JSON file containing glucose history.
+    ///   - now: The current datetime
+    /// - Throws:
+    ///   - JSONImporterError.missingCarbsValueInCarbEntry if a carb entry is missing a `carbs: Decimal` value.
+    ///   - An error if the file cannot be read or decoded.
+    ///   - An error if the CoreData operation fails.
+    func importCarbHistory(url: URL, now: Date) async throws {
+        let twentyFourHoursAgo = now - 24.hours.timeInterval
+        let carbHistoryFull: [CarbsEntry] = try readJsonFile(url: url)
+        let existingDates = try await fetchCarbEntryDates(start: twentyFourHoursAgo, end: now)
+
+        // only import carb entries from the last 24 hours that do not exist yet in Core Data
+        let carbHistory = carbHistoryFull
+            .filter {
+                ($0.actualDate ?? $0.createdAt) >= twentyFourHoursAgo && ($0.actualDate ?? $0.createdAt) <= now && !existingDates
+                    .contains($0.actualDate ?? $0.createdAt) && $0.isFPU ?? false == false }
+
+        // Create a background context for batch processing
+        let backgroundContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        backgroundContext.parent = context
+
+        try await backgroundContext.perform {
+            for carbEntry in carbHistory {
+                try carbEntry.store(in: backgroundContext)
+            }
+
+            try backgroundContext.save()
+        }
+
+        try await context.perform {
+            try self.context.save()
+        }
+    }
 }
 
 // MARK: - Extension for Specific Import Functions
@@ -114,6 +173,97 @@ extension BloodGlucose {
     }
 }
 
+/// Extension to support decoding `CarbsEntry` from JSON with multiple possible key formats for entry notes.
+///
+/// This is needed because some JSON sources (e.g., Trio v0.2.5) use the singular key `"note"`
+/// for the `note` field, while others (e.g., Nightscout or oref) use the plural `"notes"`.
+///
+/// To ensure compatibility across all sources without duplicating models or requiring upstream fixes,
+/// this custom implementation attempts to decode the `note` field first from `"note"`, then from `"notes"`.
+/// Encoding will always use the canonical `"notes"` key to preserve consistency in output,
+/// as this is what's established throughout the backend now.
+extension CarbsEntry: Codable {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try container.decodeIfPresent(String.self, forKey: .id)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        actualDate = try container.decodeIfPresent(Date.self, forKey: .actualDate)
+        carbs = try container.decode(Decimal.self, forKey: .carbs)
+        fat = try container.decodeIfPresent(Decimal.self, forKey: .fat)
+        protein = try container.decodeIfPresent(Decimal.self, forKey: .protein)
+
+        // Handle both `note` and `notes`
+        if let noteValue = try? container.decodeIfPresent(String.self, forKey: .note) {
+            note = noteValue
+        } else if let notesValue = try? container.decodeIfPresent(String.self, forKey: .noteAlt) {
+            note = notesValue
+        } else {
+            note = nil
+        }
+
+        enteredBy = try container.decodeIfPresent(String.self, forKey: .enteredBy)
+        isFPU = try container.decodeIfPresent(Bool.self, forKey: .isFPU)
+        fpuID = try container.decodeIfPresent(String.self, forKey: .fpuID)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encodeIfPresent(id, forKey: .id)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(actualDate, forKey: .actualDate)
+        try container.encode(carbs, forKey: .carbs)
+        try container.encodeIfPresent(fat, forKey: .fat)
+        try container.encodeIfPresent(protein, forKey: .protein)
+        try container.encodeIfPresent(note, forKey: .note)
+        try container.encodeIfPresent(enteredBy, forKey: .enteredBy)
+        try container.encodeIfPresent(isFPU, forKey: .isFPU)
+        try container.encodeIfPresent(fpuID, forKey: .fpuID)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case createdAt = "created_at"
+        case actualDate
+        case carbs
+        case fat
+        case protein
+        case note = "notes" // standard key
+        case noteAlt = "note" // import key
+        case enteredBy
+        case isFPU
+        case fpuID
+    }
+
+    /// Helper function to convert `CarbsStored` to `CarbEntryStored` while importing JSON carb entries
+    func store(in context: NSManagedObjectContext) throws {
+        guard carbs >= 0 else {
+            throw JSONImporterError.missingCarbsValueInCarbEntry
+        }
+
+        // skip FPU entries for now
+
+        let carbEntry = CarbEntryStored(context: context)
+        carbEntry.id = id
+            .flatMap({ UUID(uuidString: $0) }) ?? UUID() /// The `CodingKey` of `id` is `_id`, so this fine to use here
+        carbEntry.date = actualDate ?? createdAt
+        carbEntry.carbs = Double(truncating: NSDecimalNumber(decimal: carbs))
+        carbEntry.fat = Double(truncating: NSDecimalNumber(decimal: fat ?? 0))
+        carbEntry.protein = Double(truncating: NSDecimalNumber(decimal: protein ?? 0))
+        carbEntry.note = note ?? ""
+        carbEntry.isFPU = false
+        carbEntry.isUploadedToNS = true
+        carbEntry.isUploadedToHealth = true
+        carbEntry.isUploadedToTidepool = true
+
+        if fat != nil, protein != nil, let fpuId = fpuID {
+            carbEntry.fpuID = UUID(uuidString: fpuId)
+        }
+    }
+}
+
 extension JSONImporter {
     func importGlucoseHistoryIfNeeded() async {}
+    func importCarbHistoryIfNeeded() async {}
 }

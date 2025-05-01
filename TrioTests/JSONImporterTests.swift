@@ -72,4 +72,50 @@ class BundleReference {}
 
         #expect(allReadings.isEmpty)
     }
+
+    @Test("Import carb history with value checks") func testImportCarbHistoryDetails() async throws {
+        let testBundle = Bundle(for: BundleReference.self)
+        let path = testBundle.path(forResource: "carbhistory", ofType: "json")!
+        let url = URL(filePath: path)
+
+        let now = Date("2025-04-28T19:32:52.000Z")!
+        try await importer.importCarbHistory(url: url, now: now)
+        // run the import againt to check our deduplication logic
+        try await importer.importCarbHistory(url: url, now: now)
+
+        let allCarbEntries = try await coreDataStack.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: context,
+            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            key: "date",
+            ascending: false
+        ) as? [CarbEntryStored] ?? []
+
+        #expect(allCarbEntries.count == 8)
+        #expect(allCarbEntries.first?.carbs == 10)
+        #expect(allCarbEntries.first?.note == "Snack 🍪")
+        #expect(allCarbEntries.first?.date == Date("2025-04-28T18:36:06.968Z"))
+        #expect(allCarbEntries.last?.carbs == 25)
+        #expect(allCarbEntries.last?.date == Date("2025-04-28T05:03:43.332Z"))
+    }
+
+    @Test("Skip importing old carb entries") func testSkipImportOldCarbEntries() async throws {
+        let testBundle = Bundle(for: BundleReference.self)
+        let path = testBundle.path(forResource: "carbhistory", ofType: "json")!
+        let url = URL(filePath: path)
+
+        // more than 24 hours in the future from the most recent entry
+        let now = Date("2025-04-29T19:32:52.000Z")!
+        try await importer.importCarbHistory(url: url, now: now)
+
+        let allCarbEntries = try await coreDataStack.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: context,
+            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            key: "date",
+            ascending: false
+        ) as? [CarbEntryStored] ?? []
+
+        #expect(allCarbEntries.isEmpty)
+    }
 }
