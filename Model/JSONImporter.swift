@@ -324,9 +324,11 @@ class JSONImporter {
         backgroundContext.parent = context
 
         try await backgroundContext.perform {
-            /// We know both determination entries are from within last 24 hrs via the check in line 140
-            /// If their `deliverAt` does not match, it is worth storing them both
-            if suggestedDeliverAt != enactedDeliverAt {
+            
+            /// We know both determination entries are from within last 24 hrs via `checkDeterminationDate()` in the earlier `guard` clause
+            /// If their `deliverAt` does not match, and if `suggestedDeliverAt` is newer, it is worth storing them both, as that represents
+            /// a more recent algorithm run that did not cause a dosing enactment, e.g., a carb entry or a manual bolus.
+            if suggestedDeliverAt > enactedDeliverAt {
                 try suggestedDetermination.store(in: backgroundContext)
             }
 
