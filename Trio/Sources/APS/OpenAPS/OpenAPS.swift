@@ -211,9 +211,17 @@ final class OpenAPS {
     }
 
     private func loadAndMapPumpEvents(_ pumpHistoryObjectIDs: [NSManagedObjectID]) -> [PumpEventDTO] {
+        OpenAPS.loadAndMapPumpEvents(pumpHistoryObjectIDs, from: context)
+    }
+
+    /// Fetches and parses pump events, expose this as static and not private for testing
+    static func loadAndMapPumpEvents(
+        _ pumpHistoryObjectIDs: [NSManagedObjectID],
+        from context: NSManagedObjectContext
+    ) -> [PumpEventDTO] {
         // Load the pump events from the object IDs
         let pumpHistory: [PumpEventStored] = pumpHistoryObjectIDs
-            .compactMap { self.context.object(with: $0) as? PumpEventStored }
+            .compactMap { context.object(with: $0) as? PumpEventStored }
 
         // Create the DTOs
         let dtos: [PumpEventDTO] = pumpHistory.flatMap { event -> [PumpEventDTO] in

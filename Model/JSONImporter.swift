@@ -4,6 +4,11 @@ import Foundation
 /// Migration-specific errors that might happen during migration
 enum JSONImporterError: Error {
     case missingGlucoseValueInGlucoseEntry
+    case tempBasalAndDurationMismatch
+    case missingRequiredPropertyInPumpEntry
+    case suspendResumePumpEventMismatch
+    case duplicatePumpEvents
+    case missingCarbsValueInCarbEntry
 }
 
 // MARK: - JSONImporter Class
@@ -55,6 +60,40 @@ class JSONImporter {
         return Set(allReadings.compactMap(\.date))
     }
 
+    /// Retrieves the set of timestamps for all pump events currently stored in CoreData.
+    ///
+    /// - Parameters: the start and end dates to fetch pump events, inclusive
+    /// - Returns: A set of dates corresponding to existing pump events.
+    /// - Throws: An error if the fetch operation fails.
+    private func fetchPumpTimestamps(start: Date, end: Date) async throws -> Set<Date> {
+        let allPumpEvents = try await coreDataStack.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: .predicateForTimestampBetween(start: start, end: end),
+            key: "timestamp",
+            ascending: false
+        ) as? [PumpEventStored] ?? []
+
+        return Set(allPumpEvents.compactMap(\.timestamp))
+    }
+
+    /// Retrieves the set of timestamps for all carb entries currently stored in CoreData.
+    ///
+    /// - Parameters: the start and end dates to fetch carb entries, inclusive
+    /// - Returns: A set of dates corresponding to existing carb entries.
+    /// - Throws: An error if the fetch operation fails.
+    private func fetchCarbEntryDates(start: Date, end: Date) async throws -> Set<Date> {
+        let allCarbEntryDates = try await coreDataStack.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: context,
+            predicate: .predicateForDateBetween(start: start, end: end),
+            key: "date",
+            ascending: false
+        ) as? [CarbEntryStored] ?? []
+
+        return Set(allCarbEntryDates.compactMap(\.date))
+    }
+
     /// Retrieves the set of dates for all oref determinations currently stored in CoreData.
     ///
     /// - Parameters:
@@ -81,6 +120,7 @@ class JSONImporter {
     ///
     /// - Parameters:
     ///   - url: The URL of the JSON file containing glucose history.
+    ///   - now: The current time, used to skip old entries
     /// - Throws:
     ///   - JSONImporterError.missingGlucoseValueInGlucoseEntry if a glucose entry is missing a value.
     ///   - An error if the file cannot be read or decoded.
@@ -101,6 +141,141 @@ class JSONImporter {
         try await backgroundContext.perform {
             for glucoseEntry in glucoseHistory {
                 try glucoseEntry.store(in: backgroundContext)
+            }
+
+            try backgroundContext.save()
+        }
+
+        try await context.perform {
+            try self.context.save()
+        }
+    }
+
+    /// combines tempBasal and tempBasalDuration events into one PumpHistoryEvent
+    private func combineTempBasalAndDuration(pumpHistory: [PumpHistoryEvent]) throws -> [PumpHistoryEvent] {
+        let tempBasal = pumpHistory.filter({ $0.type == .tempBasal }).sorted { $0.timestamp < $1.timestamp }
+        let tempBasalDuration = pumpHistory.filter({ $0.type == .tempBasalDuration }).sorted { $0.timestamp < $1.timestamp }
+        let nonTempBasal = pumpHistory.filter { $0.type != .tempBasal && $0.type != .tempBasalDuration }
+
+        guard tempBasal.count == tempBasalDuration.count else {
+            throw JSONImporterError.tempBasalAndDurationMismatch
+        }
+
+        let combinedTempBasal = try zip(tempBasal, tempBasalDuration).map { rate, duration in
+            guard rate.timestamp == duration.timestamp else {
+                throw JSONImporterError.tempBasalAndDurationMismatch
+            }
+            return PumpHistoryEvent(
+                id: duration.id,
+                type: .tempBasal,
+                timestamp: duration.timestamp,
+                duration: duration.durationMin,
+                rate: rate.rate,
+                temp: rate.temp
+            )
+        }
+
+        return (combinedTempBasal + nonTempBasal).sorted { $0.timestamp < $1.timestamp }
+    }
+
+    /// checks for pumpHistory inconsistencies that might cause issues if we import these events into CoreData
+    private func checkForInconsistencies(pumpHistory: [PumpHistoryEvent]) throws {
+        // make sure that pump suspends / resumes match up
+        let suspendsAndResumes = pumpHistory.filter({ $0.type == .pumpSuspend || $0.type == .pumpResume })
+            .sorted { $0.timestamp < $1.timestamp }
+
+        for (current, next) in zip(suspendsAndResumes, suspendsAndResumes.dropFirst()) {
+            guard current.type != next.type else {
+                throw JSONImporterError.suspendResumePumpEventMismatch
+            }
+        }
+
+        // check for duplicate events
+        struct TypeTimestamp: Hashable {
+            let timestamp: Date
+            let type: EventType
+        }
+
+        let duplicates = Dictionary(grouping: pumpHistory) { TypeTimestamp(timestamp: $0.timestamp, type: $0.type) }
+            .values.first(where: { $0.count > 1 })
+
+        if duplicates != nil {
+            throw JSONImporterError.duplicatePumpEvents
+        }
+    }
+
+    /// Imports pump history from a JSON file into CoreData.
+    ///
+    /// The function reads pump history data from the provided JSON file and stores new entries
+    /// in CoreData, skipping entries with timestamps that already exist in the database.
+    ///
+    /// - Parameters:
+    ///   - url: The URL of the JSON file containing pump history.
+    ///   - now: The current time, used to skip old entries
+    /// - Throws:
+    ///   - JSONImporterError.tempBasalAndDurationMismatch if we can't match tempBasals with their duration.
+    ///   - An error if the file cannot be read or decoded.
+    ///   - An error if the CoreData operation fails.
+    func importPumpHistory(url: URL, now: Date) async throws {
+        let twentyFourHoursAgo = now - 24.hours.timeInterval
+        let pumpHistoryRaw: [PumpHistoryEvent] = try readJsonFile(url: url)
+        let existingTimestamps = try await fetchPumpTimestamps(start: twentyFourHoursAgo, end: now)
+        let pumpHistoryFiltered = pumpHistoryRaw
+            .filter { $0.timestamp >= twentyFourHoursAgo && $0.timestamp <= now && !existingTimestamps.contains($0.timestamp) }
+
+        let pumpHistory = try combineTempBasalAndDuration(pumpHistory: pumpHistoryFiltered)
+        try checkForInconsistencies(pumpHistory: pumpHistory)
+
+        // Create a background context for batch processing
+        let backgroundContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        backgroundContext.parent = context
+
+        try await backgroundContext.perform {
+            for pumpEntry in pumpHistory {
+                try pumpEntry.store(in: backgroundContext)
+            }
+
+            try backgroundContext.save()
+        }
+
+        try await context.perform {
+            try self.context.save()
+        }
+    }
+
+    /// Imports carb history from a JSON file into CoreData.
+    ///
+    /// The function reads carb entries data from the provided JSON file and stores new entries
+    /// in CoreData, skipping entries with dates that already exist in the database.
+    /// We ignore all FPU entries (aka carb equivalents) when performing an import.
+    ///
+    /// - Parameters:
+    ///   - url: The URL of the JSON file containing glucose history.
+    ///   - now: The current datetime
+    /// - Throws:
+    ///   - JSONImporterError.missingCarbsValueInCarbEntry if a carb entry is missing a `carbs: Decimal` value.
+    ///   - An error if the file cannot be read or decoded.
+    ///   - An error if the CoreData operation fails.
+    func importCarbHistory(url: URL, now: Date) async throws {
+        let twentyFourHoursAgo = now - 24.hours.timeInterval
+        let carbHistoryFull: [CarbsEntry] = try readJsonFile(url: url)
+        let existingDates = try await fetchCarbEntryDates(start: twentyFourHoursAgo, end: now)
+
+        // Only import carb entries from the last 24 hours that do not exist yet in Core Data
+        // Only import "true" carb entries; ignore all FPU entries (aka carb equivalents)
+        let carbHistory = carbHistoryFull
+            .filter {
+                let dateToCheck = $0.actualDate ?? $0.createdAt
+                return dateToCheck >= twentyFourHoursAgo && dateToCheck <= now && !existingDates.contains(dateToCheck) && $0
+                    .isFPU ?? false == false }
+
+        // Create a background context for batch processing
+        let backgroundContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        backgroundContext.parent = context
+
+        try await backgroundContext.perform {
+            for carbEntry in carbHistory {
+                try carbEntry.store(in: backgroundContext)
             }
 
             try backgroundContext.save()
@@ -136,7 +311,8 @@ class JSONImporter {
         guard let enactedDeliverAt = enactedDetermination.deliverAt,
               let suggestedDeliverAt = suggestedDetermination.deliverAt
         else {
-            throw JSONImporterError.missingGlucoseValueInGlucoseEntry // TODO: adjust error
+            // TODO: adjust error
+            throw JSONImporterError.missingGlucoseValueInGlucoseEntry
         }
 
         guard checkDeterminationDate(enactedDeliverAt), checkDeterminationDate(suggestedDeliverAt) else {
@@ -183,6 +359,129 @@ extension BloodGlucose {
         glucoseEntry.isUploadedToNS = true
         glucoseEntry.isUploadedToHealth = true
         glucoseEntry.isUploadedToTidepool = true
+    }
+}
+
+extension PumpHistoryEvent {
+    /// Helper function to convert `PumpHistoryEvent` to `PumpEventStored` while importing JSON pump histories
+    func store(in context: NSManagedObjectContext) throws {
+        let pumpEntry = PumpEventStored(context: context)
+        pumpEntry.id = id
+        pumpEntry.timestamp = timestamp
+        pumpEntry.type = type.rawValue
+        pumpEntry.isUploadedToNS = true
+        pumpEntry.isUploadedToHealth = true
+        pumpEntry.isUploadedToTidepool = true
+
+        if type == .bolus {
+            guard let amount = amount else {
+                throw JSONImporterError.missingRequiredPropertyInPumpEntry
+            }
+            let bolusEntry = BolusStored(context: context)
+            bolusEntry.amount = NSDecimalNumber(decimal: amount)
+            bolusEntry.isSMB = isSMB ?? false
+            bolusEntry.isExternal = isExternal ?? false
+            pumpEntry.bolus = bolusEntry
+        } else if type == .tempBasal {
+            guard let rate = rate, let duration = duration else {
+                throw JSONImporterError.missingRequiredPropertyInPumpEntry
+            }
+            let tempEntry = TempBasalStored(context: context)
+            tempEntry.rate = NSDecimalNumber(decimal: rate)
+            tempEntry.duration = Int16(duration)
+            tempEntry.tempType = temp?.rawValue
+            pumpEntry.tempBasal = tempEntry
+        }
+    }
+}
+
+/// Extension to support decoding `CarbsEntry` from JSON with multiple possible key formats for entry notes.
+///
+/// This is needed because some JSON sources (e.g., Trio v0.2.5) use the singular key `"note"`
+/// for the `note` field, while others (e.g., Nightscout or oref) use the plural `"notes"`.
+///
+/// To ensure compatibility across all sources without duplicating models or requiring upstream fixes,
+/// this custom implementation attempts to decode the `note` field first from `"note"`, then from `"notes"`.
+/// Encoding will always use the canonical `"notes"` key to preserve consistency in output,
+/// as this is what's established throughout the backend now.
+extension CarbsEntry: Codable {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try container.decodeIfPresent(String.self, forKey: .id)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        actualDate = try container.decodeIfPresent(Date.self, forKey: .actualDate)
+        carbs = try container.decode(Decimal.self, forKey: .carbs)
+        fat = try container.decodeIfPresent(Decimal.self, forKey: .fat)
+        protein = try container.decodeIfPresent(Decimal.self, forKey: .protein)
+
+        // Handle both `note` and `notes`
+        if let noteValue = try? container.decodeIfPresent(String.self, forKey: .note) {
+            note = noteValue
+        } else if let notesValue = try? container.decodeIfPresent(String.self, forKey: .noteAlt) {
+            note = notesValue
+        } else {
+            note = nil
+        }
+
+        enteredBy = try container.decodeIfPresent(String.self, forKey: .enteredBy)
+        isFPU = try container.decodeIfPresent(Bool.self, forKey: .isFPU)
+        fpuID = try container.decodeIfPresent(String.self, forKey: .fpuID)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encodeIfPresent(id, forKey: .id)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(actualDate, forKey: .actualDate)
+        try container.encode(carbs, forKey: .carbs)
+        try container.encodeIfPresent(fat, forKey: .fat)
+        try container.encodeIfPresent(protein, forKey: .protein)
+        try container.encodeIfPresent(note, forKey: .note)
+        try container.encodeIfPresent(enteredBy, forKey: .enteredBy)
+        try container.encodeIfPresent(isFPU, forKey: .isFPU)
+        try container.encodeIfPresent(fpuID, forKey: .fpuID)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case createdAt = "created_at"
+        case actualDate
+        case carbs
+        case fat
+        case protein
+        case note = "notes" // standard key
+        case noteAlt = "note" // import key
+        case enteredBy
+        case isFPU
+        case fpuID
+    }
+
+    /// Helper function to convert `CarbsStored` to `CarbEntryStored` while importing JSON carb entries
+    func store(in context: NSManagedObjectContext) throws {
+        guard carbs >= 0 else {
+            throw JSONImporterError.missingCarbsValueInCarbEntry
+        }
+
+        // skip FPU entries for now
+
+        let carbEntry = CarbEntryStored(context: context)
+        carbEntry.id = id
+            .flatMap({ UUID(uuidString: $0) }) ?? UUID() /// The `CodingKey` of `id` is `_id`, so this fine to use here
+        carbEntry.date = actualDate ?? createdAt
+        carbEntry.carbs = Double(truncating: NSDecimalNumber(decimal: carbs))
+        carbEntry.fat = Double(truncating: NSDecimalNumber(decimal: fat ?? 0))
+        carbEntry.protein = Double(truncating: NSDecimalNumber(decimal: protein ?? 0))
+        carbEntry.note = note ?? ""
+        carbEntry.isFPU = false
+        carbEntry.isUploadedToNS = true
+        carbEntry.isUploadedToHealth = true
+        carbEntry.isUploadedToTidepool = true
+
+        if fat != nil, protein != nil, let fpuId = fpuID {
+            carbEntry.fpuID = UUID(uuidString: fpuId)
+        }
     }
 }
 
@@ -368,5 +667,7 @@ extension Determination: Codable {
 
 extension JSONImporter {
     func importGlucoseHistoryIfNeeded() async {}
+    func importPumpHistoryIfNeeded() async {}
+    func importCarbHistoryIfNeeded() async {}
     func importDeterminationIfNeeded() async {}
 }
