@@ -60,13 +60,13 @@ class JSONImporter {
         return Set(allReadings.compactMap(\.date))
     }
 
-    /// Retrieves the set of timestamps for all pump evets currently stored in CoreData.
+    /// Retrieves the set of timestamps for all pump events currently stored in CoreData.
     ///
     /// - Parameters: the start and end dates to fetch pump events, inclusive
     /// - Returns: A set of dates corresponding to existing pump events.
     /// - Throws: An error if the fetch operation fails.
     private func fetchPumpTimestamps(start: Date, end: Date) async throws -> Set<Date> {
-        let allReadings = try await coreDataStack.fetchEntitiesAsync(
+        let allPumpEvents = try await coreDataStack.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
             predicate: .predicateForTimestampBetween(start: start, end: end),
@@ -74,7 +74,7 @@ class JSONImporter {
             ascending: false
         ) as? [PumpEventStored] ?? []
 
-        return Set(allReadings.compactMap(\.timestamp))
+        return Set(allPumpEvents.compactMap(\.timestamp))
     }
 
     /// Retrieves the set of timestamps for all carb entries currently stored in CoreData.
