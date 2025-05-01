@@ -9,6 +9,7 @@ enum JSONImporterError: Error {
     case suspendResumePumpEventMismatch
     case duplicatePumpEvents
     case missingCarbsValueInCarbEntry
+    case missingRequiredPropertyInDetermination
 }
 
 // MARK: - JSONImporter Class
@@ -311,8 +312,7 @@ class JSONImporter {
         guard let enactedDeliverAt = enactedDetermination.deliverAt,
               let suggestedDeliverAt = suggestedDetermination.deliverAt
         else {
-            // TODO: adjust error
-            throw JSONImporterError.missingGlucoseValueInGlucoseEntry
+            throw JSONImporterError.missingRequiredPropertyInDetermination
         }
 
         guard checkDeterminationDate(enactedDeliverAt), checkDeterminationDate(suggestedDeliverAt) else {
@@ -609,6 +609,7 @@ extension Determination: Codable {
     /// Helper function to convert `Determination` to `OrefDetermination` while importing JSON glucose entries
     func store(in context: NSManagedObjectContext) throws {
         // TODO: some guards here ?!
+        
         let newOrefDetermination = OrefDetermination(context: context)
         newOrefDetermination.id = UUID()
         newOrefDetermination.insulinSensitivity = decimalToNSDecimalNumber(isf)
