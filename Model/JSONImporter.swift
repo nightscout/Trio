@@ -54,7 +54,7 @@ class JSONImporter {
 
         return Set(allReadings.compactMap(\.date))
     }
-    
+
     /// Retrieves the set of dates for all oref determinations currently stored in CoreData.
     ///
     /// - Parameters:
@@ -110,7 +110,7 @@ class JSONImporter {
             try self.context.save()
         }
     }
-    
+
     /// Imports oref determination from a JSON file into CoreData.
     ///
     /// The function reads oref determination data from the provided JSON file and stores new entries
@@ -130,13 +130,15 @@ class JSONImporter {
 
         /// Helper function to check if entries are from within the last 24 hours that do not yet exist in Core Data
         func checkDeterminationDate(_ date: Date) -> Bool {
-            return date >= twentyFourHoursAgo && date <= now && !existingDates.contains(date)
+            date >= twentyFourHoursAgo && date <= now && !existingDates.contains(date)
         }
-        
-        guard let enactedDeliverAt = enactedDetermination.deliverAt, let suggestedDeliverAt = suggestedDetermination.deliverAt else {
+
+        guard let enactedDeliverAt = enactedDetermination.deliverAt,
+              let suggestedDeliverAt = suggestedDetermination.deliverAt
+        else {
             throw JSONImporterError.missingGlucoseValueInGlucoseEntry // TODO: adjust error
         }
-        
+
         guard checkDeterminationDate(enactedDeliverAt), checkDeterminationDate(suggestedDeliverAt) else {
             return
         }
@@ -151,7 +153,7 @@ class JSONImporter {
             if suggestedDeliverAt != enactedDeliverAt {
                 try suggestedDetermination.store(in: backgroundContext)
             }
-            
+
             try enactedDetermination.store(in: backgroundContext)
 
             try backgroundContext.save()
@@ -307,7 +309,7 @@ extension Determination: Codable {
 
     /// Helper function to convert `Determination` to `OrefDetermination` while importing JSON glucose entries
     func store(in context: NSManagedObjectContext) throws {
-        // TODO: some guards here ?! 
+        // TODO: some guards here ?!
         let newOrefDetermination = OrefDetermination(context: context)
         newOrefDetermination.id = UUID()
         newOrefDetermination.insulinSensitivity = decimalToNSDecimalNumber(isf)
@@ -315,7 +317,7 @@ extension Determination: Codable {
         newOrefDetermination.eventualBG = eventualBG.map(NSDecimalNumber.init)
         newOrefDetermination.deliverAt = deliverAt
         newOrefDetermination.timestamp = timestamp
-        newOrefDetermination.enacted = received ?? false 
+        newOrefDetermination.enacted = received ?? false
         newOrefDetermination.insulinForManualBolus = decimalToNSDecimalNumber(insulinForManualBolus)
         newOrefDetermination.carbRatio = decimalToNSDecimalNumber(carbRatio)
         newOrefDetermination.glucose = decimalToNSDecimalNumber(bg)
@@ -357,7 +359,7 @@ extension Determination: Codable {
                 }
         }
     }
-    
+
     func decimalToNSDecimalNumber(_ value: Decimal?) -> NSDecimalNumber? {
         guard let value = value else { return nil }
         return NSDecimalNumber(decimal: value)
