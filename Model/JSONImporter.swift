@@ -9,7 +9,19 @@ enum JSONImporterError: Error {
     case suspendResumePumpEventMismatch
     case duplicatePumpEvents
     case missingCarbsValueInCarbEntry
-    case missingRequiredPropertyInDetermination
+    case missingRequiredPropertyInDetermination(String)
+    case invalidDeterminationReason
+
+    var errorDescription: String? {
+        switch self {
+        case let .missingRequiredPropertyInDetermination(field):
+            return "Missing required property: \(field)"
+        case .invalidDeterminationReason:
+            return "Determination reason cannot be empty!"
+        default:
+            return nil
+        }
+    }
 }
 
 // MARK: - JSONImporter Class
@@ -312,12 +324,15 @@ class JSONImporter {
         guard let enactedDeliverAt = enactedDetermination.deliverAt,
               let suggestedDeliverAt = suggestedDetermination.deliverAt
         else {
-            throw JSONImporterError.missingRequiredPropertyInDetermination
+            throw JSONImporterError.missingRequiredPropertyInDetermination("deliverAt")
         }
 
         guard checkDeterminationDate(enactedDeliverAt), checkDeterminationDate(suggestedDeliverAt) else {
             return
         }
+
+        try enactedDetermination.checkForRequiredFields()
+        try suggestedDetermination.checkForRequiredFields()
 
         // Create a background context for batch processing
         let backgroundContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
@@ -607,10 +622,68 @@ extension Determination: Codable {
         try container.encodeIfPresent(received, forKey: .received) // always encode the correct spelling
     }
 
+    func checkForRequiredFields() throws {
+        guard let deliverAt = deliverAt else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("deliverAt")
+        }
+        guard let timestamp = timestamp else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("timestamp")
+        }
+        guard reason.isNotEmpty else {
+            throw JSONImporterError.invalidDeterminationReason
+        }
+        guard let insulinReq = insulinReq else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("insulinReq")
+        }
+        guard let currentTarget = current_target else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("current_target")
+        }
+        guard let reservoir = reservoir else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("reservoir")
+        }
+        guard let threshold = threshold else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("threshold")
+        }
+        guard let iob = iob else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("IOB")
+        }
+        guard let isf = isf else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("ISF")
+        }
+        guard let manualBolusErrorString = manualBolusErrorString else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("manualBolusErrorString")
+        }
+        guard let insulinForManualBolus = insulinForManualBolus else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("insulinForManualBolus")
+        }
+        guard let cob = cob else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("COB")
+        }
+        guard let tdd = tdd else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("TDD")
+        }
+        guard let bg = bg else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("bg")
+        }
+        guard let minDelta = minDelta else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("minDelta")
+        }
+        guard let eventualBG = eventualBG else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("eventualBG")
+        }
+        guard let sensitivityRatio = sensitivityRatio else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("sensitivityRatio")
+        }
+        guard let temp = temp else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("temp")
+        }
+        guard let expectedDelta = expectedDelta else {
+            throw JSONImporterError.missingRequiredPropertyInDetermination("expectedDelta")
+        }
+    }
+
     /// Helper function to convert `Determination` to `OrefDetermination` while importing JSON glucose entries
     func store(in context: NSManagedObjectContext) throws {
-        // TODO: some guards here ?!
-
         let newOrefDetermination = OrefDetermination(context: context)
         newOrefDetermination.id = UUID()
         newOrefDetermination.insulinSensitivity = decimalToNSDecimalNumber(isf)
