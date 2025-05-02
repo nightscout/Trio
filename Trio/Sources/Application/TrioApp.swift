@@ -36,6 +36,8 @@ extension Notification.Name {
     @State private var showLoadingView = true
     @State private var showLoadingError = false
     @State private var showOnboardingCompletedSplash = false
+    @State private var migrationErrors: [String] = []
+    @State private var showMigrationErrorAlert: Bool = false
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -129,6 +131,9 @@ extension Notification.Name {
             do {
                 try await coreDataStack.initializeStack()
 
+                // TODO: possibly wrap this in a UserDefault / TinyStorage flag check, so we do not even attempt to fetch files unnecessary, but early exit the import
+                try await performJsonToCoreDataMigrationIfNeeded()
+
                 await Task { @MainActor in
                     // Only load services after successful Core Data initialization
                     loadServices()
@@ -162,6 +167,47 @@ extension Notification.Name {
                     Foundation.NotificationCenter.default.post(name: .initializationError, object: nil)
                 }
             }
+        }
+    }
+
+    private func performJsonToCoreDataMigrationIfNeeded() async throws {
+        let importer = JSONImporter(context: coreDataStack.newTaskContext(), coreDataStack: coreDataStack)
+        var importErrors: [String] = []
+
+        do {
+            try await importer.importGlucoseHistoryIfNeeded()
+        } catch {
+            importErrors
+                .append(String(localized: "Migration of JSON-based Glucose History failed: \(error.localizedDescription)"))
+            debug(.coreData, "❌ Failed to import JSON-based Glucose History: \(error)")
+        }
+
+        do {
+            try await importer.importPumpHistoryIfNeeded()
+        } catch {
+            importErrors.append(String(localized: "Migration of JSON-based Pump History failed: \(error.localizedDescription)"))
+            debug(.coreData, "❌ Failed to import JSON-based Pump History: \(error)")
+        }
+
+        do {
+            try await importer.importCarbHistoryIfNeeded()
+        } catch {
+            importErrors.append(String(localized: "Migration of JSON-based Carb History failed: \(error.localizedDescription)"))
+            debug(.coreData, "❌ Failed to import JSON-based Carb History: \(error)")
+        }
+
+        do {
+            try await importer.importDeterminationIfNeeded()
+        } catch {
+            importErrors
+                .append(
+                    String(localized: "Migration of JSON-based OpenAPS Determination Data failed: \(error.localizedDescription)")
+                )
+            debug(.coreData, "❌ Failed to import JSON-based OpenAPS Determination Data: \(error)")
+        }
+
+        await MainActor.run {
+            self.migrationErrors = importErrors
         }
     }
 
@@ -252,6 +298,16 @@ extension Notification.Name {
                         .environment(appState)
                         .environmentObject(Icons())
                         .onOpenURL(perform: handleURL)
+                }
+            }
+            // TODO: this is just for testing...
+            .sheet(isPresented: $showMigrationErrorAlert) {
+                if migrationErrors.isNotEmpty {
+                    ForEach(migrationErrors, id: \.self) { message in
+                        Text(message)
+                            .foregroundColor(.red)
+                            .font(.footnote)
+                    }
                 }
             }
             .onReceive(Foundation.NotificationCenter.default.publisher(for: .onboardingCompleted)) { _ in
