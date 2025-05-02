@@ -37,7 +37,7 @@ extension Notification.Name {
     @State private var showLoadingError = false
     @State private var showOnboardingCompletedSplash = false
     @State private var migrationErrors: [String] = []
-    @State private var showMigrationErrorAlert: Bool = false
+    @State private var showMigrationError: Bool = false
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -170,7 +170,7 @@ extension Notification.Name {
         }
     }
 
-    private func performJsonToCoreDataMigrationIfNeeded() async throws {
+    @MainActor  private func performJsonToCoreDataMigrationIfNeeded() async throws {
         let importer = JSONImporter(context: coreDataStack.newTaskContext(), coreDataStack: coreDataStack)
         var importErrors: [String] = []
 
@@ -178,21 +178,21 @@ extension Notification.Name {
             try await importer.importGlucoseHistoryIfNeeded()
         } catch {
             importErrors
-                .append(String(localized: "Migration of JSON-based Glucose History failed: \(error.localizedDescription)"))
+                .append(String(localized: "Failed to import glucose history."))
             debug(.coreData, "❌ Failed to import JSON-based Glucose History: \(error)")
         }
 
         do {
             try await importer.importPumpHistoryIfNeeded()
         } catch {
-            importErrors.append(String(localized: "Migration of JSON-based Pump History failed: \(error.localizedDescription)"))
+            importErrors.append(String(localized: "Failed to import pump history."))
             debug(.coreData, "❌ Failed to import JSON-based Pump History: \(error)")
         }
 
         do {
             try await importer.importCarbHistoryIfNeeded()
         } catch {
-            importErrors.append(String(localized: "Migration of JSON-based Carb History failed: \(error.localizedDescription)"))
+            importErrors.append(String(localized: "Failed to import algorithm data."))
             debug(.coreData, "❌ Failed to import JSON-based Carb History: \(error)")
         }
 
@@ -206,8 +206,11 @@ extension Notification.Name {
             debug(.coreData, "❌ Failed to import JSON-based OpenAPS Determination Data: \(error)")
         }
 
-        await MainActor.run {
-            self.migrationErrors = importErrors
+        if importErrors.isNotEmpty {
+            await MainActor.run {
+                self.showMigrationError = true
+                self.migrationErrors = importErrors
+            }
         }
     }
 
@@ -274,6 +277,13 @@ extension Notification.Name {
                         .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
                             self.showLoadingError = true
                         }
+                } else if showMigrationError { // FIXME: display of this is not yet working, despite migration errors
+                    Main.MainMigrationErrorView(migrationErrors: self.migrationErrors, onConfirm: {
+                        Task { @MainActor in
+                            showMigrationError = false
+                            migrationErrors = []
+                        }
+                    })
                 } else if showOnboardingCompletedSplash {
                     LogoBurstSplash(isActive: $showOnboardingCompletedSplash) {
                         Main.RootView(resolver: resolver)
@@ -298,16 +308,6 @@ extension Notification.Name {
                         .environment(appState)
                         .environmentObject(Icons())
                         .onOpenURL(perform: handleURL)
-                }
-            }
-            // TODO: this is just for testing...
-            .sheet(isPresented: $showMigrationErrorAlert) {
-                if migrationErrors.isNotEmpty {
-                    ForEach(migrationErrors, id: \.self) { message in
-                        Text(message)
-                            .foregroundColor(.red)
-                            .font(.footnote)
-                    }
                 }
             }
             .onReceive(Foundation.NotificationCenter.default.publisher(for: .onboardingCompleted)) { _ in

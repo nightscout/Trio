@@ -29,7 +29,7 @@ struct CompletedStepView: View {
                     completedItemsView(
                         stepIndex: index + 1,
                         title: chapter.title,
-                        description: chapter.completedDescription,
+                        description: isChapterCompleted(chapter) ? chapter.completedDescription : chapter.overviewDescription,
                         isCompleted: isChapterCompleted(chapter)
                     )
 
