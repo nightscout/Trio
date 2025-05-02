@@ -324,7 +324,6 @@ class JSONImporter {
         backgroundContext.parent = context
 
         try await backgroundContext.perform {
-            
             /// We know both determination entries are from within last 24 hrs via `checkDeterminationDate()` in the earlier `guard` clause
             /// If their `deliverAt` does not match, and if `suggestedDeliverAt` is newer, it is worth storing them both, as that represents
             /// a more recent algorithm run that did not cause a dosing enactment, e.g., a carb entry or a manual bolus.
@@ -611,7 +610,7 @@ extension Determination: Codable {
     /// Helper function to convert `Determination` to `OrefDetermination` while importing JSON glucose entries
     func store(in context: NSManagedObjectContext) throws {
         // TODO: some guards here ?!
-        
+
         let newOrefDetermination = OrefDetermination(context: context)
         newOrefDetermination.id = UUID()
         newOrefDetermination.insulinSensitivity = decimalToNSDecimalNumber(isf)

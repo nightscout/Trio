@@ -17,7 +17,6 @@ class BundleReference {}
     var coreDataStack: CoreDataStack!
     var context: NSManagedObjectContext!
     var importer: JSONImporter!
-    @Injected() var determinationStorage: DeterminationStorage!
 
     init() async throws {
         // In-memory Core Data for tests
@@ -249,35 +248,99 @@ class BundleReference {}
         #expect(determination.threshold == Decimal(string: "3.7").map(NSDecimalNumber.init))
         #expect(determination.carbRatio == nil) // not present in JSON
 
-        // TODO: fix forecast testing
-//        let forecastHierarchy = try await determinationStorage.fetchForecastHierarchy(for: determination.objectID, in: context)
-//
-//        for entry in forecastHierarchy {
-//            let (_, forecast, values) = await determinationStorage.fetchForecastObjects(for: entry, in: context)
-//
-//            // Basic checks
-//            #expect(forecast != nil)
-//            #expect(!values.isEmpty)
-//
-//            if let forecast = forecast {
-//                let sortedValues = values.sorted { $0.index < $1.index }
-//                let prefix = sortedValues.prefix(5).compactMap(\.value)
-//                let type = forecast.type?.lowercased()
-//
-//                switch type {
-//                case "zt":
-//                    #expect(prefix == [85, 78, 71, 64, 58])
-//                case "iob":
-//                    #expect(prefix == [85, 89, 92, 95, 97])
-//                case "uam":
-//                    #expect(prefix == [85, 89, 93, 96, 99])
-//                case "cob":
-//                    #expect(prefix == [85, 90, 94, 99, 103])
-//                default:
-//                    break // Skip unknown forecast types silently
-//                }
-//            }
-//        }
+        let forecasts = try await CoreDataStack.shared.fetchEntitiesAsync(
+            ofType: Forecast.self,
+            onContext: context,
+            predicate: NSPredicate(format: "orefDetermination = %@", determination.objectID),
+            key: "type",
+            ascending: true,
+            relationshipKeyPathsForPrefetching: ["forecastValues"]
+        )
+
+        var forecastHierarchy: [(forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])] = []
+
+        await context.perform {
+            if let forecasts = forecasts as? [Forecast] {
+                for forecast in forecasts {
+                    // Use the helper property that already sorts by index
+                    let sortedValues = forecast.forecastValuesArray
+                    forecastHierarchy.append((
+                        forecastID: forecast.objectID,
+                        forecastValueIDs: sortedValues.map(\.objectID)
+                    ))
+                }
+            }
+
+            for entry in forecastHierarchy {
+                var forecastValueTuple: (Forecast?, [ForecastValue]) = (nil, [])
+
+                var forecast: Forecast?
+                var forecastValues: [ForecastValue] = []
+
+                do {
+                    // Fetch the forecast object
+                    forecast = try context.existingObject(with: entry.forecastID) as? Forecast
+
+                    // Fetch the first 3h of forecast values
+                    for forecastValueID in entry.forecastValueIDs.prefix(36) {
+                        if let forecastValue = try context.existingObject(with: forecastValueID) as? ForecastValue {
+                            forecastValues.append(forecastValue)
+                        }
+                    }
+                } catch {
+                    debugPrint(
+                        "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast Values with error: \(error.localizedDescription)"
+                    )
+                }
+                forecastValueTuple = (forecast, forecastValues)
+
+                // Basic checks
+                #expect(forecastValueTuple.0 != nil)
+                #expect(forecastValueTuple.1.isNotEmpty == true)
+
+                if let forecast = forecastValueTuple.0 {
+                    let sortedValues = forecastValueTuple.1.sorted { $0.index < $1.index }
+                    let prefix = sortedValues.prefix(5).compactMap(\.value)
+                    let type = forecast.type?.lowercased()
+
+                    switch type {
+                    case "zt":
+                        #expect(prefix == [85, 78, 71, 64, 58])
+                    case "iob":
+                        #expect(prefix == [85, 89, 92, 95, 97])
+                    case "uam":
+                        #expect(prefix == [85, 89, 93, 96, 99])
+                    case "cob":
+                        #expect(prefix == [85, 90, 94, 99, 103])
+                    default:
+                        break // Skip unknown forecast types silently
+                    }
+                }
+            }
+        }
+    }
+
+    @Test("Skip importing old determinations") func testSkipImportOldDeterminationData() async throws {
+        let testBundle = Bundle(for: BundleReference.self)
+        let enactedPath = testBundle.path(forResource: "enacted", ofType: "json")!
+        let enactedUrl = URL(filePath: enactedPath)
+        let suggestedPath = testBundle.path(forResource: "suggested", ofType: "json")!
+        let suggestedUrl = URL(filePath: suggestedPath)
+
+        // more than 24 hours in the future from the most recent entry
+        let now = Date("2025-04-29T22:00:00.000Z")!
+
+        try await importer.importOrefDetermination(enactedUrl: enactedUrl, suggestedUrl: suggestedUrl, now: now)
+
+        let determinations = try await coreDataStack.fetchEntitiesAsync(
+            ofType: OrefDetermination.self,
+            onContext: context,
+            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            key: "deliverAt",
+            ascending: false
+        ) as? [OrefDetermination] ?? []
+
+        #expect(determinations.isEmpty)
     }
 }
 
