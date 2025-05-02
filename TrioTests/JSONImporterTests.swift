@@ -342,6 +342,34 @@ class BundleReference {}
 
         #expect(determinations.isEmpty)
     }
+
+    @Test("Import determination data with suggested newer than enacted") func testImportDeterminationDetailsWithNewerSuggested(
+    ) async throws {
+        let testBundle = Bundle(for: BundleReference.self)
+        let enactedPath = testBundle.path(forResource: "enacted", ofType: "json")!
+        let enactedUrl = URL(filePath: enactedPath)
+        let suggestedPath = testBundle.path(forResource: "newerSuggested", ofType: "json")!
+        let suggestedUrl = URL(filePath: suggestedPath)
+
+        let now = Date("2025-04-28T20:50:00.000Z")!
+        try await importer.importOrefDetermination(enactedUrl: enactedUrl, suggestedUrl: suggestedUrl, now: now)
+
+        let determinations = try await coreDataStack.fetchEntitiesAsync(
+            ofType: OrefDetermination.self,
+            onContext: context,
+            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            key: "deliverAt",
+            ascending: false
+        ) as? [OrefDetermination] ?? []
+
+        #expect(determinations.count == 2) // two determinations, suggested is more recent than enacted
+
+        let suggested = determinations.first(where: { !$0.enacted && $0.deliverAt == $0.timestamp })!
+        let enacted = determinations.first(where: { $0.enacted })!
+
+        #expect(suggested.deliverAt == Date("2025-04-28T19:51:48.453Z"))
+        #expect(enacted.timestamp == Date("2025-04-28T19:41:48.453Z"))
+    }
 }
 
 extension Double {

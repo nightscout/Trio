@@ -556,6 +556,7 @@
 		DD32CFA22CC824E2003686D6 /* TrioRemoteControl+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CFA12CC824E1003686D6 /* TrioRemoteControl+Helpers.swift */; };
 		DD3A3CE72D29C93F00AE478E /* Helper+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3A3CE62D29C93F00AE478E /* Helper+Extensions.swift */; };
 		DD3A3CE92D29C97800AE478E /* Helper+ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3A3CE82D29C97800AE478E /* Helper+ButtonStyles.swift */; };
+		DD3C47B32DC5608A003DD20D /* newerSuggested.json in Resources */ = {isa = PBXBuildFile; fileRef = DD3C47B22DC5608A003DD20D /* newerSuggested.json */; };
 		DD3F1F832D9DC78800DCE7B3 /* UnitSelectionStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */; };
 		DD3F1F852D9DD84000DCE7B3 /* DeliveryLimitsStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */; };
 		DD3F1F892D9E078D00DCE7B3 /* TherapySettingEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorView.swift */; };
@@ -622,9 +623,9 @@
 		DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */; };
 		DDD1631F2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */; };
 		DDD6D4D32CDE90720029439A /* EstimatedA1cDisplayUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD6D4D22CDE90720029439A /* EstimatedA1cDisplayUnit.swift */; };
+		DDD78A912DC4064800AC63F3 /* carbhistory.json in Resources */ = {isa = PBXBuildFile; fileRef = DDD78A902DC4064800AC63F3 /* carbhistory.json */; };
 		DDD78AD92DC421B500AC63F3 /* enacted.json in Resources */ = {isa = PBXBuildFile; fileRef = DDD78AD72DC421B500AC63F3 /* enacted.json */; };
 		DDD78ADA2DC421B500AC63F3 /* suggested.json in Resources */ = {isa = PBXBuildFile; fileRef = DDD78AD82DC421B500AC63F3 /* suggested.json */; };
-		DDD78A912DC4064800AC63F3 /* carbhistory.json in Resources */ = {isa = PBXBuildFile; fileRef = DDD78A902DC4064800AC63F3 /* carbhistory.json */; };
 		DDE179522C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179322C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift */; };
 		DDE179532C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179332C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift */; };
 		DDE179542C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE179342C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift */; };
@@ -1367,6 +1368,7 @@
 		DD32CFA12CC824E1003686D6 /* TrioRemoteControl+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Helpers.swift"; sourceTree = "<group>"; };
 		DD3A3CE62D29C93F00AE478E /* Helper+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Helper+Extensions.swift"; sourceTree = "<group>"; };
 		DD3A3CE82D29C97800AE478E /* Helper+ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Helper+ButtonStyles.swift"; sourceTree = "<group>"; };
+		DD3C47B22DC5608A003DD20D /* newerSuggested.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = newerSuggested.json; sourceTree = "<group>"; };
 		DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitSelectionStepView.swift; sourceTree = "<group>"; };
 		DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliveryLimitsStepView.swift; sourceTree = "<group>"; };
 		DD3F1F882D9E078300DCE7B3 /* TherapySettingEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingEditorView.swift; sourceTree = "<group>"; };
@@ -1433,9 +1435,9 @@
 		DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOverrideForm.swift; sourceTree = "<group>"; };
 		DDD1631E2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrioCoreDataPersistentContainer.xcdatamodel; sourceTree = "<group>"; };
 		DDD6D4D22CDE90720029439A /* EstimatedA1cDisplayUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EstimatedA1cDisplayUnit.swift; sourceTree = "<group>"; };
+		DDD78A902DC4064800AC63F3 /* carbhistory.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = carbhistory.json; sourceTree = "<group>"; };
 		DDD78AD72DC421B500AC63F3 /* enacted.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = enacted.json; sourceTree = "<group>"; };
 		DDD78AD82DC421B500AC63F3 /* suggested.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = suggested.json; sourceTree = "<group>"; };
-		DDD78A902DC4064800AC63F3 /* carbhistory.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = carbhistory.json; sourceTree = "<group>"; };
 		DDE179322C910127003CDDB7 /* MealPresetStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealPresetStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		DDE179332C910127003CDDB7 /* MealPresetStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealPresetStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		DDE179342C910127003CDDB7 /* LoopStatRecord+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopStatRecord+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -2562,6 +2564,7 @@
 		3B997DD22DC02AEF006B6BB2 /* JSONImporterData */ = {
 			isa = PBXGroup;
 			children = (
+				DD3C47B22DC5608A003DD20D /* newerSuggested.json */,
 				DDD78AD72DC421B500AC63F3 /* enacted.json */,
 				DDD78AD82DC421B500AC63F3 /* suggested.json */,
 				DDD78A902DC4064800AC63F3 /* carbhistory.json */,
@@ -3919,6 +3922,7 @@
 				DDD78A912DC4064800AC63F3 /* carbhistory.json in Resources */,
 				3B997DD32DC02AEF006B6BB2 /* glucose.json in Resources */,
 				DDD78AD92DC421B500AC63F3 /* enacted.json in Resources */,
+				DD3C47B32DC5608A003DD20D /* newerSuggested.json in Resources */,
 				DDD78ADA2DC421B500AC63F3 /* suggested.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
