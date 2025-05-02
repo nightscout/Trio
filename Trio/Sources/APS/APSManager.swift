@@ -49,6 +49,17 @@ enum APSError: LocalizedError {
             return String(localized: "Manual Temporary Basal Rate (\(message)). Looping suspended.")
         }
     }
+
+    static func pumpErrorMatches(message: String) -> Bool {
+        message.contains(String(localized: "Pump Error"))
+    }
+
+    static func pumpWarningMatches(message: String) -> Bool {
+        message.contains(String(localized: "Invalid Pump State")) || message
+            .contains("PumpMessage") || message
+            .contains("PumpOpsError") || message.contains("RileyLink") || message
+            .contains(String(localized: "Pump did not respond in time"))
+    }
 }
 
 final class BaseAPSManager: APSManager, Injectable {
