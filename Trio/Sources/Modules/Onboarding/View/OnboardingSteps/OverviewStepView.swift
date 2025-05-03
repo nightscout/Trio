@@ -14,58 +14,18 @@ struct OverviewStepView: View {
                 .padding(.horizontal)
 
             VStack(alignment: .center, spacing: 12) {
-                overviewItem(
-                    stepIndex: 1,
-                    title: String(localized: "Prepare Trio"),
-                    duration: "3-5",
-                    description: String(
-                        localized: "Configure diagnostics sharing, optionally sync with Nightscout, and enter essentials."
+                ForEach(Array(OnboardingChapter.allCases.enumerated()), id: \.element.id) { index, chapter in
+                    overviewItem(
+                        stepIndex: index + 1,
+                        title: chapter.title,
+                        duration: chapter.duration,
+                        description: chapter.overviewDescription
                     )
-                )
 
-                Divider()
-
-                overviewItem(
-                    stepIndex: 2,
-                    title: String(localized: "Therapy Settings"),
-                    duration: "5-10",
-                    description: String(
-                        localized: "Define your glucose targets, basal rates, carb ratios, and insulin sensitivities."
-                    )
-                )
-
-                Divider()
-
-                overviewItem(
-                    stepIndex: 3,
-                    title: String(localized: "Delivery Limits"),
-                    duration: "3-5",
-                    description: String(
-                        localized: "Set boundaries for insulin delivery and carb entries to help Trio keep you safe."
-                    )
-                )
-
-                Divider()
-
-                overviewItem(
-                    stepIndex: 4,
-                    title: String(localized: "Algorithm Settings"),
-                    duration: "5-10",
-                    description: String(
-                        localized: "Customize Trio’s algorithm features. Most users start with the recommended settings."
-                    )
-                )
-
-                Divider()
-
-                overviewItem(
-                    stepIndex: 5,
-                    title: String(localized: "Permission Requests"),
-                    duration: "1",
-                    description: String(
-                        localized: "Authorize Trio to send notifications and use Bluetooth. You must allow both for Trio to work properly."
-                    )
-                )
+                    if index < (OnboardingChapter.allCases.count - 1) {
+                        Divider()
+                    }
+                }
             }
             .padding()
             .background(Color.chart.opacity(0.65))

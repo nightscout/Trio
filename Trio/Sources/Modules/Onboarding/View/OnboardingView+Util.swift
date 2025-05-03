@@ -6,10 +6,96 @@ enum OnboardingNavigationDirection {
     case backward
 }
 
+enum OnboardingChapter: Int, CaseIterable {
+    case prepareTrio
+    case therapySettings
+    case deliveryLimits
+    case algorithmSettings
+    case permissionRequests
+
+    var id: Int { rawValue }
+
+    var title: String {
+        switch self {
+        case .prepareTrio:
+            return String(localized: "Prepare Trio")
+        case .therapySettings:
+            return String(localized: "Therapy Settings")
+        case .deliveryLimits:
+            return String(localized: "Delivery Limits")
+        case .algorithmSettings:
+            return String(localized: "Algorithm Settings")
+        case .permissionRequests:
+            return String(localized: "Permission Requests")
+        }
+    }
+
+    var overviewDescription: String {
+        switch self {
+        case .prepareTrio:
+            return String(
+                localized: "Configure diagnostics sharing, optionally sync with Nightscout, and enter essentials."
+            )
+        case .therapySettings:
+            return String(
+                localized: "Define your glucose targets, basal rates, carb ratios, and insulin sensitivities."
+            )
+        case .deliveryLimits:
+            return String(
+                localized: "Set boundaries for insulin delivery and carb entries to help Trio keep you safe."
+            )
+        case .algorithmSettings:
+            return String(
+                localized: "Customize Trio’s algorithm features. Most users start with the recommended settings."
+            )
+        case .permissionRequests:
+            return String(
+                localized: "Authorize Trio to send notifications and use Bluetooth. You must allow both for Trio to work properly."
+            )
+        }
+    }
+
+    var duration: String {
+        switch self {
+        case .prepareTrio:
+            return "3-5"
+        case .therapySettings:
+            return "5-10"
+        case .deliveryLimits:
+            return "3-5"
+        case .algorithmSettings:
+            return "5-10"
+        case .permissionRequests:
+            return "1"
+        }
+    }
+
+    var completedDescription: String {
+        switch self {
+        case .prepareTrio:
+            return String(
+                localized: "App diagnostics sharing, Nightscout setup, and unit and pump model selection are all complete."
+            )
+        case .therapySettings:
+            return String(
+                localized: "Glucose target, basal rates, carb ratios, and insulin sensitivity match your needs."
+            )
+        case .deliveryLimits:
+            return String(
+                localized: "Safety boundaries for insulin delivery and carb entries are set to help Trio keep you safe."
+            )
+        case .algorithmSettings:
+            return String(localized: "Trio’s algorithm features are customized to fit your preferences and needs.")
+        case .permissionRequests:
+            return String(localized: "Notifications and Bluetooth permissions are handled to your liking.")
+        }
+    }
+}
+
 /// Represents the different steps in the onboarding process.
 enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
     case welcome
-    case startupGuide
+    case startupInfo
     case overview
     case diagnostics
     case nightscout
@@ -33,17 +119,12 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         self == .deliveryLimits
     }
 
-    var substeps: [DeliveryLimitSubstep] {
-        guard hasSubsteps else { return [] }
-        return DeliveryLimitSubstep.allCases
-    }
-
     /// The title to display for this onboarding step.
     var title: String {
         switch self {
         case .welcome:
             return String(localized: "Welcome to Trio")
-        case .startupGuide:
+        case .startupInfo:
             return String(localized: "Startup Guide")
         case .overview:
             return String(localized: "Overview")
@@ -87,7 +168,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return String(
                 localized: "Trio is a powerful app that helps you manage your diabetes. Let's get started by setting up a few important parameters that will help Trio work effectively for you."
             )
-        case .startupGuide:
+        case .startupInfo:
             return String(
                 localized: "Trio comes with a helpful Startup Guide. We recommend opening it now and following along as you go — side by side."
             )
@@ -159,7 +240,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         switch self {
         case .welcome:
             return "hand.wave.fill"
-        case .startupGuide:
+        case .startupInfo:
             return "list.bullet.clipboard.fill"
         case .overview:
             return "checklist.unchecked"
@@ -225,7 +306,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
              .notifications,
              .overview,
              .smbSettings,
-             .startupGuide,
+             .startupInfo,
              .targetBehavior,
              .unitSelection,
              .welcome:
@@ -240,10 +321,37 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
             return Color.red
         }
     }
+
+    var chapterCompletion: OnboardingChapter? {
+        switch self {
+        case .unitSelection:
+            return .prepareTrio
+        case .insulinSensitivity:
+            return .therapySettings
+        case .deliveryLimits:
+            // ❗ Delivery Limits depends on the substep, not just the step.
+            // Skip here
+            return nil
+        case .targetBehavior:
+            // ❗ Target Behavior depends on the substep, not just the step.
+            // Skip here
+            return nil
+        default:
+            return nil
+        }
+    }
 }
 
 var nonInfoOnboardingSteps: [OnboardingStep] { OnboardingStep.allCases
-    .filter { $0 != .welcome && $0 != .startupGuide && $0 != .overview && $0 != .completed }
+    .filter { $0 != .welcome && $0 != .startupInfo && $0 != .overview && $0 != .completed }
+}
+
+enum StartupSubstep: Int, CaseIterable, Identifiable {
+    case startupGuide
+    case returningUser
+    case forceCloseWarning
+
+    var id: Int { rawValue }
 }
 
 enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {

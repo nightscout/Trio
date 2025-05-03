@@ -8,27 +8,31 @@ struct WelcomeStepView: View {
 
             Spacer(minLength: 10)
 
-            Text("Hi there!")
-                .font(.title2)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.center)
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Hi there!")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
 
-            Text(
-                "Welcome to Trio - an automated insulin delivery system for iOS based on the OpenAPS algorithm with adaptations."
-            )
-            .multilineTextAlignment(.center)
-            .foregroundColor(.secondary)
+                Text(
+                    "Welcome to Trio - an automated insulin delivery system for iOS based on the OpenAPS algorithm with adaptations."
+                )
+                .multilineTextAlignment(.leading)
+                .foregroundColor(.secondary)
 
-            Text(
-                "Trio is designed to help manage your diabetes efficiently. To get the most out of the app, we'll guide you through setting up some essential parameters."
-            )
-            .multilineTextAlignment(.center)
-            .foregroundColor(.secondary)
+                Text(
+                    "Trio is designed to help manage your diabetes efficiently. To get the most out of the app, we'll guide you through setting up some essential parameters."
+                )
+                .multilineTextAlignment(.leading)
+                .foregroundColor(.secondary)
 
-            Text("Let's go through a few quick steps to ensure Trio works optimally for you.")
-                .multilineTextAlignment(.center)
-                .foregroundColor(.primary)
-                .bold()
+                Text("Let's go through a few quick steps to ensure Trio works optimally for you.")
+                    .multilineTextAlignment(.leading)
+                    .foregroundColor(.primary)
+                    .bold()
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding()
         .frame(maxWidth: .infinity)

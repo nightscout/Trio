@@ -1,0 +1,557 @@
+[
+  {
+    "isExternalInsulin" : false,
+    "_type" : "Bolus",
+    "duration" : 0,
+    "id" : "d481de63c48f9009cb16d5e73686e001",
+    "amount" : 0.3,
+    "timestamp" : "2025-04-29T01:33:57.369Z",
+    "isSMB" : true
+  },
+  {
+    "duration (min)" : 30,
+    "id" : "7c93508c15eb34128bade375a8256275",
+    "_type" : "TempBasalDuration",
+    "timestamp" : "2025-04-29T01:33:57.348Z"
+  },
+  {
+    "_type" : "TempBasal",
+    "rate" : 2,
+    "timestamp" : "2025-04-29T01:33:57.348Z",
+    "id" : "_7c93508c15eb34128bade375a8256275",
+    "temp" : "absolute"
+  },
+  {
+    "timestamp" : "2025-04-29T01:31:29.265Z",
+    "_type" : "PumpResume",
+    "id" : "80391397e3634568f628d239e7e8a658"
+  },
+  {
+    "id" : "cc8c69dd0f88f5f1737ecc9c9decd476",
+    "_type" : "PumpSuspend",
+    "timestamp" : "2025-04-29T01:31:12.348Z"
+  },
+  {
+    "timestamp" : "2025-04-29T01:29:32.123Z",
+    "amount" : 0.4,
+    "id" : "e327b654c3d8ae1a88ac6349b3c66168",
+    "duration" : 0,
+    "isSMB" : true,
+    "_type" : "Bolus",
+    "isExternalInsulin" : false
+  },
+  {
+    "duration (min)" : 30,
+    "timestamp" : "2025-04-29T01:29:32.107Z",
+    "id" : "d2d0907111c4fd7feacc303e22b29808",
+    "_type" : "TempBasalDuration"
+  },
+  {
+    "rate" : 2,
+    "_type" : "TempBasal",
+    "id" : "_d2d0907111c4fd7feacc303e22b29808",
+    "timestamp" : "2025-04-29T01:29:32.107Z",
+    "temp" : "absolute"
+  },
+  {
+    "duration" : 0,
+    "amount" : 0.2,
+    "id" : "7ad260001c2030a67edf39048d6758a4",
+    "isExternalInsulin" : false,
+    "isSMB" : true,
+    "_type" : "Bolus",
+    "timestamp" : "2025-04-28T19:35:25.796Z"
+  },
+  {
+    "duration (min)" : 30,
+    "_type" : "TempBasalDuration",
+    "timestamp" : "2025-04-28T19:35:25.777Z",
+    "id" : "21069fce8cc588a25ec81e18504c0a59"
+  },
+  {
+    "rate" : 0,
+    "_type" : "TempBasal",
+    "id" : "_21069fce8cc588a25ec81e18504c0a59",
+    "temp" : "absolute",
+    "timestamp" : "2025-04-28T19:35:25.777Z"
+  },
+  {
+    "id" : "7f953a8db58792d6feac375435b5c517",
+    "timestamp" : "2025-04-28T19:28:23.023Z",
+    "_type" : "Bolus",
+    "duration" : 0,
+    "isExternalInsulin" : false,
+    "isSMB" : true,
+    "amount" : 0.4
+  },
+  {
+    "id" : "fba678c82ede44e3c29a3249943832ea",
+    "_type" : "TempBasalDuration",
+    "timestamp" : "2025-04-28T19:28:23.004Z",
+    "duration (min)" : 30
+  },
+  {
+    "_type" : "TempBasal",
+    "id" : "_fba678c82ede44e3c29a3249943832ea",
+    "timestamp" : "2025-04-28T19:28:23.004Z",
+    "temp" : "absolute",
+    "rate" : 0
+  },
+  {
+    "amount" : 0.2,
+    "timestamp" : "2025-04-28T19:23:23.016Z",
+    "id" : "2b94ab0cdc9cb5a9f0bd2daca999587a",
+    "duration" : 0,
+    "isSMB" : true,
+    "_type" : "Bolus",
+    "isExternalInsulin" : false
+  },
+  {
+    "timestamp" : "2025-04-28T19:23:22.998Z",
+    "duration (min)" : 30,
+    "id" : "6bf57ed918f46661eac3bb4dc319faed",
+    "_type" : "TempBasalDuration"
+  },
+  {
+    "temp" : "absolute",
+    "_type" : "TempBasal",
+    "id" : "_6bf57ed918f46661eac3bb4dc319faed",
+    "timestamp" : "2025-04-28T19:23:22.998Z",
+    "rate" : 0
+  },
+  {
+    "isSMB" : true,
+    "duration" : 0,
+    "isExternalInsulin" : false,
+    "_type" : "Bolus",
+    "id" : "3d7cecc1580b7b4681bbbd94a128cd87",
+    "amount" : 0.3,
+    "timestamp" : "2025-04-28T19:18:23.062Z"
+  },
+  {
+    "timestamp" : "2025-04-28T19:18:23.045Z",
+    "_type" : "TempBasalDuration",
+    "id" : "a271d613cbab94ec62fcc0ff61ec00b1",
+    "duration (min)" : 30
+  },
+  {
+    "id" : "_a271d613cbab94ec62fcc0ff61ec00b1",
+    "rate" : 0,
+    "_type" : "TempBasal",
+    "temp" : "absolute",
+    "timestamp" : "2025-04-28T19:18:23.045Z"
+  },
+  {
+    "id" : "e902a3dea7187f2e2a7a0c0ba4ad352c",
+    "amount" : 0.3,
+    "timestamp" : "2025-04-28T19:13:23.014Z",
+    "isSMB" : true,
+    "isExternalInsulin" : false,
+    "_type" : "Bolus",
+    "duration" : 0
+  },
+  {
+    "_type" : "TempBasalDuration",
+    "duration (min)" : 30,
+    "timestamp" : "2025-04-28T19:13:22.995Z",
+    "id" : "7d4c0396a72c6da46f816507a84e4e1e"
+  },
+  {
+    "timestamp" : "2025-04-28T19:13:22.995Z",
+    "temp" : "absolute",
+    "rate" : 0.9,
+    "_type" : "TempBasal",
+    "id" : "_7d4c0396a72c6da46f816507a84e4e1e"
+  },
+  {
+    "timestamp" : "2025-04-28T19:08:22.991Z",
+    "_type" : "Bolus",
+    "duration" : 0,
+    "isSMB" : true,
+    "amount" : 0.3,
+    "id" : "8ed3c7ebd15062b6051310dbf5df1a03",
+    "isExternalInsulin" : false
+  },
+  {
+    "id" : "0dd2971d37387b7473440c38ab7ecf82",
+    "duration (min)" : 30,
+    "timestamp" : "2025-04-28T19:08:22.974Z",
+    "_type" : "TempBasalDuration"
+  },
+  {
+    "id" : "_0dd2971d37387b7473440c38ab7ecf82",
+    "_type" : "TempBasal",
+    "rate" : 0.83,
+    "temp" : "absolute",
+    "timestamp" : "2025-04-28T19:08:22.974Z"
+  },
+  {
+    "duration" : 0,
+    "isExternalInsulin" : false,
+    "isSMB" : true,
+    "timestamp" : "2025-04-28T19:03:23.006Z",
+    "id" : "2fc663c512044268096d2a3cdfded146",
+    "_type" : "Bolus",
+    "amount" : 0.1
+  },
+  {
+    "id" : "baa5ecc3dd4ff8af8746ed3423483fcc",
+    "timestamp" : "2025-04-28T19:03:22.990Z",
+    "duration (min)" : 30,
+    "_type" : "TempBasalDuration"
+  },
+  {
+    "timestamp" : "2025-04-28T19:03:22.990Z",
+    "rate" : 0.93,
+    "_type" : "TempBasal",
+    "temp" : "absolute",
+    "id" : "_baa5ecc3dd4ff8af8746ed3423483fcc"
+  },
+  {
+    "duration" : 0,
+    "isSMB" : true,
+    "timestamp" : "2025-04-28T18:53:23.003Z",
+    "_type" : "Bolus",
+    "isExternalInsulin" : false,
+    "amount" : 0.1,
+    "id" : "2b55e3317e35d5a24867bd89ec796ad7"
+  },
+  {
+    "id" : "8d225604b716f1a96a990c3cc856e0dd",
+    "timestamp" : "2025-04-28T18:53:22.980Z",
+    "_type" : "TempBasalDuration",
+    "duration (min)" : 30
+  },
+  {
+    "rate" : 0,
+    "temp" : "absolute",
+    "id" : "_8d225604b716f1a96a990c3cc856e0dd",
+    "_type" : "TempBasal",
+    "timestamp" : "2025-04-28T18:53:22.980Z"
+  },
+  {
+    "id" : "4d6681b9a8052f38dabe30ea4311451d",
+    "timestamp" : "2025-04-28T18:18:22.962Z",
+    "duration (min)" : 90,
+    "_type" : "TempBasalDuration"
+  },
+  {
+    "temp" : "absolute",
+    "rate" : 0,
+    "_type" : "TempBasal",
+    "id" : "_4d6681b9a8052f38dabe30ea4311451d",
+    "timestamp" : "2025-04-28T18:18:22.962Z"
+  },
+  {
+    "id" : "960ddedcaa1dec242596f651e72538b4",
+    "duration (min)" : 30,
+    "_type" : "TempBasalDuration",
+    "timestamp" : "2025-04-28T18:12:23.531Z"
+  },
+  {
+    "temp" : "absolute",
+    "id" : "_960ddedcaa1dec242596f651e72538b4",
+    "_type" : "TempBasal",
+    "timestamp" : "2025-04-28T18:12:23.531Z",
+    "rate" : 0
+  },
+  {
+    "isExternalInsulin" : false,
+    "amount" : 0.2,
+    "duration" : 0,
+    "isSMB" : true,
+    "id" : "4e5853d7e76826a3532f1057e90c30fc",
+    "timestamp" : "2025-04-28T17:19:40.746Z",
+    "_type" : "Bolus"
+  },
+  {
+    "timestamp" : "2025-04-28T17:19:39.319Z",
+    "_type" : "TempBasalDuration",
+    "id" : "5d77132435da87c6c6f09ab463b76110",
+    "duration (min)" : 60
+  },
+  {
+    "_type" : "TempBasal",
+    "id" : "_5d77132435da87c6c6f09ab463b76110",
+    "temp" : "absolute",
+    "rate" : 0,
+    "timestamp" : "2025-04-28T17:19:39.319Z"
+  },
+  {
+    "timestamp" : "2025-04-28T17:14:53.896Z",
+    "id" : "ad1bd46679617f6a3f0d85b802d2bba1",
+    "isExternalInsulin" : false,
+    "_type" : "Bolus",
+    "amount" : 0.1,
+    "duration" : 0,
+    "isSMB" : true
+  },
+  {
+    "timestamp" : "2025-04-28T17:14:50.272Z",
+    "duration (min)" : 60,
+    "_type" : "TempBasalDuration",
+    "id" : "5347925783661996be2c5c9b995f2bdd"
+  },
+  {
+    "_type" : "TempBasal",
+    "id" : "_5347925783661996be2c5c9b995f2bdd",
+    "rate" : 0,
+    "temp" : "absolute",
+    "timestamp" : "2025-04-28T17:14:50.272Z"
+  },
+  {
+    "id" : "c3a4cb6b08f3656e400d007f079feeaf",
+    "_type" : "TempBasalDuration",
+    "timestamp" : "2025-04-28T16:58:56.627Z",
+    "duration (min)" : 30
+  },
+  {
+    "timestamp" : "2025-04-28T16:58:56.627Z",
+    "temp" : "absolute",
+    "_type" : "TempBasal",
+    "rate" : 1,
+    "id" : "_c3a4cb6b08f3656e400d007f079feeaf"
+  },
+  {
+    "id" : "d924c295dcbcc397d1434ac7605c0470",
+    "timestamp" : "2025-04-28T16:54:58.495Z",
+    "isSMB" : false,
+    "duration" : 1,
+    "amount" : 2.9,
+    "isExternalInsulin" : false,
+    "_type" : "Bolus"
+  },
+  {
+    "isSMB" : false,
+    "id" : "797a50e3cff4d3f8b5776f3d6ff990d7",
+    "isExternalInsulin" : false,
+    "duration" : 0,
+    "amount" : 0.3,
+    "timestamp" : "2025-04-28T16:53:17.358Z",
+    "_type" : "Bolus"
+  },
+  {
+    "amount" : 0.1,
+    "isExternalInsulin" : false,
+    "timestamp" : "2025-04-28T16:53:03.111Z",
+    "_type" : "Bolus",
+    "id" : "8bc5da18065649d6e4809274d027574b",
+    "isSMB" : true,
+    "duration" : 0
+  },
+  {
+    "id" : "62bd97a9089450706d50923b94858f9e",
+    "_type" : "TempBasalDuration",
+    "timestamp" : "2025-04-28T16:53:03.098Z",
+    "duration (min)" : 30
+  },
+  {
+    "rate" : 0.07,
+    "timestamp" : "2025-04-28T16:53:03.098Z",
+    "_type" : "TempBasal",
+    "temp" : "absolute",
+    "id" : "_62bd97a9089450706d50923b94858f9e"
+  },
+  {
+    "isExternalInsulin" : false,
+    "timestamp" : "2025-04-28T15:53:23.447Z",
+    "_type" : "Bolus",
+    "amount" : 0.3,
+    "duration" : 0,
+    "id" : "07c77569f169edf0e68a67c20fb9ae98",
+    "isSMB" : true
+  },
+  {
+    "isExternalInsulin" : false,
+    "amount" : 0.5,
+    "id" : "6260c29e81241f14626cab992ba5631d",
+    "isSMB" : true,
+    "duration" : 0,
+    "timestamp" : "2025-04-28T15:48:23.476Z",
+    "_type" : "Bolus"
+  },
+  {
+    "duration (min)" : 30,
+    "timestamp" : "2025-04-28T15:48:23.459Z",
+    "id" : "f5bfe14b1c2e1f3526d30a7deee2099e",
+    "_type" : "TempBasalDuration"
+  },
+  {
+    "timestamp" : "2025-04-28T15:48:23.459Z",
+    "rate" : 2,
+    "temp" : "absolute",
+    "id" : "_f5bfe14b1c2e1f3526d30a7deee2099e",
+    "_type" : "TempBasal"
+  },
+  {
+    "duration" : 0,
+    "timestamp" : "2025-04-28T15:43:23.485Z",
+    "id" : "bc08ebe9e0734e35aa530d6ed67099c9",
+    "isSMB" : true,
+    "_type" : "Bolus",
+    "amount" : 0.1,
+    "isExternalInsulin" : false
+  },
+  {
+    "duration (min)" : 30,
+    "timestamp" : "2025-04-28T15:43:23.458Z",
+    "_type" : "TempBasalDuration",
+    "id" : "7e881182f96b998ae7497ae0704dcb22"
+  },
+  {
+    "_type" : "TempBasal",
+    "id" : "_7e881182f96b998ae7497ae0704dcb22",
+    "rate" : 1.65,
+    "timestamp" : "2025-04-28T15:43:23.458Z",
+    "temp" : "absolute"
+  },
+  {
+    "id" : "338b54233a83febb08ac177360cfd406",
+    "duration (min)" : 30,
+    "_type" : "TempBasalDuration",
+    "timestamp" : "2025-04-28T15:38:23.432Z"
+  },
+  {
+    "id" : "_338b54233a83febb08ac177360cfd406",
+    "temp" : "absolute",
+    "_type" : "TempBasal",
+    "timestamp" : "2025-04-28T15:38:23.432Z",
+    "rate" : 1.05
+  },
+  {
+    "_type" : "Bolus",
+    "timestamp" : "2025-04-28T15:33:23.425Z",
+    "id" : "340a2947432107fa513e55b334017a03",
+    "amount" : 0.1,
+    "isExternalInsulin" : false,
+    "duration" : 0,
+    "isSMB" : true
+  },
+  {
+    "_type" : "Bolus",
+    "isSMB" : true,
+    "timestamp" : "2025-04-28T15:29:23.433Z",
+    "id" : "c9a5a3d82a73a1b5667b8eab3d60ce45",
+    "isExternalInsulin" : false,
+    "amount" : 0.2,
+    "duration" : 0
+  },
+  {
+    "duration" : 0,
+    "isExternalInsulin" : false,
+    "timestamp" : "2025-04-28T15:17:23.965Z",
+    "id" : "918c040eb7d3de7eeae0fadee0454599",
+    "amount" : 0.5,
+    "_type" : "Bolus",
+    "isSMB" : true
+  },
+  {
+    "_type" : "TempBasalDuration",
+    "timestamp" : "2025-04-28T15:17:23.951Z",
+    "id" : "517675d88140e1ac4728a87e98600f3f",
+    "duration (min)" : 30
+  },
+  {
+    "_type" : "TempBasal",
+    "id" : "_517675d88140e1ac4728a87e98600f3f",
+    "timestamp" : "2025-04-28T15:17:23.951Z",
+    "rate" : 2,
+    "temp" : "absolute"
+  },
+  {
+    "amount" : 0.1,
+    "id" : "9c97aba493f7e042e2efc11b716d409a",
+    "timestamp" : "2025-04-28T14:47:51.215Z",
+    "duration" : 0,
+    "_type" : "Bolus",
+    "isSMB" : true,
+    "isExternalInsulin" : false
+  },
+  {
+    "id" : "28410f9ace07451084d4f656d795825a",
+    "_type" : "TempBasalDuration",
+    "timestamp" : "2025-04-28T14:47:51.198Z",
+    "duration (min)" : 30
+  },
+  {
+    "_type" : "TempBasal",
+    "rate" : 1.3,
+    "timestamp" : "2025-04-28T14:47:51.198Z",
+    "id" : "_28410f9ace07451084d4f656d795825a",
+    "temp" : "absolute"
+  },
+  {
+    "_type" : "TempBasalDuration",
+    "timestamp" : "2025-04-28T12:38:37.849Z",
+    "id" : "27e680025553869b98177308409faf17",
+    "duration (min)" : 30
+  },
+  {
+    "_type" : "TempBasal",
+    "timestamp" : "2025-04-28T12:38:37.849Z",
+    "id" : "_27e680025553869b98177308409faf17",
+    "temp" : "absolute",
+    "rate" : 1
+  },
+  {
+    "_type" : "TempBasalDuration",
+    "id" : "4d5bcf121b1a7ed71ba48654c5479cd6",
+    "timestamp" : "2025-04-28T12:33:37.831Z",
+    "duration (min)" : 30
+  },
+  {
+    "_type" : "TempBasal",
+    "id" : "_4d5bcf121b1a7ed71ba48654c5479cd6",
+    "rate" : 0.8,
+    "timestamp" : "2025-04-28T12:33:37.831Z",
+    "temp" : "absolute"
+  },
+  {
+    "_type" : "TempBasalDuration",
+    "id" : "89cae79781bd2c1ab281371dba13a5f0",
+    "timestamp" : "2025-04-28T12:23:38.200Z",
+    "duration (min)" : 30
+  },
+  {
+    "_type" : "TempBasal",
+    "id" : "_89cae79781bd2c1ab281371dba13a5f0",
+    "temp" : "absolute",
+    "timestamp" : "2025-04-28T12:23:38.200Z",
+    "rate" : 0.9
+  },
+  {
+    "duration (min)" : 30,
+    "timestamp" : "2025-04-28T12:18:37.798Z",
+    "_type" : "TempBasalDuration",
+    "id" : "3d6613118c4dcf7696eaaf36716a7ed7"
+  },
+  {
+    "temp" : "absolute",
+    "id" : "_3d6613118c4dcf7696eaaf36716a7ed7",
+    "timestamp" : "2025-04-28T12:18:37.798Z",
+    "_type" : "TempBasal",
+    "rate" : 0.45
+  },
+  {
+    "isSMB" : true,
+    "timestamp" : "2025-04-28T12:05:39.984Z",
+    "isExternalInsulin" : false,
+    "amount" : 0.1,
+    "_type" : "Bolus",
+    "duration" : 0,
+    "id" : "023ae6b2bc6cbe26fb850a3bec511f06"
+  },
+  {
+    "_type" : "TempBasalDuration",
+    "timestamp" : "2025-04-28T12:05:39.956Z",
+    "id" : "c0d06107ce05f35a483afc76f35408d2",
+    "duration (min)" : 30
+  },
+  {
+    "rate" : 1.2,
+    "id" : "_c0d06107ce05f35a483afc76f35408d2",
+    "timestamp" : "2025-04-28T12:05:39.956Z",
+    "temp" : "absolute",
+    "_type" : "TempBasal"
+  }
+]

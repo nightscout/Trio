@@ -9,7 +9,7 @@ public class BaseBluetoothStateManager: NSObject, BluetoothStateManager, Injecta
     private var completion: ((BluetoothAuthorization) -> Void)?
     private var centralManager: CBCentralManager?
     private var bluetoothObservers = WeakSynchronizedSet<BluetoothObserver>()
-    
+
     init(resolver: Resolver) {
         super.init()
         injectServices(resolver)
