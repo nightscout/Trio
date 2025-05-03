@@ -248,7 +248,7 @@ class BundleReference {}
         #expect(determination.threshold == Decimal(string: "3.7").map(NSDecimalNumber.init))
         #expect(determination.carbRatio == nil) // not present in JSON
 
-        let forecasts = try await CoreDataStack.shared.fetchEntitiesAsync(
+        let forecasts = try await coreDataStack.fetchEntitiesAsync(
             ofType: Forecast.self,
             onContext: context,
             predicate: NSPredicate(format: "orefDetermination = %@", determination.objectID),
