@@ -2826,6 +2826,7 @@
 		BD47FDD52D8B64AE0043966B /* OnboardingSteps */ = {
 			isa = PBXGroup;
 			children = (
+				DD3C47E42DC6CD8C003DD20D /* TherapySettings */,
 				DD6A4E4E2DBEBC7B008C4B26 /* StartupGuide */,
 				DDFF20302DB1D15500AB8A96 /* BluetoothPermissionStepView.swift */,
 				DDFF202E2DB1D14500AB8A96 /* NotificationPermissionStepView.swift */,
@@ -2837,10 +2838,6 @@
 				DD3F1F842D9DD83B00DCE7B3 /* DeliveryLimitsStepView.swift */,
 				DD3F1F822D9DC78300DCE7B3 /* UnitSelectionStepView.swift */,
 				BD47FD162D88AAEF0043966B /* CompletedStepView.swift */,
-				BD47FDDC2D8B65AD0043966B /* GlucoseTargetStepView.swift */,
-				BD47FDDA2D8B65960043966B /* BasalProfileStepView.swift */,
-				BD47FDD82D8B65730043966B /* InsulinSensitivityStepView.swift */,
-				BD47FDD62D8B64CC0043966B /* CarbRatioStepView.swift */,
 			);
 			path = OnboardingSteps;
 			sourceTree = "<group>";
@@ -3289,6 +3286,17 @@
 				DD3A3CE62D29C93F00AE478E /* Helper+Extensions.swift */,
 			);
 			path = Helper;
+			sourceTree = "<group>";
+		};
+		DD3C47E42DC6CD8C003DD20D /* TherapySettings */ = {
+			isa = PBXGroup;
+			children = (
+				BD47FDDC2D8B65AD0043966B /* GlucoseTargetStepView.swift */,
+				BD47FDDA2D8B65960043966B /* BasalProfileStepView.swift */,
+				BD47FDD82D8B65730043966B /* InsulinSensitivityStepView.swift */,
+				BD47FDD62D8B64CC0043966B /* CarbRatioStepView.swift */,
+			);
+			path = TherapySettings;
 			sourceTree = "<group>";
 		};
 		DD3F1F8E2D9E151200DCE7B3 /* Nightscout */ = {

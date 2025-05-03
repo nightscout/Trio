@@ -47,7 +47,7 @@ extension Onboarding {
 
         // MARK: - Carb Ratio
 
-        let carbRatioPickerSetting = PickerSetting(value: 10, step: 0.1, min: 1, max: 50, type: .gram)
+        let carbRatioPickerSetting = PickerSetting(value: 30, step: 0.1, min: 1, max: 50, type: .gram)
         var carbRatioItems: [CarbRatioEditor.Item] = []
         var initialCarbRatioItems: [CarbRatioEditor.Item] = []
         var carbRatioTimeValues: [TimeInterval] { sharedTimeValues }
@@ -58,13 +58,13 @@ extension Onboarding {
         var basalRatePickerSetting: PickerSetting {
             switch pumpOptionForOnboardingUnits {
             case .dana:
-                return PickerSetting(value: 0.05, step: 0.05, min: 0, max: 3, type: .insulinUnitPerHour)
+                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 3, type: .insulinUnitPerHour)
             case .minimed:
-                return PickerSetting(value: 0.05, step: 0.05, min: 0, max: 35, type: .insulinUnitPerHour)
+                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 35, type: .insulinUnitPerHour)
             case .omnipodDash:
-                return PickerSetting(value: 0.05, step: 0.05, min: 0, max: 30, type: .insulinUnitPerHour)
+                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 30, type: .insulinUnitPerHour)
             case .omnipodEros:
-                return PickerSetting(value: 0.05, step: 0.05, min: 0.05, max: 30, type: .insulinUnitPerHour)
+                return PickerSetting(value: 0.1, step: 0.05, min: 0.05, max: 30, type: .insulinUnitPerHour)
             }
         }
 
@@ -76,7 +76,7 @@ extension Onboarding {
 
         // MARK: - Insulin Sensitivity Factor (ISF)
 
-        var sensitivityPickerSetting = PickerSetting(value: 100, step: 1, min: 9, max: 540, type: .glucose)
+        var sensitivityPickerSetting = PickerSetting(value: 200, step: 1, min: 9, max: 540, type: .glucose)
         var isfItems: [ISFEditor.Item] = []
         var initialISFItems: [ISFEditor.Item] = []
         var isfTimeValues: [TimeInterval] { sharedTimeValues }
@@ -84,7 +84,7 @@ extension Onboarding {
 
         // MARK: - Glucose Targets
 
-        let letTargetPickerSetting = PickerSetting(value: 100, step: 1, min: 72, max: 180, type: .glucose)
+        let letTargetPickerSetting = PickerSetting(value: 110, step: 1, min: 72, max: 180, type: .glucose)
         var targetItems: [TargetsEditor.Item] = []
         var initialTargetItems: [TargetsEditor.Item] = []
         var targetTimeValues: [TimeInterval] { sharedTimeValues }
@@ -412,7 +412,7 @@ extension Onboarding {
         /// Adds a default ISF editor item at 00:00 with a standard sensitivity value.
         func addInitialISF() {
             addInitialItem(
-                defaultValue: 50,
+                defaultValue: 200,
                 rateValues: isfRateValues,
                 assign: { isfItems = $0 },
                 makeItem: ISFEditor.Item.init
@@ -432,7 +432,7 @@ extension Onboarding {
         /// Adds a default carb ratio editor item at 00:00 with a standard ratio.
         func addInitialCarbRatio() {
             addInitialItem(
-                defaultValue: 10,
+                defaultValue: 30,
                 rateValues: carbRatioRateValues,
                 assign: { carbRatioItems = $0 },
                 makeItem: CarbRatioEditor.Item.init
@@ -442,7 +442,7 @@ extension Onboarding {
         /// Adds a default glucose target item at 00:00 with a typical target value.
         func addInitialTarget() {
             let timeIndex = 0
-            let rateIndex = closestIndex(for: 100, in: targetRateValues)
+            let rateIndex = closestIndex(for: 110, in: targetRateValues)
             targetItems = [TargetsEditor.Item(lowIndex: rateIndex, highIndex: rateIndex, timeIndex: timeIndex)]
         }
 
