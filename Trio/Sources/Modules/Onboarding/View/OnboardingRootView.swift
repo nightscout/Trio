@@ -734,7 +734,13 @@ struct OnboardingNavigationButtons: View {
             }
 
         case .bluetooth:
-            state.shouldDisplayBluetoothRequestAlert = true
+            if let next = currentStep.next {
+                if state.bluetoothManager.bluetoothAuthorization != .authorized {
+                    state.shouldDisplayBluetoothRequestAlert = true
+                } else {
+                    currentStep = next
+                }
+            }
 
         case .completed:
             state.saveOnboardingData()
