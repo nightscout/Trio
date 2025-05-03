@@ -25,7 +25,7 @@ struct StartupReturningUserStepView: View {
                     Text("Important").foregroundStyle(Color.orange)
                 }.bold()
 
-                Text("Your treatment data (pump events, carb entries, glucose trace, etc.) are not migrated.")
+                Text("Your last 24 hr of treatment data (pump events, carb entries, glucose trace, etc.) are migrated.")
 
                 Divider().overlay(Color.orange)
 
