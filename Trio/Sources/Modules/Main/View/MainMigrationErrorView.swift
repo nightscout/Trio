@@ -103,13 +103,11 @@ extension Main {
                 Button(action: onConfirm) {
                     Text("I understand! Proceed")
                         .frame(width: UIScreen.main.bounds.width - 60, height: 50)
-                        .font(.title3).bold()
                         .background(
                             Capsule()
                                 .fill(Color.blue)
                         )
                         .foregroundColor(Color.white)
-                        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
                 }.padding(.bottom)
             }
         }

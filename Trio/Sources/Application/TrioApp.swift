@@ -176,8 +176,6 @@ extension Notification.Name {
 
         do {
             try await importer.importGlucoseHistoryIfNeeded()
-            // FIXME: for testing, remove
-            throw NSError(domain: "something", code: 1)
         } catch {
             importErrors
                 .append(String(localized: "Failed to import glucose history."))

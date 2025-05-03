@@ -799,7 +799,7 @@ extension JSONImporter {
     func importCarbHistoryIfNeeded() async throws {
         debug(.coreData, "Checking for carb history JSON file...")
 
-        let url = openAPSFileURL(OpenAPS.Monitor.pumpHistory)
+        let url = openAPSFileURL(OpenAPS.Monitor.carbHistory)
         let suffix = "migrated.json"
 
         guard FileManager.default.fileExists(atPath: url.path) else {
