@@ -24,6 +24,7 @@ extension Notification.Name {
     class InitState {
         var complete = false
         var error = false
+        var migrationErrors: [String] = []
     }
 
     // We use both InitState and @State variables to track coreDataStack
@@ -36,7 +37,6 @@ extension Notification.Name {
     @State private var showLoadingView = true
     @State private var showLoadingError = false
     @State private var showOnboardingCompletedSplash = false
-    @State private var migrationErrors: [String] = []
     @State private var showMigrationError: Bool = false
 
     // Dependencies Assembler
@@ -132,7 +132,7 @@ extension Notification.Name {
                 try await coreDataStack.initializeStack()
 
                 // TODO: possibly wrap this in a UserDefault / TinyStorage flag check, so we do not even attempt to fetch files unnecessary, but early exit the import
-                try await performJsonToCoreDataMigrationIfNeeded()
+                await performJsonToCoreDataMigrationIfNeeded()
 
                 await Task { @MainActor in
                     // Only load services after successful Core Data initialization
@@ -170,12 +170,14 @@ extension Notification.Name {
         }
     }
 
-    @MainActor  private func performJsonToCoreDataMigrationIfNeeded() async throws {
+    @MainActor private func performJsonToCoreDataMigrationIfNeeded() async {
         let importer = JSONImporter(context: coreDataStack.newTaskContext(), coreDataStack: coreDataStack)
         var importErrors: [String] = []
 
         do {
             try await importer.importGlucoseHistoryIfNeeded()
+            // FIXME: for testing, remove
+            throw NSError(domain: "something", code: 1)
         } catch {
             importErrors
                 .append(String(localized: "Failed to import glucose history."))
@@ -206,12 +208,7 @@ extension Notification.Name {
             debug(.coreData, "❌ Failed to import JSON-based OpenAPS Determination Data: \(error)")
         }
 
-        if importErrors.isNotEmpty {
-            await MainActor.run {
-                self.showMigrationError = true
-                self.migrationErrors = importErrors
-            }
-        }
+        initState.migrationErrors = importErrors
     }
 
     /// Clears any legacy (Trio 0.2.x) delivered and pending notifications related to non-looping alerts.
@@ -262,6 +259,9 @@ extension Notification.Name {
                                 Task { @MainActor in
                                     try? await Task.sleep(for: .seconds(1.8))
                                     self.showLoadingView = false
+                                    if self.initState.migrationErrors.isNotEmpty {
+                                        self.showMigrationError = true
+                                    }
                                 }
                             }
                             if self.initState.error {
@@ -272,16 +272,19 @@ extension Notification.Name {
                             Task { @MainActor in
                                 try? await Task.sleep(for: .seconds(1.8))
                                 self.showLoadingView = false
+                                if self.initState.migrationErrors.isNotEmpty {
+                                    self.showMigrationError = true
+                                }
                             }
                         }
                         .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
                             self.showLoadingError = true
                         }
                 } else if showMigrationError { // FIXME: display of this is not yet working, despite migration errors
-                    Main.MainMigrationErrorView(migrationErrors: self.migrationErrors, onConfirm: {
+                    Main.MainMigrationErrorView(migrationErrors: self.initState.migrationErrors, onConfirm: {
                         Task { @MainActor in
                             showMigrationError = false
-                            migrationErrors = []
+                            initState.migrationErrors = []
                         }
                     })
                 } else if showOnboardingCompletedSplash {
