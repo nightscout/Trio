@@ -54,10 +54,12 @@ struct NightscoutImportStepView: View {
                         Text("Trio will import the following therapy settings from your Nightscout instance:")
                             .multilineTextAlignment(.leading)
                         VStack(alignment: .leading) {
-                            Text("• Glucose Targets")
-                            Text("• Basal Rates")
-                            Text("• Carb Ratios")
-                            Text("• Insulin Sensitivities")
+                            BulletPoint(String(localized: "Glucose Targets"))
+                            BulletPoint(String(localized: "Basal Rates"))
+                            BulletPoint(String(localized: "Carb Ratios"))
+                            BulletPoint(
+                                String(localized: "Insulin Sensitivities")
+                            )
                         }
                     }
                     .padding(.horizontal)

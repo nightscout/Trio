@@ -99,8 +99,8 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .autosensMin: return String(localized: "Autosens Min", comment: "Autosens Min")
-        case .autosensMax: return String(localized: "Autosens Max", comment: "Autosens Max")
+        case .autosensMin: return String(localized: "Autosens Minimum", comment: "Autosens Min")
+        case .autosensMax: return String(localized: "Autosens Maximum", comment: "Autosens Max")
         case .rewindResetsAutosens: return String(localized: "Rewind Resets Autosens", comment: "Rewind Resets Autosens")
         case .enableSMBAlways: return String(localized: "Enable SMB Always", comment: "Enable SMB Always")
         case .enableSMBWithCOB: return String(localized: "Enable SMB With COB", comment: "Enable SMB With COB")
@@ -110,17 +110,20 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             )
         case .enableSMBAfterCarbs: return String(localized: "Enable SMB After Carbs", comment: "Enable SMB After Carbs")
         case .enableSMBWithHighGlucoseTarget: return String(
-                localized: "Enable SMB With High BG",
-                comment: "Enable SMB With High BG"
+                localized: "Enable SMB With High Glucose",
+                comment: "Enable SMB With High Glucose"
             )
         case .allowSMBWithHighTempTarget: return String(
                 localized: "Allow SMB With High Temptarget",
                 comment: "Allow SMB With High Temptarget"
             )
-        case .enableUAM: return String(localized: "Enable UAM", comment: "Enable UAM")
+        case .enableUAM: return String(localized: "Enable UAM (Unannounced Meals)", comment: "Enable UAM")
         case .maxSMBMinutes: return String(localized: "Max SMB Basal Minutes", comment: "Max SMB Basal Minutes")
         case .maxUAMMinutes: return String(localized: "Max UAM Basal Minutes", comment: "Max UAM Basal Minutes")
-        case .maxDeltaGlucoseThreshold: return String(localized: "Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold")
+        case .maxDeltaGlucoseThreshold: return String(
+                localized: "Max. Allowed Glucose Rise for SMB",
+                comment: "Max. Allowed Glucose Rise for SMB, formerly Max Delta-BG Threshold"
+            )
         case .highTempTargetRaisesSensitivity: return String(
                 localized: "High Temp Target Raises Sensitivity",
                 comment: "High Temp Target Raises Sensitivity"
@@ -147,7 +150,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
                 localized: "Allow SMB when a manual Temporary Target is set under \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue)."
             )
         case .enableSMBAfterCarbs: return String(localized: "Allow SMB for 6 hrs after a carb entry.")
-        case .enableSMBWithHighGlucoseTarget: return String(localized: "Allow SMB when glucose is above the High BG Target value.")
+        case .enableSMBWithHighGlucoseTarget: return String(localized: "Allow SMB when glucose is above the High Glucose Target value.")
         case .allowSMBWithHighTempTarget: return String(
                 localized: "Allow SMB when a manual Temporary Target is set greater than \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue)."
             )
@@ -161,8 +164,8 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
         case .lowTempTargetLowersSensitivity: return String(
                 localized: "Decrease sensitivity when glucose is below target if a manual Temp Target < \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) is set."
             )
-        case .sensitivityRaisesTarget: return String(localized: "Raise target glucose if when Autosens Ratio is >1.")
-        case .resistanceLowersTarget: return String(localized: "Lower target glucose when Autosens Ratio is <1.")
+        case .sensitivityRaisesTarget: return String(localized: "Raise target glucose when Autosens Ratio is less than 1.")
+        case .resistanceLowersTarget: return String(localized: "Lower target glucose when Autosens Ratio is greater than 1.")
         case .halfBasalTarget: return String(localized: "Scales down your basal rate to 50% at this value.")
         }
     }
@@ -261,7 +264,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             return VStack(alignment: .leading, spacing: 8) {
                 Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
-                    "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when glucose reading is above the value set as High BG Target."
+                    "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when glucose reading is above the value set as High Glucose Target."
                 )
                 Text(
                     "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."

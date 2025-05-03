@@ -110,7 +110,7 @@ extension TargetBehavoir {
                     units: state.units,
                     type: .boolean,
                     label: String(localized: "Sensitivity Raises Target", comment: "Sensitivity Raises Target"),
-                    miniHint: String(localized: "Raise target glucose when Autosens Ratio is <1."),
+                    miniHint: String(localized: "Raise target glucose when Autosens Ratio is less than 1."),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
@@ -133,7 +133,7 @@ extension TargetBehavoir {
                     units: state.units,
                     type: .boolean,
                     label: String(localized: "Resistance Lowers Target", comment: "Resistance Lowers Target"),
-                    miniHint: String(localized: "Lower target glucose when Autosens Ratio is >1."),
+                    miniHint: String(localized: "Lower target glucose when Autosens Ratio is greater than 1."),
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
