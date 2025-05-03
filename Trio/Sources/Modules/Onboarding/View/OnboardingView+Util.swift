@@ -365,10 +365,10 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .maxIOB: return String(localized: "Max IOB", comment: "Max IOB")
-        case .maxBolus: return String(localized: "Max Bolus")
-        case .maxBasal: return String(localized: "Max Basal Rate")
-        case .maxCOB: return String(localized: "Max COB", comment: "Max COB")
+        case .maxIOB: return String(localized: "Maximum Insulin on Board (IOB)", comment: "Max IOB")
+        case .maxBolus: return String(localized: "Maximum Bolus")
+        case .maxBasal: return String(localized: "Maximum Basal Rate")
+        case .maxCOB: return String(localized: "Maximum Carbs on Board (COB)", comment: "Max COB")
         case .minimumSafetyThreshold: return String(localized: "Minimum Safety Threshold")
         }
     }
@@ -378,7 +378,7 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
         case .maxIOB: return String(localized: "Maximum units of insulin allowed to be active.")
         case .maxBolus: return String(localized: "Largest bolus of insulin allowed.")
         case .maxBasal: return String(localized: "Largest basal rate allowed.")
-        case .maxCOB: return String(localized: "Maximum Carbs On Board (COB) allowed.")
+        case .maxCOB: return String(localized: "Maximum amount of active carbs considered by the algorithm.")
         case .minimumSafetyThreshold: return String(localized: "Increase the safety threshold used to suspend insulin delivery.")
         }
     }
@@ -389,7 +389,11 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
             return VStack(alignment: .leading, spacing: 8) {
                 Text(
                     "Note: This setting must be greater than 0 for any automatic insulin dosing by Trio."
-                ).bold().foregroundStyle(Color.primary)
+                ).bold().foregroundStyle(Color.orange)
+
+                Text(
+                    "This setting helps prevent delivering too much insulin at once. It’s typically a value close to the amount you might need for a very high blood sugar and the biggest meal of your life combined."
+                )
 
                 Text(
                     "This is the maximum amount of Insulin On Board (IOB) above profile basal rates from all sources - positive temporary basal rates, manual or meal boluses, and SMBs - that Trio is allowed to accumulate to address an above target glucose."

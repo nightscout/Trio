@@ -36,12 +36,12 @@ extension UnitsLimitsSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Max IOB", comment: "Max IOB")
+                            hintLabel = String(localized: "Maximum Insulin on Board (IOB)", comment: "Max IOB")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxIOB"),
-                    label: String(localized: "Max IOB", comment: "Max IOB"),
+                    label: String(localized: "Maximum Insulin on Board (IOB)", comment: "Max IOB"),
                     miniHint: String(localized: "Maximum units of insulin allowed to be active."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
@@ -49,6 +49,9 @@ extension UnitsLimitsSettings {
                         Text(
                             "Warning: This must be greater than 0 for any automatic temporary basal rates or SMBs to be given."
                         ).bold()
+                        Text(
+                            "This setting helps prevent delivering too much insulin at once. It’s typically a value close to the amount you might need for a very high blood sugar and the biggest meal of your life combined."
+                        )
                         Text(
                             "This is the maximum amount of Insulin On Board (IOB) above profile basal rates from all sources - positive temporary basal rates, manual or meal boluses, and SMBs - that Trio is allowed to accumulate to address an above target glucose."
                         )
@@ -69,12 +72,12 @@ extension UnitsLimitsSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Max Bolus")
+                            hintLabel = String(localized: "Maximum Bolus")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxBolus"),
-                    label: String(localized: "Max Bolus"),
+                    label: String(localized: "Maximum Bolus"),
                     miniHint: String(localized: "Largest bolus of insulin allowed."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
@@ -100,7 +103,7 @@ extension UnitsLimitsSettings {
                     ),
                     units: state.units,
                     type: .decimal("maxBasal"),
-                    label: String(localized: "Max Basal Rate"),
+                    label: String(localized: "Maximum Basal Rate"),
                     miniHint: String(localized: "Largest basal rate allowed."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
@@ -122,13 +125,13 @@ extension UnitsLimitsSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Max COB", comment: "Max COB")
+                            hintLabel = String(localized: "Maximum Carbs on Board (COB)", comment: "Max COB")
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxCOB"),
-                    label: String(localized: "Max COB", comment: "Max COB"),
-                    miniHint: String(localized: "Maximum Carbs On Board (COB) allowed."),
+                    label: String(localized: "Maximum Carbs on Board (COB)", comment: "Max COB"),
+                    miniHint: String(localized: "Maximum amount of active carbs considered by the algorithm."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 120 grams of carbs").bold()
