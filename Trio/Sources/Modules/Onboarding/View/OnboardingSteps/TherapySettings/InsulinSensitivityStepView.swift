@@ -75,9 +75,8 @@ struct InsulinSensitivityStepView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             // Current glucose is 40 mg/dL or 2.2 mmol/L above target
                             let aboveTarget = state.units == .mgdL ? Decimal(40) : 40.asMmolL
-
-                            let isfValue = state.units == .mgdL ? Decimal(50) : 50.asMmolL
-
+                            let firstIsfRate: Decimal = state.isfRateValues[state.isfItems.first?.rateIndex ?? 0]
+                            let isfValue = state.units == .mgdL ? firstIsfRate : firstIsfRate.asMmolL
                             let insulinNeeded = aboveTarget / isfValue
 
                             Text(
@@ -87,9 +86,12 @@ struct InsulinSensitivityStepView: View {
                             .padding(.horizontal)
 
                             Text(
-                                "\(numberFormatter.string(from: aboveTarget as NSNumber) ?? "--") / \(numberFormatter.string(from: isfValue as NSNumber) ?? "--") = \(String(format: "%.1f", Double(insulinNeeded)))" +
-                                    " " + String(localized: "U", comment: "Insulin unit abbreviation")
+                                "\(aboveTarget.description) \(state.units.rawValue) / \(isfValue.description) \(state.units.rawValue)/\(String(localized: "U", comment: "Insulin unit abbreviation")) = \(String(format: "%.1f", Double(insulinNeeded))) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
                             )
+//                            Text(
+//                                "\(numberFormatter.string(from: aboveTarget as NSNumber) ?? "--") \(state.units.rawValue) / \(numberFormatter.string(from: isfValue as NSNumber) ?? "--") \(state.units.rawValue)/\(String(localized: "U", comment: "Insulin unit abbreviation")) = \(String(format: "%.1f", Double(insulinNeeded)))" +
+//                                    " " + String(localized: "U", comment: "Insulin unit abbreviation")
+//                            )
                             .font(.system(.body, design: .monospaced))
                             .foregroundColor(.red)
                             .padding()
