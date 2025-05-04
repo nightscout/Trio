@@ -3,6 +3,13 @@ import Testing
 
 @testable import Trio
 
+/// ⚠️ NOTE:
+/// If tests in this suite are failing unexpectedly (e.g. sudden unexplainable mismatches for decimal places for calculated values),
+/// try running the test suite on a clean simulator.
+///
+/// You can reset the simulator from the menu: **Device > Erase All Content and Settings**
+/// or by launching with `-com.apple.CoreData.SQLDebug 1` for more insight into the issue.
+///
 @Suite("Bolus Calculator Tests") struct BolusCalculatorTests: Injectable {
     @Injected() var calculator: BolusCalculationManager!
     @Injected() var settingsManager: SettingsManager!
