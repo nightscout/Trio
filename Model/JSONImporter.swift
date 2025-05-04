@@ -486,18 +486,14 @@ extension CarbsEntry: Codable {
         carbEntry.id = id
             .flatMap({ UUID(uuidString: $0) }) ?? UUID() /// The `CodingKey` of `id` is `_id`, so this fine to use here
         carbEntry.date = actualDate ?? createdAt
-        carbEntry.carbs = Double(truncating: NSDecimalNumber(decimal: carbs))
-        carbEntry.fat = Double(truncating: NSDecimalNumber(decimal: fat ?? 0))
-        carbEntry.protein = Double(truncating: NSDecimalNumber(decimal: protein ?? 0))
+        carbEntry.carbs = Double(truncating: NSDecimalNumber(decimal: carbs.rounded(toPlaces: 0)))
+        carbEntry.fat = Double(truncating: NSDecimalNumber(decimal: fat?.rounded(toPlaces: 0) ?? 0))
+        carbEntry.protein = Double(truncating: NSDecimalNumber(decimal: protein?.rounded(toPlaces: 0) ?? 0))
         carbEntry.note = note ?? ""
         carbEntry.isFPU = false
         carbEntry.isUploadedToNS = true
         carbEntry.isUploadedToHealth = true
         carbEntry.isUploadedToTidepool = true
-
-        if fat != nil, protein != nil, let fpuId = fpuID {
-            carbEntry.fpuID = UUID(uuidString: fpuId)
-        }
     }
 }
 
