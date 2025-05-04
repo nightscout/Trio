@@ -318,7 +318,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Equatable {
         case .carbRatio:
             return Color.orange
         case .insulinSensitivity:
-            return Color.red
+            return Color.cyan
         }
     }
 
