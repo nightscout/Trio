@@ -497,7 +497,7 @@ enum PumpOptionForOnboardingUnits: String, Equatable, CaseIterable, Identifiable
         case .omnipodEros:
             return "Omnipod Eros"
         case .omnipodDash:
-            return "Omnipod Dash"
+            return "Omnipod DASH"
         case .dana:
             return "Dana (RS/-i)"
         }
