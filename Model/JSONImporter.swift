@@ -396,7 +396,7 @@ extension PumpHistoryEvent {
             let bolusEntry = BolusStored(context: context)
             bolusEntry.amount = NSDecimalNumber(decimal: amount)
             bolusEntry.isSMB = isSMB ?? false
-            bolusEntry.isExternal = isExternal ?? false
+            bolusEntry.isExternal = isExternal ?? isExternalInsulin ?? false
             pumpEntry.bolus = bolusEntry
         } else if type == .tempBasal {
             guard let rate = rate, let duration = duration else {

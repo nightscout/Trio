@@ -16,6 +16,7 @@ struct PumpHistoryEvent: JSON, Equatable, Identifiable {
     let note: String?
     let isSMB: Bool?
     let isExternal: Bool?
+    let isExternalInsulin: Bool?
 
     init(
         id: String,
@@ -31,7 +32,8 @@ struct PumpHistoryEvent: JSON, Equatable, Identifiable {
         proteinInput: Int? = nil,
         note: String? = nil,
         isSMB: Bool? = nil,
-        isExternal: Bool? = nil
+        isExternal: Bool? = nil,
+        isExternalInsulin: Bool? = nil
     ) {
         self.id = id
         self.type = type
@@ -47,6 +49,7 @@ struct PumpHistoryEvent: JSON, Equatable, Identifiable {
         self.note = note
         self.isSMB = isSMB
         self.isExternal = isExternal
+        self.isExternalInsulin = isExternalInsulin
     }
 }
 
@@ -101,6 +104,7 @@ extension PumpHistoryEvent {
         case note
         case isSMB
         case isExternal
+        case isExternalInsulin
     }
 }
 
