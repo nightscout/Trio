@@ -1,8 +1,12 @@
 import Combine
+import DanaKit
 import FirebaseCrashlytics
 import Foundation
 import LoopKit
+import MinimedKit
 import Observation
+import OmniBLE
+import OmniKit
 import SwiftUI
 
 /// Model that holds the data collected during onboarding.
@@ -15,6 +19,7 @@ extension Onboarding {
         @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
         @ObservationIgnored @Injected() var notificationsManager: UserNotificationsManager!
         @ObservationIgnored @Injected() var bluetoothManager: BluetoothStateManager!
+        @ObservationIgnored @Injected() var apsManager: APSManager!
 
         private let settingsProvider = PickerSettingsProvider.shared
 
@@ -39,7 +44,34 @@ extension Onboarding {
         // MARK: - Units and Pump Omboarding Option
 
         var units: GlucoseUnits = .mgdL
-        var pumpOptionForOnboardingUnits: PumpOptionForOnboardingUnits = .omnipodDash
+        private var selectedPumpOption: PumpOptionForOnboardingUnits?
+        var pumpOptionForOnboardingUnits: PumpOptionForOnboardingUnits {
+            get {
+                // If the user has made a selection, use that
+                if let userSelected = _selectedPumpOption {
+                    return userSelected
+                }
+
+                // Otherwise, reflect current pumpManager type
+                if let pumpManager = apsManager?.pumpManager {
+                    if pumpManager is OmniBLEPumpManager {
+                        return .omnipodDash
+                    } else if pumpManager is OmnipodPumpManager {
+                        return .omnipodEros
+                    } else if pumpManager is DanaKitPumpManager {
+                        return .dana
+                    } else if pumpManager is MinimedPumpManager {
+                        return .minimed
+                    }
+                }
+
+                // Default fallback
+                return .omnipodDash
+            }
+            set {
+                _selectedPumpOption = newValue
+            }
+        }
 
         // MARK: - Time Values (shared)
 
@@ -56,7 +88,7 @@ extension Onboarding {
         // MARK: - Basal Profile
 
         var basalRatePickerSetting: PickerSetting {
-            switch pumpOptionForOnboardingUnits {
+            switch selectedPumpOption {
             case .dana:
                 return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 3, type: .insulinUnitPerHour)
             case .minimed:
@@ -65,6 +97,9 @@ extension Onboarding {
                 return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 30, type: .insulinUnitPerHour)
             case .omnipodEros:
                 return PickerSetting(value: 0.1, step: 0.05, min: 0.05, max: 30, type: .insulinUnitPerHour)
+            case .none:
+                // same as dash, as that is the fallback
+                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 30, type: .insulinUnitPerHour)
             }
         }
 
