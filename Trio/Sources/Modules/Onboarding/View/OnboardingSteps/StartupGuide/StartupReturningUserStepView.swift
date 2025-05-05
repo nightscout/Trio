@@ -41,6 +41,24 @@ struct StartupReturningUserStepView: View {
             .cornerRadius(10)
 
             VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "info.circle.fill").foregroundStyle(Color.bgDarkBlue, Color.blue)
+                        .symbolRenderingMode(.palette)
+                    Text("Information").foregroundStyle(Color.blue)
+                }.bold()
+
+                Text("While onboarding, Trio continues to operate with your prior settings.")
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.chart.opacity(0.65))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.blue, lineWidth: 2)
+            )
+            .cornerRadius(10)
+
+            VStack(alignment: .leading, spacing: 10) {
                 Text("Here's what you can expect to be preserved:")
                     .font(.headline)
                     .padding(.bottom, 4)
