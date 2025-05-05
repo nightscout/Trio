@@ -8,6 +8,7 @@ extension Onboarding {
         @State var state = StateModel()
         @State private var navigationDirection: OnboardingNavigationDirection = .forward
         let onboardingManager: OnboardingManager
+        let wasMigrationSuccessful: Bool
 
         // Step management
         @State private var currentChapter: OnboardingChapter = .prepareTrio
@@ -124,6 +125,7 @@ extension Onboarding {
                         }
 
                         OnboardingStepContent(
+                            wasMigrationSuccessful: wasMigrationSuccessful,
                             currentStep: $currentStep,
                             showingChapterCompletion: $showingChapterCompletion,
                             currentStartupSubstep: $currentStartupSubstep,
@@ -280,6 +282,7 @@ struct OnboardingProgressBar: View {
 }
 
 struct OnboardingStepContent: View {
+    var wasMigrationSuccessful: Bool
     @Binding var currentStep: OnboardingStep
     @Binding var showingChapterCompletion: OnboardingChapter?
     @Binding var currentStartupSubstep: StartupSubstep
@@ -314,7 +317,7 @@ struct OnboardingStepContent: View {
                                 case .startupGuide:
                                     StartupGuideStepView(state: state)
                                 case .returningUser:
-                                    StartupReturningUserStepView(state: state)
+                                    StartupReturningUserStepView(state: state, wasMigrationSuccessful: wasMigrationSuccessful)
                                 case .forceCloseWarning:
                                     StartupForceCloseWarningStepView(state: state)
                                 }
@@ -760,7 +763,7 @@ struct Onboarding_Preview: PreviewProvider {
         Group {
             let resolver = TrioApp.resolver
             let onboardingManager = OnboardingManager()
-            Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
+            Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager, wasMigrationSuccessful: true)
                 .previewDisplayName("Onboarding Flow")
         }
     }

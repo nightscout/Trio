@@ -8,6 +8,7 @@ import SwiftUI
 
 struct StartupReturningUserStepView: View {
     @Bindable var state: Onboarding.StateModel
+    let wasMigrationSuccessful: Bool
 
     @Environment(\.openURL) var openURL
 
@@ -25,7 +26,9 @@ struct StartupReturningUserStepView: View {
                     Text("Important").foregroundStyle(Color.orange)
                 }.bold()
 
-                Text("Your last 24 hr of treatment data (pump events, carb entries, glucose trace, etc.) are migrated.")
+                if !wasMigrationSuccessful {
+                    Text("Your last 24 hr of treatment data (pump events, carb entries, glucose trace, etc.) are not migrated.")
+                }
 
                 Divider().overlay(Color.orange)
 
@@ -63,6 +66,13 @@ struct StartupReturningUserStepView: View {
                     .font(.headline)
                     .padding(.bottom, 4)
 
+                if wasMigrationSuccessful {
+                    BulletPoint(
+                        String(
+                            localized: "Your last 24 hr of treatment data (pump events, carb entries, glucose trace, etc.) are migrated."
+                        )
+                    )
+                }
                 BulletPoint(String(localized: "Your pump and CGM configurations are retained and fully functional."))
                 BulletPoint(
                     String(

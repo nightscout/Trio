@@ -22,9 +22,10 @@ extension Notification.Name {
     let onboardingManager = OnboardingManager.shared
 
     class InitState {
-        var complete = false
-        var error = false
+        var complete: Bool = false
+        var error: Bool = false
         var migrationErrors: [String] = []
+        var migrationFailed: Bool = false
     }
 
     // We use both InitState and @State variables to track coreDataStack
@@ -207,6 +208,7 @@ extension Notification.Name {
         }
 
         initState.migrationErrors = importErrors
+        initState.migrationFailed = importErrors.isNotEmpty
     }
 
     /// Clears any legacy (Trio 0.2.x) delivered and pending notifications related to non-looping alerts.
@@ -299,9 +301,13 @@ extension Notification.Name {
                     }
                 } else if onboardingManager.shouldShowOnboarding {
                     // Show onboarding if needed
-                    Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
-                        .preferredColorScheme(colorScheme(for: .dark) ?? nil)
-                        .transition(.opacity)
+                    Onboarding.RootView(
+                        resolver: resolver,
+                        onboardingManager: onboardingManager,
+                        wasMigrationSuccessful: !initState.migrationFailed
+                    )
+                    .preferredColorScheme(colorScheme(for: .dark) ?? nil)
+                    .transition(.opacity)
                 } else {
                     Main.RootView(resolver: resolver)
                         .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
