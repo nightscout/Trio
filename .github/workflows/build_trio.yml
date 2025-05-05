@@ -7,10 +7,10 @@ on:
   #push:
 
   schedule:
-    - cron: "0 8 * * 3" # Checks for updates at 08:00 UTC every Wednesday
-    - cron: "0 6 1 * *" # Builds the app on the 1st of every month at 06:00 UTC
+    - cron: '0 8 * * 3' # Checks for updates at 08:00 UTC every Wednesday
+    - cron: '0 6 1 * *' # Builds the app on the 1st of every month at 06:00 UTC
 
-env:  
+env:
   UPSTREAM_REPO: nightscout/Trio
   UPSTREAM_BRANCH: ${{ github.ref_name }} # branch on upstream repository to sync from (replace with specific branch name if needed)
   TARGET_BRANCH: ${{ github.ref_name }} # target branch on fork to be kept in sync, and target branch on upstream to be kept alive (replace with specific branch name if needed)
@@ -18,15 +18,17 @@ env:
   ALIVE_BRANCH_DEV: alive-dev
 
 jobs:
-  validate:
-    name: Validate
-    uses: ./.github/workflows/validate_secrets.yml
+  # Checks if Distribution certificate is present and valid, optionally nukes and
+  # creates new certs if the repository variable ENABLE_NUKE_CERTS == 'true'
+  check_certs:
+    name: Check certificates
+    uses: ./.github/workflows/create_certs.yml
     secrets: inherit
 
   # Checks if GH_PAT holds workflow permissions
   # Checks for existence of alive branch; if non-existent creates it
   check_alive_and_permissions:
-    needs: validate
+    needs: check_certs
     runs-on: ubuntu-latest
     name: Check alive branch and permissions
     permissions:
@@ -96,7 +98,7 @@ jobs:
   # Checks for changes in upstream repository; if changes exist prompts sync for build
   # Performs keepalive to avoid stale fork
   check_latest_from_upstream:
-    needs: [validate, check_alive_and_permissions]
+    needs: [check_certs, check_alive_and_permissions]
     runs-on: ubuntu-latest
     name: Check upstream and keep alive
     outputs:
@@ -166,12 +168,14 @@ jobs:
 
       # Keep repository "alive": add empty commits to ALIVE_BRANCH after "time_elapsed" days of inactivity to avoid inactivation of scheduled workflows
       - name: Keep alive
-        if: |
-          needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-          (vars.SCHEDULED_BUILD != 'false' || vars.SCHEDULED_SYNC != 'false')
-        uses: gautamkrishnar/keepalive-workflow@v1 # using the workflow with default settings
-        with:
-          time_elapsed: 20 # Time elapsed from the previous commit to trigger a new automated commit (in days)
+        run: |
+          echo "Keep Alive temporarily removed while gautamkrishnar/keepalive-workflow is not available"
+      #  if: |
+      #    needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
+      #    (vars.SCHEDULED_BUILD != 'false' || vars.SCHEDULED_SYNC != 'false')
+      #  uses: gautamkrishnar/keepalive-workflow@v1 # using the workflow with default settings
+      #  with:
+      #    time_elapsed: 20 # Time elapsed from the previous commit to trigger a new automated commit (in days)
 
       - name: Show scheduled build configuration message
         if: needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION != 'true'
@@ -181,16 +185,15 @@ jobs:
           echo "Synchronizing your fork of <code>Trio</code> with the upstream repository <code>nightscout/Trio</code> will be skipped." >> $GITHUB_STEP_SUMMARY
           echo "If you want to enable automatic builds and updates for your Trio, please follow the instructions \
               under the following path <code>Trio/fastlane/testflight.md</code>." >> $GITHUB_STEP_SUMMARY
-  
+
   # Builds Trio
   build:
     name: Build
-    needs: [validate, check_alive_and_permissions, check_latest_from_upstream]
+    needs: [check_certs, check_alive_and_permissions, check_latest_from_upstream]
     runs-on: macos-15
     permissions:
       contents: write
-    if:
-      | # runs if started manually, or if sync schedule is set and enabled and scheduled on the first Saturday each month, or if sync schedule is set and enabled and new commits were found
+    if: | # runs if started manually, or if sync schedule is set and enabled and scheduled on the first Saturday each month, or if sync schedule is set and enabled and new commits were found
       github.event_name == 'workflow_dispatch' ||
       (needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
         (vars.SCHEDULED_BUILD != 'false' && github.event.schedule == '0 6 1 * *') ||
@@ -198,8 +201,8 @@ jobs:
       )
     steps:
       - name: Select Xcode version
-        run: "sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer"
-      
+        run: 'sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer'
+
       - name: Checkout Repo for syncing
         if: |
           needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
@@ -249,6 +252,36 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           submodules: recursive
           ref: ${{ env.TARGET_BRANCH }}
+
+      # Customize Trio: Use patches or download and apply patches from GitHub
+      - name: Customize Trio
+        run: |
+
+          # Trio workspace patches
+          # -applies any patches located in the Trio/patches/ directory
+          if $(ls ./patches/* &> /dev/null); then
+          git apply ./patches/* --allow-empty -v --whitespace=fix
+          fi
+
+          # Download and apply Trio patches from GitHub:
+          # Template for customizing Trio code (as opposed to submodule code)
+          # Remove the "#" sign from the beginning of the line below to activate
+          #   and then replace the alphanumeric string with your SHA, this SHA is NOT valid
+          #curl https://github.com/nightscout/Trio/commit/d206432b024279ef710df462b20bd464cd9682d4.patch | git apply -v --whitespace=fix
+
+          # Download and apply Submodule patches from GitHub:
+          # Template for customizing submodules (you must edit the submodule name)
+          # This example is for G7SensorKit showing you can apply multiple commits, in the proper order
+          # Remove the "#" sign from the beginning of the lines below to activate
+          # This example applies 3 commits from the scan-fix folder; valid only when these are not already in Trio
+          #curl https://github.com/loopandlearn/G7SensorKit/commit/ba44beb3d1491c453f4f438443c3f8ba29146ab3.patch | git apply --directory=G7SensorKit -v --whitespace=fix
+          #curl https://github.com/loopandlearn/G7SensorKit/commit/d86ac8e9cd523d1267587dd70c96597125eef7ab.patch | git apply --directory=G7SensorKit -v --whitespace=fix
+          #curl https://github.com/loopandlearn/G7SensorKit/commit/205054e7537723c2aec58d807634b4853f687244.patch | git apply --directory=G7SensorKit -v --whitespace=fix
+
+          # Add patches for additional customization by following the templates above,
+          # and make sure to specify the submodule by setting "--directory=(submodule_name)".
+          # Several patches may be added per submodule.
+          # Adding comments (#) is strongly recommended to easily tell the individual patches apart.
 
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
