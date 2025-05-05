@@ -844,20 +844,26 @@ extension Home {
         @ViewBuilder func mainViewElements(_ geo: GeometryProxy) -> some View {
             VStack(spacing: 0) {
                 ZStack {
-                    /// glucose bobble
-                    glucoseView
+                    if let apsManager = state.apsManager, let bluetoothManager = apsManager.bluetoothManager,
+                       bluetoothManager.bluetoothAuthorization != .authorized
+                    {
+                        BluetoothRequiredView()
+                    } else {
+                        /// right panel with loop status and evBG
+                        HStack {
+                            Spacer()
+                            rightHeaderPanel(geo)
+                        }.padding(.trailing, 20)
 
-                    /// right panel with loop status and evBG
-                    HStack {
-                        Spacer()
-                        rightHeaderPanel(geo)
-                    }.padding(.trailing, 20)
+                        /// glucose bobble
+                        glucoseView
 
-                    /// left panel with pump related info
-                    HStack {
-                        pumpView
-                        Spacer()
-                    }.padding(.leading, 20)
+                        /// left panel with pump related info
+                        HStack {
+                            pumpView
+                            Spacer()
+                        }.padding(.leading, 20)
+                    }
                 }
                 .padding(.top, 10)
                 .safeAreaInset(edge: .top, spacing: 0) {

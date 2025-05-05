@@ -24,6 +24,7 @@ extension Notification.Name {
     class InitState {
         var complete = false
         var error = false
+        var migrationErrors: [String] = []
     }
 
     // We use both InitState and @State variables to track coreDataStack
@@ -36,6 +37,7 @@ extension Notification.Name {
     @State private var showLoadingView = true
     @State private var showLoadingError = false
     @State private var showOnboardingCompletedSplash = false
+    @State private var showMigrationError: Bool = false
 
     // Dependencies Assembler
     // contain all dependencies Assemblies
@@ -129,6 +131,9 @@ extension Notification.Name {
             do {
                 try await coreDataStack.initializeStack()
 
+                // TODO: possibly wrap this in a UserDefault / TinyStorage flag check, so we do not even attempt to fetch files unnecessary, but early exit the import
+                await performJsonToCoreDataMigrationIfNeeded()
+
                 await Task { @MainActor in
                     // Only load services after successful Core Data initialization
                     loadServices()
@@ -163,6 +168,45 @@ extension Notification.Name {
                 }
             }
         }
+    }
+
+    @MainActor private func performJsonToCoreDataMigrationIfNeeded() async {
+        let importer = JSONImporter(context: coreDataStack.newTaskContext(), coreDataStack: coreDataStack)
+        var importErrors: [String] = []
+
+        do {
+            try await importer.importGlucoseHistoryIfNeeded()
+        } catch {
+            importErrors
+                .append(String(localized: "Failed to import glucose history."))
+            debug(.coreData, "❌ Failed to import JSON-based Glucose History: \(error)")
+        }
+
+        do {
+            try await importer.importPumpHistoryIfNeeded()
+        } catch {
+            importErrors.append(String(localized: "Failed to import pump history."))
+            debug(.coreData, "❌ Failed to import JSON-based Pump History: \(error)")
+        }
+
+        do {
+            try await importer.importCarbHistoryIfNeeded()
+        } catch {
+            importErrors.append(String(localized: "Failed to import algorithm data."))
+            debug(.coreData, "❌ Failed to import JSON-based Carb History: \(error)")
+        }
+
+        do {
+            try await importer.importDeterminationIfNeeded()
+        } catch {
+            importErrors
+                .append(
+                    String(localized: "Migration of JSON-based OpenAPS Determination Data failed: \(error.localizedDescription)")
+                )
+            debug(.coreData, "❌ Failed to import JSON-based OpenAPS Determination Data: \(error)")
+        }
+
+        initState.migrationErrors = importErrors
     }
 
     /// Clears any legacy (Trio 0.2.x) delivered and pending notifications related to non-looping alerts.
@@ -213,6 +257,9 @@ extension Notification.Name {
                                 Task { @MainActor in
                                     try? await Task.sleep(for: .seconds(1.8))
                                     self.showLoadingView = false
+                                    if self.initState.migrationErrors.isNotEmpty {
+                                        self.showMigrationError = true
+                                    }
                                 }
                             }
                             if self.initState.error {
@@ -223,11 +270,21 @@ extension Notification.Name {
                             Task { @MainActor in
                                 try? await Task.sleep(for: .seconds(1.8))
                                 self.showLoadingView = false
+                                if self.initState.migrationErrors.isNotEmpty {
+                                    self.showMigrationError = true
+                                }
                             }
                         }
                         .onReceive(Foundation.NotificationCenter.default.publisher(for: .initializationError)) { _ in
                             self.showLoadingError = true
                         }
+                } else if showMigrationError { // FIXME: display of this is not yet working, despite migration errors
+                    Main.MainMigrationErrorView(migrationErrors: self.initState.migrationErrors, onConfirm: {
+                        Task { @MainActor in
+                            showMigrationError = false
+                            initState.migrationErrors = []
+                        }
+                    })
                 } else if showOnboardingCompletedSplash {
                     LogoBurstSplash(isActive: $showOnboardingCompletedSplash) {
                         Main.RootView(resolver: resolver)

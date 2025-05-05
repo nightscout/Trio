@@ -56,74 +56,42 @@ class JSONImporter {
         return try decoder.decode(T.self, from: data)
     }
 
-    /// Retrieves the set of dates for all glucose values currently stored in CoreData.
+    /// Fetches a set of unique `Date` values for a specific `NSManagedObject` type from Core Data.
     ///
-    /// - Parameters: the start and end dates to fetch glucose values, inclusive
-    /// - Returns: A set of dates corresponding to existing glucose readings.
-    /// - Throws: An error if the fetch operation fails.
-    private func fetchGlucoseDates(start: Date, end: Date) async throws -> Set<Date> {
-        let allReadings = try await coreDataStack.fetchEntitiesAsync(
-            ofType: GlucoseStored.self,
-            onContext: context,
-            predicate: .predicateForDateBetween(start: start, end: end),
-            key: "date",
-            ascending: false
-        ) as? [GlucoseStored] ?? []
-
-        return Set(allReadings.compactMap(\.date))
-    }
-
-    /// Retrieves the set of timestamps for all pump events currently stored in CoreData.
-    ///
-    /// - Parameters: the start and end dates to fetch pump events, inclusive
-    /// - Returns: A set of dates corresponding to existing pump events.
-    /// - Throws: An error if the fetch operation fails.
-    private func fetchPumpTimestamps(start: Date, end: Date) async throws -> Set<Date> {
-        let allPumpEvents = try await coreDataStack.fetchEntitiesAsync(
-            ofType: PumpEventStored.self,
-            onContext: context,
-            predicate: .predicateForTimestampBetween(start: start, end: end),
-            key: "timestamp",
-            ascending: false
-        ) as? [PumpEventStored] ?? []
-
-        return Set(allPumpEvents.compactMap(\.timestamp))
-    }
-
-    /// Retrieves the set of timestamps for all carb entries currently stored in CoreData.
-    ///
-    /// - Parameters: the start and end dates to fetch carb entries, inclusive
-    /// - Returns: A set of dates corresponding to existing carb entries.
-    /// - Throws: An error if the fetch operation fails.
-    private func fetchCarbEntryDates(start: Date, end: Date) async throws -> Set<Date> {
-        let allCarbEntryDates = try await coreDataStack.fetchEntitiesAsync(
-            ofType: CarbEntryStored.self,
-            onContext: context,
-            predicate: .predicateForDateBetween(start: start, end: end),
-            key: "date",
-            ascending: false
-        ) as? [CarbEntryStored] ?? []
-
-        return Set(allCarbEntryDates.compactMap(\.date))
-    }
-
-    /// Retrieves the set of dates for all oref determinations currently stored in CoreData.
+    /// This helper function is used to retrieve all existing date-like values (e.g., `date`, `timestamp`, `deliverAt`)
+    /// from a given entity type within a specified time range. It wraps the fetch and transformation
+    /// in a `context.perform` block to ensure thread safety when used on private background contexts.
     ///
     /// - Parameters:
-    ///   - start: the start to fetch from; inclusive
-    ///   - end: the end date to fetch to; inclusive
-    /// - Returns: A set of dates corresponding to existing determinations.
-    /// - Throws: An error if the fetch operation fails.
-    private func fetchDeterminationDates(start: Date, end: Date) async throws -> Set<Date> {
-        let determinations = try await coreDataStack.fetchEntitiesAsync(
-            ofType: OrefDetermination.self,
-            onContext: context,
-            predicate: .predicateForDeliverAtBetween(start: start, end: end),
-            key: "deliverAt",
-            ascending: false
-        ) as? [OrefDetermination] ?? []
+    ///   - type: The `NSManagedObject` subclass to fetch (e.g., `GlucoseStored.self`, `PumpEventStored.self`)
+    ///   - predicate: A preconstructed predicate that filters the entity by date/timestamp range.
+    ///   - sortKey: The string name of the date-like field used to sort the fetch results. **This must match the key used in Core Data.**
+    ///   - dateKeyPath: A key path pointing to the `Date?` property on the entity used to extract the actual date value from each record.
+    ///
+    /// - Returns: A `Set<Date>` containing all non-nil date values from the fetched entities.
+    /// - Throws: `CoreDataError.fetchError` if casting the fetched objects fails, or if the fetch itself fails.
 
-        return Set(determinations.compactMap(\.deliverAt))
+    private func fetchDates<T: NSManagedObject>(
+        ofType type: T.Type,
+        predicate: NSPredicate,
+        sortKey: String,
+        dateKeyPath: KeyPath<T, Date?>
+    ) async throws -> Set<Date> {
+        let fetched = try await coreDataStack.fetchEntitiesAsync(
+            ofType: type,
+            onContext: context,
+            predicate: predicate,
+            key: sortKey,
+            ascending: false
+        )
+
+        return try await context.perform {
+            guard let typed = fetched as? [T] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
+
+            return Set(typed.compactMap { $0[keyPath: dateKeyPath] })
+        }
     }
 
     /// Imports glucose history from a JSON file into CoreData.
@@ -141,7 +109,12 @@ class JSONImporter {
     func importGlucoseHistory(url: URL, now: Date) async throws {
         let twentyFourHoursAgo = now - 24.hours.timeInterval
         let glucoseHistoryFull: [BloodGlucose] = try readJsonFile(url: url)
-        let existingDates = try await fetchGlucoseDates(start: twentyFourHoursAgo, end: now)
+        let existingDates = try await fetchDates(
+            ofType: GlucoseStored.self,
+            predicate: .predicateForDateBetween(start: twentyFourHoursAgo, end: now),
+            sortKey: "date",
+            dateKeyPath: \.date
+        )
 
         // only import glucose values from the last 24 hours that don't exist
         let glucoseHistory = glucoseHistoryFull
@@ -232,7 +205,12 @@ class JSONImporter {
     func importPumpHistory(url: URL, now: Date) async throws {
         let twentyFourHoursAgo = now - 24.hours.timeInterval
         let pumpHistoryRaw: [PumpHistoryEvent] = try readJsonFile(url: url)
-        let existingTimestamps = try await fetchPumpTimestamps(start: twentyFourHoursAgo, end: now)
+        let existingTimestamps = try await fetchDates(
+            ofType: PumpEventStored.self,
+            predicate: .predicateForTimestampBetween(start: twentyFourHoursAgo, end: now),
+            sortKey: "timestamp",
+            dateKeyPath: \.timestamp
+        )
         let pumpHistoryFiltered = pumpHistoryRaw
             .filter { $0.timestamp >= twentyFourHoursAgo && $0.timestamp <= now && !existingTimestamps.contains($0.timestamp) }
 
@@ -272,7 +250,12 @@ class JSONImporter {
     func importCarbHistory(url: URL, now: Date) async throws {
         let twentyFourHoursAgo = now - 24.hours.timeInterval
         let carbHistoryFull: [CarbsEntry] = try readJsonFile(url: url)
-        let existingDates = try await fetchCarbEntryDates(start: twentyFourHoursAgo, end: now)
+        let existingDates = try await fetchDates(
+            ofType: CarbEntryStored.self,
+            predicate: .predicateForDateBetween(start: twentyFourHoursAgo, end: now),
+            sortKey: "date",
+            dateKeyPath: \.date
+        )
 
         // Only import carb entries from the last 24 hours that do not exist yet in Core Data
         // Only import "true" carb entries; ignore all FPU entries (aka carb equivalents)
@@ -314,7 +297,12 @@ class JSONImporter {
         let twentyFourHoursAgo = now - 24.hours.timeInterval
         let enactedDetermination: Determination = try readJsonFile(url: enactedUrl)
         let suggestedDetermination: Determination = try readJsonFile(url: suggestedUrl)
-        let existingDates = try await fetchDeterminationDates(start: twentyFourHoursAgo, end: now)
+        let existingDates = try await fetchDates(
+            ofType: OrefDetermination.self,
+            predicate: .predicateForDeliverAtBetween(start: twentyFourHoursAgo, end: now),
+            sortKey: "deliverAt",
+            dateKeyPath: \.deliverAt
+        )
 
         /// Helper function to check if entries are from within the last 24 hours that do not yet exist in Core Data
         func checkDeterminationDate(_ date: Date) -> Bool {
@@ -396,7 +384,7 @@ extension PumpHistoryEvent {
             let bolusEntry = BolusStored(context: context)
             bolusEntry.amount = NSDecimalNumber(decimal: amount)
             bolusEntry.isSMB = isSMB ?? false
-            bolusEntry.isExternal = isExternal ?? false
+            bolusEntry.isExternal = isExternal ?? isExternalInsulin ?? false
             pumpEntry.bolus = bolusEntry
         } else if type == .tempBasal {
             guard let rate = rate, let duration = duration else {
@@ -486,18 +474,14 @@ extension CarbsEntry: Codable {
         carbEntry.id = id
             .flatMap({ UUID(uuidString: $0) }) ?? UUID() /// The `CodingKey` of `id` is `_id`, so this fine to use here
         carbEntry.date = actualDate ?? createdAt
-        carbEntry.carbs = Double(truncating: NSDecimalNumber(decimal: carbs))
-        carbEntry.fat = Double(truncating: NSDecimalNumber(decimal: fat ?? 0))
-        carbEntry.protein = Double(truncating: NSDecimalNumber(decimal: protein ?? 0))
+        carbEntry.carbs = Double(truncating: NSDecimalNumber(decimal: carbs.rounded(toPlaces: 0)))
+        carbEntry.fat = Double(truncating: NSDecimalNumber(decimal: fat?.rounded(toPlaces: 0) ?? 0))
+        carbEntry.protein = Double(truncating: NSDecimalNumber(decimal: protein?.rounded(toPlaces: 0) ?? 0))
         carbEntry.note = note ?? ""
         carbEntry.isFPU = false
         carbEntry.isUploadedToNS = true
         carbEntry.isUploadedToHealth = true
         carbEntry.isUploadedToTidepool = true
-
-        if fat != nil, protein != nil, let fpuId = fpuID {
-            carbEntry.fpuID = UUID(uuidString: fpuId)
-        }
     }
 }
 
@@ -741,8 +725,115 @@ extension Determination: Codable {
 }
 
 extension JSONImporter {
-    func importGlucoseHistoryIfNeeded() async {}
-    func importPumpHistoryIfNeeded() async {}
-    func importCarbHistoryIfNeeded() async {}
-    func importDeterminationIfNeeded() async {}
+    private func openAPSFileURL(_ relativePath: String) -> URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            .appendingPathComponent(relativePath)
+    }
+
+    func importGlucoseHistoryIfNeeded() async throws {
+        debug(.coreData, "Checking for glucose history JSON file...")
+
+        let url = openAPSFileURL(OpenAPS.Monitor.glucose)
+        let suffix = "migrated.json"
+
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            debug(.coreData, "❌ No JSON file to import at \(url.path)")
+            return
+        }
+
+        debug(.coreData, "Glucose history JSON file found, proceeding with import of glucose history...")
+
+        try await importGlucoseHistory(url: url, now: Date())
+
+        debug(.coreData, "Glucose history JSON file imported successfully, moving to \(suffix)")
+
+        try FileManager.default.moveItem(
+            at: url,
+            to: url.deletingPathExtension().appendingPathExtension(suffix)
+        )
+
+        debug(.coreData, "Import of glucose history completed successfully.")
+    }
+
+    func importPumpHistoryIfNeeded() async throws {
+        debug(.coreData, "Checking for pump history JSON file...")
+
+        let url = openAPSFileURL(OpenAPS.Monitor.pumpHistory)
+        let suffix = "migrated.json"
+
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            debug(.coreData, "❌ No JSON file to import at \(url.path)")
+            return
+        }
+
+        debug(.coreData, "Pump history JSON file found, proceeding with import of glucose history...")
+
+        try await importPumpHistory(url: url, now: Date())
+
+        debug(.coreData, "Pump history JSON file imported successfully, moving to \(suffix)")
+
+        try FileManager.default.moveItem(
+            at: url,
+            to: url.deletingPathExtension().appendingPathExtension(suffix)
+        )
+
+        debug(.coreData, "Import of pump history completed successfully.")
+    }
+
+    func importCarbHistoryIfNeeded() async throws {
+        debug(.coreData, "Checking for carb history JSON file...")
+
+        let url = openAPSFileURL(OpenAPS.Monitor.carbHistory)
+        let suffix = "migrated.json"
+
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            debug(.coreData, "❌ No JSON file to import at \(url.path)")
+            return
+        }
+
+        debug(.coreData, "Carb history JSON file found, proceeding with import of glucose history...")
+
+        try await importCarbHistory(url: url, now: Date())
+
+        debug(.coreData, "Carb history JSON file imported successfully, moving to \(suffix)")
+
+        try FileManager.default.moveItem(
+            at: url,
+            to: url.deletingPathExtension().appendingPathExtension(suffix)
+        )
+
+        debug(.coreData, "Import of carb history completed successfully.")
+    }
+
+    func importDeterminationIfNeeded() async throws {
+        debug(.coreData, "Checking for determination JSON files...")
+
+        let enactedPath = OpenAPS.Enact.enacted // "enact/enacted.json"
+        let suggestedPath = OpenAPS.Enact.suggested // "enact/suggested.json"
+        let suffix = "migrated.json"
+
+        let enactedURL = openAPSFileURL(enactedPath)
+        let suggestedURL = openAPSFileURL(suggestedPath)
+
+        guard FileManager.default.fileExists(atPath: enactedURL.path),
+              FileManager.default.fileExists(atPath: suggestedURL.path)
+        else {
+            debug(.coreData, "❌ No JSON file to import at \(enactedURL.path) and/or \(suggestedURL.path)")
+            return
+        }
+
+        debug(.coreData, "Determination JSON files found, proceeding with import...")
+
+        try await importOrefDetermination(enactedUrl: enactedURL, suggestedUrl: suggestedURL, now: Date())
+
+        debug(.coreData, "Determination JSON file(s) imported successfully, moving to \(suffix)")
+
+        try FileManager.default.moveItem(at: enactedURL, to: enactedURL.deletingPathExtension().appendingPathExtension(suffix))
+        try FileManager.default.moveItem(
+            at: suggestedURL,
+            to: suggestedURL.deletingPathExtension().appendingPathExtension(suffix)
+        )
+
+        debug(.coreData, "Import of determination data completed successfully.")
+    }
 }

@@ -4,7 +4,13 @@ import Swinject
 
 protocol BolusCalculationManager {
     func calculateInsulin(input: CalculationInput) async -> CalculationResult
-    func handleBolusCalculation(carbs: Decimal, useFattyMealCorrection: Bool, useSuperBolus: Bool, minPredBG: Decimal?) async
+    func handleBolusCalculation(
+        carbs: Decimal,
+        useFattyMealCorrection: Bool,
+        useSuperBolus: Bool,
+        lastLoopDate: Date,
+        minPredBG: Decimal?
+    ) async
         -> CalculationResult
 }
 
@@ -282,6 +288,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         carbs: Decimal,
         useFattyMealCorrection: Bool,
         useSuperBolus: Bool,
+        lastLoopDate: Date,
         minPredBG: Decimal?
     ) async throws -> CalculationInput {
         do {
@@ -348,7 +355,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
                 maxBolus: maxBolus,
                 maxIOB: maxIOB,
                 maxCOB: maxCOB,
-                minPredBG: minPredBG ?? bolusVars.minPredBG
+                minPredBG: minPredBG ?? bolusVars.minPredBG,
+                lastLoopDate: lastLoopDate
             )
         } catch {
             debug(
@@ -429,7 +437,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
 
         // the final result for recommended insulin amount
         var insulinCalculated: Decimal
-        let isLoopStale = Date().timeIntervalSince(apsManager.lastLoopDate) > 15 * 60
+        let isLoopStale = Date().timeIntervalSince(input.lastLoopDate) > 15 * 60
         debug(.default, "Loop stale: \(isLoopStale), currentBG: \(input.currentBG), minPredBG: \(input.minPredBG)")
 
         // don't recommend insulin when current glucose or minPredBG is < 54 or last sucessful loop was over 15 minutes ago
@@ -480,6 +488,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         carbs: Decimal,
         useFattyMealCorrection: Bool,
         useSuperBolus: Bool,
+        lastLoopDate: Date,
         minPredBG: Decimal? = nil
     ) async -> CalculationResult {
         do {
@@ -487,6 +496,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
                 carbs: carbs,
                 useFattyMealCorrection: useFattyMealCorrection,
                 useSuperBolus: useSuperBolus,
+                lastLoopDate: lastLoopDate,
                 minPredBG: minPredBG
             )
             let result = await calculateInsulin(input: input)
@@ -534,6 +544,7 @@ struct CalculationInput: Sendable {
     let maxIOB: Decimal // Maximum allowed IOB to be used for rec. bolus calculation
     let maxCOB: Decimal // Maximum allowed COB to be used for rec. bolus calculation
     let minPredBG: Decimal // Minimum Predicted Glucose determined by Oref
+    let lastLoopDate: Date // Date at which loop last completed successfully
 }
 
 /// Results of the bolus calculation
