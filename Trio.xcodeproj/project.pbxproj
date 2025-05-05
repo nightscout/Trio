@@ -581,6 +581,7 @@
 		DD5DC9F92CF3DAA900AB8703 /* RadioButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9F82CF3DAA900AB8703 /* RadioButton.swift */; };
 		DD5DC9FB2CF3E1B100AB8703 /* AdjustmentsStateModel+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5DC9FA2CF3E1AA00AB8703 /* AdjustmentsStateModel+Helpers.swift */; };
 		DD68889D2C386E17006E3C44 /* NightscoutExercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */; };
+		DD6A4E082DBD95F1008C4B26 /* BluetoothRequiredView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6A4E072DBD95F1008C4B26 /* BluetoothRequiredView.swift */; };
 		DD6A4E7E2DBEBF0F008C4B26 /* StartupReturningUserStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6A4E7D2DBEBF0F008C4B26 /* StartupReturningUserStepView.swift */; };
 		DD6A4E802DBEC3EE008C4B26 /* StartupForceCloseWarningStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6A4E7F2DBEC3EE008C4B26 /* StartupForceCloseWarningStepView.swift */; };
 		DD6A4E842DBEDD39008C4B26 /* AlgorithmSettingsImportantNotesStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD6A4E832DBEDD39008C4B26 /* AlgorithmSettingsImportantNotesStepView.swift */; };
@@ -1392,6 +1393,7 @@
 		DD5DC9F82CF3DAA900AB8703 /* RadioButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioButton.swift; sourceTree = "<group>"; };
 		DD5DC9FA2CF3E1AA00AB8703 /* AdjustmentsStateModel+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AdjustmentsStateModel+Helpers.swift"; sourceTree = "<group>"; };
 		DD68889C2C386E17006E3C44 /* NightscoutExercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutExercise.swift; sourceTree = "<group>"; };
+		DD6A4E072DBD95F1008C4B26 /* BluetoothRequiredView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothRequiredView.swift; sourceTree = "<group>"; };
 		DD6A4E7D2DBEBF0F008C4B26 /* StartupReturningUserStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupReturningUserStepView.swift; sourceTree = "<group>"; };
 		DD6A4E7F2DBEC3EE008C4B26 /* StartupForceCloseWarningStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupForceCloseWarningStepView.swift; sourceTree = "<group>"; };
 		DD6A4E832DBEDD39008C4B26 /* AlgorithmSettingsImportantNotesStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmSettingsImportantNotesStepView.swift; sourceTree = "<group>"; };
@@ -2245,6 +2247,7 @@
 		3883582E25EEAFC000E024B2 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				DD6A4E072DBD95F1008C4B26 /* BluetoothRequiredView.swift */,
 				3811DE5925C9D4D500A708ED /* ViewModifiers.swift */,
 				3883581B25EE79BB00E024B2 /* TextFieldWithToolBar.swift */,
 				383420D825FFEB3F002D46C1 /* Popup.swift */,
@@ -4351,6 +4354,7 @@
 				DD1745442C55C60E00211FAC /* AutosensSettingsDataFlow.swift in Sources */,
 				BD249DA72D42FE4600412DEB /* Calendar+GlucoseStatsChart.swift in Sources */,
 				BDCAF2382C639F35002DC907 /* SettingItems.swift in Sources */,
+				DD6A4E082DBD95F1008C4B26 /* BluetoothRequiredView.swift in Sources */,
 				58D08B342C8DF9A700AA37D3 /* CobIobChart.swift in Sources */,
 				642F76A05A4FF530463A9FD0 /* NightscoutConfigRootView.swift in Sources */,
 				BD249D9B2D42FCDB00412DEB /* LoopChartSetup.swift in Sources */,

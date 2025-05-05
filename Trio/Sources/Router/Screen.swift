@@ -71,9 +71,17 @@ extension Screen {
         case .tidepoolConfig:
             TidepoolStartView(resolver: resolver, state: Settings.StateModel())
         case .pumpConfig:
-            PumpConfig.RootView(resolver: resolver, displayClose: false)
+            PumpConfig.RootView(
+                resolver: resolver,
+                displayClose: false,
+                bluetoothManager: resolver.resolve(BluetoothStateManager.self)!
+            )
         case .pumpConfigDirect:
-            PumpConfig.RootView(resolver: resolver, displayClose: true)
+            PumpConfig.RootView(
+                resolver: resolver,
+                displayClose: true,
+                bluetoothManager: resolver.resolve(BluetoothStateManager.self)!
+            )
         case .basalProfileEditor:
             BasalProfileEditor.RootView(resolver: resolver)
         case .isfEditor:
@@ -89,7 +97,11 @@ extension Screen {
         case .dataTable:
             DataTable.RootView(resolver: resolver)
         case .cgm:
-            CGMSettings.RootView(resolver: resolver, displayClose: false)
+            CGMSettings.RootView(
+                resolver: resolver,
+                displayClose: false,
+                bluetoothManager: resolver.resolve(BluetoothStateManager.self)!
+            )
         case .healthkit:
             AppleHealthKit.RootView(resolver: resolver)
         case .glucoseNotificationSettings:
