@@ -13,7 +13,7 @@ extension CGMSettings {
         @State var selectedVerboseHint: AnyView?
         @State var hintLabel: String?
         @State private var decimalPlaceholder: Decimal = 0.0
-        @State private var booleanPlaceholdre: Bool = false
+        @State private var booleanPlaceholder: Bool = false
         @State var showCGMSelection: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
