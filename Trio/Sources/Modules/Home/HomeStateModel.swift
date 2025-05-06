@@ -19,6 +19,7 @@ extension Home {
         @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
         @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
+        @ObservationIgnored @Injected() var bluetoothManager: BluetoothStateManager!
 
         var cgmStateModel: CGMSettings.StateModel {
             CGMSettings.StateModel.shared

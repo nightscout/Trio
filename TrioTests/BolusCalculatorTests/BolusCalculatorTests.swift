@@ -3,6 +3,13 @@ import Testing
 
 @testable import Trio
 
+/// ⚠️ NOTE:
+/// If tests in this suite are failing unexpectedly (e.g. sudden unexplainable mismatches for decimal places for calculated values),
+/// try running the test suite on a clean simulator.
+///
+/// You can reset the simulator from the menu: **Device > Erase All Content and Settings**
+/// or by launching with `-com.apple.CoreData.SQLDebug 1` for more insight into the issue.
+///
 @Suite("Bolus Calculator Tests") struct BolusCalculatorTests: Injectable {
     @Injected() var calculator: BolusCalculationManager!
     @Injected() var settingsManager: SettingsManager!
@@ -60,7 +67,8 @@ import Testing
             maxBolus: maxBolus,
             maxIOB: maxIOB,
             maxCOB: maxCOB,
-            minPredBG: minPredBG
+            minPredBG: minPredBG,
+            lastLoopDate: Date()
         )
 
         // STEP 3: Calculate insulin
@@ -173,7 +181,8 @@ import Testing
             maxBolus: maxBolus,
             maxIOB: maxIOB,
             maxCOB: maxCOB,
-            minPredBG: minPredBG
+            minPredBG: minPredBG,
+            lastLoopDate: Date()
         )
 
         // STEP 3: Calculate insulin with fatty meal enabled
@@ -198,7 +207,8 @@ import Testing
             maxBolus: maxBolus,
             maxIOB: maxIOB,
             maxCOB: maxCOB,
-            minPredBG: minPredBG
+            minPredBG: minPredBG,
+            lastLoopDate: Date()
         )
         let standardResult = await calculator.calculateInsulin(input: standardInput)
 
@@ -262,7 +272,8 @@ import Testing
             maxBolus: maxBolus,
             maxIOB: maxIOB,
             maxCOB: maxCOB,
-            minPredBG: minPredBG
+            minPredBG: minPredBG,
+            lastLoopDate: Date()
         )
 
         // STEP 3: Calculate insulin with super bolus enabled
@@ -287,7 +298,8 @@ import Testing
             maxBolus: maxBolus,
             maxIOB: maxIOB,
             maxCOB: maxCOB,
-            minPredBG: minPredBG
+            minPredBG: minPredBG,
+            lastLoopDate: Date()
         )
         let standardResult = await calculator.calculateInsulin(input: standardInput)
 
@@ -330,6 +342,145 @@ import Testing
         )
     }
 
+    @Test("Calculate insulin with low glucose forecast (minPredBG < 54)") func testMinPredBGGuardBolusCalculation() async throws {
+        // STEP 1: Setup test scenario
+        // We need to provide a CalculationInput struct
+        let carbs: Decimal = 80
+        let currentBG: Decimal = 180 // 80 points above target, should result in 2U correction
+        let deltaBG: Decimal = 5 // Rising trend, should add small correction
+        let target: Decimal = 100
+        let isf: Decimal = 40
+        let carbRatio: Decimal = 10 // Should result in 8U for carbs
+        let iob: Decimal = 1.0 // Should subtract from final result
+        let cob: Int16 = 20
+        let useFattyMealCorrectionFactor: Bool = false
+        let useSuperBolus: Bool = false
+        let fattyMealFactor: Decimal = 0.8
+        let sweetMealFactor: Decimal = 2
+        let basal: Decimal = 1.5 // Will be added to insulin calculation when super bolus is enabled
+        let fraction: Decimal = 0.8
+        let maxBolus: Decimal = 10
+        let maxIOB: Decimal = 15.0
+        let maxCOB: Decimal = 120.0
+        let minPredBG: Decimal = 45.0 // Severe Hypo forecasted
+
+        // STEP 2: Create calculation input with severe hypo forecasted minPredBG
+        let input = CalculationInput(
+            carbs: carbs,
+            currentBG: currentBG,
+            deltaBG: deltaBG,
+            target: target,
+            isf: isf,
+            carbRatio: carbRatio,
+            iob: iob,
+            cob: cob,
+            useFattyMealCorrectionFactor: useFattyMealCorrectionFactor,
+            fattyMealFactor: fattyMealFactor,
+            useSuperBolus: useSuperBolus,
+            sweetMealFactor: sweetMealFactor,
+            basal: basal,
+            fraction: fraction,
+            maxBolus: maxBolus,
+            maxIOB: maxIOB,
+            maxCOB: maxCOB,
+            minPredBG: minPredBG,
+            lastLoopDate: Date()
+        )
+
+        // STEP 3: Calculate insulin with super bolus enabled
+        let minPredBGResult = await calculator.calculateInsulin(input: input)
+
+        // STEP 4: Calculate insulin with super bolus disabled for comparison
+        let standardInput = CalculationInput(
+            carbs: carbs,
+            currentBG: currentBG,
+            deltaBG: deltaBG,
+            target: target,
+            isf: isf,
+            carbRatio: carbRatio,
+            iob: iob,
+            cob: cob,
+            useFattyMealCorrectionFactor: useFattyMealCorrectionFactor,
+            fattyMealFactor: fattyMealFactor,
+            useSuperBolus: false, // Disabled for comparison
+            sweetMealFactor: sweetMealFactor,
+            basal: basal,
+            fraction: fraction,
+            maxBolus: maxBolus,
+            maxIOB: maxIOB,
+            maxCOB: maxCOB,
+            minPredBG: 80,
+            lastLoopDate: Date()
+        )
+        let standardResult = await calculator.calculateInsulin(input: standardInput)
+
+        // STEP 5: Verify results
+        #expect(minPredBGResult.insulinCalculated == 0, "Severe Hypo forecasted; insulin calculated set to 0 U for safety!")
+
+        #expect(
+            standardResult.insulinCalculated > minPredBGResult.insulinCalculated,
+            """
+            Super bolus calculation incorrect
+            Expected super bolus calculation to be higher than standard
+            MinPred <54 bolus: \(minPredBGResult.insulinCalculated) U
+            Standard: \(standardResult.insulinCalculated) U
+            Difference: \(standardResult.insulinCalculated - minPredBGResult.insulinCalculated) U
+            """
+        )
+    }
+
+    @Test("Calculate insulin with stale loop (longer than 15min ago)") func testStaleLoopBolusCalculation() async throws {
+        // STEP 1: Setup test scenario
+        // We need to provide a CalculationInput struct
+        let carbs: Decimal = 80
+        let currentBG: Decimal = 180 // 80 points above target, should result in 2U correction
+        let deltaBG: Decimal = 5 // Rising trend, should add small correction
+        let target: Decimal = 100
+        let isf: Decimal = 40
+        let carbRatio: Decimal = 10 // Should result in 8U for carbs
+        let iob: Decimal = 1.0 // Should subtract from final result
+        let cob: Int16 = 20
+        let useFattyMealCorrectionFactor: Bool = false
+        let useSuperBolus: Bool = false
+        let fattyMealFactor: Decimal = 0.8
+        let sweetMealFactor: Decimal = 2
+        let basal: Decimal = 1.5 // Will be added to insulin calculation when super bolus is enabled
+        let fraction: Decimal = 0.8
+        let maxBolus: Decimal = 10
+        let maxIOB: Decimal = 15.0
+        let maxCOB: Decimal = 120.0
+        let minPredBG: Decimal = 80
+
+        // STEP 2: Create calculation input with severe hypo forecasted minPredBG
+        let input = CalculationInput(
+            carbs: carbs,
+            currentBG: currentBG,
+            deltaBG: deltaBG,
+            target: target,
+            isf: isf,
+            carbRatio: carbRatio,
+            iob: iob,
+            cob: cob,
+            useFattyMealCorrectionFactor: useFattyMealCorrectionFactor,
+            fattyMealFactor: fattyMealFactor,
+            useSuperBolus: useSuperBolus,
+            sweetMealFactor: sweetMealFactor,
+            basal: basal,
+            fraction: fraction,
+            maxBolus: maxBolus,
+            maxIOB: maxIOB,
+            maxCOB: maxCOB,
+            minPredBG: minPredBG,
+            lastLoopDate: Date().addingTimeInterval(TimeInterval(-15 * 60)) // 15min ago
+        )
+
+        // STEP 3: Calculate insulin with super bolus enabled
+        let result = await calculator.calculateInsulin(input: input)
+
+        // STEP 4: Verify results
+        #expect(result.insulinCalculated == 0, "Loop is stale; insulin calculated set to 0 U for safety!")
+    }
+
     @Test("Calculate insulin with zero carbs") func testZeroCarbsCalculation() async throws {
         // Given
         let carbs: Decimal = 0
@@ -339,6 +490,7 @@ import Testing
             carbs: carbs,
             useFattyMealCorrection: false,
             useSuperBolus: false,
+            lastLoopDate: Date(),
             minPredBG: nil
         )
 

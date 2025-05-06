@@ -155,6 +155,41 @@ class BundleReference {}
         #expect(allReadings.isEmpty)
     }
 
+    @Test("Import pump history with external insulin") func testImportPumpHistoryWithExternalInsulin() async throws {
+        let testBundle = Bundle(for: BundleReference.self)
+        let path = testBundle.path(forResource: "pumphistory-with-external", ofType: "json")!
+        let url = URL(filePath: path)
+
+        let now = Date("2025-05-04T04:37:44.654Z")!
+        try await importer.importPumpHistory(url: url, now: now)
+
+        let allReadings = try await coreDataStack.fetchEntitiesAsync(
+            ofType: PumpEventStored.self,
+            onContext: context,
+            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            key: "timestamp",
+            ascending: false
+        ) as? [PumpEventStored] ?? []
+
+        let objectIds = allReadings.map(\.objectID)
+        let parsedHistory = OpenAPS.loadAndMapPumpEvents(objectIds, from: context)
+
+        #expect(parsedHistory.count == 1)
+
+        let bolus: BolusDTO? = {
+            switch parsedHistory.first! {
+            case let .bolus(bolus):
+                return bolus
+            default:
+                return nil
+            }
+        }()
+
+        #expect(bolus != nil)
+        #expect(bolus!.isExternal)
+        #expect(bolus!.amount.isApproximatelyEqual(to: 0.88, epsilon: 0.01))
+    }
+
     @Test("Import carb history with value checks") func testImportCarbHistoryDetails() async throws {
         let testBundle = Bundle(for: BundleReference.self)
         let path = testBundle.path(forResource: "carbhistory", ofType: "json")!

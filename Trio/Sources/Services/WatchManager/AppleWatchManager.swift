@@ -591,15 +591,38 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             if message[WatchMessageKeys.requestBolusRecommendation] as? Bool == true {
                 let carbs = message[WatchMessageKeys.carbs] as? Int ?? 0
 
+                var minPredBG: Decimal = 54
+
                 Task { [weak self] in
                     guard let self = self else { return }
+
+                    do {
+                        // Fetch determination data
+                        let determinationIds = try await determinationStorage.fetchLastDeterminationObjectID(
+                            predicate: NSPredicate.predicateFor30MinAgoForDetermination
+                        )
+                        let determinationObjects: [OrefDetermination] = try await CoreDataStack.shared.getNSManagedObject(
+                            with: determinationIds,
+                            context: backgroundContext
+                        )
+
+                        await MainActor.run {
+                            minPredBG = determinationObjects.first?.minPredBGFromReason ?? 54
+                        }
+
+                    } catch let error as CoreDataError {
+                        debug(.default, "Core Data error: \(error.localizedDescription)")
+                    } catch {
+                        debug(.default, "Unexpected error: \(error.localizedDescription)")
+                    }
 
                     // Get recommendation from BolusCalculationManager
                     let result = await bolusCalculationManager.handleBolusCalculation(
                         carbs: Decimal(carbs),
                         useFattyMealCorrection: false,
                         useSuperBolus: false,
-                        minPredBG: 60 // TODO:
+                        lastLoopDate: apsManager.lastLoopDate,
+                        minPredBG: minPredBG
                     )
 
                     // Send recommendation back to watch
