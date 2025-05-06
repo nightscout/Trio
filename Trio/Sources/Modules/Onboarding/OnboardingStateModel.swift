@@ -308,16 +308,35 @@ extension Onboarding {
 
         /// Remaps therapy items affected by a pump model change.
         ///
-        /// This function updates basal profile items to use the closest valid index
-        /// from the updated basal rate and time arrays, preserving the user's settings.
+        /// Updates basal profile items to use the closest valid index from
+        /// the updated basal rate and time arrays, preserving the user's settings
+        /// as closely as possible when switching between pump models.
+        ///
+        /// If an imported item's `rateIndex` or `timeIndex` exceeds the bounds of the
+        /// current pump's allowed values, it is clamped to the last valid index to avoid
+        /// crashes and preserve data integrity. A debug message is logged if clamping occurs.
         ///
         /// Call this after the user selects a new pump model.
         ///
         /// See also: `UnitSelectionStepView` `.onChange()` handlers.
         func remapTherapyItemsForChangedPumpModel() {
+            let maxValidRateIndex = max(basalProfileRateValues.count - 1, 0)
+            let maxValidTimeIndex = max(basalProfileTimeValues.count - 1, 0)
+
             basalProfileItems = basalProfileItems.map { item in
-                let newRateIndex = closestIndex(for: basalProfileRateValues[item.rateIndex], in: basalProfileRateValues)
-                let newTimeIndex = closestIndex(for: basalProfileTimeValues[item.timeIndex], in: basalProfileTimeValues)
+                let safeRateIndex = min(item.rateIndex, maxValidRateIndex)
+                let safeTimeIndex = min(item.timeIndex, maxValidTimeIndex)
+
+                let originalRate = basalProfileRateValues[safeRateIndex]
+                let originalTime = basalProfileTimeValues[safeTimeIndex]
+
+                let newRateIndex = closestIndex(for: originalRate, in: basalProfileRateValues)
+                let newTimeIndex = closestIndex(for: originalTime, in: basalProfileTimeValues)
+
+                if safeRateIndex != item.rateIndex {
+                    debug(.default, "⚠️ rateIndex \(item.rateIndex) out of bounds; clamped to \(safeRateIndex)")
+                }
+
                 return BasalProfileEditor.Item(rateIndex: newRateIndex, timeIndex: newTimeIndex)
             }
         }
