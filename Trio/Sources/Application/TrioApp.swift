@@ -360,7 +360,7 @@ extension Notification.Name {
     }
 
     private func performCleanupIfNecessary() {
-        if let lastCleanupDate = UserDefaults.standard.object(forKey: "lastCleanupDate") as? Date {
+        if let lastCleanupDate = PropertyPersistentFlags.shared.lastCleanupDate {
             let sevenDaysAgo = Date().addingTimeInterval(-7 * 24 * 60 * 60)
             if lastCleanupDate < sevenDaysAgo {
                 cleanupOldData()
@@ -377,7 +377,7 @@ extension Notification.Name {
             try await purgeData
 
             // Update the last cleanup date
-            UserDefaults.standard.set(Date(), forKey: "lastCleanupDate")
+            PropertyPersistentFlags.shared.lastCleanupDate = Date()
         }
     }
 
