@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import Swinject
 
@@ -152,6 +153,7 @@ extension Onboarding {
                             currentSMBSubstep: $currentSMBSubstep,
                             currentTargetBehaviorSubstep: $currentTargetBehaviorSubstep,
                             onboardingManager: onboardingManager,
+                            isFreshTrioInstall: state.isFreshTrioInstall,
                             state: state,
                             shouldDisableNextButton: shouldDisableNextButton,
                             navigationDirectionChanged: { navigationDirection = $0 }
@@ -454,6 +456,7 @@ struct OnboardingNavigationButtons: View {
     @Binding var currentTargetBehaviorSubstep: TargetBehaviorSubstep
 
     let onboardingManager: OnboardingManager
+    let isFreshTrioInstall: Bool
     @Bindable var state: Onboarding.StateModel
     var shouldDisableNextButton: Bool
     var navigationDirectionChanged: (OnboardingNavigationDirection) -> Void
@@ -508,7 +511,14 @@ struct OnboardingNavigationButtons: View {
 
         switch currentStep {
         case .startupInfo:
-            if let previousSub = StartupSubstep(rawValue: currentStartupSubstep.rawValue - 1) {
+            var previous = StartupSubstep(rawValue: currentStartupSubstep.rawValue - 1)
+
+            /// Skip `.returningUser` if this is a fresh install
+            if previous == .returningUser, isFreshTrioInstall == true {
+                previous = StartupSubstep(rawValue: previous!.rawValue - 1)
+            }
+
+            if let previousSub = previous {
                 currentStartupSubstep = previousSub
             } else if let previous = currentStep.previous {
                 currentStep = previous
@@ -631,7 +641,17 @@ struct OnboardingNavigationButtons: View {
 
         switch currentStep {
         case .startupInfo:
-            if let next = StartupSubstep(rawValue: currentStartupSubstep.rawValue + 1) {
+            let nextSubstepRaw = currentStartupSubstep.rawValue + 1
+
+            if isFreshTrioInstall, StartupSubstep(rawValue: nextSubstepRaw) == .returningUser {
+                /// Skip `.returningUser` if it's a fresh install
+                if let nextAfterSkip = StartupSubstep(rawValue: nextSubstepRaw + 1) {
+                    currentStartupSubstep = nextAfterSkip
+                } else if let nextStep = currentStep.next {
+                    currentStep = nextStep
+                    currentStartupSubstep = .startupGuide
+                }
+            } else if let next = StartupSubstep(rawValue: nextSubstepRaw) {
                 currentStartupSubstep = next
             } else if let nextStep = currentStep.next {
                 currentStep = nextStep

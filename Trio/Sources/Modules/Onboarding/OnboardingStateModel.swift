@@ -28,6 +28,47 @@ extension Onboarding {
         var diagnosticsSharingOption: DiagnosticsSharingOption = .enabled
         var hasAcceptedPrivacyPolicy: Bool = false
 
+        // MARK: - Determine Initial Build State
+
+        var isFreshTrioInstall: Bool {
+            let fileManager = FileManager.default
+            guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+                return false
+            }
+
+            debug(.default, "Checking for fresh install in \(documentsURL.path)...")
+
+            let expectedLogsFolder = "logs"
+            let expectedPreferencesFile = OpenAPS.Settings.preferences
+
+            do {
+                let contents = try fileManager.contentsOfDirectory(atPath: documentsURL.path)
+
+                debug(.default, "Found \(contents) in \(documentsURL.path)...")
+
+                // Expect exactly 2 entries: "logs" and the preferences file
+                guard contents.count == 2 else {
+                    debug(.default, "Trio install is not fresh; returning user.")
+                    return false
+                }
+
+                // Ensure they match exactly
+                let expectedSet = Set([expectedLogsFolder, expectedPreferencesFile])
+                let actualSet = Set(contents)
+
+                debug(.default, "Expected: \(expectedSet), Actual: \(actualSet)")
+
+                let isFreshInstall = expectedSet == actualSet
+                debug(.default, "Trio install is fresh; new user.")
+
+                return isFreshInstall
+
+            } catch {
+                debug(.default, "Cannot determine Initial Build State. Failed to read documents directory: \(error)")
+                return false
+            }
+        }
+
         // MARK: - Nightscout Setup
 
         var nightscoutSetupOption: NightscoutSetupOption = .noSelection
@@ -47,29 +88,35 @@ extension Onboarding {
         private var selectedPumpOption: PumpOptionForOnboardingUnits?
         var pumpOptionForOnboardingUnits: PumpOptionForOnboardingUnits {
             get {
-                // If the user has made a selection, use that
-                if let userSelected = _selectedPumpOption {
-                    return userSelected
+                // let user edit selection and return user-selection, if present
+                if let selected = selectedPumpOption {
+                    return selected
                 }
 
-                // Otherwise, reflect current pumpManager type
+                let defaultOption: PumpOptionForOnboardingUnits
                 if let pumpManager = apsManager?.pumpManager {
                     if pumpManager is OmniBLEPumpManager {
-                        return .omnipodDash
+                        defaultOption = .omnipodDash
                     } else if pumpManager is OmnipodPumpManager {
-                        return .omnipodEros
+                        defaultOption = .omnipodEros
                     } else if pumpManager is DanaKitPumpManager {
-                        return .dana
+                        defaultOption = .dana
                     } else if pumpManager is MinimedPumpManager {
-                        return .minimed
+                        defaultOption = .minimed
+                    } else {
+                        defaultOption = .omnipodDash
                     }
+                } else {
+                    defaultOption = .omnipodDash
                 }
 
-                // Default fallback
-                return .omnipodDash
+                // cache it so picker can stay in sync
+                selectedPumpOption = defaultOption
+
+                return defaultOption
             }
             set {
-                _selectedPumpOption = newValue
+                selectedPumpOption = newValue
             }
         }
 
