@@ -30,6 +30,17 @@ extension Onboarding {
 
         // MARK: - Determine Initial Build State
 
+        /// Determines whether the app is in a fresh install state for Trio v0.3.0.
+        ///
+        /// This check is based on the assumption that a truly clean install will only contain
+        /// the `logs/` directory and the `preferences.json` file in the app's Documents directory.
+        ///
+        /// If this condition is met, the onboarding flow skips the `.returningUser` step and treats
+        /// the user as new. If more files or directories are found, it is assumed the user is returning.
+        ///
+        /// Note: This check is not directly connected to a completed migration. However, if a migration
+        /// has been triggered (whether successful or not), additional files such as treatment JSONs
+        /// will exist, which naturally causes this check to return `false`.
         var isFreshTrioInstall: Bool {
             let fileManager = FileManager.default
             guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
