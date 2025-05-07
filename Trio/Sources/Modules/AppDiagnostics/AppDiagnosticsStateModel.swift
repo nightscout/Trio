@@ -14,7 +14,7 @@ extension AppDiagnostics {
 
         /// Loads the diagnostics sharing option from UserDefaults as a boolean.
         func loadDiagnostics() {
-            if let storedDiagnosticsSharingOption = UserDefaults.standard.value(forKey: "DiagnosticsSharing") as? Bool {
+            if let storedDiagnosticsSharingOption = PropertyPersistentFlags.shared.diagnosticsSharingEnabled {
                 diagnosticsSharingOption = storedDiagnosticsSharingOption ? .enabled : .disabled
             } else {
                 diagnosticsSharingOption = .enabled
@@ -24,7 +24,7 @@ extension AppDiagnostics {
         /// Persists the current diagnostics sharing option to UserDefaults as a boolean.
         func applyDiagnostics() {
             let booleanValue: Bool = diagnosticsSharingOption == .enabled
-            UserDefaults.standard.set(booleanValue, forKey: "DiagnosticsSharing")
+            PropertyPersistentFlags.shared.diagnosticsSharingEnabled = booleanValue
             Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(booleanValue)
         }
     }
