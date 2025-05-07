@@ -18,21 +18,18 @@ import Swinject
 
     /// Checks if onboarding has been completed and updates the shouldShowOnboarding flag accordingly.
     private func checkOnboardingStatus() {
-        shouldShowOnboarding = !UserDefaults.standard.onboardingCompleted
-
-        // Only for Debugging purposes
-//        shouldShowOnboarding = true
+        shouldShowOnboarding = !(PropertyPersistentFlags.shared.onboardingCompleted ?? false)
     }
 
     /// Marks onboarding as completed and updates the shouldShowOnboarding flag.
     func completeOnboarding() {
-        UserDefaults.standard.onboardingCompleted = true
+        PropertyPersistentFlags.shared.onboardingCompleted = true
         shouldShowOnboarding = false
     }
 
     /// Resets the onboarding status for testing purposes.
     func resetOnboarding() {
-        UserDefaults.standard.onboardingCompleted = false
+        PropertyPersistentFlags.shared.onboardingCompleted = false
         shouldShowOnboarding = true
     }
 }

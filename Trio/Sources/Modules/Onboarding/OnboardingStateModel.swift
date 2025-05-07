@@ -25,7 +25,11 @@ extension Onboarding {
 
         // MARK: - App Diagnostics
 
-        var diagnosticsSharingOption: DiagnosticsSharingOption = .enabled
+        var diagnosticsSharingOption: DiagnosticsSharingOption {
+            get { (PropertyPersistentFlags.shared.diagnosticsSharingEnabled ?? true) ? .enabled : .disabled }
+            set { PropertyPersistentFlags.shared.diagnosticsSharingEnabled = (newValue == .enabled) }
+        }
+
         var hasAcceptedPrivacyPolicy: Bool = false
 
         // MARK: - Determine Initial Build State
@@ -679,8 +683,8 @@ extension Onboarding {
 
         /// Persists the current diagnostics sharing option to UserDefaults as a boolean.
         func applyDiagnostics() {
-            let booleanValue: Bool = diagnosticsSharingOption == .enabled
-            UserDefaults.standard.set(booleanValue, forKey: "DiagnosticsSharing")
+            let booleanValue = diagnosticsSharingOption == .enabled
+            PropertyPersistentFlags.shared.diagnosticsSharingEnabled = booleanValue
             Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(booleanValue)
         }
 
