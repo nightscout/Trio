@@ -18,12 +18,9 @@ import Foundation
 final class PropertyPersistentFlags {
     static let shared = PropertyPersistentFlags()
 
-    @PersistedProperty(key: "onboardingCompleted")
-    var onboardingCompleted: Bool?
+    @PersistedProperty(key: "onboardingCompleted")  var onboardingCompleted: Bool?
 
-    @PersistedProperty(key: "diagnosticsSharing")
-    var diagnosticsSharingEnabled: Bool?
+    @PersistedProperty(key: "diagnosticsSharing")  var diagnosticsSharingEnabled: Bool?
 
-    @PersistedProperty(key: "lastCleanupDate")
-    var lastCleanupDate: Date?
+    @PersistedProperty(key: "lastCleanupDate")  var lastCleanupDate: Date?
 }
