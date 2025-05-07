@@ -114,6 +114,13 @@ struct TherapySettingEditorView: View {
         .onAppear {
             // ensure picker is closed when view appears
             selectedItemID = nil
+            // sorts items
+            validateTherapySettingItems()
+        }
+        .onDisappear {
+            // ensure picker is closed when view appears
+            selectedItemID = nil
+            // sorts items
             validateTherapySettingItems()
         }
         .onChange(of: items, { _, _ in

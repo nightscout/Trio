@@ -30,6 +30,20 @@ struct NightscoutSetupStepView: View {
                 }
                 .buttonStyle(.plain)
             }
+
+            Text(
+                "You can use Nightscout to import your existing therapy settings, or if you prefer, you can only connect to Nightscout, and configure therapy settings from scratch."
+            )
+            .padding(.horizontal)
+            .font(.footnote)
+            .foregroundStyle(Color.secondary)
+            .multilineTextAlignment(.leading)
+
+            Text("Other third-party services, like Apple Health or Tidepool, can be added later through the settings menu.")
+                .padding(.horizontal)
+                .font(.footnote)
+                .foregroundStyle(Color.secondary)
+                .multilineTextAlignment(.leading)
         }
     }
 }

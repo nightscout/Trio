@@ -52,7 +52,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .autosensMax:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: settingsProvider.settings.autosensMax,
                         decimalValue: $state.autosensMax,
@@ -61,7 +61,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .rewindResetsAutosens:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
@@ -71,7 +71,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .enableSMBAlways:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
@@ -80,7 +80,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .enableSMBWithCOB:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
@@ -90,7 +90,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .enableSMBWithTempTarget:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
@@ -100,7 +100,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .enableSMBAfterCarbs:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
@@ -110,7 +110,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .enableSMBWithHighGlucoseTarget:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
@@ -131,7 +131,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     }
                 case .allowSMBWithHighTempTarget:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
@@ -140,7 +140,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .enableUAM:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
@@ -149,7 +149,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .maxSMBMinutes:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: settingsProvider.settings.maxSMBBasalMinutes,
                         decimalValue: $state.maxSMBMinutes,
@@ -158,7 +158,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .maxUAMMinutes:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: settingsProvider.settings.maxUAMSMBBasalMinutes,
                         decimalValue: $state.maxUAMMinutes,
@@ -167,7 +167,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .maxDeltaGlucoseThreshold:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: settingsProvider.settings.maxDeltaBGthreshold,
                         decimalValue: $state.maxDeltaGlucoseThreshold,
@@ -176,7 +176,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .highTempTargetRaisesSensitivity:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
@@ -185,7 +185,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .lowTempTargetLowersSensitivity:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
@@ -194,7 +194,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .sensitivityRaisesTarget:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
@@ -203,7 +203,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .resistanceLowersTarget:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: nil,
                         decimalValue: $decimalPlaceholder,
@@ -212,7 +212,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
                     )
                 case .halfBasalTarget:
                     algorithmSettingsInput(
-                        label: substep.title,
+                        label: step.title,
                         displayPicker: $shouldDisplayPicker,
                         setting: settingsProvider.settings.halfBasalExerciseTarget,
                         decimalValue: $state.halfBasalTarget,

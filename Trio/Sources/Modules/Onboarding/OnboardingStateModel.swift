@@ -1,8 +1,12 @@
 import Combine
+import DanaKit
 import FirebaseCrashlytics
 import Foundation
 import LoopKit
+import MinimedKit
 import Observation
+import OmniBLE
+import OmniKit
 import SwiftUI
 
 /// Model that holds the data collected during onboarding.
@@ -15,6 +19,7 @@ extension Onboarding {
         @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
         @ObservationIgnored @Injected() var notificationsManager: UserNotificationsManager!
         @ObservationIgnored @Injected() var bluetoothManager: BluetoothStateManager!
+        @ObservationIgnored @Injected() var apsManager: APSManager!
 
         private let settingsProvider = PickerSettingsProvider.shared
 
@@ -22,6 +27,58 @@ extension Onboarding {
 
         var diagnosticsSharingOption: DiagnosticsSharingOption = .enabled
         var hasAcceptedPrivacyPolicy: Bool = false
+
+        // MARK: - Determine Initial Build State
+
+        /// Determines whether the app is in a fresh install state for Trio v0.3.0.
+        ///
+        /// This check is based on the assumption that a truly clean install will only contain
+        /// the `logs/` directory and the `preferences.json` file in the app's Documents directory.
+        ///
+        /// If this condition is met, the onboarding flow skips the `.returningUser` step and treats
+        /// the user as new. If more files or directories are found, it is assumed the user is returning.
+        ///
+        /// Note: This check is not directly connected to a completed migration. However, if a migration
+        /// has been triggered (whether successful or not), additional files such as treatment JSONs
+        /// will exist, which naturally causes this check to return `false`.
+        var isFreshTrioInstall: Bool {
+            let fileManager = FileManager.default
+            guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+                return false
+            }
+
+            debug(.default, "Checking for fresh install in \(documentsURL.path)...")
+
+            let expectedLogsFolder = "logs"
+            let expectedPreferencesFile = OpenAPS.Settings.preferences
+
+            do {
+                let contents = try fileManager.contentsOfDirectory(atPath: documentsURL.path)
+
+                debug(.default, "Found \(contents) in \(documentsURL.path)...")
+
+                // Expect exactly 2 entries: "logs" and the preferences file
+                guard contents.count == 2 else {
+                    debug(.default, "Trio install is not fresh; returning user.")
+                    return false
+                }
+
+                // Ensure they match exactly
+                let expectedSet = Set([expectedLogsFolder, expectedPreferencesFile])
+                let actualSet = Set(contents)
+
+                debug(.default, "Expected: \(expectedSet), Actual: \(actualSet)")
+
+                let isFreshInstall = expectedSet == actualSet
+                debug(.default, "Trio install is fresh; new user.")
+
+                return isFreshInstall
+
+            } catch {
+                debug(.default, "Cannot determine Initial Build State. Failed to read documents directory: \(error)")
+                return false
+            }
+        }
 
         // MARK: - Nightscout Setup
 
@@ -39,7 +96,40 @@ extension Onboarding {
         // MARK: - Units and Pump Omboarding Option
 
         var units: GlucoseUnits = .mgdL
-        var pumpOptionForOnboardingUnits: PumpOptionForOnboardingUnits = .omnipodDash
+        private var selectedPumpOption: PumpOptionForOnboardingUnits?
+        var pumpOptionForOnboardingUnits: PumpOptionForOnboardingUnits {
+            get {
+                // let user edit selection and return user-selection, if present
+                if let selected = selectedPumpOption {
+                    return selected
+                }
+
+                let defaultOption: PumpOptionForOnboardingUnits
+                if let pumpManager = apsManager?.pumpManager {
+                    if pumpManager is OmniBLEPumpManager {
+                        defaultOption = .omnipodDash
+                    } else if pumpManager is OmnipodPumpManager {
+                        defaultOption = .omnipodEros
+                    } else if pumpManager is DanaKitPumpManager {
+                        defaultOption = .dana
+                    } else if pumpManager is MinimedPumpManager {
+                        defaultOption = .minimed
+                    } else {
+                        defaultOption = .omnipodDash
+                    }
+                } else {
+                    defaultOption = .omnipodDash
+                }
+
+                // cache it so picker can stay in sync
+                selectedPumpOption = defaultOption
+
+                return defaultOption
+            }
+            set {
+                selectedPumpOption = newValue
+            }
+        }
 
         // MARK: - Time Values (shared)
 
@@ -47,7 +137,7 @@ extension Onboarding {
 
         // MARK: - Carb Ratio
 
-        let carbRatioPickerSetting = PickerSetting(value: 10, step: 0.1, min: 1, max: 50, type: .gram)
+        let carbRatioPickerSetting = PickerSetting(value: 30, step: 0.1, min: 1, max: 50, type: .gram)
         var carbRatioItems: [CarbRatioEditor.Item] = []
         var initialCarbRatioItems: [CarbRatioEditor.Item] = []
         var carbRatioTimeValues: [TimeInterval] { sharedTimeValues }
@@ -56,15 +146,18 @@ extension Onboarding {
         // MARK: - Basal Profile
 
         var basalRatePickerSetting: PickerSetting {
-            switch pumpOptionForOnboardingUnits {
+            switch selectedPumpOption {
             case .dana:
-                return PickerSetting(value: 0.05, step: 0.05, min: 0, max: 3, type: .insulinUnitPerHour)
+                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 3, type: .insulinUnitPerHour)
             case .minimed:
-                return PickerSetting(value: 0.05, step: 0.05, min: 0, max: 35, type: .insulinUnitPerHour)
+                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 35, type: .insulinUnitPerHour)
             case .omnipodDash:
-                return PickerSetting(value: 0.05, step: 0.05, min: 0, max: 30, type: .insulinUnitPerHour)
+                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 30, type: .insulinUnitPerHour)
             case .omnipodEros:
-                return PickerSetting(value: 0.05, step: 0.05, min: 0.05, max: 30, type: .insulinUnitPerHour)
+                return PickerSetting(value: 0.1, step: 0.05, min: 0.05, max: 30, type: .insulinUnitPerHour)
+            case .none:
+                // same as dash, as that is the fallback
+                return PickerSetting(value: 0.1, step: 0.05, min: 0, max: 30, type: .insulinUnitPerHour)
             }
         }
 
@@ -76,7 +169,7 @@ extension Onboarding {
 
         // MARK: - Insulin Sensitivity Factor (ISF)
 
-        var sensitivityPickerSetting = PickerSetting(value: 100, step: 1, min: 9, max: 540, type: .glucose)
+        var sensitivityPickerSetting = PickerSetting(value: 200, step: 1, min: 9, max: 540, type: .glucose)
         var isfItems: [ISFEditor.Item] = []
         var initialISFItems: [ISFEditor.Item] = []
         var isfTimeValues: [TimeInterval] { sharedTimeValues }
@@ -84,7 +177,7 @@ extension Onboarding {
 
         // MARK: - Glucose Targets
 
-        let letTargetPickerSetting = PickerSetting(value: 100, step: 1, min: 72, max: 180, type: .glucose)
+        let letTargetPickerSetting = PickerSetting(value: 110, step: 1, min: 72, max: 180, type: .glucose)
         var targetItems: [TargetsEditor.Item] = []
         var initialTargetItems: [TargetsEditor.Item] = []
         var targetTimeValues: [TimeInterval] { sharedTimeValues }
@@ -215,16 +308,35 @@ extension Onboarding {
 
         /// Remaps therapy items affected by a pump model change.
         ///
-        /// This function updates basal profile items to use the closest valid index
-        /// from the updated basal rate and time arrays, preserving the user's settings.
+        /// Updates basal profile items to use the closest valid index from
+        /// the updated basal rate and time arrays, preserving the user's settings
+        /// as closely as possible when switching between pump models.
+        ///
+        /// If an imported item's `rateIndex` or `timeIndex` exceeds the bounds of the
+        /// current pump's allowed values, it is clamped to the last valid index to avoid
+        /// crashes and preserve data integrity. A debug message is logged if clamping occurs.
         ///
         /// Call this after the user selects a new pump model.
         ///
         /// See also: `UnitSelectionStepView` `.onChange()` handlers.
         func remapTherapyItemsForChangedPumpModel() {
+            let maxValidRateIndex = max(basalProfileRateValues.count - 1, 0)
+            let maxValidTimeIndex = max(basalProfileTimeValues.count - 1, 0)
+
             basalProfileItems = basalProfileItems.map { item in
-                let newRateIndex = closestIndex(for: basalProfileRateValues[item.rateIndex], in: basalProfileRateValues)
-                let newTimeIndex = closestIndex(for: basalProfileTimeValues[item.timeIndex], in: basalProfileTimeValues)
+                let safeRateIndex = min(item.rateIndex, maxValidRateIndex)
+                let safeTimeIndex = min(item.timeIndex, maxValidTimeIndex)
+
+                let originalRate = basalProfileRateValues[safeRateIndex]
+                let originalTime = basalProfileTimeValues[safeTimeIndex]
+
+                let newRateIndex = closestIndex(for: originalRate, in: basalProfileRateValues)
+                let newTimeIndex = closestIndex(for: originalTime, in: basalProfileTimeValues)
+
+                if safeRateIndex != item.rateIndex {
+                    debug(.default, "⚠️ rateIndex \(item.rateIndex) out of bounds; clamped to \(safeRateIndex)")
+                }
+
                 return BasalProfileEditor.Item(rateIndex: newRateIndex, timeIndex: newTimeIndex)
             }
         }
@@ -412,7 +524,7 @@ extension Onboarding {
         /// Adds a default ISF editor item at 00:00 with a standard sensitivity value.
         func addInitialISF() {
             addInitialItem(
-                defaultValue: 50,
+                defaultValue: 200,
                 rateValues: isfRateValues,
                 assign: { isfItems = $0 },
                 makeItem: ISFEditor.Item.init
@@ -432,7 +544,7 @@ extension Onboarding {
         /// Adds a default carb ratio editor item at 00:00 with a standard ratio.
         func addInitialCarbRatio() {
             addInitialItem(
-                defaultValue: 10,
+                defaultValue: 30,
                 rateValues: carbRatioRateValues,
                 assign: { carbRatioItems = $0 },
                 makeItem: CarbRatioEditor.Item.init
@@ -442,7 +554,7 @@ extension Onboarding {
         /// Adds a default glucose target item at 00:00 with a typical target value.
         func addInitialTarget() {
             let timeIndex = 0
-            let rateIndex = closestIndex(for: 100, in: targetRateValues)
+            let rateIndex = closestIndex(for: 110, in: targetRateValues)
             targetItems = [TargetsEditor.Item(lowIndex: rateIndex, highIndex: rateIndex, timeIndex: timeIndex)]
         }
 

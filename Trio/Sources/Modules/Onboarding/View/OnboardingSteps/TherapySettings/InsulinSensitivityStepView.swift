@@ -75,9 +75,8 @@ struct InsulinSensitivityStepView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             // Current glucose is 40 mg/dL or 2.2 mmol/L above target
                             let aboveTarget = state.units == .mgdL ? Decimal(40) : 40.asMmolL
-
-                            let isfValue = state.units == .mgdL ? Decimal(50) : 50.asMmolL
-
+                            let firstIsfRate: Decimal = state.isfRateValues[state.isfItems.first?.rateIndex ?? 0]
+                            let isfValue = state.units == .mgdL ? firstIsfRate : firstIsfRate.asMmolL
                             let insulinNeeded = aboveTarget / isfValue
 
                             Text(
@@ -87,11 +86,10 @@ struct InsulinSensitivityStepView: View {
                             .padding(.horizontal)
 
                             Text(
-                                "\(numberFormatter.string(from: aboveTarget as NSNumber) ?? "--") / \(numberFormatter.string(from: isfValue as NSNumber) ?? "--") = \(String(format: "%.1f", Double(insulinNeeded)))" +
-                                    " " + String(localized: "U", comment: "Insulin unit abbreviation")
+                                "\(aboveTarget.description) \(state.units.rawValue) / \(isfValue.description) \(state.units.rawValue)/\(String(localized: "U", comment: "Insulin unit abbreviation")) = \(String(format: "%.1f", Double(insulinNeeded))) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
                             )
                             .font(.system(.body, design: .monospaced))
-                            .foregroundColor(.red)
+                            .foregroundColor(.cyan)
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .center)
                             .background(Color.chart.opacity(0.65))
@@ -163,8 +161,8 @@ struct InsulinSensitivityStepView: View {
                 ).foregroundStyle(
                     .linearGradient(
                         colors: [
-                            Color.red.opacity(0.6),
-                            Color.red.opacity(0.1)
+                            Color.cyan.opacity(0.6),
+                            Color.cyan.opacity(0.1)
                         ],
                         startPoint: .bottom,
                         endPoint: .top
@@ -172,10 +170,10 @@ struct InsulinSensitivityStepView: View {
                 ).alignsMarkStylesWithPlotArea()
 
                 LineMark(x: .value("End Date", startDate), y: .value("ISF", displayValue))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.red)
+                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.cyan)
 
                 LineMark(x: .value("Start Date", endDate), y: .value("ISF", displayValue))
-                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.red)
+                    .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.cyan)
             }
         }
         .id(refreshUI) // Force chart update

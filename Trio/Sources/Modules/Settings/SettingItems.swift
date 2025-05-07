@@ -231,7 +231,18 @@ enum SettingItems {
             ],
             path: ["Features", "User Interface"]
         ),
-        SettingItem(title: "App Icons", view: .iconConfig)
+        SettingItem(
+            title: "App Icons",
+            view: .iconConfig,
+            searchContents: ["Trio Icon"],
+            path: ["Features", "App Icons"]
+        ),
+        SettingItem(
+            title: "App Diagnostics",
+            view: .appDiagnostics,
+            searchContents: ["Anonymized Data Sharing"],
+            path: ["Features", "App Diagnostics"]
+        )
     ]
 
     static let notificationItems = [

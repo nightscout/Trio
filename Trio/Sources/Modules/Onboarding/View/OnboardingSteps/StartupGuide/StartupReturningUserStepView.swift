@@ -8,6 +8,7 @@ import SwiftUI
 
 struct StartupReturningUserStepView: View {
     @Bindable var state: Onboarding.StateModel
+    let wasMigrationSuccessful: Bool
 
     @Environment(\.openURL) var openURL
 
@@ -25,7 +26,9 @@ struct StartupReturningUserStepView: View {
                     Text("Important").foregroundStyle(Color.orange)
                 }.bold()
 
-                Text("Your last 24 hr of treatment data (pump events, carb entries, glucose trace, etc.) are migrated.")
+                if !wasMigrationSuccessful {
+                    Text("Your last 24 hr of treatment data (pump events, carb entries, glucose trace, etc.) are not migrated.")
+                }
 
                 Divider().overlay(Color.orange)
 
@@ -41,10 +44,35 @@ struct StartupReturningUserStepView: View {
             .cornerRadius(10)
 
             VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "info.circle.fill").foregroundStyle(Color.bgDarkBlue, Color.blue)
+                        .symbolRenderingMode(.palette)
+                    Text("Information").foregroundStyle(Color.blue)
+                }.bold()
+
+                Text("While onboarding, Trio continues to operate with your prior settings.")
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.chart.opacity(0.65))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.blue, lineWidth: 2)
+            )
+            .cornerRadius(10)
+
+            VStack(alignment: .leading, spacing: 10) {
                 Text("Here's what you can expect to be preserved:")
                     .font(.headline)
                     .padding(.bottom, 4)
 
+                if wasMigrationSuccessful {
+                    BulletPoint(
+                        String(
+                            localized: "Your last 24 hr of treatment data (pump events, carb entries, glucose trace, etc.) are migrated."
+                        )
+                    )
+                }
                 BulletPoint(String(localized: "Your pump and CGM configurations are retained and fully functional."))
                 BulletPoint(
                     String(

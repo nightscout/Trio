@@ -65,18 +65,15 @@ extension AutosensSettings {
                     let dynamicRatio = state.determinationsFromPersistence.first?.sensitivityRatio
                     let dynamicISF = state.determinationsFromPersistence.first?.insulinSensitivity
                     let newISF = state.autosensISF
+                    let decimalValue = !state.settingsManager.preferences.useNewFormula ? state
+                        .autosensRatio as NSDecimalNumber : dynamicRatio ?? 1
+                    let decimalValueText = rateFormatter
+                        .string(from: ((decimalValue as Decimal) * Decimal(100)) as NSNumber) ?? "100"
+
                     HStack {
                         Text("Sensitivity Ratio")
                         Spacer()
-                        Text(
-                            rateFormatter
-                                .string(from: (
-                                    (
-                                        !state.settingsManager.preferences.useNewFormula ? state
-                                            .autosensRatio as NSDecimalNumber : dynamicRatio
-                                    ) ?? 1
-                                ) as NSNumber) ?? "1"
-                        )
+                        Text("\(decimalValueText) \(String(localized: "%", comment: "Percentage symbol"))")
                     }.padding(.vertical)
                     HStack {
                         Text("Calculated Sensitivity")

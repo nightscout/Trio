@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import Swinject
 
@@ -8,6 +9,7 @@ extension Onboarding {
         @State var state = StateModel()
         @State private var navigationDirection: OnboardingNavigationDirection = .forward
         let onboardingManager: OnboardingManager
+        let wasMigrationSuccessful: Bool
 
         // Step management
         @State private var currentChapter: OnboardingChapter = .prepareTrio
@@ -124,6 +126,7 @@ extension Onboarding {
                         }
 
                         OnboardingStepContent(
+                            wasMigrationSuccessful: wasMigrationSuccessful,
                             currentStep: $currentStep,
                             showingChapterCompletion: $showingChapterCompletion,
                             currentStartupSubstep: $currentStartupSubstep,
@@ -150,6 +153,7 @@ extension Onboarding {
                             currentSMBSubstep: $currentSMBSubstep,
                             currentTargetBehaviorSubstep: $currentTargetBehaviorSubstep,
                             onboardingManager: onboardingManager,
+                            isFreshTrioInstall: state.isFreshTrioInstall,
                             state: state,
                             shouldDisableNextButton: shouldDisableNextButton,
                             navigationDirectionChanged: { navigationDirection = $0 }
@@ -280,6 +284,7 @@ struct OnboardingProgressBar: View {
 }
 
 struct OnboardingStepContent: View {
+    var wasMigrationSuccessful: Bool
     @Binding var currentStep: OnboardingStep
     @Binding var showingChapterCompletion: OnboardingChapter?
     @Binding var currentStartupSubstep: StartupSubstep
@@ -314,7 +319,7 @@ struct OnboardingStepContent: View {
                                 case .startupGuide:
                                     StartupGuideStepView(state: state)
                                 case .returningUser:
-                                    StartupReturningUserStepView(state: state)
+                                    StartupReturningUserStepView(state: state, wasMigrationSuccessful: wasMigrationSuccessful)
                                 case .forceCloseWarning:
                                     StartupForceCloseWarningStepView(state: state)
                                 }
@@ -451,6 +456,7 @@ struct OnboardingNavigationButtons: View {
     @Binding var currentTargetBehaviorSubstep: TargetBehaviorSubstep
 
     let onboardingManager: OnboardingManager
+    let isFreshTrioInstall: Bool
     @Bindable var state: Onboarding.StateModel
     var shouldDisableNextButton: Bool
     var navigationDirectionChanged: (OnboardingNavigationDirection) -> Void
@@ -505,7 +511,14 @@ struct OnboardingNavigationButtons: View {
 
         switch currentStep {
         case .startupInfo:
-            if let previousSub = StartupSubstep(rawValue: currentStartupSubstep.rawValue - 1) {
+            var previous = StartupSubstep(rawValue: currentStartupSubstep.rawValue - 1)
+
+            /// Skip `.returningUser` if this is a fresh install
+            if previous == .returningUser, isFreshTrioInstall == true {
+                previous = StartupSubstep(rawValue: previous!.rawValue - 1)
+            }
+
+            if let previousSub = previous {
                 currentStartupSubstep = previousSub
             } else if let previous = currentStep.previous {
                 currentStep = previous
@@ -628,7 +641,17 @@ struct OnboardingNavigationButtons: View {
 
         switch currentStep {
         case .startupInfo:
-            if let next = StartupSubstep(rawValue: currentStartupSubstep.rawValue + 1) {
+            let nextSubstepRaw = currentStartupSubstep.rawValue + 1
+
+            if isFreshTrioInstall, StartupSubstep(rawValue: nextSubstepRaw) == .returningUser {
+                /// Skip `.returningUser` if it's a fresh install
+                if let nextAfterSkip = StartupSubstep(rawValue: nextSubstepRaw + 1) {
+                    currentStartupSubstep = nextAfterSkip
+                } else if let nextStep = currentStep.next {
+                    currentStep = nextStep
+                    currentStartupSubstep = .startupGuide
+                }
+            } else if let next = StartupSubstep(rawValue: nextSubstepRaw) {
                 currentStartupSubstep = next
             } else if let nextStep = currentStep.next {
                 currentStep = nextStep
@@ -734,7 +757,13 @@ struct OnboardingNavigationButtons: View {
             }
 
         case .bluetooth:
-            state.shouldDisplayBluetoothRequestAlert = true
+            if let next = currentStep.next {
+                if state.bluetoothManager.bluetoothAuthorization != .authorized {
+                    state.shouldDisplayBluetoothRequestAlert = true
+                } else {
+                    currentStep = next
+                }
+            }
 
         case .completed:
             state.saveOnboardingData()
@@ -754,7 +783,7 @@ struct Onboarding_Preview: PreviewProvider {
         Group {
             let resolver = TrioApp.resolver
             let onboardingManager = OnboardingManager()
-            Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager)
+            Onboarding.RootView(resolver: resolver, onboardingManager: onboardingManager, wasMigrationSuccessful: true)
                 .previewDisplayName("Onboarding Flow")
         }
     }
