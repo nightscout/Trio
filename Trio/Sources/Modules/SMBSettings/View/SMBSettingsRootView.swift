@@ -65,7 +65,7 @@ extension SMBSettings {
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
-                                "When the carb on board (COB) forecast line is active, enabling this feature allows Trio to use Super Micro Boluses (SMB) to deliver the insulin required."
+                                "When there are carbs on board (COB > 0), enabling this feature allows Trio to use Super Micro Boluses (SMB) to deliver the insulin required."
                             )
                             Text(
                                 "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
@@ -137,19 +137,22 @@ extension SMBSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = String(localized: "Enable SMB With High BG", comment: "Enable SMB With High BG")
+                                hintLabel = String(
+                                    localized: "Enable SMB With High Glucose",
+                                    comment: "Enable SMB With High Glucose"
+                                )
                             }
                         ),
                         units: state.units,
                         type: .conditionalDecimal("enableSMB_high_bg_target"),
-                        label: String(localized: "Enable SMB With High BG", comment: "Enable SMB With High BG"),
-                        conditionalLabel: "High BG Target",
-                        miniHint: String(localized: "Allow SMB when glucose is above the High BG Target value."),
+                        label: String(localized: "Enable SMB With High Glucose", comment: "Enable SMB With High Glucose"),
+                        conditionalLabel: String(localized: "High Glucose Target"),
+                        miniHint: String(localized: "Allow SMB when glucose is above the High Glucose Target value."),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
-                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when glucose reading is above the value set as High BG Target."
+                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when glucose reading is above the value set as High Glucose Target."
                             )
                             Text(
                                 "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
@@ -312,7 +315,7 @@ extension SMBSettings {
                         }
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "Warning: Increasing this value above 60 minutes may impact Trio's ability to effectively zero temp and prevent lows."
+                                "Warning: Increasing this value above 90 minutes may impact Trio's ability to effectively zero temp and prevent lows."
                             ).bold()
                             Text("Note: UAM SMBs must be enabled to use this limit.")
                         }
@@ -327,18 +330,27 @@ extension SMBSettings {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold")
+                            hintLabel = String(
+                                localized: "Max. Allowed Glucose Rise for SMB",
+                                comment: "Max. Allowed Glucose Rise for SMB, formerly Max Delta-BG Threshold"
+                            )
                         }
                     ),
                     units: state.units,
                     type: .decimal("maxDeltaBGthreshold"),
-                    label: String(localized: "Max Delta-BG Threshold SMB", comment: "Max Delta-BG Threshold"),
+                    label: String(
+                        localized: "Max. Allowed Glucose Rise for SMB",
+                        comment: "Max. Allowed Glucose Rise for SMB, formerly Max Delta-BG Threshold"
+                    ),
                     miniHint: String(localized: "Disables SMBs if last two glucose values differ by more than this percent."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 20% increase").bold()
                         Text(
                             "Maximum allowed positive percent change in glucose level to permit SMBs. If the difference in glucose is greater than this, Trio will disable SMBs."
+                        )
+                        Text(
+                            "This is a safety limitation to avoid high SMB doses when glucose is rising abnormally fast, such as after a meal or with a very jumpy CGM sensor."
                         )
                         Text("Note: This setting has a hard-coded cap of 40%")
                     }

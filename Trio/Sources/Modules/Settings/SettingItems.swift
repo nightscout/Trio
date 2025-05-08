@@ -65,7 +65,15 @@ enum SettingItems {
         SettingItem(
             title: "Units and Limits",
             view: .unitsAndLimits,
-            searchContents: ["Glucose Units", "Max Basal", "Max Bolus", "Max IOB", "Max COB", "Minimum Safety Threshold"],
+            searchContents: [
+                "Glucose Units",
+                "Max Basal",
+                "Max Bolus",
+                "Max IOB",
+                "Max COB",
+                "Minimum Safety Threshold",
+                "Delivery Limits"
+            ],
             path: ["Therapy Settings", "Units and Limits"]
         ),
         SettingItem(title: "Basal Rates", view: .basalProfileEditor, path: ["Therapy Settings"]),
@@ -223,7 +231,18 @@ enum SettingItems {
             ],
             path: ["Features", "User Interface"]
         ),
-        SettingItem(title: "App Icons", view: .iconConfig)
+        SettingItem(
+            title: "App Icons",
+            view: .iconConfig,
+            searchContents: ["Trio Icon"],
+            path: ["Features", "App Icons"]
+        ),
+        SettingItem(
+            title: "App Diagnostics",
+            view: .appDiagnostics,
+            searchContents: ["Anonymized Data Sharing"],
+            path: ["Features", "App Diagnostics"]
+        )
     ]
 
     static let notificationItems = [

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CheckboxToggleStyle: ToggleStyle {
+struct RadioButtonToggleStyle: ToggleStyle {
     func makeBody(configuration: Self.Configuration) -> some View {
         HStack {
             Circle()
@@ -22,22 +22,32 @@ struct CheckboxToggleStyle: ToggleStyle {
     }
 }
 
-struct Checkbox: ToggleStyle {
-    func makeBody(configuration: Self.Configuration) -> some View {
+struct CheckboxToggleStyle: ToggleStyle {
+    var tint = Color.primary
+
+    func makeBody(configuration: Configuration) -> some View {
         HStack {
             RoundedRectangle(cornerRadius: 5)
                 .stroke(lineWidth: 2)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color.secondary)
                 .frame(width: 20, height: 20)
                 .overlay {
                     if configuration.isOn {
-                        Image(systemName: "checkmark").font(.body).fontWeight(.bold)
+                        Image(systemName: "checkmark")
+                            .font(.body)
+                            .fontWeight(.bold)
+                            .foregroundColor(tint)
                     }
                 }
                 .onTapGesture {
                     configuration.isOn.toggle()
                 }
+
             configuration.label
+        }
+        .contentShape(Rectangle()) // make entire HStack tappable
+        .onTapGesture {
+            configuration.isOn.toggle()
         }
     }
 }

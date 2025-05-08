@@ -179,7 +179,7 @@ extension BolusCalculatorConfig {
                             "Also triggered when the lowest forecasted glucose (minPredBG) is < \(state.units == .mgdL ? 54.description : 54.formattedAsMmolL) \(state.units.rawValue)."
                         )
                         Text(
-                            "Note: The forecast used for this warning does not include carbs or insulin that have not yet been logged."
+                            "Note: The forecast used for this warning does not include carbs or insulin that have been logged but not yet effective."
                         )
                     }
                 )
