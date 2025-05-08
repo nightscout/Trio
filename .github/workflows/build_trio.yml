@@ -17,8 +17,8 @@ env:
 jobs:
   check_certs:
     name: Check certificates
-    uses: ${{ github.repository }}/.github/workflows/create-certs.yml@main  # Reusable workflow using explicit repository ref
-
+    uses: ./.github/workflows/create-certs.yml
+    secrets: inherit
 
   check_alive_and_permissions:
     needs: check_certs
@@ -46,21 +46,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          if gh api -H "Accept: application/vnd.github+json" /repos/${{ github.repository_owner }}/Trio/branches | jq '[.[] | select(.name=="alive-main" or .name=="alive-dev")] | length > 0'; then
+          ALIVE_EXISTS=$(gh api /repos/${{ github.repository_owner }}/Trio/branches | jq '[.[] | select(.name=="alive-main" or .name=="alive-dev")] | length')
+          if [[ "$ALIVE_EXISTS" -ge 1 ]]; then
             echo "ALIVE_BRANCH_EXISTS=true" >> $GITHUB_ENV
           else
             echo "ALIVE_BRANCH_EXISTS=false" >> $GITHUB_ENV
           fi
-
-      - name: Create alive branches
-        if: env.ALIVE_BRANCH_EXISTS == 'false'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-        run: |
-          SHA_MAIN=$(gh api /repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/main | jq -r .object.sha)
-          SHA_DEV=$(gh api /repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/dev | jq -r .object.sha)
-          gh api --method POST /repos/${{ github.repository_owner }}/Trio/git/refs -f ref='refs/heads/alive-main' -f sha=$SHA_MAIN
-          gh api --method POST /repos/${{ github.repository_owner }}/Trio/git/refs -f ref='refs/heads/alive-dev' -f sha=$SHA_DEV
 
   check_latest_from_upstream:
     needs: [check_certs, check_alive_and_permissions]
