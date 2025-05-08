@@ -124,10 +124,7 @@ jobs:
           echo "If you want to enable automatic builds and updates for your Trio, please follow the instructions \
               under the following path <code>Trio/fastlane/testflight.md</code>." >> $GITHUB_STEP_SUMMARY
   
-  # Builds Trio
-        uses: gautamkrishnar/keepalive-workflow@d33e3181f0aefc8e6b3b55f08b13be6460a5bdee
-        with:
-          time_elapsed: 20
+  
 
   build:
     name: Build
