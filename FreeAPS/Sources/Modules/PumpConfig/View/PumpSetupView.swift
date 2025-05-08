@@ -1,3 +1,4 @@
+import DanaKit
 import LoopKit
 import LoopKitUI
 import MinimedKit
@@ -58,6 +59,15 @@ extension PumpConfig {
                     allowDebugFeatures: true,
                     allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
                 )
+            case .dana:
+                setupViewController = DanaKitPumpManager.setupViewController(
+                    initialSettings: initialSettings,
+                    bluetoothProvider: bluetoothManager,
+                    colorPalette: .default,
+                    allowDebugFeatures: true, prefersToSkipUserInteraction: true,
+                    allowedInsulinTypes: [.apidra, .humalog, .novolog, .fiasp, .lyumjev]
+                )
+
             case .simulator:
                 setupViewController = MockPumpManager.setupViewController(
                     initialSettings: initialSettings,

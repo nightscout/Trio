@@ -131,7 +131,10 @@ jobs:
 
   build:
     name: Build
+feat/dana-resolved
+    needs: [validate, check_alive_and_permissions, check_latest_from_upstream]
     needs: [check_certs, check_alive_and_permissions, check_latest_from_upstream]
+main
     runs-on: macos-15
     permissions:
       contents: write
@@ -142,7 +145,10 @@ jobs:
 
     steps:
       - name: Select Xcode version
+feat/dana-resolved
+        run: "sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer"
         run: "sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer"
+main
       
       - name: Checkout Repo for syncing
         if: |
