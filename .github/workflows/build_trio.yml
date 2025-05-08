@@ -131,9 +131,9 @@ jobs:
 
   build:
     name: Build
-feat/dana-resolved
     needs: [check_certs, check_alive_and_permissions, check_latest_from_upstream]
 main
+
     runs-on: macos-15
     permissions:
       contents: write
