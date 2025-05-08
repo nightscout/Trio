@@ -17,8 +17,8 @@ env:
 jobs:
   check_certs:
     name: Check certificates
-    uses: ./.github/workflows/create-certs.yml  # Reusable workflow requires a ref (@main)
-    secrets: inherit
+    uses: ${{ github.repository }}/.github/workflows/create-certs.yml@main  # Reusable workflow using explicit repository ref
+
 
   check_alive_and_permissions:
     needs: check_certs
