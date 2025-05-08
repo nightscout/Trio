@@ -2,7 +2,7 @@ name: 4. Build Trio
 run-name: Build Trio (${{ github.ref_name }})
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}       # 수동 실행 트리거 활성화
   schedule:
     - cron: "0 8 * * 3"    # 매주 수요일 08:00 UTC
     - cron: "0 6 1 * *"    # 매월 1일 06:00 UTC
@@ -34,7 +34,7 @@ jobs:
         env:
           TOKEN_TO_CHECK: ${{ secrets.GH_PAT }}
         run: |
-          PERMISSIONS=$(curl -sS -f -I -H "Authorization: token ${{ env.TOKEN_TO_CHECK }}" https://api.github.com | grep ^x-oauth-scopes: | cut -d' ' -f2-)
+          PERMISSIONS=$(curl -sS -f -I -H "Authorization: token $TOKEN_TO_CHECK" https://api.github.com | grep ^x-oauth-scopes: | cut -d' ' -f2-)
           if [[ $PERMISSIONS =~ "workflow" || $PERMISSIONS == "" ]]; then
             echo "has_permission=true" >> $GITHUB_OUTPUT
           else
@@ -46,7 +46,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          if [[ $(gh api -H "Accept: application/vnd.github+json" /repos/${{ github.repository_owner }}/Trio/branches | jq --raw-output '[.[] | select(.name == "alive-main" or .name == "alive-dev")] | length > 0') == "true" ]]; then
+          if gh api -H "Accept: application/vnd.github+json" /repos/${{ github.repository_owner }}/Trio/branches | jq '[.[] | select(.name=="alive-main" or .name=="alive-dev")] | length > 0'; then
             echo "ALIVE_BRANCH_EXISTS=true" >> $GITHUB_ENV
           else
             echo "ALIVE_BRANCH_EXISTS=false" >> $GITHUB_ENV
@@ -57,11 +57,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          SHA_MAIN=$(curl -sS -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/main | jq -r '.object.sha')
-          SHA_DEV=$(curl -sS -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/dev | jq -r '.object.sha')
-
-          gh api --method POST -H "Authorization: token $GITHUB_TOKEN" /repos/${{ github.repository_owner }}/Trio/git/refs -f ref='refs/heads/alive-main' -f sha=$SHA_MAIN
-          gh api --method POST -H "Authorization: token $GITHUB_TOKEN" /repos/${{ github.repository_owner }}/Trio/git/refs -f ref='refs/heads/alive-dev' -f sha=$SHA_DEV
+          SHA_MAIN=$(gh api /repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/main | jq -r .object.sha)
+          SHA_DEV=$(gh api /repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/dev | jq -r .object.sha)
+          gh api --method POST /repos/${{ github.repository_owner }}/Trio/git/refs -f ref='refs/heads/alive-main' -f sha=$SHA_MAIN
+          gh api --method POST /repos/${{ github.repository_owner }}/Trio/git/refs -f ref='refs/heads/alive-dev' -f sha=$SHA_DEV
 
   check_latest_from_upstream:
     needs: [check_certs, check_alive_and_permissions]
@@ -70,12 +69,11 @@ jobs:
     outputs:
       NEW_COMMITS: ${{ steps.sync.outputs.has_new_commits }}
       ABORT_SYNC: ${{ steps.check_branch.outputs.ABORT_SYNC }}
-
     steps:
-      - name: Determine alive branch
-        id: check_branch
+      - id: check_branch
+        name: Determine alive branch
         run: |
-          BRANCH="${GITHUB_REF##*/}"
+          BRANCH=${GITHUB_REF##*/}
           if [[ "$BRANCH" == "main" ]]; then
             echo "ALIVE_BRANCH=${{ env.ALIVE_BRANCH_MAIN }}" >> $GITHUB_OUTPUT
             echo "ABORT_SYNC=false" >> $GITHUB_OUTPUT
@@ -93,9 +91,9 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           ref: ${{ steps.check_branch.outputs.ALIVE_BRANCH }}
 
-      - name: Sync upstream changes
+      - id: sync
+        name: Sync upstream changes
         if: steps.check_branch.outputs.ABORT_SYNC == 'false'
-        id: sync
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
         with:
           target_sync_branch: ${{ steps.check_branch.outputs.ALIVE_BRANCH }}
@@ -105,132 +103,85 @@ jobs:
           upstream_sync_repo: ${{ env.UPSTREAM_REPO }}
 
       - name: Keep alive
-        run: |
-          echo "Keep Alive temporarily removed while gautamkrishnar/keepalive-workflow is not available"
-
-      - name: Show scheduled build configuration message
-        if: needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION != 'true'
-        run: |
-          echo "### :calendar: Scheduled Sync and Build Disabled :mobile_phone_off:" >> $GITHUB_STEP_SUMMARY
-          echo "You have not yet configured the scheduled sync and build for Trio's browser build." >> $GITHUB_STEP_SUMMARY
-          echo "Synchronizing your fork of <code>Trio</code> with the upstream repository <code>nightscout/Trio</code> will be skipped." >> $GITHUB_STEP_SUMMARY
-          echo "If you want to enable automatic builds and updates for your Trio, please follow the instructions \              under the following path <code>Trio/fastlane/testflight.md</code>." >> $GITHUB_STEP_SUMMARY
+        run: echo "Keep Alive temporarily removed"
 
   build:
     name: Build
     needs: [check_certs, check_alive_and_permissions, check_latest_from_upstream]
-HEAD
-fix/ci
--    runs-on: macos-15
-     runs-on: macos-15
-main
-+    runs-on: macos-latest # 🔄 Runner 버전을 최신화하여 호환성 보장
-main
-
-    runs-on: macos-15
-origin/main
+    runs-on: macos-latest
     permissions:
       contents: write
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' && needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true') ||
       (needs.check_latest_from_upstream.outputs.NEW_COMMITS == 'true')
-
     steps:
-HEAD
--      - name: Select Xcode version
--        run: "sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer"
-+      - name: Select Xcode version
-+        run: |
-+          sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer
       - name: Select Xcode version
-feat/dana-resolved
-        run: "sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer"
-        run: "sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer"
-main
-      
-      - name: Checkout Repo for syncing
-        if: |
-          needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-          vars.SCHEDULED_SYNC != 'false'
+        run: sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer
+
+      - name: Checkout Repo for building
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_PAT }}
           ref: ${{ env.TARGET_BRANCH }}
-origin/main
+          submodules: recursive
+          fetch-depth: 0
 
--      - name: Checkout Repo for building
--        uses: actions/checkout@v4
--        with:
--          token: ${{ secrets.GH_PAT }}
--          ref:   ${{ env.TARGET_BRANCH }}
--          submodules: recursive
--          fetch-depth: 0
--          persist-credentials: false
-+      - name: Checkout Repo for building
-+        uses: actions/checkout@v4
-+        with:
-+          token: ${{ secrets.GH_PAT }}
-+          ref: ${{ env.TARGET_BRANCH }}
-+          submodules: recursive   # 소스 및 모든 submodule 가져오기
-+          fetch-depth: 0          # 전체 히스토리 확보
-+          # persist-credentials: false  # 필요 시 활성화, 일반적으론 불필요
+      - name: Init & Update Submodules
+        run: |
+          git submodule sync --recursive
+          git submodule update --init --recursive
 
--      - name: Initialize & Update Submodules
--        run: |
--          git submodule sync --recursive
--          git submodule update --init --recursive
-+      - name: Initialize & Update Submodules
-+        run: |
-+          git submodule sync --recursive
-+          git submodule update --init --recursive
+      - name: Customize Trio
+        run: |
+          if ls patches/* &> /dev/null; then
+            git apply patches/* --allow-empty -v --whitespace=fix
+          fi
 
-       - name: Customize Trio
-         run: |
-@@
--      - name: Show value of 'has_new_commits'
--        if: |
--          needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true'
--          && vars.SCHEDULED_SYNC != 'false' && needs.check_latest_from_upstream.outputs.ABORT_SYNC == 'false'
--        run: |
--          echo ${{ steps.sync.outputs.has_new_commits }}
--          echo "NEW_COMMITS=${{ steps.sync.outputs.has_new_commits }}" >> $GITHUB_OUTPUT
--        run: "sudo xcode-select --switch /Applications/Xcode_15.4.app/Contents/Developer"
-+      - name: Show value of 'has_new_commits'
-+        if: needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' && vars.SCHEDULED_SYNC != 'false' && steps.sync.outputs.has_new_commits == 'false' && needs.check_latest_from_upstream.outputs.ABORT_SYNC == 'false'
-+        run: |
-+          echo ${{ steps.sync.outputs.has_new_commits }}
-+          echo "NEW_COMMITS=${{ steps.sync.outputs.has_new_commits }}" >> $GITHUB_OUTPUT  # ❗ 중복 run 키 제거
+      - name: Cache Ruby Gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: ${{ runner.os }}-gems-
 
-       - name: Patch Match Tables
-         run: |
-@@
-       - name: Install Project Dependencies
--        run: bundle install
-+        uses: actions/cache@v4
-+        with:
-+          path: vendor/bundle
-+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }} # ⚡ Bundler 캐시로 성능 향상
-+          restore-keys: ${{ runner.os }}-gems-
-+      - run: bundle install
+      - name: Install Dependencies
+        run: bundle install
 
-       - name: Sync clock
-         run: sudo sntp -sS time.windows.com
+      - name: Sync clock
+        run: sudo sntp -sS time.windows.com
 
-       - name: Update entitlement background sound
-         run: sed -i -e 's/<string>bluetooth-central<\/string>/<string>bluetooth-central<\/string><string>audio<\/string>/g' FreeAPS/Resources/Info.plist
+      - name: Update entitlement
+        run: sed -i -e 's/<string>bluetooth-central<\/string>/<string>bluetooth-central<\/string><string>audio<\/string>/g' FreeAPS/Resources/Info.plist
 
-       - name: Fastlane Build & Archive
-         run: bundle exec fastlane build_trio
-         env:
-           TEAMID: ${{ secrets.TEAMID }}
-           GH_PAT: ${{ secrets.GH_PAT }}
-@@
-       - name: Upload build log, IPA and Symbol artifacts
-         if: always()
-         uses: actions/upload-artifact@v4
-         with:
-           name: build-artifacts
-           path: |
-             artifacts
-             buildlog
+      - name: Fastlane Build & Archive
+        run: bundle exec fastlane build_trio
+        env:
+          TEAMID: ${{ secrets.TEAMID }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
+          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
+          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+      - name: Increment build number
+        run: fastlane run increment_build_number
+
+      - name: Fastlane Release
+        run: bundle exec fastlane release
+        env:
+          TEAMID: ${{ secrets.TEAMID }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
+          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
+          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            artifacts
+            buildlog
