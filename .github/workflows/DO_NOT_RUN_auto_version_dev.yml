@@ -1,0 +1,82 @@
+# -----------------------------------------------------------------------------
+# Workflow: Bump Dev Version
+#
+# Description:
+# This GitHub Actions workflow automatically increments the version number
+# defined in `Config.xcconfig` on every push to the `dev` branch.
+#
+# Versioning Logic:
+# - Reads the `APP_VERSION` from `Config.xcconfig`.
+# - If the version is in `MAJOR.MINOR.PATCH.BUILD` format (4 digits),
+#   the `BUILD` number is incremented by 1.
+# - If the version is in `MAJOR.MINOR.PATCH` format (3 digits),
+#   a `.1` is appended to start a `BUILD` count.
+#
+# Example:
+# - `0.5.0` → `0.5.0.1`
+# - `0.5.0.3` → `0.5.0.4`
+#
+# The updated version is then committed and pushed back to the `dev` branch.
+#
+# Prerequisites:
+# - `APP_VERSION` must exist and be defined using the format:
+#    APP_VERSION = x.y.z or x.y.z.w
+# - GitHub Actions bot must have workflow permission to push to `dev`.
+# -----------------------------------------------------------------------------
+
+name: Bump Dev Version
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump dev version number in Config.xcconfig
+        run: |
+          FILE=Config.xcconfig
+
+          # Find the line with APP_VERSION and extract the value
+          VERSION_LINE=$(grep -E '^APP_VERSION *= *[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?' "$FILE")
+          CURRENT_VERSION=$(echo "$VERSION_LINE" | sed -E 's/^APP_VERSION *= *//')
+          
+          # Split version into components (up to 4)
+          IFS='.' read -r MAJOR MINOR FIX BUILD <<< "$CURRENT_VERSION"
+
+          # If 4th digit not present, start at 1; else increment
+          if [ -z "$BUILD" ]; then
+            BUILD=1
+          else
+            BUILD=$((BUILD + 1))
+          fi
+
+          # Construct new version
+          NEW_VERSION="$MAJOR.$MINOR.$FIX.$BUILD"
+          echo "New version: $NEW_VERSION"
+
+          # Escape dots in current version for sed replacement
+          ESCAPED_CURRENT_VERSION=$(echo "$CURRENT_VERSION" | sed 's/\./\\./g')
+
+          # Replace the APP_VERSION line in-place with new version
+          sed -i '' -E "s/APP_VERSION *= *$ESCAPED_CURRENT_VERSION/APP_VERSION = $NEW_VERSION/" "$FILE"
+
+          # Export version so it's available in the next step
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Commit and push changes
+        run: |
+          git add Config.xcconfig
+          git commit -m "CI: Bump dev version to $NEW_VERSION"
+          git push
