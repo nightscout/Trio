@@ -217,7 +217,8 @@ platform :ios do
     
     match(
       type: "appstore",
-      force: true,
+      force: false,
+      verbose: true,
       git_basic_authorization: Base64.strict_encode64("#{GITHUB_REPOSITORY_OWNER}:#{GH_PAT}"),
       app_identifier: [
         "#{BUNDLE_ID}",
@@ -270,5 +271,57 @@ platform :ios do
       skip_confirmation: true,
       git_basic_authorization: Base64.strict_encode64("#{GITHUB_REPOSITORY_OWNER}:#{GH_PAT}")
     )
+  end
+
+  desc "Check Certificates and Trigger Workflow for Expired or Missing Certificates"
+  lane :check_and_renew_certificates do
+    setup_ci if ENV['CI']
+    ENV["MATCH_READONLY"] = false.to_s
+  
+    # Authenticate using App Store Connect API Key
+    api_key = app_store_connect_api_key(
+      key_id: ENV["FASTLANE_KEY_ID"],
+      issuer_id: ENV["FASTLANE_ISSUER_ID"],
+      key_content: ENV["FASTLANE_KEY"] # Ensure valid key content
+    )
+  
+    # Initialize flag to track if renewal of certificates is needed
+    new_certificate_needed = false
+  
+    # Fetch all certificates
+    certificates = Spaceship::ConnectAPI::Certificate.all
+  
+    # Filter for Distribution Certificates
+    distribution_certs = certificates.select { |cert| cert.certificate_type == "DISTRIBUTION" }
+  
+    # Handle case where no distribution certificates are found
+    if distribution_certs.empty?
+      puts "No Distribution certificates found! Triggering action to create certificate."
+      new_certificate_needed = true
+    else
+      # Check for expiration
+      distribution_certs.each do |cert|
+        expiration_date = Time.parse(cert.expiration_date)
+  
+        puts "Current Distribution Certificate: #{cert.id}, Expiration date: #{expiration_date}"
+  
+        if expiration_date < Time.now
+          puts "Distribution Certificate #{cert.id} is expired! Triggering action to renew certificate."
+          new_certificate_needed = true
+        else
+          puts "Distribution certificate #{cert.id} is valid. No action required."
+        end
+      end
+    end
+  
+    # Write result to new_certificate_needed.txt
+    file_path = File.expand_path('new_certificate_needed.txt')
+    File.write(file_path, new_certificate_needed ? 'true' : 'false')  
+  
+    # Log the absolute path and contents of the new_certificate_needed.txt file
+    puts ""
+    puts "Absolute path of new_certificate_needed.txt: #{file_path}"
+    new_certificate_needed_content = File.read(file_path)
+    puts "Certificate creation or renewal needed: #{new_certificate_needed_content}"
   end
 end

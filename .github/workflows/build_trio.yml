@@ -1,32 +1,27 @@
 name: 4. Build Trio
 run-name: Build Trio (${{ github.ref_name }})
+
 on:
   workflow_dispatch:
-
-  ## Remove the "#" sign from the beginning of the line below to get automated builds on push (code changes in your repository)
-  #push:
-
   schedule:
-    - cron: "0 8 * * 3" # Checks for updates at 08:00 UTC every Wednesday
-    - cron: "0 6 1 * *" # Builds the app on the 1st of every month at 06:00 UTC
+    - cron: "0 8 * * 3"  # 매주 수요일 08:00 UTC
+    - cron: "0 6 1 * *"  # 매월 1일 06:00 UTC
 
-env:  
+env:
   UPSTREAM_REPO: nightscout/Trio
-  UPSTREAM_BRANCH: ${{ github.ref_name }} # branch on upstream repository to sync from (replace with specific branch name if needed)
-  TARGET_BRANCH: ${{ github.ref_name }} # target branch on fork to be kept in sync, and target branch on upstream to be kept alive (replace with specific branch name if needed)
+  UPSTREAM_BRANCH: ${{ github.ref_name }}
+  TARGET_BRANCH: ${{ github.ref_name }}
   ALIVE_BRANCH_MAIN: alive-main
   ALIVE_BRANCH_DEV: alive-dev
 
 jobs:
-  validate:
-    name: Validate
-    uses: ./.github/workflows/validate_secrets.yml
+  check_certs:
+    name: Check certificates
+    uses: ./.github/workflows/create_certs.yml
     secrets: inherit
 
-  # Checks if GH_PAT holds workflow permissions
-  # Checks for existence of alive branch; if non-existent creates it
   check_alive_and_permissions:
-    needs: validate
+    needs: check_certs
     runs-on: ubuntu-latest
     name: Check alive branch and permissions
     permissions:
@@ -41,14 +36,10 @@ jobs:
           TOKEN_TO_CHECK: ${{ secrets.GH_PAT }}
         run: |
           PERMISSIONS=$(curl -sS -f -I -H "Authorization: token ${{ env.TOKEN_TO_CHECK }}" https://api.github.com | grep ^x-oauth-scopes: | cut -d' ' -f2-);
-
           if [[ $PERMISSIONS =~ "workflow" || $PERMISSIONS == "" ]]; then
-            echo "GH_PAT holds workflow permissions or is fine-grained PAT."
-            echo "has_permission=true" >> $GITHUB_OUTPUT # Set WORKFLOW_PERMISSION to false.
+            echo "has_permission=true" >> $GITHUB_OUTPUT
           else 
-            echo "GH_PAT lacks workflow permissions."
-            echo "Automated build features will be skipped!"
-            echo "has_permission=false" >> $GITHUB_OUTPUT # Set WORKFLOW_PERMISSION to false.
+            echo "has_permission=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Check for alive branches
@@ -57,10 +48,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           if [[ $(gh api -H "Accept: application/vnd.github+json" /repos/${{ github.repository_owner }}/Trio/branches | jq --raw-output '[.[] | select(.name == "alive-main" or .name == "alive-dev")] | length > 0') == "true" ]]; then
-            echo "Branches 'alive-main' or 'alive-dev' exist."
             echo "ALIVE_BRANCH_EXISTS=true" >> $GITHUB_ENV
           else
-            echo "Branches 'alive-main' and 'alive-dev' do not exist."
             echo "ALIVE_BRANCH_EXISTS=false" >> $GITHUB_ENV
           fi
 
@@ -69,34 +58,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          # Get ref for UPSTREAM_REPO:main
           SHA_MAIN=$(curl -sS -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/main | jq -r '.object.sha')
-
-          # Get ref for UPSTREAM_REPO:dev
           SHA_DEV=$(curl -sS -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/git/refs/heads/dev | jq -r '.object.sha')
 
-          # Create alive-main branch in Trio fork based on UPSTREAM_REPO:main
-          gh api \
-            --method POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            /repos/${{ github.repository_owner }}/Trio/git/refs \
-            -f ref='refs/heads/alive-main' \
-            -f sha=$SHA_MAIN
+          gh api --method POST -H "Authorization: token $GITHUB_TOKEN" /repos/${{ github.repository_owner }}/Trio/git/refs -f ref='refs/heads/alive-main' -f sha=$SHA_MAIN
+          gh api --method POST -H "Authorization: token $GITHUB_TOKEN" /repos/${{ github.repository_owner }}/Trio/git/refs -f ref='refs/heads/alive-dev' -f sha=$SHA_DEV
 
-          # Create alive-dev branch in Trio fork based on UPSTREAM_REPO:dev
-          gh api \
-            --method POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            /repos/${{ github.repository_owner }}/Trio/git/refs \
-            -f ref='refs/heads/alive-dev' \
-            -f sha=$SHA_DEV
-
-  # Checks for changes in upstream repository; if changes exist prompts sync for build
-  # Performs keepalive to avoid stale fork
   check_latest_from_upstream:
-    needs: [validate, check_alive_and_permissions]
+    needs: [check_certs, check_alive_and_permissions]
     runs-on: ubuntu-latest
     name: Check upstream and keep alive
     outputs:
@@ -104,38 +73,29 @@ jobs:
       ABORT_SYNC: ${{ steps.check_branch.outputs.ABORT_SYNC }}
 
     steps:
-      - name: Check if running on main or dev branch
-        if: |
-          needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-          (vars.SCHEDULED_BUILD != 'false' || vars.SCHEDULED_SYNC != 'false')
+      - name: Determine alive branch
         id: check_branch
         run: |
-          if [ "${GITHUB_REF##*/}" = "main" ]; then
-            echo "Running on main branch"
-            echo "ALIVE_BRANCH=${ALIVE_BRANCH_MAIN}" >> $GITHUB_OUTPUT
+          BRANCH="${GITHUB_REF##*/}"
+          if [[ "$BRANCH" == "main" ]]; then
+            echo "ALIVE_BRANCH=${{ env.ALIVE_BRANCH_MAIN }}" >> $GITHUB_OUTPUT
             echo "ABORT_SYNC=false" >> $GITHUB_OUTPUT
-          elif [ "${GITHUB_REF##*/}" = "dev" ]; then
-            echo "Running on dev branch"
-            echo "ALIVE_BRANCH=${ALIVE_BRANCH_DEV}" >> $GITHUB_OUTPUT
+          elif [[ "$BRANCH" == "dev" ]]; then
+            echo "ALIVE_BRANCH=${{ env.ALIVE_BRANCH_DEV }}" >> $GITHUB_OUTPUT
             echo "ABORT_SYNC=false" >> $GITHUB_OUTPUT
           else
-            echo "Not running on main or dev branch"
             echo "ABORT_SYNC=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Checkout target repo
-        if: |
-          needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-          (vars.SCHEDULED_BUILD != 'false' || vars.SCHEDULED_SYNC != 'false')
+      - name: Checkout alive branch
+        if: steps.check_branch.outputs.ABORT_SYNC == 'false'
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_PAT }}
           ref: ${{ steps.check_branch.outputs.ALIVE_BRANCH }}
 
       - name: Sync upstream changes
-        if: | # do not run the upstream sync action on the upstream repository
-          needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-          vars.SCHEDULED_SYNC != 'false' && github.repository_owner != 'nightscout' && steps.check_branch.outputs.ABORT_SYNC == 'false'
+        if: steps.check_branch.outputs.ABORT_SYNC == 'false'
         id: sync
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
         with:
@@ -145,33 +105,15 @@ jobs:
           upstream_sync_branch: ${{ env.UPSTREAM_BRANCH }}
           upstream_sync_repo: ${{ env.UPSTREAM_REPO }}
 
-      # Display a sample message based on the sync output var 'has_new_commits'
-      - name: New commits found
-        if: |
-          needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-          vars.SCHEDULED_SYNC != 'false' && steps.sync.outputs.has_new_commits == 'true'
-        run: echo "New commits were found to sync."
-
-      - name: No new commits
-        if: |
-          needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' && 
-          vars.SCHEDULED_SYNC != 'false' && steps.sync.outputs.has_new_commits == 'false'
-        run: echo "There were no new commits."
-
-      - name: Show value of 'has_new_commits'
-        if: needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' && vars.SCHEDULED_SYNC != 'false' && steps.check_branch.outputs.ABORT_SYNC == 'false'
-        run: |
-          echo ${{ steps.sync.outputs.has_new_commits }}
-          echo "NEW_COMMITS=${{ steps.sync.outputs.has_new_commits }}" >> $GITHUB_OUTPUT
-
-      # Keep repository "alive": add empty commits to ALIVE_BRANCH after "time_elapsed" days of inactivity to avoid inactivation of scheduled workflows
       - name: Keep alive
-        if: |
-          needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-          (vars.SCHEDULED_BUILD != 'false' || vars.SCHEDULED_SYNC != 'false')
-        uses: gautamkrishnar/keepalive-workflow@v1 # using the workflow with default settings
-        with:
-          time_elapsed: 20 # Time elapsed from the previous commit to trigger a new automated commit (in days)
+        run: |
+          echo "Keep Alive temporarily removed while gautamkrishnar/keepalive-workflow is not available"
+      #  if: |
+      #    needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
+      #    (vars.SCHEDULED_BUILD != 'false' || vars.SCHEDULED_SYNC != 'false')
+      #  uses: gautamkrishnar/keepalive-workflow@v1 # using the workflow with default settings
+      #  with:
+      #    time_elapsed: 20 # Time elapsed from the previous commit to trigger a new automated commit (in days)
 
       - name: Show scheduled build configuration message
         if: needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION != 'true'
@@ -183,22 +125,30 @@ jobs:
               under the following path <code>Trio/fastlane/testflight.md</code>." >> $GITHUB_STEP_SUMMARY
   
   # Builds Trio
+        uses: gautamkrishnar/keepalive-workflow@d33e3181f0aefc8e6b3b55f08b13be6460a5bdee
+        with:
+          time_elapsed: 20
+
   build:
     name: Build
+feat/dana-resolved
     needs: [validate, check_alive_and_permissions, check_latest_from_upstream]
+    needs: [check_certs, check_alive_and_permissions, check_latest_from_upstream]
+main
     runs-on: macos-15
     permissions:
       contents: write
-    if:
-      | # runs if started manually, or if sync schedule is set and enabled and scheduled on the first Saturday each month, or if sync schedule is set and enabled and new commits were found
+    if: |
       github.event_name == 'workflow_dispatch' ||
-      (needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-        (vars.SCHEDULED_BUILD != 'false' && github.event.schedule == '0 6 1 * *') ||
-        (vars.SCHEDULED_SYNC != 'false' && needs.check_latest_from_upstream.outputs.NEW_COMMITS == 'true' )
-      )
+      (github.event_name == 'schedule' && needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true') ||
+      (needs.check_latest_from_upstream.outputs.NEW_COMMITS == 'true')
+
     steps:
       - name: Select Xcode version
+feat/dana-resolved
         run: "sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer"
+        run: "sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer"
+main
       
       - name: Checkout Repo for syncing
         if: |
@@ -242,13 +192,44 @@ jobs:
         run: |
           echo ${{ steps.sync.outputs.has_new_commits }}
           echo "NEW_COMMITS=${{ steps.sync.outputs.has_new_commits }}" >> $GITHUB_OUTPUT
+        run: "sudo xcode-select --switch /Applications/Xcode_15.4.app/Contents/Developer"
 
       - name: Checkout Repo for building
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_PAT }}
-          submodules: recursive
           ref: ${{ env.TARGET_BRANCH }}
+          submodules: recursive
+
+      # Customize Trio: Use patches or download and apply patches from GitHub
+      - name: Customize Trio
+        run: |
+
+          # Trio workspace patches
+          # -applies any patches located in the Trio/patches/ directory
+          if $(ls ./patches/* &> /dev/null); then
+          git apply ./patches/* --allow-empty -v --whitespace=fix
+          fi
+
+          # Download and apply Trio patches from GitHub:
+          # Template for customizing Trio code (as opposed to submodule code)
+          # Remove the "#" sign from the beginning of the line below to activate
+          #   and then replace the alphanumeric string with your SHA, this SHA is NOT valid
+          #curl https://github.com/nightscout/Trio/commit/d206432b024279ef710df462b20bd464cd9682d4.patch | git apply -v --whitespace=fix
+
+          # Download and apply Submodule patches from GitHub:
+          # Template for customizing submodules (you must edit the submodule name)
+          # This example is for G7SensorKit showing you can apply multiple commits, in the proper order
+          # Remove the "#" sign from the beginning of the lines below to activate
+          # This example applies 3 commits from the scan-fix folder; valid only when these are not already in Trio
+          #curl https://github.com/loopandlearn/G7SensorKit/commit/ba44beb3d1491c453f4f438443c3f8ba29146ab3.patch | git apply --directory=G7SensorKit -v --whitespace=fix
+          #curl https://github.com/loopandlearn/G7SensorKit/commit/d86ac8e9cd523d1267587dd70c96597125eef7ab.patch | git apply --directory=G7SensorKit -v --whitespace=fix
+          #curl https://github.com/loopandlearn/G7SensorKit/commit/205054e7537723c2aec58d807634b4853f687244.patch | git apply --directory=G7SensorKit -v --whitespace=fix
+
+          # Add patches for additional customization by following the templates above,
+          # and make sure to specify the submodule by setting "--directory=(submodule_name)".
+          # Several patches may be added per submodule.
+          # Adding comments (#) is strongly recommended to easily tell the individual patches apart.
 
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
@@ -256,20 +237,17 @@ jobs:
           TABLE_PRINTER_PATH=$(ruby -e 'puts Gem::Specification.find_by_name("fastlane").gem_dir')/match/lib/match/table_printer.rb
           if [ -f "$TABLE_PRINTER_PATH" ]; then
             sed -i "" "/puts(Terminal::Table.new(params))/d" "$TABLE_PRINTER_PATH"
-          else
-            echo "table_printer.rb not found"
-            exit 1
           fi
 
-      # Install project dependencies
       - name: Install Project Dependencies
         run: bundle install
 
-      # Sync the GitHub runner clock with the Windows time server (workaround as suggested in https://github.com/actions/runner/issues/2996)
       - name: Sync clock
         run: sudo sntp -sS time.windows.com
 
-      # Build signed Trio IPA file
+      - name: Update entitlement background sound
+        run: sed -i -e 's/<string>bluetooth-central<\/string>/<string>bluetooth-central<\/string><string>audio<\/string>/g' FreeAPS/Resources/Info.plist
+
       - name: Fastlane Build & Archive
         run: bundle exec fastlane build_trio
         env:
@@ -280,7 +258,9 @@ jobs:
           FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
 
-      # Upload to TestFlight
+      - name: Increment build number
+        run: fastlane run increment_build_number
+
       - name: Fastlane upload to TestFlight
         run: bundle exec fastlane release
         env:
@@ -291,7 +271,6 @@ jobs:
           FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
 
-      # Upload Build artifacts
       - name: Upload build log, IPA and Symbol artifacts
         if: always()
         uses: actions/upload-artifact@v4
