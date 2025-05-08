@@ -86,6 +86,8 @@ extension Notification.Name {
     }
 
     init() {
+        FileProtectionFixer.fixFlagFileProtectionForPropertyPersistentFlags()
+
         let notificationCenter = Foundation.NotificationCenter.default
         notificationCenter.addObserver(
             forName: .initializationCompleted,
