@@ -729,6 +729,11 @@ extension Onboarding {
             preferences.resistanceLowersTarget = resistanceLowersTarget
             preferences.halfBasalExerciseTarget = halfBasalTarget
 
+            // default suspendZeroesIOB to true
+            if !preferences.suspendZerosIOB {
+                preferences.suspendZerosIOB = true
+            }
+
             settingsManager.preferences = preferences
         }
 
