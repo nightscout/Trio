@@ -102,7 +102,7 @@ import Foundation
 
                 // Ensure appropriate protection level
                 try FileManager.default.setAttributes(
-                    [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
+                    [.protectionKey: FileProtectionType.none],
                     ofItemAtPath: storageURL.path
                 )
 
@@ -146,7 +146,7 @@ enum FileProtectionFixer {
 
             do {
                 try fileManager.setAttributes(
-                    [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
+                    [.protectionKey: FileProtectionType.none],
                     ofItemAtPath: fileURL.path
                 )
                 debug(.storage, "✅ Updated protection for \(fileName)")
