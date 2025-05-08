@@ -119,8 +119,13 @@ jobs:
   build:
     name: Build
     needs: [check_certs, check_alive_and_permissions, check_latest_from_upstream]
+HEAD
 -    runs-on: macos-15
 +    runs-on: macos-latest # 🔄 Runner 버전을 최신화하여 호환성 보장
+main
+
+    runs-on: macos-15
+origin/main
     permissions:
       contents: write
     if: |
@@ -129,11 +134,27 @@ jobs:
       (needs.check_latest_from_upstream.outputs.NEW_COMMITS == 'true')
 
     steps:
+HEAD
 -      - name: Select Xcode version
 -        run: "sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer"
 +      - name: Select Xcode version
 +        run: |
 +          sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer
+      - name: Select Xcode version
+feat/dana-resolved
+        run: "sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer"
+        run: "sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer"
+main
+      
+      - name: Checkout Repo for syncing
+        if: |
+          needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
+          vars.SCHEDULED_SYNC != 'false'
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          ref: ${{ env.TARGET_BRANCH }}
+origin/main
 
 -      - name: Checkout Repo for building
 -        uses: actions/checkout@v4
