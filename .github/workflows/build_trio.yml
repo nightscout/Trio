@@ -106,7 +106,7 @@ jobs:
           upstream_sync_repo: ${{ env.UPSTREAM_REPO }}
 
       - name: Keep alive
-        uses: gautamkrishnar/keepalive-workflow@master
+        uses: gautamkrishnar/keepalive-workflow@d33e3181f0aefc8e6b3b55f08b13be6460a5bdee
         with:
           time_elapsed: 20
 
