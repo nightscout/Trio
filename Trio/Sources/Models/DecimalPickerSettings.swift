@@ -66,8 +66,8 @@ struct DecimalPickerSettings {
         max: 5,
         type: PickerSetting.PickerSettingType.factor
     )
-    var autosensMax = PickerSetting(value: 1.2, step: 0.1, min: 0.5, max: 2, type: PickerSetting.PickerSettingType.factor)
-    var autosensMin = PickerSetting(value: 0.7, step: 0.1, min: 0.5, max: 1, type: PickerSetting.PickerSettingType.factor)
+    var autosensMax = PickerSetting(value: 1.2, step: 0.05, min: 0.5, max: 2, type: PickerSetting.PickerSettingType.factor)
+    var autosensMin = PickerSetting(value: 0.7, step: 0.05, min: 0.5, max: 1, type: PickerSetting.PickerSettingType.factor)
     var smbDeliveryRatio = PickerSetting(value: 0.5, step: 0.05, min: 0.3, max: 0.7, type: PickerSetting.PickerSettingType.factor)
     var halfBasalExerciseTarget = PickerSetting(
         value: 160,
