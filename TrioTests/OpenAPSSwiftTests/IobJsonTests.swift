@@ -2,8 +2,6 @@ import Foundation
 import Testing
 @testable import Trio
 
-class BundleReference {}
-
 /// This test suite is to help us debug and verify iob errors from Trio devices
 ///
 /// There are two key components. First, we have a version of the Javascript that has a number
