@@ -51,6 +51,8 @@ extension AlgorithmAdvancedSettings {
                 useSwiftOref = $0 }
             subscribePreferencesSetting(\.smbDeliveryRatio, on: $smbDeliveryRatio) { smbDeliveryRatio = $0 }
             subscribePreferencesSetting(\.smbInterval, on: $smbInterval) { smbInterval = $0 }
+            subscribePreferencesSetting(\.smbDeliveryRatio, on: $smbDeliveryRatio) { smbDeliveryRatio = $0 }
+            subscribePreferencesSetting(\.smbInterval, on: $smbInterval) { smbInterval = $0 }
             insulinActionCurve = pumpSettings.insulinActionCurve
         }
 
