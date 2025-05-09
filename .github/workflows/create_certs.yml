@@ -26,7 +26,7 @@ jobs:
       new_certificate_needed: ${{ steps.set_output.outputs.new_certificate_needed }}
 
 main
-    steps:
+      steps:
       # Checks-out the repo
       - name: Checkout Repo
         uses: actions/checkout@v4
