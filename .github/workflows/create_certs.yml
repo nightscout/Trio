@@ -22,7 +22,6 @@ jobs:
     name: Certificates
     needs: validate
     runs-on: macos-15
-feat/dana-resolved
     outputs:
       new_certificate_needed: ${{ steps.set_output.outputs.new_certificate_needed }}
 
