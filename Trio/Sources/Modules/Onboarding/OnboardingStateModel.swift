@@ -25,12 +25,22 @@ extension Onboarding {
 
         // MARK: - App Diagnostics
 
-        var diagnosticsSharingOption: DiagnosticsSharingOption {
-            get { (PropertyPersistentFlags.shared.diagnosticsSharingEnabled ?? true) ? .enabled : .disabled }
-            set { PropertyPersistentFlags.shared.diagnosticsSharingEnabled = (newValue == .enabled) }
+        private var persistedDiagnosticsSharing: Bool? {
+            get { PropertyPersistentFlags.shared.diagnosticsSharingEnabled }
+            set { PropertyPersistentFlags.shared.diagnosticsSharingEnabled = newValue }
         }
 
+        var diagnosticsSharingOption: DiagnosticsSharingOption = .enabled
         var hasAcceptedPrivacyPolicy: Bool = false
+
+        func syncDiagnosticsOptionFromStorage() {
+            diagnosticsSharingOption = (persistedDiagnosticsSharing ?? true) ? .enabled : .disabled
+        }
+
+        func updateDiagnosticsOption(to option: DiagnosticsSharingOption) {
+            diagnosticsSharingOption = option
+            persistedDiagnosticsSharing = (option == .enabled)
+        }
 
         // MARK: - Determine Initial Build State
 
