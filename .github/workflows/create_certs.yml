@@ -78,13 +78,13 @@ jobs:
 
           # Check if ENABLE_NUKE_CERTS is not set to true when certs are not valid
           if [ "$CERT_STATUS" = "true" ] && [ "$ENABLE_NUKE_CERTS" != "true" ]; then
-            echo "::error::❌ No valid distribution certificate found. Automated renewal of certificates was skipped because the repository variable ENABLE_NUKE_CERTS is not set to 'true'."
+            echo "::error::❌No valid distribution certificate found. Automated renewal of certificates was skipped because the repository variable ENABLE_NUKE_CERTS is not set to 'true'."
             exit 1
           fi
 
           # Check if vars.FORCE_NUKE_CERTS is not set to true
           if [ vars.FORCE_NUKE_CERTS = "true" ]; then
-            echo "::warning::‼️ Nuking of certificates was forced because the repository variable FORCE_NUKE_CERTS is set to 'true'."
+            echo "::warning::?�️ Nuking of certificates was forced because the repository variable FORCE_NUKE_CERTS is set to 'true'."
           fi
 
   # Nuke Certs if needed, and if the repository variable ENABLE_NUKE_CERTS is set to 'true', or if FORCE_NUKE_CERTS is set to 'true', which will always force certs to be nuked
@@ -116,6 +116,6 @@ jobs:
         - name: Add success annotations for nuke and certificate recreation
           if: ${{ success() }}
           run: |
-            echo "::warning::⚠️ All Distribution certificates and TestFlight profiles have been revoked and recreated."
-            echo "::warning::❗️ If you have other apps being distributed by GitHub Actions / Fastlane / TestFlight that does not renew certificates automatically, please run the '3. Create Certificates' workflow for each of these apps to allow these apps to be built."
-            echo "::warning::✅ But don't worry about your existing TestFlight builds, they will keep working!"
+            echo "::warning::?�️ All Distribution certificates and TestFlight profiles have been revoked and recreated."
+            echo "::warning::?�️ If you have other apps being distributed by GitHub Actions / Fastlane / TestFlight that does not renew certificates automatically, please run the '3. Create Certificates' workflow for each of these apps to allow these apps to be built."
+            echo "::warning::??But don't worry about your existing TestFlight builds, they will keep working!"
