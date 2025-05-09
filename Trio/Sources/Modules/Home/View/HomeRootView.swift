@@ -844,20 +844,26 @@ extension Home {
         @ViewBuilder func mainViewElements(_ geo: GeometryProxy) -> some View {
             VStack(spacing: 0) {
                 ZStack {
-                    /// glucose bobble
-                    glucoseView
+                    if let apsManager = state.apsManager, let bluetoothManager = apsManager.bluetoothManager,
+                       bluetoothManager.bluetoothAuthorization != .authorized
+                    {
+                        BluetoothRequiredView()
+                    } else {
+                        /// right panel with loop status and evBG
+                        HStack {
+                            Spacer()
+                            rightHeaderPanel(geo)
+                        }.padding(.trailing, 20)
 
-                    /// right panel with loop status and evBG
-                    HStack {
-                        Spacer()
-                        rightHeaderPanel(geo)
-                    }.padding(.trailing, 20)
+                        /// glucose bobble
+                        glucoseView
 
-                    /// left panel with pump related info
-                    HStack {
-                        pumpView
-                        Spacer()
-                    }.padding(.leading, 20)
+                        /// left panel with pump related info
+                        HStack {
+                            pumpView
+                            Spacer()
+                        }.padding(.leading, 20)
+                    }
                 }
                 .padding(.top, 10)
                 .safeAreaInset(edge: .top, spacing: 0) {
@@ -945,7 +951,7 @@ extension Home {
             .confirmationDialog("Pump Model", isPresented: $showPumpSelection) {
                 Button("Medtronic") { state.addPump(.minimed) }
                 Button("Omnipod Eros") { state.addPump(.omnipod) }
-                Button("Omnipod Dash") { state.addPump(.omnipodBLE) }
+                Button("Omnipod DASH") { state.addPump(.omnipodBLE) }
                 Button("Dana(RS/-i)") { state.addPump(.dana) }
                 Button("Pump Simulator") { state.addPump(.simulator) }
             } message: { Text("Select Pump Model") }
@@ -1056,13 +1062,13 @@ extension Home {
 
                 Button(
                     action: {
-                        state.showModal(for: .bolus) },
+                        state.showModal(for: .treatmentView) },
                     label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 40))
                             .foregroundStyle(Color.tabBar)
-                            .padding(.bottom, 1)
-                            .padding(.horizontal, 22.5)
+                            .padding(.vertical, 2)
+                            .padding(.horizontal, 24)
                     }
                 )
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)

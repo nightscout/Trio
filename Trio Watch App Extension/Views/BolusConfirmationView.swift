@@ -84,7 +84,6 @@ struct BolusConfirmationView: View {
                         state.sendCarbsRequest(state.carbsAmount, Date())
                         state.carbsAmount = 0 // reset carbs in state
                     }
-                    state.activeBolusAmount = bolusAmount
                     state.sendBolusRequest(Decimal(bolusAmount))
                     bolusAmount = 0 // reset bolus in state
                     confirmationProgress = 0 // reset auth progress
@@ -108,15 +107,6 @@ struct BolusConfirmationView: View {
                     .variableColor.reversing,
                     options: .speed(100).repeating
                 )
-            }
-        }
-        .blur(radius: state.showBolusProgressOverlay ? 3 : 0)
-        .overlay {
-            if state.showBolusProgressOverlay {
-                BolusProgressOverlay(state: state) {
-                    state.shouldNavigateToRoot = false
-                    navigationPath.append(NavigationDestinations.acknowledgmentPending)
-                }.transition(.opacity)
             }
         }
     }

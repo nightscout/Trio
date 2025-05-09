@@ -37,6 +37,14 @@ struct FeatureSettingsView: BaseView {
                 }
             )
             .listRowBackground(Color.chart)
+
+            Section(
+                header: Text("Anonymized Data Sharing"),
+                content: {
+                    Text("App Diagnostics").navigationLink(to: .appDiagnostics, from: self)
+                }
+            )
+            .listRowBackground(Color.chart)
         }
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))

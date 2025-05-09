@@ -54,7 +54,6 @@ extension Profile {
         useCustomPeakTime = preferences.useCustomPeakTime
         suspendZerosIob = preferences.suspendZerosIOB
         useNewFormula = preferences.useNewFormula
-        enableDynamicCR = preferences.enableDynamicCR
         sigmoid = preferences.sigmoid
         tddAdjBasal = preferences.tddAdjBasal
 

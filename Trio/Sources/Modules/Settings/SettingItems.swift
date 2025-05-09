@@ -65,7 +65,15 @@ enum SettingItems {
         SettingItem(
             title: "Units and Limits",
             view: .unitsAndLimits,
-            searchContents: ["Glucose Units", "Max Basal", "Max Bolus", "Max IOB", "Max COB"],
+            searchContents: [
+                "Glucose Units",
+                "Max Basal",
+                "Max Bolus",
+                "Max IOB",
+                "Max COB",
+                "Minimum Safety Threshold",
+                "Delivery Limits"
+            ],
             path: ["Therapy Settings", "Units and Limits"]
         ),
         SettingItem(title: "Basal Rates", view: .basalProfileEditor, path: ["Therapy Settings"]),
@@ -97,9 +105,7 @@ enum SettingItems {
                 "Enable UAM",
                 "Max SMB Basal Minutes",
                 "Max UAM SMB Basal Minutes",
-                "Max Delta-BG Threshold SMB",
-                "SMB Delivery Ratio",
-                "SMB Interval"
+                "Max Delta-BG Threshold SMB"
             ],
             path: ["Algorithm", "Super Micro Bolus (SMB)"]
         ),
@@ -114,8 +120,7 @@ enum SettingItems {
                 "AF",
                 "Sigmoid Adjustment Factor",
                 "Weighted Average of TDD",
-                "Adjust Basal",
-                "Minimum Safety Threshold"
+                "Adjust Basal"
             ],
             path: ["Algorithm", "Dynamic Sensitivity"]
         ),
@@ -143,6 +148,8 @@ enum SettingItems {
                 "Skip Neutral Temps",
                 "Unsuspend If No Temp",
                 "Suspend Zeros IOB",
+                "SMB Delivery Ratio",
+                "SMB Interval",
                 "Min 5m Carbimpact",
                 "Remaining Carbs Fraction",
                 "Remaining Carbs Cap",
@@ -162,7 +169,8 @@ enum SettingItems {
                 "Enable Fatty Meal Factor",
                 "Fatty Meal Factor",
                 "Enable Super Bolus",
-                "Super Bolus Factor"
+                "Super Bolus Factor",
+                "Very Low Glucose Warning"
             ],
             path: ["Features", "Bolus Calculator"]
         ),
@@ -205,8 +213,7 @@ enum SettingItems {
                 "Low Threshold",
                 "High Threshold",
                 "X-Axis Interval Step",
-                "Override eA1c Unit",
-                "Standing / Laying TIR Chart",
+                "eA1c/GMI Display Unit",
                 "Show Carbs Required Badge",
                 "Carbs Required Threshold",
                 "Forecast Display Type",
@@ -217,11 +224,25 @@ enum SettingItems {
                 "Appearance",
                 "Dark Scheme",
                 "Light Scheme",
-                "Glucose Color Scheme"
+                "Glucose Color Scheme",
+                "Time in Range Type",
+                "Time in Tight Range (TITR)",
+                "Time in Normoglycemia (TING)"
             ],
             path: ["Features", "User Interface"]
         ),
-        SettingItem(title: "App Icons", view: .iconConfig)
+        SettingItem(
+            title: "App Icons",
+            view: .iconConfig,
+            searchContents: ["Trio Icon"],
+            path: ["Features", "App Icons"]
+        ),
+        SettingItem(
+            title: "App Diagnostics",
+            view: .appDiagnostics,
+            searchContents: ["Anonymized Data Sharing"],
+            path: ["Features", "App Diagnostics"]
+        )
     ]
 
     static let notificationItems = [

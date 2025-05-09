@@ -66,8 +66,8 @@ struct DecimalPickerSettings {
         max: 5,
         type: PickerSetting.PickerSettingType.factor
     )
-    var autosensMax = PickerSetting(value: 1.2, step: 0.1, min: 0.5, max: 2, type: PickerSetting.PickerSettingType.factor)
-    var autosensMin = PickerSetting(value: 0.7, step: 0.1, min: 0.5, max: 1, type: PickerSetting.PickerSettingType.factor)
+    var autosensMax = PickerSetting(value: 1.2, step: 0.05, min: 0.5, max: 2, type: PickerSetting.PickerSettingType.factor)
+    var autosensMin = PickerSetting(value: 0.7, step: 0.05, min: 0.5, max: 1, type: PickerSetting.PickerSettingType.factor)
     var smbDeliveryRatio = PickerSetting(value: 0.5, step: 0.05, min: 0.3, max: 0.7, type: PickerSetting.PickerSettingType.factor)
     var halfBasalExerciseTarget = PickerSetting(
         value: 160,
@@ -137,7 +137,13 @@ struct DecimalPickerSettings {
     var hours = PickerSetting(value: 6, step: 0.5, min: 2, max: 24, type: PickerSetting.PickerSettingType.hour)
     var dia = PickerSetting(value: 10, step: 0.5, min: 5, max: 10, type: PickerSetting.PickerSettingType.hour)
     var maxBolus = PickerSetting(value: 10, step: 0.5, min: 0.5, max: 30, type: PickerSetting.PickerSettingType.insulinUnit)
-    var maxBasal = PickerSetting(value: 10, step: 0.5, min: 0.5, max: 30, type: PickerSetting.PickerSettingType.insulinUnit)
+    var maxBasal = PickerSetting(
+        value: 10,
+        step: 0.5,
+        min: 0.5,
+        max: 30,
+        type: PickerSetting.PickerSettingType.insulinUnitPerHour
+    )
 }
 
 struct PickerSetting {
@@ -152,6 +158,7 @@ struct PickerSetting {
         case factor
         case gram
         case insulinUnit
+        case insulinUnitPerHour
         case minute
         case hour
     }

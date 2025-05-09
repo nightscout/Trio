@@ -15,7 +15,7 @@ enum Screen: Identifiable, Hashable {
     case isfEditor
     case crEditor
     case targetsEditor
-    case bolus
+    case treatmentView
     case manualTempBasal
     case dataTable
     case cgm
@@ -48,6 +48,7 @@ enum Screen: Identifiable, Hashable {
     case targetBehavior
     case algorithmAdvancedSettings
     case unitsAndLimits
+    case appDiagnostics
 
     var id: Int { String(reflecting: self).hashValue }
 }
@@ -70,9 +71,17 @@ extension Screen {
         case .tidepoolConfig:
             TidepoolStartView(resolver: resolver, state: Settings.StateModel())
         case .pumpConfig:
-            PumpConfig.RootView(resolver: resolver, displayClose: false)
+            PumpConfig.RootView(
+                resolver: resolver,
+                displayClose: false,
+                bluetoothManager: resolver.resolve(BluetoothStateManager.self)!
+            )
         case .pumpConfigDirect:
-            PumpConfig.RootView(resolver: resolver, displayClose: true)
+            PumpConfig.RootView(
+                resolver: resolver,
+                displayClose: true,
+                bluetoothManager: resolver.resolve(BluetoothStateManager.self)!
+            )
         case .basalProfileEditor:
             BasalProfileEditor.RootView(resolver: resolver)
         case .isfEditor:
@@ -81,14 +90,18 @@ extension Screen {
             CarbRatioEditor.RootView(resolver: resolver)
         case .targetsEditor:
             TargetsEditor.RootView(resolver: resolver)
-        case .bolus:
+        case .treatmentView:
             Treatments.RootView(resolver: resolver)
         case .manualTempBasal:
             ManualTempBasal.RootView(resolver: resolver)
         case .dataTable:
             DataTable.RootView(resolver: resolver)
         case .cgm:
-            CGMSettings.RootView(resolver: resolver, displayClose: false)
+            CGMSettings.RootView(
+                resolver: resolver,
+                displayClose: false,
+                bluetoothManager: resolver.resolve(BluetoothStateManager.self)!
+            )
         case .healthkit:
             AppleHealthKit.RootView(resolver: resolver)
         case .glucoseNotificationSettings:
@@ -147,6 +160,8 @@ extension Screen {
             AlgorithmAdvancedSettings.RootView(resolver: resolver)
         case .unitsAndLimits:
             UnitsLimitsSettings.RootView(resolver: resolver)
+        case .appDiagnostics:
+            AppDiagnostics.RootView(resolver: resolver)
         }
     }
 

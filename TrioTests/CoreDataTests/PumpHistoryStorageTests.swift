@@ -286,4 +286,68 @@ import Testing
         #expect(fetchedEvent?.isUploadedToHealth == false, "Should not be uploaded to Health")
         #expect(fetchedEvent?.isUploadedToTidepool == false, "Should not be uploaded to Tidepool")
     }
+
+    @Test("Test duplicates in PumpHistoryStorage") func testDuplicatePumpEvents() async throws {
+        // Given
+        let date = Date()
+        let twoHoursAgo = date - 2.hours.timeInterval
+        let oneMinuteAgo = date - 1.minutes.timeInterval
+
+        // Get initial entries to compare to final entries later
+        let initialEntries = try await testContext.perform {
+            try testContext.fetch(PumpEventStored.fetchRequest())
+        }
+
+        // Create two suspend events and two resume events
+        let events: [LoopKit.NewPumpEvent] = [
+            LoopKit.NewPumpEvent(
+                date: twoHoursAgo,
+                dose: nil,
+                raw: Data(),
+                title: "Test Suspend",
+                type: .suspend
+            ),
+            LoopKit.NewPumpEvent(
+                date: twoHoursAgo,
+                dose: nil,
+                raw: Data(),
+                title: "Test Suspend",
+                type: .suspend
+            ),
+            LoopKit.NewPumpEvent(
+                date: oneMinuteAgo,
+                dose: nil,
+                raw: Data(),
+                title: "Test Resume",
+                type: .resume
+            ),
+            LoopKit.NewPumpEvent(
+                date: oneMinuteAgo,
+                dose: nil,
+                raw: Data(),
+                title: "Test Resume",
+                type: .resume
+            )
+        ]
+
+        // When
+        // Store in our in-memory PumphistoryStorage
+        try await storage.storePumpEvents(events)
+
+        // Then
+        // Fetch all events after storing
+        let finalEntriesUnsorted = try await testContext.perform {
+            try testContext.fetch(PumpEventStored.fetchRequest())
+        }
+        let finalEntries = finalEntriesUnsorted.sorted { $0.timestamp! < $1.timestamp! }
+
+        // Verify there were no initial entries
+        #expect(initialEntries.isEmpty, "There should be no initial entries")
+
+        // Verify count increased by 2
+        #expect(finalEntries.count == initialEntries.count + 2, "Should have added 2 new events")
+
+        #expect(finalEntries.first?.type == PumpEvent.pumpSuspend.rawValue)
+        #expect(finalEntries.last?.type == PumpEvent.pumpResume.rawValue)
+    }
 }

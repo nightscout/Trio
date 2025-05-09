@@ -4,10 +4,6 @@ import SwiftUI
 
 /// A SwiftUI view displaying various glucose-related statistics based on stored glucose readings.
 struct GlucoseMetricsView: View {
-    /// The upper glucose limit for evaluation.
-    let highLimit: Decimal
-    /// The lower glucose limit for evaluation.
-    let lowLimit: Decimal
     /// The unit of measurement for blood glucose values (e.g., mg/dL or mmol/L).
     let units: GlucoseUnits
     /// The display unit for estimated HbA1c values.

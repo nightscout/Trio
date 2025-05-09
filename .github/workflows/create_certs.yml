@@ -88,33 +88,33 @@ jobs:
 
   # Nuke Certs if needed, and if the repository variable ENABLE_NUKE_CERTS is set to 'true', or if FORCE_NUKE_CERTS is set to 'true', which will always force certs to be nuked
   nuke_certs:
-    name: Nuke certificates
-    needs: [validate, create_certs]
-    runs-on: macos-14
-    if: ${{ (needs.create_certs.outputs.new_certificate_needed == 'true' && vars.ENABLE_NUKE_CERTS == 'true') || vars.FORCE_NUKE_CERTS == 'true' }}
-    steps:
-      - name: Output from step id 'check_certs'
-        run: echo "new_certificate_needed=${{ needs.create_certs.outputs.new_certificate_needed }}"
+      name: Nuke certificates
+      needs: [validate, create_certs]
+      runs-on: macos-15
+      if: ${{ (needs.create_certs.outputs.new_certificate_needed == 'true' && vars.ENABLE_NUKE_CERTS == 'true') || vars.FORCE_NUKE_CERTS == 'true' }}
+      steps:
+        - name: Output from step id 'check_certs'
+          run: echo "new_certificate_needed=${{ needs.create_certs.outputs.new_certificate_needed }}"
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
+        - name: Checkout repository
+          uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: bundle install
+        - name: Install dependencies
+          run: bundle install
 
-      - name: Run Fastlane nuke_certs
-        run: |
-          set -e # Set error immediately after this step if error occurs
-          bundle exec fastlane nuke_certs
+        - name: Run Fastlane nuke_certs
+          run: |
+            set -e # Set error immediately after this step if error occurs
+            bundle exec fastlane nuke_certs
 
-      - name: Recreate Distribution certificate after nuking
-        run: |
-          set -e # Set error immediately after this step if error occurs
-          bundle exec fastlane certs
+        - name: Recreate Distribution certificate after nuking
+          run: |
+            set -e # Set error immediately after this step if error occurs
+            bundle exec fastlane certs
 
-      - name: Add success annotations for nuke and certificate recreation
-        if: ${{ success() }}
-        run: |
-          echo "::warning::⚠️ All Distribution certificates and TestFlight profiles have been revoked and recreated."
-          echo "::warning::❗️ If you have other apps being distributed by GitHub Actions / Fastlane / TestFlight that does not renew certificates automatically, please run the '3. Create Certificates' workflow for each of these apps to allow these apps to be built."
-          echo "::warning::✅ But don't worry about your existing TestFlight builds, they will keep working!"
+        - name: Add success annotations for nuke and certificate recreation
+          if: ${{ success() }}
+          run: |
+            echo "::warning::⚠️ All Distribution certificates and TestFlight profiles have been revoked and recreated."
+            echo "::warning::❗️ If you have other apps being distributed by GitHub Actions / Fastlane / TestFlight that does not renew certificates automatically, please run the '3. Create Certificates' workflow for each of these apps to allow these apps to be built."
+            echo "::warning::✅ But don't worry about your existing TestFlight builds, they will keep working!"

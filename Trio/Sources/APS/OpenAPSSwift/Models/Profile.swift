@@ -60,7 +60,6 @@ struct Profile: Codable {
     var adjustmentFactor: Decimal = 0.8
     var adjustmentFactorSigmoid: Decimal = 0.5
     var useNewFormula: Bool = false
-    var enableDynamicCR: Bool = false
     var sigmoid: Bool = false
     var weightPercentage: Decimal = 0.65
     var tddAdjBasal: Bool = false
@@ -126,7 +125,6 @@ struct Profile: Codable {
         case adjustmentFactor
         case adjustmentFactorSigmoid
         case useNewFormula
-        case enableDynamicCR
         case sigmoid
         case weightPercentage
         case tddAdjBasal

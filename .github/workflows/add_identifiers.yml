@@ -14,7 +14,6 @@ jobs:
     needs: validate
     runs-on: macos-15
     steps:
-
       # Checks-out the repo
       - name: Checkout Repo
         uses: actions/checkout@v4

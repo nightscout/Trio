@@ -1,3 +1,5 @@
+import FirebaseCore
+import FirebaseCrashlytics
 import SwiftUI
 import UIKit
 import UserNotifications
@@ -7,8 +9,17 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
         _: UIApplication,
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        // application.registerForRemoteNotifications()
-        true
+        FirebaseApp.configure()
+
+        // Default to `true` if the key doesn't exist
+        let crashReportingEnabled: Bool = PropertyPersistentFlags.shared.diagnosticsSharingEnabled ?? true
+
+        // The docs say that changes to this don't take effect until
+        // the next app boot, but this is fine since the app will need
+        // to boot after a crash
+        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(crashReportingEnabled)
+
+        return true
     }
 
     func application(

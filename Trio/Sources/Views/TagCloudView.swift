@@ -116,7 +116,7 @@ struct TagCloudView: View {
     // TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
     private func formatGlucoseTags(_ tag: String, isMmolL: Bool) -> String {
         let patterns = [
-            "ISF:\\s*-?\\d+\\.?\\d*→-?\\d+\\.?\\d*",
+            "(?:ISF|Target):\\s*-?\\d+\\.?\\d*(?:→-?\\d+\\.?\\d*)+",
             "Dev:\\s*-?\\d+\\.?\\d*",
             "BGI:\\s*-?\\d+\\.?\\d*",
             "Target:\\s*-?\\d+\\.?\\d*",
@@ -143,15 +143,17 @@ struct TagCloudView: View {
             let glucoseValueString = String(tag[range])
 
             if glucoseValueString.contains("→") {
-                // -- Handle ISF: X→Y
-                let values = glucoseValueString.components(separatedBy: "→")
-                // For example "ISF: 162"
-                let firstNumber = values[0].components(separatedBy: ":")[1].trimmingCharacters(in: .whitespaces)
-                let secondNumber = values[1].trimmingCharacters(in: .whitespaces)
-                let firstValue = convertToMmolL(firstNumber)
-                let secondValue = convertToMmolL(secondNumber)
-                let formattedString = "ISF: \(firstValue)→\(secondValue)"
-                updatedTag.replaceSubrange(range, with: formattedString)
+                // -- Handle ISF: X→Y… or Target: X→Y→Z…
+                let parts = glucoseValueString.components(separatedBy: ":")
+                guard parts.count == 2 else { continue }
+                let targetOrISF = parts[0].trimmingCharacters(in: .whitespaces)
+                let values = parts[1]
+                    .components(separatedBy: "→")
+                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                let convertedValues = values.map { convertToMmolL($0) }
+                let joined = convertedValues.joined(separator: "→")
+                let rebuilt = "\(targetOrISF): \(joined)"
+                updatedTag.replaceSubrange(range, with: rebuilt)
 
             } else if glucoseValueString.starts(with: "Dev:") {
                 // -- Handle Dev

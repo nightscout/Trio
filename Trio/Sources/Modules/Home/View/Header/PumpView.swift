@@ -8,7 +8,6 @@ struct PumpView: View {
     let timerDate: Date
     let pumpStatusHighlightMessage: String?
     let battery: [OpenAPS_Battery]
-
     @Environment(\.colorScheme) var colorScheme
 
     private var batteryFormatter: NumberFormatter {

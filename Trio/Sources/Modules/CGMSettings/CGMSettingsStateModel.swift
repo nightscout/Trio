@@ -42,6 +42,7 @@ extension CGMSettings {
         @Injected() var pluginCGMManager: PluginManager!
         @Injected() var broadcaster: Broadcaster!
         @Injected() var nightscoutManager: NightscoutManager!
+        @Injected() var bluetoothManager: BluetoothStateManager!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var shouldDisplayCGMSetupSheet: Bool = false

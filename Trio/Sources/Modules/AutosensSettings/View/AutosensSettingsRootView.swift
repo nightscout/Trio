@@ -39,12 +39,12 @@ extension AutosensSettings {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("What it Adjusts").bold()
                     Text(
-                        "Autosens modifies Insulin Sensitivity Factor (ISF), basal rates, and target blood sugar levels. It doesn’t account for carbs but adjusts for insulin effectiveness based on patterns in your glucose data."
+                        "Autosens modifies Insulin Sensitivity Factor (ISF), basal rates, and target glucose. It doesn’t account for carbs but adjusts for insulin effectiveness based on patterns in your glucose data."
                     )
                 }
 
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("Key Limitations").bold()
+                    Text("Safety").bold()
                     Text(
                         "Autosens has safety limits determined by your Autosens Max and Autosens Min settings. These settings prevent over-adjusting."
                     )
@@ -65,18 +65,15 @@ extension AutosensSettings {
                     let dynamicRatio = state.determinationsFromPersistence.first?.sensitivityRatio
                     let dynamicISF = state.determinationsFromPersistence.first?.insulinSensitivity
                     let newISF = state.autosensISF
+                    let decimalValue = !state.settingsManager.preferences.useNewFormula ? state
+                        .autosensRatio as NSDecimalNumber : dynamicRatio ?? 1
+                    let decimalValueText = rateFormatter
+                        .string(from: ((decimalValue as Decimal) * Decimal(100)) as NSNumber) ?? "100"
+
                     HStack {
                         Text("Sensitivity Ratio")
                         Spacer()
-                        Text(
-                            rateFormatter
-                                .string(from: (
-                                    (
-                                        !state.settingsManager.preferences.useNewFormula ? state
-                                            .autosensRatio as NSDecimalNumber : dynamicRatio
-                                    ) ?? 1
-                                ) as NSNumber) ?? "1"
-                        )
+                        Text("\(decimalValueText) \(String(localized: "%", comment: "Percentage symbol"))")
                     }.padding(.vertical)
                     HStack {
                         Text("Calculated Sensitivity")
@@ -140,18 +137,18 @@ extension AutosensSettings {
                     units: state.units,
                     type: .decimal("autosensMax"),
                     label: String(localized: "Autosens Max", comment: "Autosens Max"),
-                    miniHint: String(localized: "Upper limit of the Autosens Ratio."),
+                    miniHint: String(localized: "Upper limit of the Sensitivity Ratio."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 120%").bold()
                         Text(
-                            "Autosens Max sets the maximum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
+                            "Autosens Max sets the maximum Sensitivity Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
                         )
                         Text(
-                            "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
+                            "The Sensitivity Ratio is used to calculate the amount of adjustment needed to basal rates and ISF."
                         )
                         Text(
-                            "Tip: Increasing this value allows automatic adjustments of basal rates to be higher, ISF to be lower, and CR to be lower."
+                            "Tip: Increasing this value allows automatic adjustments of basal rates to be higher and ISF to be lower."
                         )
                     },
                     headerText: String(localized: "Glucose Deviations Algorithm")
@@ -171,18 +168,18 @@ extension AutosensSettings {
                     units: state.units,
                     type: .decimal("autosensMin"),
                     label: String(localized: "Autosens Min", comment: "Autosens Min"),
-                    miniHint: String(localized: "Lower limit of the Autosens Ratio."),
+                    miniHint: String(localized: "Lower limit of the Sensitivity Ratio."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: 70%").bold()
                         Text(
-                            "Autosens Min sets the minimum Autosens Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
+                            "Autosens Min sets the minimum Sensitivity Ratio used by Autosens, Dynamic ISF, and Sigmoid Formula."
                         )
                         Text(
-                            "The Autosens Ratio is used to calculate the amount of adjustment needed to basal rates, ISF, and CR."
+                            "The Sensitivity Ratio is used to calculate the amount of adjustment needed to basal rates and ISF."
                         )
                         Text(
-                            "Tip: Decreasing this value allows automatic adjustments of basal rates to be lower, ISF to be higher, and CR to be higher."
+                            "Tip: Decreasing this value allows automatic adjustments of basal rates to be lower and ISF to be higher."
                         )
                     }
                 )
@@ -201,13 +198,13 @@ extension AutosensSettings {
                     units: state.units,
                     type: .boolean,
                     label: String(localized: "Rewind Resets Autosens", comment: "Rewind Resets Autosens"),
-                    miniHint: String(localized: "Pump rewind initiates a reset in Autosens Ratio."),
+                    miniHint: String(localized: "Pump rewind initiates a reset in Sensitivity Ratio."),
                     verboseHint: VStack(alignment: .leading, spacing: 5) {
                         Text("Default: ON").bold()
-                        Text("Medtronic Users Only").bold()
+                        Text("Medtronic and Dana Users Only").bold()
                         VStack(alignment: .leading, spacing: 10) {
                             Text(
-                                "This feature resets the Autosens Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change."
+                                "This feature resets the Sensitivity Ratio to neutral when you rewind your pump on the assumption that this corresponds to a site change."
                             )
                             Text(
                                 "Autosens will begin learning sensitivity anew from the time of the rewind, which may take up to 6 hours."

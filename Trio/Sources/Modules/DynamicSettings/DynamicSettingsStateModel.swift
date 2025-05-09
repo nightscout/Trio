@@ -34,7 +34,6 @@ extension DynamicSettings {
         @Published var adjustmentFactorSigmoid: Decimal = 0.5
         @Published var weightPercentage: Decimal = 0.65
         @Published var tddAdjBasal: Bool = false
-        @Published var threshold_setting: Decimal = 60
 
         @ObservedObject var pickerSettingsProvider = PickerSettingsProvider.shared
 
@@ -58,7 +57,6 @@ extension DynamicSettings {
             subscribePreferencesSetting(\.adjustmentFactorSigmoid, on: $adjustmentFactorSigmoid) { adjustmentFactorSigmoid = $0 }
             subscribePreferencesSetting(\.weightPercentage, on: $weightPercentage) { weightPercentage = $0 }
             subscribePreferencesSetting(\.tddAdjBasal, on: $tddAdjBasal) { tddAdjBasal = $0 }
-            subscribePreferencesSetting(\.threshold_setting, on: $threshold_setting) { threshold_setting = $0 }
 
             Task {
                 do {

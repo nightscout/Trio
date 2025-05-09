@@ -220,33 +220,54 @@ extension AlgorithmAdvancedSettings {
                 )
 
                 SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.suspendZerosIOB,
+                    decimalValue: $state.smbDeliveryRatio,
+                    booleanValue: $booleanPlaceholder,
                     shouldDisplayHint: $shouldDisplayHint,
                     selectedVerboseHint: Binding(
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Suspend Zeros IOB", comment: "Suspend Zeros IOB")
+                            hintLabel = String(localized: "SMB Delivery Ratio", comment: "SMB Delivery Ratio")
                         }
                     ),
                     units: state.units,
-                    type: .boolean,
-                    label: String(localized: "Suspend Zeros IOB", comment: "Suspend Zeros IOB"),
-                    miniHint: String(
-                        localized: "Clear temporary basal rates and reset IOB when suspended.",
-                        comment: "Mini Hint for Suspend Zeros IOB"
-                    ),
+                    type: .decimal("smbDeliveryRatio"),
+                    label: String(localized: "SMB Delivery Ratio", comment: "SMB Delivery Ratio"),
+                    miniHint: String(localized: "Percentage of calculated insulin required that is given as SMB."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
+                        Text("Default: 50%").bold()
                         Text(
-                            "When Suspend Zeros IOB is enabled, any active temporary basal rates during a pump suspension are reset, with new 0 U/hr temporary basal rates added to counteract those done during suspension."
+                            "Once the total insulin required is calculated, this safety limit specifies what percentage of the insulin required can be delivered as an SMB."
                         )
                         Text(
-                            "This prevents lingering insulin effects when your pump is suspended, ensuring safer management of insulin on board."
+                            "Due to SMBs potentially occurring every 5 minutes with each loop cycle, it is important to set this value to a reasonable level that allows Trio to safely zero temp should dosing needs suddenly change. Increase this value with caution."
                         )
-                        Text("Note: Applies only to pumps with on-pump suspend options.")
+                        Text("Note: Allowed range is 30 - 70%")
+                    }
+                )
+
+                SettingInputSection(
+                    decimalValue: $state.smbInterval,
+                    booleanValue: $booleanPlaceholder,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(localized: "SMB Interval", comment: "SMB Interval")
+                        }
+                    ),
+                    units: state.units,
+                    type: .decimal("smbInterval"),
+                    label: String(localized: "SMB Interval", comment: "SMB Interval"),
+                    miniHint: String(localized: "Minimum minutes since the last SMB or manual bolus to allow an automated SMB."),
+                    verboseHint:
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: 3 min").bold()
+                        Text(
+                            "This is the minimum number of minutes since the last SMB or manual bolus before Trio will permit an automated SMB."
+                        )
                     }
                 )
 
@@ -421,21 +442,6 @@ extension AlgorithmAdvancedSettings {
             .onDisappear {
                 state.saveIfChanged()
             }
-        }
-    }
-}
-
-struct BulletPoint: View {
-    let text: String
-
-    init(_ text: String) {
-        self.text = text
-    }
-
-    var body: some View {
-        HStack(alignment: .top) {
-            Text("•")
-            Text(text)
         }
     }
 }

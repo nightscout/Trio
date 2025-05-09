@@ -156,6 +156,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     const cr_ = oref2_variables.cr;
     const smbMinutes = oref2_variables.smbMinutes;
     const uamMinutes = oref2_variables.uamMinutes;
+    // tdd past 24 hour
+    let tdd = oref2_variables.currentTDD;
+    var logOutPut = "";
+    var tddReason = "";
 
     var dynISFenabled = preferences.useNewFormula
 
@@ -168,10 +172,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         systemTime = new Date(currentTime);
     }
 
-    // tdd past 24 hours
-    var logOutPut = "";
-    var tddReason = "";
-    var tdd = oref2_variables.currentTDD;
+
 
     const weightedAverage = oref2_variables.weightedAverage;
     var overrideFactor = 1;
@@ -202,7 +203,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // Dynamic ratios
     const BG = glucose_status.glucose;
-    const useDynamicCR = preferences.enableDynamicCR;
     const adjustmentFactor = preferences.adjustmentFactor;
     const adjustmentFactorSigmoid = preferences.adjustmentFactorSigmoid;
     const enable_sigmoid = preferences.sigmoid;
@@ -319,18 +319,15 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             const sigmoid_factor = autosens_interval / (1 + Math.exp(-exponent)) + as_min;
             newRatio = sigmoid_factor;
             formula = ", Sigmoid function";
-            // Dynamic CR will be processed further down
         }
     }
 
-    var cr = carbRatio;
-    const cr_before = round(carbRatio, 1);
-    var log_isfCR = "";
+    var dynamicISFLog = "";
     var limitLog = "";
 
     if (dynISFenabled && tdd > 0) {
 
-        log_isfCR = ", Dynamic ISF/CR: On/";
+        dynamicISFLog = ", Dynamic ISF: On";
 
         // Respect autosens.max and autosens.min limitLogs
         if (newRatio > maxLimitChris) {
@@ -343,53 +340,30 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             newRatio = minLimitChris;
         }
 
-        // Dynamic CR (Test)
-        if (useDynamicCR) {
-            log_isfCR += "On";
-            var dynCR = newRatio;
-
-            /*
-            // Lessen the ratio used by half, if newRatio > 1.
-            if (newRatio > 1) {
-                dynCR = (newRatio - 1) / 2 + 1;
-            }
-
-            cr = round(cr/dynCR, 2);
-            var logCR = " CR: " + cr + " g/U";
-            carbRatio = cr;
-            */
-            carbRatio /= dynCR;
-            var logCR = ". New Dynamic CR: " + round(carbRatio, 1) + " g/U";
-
-        } else {
-            logCR = " CR: " + cr + " g/U";
-            log_isfCR += "Off";
-        }
-
         const isf = sensitivity / newRatio;
 
          // Set the new ratio
          autosens_data.ratio = newRatio;
 
-        sigmoidLog = ". Using Sigmoid function, the autosens ratio has been adjusted with sigmoid factor to: " + round(autosens_data.ratio, 2) + ". New ISF = " + round(isf, 2) + " mg/dl (" + round(0.0555 * isf, 2) + " (mmol/l)" + ". CR adjusted from " + round(cr_before,2) + " to " + round(carbRatio,2);
+        sigmoidLog = ". Using Sigmoid function, the autosens ratio has been adjusted with sigmoid factor to: " + round(autosens_data.ratio, 2) + ". New ISF = " + round(isf, 2) + " mg/dl (" + round(0.0555 * isf, 2) + " (mmol/l).";
 
         if (!enable_sigmoid) {
             log += ", Dynamic autosens.ratio set to " + round(newRatio,2) + " with ISF: " + isf.toPrecision(3) + " mg/dl/U (" + (isf * 0.0555).toPrecision(3) + " mmol/l/U)";
         } else { log += sigmoidLog }
 
 
-        logOutPut += startLog + bgLog + afLog + formula + log + log_isfCR + logCR + weightLog;
+        logOutPut += startLog + bgLog + afLog + formula + log + dynamicISFLog + weightLog;
 
     } else { logOutPut += startLog + "Dynamic Settings disabled"; }
 
     console.log(logOutPut);
 
-    if (!dynISFenabled && !useDynamicCR) {
+    if (!dynISFenabled) {
         tddReason += "";
     } else if (dynISFenabled && profile.tddAdjBasal) {
-        tddReason += log_isfCR + formula + limitLog + afLog + basal_ratio_log;
+        tddReason += dynamicISFLog + formula + limitLog + afLog + basal_ratio_log;
     }
-    else if (dynISFenabled && !profile.tddAdjBasal) { tddReason += log_isfCR + formula + limitLog + afLog; }
+    else if (dynISFenabled && !profile.tddAdjBasal) { tddReason += dynamicISFLog + formula + limitLog + afLog; }
 
     if (0.5 !== profile.smb_delivery_ratio) {
         tddReason += ", SMB Ratio: " + Math.min(profile.smb_delivery_ratio, 1);
@@ -909,7 +883,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var minUAMGuardBG = 999;
     var minIOBGuardBG = 999;
     var minZTGuardBG = 999;
-    //var minPredBG;
+    var minPredBG;
     var avgPredBG;
     var IOBpredBG = eventualBG;
     var maxIOBPredBG = bg;
@@ -1189,13 +1163,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     rT.CR=round(carbRatio, 1);
     rT.target_bg=convert_bg(target_bg, profile);
     rT.current_target=round(target_bg, 0);
-
-    var cr_log = rT.CR;
-    if (cr_before != rT.CR) {
-        cr_log = cr_before + "\u2192" + rT.CR;
-    }
-
-    rT.reason = isfreason + ", COB: " + rT.COB + ", Dev: " + rT.deviation + ", BGI: " + rT.BGI + ", CR: " + cr_log + ", Target: " + targetLog + ", minPredBG " + convert_bg(minPredBG, profile) + ", minGuardBG " + convert_bg(minGuardBG, profile) + ", IOBpredBG " + convert_bg(lastIOBpredBG, profile);
+    rT.reason = isfreason + ", COB: " + rT.COB + ", Dev: " + rT.deviation + ", BGI: " + rT.BGI + ", CR: " + rT.CR + ", Target: " + targetLog + ", minPredBG " + convert_bg(minPredBG, profile) + ", minGuardBG " + convert_bg(minGuardBG, profile) + ", IOBpredBG " + convert_bg(lastIOBpredBG, profile);
     if (lastCOBpredBG > 0) {
         rT.reason += ", COBpredBG " + convert_bg(lastCOBpredBG, profile);
     }
@@ -1461,8 +1429,11 @@ var maxDelta_bg_threshold;
         if (minPredBG < min_bg && eventualBG > min_bg) {
             rT.manualBolusErrorString = 6;
             rT.insulinForManualBolus = round((rT.eventualBG - rT.target_bg) / sens, 2);
-            rT.minPredBG = minPredBG;
         }
+
+        // Moving this out of the if condition in L1429, so that minPredBG is becomes always available in rT object (aka Trio's determination)
+        rT.minPredBG = minPredBG;
+
         // if in SMB mode, don't cancel SMB zero temp
         if (! (microBolusAllowed && enableSMB )) {
             rT.reason += convert_bg(eventualBG, profile)+ "-" + convert_bg(minPredBG, profile) + " in range: no temp required";

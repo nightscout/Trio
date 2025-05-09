@@ -47,29 +47,27 @@ struct NightscoutUploadView: View {
                 }
             )
 
-            if state.changeUploadGlucose {
-                SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.uploadGlucose,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Upload Glucose")
-                            shouldDisplayHint = true
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: String(localized: "Upload Glucose"),
-                    miniHint: String(localized: "Enable uploading of CGM readings to Nightscout."),
-                    verboseHint: VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
-                        Text("Enabling this setting allows CGM readings from Trio to be used in Nightscout.")
+            SettingInputSection(
+                decimalValue: $decimalPlaceholder,
+                booleanValue: $state.uploadGlucose,
+                shouldDisplayHint: $shouldDisplayHint,
+                selectedVerboseHint: Binding(
+                    get: { selectedVerboseHint },
+                    set: {
+                        selectedVerboseHint = $0.map { AnyView($0) }
+                        hintLabel = String(localized: "Upload Glucose")
+                        shouldDisplayHint = true
                     }
-                )
-            }
+                ),
+                units: state.units,
+                type: .boolean,
+                label: String(localized: "Upload Glucose"),
+                miniHint: String(localized: "Enable uploading of CGM readings to Nightscout."),
+                verboseHint: VStack(alignment: .leading, spacing: 10) {
+                    Text("Default: OFF").bold()
+                    Text("Enabling this setting allows CGM readings from Trio to be used in Nightscout.")
+                }
+            )
         }
         .listSectionSpacing(sectionSpacing)
         .sheet(isPresented: $shouldDisplayHint) {

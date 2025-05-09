@@ -3,7 +3,7 @@ name: "\U0001F4A1 Feature request \U0001F4A1"
 about: Suggest an idea for this project
 title: ''
 labels: ['needs-triage']
-types: "feature"
+type: "feature"
 assignees: ''
 projects: ['nightscout/2']
 

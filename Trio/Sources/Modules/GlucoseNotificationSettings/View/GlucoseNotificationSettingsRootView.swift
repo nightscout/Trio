@@ -198,7 +198,7 @@ extension GlucoseNotificationSettings {
                                                 )
                                                 VStack(alignment: .leading, spacing: 5) {
                                                     Text("Disabled:").bold()
-                                                    Text("No Glucose Notificatitons will be triggered.")
+                                                    Text("No Glucose Notifications will be triggered.")
                                                 }
                                                 VStack(alignment: .leading, spacing: 5) {
                                                     Text("Always:").bold()

@@ -11,7 +11,7 @@ extension AutosensSettings {
         var units: GlucoseUnits = .mgdL
 
         private(set) var autosensISF: Decimal?
-        private(set) var autosensRatio: Decimal = 0
+        private(set) var autosensRatio: Decimal = 1
         @Published var determinationsFromPersistence: [OrefDetermination] = []
 
         let viewContext = CoreDataStack.shared.persistentContainer.viewContext

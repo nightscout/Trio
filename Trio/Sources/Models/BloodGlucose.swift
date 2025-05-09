@@ -79,11 +79,13 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         _id = try container.decode(String.self, forKey: ._id)
 
-        do {
-            sgv = try container.decode(Int.self, forKey: .sgv)
-        } catch {
-            // The nightscout API returns a double instead of an int
-            sgv = Int(try container.decode(Double.self, forKey: .sgv))
+        sgv = try? container.decodeIfPresent(Int.self, forKey: .sgv)
+        if sgv == nil {
+            // The nightscout API might return a double instead of an int, or the key might be missing
+            if let doubleValue = try? container.decodeIfPresent(Double.self, forKey: .sgv) {
+                sgv = Int(doubleValue)
+            }
+            // If both attempts fail, sgv remains nil
         }
 
         direction = try container.decodeIfPresent(Direction.self, forKey: .direction)
@@ -157,11 +159,13 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
     }
 }
 
-enum GlucoseUnits: String, JSON, Equatable {
+enum GlucoseUnits: String, JSON, Equatable, CaseIterable, Identifiable {
     case mgdL = "mg/dL"
     case mmolL = "mmol/L"
 
     static let exchangeRate: Decimal = 0.0555
+
+    var id: String { rawValue }
 }
 
 extension Int {

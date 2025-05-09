@@ -177,23 +177,22 @@ extension CarbRatioEditor {
             }
         }
 
-        let chartScale = Calendar.current
-            .date(from: DateComponents(year: 2001, month: 01, day: 01, hour: 0, minute: 0, second: 0))
-
+        var now = Date()
         var chart: some View {
             Chart {
                 ForEach(state.items.indexed(), id: \.1.id) { index, item in
                     let displayValue = state.rateValues[item.rateIndex]
 
-                    let tzOffset = TimeZone.current.secondsFromGMT() * -1
-                    let startDate = Date(timeIntervalSinceReferenceDate: state.timeValues[item.timeIndex])
-                        .addingTimeInterval(TimeInterval(tzOffset))
+                    let startDate = Calendar.current
+                        .startOfDay(for: now)
+                        .addingTimeInterval(state.timeValues[item.timeIndex])
                     let endDate = state.items
                         .count > index + 1 ?
-                        Date(timeIntervalSinceReferenceDate: state.timeValues[state.items[index + 1].timeIndex])
-                        .addingTimeInterval(TimeInterval(tzOffset)) :
-                        Date(timeIntervalSinceReferenceDate: state.timeValues.last!).addingTimeInterval(30 * 60)
-                        .addingTimeInterval(TimeInterval(tzOffset))
+                        Calendar.current.startOfDay(for: now)
+                        .addingTimeInterval(state.timeValues[state.items[index + 1].timeIndex])
+                        :
+                        Calendar.current.startOfDay(for: now)
+                        .addingTimeInterval(state.timeValues.last! + 30 * 60)
                     RectangleMark(
                         xStart: .value("start", startDate),
                         xEnd: .value("end", endDate),
@@ -202,8 +201,8 @@ extension CarbRatioEditor {
                     ).foregroundStyle(
                         .linearGradient(
                             colors: [
-                                Color.insulin.opacity(0.6),
-                                Color.insulin.opacity(0.1)
+                                Color.orange.opacity(0.6),
+                                Color.orange.opacity(0.1)
                             ],
                             startPoint: .bottom,
                             endPoint: .top
@@ -211,10 +210,10 @@ extension CarbRatioEditor {
                     ).alignsMarkStylesWithPlotArea()
 
                     LineMark(x: .value("End Date", startDate), y: .value("Ratio", displayValue))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.orange)
 
                     LineMark(x: .value("Start Date", endDate), y: .value("Ratio", displayValue))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.insulin)
+                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.orange)
                 }
             }
             .chartXAxis {
@@ -224,7 +223,8 @@ extension CarbRatioEditor {
                 }
             }
             .chartXScale(
-                domain: Calendar.current.startOfDay(for: chartScale!) ... Calendar.current.startOfDay(for: chartScale!)
+                domain: Calendar.current.startOfDay(for: now) ... Calendar
+                    .current.startOfDay(for: now)
                     .addingTimeInterval(60 * 60 * 24)
             )
             .chartYAxis {

@@ -76,24 +76,83 @@ import Foundation
 
                 guard let value = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? Value
                 else {
+                    debug(.storage, "[PersistedProperty:\(key)] Could not cast property list to expected type.")
                     return nil
                 }
                 return value
-            } catch {}
-            return nil
+            } catch {
+                debug(.storage, "❌ [PersistedProperty:\(key)] Failed to read value: \(error.localizedDescription)")
+                return nil
+            }
         }
         set {
             guard let newValue = newValue else {
                 do {
                     try FileManager.default.removeItem(at: storageURL)
-                } catch {}
+                    debug(.storage, "[PersistedProperty:\(key)] Removed value.")
+                } catch {
+                    debug(.storage, "❌ [PersistedProperty:\(key)] Failed to remove value: \(error.localizedDescription)")
+                }
                 return
             }
+
             do {
                 let data = try PropertyListSerialization.data(fromPropertyList: newValue, format: .binary, options: 0)
                 try data.write(to: storageURL, options: .atomic)
 
-            } catch {}
+                // Ensure appropriate protection level
+                try FileManager.default.setAttributes(
+                    [.protectionKey: FileProtectionType.none],
+                    ofItemAtPath: storageURL.path
+                )
+
+                debug(.storage, "✅ [PersistedProperty:\(key)] Saved value successfully.")
+            } catch {
+                debug(.storage, "❌ [PersistedProperty:\(key)] Failed to write value: \(error.localizedDescription)")
+            }
+        }
+    }
+}
+
+import Foundation
+
+enum FileProtectionFixer {
+    /// Ensures only critical persisted flags have safe file protection set.
+    static func fixFlagFileProtectionForPropertyPersistentFlags() {
+        let flagFiles = [
+            "onboardingCompleted.plist",
+            "diagnosticsSharing.plist",
+            "lastCleanupDate.plist"
+        ]
+
+        let fileManager = FileManager.default
+
+        guard let documentsURL = try? fileManager.url(
+            for: .documentDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: false
+        ) else {
+            debug(.storage, "⚠️ Could not access the documents directory.")
+            return
+        }
+
+        for fileName in flagFiles {
+            let fileURL = documentsURL.appendingPathComponent(fileName)
+
+            guard fileManager.fileExists(atPath: fileURL.path) else {
+                continue // Skip if file doesn’t exist yet
+            }
+
+            do {
+                try fileManager.setAttributes(
+                    [.protectionKey: FileProtectionType.none],
+                    ofItemAtPath: fileURL.path
+                )
+                debug(.storage, "✅ Updated protection for \(fileName)")
+            } catch {
+                debug(.storage, "❌ Failed to update protection for \(fileName): \(error)")
+            }
         }
     }
 }

@@ -73,8 +73,8 @@ extension Treatments {
             debounce?.cancel()
             debounce = DispatchWorkItem { [self] in
                 Task {
-                    state.insulinCalculated = await state.calculateInsulin()
                     await state.updateForecasts()
+                    state.insulinCalculated = await state.calculateInsulin()
                 }
             }
             if let debounce = debounce {
@@ -249,7 +249,7 @@ extension Treatments {
                                         Toggle(isOn: $state.useFattyMealCorrectionFactor) {
                                             Text("Fatty Meal")
                                         }
-                                        .toggleStyle(CheckboxToggleStyle())
+                                        .toggleStyle(RadioButtonToggleStyle())
                                         .font(.footnote)
                                         .onChange(of: state.useFattyMealCorrectionFactor) {
                                             Task {
@@ -264,7 +264,7 @@ extension Treatments {
                                         Toggle(isOn: $state.useSuperBolus) {
                                             Text("Super Bolus")
                                         }
-                                        .toggleStyle(CheckboxToggleStyle())
+                                        .toggleStyle(RadioButtonToggleStyle())
                                         .font(.footnote)
                                         .onChange(of: state.useSuperBolus) {
                                             Task {
@@ -336,7 +336,7 @@ extension Treatments {
                             HStack {
                                 Text("External Insulin")
                                 Spacer()
-                                Toggle("", isOn: $state.externalInsulin).toggleStyle(Checkbox())
+                                Toggle("", isOn: $state.externalInsulin).toggleStyle(CheckboxToggleStyle())
                             }
                         }.listRowBackground(Color.chart)
 

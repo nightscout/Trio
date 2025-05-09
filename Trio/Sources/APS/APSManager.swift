@@ -49,6 +49,17 @@ enum APSError: LocalizedError {
             return String(localized: "Manual Temporary Basal Rate (\(message)). Looping suspended.")
         }
     }
+
+    static func pumpErrorMatches(message: String) -> Bool {
+        message.contains(String(localized: "Pump Error"))
+    }
+
+    static func pumpWarningMatches(message: String) -> Bool {
+        message.contains(String(localized: "Invalid Pump State")) || message
+            .contains("PumpMessage") || message
+            .contains("PumpOpsError") || message.contains("RileyLink") || message
+            .contains(String(localized: "Pump did not respond in time"))
+    }
 }
 
 final class BaseAPSManager: APSManager, Injectable {
@@ -519,7 +530,10 @@ final class BaseAPSManager: APSManager, Injectable {
             return
         }
 
-        guard let pump = pumpManager else { return }
+        guard let pump = pumpManager else {
+            callback?(false, String(localized: "Error! Failed to enact bolus.", comment: "Error message for enacting a bolus"))
+            return
+        }
 
         let roundedAmount = pump.roundToSupportedBolusVolume(units: amount)
 
@@ -547,7 +561,7 @@ final class BaseAPSManager: APSManager, Injectable {
             }
             callback?(
                 false,
-                String(localized: "Error! Failed to enact bolus.", comment: "Error message for failing to enact a bolus")
+                String(localized: "Error! Bolus failed with error: \(error.localizedDescription)")
             )
         }
     }
@@ -564,7 +578,10 @@ final class BaseAPSManager: APSManager, Injectable {
             processError(APSError.pumpError(error))
             callback?(
                 false,
-                String(localized: "Error! Bolus cancellation failed.", comment: "Error message for canceling a bolus")
+                String(
+                    localized: "Error! Bolus cancellation failed with error: \(error.localizedDescription)",
+                    comment: "Error message for canceling a bolus"
+                )
             )
         }
         bolusReporter?.removeObserver(self)
