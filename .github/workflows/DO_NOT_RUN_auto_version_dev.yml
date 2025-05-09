@@ -33,11 +33,12 @@ on:
 
 jobs:
   bump-version:
+    if: github.repository_owner == 'nightscout'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Git
         run: |
