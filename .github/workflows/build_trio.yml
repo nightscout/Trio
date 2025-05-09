@@ -47,7 +47,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           ALIVE_EXISTS=$(gh api /repos/${{ github.repository_owner }}/Trio/branches | jq '[.[] | select(.name=="alive-main" or .name=="alive-dev")] | length')
-          if [[ "$ALIVE_EXISTS" -ge 1 ]]; then
+          if [[ "${ALIVE_EXISTS}" -ge 1 ]]; then
             echo "ALIVE_BRANCH_EXISTS=true" >> $GITHUB_ENV
           else
             echo "ALIVE_BRANCH_EXISTS=false" >> $GITHUB_ENV
