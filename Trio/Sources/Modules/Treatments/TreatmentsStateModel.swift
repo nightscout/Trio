@@ -161,22 +161,26 @@ extension Treatments {
         }
 
         deinit {
-            // Unregister from broadcaster
-            if let broadcaster = broadcaster {
-                broadcaster.unregister(DeterminationObserver.self, observer: self)
-                broadcaster.unregister(BolusFailureObserver.self, observer: self)
-            }
+            debug(.bolusState, "StateModel deinit called")
+        }
 
-            // Cancel Combine subscriptions
+        private var hasCleanedUp = false
+
+        func cleanupTreatmentState() {
+            guard !hasCleanedUp else { return }
+            hasCleanedUp = true
+
             unsubscribe()
-
             bolusProgressCancellable?.cancel()
 
-            debug(.bolusState, "Bolus.StateModel deinitialized")
+            broadcaster?.unregister(DeterminationObserver.self, observer: self)
+            broadcaster?.unregister(BolusFailureObserver.self, observer: self)
+
+            debug(.bolusState, "StateModel cleanup() finished")
         }
 
         private func setupBolusStateConcurrently() {
-            debug(.bolusState, "setupBolusStateConcurrently fired")
+            debug(.bolusState, "Setting up bolus state concurrently...")
             Task {
                 do {
                     try await withThrowingTaskGroup(of: Void.self) { group in
