@@ -14,7 +14,7 @@ struct DiagnosticsStepView: View {
 
             ForEach(DiagnosticsSharingOption.allCases, id: \.self) { option in
                 Button(action: {
-                    state.diagnosticsSharingOption = option
+                    state.updateDiagnosticsOption(to: option)
                 }) {
                     HStack {
                         Image(systemName: state.diagnosticsSharingOption == option ? "largecircle.fill.circle" : "circle")
@@ -82,6 +82,9 @@ struct DiagnosticsStepView: View {
             .padding(.horizontal)
             .font(.footnote)
             .foregroundStyle(Color.secondary)
+        }
+        .onAppear {
+            state.syncDiagnosticsOptionFromStorage()
         }
         .sheet(isPresented: $shouldDisplayPrivacyPolicy) {
             PrivacyPolicyView()

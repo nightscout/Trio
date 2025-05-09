@@ -220,37 +220,6 @@ extension AlgorithmAdvancedSettings {
                 )
 
                 SettingInputSection(
-                    decimalValue: $decimalPlaceholder,
-                    booleanValue: $state.suspendZerosIOB,
-                    shouldDisplayHint: $shouldDisplayHint,
-                    selectedVerboseHint: Binding(
-                        get: { selectedVerboseHint },
-                        set: {
-                            selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Suspend Zeros IOB", comment: "Suspend Zeros IOB")
-                        }
-                    ),
-                    units: state.units,
-                    type: .boolean,
-                    label: String(localized: "Suspend Zeros IOB", comment: "Suspend Zeros IOB"),
-                    miniHint: String(
-                        localized: "Clear temporary basal rates and reset IOB when suspended.",
-                        comment: "Mini Hint for Suspend Zeros IOB"
-                    ),
-                    verboseHint:
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Default: OFF").bold()
-                        Text(
-                            "When Suspend Zeros IOB is enabled, any active temporary basal rates during a pump suspension are reset, with new 0 U/hr temporary basal rates added to counteract those done during suspension."
-                        )
-                        Text(
-                            "This prevents lingering insulin effects when your pump is suspended, ensuring safer management of insulin on board."
-                        )
-                        Text("Note: Applies only to pumps with on-pump suspend options.")
-                    }
-                )
-
-                SettingInputSection(
                     decimalValue: $state.smbDeliveryRatio,
                     booleanValue: $booleanPlaceholder,
                     shouldDisplayHint: $shouldDisplayHint,
