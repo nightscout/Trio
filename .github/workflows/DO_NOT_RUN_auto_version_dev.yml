@@ -71,7 +71,11 @@ jobs:
           ESCAPED_CURRENT_VERSION=$(echo "$CURRENT_VERSION" | sed 's/\./\\./g')
 
           # Replace the APP_VERSION line in-place with new version
-          sed -i '' -E "s/APP_VERSION *= *$ESCAPED_CURRENT_VERSION/APP_VERSION = $NEW_VERSION/" "$FILE"
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' -E "s/APP_VERSION *= *$ESCAPED_CURRENT_VERSION/APP_VERSION = $NEW_VERSION/" "$FILE"
+          else
+            sed -i -E "s/APP_VERSION *= *$ESCAPED_CURRENT_VERSION/APP_VERSION = $NEW_VERSION/" "$FILE"
+          fi
 
           # Export version so it's available in the next step
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
