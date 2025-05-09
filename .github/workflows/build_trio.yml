@@ -2,10 +2,11 @@ name: 4. Build Trio
 run-name: Build Trio (${{ github.ref_name }})
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
   schedule:
-    - cron: "0 8 * * 3"    # 매주 수요일 08:00 UTC
-    - cron: "0 6 1 * *"    # 매월 1일 06:00 UTC
+    - cron: "0 8 * * 3"
+    - cron: "0 6 1 * *"
+
 
 env:
   UPSTREAM_REPO: nightscout/Trio
