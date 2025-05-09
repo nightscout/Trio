@@ -17,7 +17,7 @@ env:
 jobs:
   check_certs:
     name: Check certificates
-    uses: ./.github/workflows/create-certs.yml
+    uses: ./.github/workflows/create_certs.yml
     secrets: inherit
 
   check_alive_and_permissions:
