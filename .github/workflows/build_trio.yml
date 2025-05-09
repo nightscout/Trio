@@ -121,7 +121,6 @@ jobs:
     name: Build
     needs: [check_certs, check_alive_and_permissions, check_latest_from_upstream]
 HEAD
-fix/ci
 -    runs-on: macos-15
      runs-on: macos-15
 main
