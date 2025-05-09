@@ -78,7 +78,16 @@ extension Settings {
                     Section(
                         header: Text("BRANCH: \(buildDetails.branchAndSha)").textCase(nil),
                         content: {
-                            let versionNumber = Bundle.main.releaseVersionNumber ?? String(localized: "Unknown")
+                            var versionNumber: String {
+                                let releaseVersion = Bundle.main.releaseVersionNumber ?? String(localized: "Unknown")
+                                let devVersion = Bundle.main.appDevVersion ?? String(localized: "Unknown")
+
+                                if releaseVersion == devVersion {
+                                    return releaseVersion
+                                } else {
+                                    return devVersion
+                                }
+                            }
                             let buildNumber = Bundle.main.buildVersionNumber ?? String(localized: "Unknown")
 
                             NavigationLink(destination: SubmodulesView(buildDetails: buildDetails)) {

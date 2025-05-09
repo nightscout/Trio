@@ -115,9 +115,20 @@ extension Notification.Name {
             "\(key): \(value.branch) \(value.commitSHA)"
         }.joined(separator: ", ")
 
+        var versionNumber: String {
+            let releaseVersion = Bundle.main.releaseVersionNumber ?? "unknown"
+            let devVersion = Bundle.main.appDevVersion ?? "unknown"
+
+            if releaseVersion == devVersion {
+                return releaseVersion
+            } else {
+                return devVersion
+            }
+        }
+
         debug(
             .default,
-            "Trio Started: v\(Bundle.main.releaseVersionNumber ?? "")(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.shared.buildDate()))] [buildExpires: \(String(describing: BuildDetails.shared.calculateExpirationDate()))] [Branch: \(BuildDetails.shared.branchAndSha)] [submodules: \(submodulesInfo)]"
+            "Trio Started: v\(versionNumber)(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.shared.buildDate()))] [buildExpires: \(String(describing: BuildDetails.shared.calculateExpirationDate()))] [Branch: \(BuildDetails.shared.branchAndSha)] [submodules: \(submodulesInfo)]"
         )
         // Fix bug in iOS 18 related to the translucent tab bar
         configureTabBarAppearance()
@@ -445,5 +456,11 @@ extension Notification.Name {
             resolver.resolve(NotificationCenter.self)!.post(name: .openFromGarminConnect, object: url)
         default: break
         }
+    }
+}
+
+public extension Bundle {
+    var appDevVersion: String? {
+        object(forInfoDictionaryKey: "AppDevVersion") as? String
     }
 }
