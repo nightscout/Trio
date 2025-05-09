@@ -1,14 +1,11 @@
 name: 4. Build Trio
 run-name: Build Trio (${{ github.ref_name }})
 on:
-  workflow_dispatch:
-
-  ## Remove the "#" sign from the beginning of the line below to get automated builds on push (code changes in your repository)
-  #push:
-
+  workflow_dispatch: {}
   schedule:
-    - cron: '0 8 * * 3' # Checks for updates at 08:00 UTC every Wednesday
-    - cron: '0 6 1 * *' # Builds the app on the 1st of every month at 06:00 UTC
+    - cron: "0 8 * * 3"
+    - cron: "0 6 1 * *"
+
 
 env:
   UPSTREAM_REPO: nightscout/Trio
