@@ -2,9 +2,7 @@ import SwiftUI
 
 struct NightscoutImportStepView: View {
     @Bindable var state: Onboarding.StateModel
-
-    @State var importAlert: Alert?
-    @State var isImportAlertPresented: Bool = false
+    @State private var activeImportError: NightscoutImportError?
 
     var body: some View {
         ZStack {
@@ -71,20 +69,21 @@ struct NightscoutImportStepView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .alert(isPresented: $isImportAlertPresented) {
-            if state.nightscoutImportStatus == .failed, state.nightscoutImportErrors.isNotEmpty,
-               let errorMessage = state.nightscoutImportErrors.first
-            {
-                DispatchQueue.main.async {
-                    importAlert = Alert(
-                        title: Text("Import Failed"),
-                        message: Text(errorMessage.description),
-                        dismissButton: .default(Text("OK"))
-                    )
-                    isImportAlertPresented = true
-                }
+        .alert(item: $activeImportError) { error in
+            Alert(
+                title: Text("Import Failed"),
+                message: Text(
+                    error
+                        .message + "\n\n" +
+                        String(localized: "Try again in a moment, or configure your Therapy Settings manually instead.")
+                ),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+        .onChange(of: state.nightscoutImportStatus) { _, newStatus in
+            if newStatus == .failed {
+                activeImportError = state.nightscoutImportError
             }
-            return importAlert ?? Alert(title: Text("Unknown Error"))
         }
     }
 }

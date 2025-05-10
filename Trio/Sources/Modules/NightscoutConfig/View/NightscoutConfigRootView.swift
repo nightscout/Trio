@@ -7,9 +7,6 @@ extension NightscoutConfig {
         let resolver: Resolver
         let displayClose: Bool
         @StateObject var state = StateModel()
-        @State var importAlert: Alert?
-        @State var isImportAlertPresented = false
-        @State var importedHasRun = false
         @State private var shouldDisplayHint: Bool = false
         @State var hintDetent = PresentationDetent.large
         @State var selectedVerboseHint: AnyView?
