@@ -141,7 +141,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                     } catch {
                         debug(
                             .watchManager,
-                            "\(DebuggingIdentifiers.failed) Error updating watch state: \(error.localizedDescription)"
+                            "\(DebuggingIdentifiers.failed) Error updating watch state: \(error)"
                         )
                     }
                 }
@@ -168,7 +168,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                     } catch {
                         debug(
                             .watchManager,
-                            "\(DebuggingIdentifiers.failed) failed to update watch state: \(error.localizedDescription)"
+                            "\(DebuggingIdentifiers.failed) failed to update watch state: \(error)"
                         )
                     }
                 }
@@ -188,7 +188,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
                     } catch {
                         debug(
                             .watchManager,
-                            "\(DebuggingIdentifiers.failed) failed to update watch state: \(error.localizedDescription)"
+                            "\(DebuggingIdentifiers.failed) failed to update watch state: \(error)"
                         )
                     }
                 }
@@ -315,7 +315,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         } catch {
             debug(
                 .watchManager,
-                "\(DebuggingIdentifiers.failed) Error setting up Garmin watch state: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Error setting up Garmin watch state: \(error)"
             )
             throw error
         }
@@ -610,7 +610,7 @@ extension BaseGarminManager: SettingsObserver {
             } catch {
                 debug(
                     .watchManager,
-                    "\(DebuggingIdentifiers.failed) failed to send watch state data: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) failed to send watch state data: \(error)"
                 )
             }
         }

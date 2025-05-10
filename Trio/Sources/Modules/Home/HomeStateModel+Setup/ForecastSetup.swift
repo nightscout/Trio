@@ -23,7 +23,7 @@ extension Home.StateModel {
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Failed to preprocess forecast data: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Failed to preprocess forecast data: \(error)"
             )
             return []
         }

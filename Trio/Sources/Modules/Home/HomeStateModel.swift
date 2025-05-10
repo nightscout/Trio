@@ -335,7 +335,7 @@ extension Home {
                 .map { [weak self] error in
                     self?.errorDate = error == nil ? nil : Date()
                     if let error = error {
-                        info(.default, error.localizedDescription)
+                        info(.default, error)
                     }
                     return error?.localizedDescription
                 }

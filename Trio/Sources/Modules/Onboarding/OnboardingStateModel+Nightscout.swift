@@ -165,7 +165,7 @@ extension Onboarding.StateModel {
             await MainActor.run {
                 self.nightscoutImportError = NightscoutImportError(message: error.localizedDescription)
                 self.nightscoutImportStatus = .failed
-                debug(.service, "Settings import failed with error: \(error.localizedDescription)")
+                debug(.service, "Settings import failed with error: \(error)")
             }
         }
     }

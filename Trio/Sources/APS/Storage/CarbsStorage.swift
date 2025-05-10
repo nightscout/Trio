@@ -334,7 +334,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 }
 
             } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry: \(error.localizedDescription)")
+                debugPrint("\(DebuggingIdentifiers.failed) Error deleting carb entry: \(error)")
             }
         }
     }

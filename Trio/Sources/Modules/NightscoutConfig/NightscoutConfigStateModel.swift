@@ -63,7 +63,7 @@ extension NightscoutConfig {
                             } catch {
                                 debug(
                                     .default,
-                                    "\(DebuggingIdentifiers.failed) failed to upload profiles: \(error.localizedDescription)"
+                                    "\(DebuggingIdentifiers.failed) failed to upload profiles: \(error)"
                                 )
                             }
                         }
@@ -152,10 +152,10 @@ extension NightscoutConfig {
                         await self.healthKitManager.uploadGlucose()
                     }
                 } catch let error as CoreDataError {
-                    debug(.nightscout, "Core Data error while storing backfilled glucose: \(error.localizedDescription)")
+                    debug(.nightscout, "Core Data error while storing backfilled glucose: \(error)")
                     message = "Error: \(error.localizedDescription)"
                 } catch {
-                    debug(.nightscout, "Unexpected error while storing backfilled glucose: \(error.localizedDescription)")
+                    debug(.nightscout, "Unexpected error while storing backfilled glucose: \(error)")
                     message = "Error: \(error.localizedDescription)"
                 }
             } else {

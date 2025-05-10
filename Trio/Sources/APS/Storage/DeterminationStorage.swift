@@ -55,7 +55,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                 return forecasts.map(\.objectID) as [NSManagedObjectID]
             } catch {
                 debugPrint(
-                    "Failed \(DebuggingIdentifiers.failed) to fetch Forecast IDs for OrefDetermination with ID \(determinationID): \(error.localizedDescription)"
+                    "Failed \(DebuggingIdentifiers.failed) to fetch Forecast IDs for OrefDetermination with ID \(determinationID): \(error)"
                 )
                 return []
             }
@@ -74,7 +74,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                 return forecastValues.map(\.objectID)
             } catch {
                 debugPrint(
-                    "Failed \(DebuggingIdentifiers.failed) to fetch Forecast Value IDs with ID \(forecastID): \(error.localizedDescription)"
+                    "Failed \(DebuggingIdentifiers.failed) to fetch Forecast Value IDs with ID \(forecastID): \(error)"
                 )
                 return []
             }
@@ -102,7 +102,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                 }
             } catch {
                 debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast Values with error: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast Values with error: \(error)"
                 )
             }
             return (data.id, forecast, forecastValues)
@@ -196,7 +196,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                 }
             } catch {
                 debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch managed object with error: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch managed object with error: \(error)"
                 )
             }
 

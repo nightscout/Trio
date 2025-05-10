@@ -167,7 +167,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) failed to fetch and map determination: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) failed to fetch and map determination: \(error)"
                 )
             }
         }
@@ -182,7 +182,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
                     await self.updateContentState(determination)
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch and map override: \(error.localizedDescription)")
+                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch and map override: \(error)")
             }
         }
     }

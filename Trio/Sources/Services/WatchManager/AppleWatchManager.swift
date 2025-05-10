@@ -327,7 +327,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         } catch {
             debug(
                 .watchManager,
-                "\(DebuggingIdentifiers.failed) Error setting up watch state: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Error setting up watch state: \(error)"
             )
             // Return empty state in case of error
             return WatchState(date: Date())
@@ -388,7 +388,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Error getting active bolus amount: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Error getting active bolus amount: \(error)"
             )
         }
     }
@@ -471,7 +471,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         // if session is not reachable, it means it's in background -> send watchState as userInfo
         if session.isReachable {
             session.sendMessage([WatchMessageKeys.watchState: message], replyHandler: nil) { error in
-                debug(.watchManager, "❌ Error sending watch state: \(error.localizedDescription)")
+                debug(.watchManager, "❌ Error sending watch state: \(error)")
             }
             WatchStateSnapshot.saveLatestDateToDisk(state.date)
         } else {
@@ -494,7 +494,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         ]
 
         session.sendMessage(ackMessage, replyHandler: nil) { error in
-            debug(.watchManager, "❌ Error sending acknowledgment: \(error.localizedDescription)")
+            debug(.watchManager, "❌ Error sending acknowledgment: \(error)")
         }
     }
 
@@ -502,7 +502,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         if let error = error {
-            debug(.watchManager, "📱 Phone session activation failed: \(error.localizedDescription)")
+            debug(.watchManager, "📱 Phone session activation failed: \(error)")
             return
         }
 
@@ -611,9 +611,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         }
 
                     } catch let error as CoreDataError {
-                        debug(.default, "Core Data error: \(error.localizedDescription)")
+                        debug(.default, "Core Data error: \(error)")
                     } catch {
-                        debug(.default, "Unexpected error: \(error.localizedDescription)")
+                        debug(.default, "Unexpected error: \(error)")
                     }
 
                     // Get recommendation from BolusCalculationManager
@@ -726,7 +726,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         ackCode: .carbsLogged
                     )
                 } catch {
-                    debug(.watchManager, "❌ Error saving carbs: \(error.localizedDescription)")
+                    debug(.watchManager, "❌ Error saving carbs: \(error)")
 
                     // Acknowledge failure
                     self.sendAcknowledgment(toWatch: false, message: "Error logging carbs", ackCode: .genericFailure)
@@ -807,7 +807,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 )
 
             } catch {
-                debug(.watchManager, "❌ Error processing combined request: \(error.localizedDescription)")
+                debug(.watchManager, "❌ Error processing combined request: \(error)")
                 sendAcknowledgment(toWatch: false, message: "Failed to log carbs and bolus", ackCode: .genericFailure)
             }
         }
@@ -852,7 +852,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                                 ackCode: .overrideStopped
                             )
                         } catch {
-                            debug(.watchManager, "❌ Error cancelling override: \(error.localizedDescription)")
+                            debug(.watchManager, "❌ Error cancelling override: \(error)")
                             // Acknowledge cancellation error
                             self.sendAcknowledgment(toWatch: false, message: "Error stopping Override.", ackCode: .genericFailure)
                         }
@@ -900,7 +900,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     debug(.watchManager, "📱 Currently no override is active... proceeding to activate override: \(presetName)")
                 }
             } catch {
-                debug(.watchManager, "❌ Error while checking for active override: \(error.localizedDescription)")
+                debug(.watchManager, "❌ Error while checking for active override: \(error)")
                 self.sendAcknowledgment(
                     toWatch: false,
                     message: "Failed to load active override.",
@@ -952,7 +952,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         ackCode: .overrideStarted
                     )
                 } catch {
-                    debug(.watchManager, "❌ Error activating override: \(error.localizedDescription)")
+                    debug(.watchManager, "❌ Error activating override: \(error)")
                     // Acknowledge activation error
                     self.sendAcknowledgment(
                         toWatch: false,
@@ -1040,7 +1040,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                             ackCode: .tempTargetStarted
                         )
                     } catch {
-                        debug(.watchManager, "❌ Error activating temp target: \(error.localizedDescription)")
+                        debug(.watchManager, "❌ Error activating temp target: \(error)")
                         // Acknowledge activation error
                         self.sendAcknowledgment(
                             toWatch: false,
@@ -1095,7 +1095,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                                 ackCode: .tempTargetStopped
                             )
                         } catch {
-                            debug(.watchManager, "❌ Error stopping temp target: \(error.localizedDescription)")
+                            debug(.watchManager, "❌ Error stopping temp target: \(error)")
                             // Acknowledge cancellation error
                             self.sendAcknowledgment(
                                 toWatch: false,

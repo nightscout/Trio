@@ -307,7 +307,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
 
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to create calendar event: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to create calendar event: \(error)"
             )
         }
     }

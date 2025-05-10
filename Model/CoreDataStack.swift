@@ -114,7 +114,7 @@ class CoreDataStack: ObservableObject {
         do {
             try await fetchPersistentHistoryTransactionsAndChanges()
         } catch {
-            debug(.coreData, "\(error.localizedDescription)")
+            debug(.coreData, "\(error)")
         }
     }
 
@@ -162,7 +162,7 @@ class CoreDataStack: ObservableObject {
             } catch {
                 debug(
                     .coreData,
-                    "\(DebuggingIdentifiers.failed) Failed to delete persistent history from before \(date): \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Failed to delete persistent history from before \(date): \(error)"
                 )
             }
         }
@@ -194,7 +194,7 @@ class CoreDataStack: ObservableObject {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             persistentContainer.loadPersistentStores { storeDescription, error in
                 if let error = error {
-                    warning(.coreData, "Failed to load persistent stores: \(error.localizedDescription)")
+                    warning(.coreData, "Failed to load persistent stores: \(error)")
                     continuation.resume(throwing: error)
                 } else {
                     debug(.coreData, "Successfully loaded persistent store: \(storeDescription.url?.absoluteString ?? "unknown")")
@@ -242,7 +242,7 @@ class CoreDataStack: ObservableObject {
             debug(.coreData, "Core Data stack initialized successfully")
 
         } catch {
-            debug(.coreData, "Failed to initialize Core Data stack: \(error.localizedDescription)")
+            debug(.coreData, "Failed to initialize Core Data stack: \(error)")
 
             // If we still have retries left, try again after a delay
             if retryCount < maxRetries {
@@ -280,7 +280,7 @@ extension CoreDataStack {
                 try viewContext.save()
                 debug(.coreData, "Successfully deleted data. \(DebuggingIdentifiers.succeeded)")
             } catch {
-                debug(.coreData, "Failed to delete data: \(error.localizedDescription)")
+                debug(.coreData, "Failed to delete data: \(error)")
             }
         }
     }
@@ -339,7 +339,7 @@ extension CoreDataStack {
 
             debug(.coreData, "Successfully deleted data older than \(days) days. \(DebuggingIdentifiers.succeeded)")
         } catch {
-            debug(.coreData, "Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
+            debug(.coreData, "Failed to fetch or delete data: \(error) \(DebuggingIdentifiers.failed)")
             throw CoreDataError.unexpectedError(error: error, function: callingFunction, file: callingClass)
         }
     }
@@ -406,7 +406,7 @@ extension CoreDataStack {
                 "Successfully deleted \(childType) data related to \(parentType) objects older than \(days) days. \(DebuggingIdentifiers.succeeded)"
             )
         } catch {
-            debug(.coreData, "Failed to fetch or delete data: \(error.localizedDescription) \(DebuggingIdentifiers.failed)")
+            debug(.coreData, "Failed to fetch or delete data: \(error) \(DebuggingIdentifiers.failed)")
             throw CoreDataError.unexpectedError(error: error, function: callingFunction, file: callingClass)
         }
     }

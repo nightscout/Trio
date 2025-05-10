@@ -70,7 +70,7 @@ extension Stat.StateModel {
                     self.loopStats = stats
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch loop stats: \(error.localizedDescription)")
+                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch loop stats: \(error)")
             }
         }
     }

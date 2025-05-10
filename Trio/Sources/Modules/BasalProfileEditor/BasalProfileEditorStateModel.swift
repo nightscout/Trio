@@ -98,7 +98,7 @@ extension BasalProfileEditor {
                                 debug(.nightscout, "Attempting to upload basal rates to Nightscout")
                                 try await self.nightscout.uploadProfiles()
                             } catch {
-                                debug(.default, "Failed to upload basal rates to Nightscout: \(error.localizedDescription)")
+                                debug(.default, "Failed to upload basal rates to Nightscout: \(error)")
                             }
                         }
                     case .failure:

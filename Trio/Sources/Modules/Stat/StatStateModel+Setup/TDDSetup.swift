@@ -25,7 +25,7 @@ extension Stat.StateModel {
                 // Initially calculate and cache daily averages
                 await calculateAndCacheTDDAverages()
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed fetching TDD stats: \(error.localizedDescription)")
+                debug(.default, "\(DebuggingIdentifiers.failed) failed fetching TDD stats: \(error)")
             }
         }
     }

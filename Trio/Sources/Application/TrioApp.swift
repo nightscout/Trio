@@ -162,7 +162,7 @@ extension Notification.Name {
             } catch {
                 debug(
                     .coreData,
-                    "\(DebuggingIdentifiers.failed) Failed to initialize Core Data Stack: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Failed to initialize Core Data Stack: \(error)"
                 )
 
                 await MainActor.run {

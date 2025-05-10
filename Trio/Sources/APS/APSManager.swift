@@ -144,7 +144,7 @@ final class BaseAPSManager: APSManager, Injectable {
                     } catch {
                         debug(
                             .apsManager,
-                            "\(DebuggingIdentifiers.failed) Error creating profiles: \(error.localizedDescription)"
+                            "\(DebuggingIdentifiers.failed) Error creating profiles: \(error)"
                         )
                     }
                 }
@@ -226,7 +226,7 @@ final class BaseAPSManager: APSManager, Injectable {
                 updatedStats.duration = roundDouble((updatedStats.end! - updatedStats.start).timeInterval / 60, 2)
                 updatedStats.loopStatus = error.localizedDescription
                 await loopCompleted(error: error, loopStatRecord: updatedStats)
-                debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to complete Loop: \(error.localizedDescription)")
+                debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to complete Loop: \(error)")
             }
 
             // Cleanup background task
@@ -332,7 +332,7 @@ final class BaseAPSManager: APSManager, Injectable {
         isLooping.send(false)
 
         if let error = error {
-            warning(.apsManager, "Loop failed with error: \(error.localizedDescription)")
+            warning(.apsManager, "Loop failed with error: \(error)")
             if let backgroundTask = backgroundTaskID {
                 await UIApplication.shared.endBackgroundTask(backgroundTask)
                 backgroundTaskID = .invalid
@@ -543,7 +543,7 @@ final class BaseAPSManager: APSManager, Injectable {
             bolusProgress.send(0)
             callback?(true, String(localized: "Bolus enacted successfully.", comment: "Success message for enacting a bolus"))
         } catch {
-            warning(.apsManager, "Bolus failed with error: \(error.localizedDescription)")
+            warning(.apsManager, "Bolus failed with error: \(error)")
             processError(APSError.pumpError(error))
             if !isSMB {
                 // Use MainActor to handle broadcaster notification
@@ -569,7 +569,7 @@ final class BaseAPSManager: APSManager, Injectable {
             debug(.apsManager, "Bolus cancelled")
             callback?(true, String(localized: "Bolus cancelled successfully.", comment: "Success message for canceling a bolus"))
         } catch {
-            debug(.apsManager, "Bolus cancellation failed with error: \(error.localizedDescription)")
+            debug(.apsManager, "Bolus cancellation failed with error: \(error)")
             processError(APSError.pumpError(error))
             callback?(
                 false,
@@ -606,7 +606,7 @@ final class BaseAPSManager: APSManager, Injectable {
             try await pump.enactTempBasal(unitsPerHour: roundedAmout, for: duration)
             debug(.apsManager, "Temp Basal succeeded")
         } catch {
-            debug(.apsManager, "Temp Basal failed with error: \(error.localizedDescription)")
+            debug(.apsManager, "Temp Basal failed with error: \(error)")
             processError(APSError.pumpError(error))
         }
     }
@@ -733,7 +733,7 @@ final class BaseAPSManager: APSManager, Injectable {
         } catch {
             debug(
                 .apsManager,
-                "\(DebuggingIdentifiers.failed) Error reporting enacted status: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Error reporting enacted status: \(error)"
             )
         }
     }
@@ -1125,7 +1125,7 @@ final class BaseAPSManager: APSManager, Injectable {
         } catch {
             debug(
                 .apsManager,
-                "\(DebuggingIdentifiers.failed) Error fetching glucose for stats: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Error fetching glucose for stats: \(error)"
             )
             return nil
         }
@@ -1150,7 +1150,7 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     private func processError(_ error: Error) {
-        warning(.apsManager, "\(error.localizedDescription)")
+        warning(.apsManager, "\(error)")
         lastError.send(error)
     }
 

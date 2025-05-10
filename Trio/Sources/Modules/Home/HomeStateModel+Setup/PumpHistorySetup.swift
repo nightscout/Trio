@@ -12,7 +12,7 @@ extension Home.StateModel {
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) Error setting up insulin array: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Error setting up insulin array: \(error)"
                 )
             }
         }
@@ -62,7 +62,7 @@ extension Home.StateModel {
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) Error setting up last bolus: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Error setting up last bolus: \(error)"
                 )
             }
         }
@@ -92,7 +92,7 @@ extension Home.StateModel {
             lastPumpBolus = try viewContext.existingObject(with: ID) as? PumpEventStored
         } catch {
             debugPrint(
-                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the insulin array: \(error.localizedDescription)"
+                "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the insulin array: \(error)"
             )
         }
     }

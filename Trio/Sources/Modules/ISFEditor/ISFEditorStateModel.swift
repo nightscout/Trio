@@ -105,7 +105,7 @@ extension ISFEditor {
                 } catch {
                     debug(
                         .default,
-                        "\(DebuggingIdentifiers.failed) Faile to upload ISF to Nightscout: \(error.localizedDescription)"
+                        "\(DebuggingIdentifiers.failed) Faile to upload ISF to Nightscout: \(error)"
                     )
                 }
             }

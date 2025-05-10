@@ -12,7 +12,7 @@ extension Home.StateModel {
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) Error setting up tempTargetStored: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Error setting up tempTargetStored: \(error)"
                 )
             }
         }
@@ -50,7 +50,7 @@ extension Home.StateModel {
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) Error setting up temp targetsRunStored: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Error setting up temp targetsRunStored: \(error)"
                 )
             }
         }

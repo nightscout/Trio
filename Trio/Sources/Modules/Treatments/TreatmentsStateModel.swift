@@ -197,7 +197,7 @@ extension Treatments {
                         try await group.waitForAll()
                     }
                 } catch let error as NSError {
-                    debug(.default, "Failed to setup bolus state concurrently: \(error.localizedDescription)")
+                    debug(.default, "Failed to setup bolus state concurrently: \(error)")
                 }
             }
         }
@@ -553,7 +553,7 @@ extension Treatments {
                     try await apsManager.determineBasalSync()
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Failed to save carbs: \(error.localizedDescription)")
+                debug(.default, "\(DebuggingIdentifiers.failed) Failed to save carbs: \(error)")
             }
         }
 
@@ -669,7 +669,7 @@ extension Treatments.StateModel {
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) Error setting up glucose array: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Error setting up glucose array: \(error)"
                 )
             }
         }
@@ -737,9 +737,9 @@ extension Treatments.StateModel {
 
             updateDeterminationsArray(with: determinationObjects)
         } catch let error as CoreDataError {
-            debug(.default, "Core Data error: \(error.localizedDescription)")
+            debug(.default, "Core Data error: \(error)")
         } catch {
-            debug(.default, "Unexpected error: \(error.localizedDescription)")
+            debug(.default, "Unexpected error: \(error)")
         }
     }
 
@@ -788,7 +788,7 @@ extension Treatments.StateModel {
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Error mapping forecasts for chart: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Error mapping forecasts for chart: \(error)"
             )
             return nil
         }

@@ -158,7 +158,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                 guard self.privateContext.hasChanges else { return }
                 try self.privateContext.save()
             } catch {
-                debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to save TDD: \(error.localizedDescription)")
+                debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to save TDD: \(error)")
             }
         }
     }
