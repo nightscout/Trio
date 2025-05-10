@@ -104,8 +104,8 @@ extension Onboarding {
         var isValidNightscoutURL: Bool = false
         var isConnectingToNS: Bool = false
         var isConnectedToNS: Bool = false
-        var nightscoutImportErrors: [String] = []
-        var nightscoutImportStatus: ImportStatus = .finished
+        var nightscoutImportError: NightscoutImportError?
+        var nightscoutImportStatus: ImportStatus = .none
 
         // MARK: - Units and Pump Omboarding Option
 

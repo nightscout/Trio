@@ -65,7 +65,7 @@ extension Onboarding.StateModel {
                 throw NSError(
                     domain: "ImportError",
                     code: 1,
-                    userInfo: [NSLocalizedDescriptionKey: "Cannot find the default Nightscout Profile."]
+                    userInfo: [NSLocalizedDescriptionKey: "Cannot find the Nightscout Profile named \"default\"."]
                 )
             }
 
@@ -178,7 +178,8 @@ extension Onboarding.StateModel {
             )
         } catch {
             await MainActor.run {
-                self.nightscoutImportErrors.append(error.localizedDescription)
+                nightscoutImportStatus = .failed
+                self.nightscoutImportError = NightscoutImportError(message: error.localizedDescription)
                 debug(.service, "Settings import failed with error: \(error.localizedDescription)")
             }
         }
@@ -259,8 +260,14 @@ extension Onboarding.StateModel {
     }
 
     enum ImportStatus {
+        case none
         case running
         case finished
         case failed
     }
+}
+
+struct NightscoutImportError: Identifiable {
+    let id = UUID()
+    let message: String
 }
