@@ -59,9 +59,6 @@ extension Onboarding.StateModel {
 
         do {
             guard let fetchedProfile = await nightscoutManager.importSettings() else {
-                await MainActor.run {
-                    nightscoutImportStatus = .failed
-                }
                 throw NSError(
                     domain: "ImportError",
                     code: 1,
@@ -83,9 +80,6 @@ extension Onboarding.StateModel {
             }
 
             if carbratios.contains(where: { $0.ratio <= 0 }) {
-                await MainActor.run {
-                    nightscoutImportStatus = .failed
-                }
                 throw NSError(
                     domain: "ImportError",
                     code: 2,
@@ -105,9 +99,6 @@ extension Onboarding.StateModel {
             }
 
             if basals.contains(where: { $0.rate <= 0 }) {
-                await MainActor.run {
-                    nightscoutImportStatus = .failed
-                }
                 throw NSError(
                     domain: "ImportError",
                     code: 3,
@@ -116,9 +107,6 @@ extension Onboarding.StateModel {
             }
 
             if basals.reduce(0, { $0 + $1.rate }) <= 0 {
-                await MainActor.run {
-                    nightscoutImportStatus = .failed
-                }
                 throw NSError(
                     domain: "ImportError",
                     code: 4,
@@ -139,9 +127,6 @@ extension Onboarding.StateModel {
             }
 
             if sensitivities.contains(where: { $0.sensitivity <= 0 }) {
-                await MainActor.run {
-                    nightscoutImportStatus = .failed
-                }
                 throw NSError(
                     domain: "ImportError",
                     code: 5,
@@ -178,8 +163,8 @@ extension Onboarding.StateModel {
             )
         } catch {
             await MainActor.run {
-                nightscoutImportStatus = .failed
                 self.nightscoutImportError = NightscoutImportError(message: error.localizedDescription)
+                self.nightscoutImportStatus = .failed
                 debug(.service, "Settings import failed with error: \(error.localizedDescription)")
             }
         }
