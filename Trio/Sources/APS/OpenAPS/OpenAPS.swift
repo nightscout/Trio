@@ -367,7 +367,7 @@ final class OpenAPS {
             oref2_variables: oref2_variables
         )
 
-        debug(.openAPS, "OREF DETERMINATION: \(orefDetermination)")
+        debug(.openAPS, "\(simulation ? "[SIMULATION]" : "") OREF DETERMINATION: \(orefDetermination)")
 
         if var determination = Determination(from: orefDetermination), let deliverAt = determination.deliverAt {
             // set both timestamp and deliverAt to the SAME date; this will be updated for timestamp once it is enacted
