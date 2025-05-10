@@ -61,7 +61,7 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
                 }
             }
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Error fetching contact image entries: \(error.localizedDescription)")
+            debug(.default, "\(DebuggingIdentifiers.failed) Error fetching contact image entries: \(error)")
             return []
         }
     }

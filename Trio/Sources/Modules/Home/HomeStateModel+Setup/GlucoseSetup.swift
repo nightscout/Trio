@@ -12,7 +12,7 @@ extension Home.StateModel {
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) Error setting up glucose array: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Error setting up glucose array: \(error)"
                 )
             }
         }

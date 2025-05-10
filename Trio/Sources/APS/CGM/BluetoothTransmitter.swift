@@ -230,7 +230,7 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
         if let error = error {
             debug(
                 .deviceManager,
-                "failed to connect, for peripheral with name \(peripheral.name ?? "'unknown'"), with error: \(error.localizedDescription), will try again"
+                "failed to connect, for peripheral with name \(peripheral.name ?? "'unknown'"), with error: \(error), will try again"
             )
 
         } else {
@@ -260,7 +260,7 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
         heartbeat()
 
         if let error = error {
-            debug(.deviceManager, "    error: \(error.localizedDescription)")
+            debug(.deviceManager, "    error: \(error)")
         }
 
         // if self.peripheral == nil, then a manual disconnect or something like that has occured, no need to reconnect
@@ -279,7 +279,7 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
         debug(.deviceManager, "didDiscoverServices for peripheral with name \(peripheral.name ?? "'unknown'")")
 
         if let error = error {
-            debug(.deviceManager, "    didDiscoverServices error: \(error.localizedDescription)")
+            debug(.deviceManager, "    didDiscoverServices error: \(error)")
         }
 
         if let services = peripheral.services {
@@ -302,7 +302,7 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
         )
 
         if let error = error {
-            debug(.deviceManager, "    didDiscoverCharacteristicsFor error: \(error.localizedDescription)")
+            debug(.deviceManager, "    didDiscoverCharacteristicsFor error: \(error)")
         }
 
         if let characteristics = service.characteristics {
@@ -327,7 +327,7 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
         if let error = error {
             debug(
                 .deviceManager,
-                "didUpdateNotificationStateFor for peripheral with name \(peripheral.name ?? "'unkonwn'"), characteristic \(String(describing: characteristic.uuid)), error =  \(error.localizedDescription)"
+                "didUpdateNotificationStateFor for peripheral with name \(peripheral.name ?? "'unkonwn'"), characteristic \(String(describing: characteristic.uuid)), error =  \(error)"
             )
         }
     }

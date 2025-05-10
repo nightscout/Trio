@@ -70,7 +70,7 @@ enum MainChartHelper {
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate duration for object with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate duration for object with error: \(error)"
             )
         }
 
@@ -85,7 +85,7 @@ enum MainChartHelper {
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate target for object with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to calculate target for object with error: \(error)"
             )
         }
         return nil

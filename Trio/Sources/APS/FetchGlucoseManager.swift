@@ -102,7 +102,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                                 glucose: newGlucose
                             )
                         } catch {
-                            debug(.deviceManager, "Failed to store glucose: \(error.localizedDescription)")
+                            debug(.deviceManager, "Failed to store glucose: \(error)")
                         }
                     }
                 }
