@@ -662,7 +662,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 self.lastSuggestedDetermination = lastSuggestedDetermination
             }
         } catch {
-            debug(.nightscout, error)
+            debug(.nightscout, String(describing: error))
         }
 
         Task.detached {
@@ -868,7 +868,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         do {
             return try await nightscout.importSettings()
         } catch {
-            debug(.nightscout, error)
+            debug(.nightscout, String(describing: error))
             return nil
         }
     }
@@ -997,7 +997,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
             debug(.nightscout, "Treatments uploaded")
         } catch {
-            debug(.nightscout, error)
+            debug(.nightscout, String(describing: error))
         }
     }
 
@@ -1015,7 +1015,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
             debug(.nightscout, "Treatments uploaded")
         } catch {
-            debug(.nightscout, error)
+            debug(.nightscout, String(describing: error))
         }
     }
 
@@ -1056,7 +1056,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
             debug(.nightscout, "Treatments uploaded")
         } catch {
-            debug(.nightscout, error)
+            debug(.nightscout, String(describing: error))
         }
     }
 
@@ -1097,7 +1097,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
             debug(.nightscout, "Treatments uploaded")
         } catch {
-            debug(.nightscout, error)
+            debug(.nightscout, String(describing: error))
         }
     }
 
@@ -1156,7 +1156,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
             debug(.nightscout, "Overrides uploaded")
         } catch {
-            debug(.nightscout, error)
+            debug(.nightscout, String(describing: error))
         }
     }
 
@@ -1214,7 +1214,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
             debug(.nightscout, "Overrides uploaded")
         } catch {
-            debug(.nightscout, error)
+            debug(.nightscout, String(describing: error))
         }
     }
 
@@ -1255,7 +1255,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
             debug(.nightscout, "Temp Targets uploaded")
         } catch {
-            debug(.nightscout, error)
+            debug(.nightscout, String(describing: error))
         }
     }
 
@@ -1296,7 +1296,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
             debug(.nightscout, "Temp Target Runs uploaded")
         } catch {
-            debug(.nightscout, error)
+            debug(.nightscout, String(describing: error))
         }
     }
 
