@@ -1042,7 +1042,7 @@ extension Home {
                     NavigationStack { DataTable.RootView(resolver: resolver) }
                         .tabItem { Label("History", systemImage: historySFSymbol) }.tag(1)
 
-//                    Spacer()
+                    Spacer()
 
                     NavigationStack { Adjustments.RootView(resolver: resolver) }
                         .tabItem {
@@ -1060,29 +1060,23 @@ extension Home {
                 }
                 .tint(Color.tabBar)
 
-//                Button(
-//                    action: {
-//                        state.showModal(for: .treatmentView) },
-//                    label: {
-//                        Image(systemName: "plus.circle.fill")
-//                            .font(.system(size: 40))
-//                            .foregroundStyle(Color.tabBar)
-//                            .padding(.vertical, 2)
-//                            .padding(.horizontal, 24)
-//                    }
-//                )
-//                Image(.trioCircledNoBackground)
-//                    .resizable()
-//                    .scaledToFit()
-//                    .frame(width: 42, height: 42)
-//                    .padding(.vertical, 2)
-//                    .shadow(color: Color.white.opacity(0.1), radius: 5, x: 0, y: 0)
-//            }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
-//                .onChange(of: selectedTab) {
-//                    if !settingsPath.isEmpty {
-//                        settingsPath = NavigationPath()
-//                    }
-            }
+                Button(
+                    action: {
+                        state.showModal(for: .treatmentView) },
+                    label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 40))
+                            .foregroundStyle(Color.tabBar)
+                            .padding(.vertical, 2)
+                            .padding(.horizontal, 24)
+                    }
+                )
+            }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
+                .onChange(of: selectedTab) {
+                    if !settingsPath.isEmpty {
+                        settingsPath = NavigationPath()
+                    }
+                }
         }
 
         var body: some View {
