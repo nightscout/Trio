@@ -40,4 +40,10 @@
 [submodule "DanaKit"]
 	path = DanaKit
 	url = https://github.com/loopandlearn/DanaKit.git
+feat/dana
+	branch = trio
+[submodule "DanaKit"]
+	path = DanaKit
+	url = https://github.com/loopandlearn/DanaKit.git
+main
 	branch = trio
