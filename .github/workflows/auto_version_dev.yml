@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Workflow: Bump Dev Version
+# Workflow: `auto_version_dev.yml`
 #
 # Description:
 # This GitHub Actions workflow automatically manages and increments the
@@ -34,7 +34,7 @@
 # - This workflow only runs when the repository owner is `nightscout`
 # -----------------------------------------------------------------------------
 
-name: Bump APP_DEV_VERSION on dev push
+name: zzz [DO NOT RUN] Bump APP_DEV_VERSION on dev push
 
 on:
   push:
@@ -43,7 +43,7 @@ on:
 
 jobs:
   bump-dev-version:
-    if: github.repository.owner == 'nightscout'
+    if: github.repository_owner == 'nightscout'
     runs-on: ubuntu-latest
 
     steps:
