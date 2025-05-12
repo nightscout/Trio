@@ -18,6 +18,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
         // the next app boot, but this is fine since the app will need
         // to boot after a crash
         Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(crashReportingEnabled)
+        Crashlytics.crashlytics().setCustomValue(Bundle.main.appDevVersion ?? "unknown", forKey: "app_dev_version")
 
         return true
     }

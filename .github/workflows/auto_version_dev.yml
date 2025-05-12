@@ -1,0 +1,100 @@
+# -----------------------------------------------------------------------------
+# Workflow: `auto_version_dev.yml`
+#
+# Description:
+# This GitHub Actions workflow automatically manages and increments the
+# `APP_DEV_VERSION` defined in `Config.xcconfig` on every push to `dev` branch.
+# This version is used for internal tracking and diagnostics (e.g. in
+# Crashlytics) and follows a 4-digit semantic versioning format:
+# `MAJOR.MINOR.PATCH.FEATURE`.
+#
+# Versioning Logic:
+# - Reads the base version from `APP_VERSION = x.y.z`
+# - Reads the last internal dev version from `APP_DEV_VERSION`
+#
+# Behavior:
+# - If `APP_DEV_VERSION` matches `APP_VERSION` (e.g. both are `0.5.0`),
+#   it assumes the first dev push after a release and sets `APP_DEV_VERSION`
+#   to `APP_VERSION.1` (e.g. `0.5.0.1`)
+# - If `APP_DEV_VERSION` is already in 4-digit form (e.g. `0.5.0.3`),
+#   it increments the fourth digit (e.g. → `0.5.0.4`)
+#
+# Example Progression:
+# - Release sets `APP_VERSION = 0.5.0`, `APP_DEV_VERSION = 0.5.0`
+# - First push to `dev`:      → `APP_DEV_VERSION = 0.5.0.1`
+# - Second push to `dev`:     → `APP_DEV_VERSION = 0.5.0.2`
+# - ...
+#
+# The updated value is committed and pushed back to the `dev` branch.
+#
+# Prerequisites:
+# - `APP_VERSION` must be present in `Config.xcconfig` in the form `x.y.z`
+# - `APP_DEV_VERSION` must either match `APP_VERSION` or be `x.y.z.w`
+# - GitHub Actions must have write permission to push to `dev`
+# - This workflow only runs when the repository owner is `nightscout`
+# -----------------------------------------------------------------------------
+
+name: zzz [DO NOT RUN] Bump APP_DEV_VERSION on dev push
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  bump-dev-version:
+    if: github.repository_owner == 'nightscout'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump APP_DEV_VERSION
+        run: |
+          FILE=Config.xcconfig
+
+          # Read current APP_VERSION
+          BASE_VERSION=$(grep '^APP_VERSION' "$FILE" | cut -d '=' -f2 | xargs)
+
+          # Read existing APP_DEV_VERSION, if any
+          DEV_LINE=$(grep '^APP_DEV_VERSION' "$FILE" || echo "")
+          if [ -z "$DEV_LINE" ]; then
+            CURRENT_DEV_VERSION="$BASE_VERSION"
+          else
+            CURRENT_DEV_VERSION=$(echo "$DEV_LINE" | cut -d '=' -f2 | xargs)
+          fi
+
+          echo "APP_VERSION       = $BASE_VERSION"
+          echo "APP_DEV_VERSION   = $CURRENT_DEV_VERSION"
+
+          # Decide next dev version
+          if [ "$CURRENT_DEV_VERSION" = "$BASE_VERSION" ]; then
+            # First post-release commit to dev → bump to .1
+            NEW_DEV_VERSION="${BASE_VERSION}.1"
+            if [ -z "$DEV_LINE" ]; then
+              echo "APP_DEV_VERSION = $NEW_DEV_VERSION" >> "$FILE"
+            else
+              sed -i -E "s|^APP_DEV_VERSION *= *.*|APP_DEV_VERSION = $NEW_DEV_VERSION|" "$FILE"
+            fi
+          else
+            # Already in .X form → bump last digit
+            IFS='.' read -r MAJOR MINOR PATCH FEATURE <<< "$CURRENT_DEV_VERSION"
+            FEATURE=$((FEATURE + 1))
+            NEW_DEV_VERSION="$MAJOR.$MINOR.$PATCH.$FEATURE"
+            sed -i -E "s|^APP_DEV_VERSION *= *.*|APP_DEV_VERSION = $NEW_DEV_VERSION|" "$FILE"
+          fi
+
+          echo "NEW APP_DEV_VERSION = $NEW_DEV_VERSION"
+          echo "NEW_DEV_VERSION=$NEW_DEV_VERSION" >> $GITHUB_ENV
+
+      - name: Commit and push updated dev version
+        run: |
+          git add Config.xcconfig
+          git commit -m "CI: Bump APP_DEV_VERSION to $NEW_DEV_VERSION"
+          git push
