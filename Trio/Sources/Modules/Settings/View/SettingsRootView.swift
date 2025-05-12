@@ -78,16 +78,20 @@ extension Settings {
                     Section(
                         header: Text("BRANCH: \(buildDetails.branchAndSha)").textCase(nil),
                         content: {
-                            var versionNumber: String {
-                                let releaseVersion = Bundle.main.releaseVersionNumber ?? String(localized: "Unknown")
-                                let devVersion = Bundle.main.appDevVersion ?? String(localized: "Unknown")
+                            /// The current development version of the app.
+                            ///
+                            /// Follows a semantic pattern where release versions are like `0.5.0`, and
+                            /// development versions increment with a fourth component (e.g., `0.5.0.1`, `0.5.0.2`)
+                            /// after the base release. For example:
+                            /// - After release `0.5.0` → `0.5.0`
+                            /// - First dev push → `0.5.0.1`
+                            /// - Next dev push → `0.5.0.2`
+                            /// - Next release `0.6.0` → `0.6.0`
+                            /// - Next dev push → `0.6.0.1`
+                            ///
+                            /// If the dev version is unavailable, `"unknown"` is returned.
+                            let devVersion = Bundle.main.appDevVersion ?? "unknown"
 
-                                if releaseVersion == devVersion {
-                                    return releaseVersion
-                                } else {
-                                    return devVersion
-                                }
-                            }
                             let buildNumber = Bundle.main.buildVersionNumber ?? String(localized: "Unknown")
 
                             NavigationLink(destination: SubmodulesView(buildDetails: buildDetails)) {
@@ -99,7 +103,7 @@ extension Settings {
                                         .cornerRadius(10)
                                         .padding(.trailing, 10)
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text("Trio v\(versionNumber) (\(buildNumber))")
+                                        Text("Trio v\(devVersion) (\(buildNumber))")
                                             .font(.headline)
                                         if let expirationDate = buildDetails.calculateExpirationDate() {
                                             let formattedDate = DateFormatter.localizedString(

@@ -115,20 +115,23 @@ extension Notification.Name {
             "\(key): \(value.branch) \(value.commitSHA)"
         }.joined(separator: ", ")
 
-        var versionNumber: String {
-            let releaseVersion = Bundle.main.releaseVersionNumber ?? "unknown"
-            let devVersion = Bundle.main.appDevVersion ?? "unknown"
-
-            if releaseVersion == devVersion {
-                return releaseVersion
-            } else {
-                return devVersion
-            }
-        }
+        /// The current development version of the app.
+        ///
+        /// Follows a semantic pattern where release versions are like `0.5.0`, and
+        /// development versions increment with a fourth component (e.g., `0.5.0.1`, `0.5.0.2`)
+        /// after the base release. For example:
+        /// - After release `0.5.0` → `0.5.0`
+        /// - First dev push → `0.5.0.1`
+        /// - Next dev push → `0.5.0.2`
+        /// - Next release `0.6.0` → `0.6.0`
+        /// - Next dev push → `0.6.0.1`
+        ///
+        /// If the dev version is unavailable, `"unknown"` is returned.
+        let devVersion = Bundle.main.appDevVersion ?? "unknown"
 
         debug(
             .default,
-            "Trio Started: v\(versionNumber)(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.shared.buildDate()))] [buildExpires: \(String(describing: BuildDetails.shared.calculateExpirationDate()))] [Branch: \(BuildDetails.shared.branchAndSha)] [submodules: \(submodulesInfo)]"
+            "Trio Started: v\(devVersion)(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.shared.buildDate()))] [buildExpires: \(String(describing: BuildDetails.shared.calculateExpirationDate()))] [Branch: \(BuildDetails.shared.branchAndSha)] [submodules: \(submodulesInfo)]"
         )
         // Fix bug in iOS 18 related to the translucent tab bar
         configureTabBarAppearance()
