@@ -133,19 +133,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         /// 2. To not spam the user's NS site with a high number of uploads in a very short amount of time (less than 1sec)
         coreDataPublisher?
             .filteredByEntityName("OrefDetermination")
-            .handleEvents(receiveOutput: { _ in
-                debug(
-                    .nightscout,
-                    "OrefDetermination update"
-                )
-            })
             .debounce(for: .seconds(2), scheduler: debouncedQueue)
-            .handleEvents(receiveOutput: { _ in
-                debug(
-                    .nightscout,
-                    "OrefDetermination update debounceed"
-                )
-            })
             .sink { [weak self] objectIDs in
                 guard let self = self else { return }
 
