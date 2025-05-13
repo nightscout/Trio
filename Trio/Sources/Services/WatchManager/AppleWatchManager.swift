@@ -748,7 +748,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 // Notify Watch: "Saving carbs..."
                 self.sendAcknowledgment(
                     toWatch: true,
-                    message: String(localized: "Saving Carbs...", comment: "Successful message sent to watch when saving carbs"),
+                    message: String(
+                        localized: "Saving Carbs...",
+                        comment: "Successful message sent to watch when saving carbs"
+                    ),
                     ackCode: .savingCarbs
                 )
 
@@ -848,7 +851,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                             // Acknowledge cancellation success
                             self.sendAcknowledgment(
                                 toWatch: true,
-                                message: "Stopped Override successfully.",
+                                message: String(
+                                    localized: "Stopped Override successfully.",
+                                    comment: "Stopped Override successfully"
+                                ),
                                 ackCode: .overrideStopped
                             )
                         } catch {
@@ -917,7 +923,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     debug(.watchManager, "❌ No matching preset found for name: \"\(presetName)\" in \(presets.map(\.name))")
                     self.sendAcknowledgment(
                         toWatch: false,
-                        message: "Preset not found: \(presetName)",
+                        message: String(
+                            localized: "Preset \"\(presetName)\" not found.",
+                            comment: "Preset not found"
+                        ),
                         ackCode: .genericFailure
                     )
                     return
@@ -931,7 +940,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         // Acknowledge failure
                         self.sendAcknowledgment(
                             toWatch: false,
-                            message: "Error! Something went wrong when processing your request.",
+                            message: String(
+                                localized: "Error! Something went wrong when processing your request.",
+                                comment: "Error message when activating override"
+                            ),
                             ackCode: .genericFailure
                         )
                         return
@@ -948,7 +960,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     // Acknowledge activation success
                     self.sendAcknowledgment(
                         toWatch: true,
-                        message: "Started Override \"\(presetName)\" successfully.",
+                        message: String(
+                            localized: "Started Override \"\(presetName)\" successfully.",
+                            comment: "Start override with override name"
+                        ),
                         ackCode: .overrideStarted
                     )
                 } catch {
@@ -1036,7 +1051,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         // Acknowledge activation success
                         self.sendAcknowledgment(
                             toWatch: true,
-                            message: "Started Temp Target \"\(presetName)\" successfully.",
+                            message: String(
+                                localized: "Started Temp Target \"\(presetName)\" successfully.",
+                                comment: "Started Temp Target successfully."
+                            ),
                             ackCode: .tempTargetStarted
                         )
                     } catch {
@@ -1091,7 +1109,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                             // Acknowledge cancellation success
                             self.sendAcknowledgment(
                                 toWatch: true,
-                                message: "Stopped Temp Target successfully.",
+                                message: String(
+                                    localized: "Stopped Temp Target successfully.",
+                                    comment: "Stopped Temp Target successfully."
+                                ),
                                 ackCode: .tempTargetStopped
                             )
                         } catch {
