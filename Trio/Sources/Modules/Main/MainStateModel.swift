@@ -9,10 +9,8 @@ extension Main {
         @Injected() private var apsManager: APSManager!
         @Injected() var alertPermissionsChecker: AlertPermissionsChecker!
         @Injected() var broadcaster: Broadcaster!
-        private(set) var modal: Modal?
-        @Published var isModalPresented = false
-        @Published var isSecondaryModalPresented = false
-        @Published var secondaryModalView: AnyView? = nil
+        @Published var modal: Modal?
+        @Published var secondaryModal: SecondaryModalWrapper?
 
         @Persisted(key: "UserNotificationsManager.snoozeUntilDate") private var snoozeUntilDate: Date = .distantPast
         private var timers: [TimeInterval: Timer] = [:]
@@ -250,14 +248,11 @@ extension Main {
                 .map { $0?.modal(resolver: self.resolver!) }
                 .removeDuplicates { $0?.id == $1?.id }
                 .receive(on: DispatchQueue.main)
-                .sink { modal in
-                    self.modal = modal
-                    self.isModalPresented = modal != nil
-                }
-                .store(in: &lifetime)
+                .assign(to: &$modal)
 
-            $isModalPresented
-                .filter { !$0 }
+            $modal
+                .removeDuplicates { $0?.id == $1?.id }
+                .filter { $0 == nil }
                 .sink { _ in
                     self.router.mainModalScreen.send(nil)
                 }
@@ -277,14 +272,13 @@ extension Main {
             router.mainSecondaryModalView
                 .receive(on: DispatchQueue.main)
                 .sink { view in
-                    self.secondaryModalView = view
-                    self.isSecondaryModalPresented = view != nil
+                    self.secondaryModal = view.map { SecondaryModalWrapper(view: $0) }
                 }
                 .store(in: &lifetime)
 
-            $isSecondaryModalPresented
-                .removeDuplicates()
-                .filter { !$0 }
+            $secondaryModal
+                .removeDuplicates { $0?.id == $1?.id }
+                .filter { $0 == nil }
                 .sink { _ in
                     self.router.mainSecondaryModalView.send(nil)
                 }

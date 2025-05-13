@@ -11,13 +11,14 @@ extension Main {
 
         var body: some View {
             router.view(for: .home)
-                .sheet(isPresented: $state.isModalPresented) {
-                    NavigationView { self.state.modal!.view }
+                .sheet(item: $state.modal) { modal in
+                    NavigationView { modal.view }
                         .navigationViewStyle(StackNavigationViewStyle())
                 }
-                .sheet(isPresented: $state.isSecondaryModalPresented) {
-                    state.secondaryModalView ?? EmptyView().asAny()
+                .sheet(item: $state.secondaryModal) { wrapper in
+                    wrapper.view
                 }
+
                 .onAppear(perform: configureView)
                 .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
         }
