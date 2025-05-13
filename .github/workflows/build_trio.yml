@@ -168,12 +168,14 @@ jobs:
 
       # Keep repository "alive": add empty commits to ALIVE_BRANCH after "time_elapsed" days of inactivity to avoid inactivation of scheduled workflows
       - name: Keep alive
-        if: |
-          needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
-          (vars.SCHEDULED_BUILD != 'false' || vars.SCHEDULED_SYNC != 'false')
-        uses: gautamkrishnar/keepalive-workflow@v1 # using the workflow with default settings
-        with:
-          time_elapsed: 20 # Time elapsed from the previous commit to trigger a new automated commit (in days)
+        run: |
+          echo "Keep Alive temporarily removed while gautamkrishnar/keepalive-workflow is not available"
+      #  if: |
+      #    needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION == 'true' &&
+      #    (vars.SCHEDULED_BUILD != 'false' || vars.SCHEDULED_SYNC != 'false')
+      #  uses: gautamkrishnar/keepalive-workflow@v1 # using the workflow with default settings
+      #  with:
+      #    time_elapsed: 20 # Time elapsed from the previous commit to trigger a new automated commit (in days)
 
       - name: Show scheduled build configuration message
         if: needs.check_alive_and_permissions.outputs.WORKFLOW_PERMISSION != 'true'
@@ -188,7 +190,7 @@ jobs:
   build:
     name: Build
     needs: [check_certs, check_alive_and_permissions, check_latest_from_upstream]
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       contents: write
     if:
@@ -200,7 +202,7 @@ jobs:
       )
     steps:
       - name: Select Xcode version
-        run: "sudo xcode-select --switch /Applications/Xcode_15.4.app/Contents/Developer"
+        run: "sudo xcode-select --switch /Applications/Xcode_16.3.app/Contents/Developer"
       
       - name: Checkout Repo for syncing
         if: |
@@ -251,6 +253,36 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           submodules: recursive
           ref: ${{ env.TARGET_BRANCH }}
+
+      # Customize Trio: Use patches or download and apply patches from GitHub
+      - name: Customize Trio
+        run: |
+
+          # Trio workspace patches
+          # -applies any patches located in the Trio/patches/ directory
+          if $(ls ./patches/* &> /dev/null); then
+          git apply ./patches/* --allow-empty -v --whitespace=fix
+          fi
+
+          # Download and apply Trio patches from GitHub:
+          # Template for customizing Trio code (as opposed to submodule code)
+          # Remove the "#" sign from the beginning of the line below to activate
+          #   and then replace the alphanumeric string with your SHA, this SHA is NOT valid
+          #curl https://github.com/nightscout/Trio/commit/d206432b024279ef710df462b20bd464cd9682d4.patch | git apply -v --whitespace=fix
+
+          # Download and apply Submodule patches from GitHub:
+          # Template for customizing submodules (you must edit the submodule name)
+          # This example is for G7SensorKit showing you can apply multiple commits, in the proper order
+          # Remove the "#" sign from the beginning of the lines below to activate
+          # This example applies 3 commits from the scan-fix folder; valid only when these are not already in Trio
+          #curl https://github.com/loopandlearn/G7SensorKit/commit/ba44beb3d1491c453f4f438443c3f8ba29146ab3.patch | git apply --directory=G7SensorKit -v --whitespace=fix
+          #curl https://github.com/loopandlearn/G7SensorKit/commit/d86ac8e9cd523d1267587dd70c96597125eef7ab.patch | git apply --directory=G7SensorKit -v --whitespace=fix
+          #curl https://github.com/loopandlearn/G7SensorKit/commit/205054e7537723c2aec58d807634b4853f687244.patch | git apply --directory=G7SensorKit -v --whitespace=fix
+
+          # Add patches for additional customization by following the templates above,
+          # and make sure to specify the submodule by setting "--directory=(submodule_name)".
+          # Several patches may be added per submodule.
+          # Adding comments (#) is strongly recommended to easily tell the individual patches apart.
 
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables

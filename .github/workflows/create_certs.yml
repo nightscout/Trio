@@ -21,15 +21,11 @@ jobs:
   create_certs:
     name: Certificates
     needs: validate
-    runs-on: macos-14
+    runs-on: macos-15
     outputs:
       new_certificate_needed: ${{ steps.set_output.outputs.new_certificate_needed }}
 
     steps:
-      # Uncomment to manually select latest Xcode if needed
-      #- name: Select Latest Xcode
-      #  run: "sudo xcode-select --switch /Applications/Xcode_13.0.app/Contents/Developer"
-      
       # Checks-out the repo
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -94,7 +90,7 @@ jobs:
   nuke_certs:
       name: Nuke certificates
       needs: [validate, create_certs]
-      runs-on: macos-14
+      runs-on: macos-15
       if: ${{ (needs.create_certs.outputs.new_certificate_needed == 'true' && vars.ENABLE_NUKE_CERTS == 'true') || vars.FORCE_NUKE_CERTS == 'true' }}
       steps:
         - name: Output from step id 'check_certs'
