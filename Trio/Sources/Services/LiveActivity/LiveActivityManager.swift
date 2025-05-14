@@ -241,7 +241,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
 
     /// Triggers an update of the live activity order.
     ///
-    /// This method refreshes the activity’s content state to reflect any changes in the widget order.
+    /// This method refreshes the activity's content state to reflect any changes in the widget order.
     @MainActor private func updateLiveActivityOrder() async {
         Task {
             await updateContentState(determination)
@@ -296,27 +296,44 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
     ///
     /// - Parameter state: The new content state to push to the live activity.
     @MainActor private func pushUpdate(_ state: LiveActivityAttributes.ContentState) async {
+        // End all unknown activities except the current one
         for unknownActivity in Activity<LiveActivityAttributes>.activities
             .filter({ self.currentActivity?.activity.id != $0.id })
         {
             await unknownActivity.end(nil, dismissalPolicy: .immediate)
         }
 
-        if let currentActivity = currentActivity {
+        // Defensive: capture the current activity at function start
+        let activityAtStart = currentActivity
+
+        if let currentActivity = activityAtStart {
             if currentActivity.needsRecreation(), UIApplication.shared.applicationState == .active {
+                debug(.default, "[LiveActivityManager] Ending current activity for recreation: \(currentActivity.activity.id)")
                 await endActivity()
-                Task { @MainActor in
-                    await self.pushUpdate(state)
+                // After endActivity(), currentActivity is guaranteed to be nil
+                // No recursive task, but explicitly restart
+                if self.currentActivity == nil {
+                    debug(.default, "[LiveActivityManager] Re-pushing update after recreation.")
+                    await pushUpdate(state)
+                } else {
+                    debug(.default, "[LiveActivityManager] Warning: currentActivity was not nil after endActivity!")
                 }
                 return
             } else {
                 let content = ActivityContent(
                     state: state,
-                    staleDate: min(state.date ?? Date.now, Date.now).addingTimeInterval(360) // 6 minutes in seconds
+                    staleDate: min(state.date ?? Date.now, Date.now).addingTimeInterval(360)
                 )
-                await currentActivity.activity.update(content)
+                // Before the update, check if currentActivity is still valid
+                if let stillCurrent = self.currentActivity, stillCurrent.activity.id == currentActivity.activity.id {
+                    debug(.default, "[LiveActivityManager] Updating current activity: \(stillCurrent.activity.id)")
+                    await stillCurrent.activity.update(content)
+                } else {
+                    debug(.default, "[LiveActivityManager] Skipped update: currentActivity changed during pushUpdate.")
+                }
             }
         } else {
+            // ... Activity is newly created ...
             do {
                 let expired = ActivityContent(
                     state: LiveActivityAttributes
@@ -342,7 +359,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
                     pushType: nil
                 )
                 currentActivity = ActiveActivity(activity: activity, startDate: Date.now)
-
+                debug(.default, "[LiveActivityManager] Created new activity: \(activity.id)")
                 await pushUpdate(state)
             } catch {
                 debug(
@@ -378,7 +395,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
 
     /// Restarts the live activity from a Live Activity Intent.
     ///
-    /// This method mimics xdrip’s `restartActivityFromLiveActivityIntent()` behavior by verifying that a valid content state exists,
+    /// This method mimics xdrip's `restartActivityFromLiveActivityIntent()` behavior by verifying that a valid content state exists,
     /// ending the current live activity, and starting a new one using the current state.
     @MainActor func restartActivityFromLiveActivityIntent() async {
         guard let latestGlucose = latestGlucose,
