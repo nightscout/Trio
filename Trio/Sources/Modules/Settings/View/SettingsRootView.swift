@@ -237,22 +237,6 @@ extension Settings {
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-
-                            Button {
-                                if let url = URL(string: "https://diy-trio.org/") {
-                                    UIApplication.shared.open(url)
-                                }
-                            } label: {
-                                HStack {
-                                    Text("Trio Website")
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(.secondary)
-                                        .font(.footnote)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     ).listRowBackground(Color.chart)
 

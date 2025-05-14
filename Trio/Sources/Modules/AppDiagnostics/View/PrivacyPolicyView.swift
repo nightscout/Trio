@@ -177,7 +177,7 @@ struct PrivacyPolicyView: View {
 
                         HStack(alignment: .center, spacing: 10) {
                             Button {
-                                openURL(URL(string: "http://discord.diy-trio.org/")!)
+                                openURL(URL(string: "http://discord.triodocs.org/")!)
                             } label: {
                                 Text("Trio Discord")
                                     .padding(.horizontal, 12)
