@@ -207,7 +207,7 @@ extension Settings {
                             .frame(maxWidth: .infinity, alignment: .leading)
 
                             Button {
-                                if let url = URL(string: "https://discord.gg/FnwFEFUwXE") {
+                                if let url = URL(string: "https://discord.triodocs.org") {
                                     UIApplication.shared.open(url)
                                 }
                             } label: {
@@ -223,7 +223,7 @@ extension Settings {
                             .frame(maxWidth: .infinity, alignment: .leading)
 
                             Button {
-                                if let url = URL(string: "https://m.facebook.com/groups/1351938092206709/") {
+                                if let url = URL(string: "https://facebook.triodocs.org") {
                                     UIApplication.shared.open(url)
                                 }
                             } label: {

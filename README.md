@@ -63,9 +63,9 @@ Instructions in greater detail, but not Trio-specific:
 
 # Documentation
 
-[Discord Trio - Server ](http://discord.diy-trio.org)
+[Discord Trio - Server ](http://discord.triodocs.org)
 
-[Trio documentation](https://docs.diy-trio.org/)
+[Trio documentation](https://triodocs.org/)
 
 TODO: Add link: Trio Website (under development, not existing yet)
 
@@ -75,7 +75,7 @@ TODO: Add link and status graphic: Crowdin Project for translation of Trio (not 
 
 # Support
 
-[Trio Facebook Group](https://m.facebook.com/groups/1351938092206709/)
+[Trio Facebook Group](https://facebook.triodocs.org)
 
 [Loop and Learn Facebook Group](https://m.facebook.com/groups/LOOPandLEARN/)
 
@@ -99,4 +99,4 @@ Do you speak JS or Swift? Do you have UI/UX skills? Do you know how to optimize 
 Trio is a collaborative project. We always welcome fellow enthusiasts who can contribute with new code, UI/UX improvements, code reviews, testing and release management.
 If you want to contribute to the development of Trio, please reach out on Discord or Facebook.
 
-For questions or contributions, please join our [Discord server](https://discord.gg/KepAG6RdYZ).
+For questions or contributions, please join our [Discord server](https://discord.triodocs.org).
