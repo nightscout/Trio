@@ -3,7 +3,7 @@ import SwiftUI
 struct DiagnosticsStepView: View {
     @Bindable var state: Onboarding.StateModel
 
-    @State private var shouldDisplayPrivacyPolicy: Bool = false
+    @Environment(\.openURL) var openURL
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -37,7 +37,7 @@ struct DiagnosticsStepView: View {
                 HStack {
                     Text("I have read and accept the")
                     Button("Privacy Policy") {
-                        shouldDisplayPrivacyPolicy = true
+                        openURL(URL(string: "https://github.com/nightscout/Trio/blob/dev/PRIVACY_POLICY.md")!)
                     }
                     .foregroundColor(.accentColor)
                     .underline()
@@ -85,9 +85,6 @@ struct DiagnosticsStepView: View {
         }
         .onAppear {
             state.syncDiagnosticsOptionFromStorage()
-        }
-        .sheet(isPresented: $shouldDisplayPrivacyPolicy) {
-            PrivacyPolicyView()
         }
     }
 }
