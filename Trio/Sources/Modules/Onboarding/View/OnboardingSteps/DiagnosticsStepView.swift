@@ -37,7 +37,11 @@ struct DiagnosticsStepView: View {
                 HStack {
                     Text("I have read and accept the")
                     Button("Privacy Policy") {
-                        openURL(URL(string: "https://github.com/nightscout/Trio/blob/dev/PRIVACY_POLICY.md")!)
+                        if let url = URL(string: "https://github.com/nightscout/Trio/blob/dev/PRIVACY_POLICY.md") {
+                            openURL(url)
+                        } else {
+                            debug(.default, "Invalid URL! Could not gracefully unwrap privacy policy link!")
+                        }
                     }
                     .foregroundColor(.accentColor)
                     .underline()
