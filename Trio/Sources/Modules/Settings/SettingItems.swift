@@ -31,11 +31,26 @@ struct FilteredSettingItem: Identifiable {
 enum SettingItems {
     static let trioConfig = [
         SettingItem(title: String(localized: "Devices", comment: "Devices menu item in the Settings main view."), view: .devices),
-        SettingItem(title: String(localized: "Therapy", comment: "Therapy menu item in the Settings main view."), view: .therapySettings),
-        SettingItem(title: String(localized: "Algorithm", comment: "Algorithm menu item in the Settings main view."), view: .algorithmSettings),
-        SettingItem(title: String(localized: "Features", comment: "Features menu item in the Settings main view."), view: .featureSettings),
-        SettingItem(title: String(localized: "Notifications", comment: "Notifications menu item in the Settings main view."), view: .notificationSettings),
-        SettingItem(title: String(localized: "Services", comment: "Services menu item in the Settings main view."), view: .serviceSettings)
+        SettingItem(
+            title: String(localized: "Therapy", comment: "Therapy menu item in the Settings main view."),
+            view: .therapySettings
+        ),
+        SettingItem(
+            title: String(localized: "Algorithm", comment: "Algorithm menu item in the Settings main view."),
+            view: .algorithmSettings
+        ),
+        SettingItem(
+            title: String(localized: "Features", comment: "Features menu item in the Settings main view."),
+            view: .featureSettings
+        ),
+        SettingItem(
+            title: String(localized: "Notifications", comment: "Notifications menu item in the Settings main view."),
+            view: .notificationSettings
+        ),
+        SettingItem(
+            title: String(localized: "Services", comment: "Services menu item in the Settings main view."),
+            view: .serviceSettings
+        )
     ]
 
     static let devicesItems = [
