@@ -1,0 +1,1059 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio"
+          }
+        }
+      }
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio"
+          }
+        }
+      }
+    },
+    "NFCReaderUsageDescription" : {
+      "comment" : "Privacy - NFC Scan Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC is used to scan Libre sensors."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC is used to scan Libre sensors."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC bruges til at scanne Libre sensorer."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC wird zum Scannen von Libre Sensoren benutzt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "NFC is used to scan Libre sensors."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC is used to scan Libre sensors."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC is used to scan Libre sensors."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC est utilisé pour scanner les capteurs Libre."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC is used to scan Libre sensors."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC is used to scan Libre sensors."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC è usato per scansionare i sensori di Libre."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC brukes til å skanne Libre-sensorer."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC wordt gebruikt voor het scannen van Libre sensoren."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC is used to scan Libre sensors."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC is used to scan Libre sensors."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC is used to scan Libre sensors."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC используется для сканирования сенсоров Libre."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC sa používa na skenovanie snímačov Libre."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC används för att skanna Libre-sensorn vid uppstart."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC Libre sensörlerini taramak için kullanılır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC використовується для сканування сенсорів Libre."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC được sử dụng để quét các cảm biến Libre."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NFC 用于扫描 Libre 传感器。"
+          }
+        }
+      }
+    },
+    "NSBluetoothAlwaysUsageDescription" : {
+      "comment" : "Privacy - Bluetooth Always Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth bliver brugt til at kommunikere med din insulin pumpe og dine glukose monitor enheder"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth wird verwendet, um mit Insulinpumpen und CGMs zu kommunizieren."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth est utilisé pour communiquer avec la pompe à insuline et les dispositifs de surveillance continue du glucose"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il bluetooth viene utilizzato per comunicare con il microinfusore e i dispositivi CGM"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth brukes til å kommunisere med insulinpumpe og blodsukkersensor"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth wordt gebruikt om te communiceren met de insuline pomp en de continue glucose meter"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth используется для связи с инсулиновой помпой и устройствами непрерывного мониторинга глюкозы"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth sa používa pre komunikáciu s inzulínovou pumpou a zariadeniami na kontinuálne monitorovanie krvného cukru"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth används för att kommunicera med pump och kontinuerlig glukosmätare"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth, insülin pompası ve sürekli glikoz izleme cihazları ile iletişim kurmak için kullanılır"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth використовується для обміну з інсуліновими помпами та безперервним моніторингом глюкози"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth được sử dụng để liên lạc với máy bơm insulin và các thiết bị theo dõi đường huyết liên tục/CGM."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓝牙用于与胰岛素泵和连续血糖监测设备进行通信"
+          }
+        }
+      }
+    },
+    "NSBluetoothPeripheralUsageDescription" : {
+      "comment" : "Privacy - Bluetooth Peripheral Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth bliver brugt til at kommunikere med din insulin pumpe og dine glukose monitor enheder"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth wird verwendet, um mit Insulinpumpen und CGMs zu kommunizieren."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth est utilisé pour communiquer avec la pompe à insuline et les dispositifs de surveillance continue du glucose"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il Bluetooth viene utilizzato per comunicare con il microinfusore e i dispositivi CGM"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth brukes til å kommunisere med insulinpumpe og blodsukkersensor-enheter"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth wordt gebruikt om te communiceren met de insuline pomp en de continue glucose meter"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth используется для связи с инсулиновой помпой и устройствами непрерывного мониторинга глюкозы"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth sa používa pre komunikáciu s inzulínovou pumpou a zariadeniami na kontinuálne monitorovanie krvného cukru"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth används för att kommunicera med insulinpumpen och kontinuerliga glukosmätare"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth, insülin pompası ve sürekli glikoz izleme cihazları ile iletişim kurmak için kullanılır"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth використовується для обміну з інсуліновими помпами та безперервним моніторингом глюкози"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth được sử dụng để liên lạc với máy bơm insulin và các thiết bị theo dõi đường huyết liên tục/CGM."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓝牙用于与胰岛素泵和连续血糖监测设备进行通信"
+          }
+        }
+      }
+    },
+    "NSCalendarsUsageDescription" : {
+      "comment" : "Privacy - Calendars Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar is used to create a new glucose events."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar is used to create a new glucose events."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalender bruges til at oprette en ny glucose begivenheder."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BZ-Werte werden im Kalender als temporärer Termin erstellt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Calendar is used to create a new glucose events."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar is used to create a new glucose events."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar is used to create a new glucose events."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le calendrier est utilisé pour créer un nouvel événement de glycémie."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar is used to create a new glucose events."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar is used to create a new glucose events."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il calendario è usato per creare nuovi eventi di glicemia."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalender brukes til å opprette nye blodsukker-oppføringer."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agenda wordt gebruikt om nieuwe glucose gebeurtenissen aan te maken."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar is used to create a new glucose events."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar is used to create a new glucose events."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar is used to create a new glucose events."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Календарь используется для создания новых событий о глюкозе."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalendár slúži na vytvorenie novej udalosti s glukózou."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalendern används för att skapa kalenderhändelser för glukosvärden."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvim, yeni bir glikoz olayı oluşturmak için kullanılır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для створення нових подій глюкози використовується календар."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lịch \nCalendar được sử dụng để tạo ra một sự kiện glucose mới."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日历用于创建一个新的葡萄糖事件。"
+          }
+        }
+      }
+    },
+    "NSContactsUsageDescription" : {
+      "comment" : "Privacy - Contacts Usage Description",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allows Trio to access your contacts for live updates to your Apple Watch contact complication using the 'Contact Trick' feature."
+          }
+        }
+      }
+    },
+    "NSFaceIDUsageDescription" : {
+      "comment" : "Privacy - Face ID Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For authorized acces to bolus"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For authorized acces to bolus"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For autoriseret adgang til bolus"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorisierung für Bolusabgabe"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "For authorized acces to bolus"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For authorized acces to bolus"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For authorized acces to bolus"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour les accès autorisés au bolus"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For authorized acces to bolus"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For authorized acces to bolus"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per accesso autorizzato al bolo"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For autorisert tilgang til bolus"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voor geautoriseerde toegang tot bolus"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For authorized acces to bolus"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For authorized acces to bolus"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For authorized acces to bolus"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для авторизованного болюса"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pre autorizovaný prístup k bolusu"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "För auktoriserad åtkomst till bolus"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bolus'a yetkili erişim için"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для авторизованого болюсу"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Được cấp quyền truy cập vào bolus"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用于输注胰岛素授权"
+          }
+        }
+      }
+    },
+    "NSHealthShareUsageDescription" : {
+      "comment" : "Privacy - Health Share Usage Description",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, carbs and insulin"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App bruges til at opbevare blodglukose, insulin og kulhydrater"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Apple Health App wird zum Speichern von Blutzuckerwerten, Insulin und Kohlenhydraten verwendet"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'application Santé est utilisée pour stocker la glycémie, l'insuline et les glucides"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'app Salute è usata per memorizzare glicemie, insulina e carboidrati"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helse-appen brukes til å lagre blodsukker, insulin og karbohydrater"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Gezondheid wordt gebruikt om bloedglucose, insuline en koolhydraten op te slaan"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложение здоровья используется для хранения глюкозы, инсулина и углеводов в крови"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplikácia Zdravie sa používa na meranie glukózy v krvi, inzulínu a ukladanie sacharidov"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appen Hälsa används för att lagra blodsockervärden, insulin och kolhydrater."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додаток Health використовується для зберігання глюкози в крові, інсуліну та вуглеводів"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng sức khỏe \nHealth được sử dụng để lưu trữ đường huyết, insulin và carbohydrate"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        }
+      }
+    },
+    "NSHealthUpdateUsageDescription" : {
+      "comment" : "Privacy - Health Update Usage Description",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, carbs and insulin"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App bruges til at opbevare blodglukose, insulin og kulhydrater"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Apple Health App wird zum Speichern von Blutzuckerwerten, Insulin und Kohlenhydraten verwendet"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'application Santé est utilisée pour stocker la glycémie, l'insuline et les glucides"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'app Salute è usata per memorizzare glicemie, insulina e carboidrati"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helse-appen brukes til å lagre blodsukker, insulin og karbohydrater"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Gezondheid wordt gebruikt om bloedglucose, insuline en koolhydraten op te slaan"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложение здоровья используется для хранения глюкозы, инсулина и углеводов в крови"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplikácia Zdravie sa používa na meranie glukózy v krvi, inzulínu a ukladanie sacharidov"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appen Hälsa används för att lagra blodsockervärden, insulin samt kolhydrater"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додаток Health використовується для зберігання глюкози в крові, інсуліну та вуглеводів"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng sức khỏe \nHealth được sử dụng để lưu trữ đường huyết, insulin và carbohydrate"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health App is used to store blood glucose, insulin and carbohydrates"
+          }
+        }
+      }
+    },
+    "NSHumanReadableCopyright" : {
+      "comment" : "Copyright (human-readable)",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : ""
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

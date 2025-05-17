@@ -1,0 +1,117 @@
+/* No glucose value representation (3 dashes for mg/dL) */
+"– – –" = "– – –";
+
+/* Format string for glucose trend per minute. (1: glucose value and unit) */
+"%@/min" = "%@/мин";
+
+/* No comment provided by engineer. */
+"Are you sure you want to delete this CGM?" = "Вы уверены, что хотите удалить текущий CGM?";
+
+/* No comment provided by engineer. */
+"Bluetooth" = "Bluetooth";
+
+/* Button text to cancel G7 setup */
+"Cancel" = "Отмена";
+
+/* No comment provided by engineer. */
+"Configuration" = "Конфигурация";
+
+/* title for g7 settings connection status when connected */
+"Connected" = "Подключено";
+
+/* title for g7 settings connection status when connecting */
+"Connecting" = "Подключение";
+
+/* Button title for starting setup */
+"Continue" = "Продолжить";
+
+/* Button label for removing CGM */
+"Delete CGM" = "Удалить CGM";
+
+/* Navigation bar title for G7SettingsView
+   Title on WelcomeView */
+"Dexcom G7" = "Dexcom G7";
+
+/* No comment provided by engineer. */
+"Done" = "Готово";
+
+/* Field label */
+"Glucose" = "Глюкоза";
+
+/* title for g7 settings row showing sensor grace period end time */
+"Grace Period End" = "Период отсрочки";
+
+/* G7 Progress bar label when sensor grace period progress showing */
+"Grace period remaining" = "Оставшийся период отсрочки";
+
+/* String displayed instead of a glucose value above the CGM range */
+"HIGH" = "ВЫСОКИЙ";
+
+/* title for g7 settings row showing sensor last connect time */
+"Last Connect" = "Последнее подключение";
+
+/* No comment provided by engineer. */
+"Last Reading" = "Последнее считывание";
+
+/* Descriptive text on G7StartupView */
+"iAPS can read G7 CGM data, but you must still use the Dexcom G7 App for pairing, calibration, and other sensor management." = "iAPS может считывать G7 CGM данные, но Вы все равно должны использовать Dexcom G7 App для сопряжения, калибровки и управления датчиком.";
+
+/* String displayed instead of a glucose value below the CGM range */
+"LOW" = "НИЗКИЙ";
+
+/* title for g7 settings row showing BLE Name */
+"Name" = "Название";
+
+/* No comment provided by engineer. */
+"Scan for new sensor" = "Сканирование нового датчика";
+
+/* title for g7 settings connection status when scanning */
+"Scanning" = "Сканирование";
+
+/* G7 Status highlight text for searching for sensor */
+"Searching for\nSensor" = "Поиск\nДатчика";
+
+/* G7 Progress bar label when searching for sensor */
+"Searching for sensor" = "Поиск датчика";
+
+/* G7 Status highlight text for sensor expired */
+"Sensor\nExpired" = "Датчик\nИстек";
+
+/* G7 Status highlight text for sensor failed */
+"Sensor\nFailed" = "Датчик\nСбой";
+
+/* G7 Status highlight text for sensor error */
+"Sensor\nIssue" = "Датчик\nПроблема";
+
+/* G7 Status highlight text for sensor warmup */
+"Sensor\nWarmup" = "Датчик\nПрогрев";
+
+/* title for g7 settings row showing sensor expiration time */
+"Sensor Expiration" = "Датчик истекает";
+
+/* G7 Progress bar label when sensor expired */
+"Sensor expired" = "Срок действия датчика истек";
+
+/* G7 Progress bar label when sensor lifetime progress showing */
+"Sensor expires" = "Датчик заканчивается";
+
+/* G7 Progress bar label when sensor failed */
+"Sensor failed" = "Сбой датчика";
+
+/* title for g7 settings row showing sensor start time */
+"Sensor Start" = "Запуск датчика";
+
+/* G7 Status highlight text for signal loss */
+"Signal\nLoss" = "Сигнал\nПотерян";
+
+/* Field label */
+"Time" = "Время";
+
+/* Field label */
+"Trend" = "Тенденция";
+
+/* title for g7 config settings to upload readings */
+"Upload Readings" = "Выгружать данные";
+
+/* G7 Progress bar label when sensor in warmup */
+"Warmup completes" = "Прогрев завершается";

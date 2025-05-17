@@ -1,5 +1,6 @@
 APP_DISPLAY_NAME = Trio
-APP_VERSION = 0.2.5
+APP_VERSION = 0.5.0
+APP_DEV_VERSION = 0.5.0
 APP_BUILD_NUMBER = 1
 COPYRIGHT_NOTICE =
 DEVELOPER_TEAM = ##TEAM_ID##
@@ -7,5 +8,7 @@ BUNDLE_IDENTIFIER = org.nightscout.$(DEVELOPMENT_TEAM).trio
 APP_ICON = trioBlack
 APP_URL_SCHEME = Trio
 
+// Optional overrides
 #include? "../../ConfigOverride.xcconfig"
+#include? "../ConfigOverride.xcconfig"
 #include? "ConfigOverride.xcconfig"
