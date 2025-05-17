@@ -2,7 +2,7 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:FreeAPS.xcodeproj">
+      location = "group:Trio.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:MinimedKit/MinimedKit.xcodeproj">
@@ -12,6 +12,9 @@
    </FileRef>
    <FileRef
       location = "group:OmniBLE/OmniBLE.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:DanaKit/DanaKit.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:RileyLinkKit/RileyLinkKit.xcodeproj">

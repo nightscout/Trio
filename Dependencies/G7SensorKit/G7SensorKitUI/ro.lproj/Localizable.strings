@@ -1,0 +1,118 @@
+/* No glucose value representation (3 dashes for mg/dL) */
+"– – –" = "– – –";
+
+/* Format string for glucose trend per minute. (1: glucose value and unit) */
+"%@/min" = "/min";
+
+/* No comment provided by engineer. */
+"Are you sure you want to delete this CGM?" = "Sunteți sigur că doriți să ștergeți acest CGM?";
+
+/* No comment provided by engineer. */
+"Bluetooth" = "Bluetooth";
+
+/* Button text to cancel G7 setup */
+"Cancel" = "Renunță";
+
+/* No comment provided by engineer. */
+"Configuration" = "Configurare";
+
+/* title for g7 settings connection status when connected */
+"Connected" = "Conectat";
+
+/* title for g7 settings connection status when connecting */
+"Connecting" = "Conectare";
+
+/* Button title for starting setup */
+"Continue" = "Continuă";
+
+/* Button label for removing CGM */
+"Delete CGM" = "Ștergeți CGM";
+
+/* Navigation bar title for G7SettingsView
+   Title on WelcomeView */
+"Dexcom G7" = "Dexcom G7";
+
+/* No comment provided by engineer. */
+"Done" = "Realizat";
+
+/* Field label */
+"Glucose" = "Glucoza";
+
+/* title for g7 settings row showing sensor grace period end time */
+"Grace Period End" = "Sfârșitul perioadei de grație";
+
+/* G7 Progress bar label when sensor grace period progress showing */
+"Grace period remaining" = "Perioada de grație rămasă";
+
+/* String displayed instead of a glucose value above the CGM range */
+"HIGH" = "HIPER";
+
+/* title for g7 settings row showing sensor last connect time */
+"Last Connect" = "Ultima conectare";
+
+/* No comment provided by engineer. */
+"Last Reading" = "Ultima citire";
+
+/* Descriptive text on G7StartupView */
+"iAPS can read G7 CGM data, but you must still use the Dexcom G7 App for pairing, calibration, and other sensor management." = "Loop poate citi datele G7 CGM, dar pentru cuplare, calibrare și alte activități de gestionare a senzorului, va trebui să folosiți aplicația Dexcom G7.";
+
+/* String displayed instead of a glucose value below the CGM range */
+"LOW" = "HIPO";
+
+/* title for g7 settings row showing BLE Name */
+"Name" = "Nume";
+
+/* No comment provided by engineer. */
+"Scan for new sensor" = "Scanați pentru un senzor nou";
+
+/* title for g7 settings connection status when scanning */
+"Scanning" = "Scanare";
+
+/* G7 Status highlight text for searching for sensor */
+"Searching for\nSensor" = "Detectarea senzorului";
+
+/* G7 Progress bar label when searching for sensor */
+"Searching for sensor" = "Detectarea senzorului";
+
+/* G7 Status highlight text for sensor expired */
+"Sensor\nExpired" = "Senzorul a expirat";
+
+/* G7 Status highlight text for sensor failed */
+"Sensor\nFailed" = "Senzorul a eșuat";
+
+/* G7 Status highlight text for sensor error */
+"Sensor\nIssue" = "Problemă cu senzorul";
+
+/* G7 Status highlight text for sensor warmup */
+"Sensor\nWarmup" = "Senzorul se încălzește";
+
+/* title for g7 settings row showing sensor expiration time */
+"Sensor Expiration" = "Expirarea senzorului";
+
+/* G7 Progress bar label when sensor expired */
+"Sensor expired" = "Senzorul a expirat";
+
+/* G7 Progress bar label when sensor lifetime progress showing */
+"Sensor expires" = "Senzorul expiră";
+
+/* G7 Progress bar label when sensor failed */
+"Sensor failed" = "Senzorul a eșuat";
+
+/* title for g7 settings row showing sensor start time */
+"Sensor Start" = "Pornirea senzorului";
+
+/* G7 Status highlight text for signal loss */
+"Signal\nLoss" = "Pierdere de semnal";
+
+/* Field label */
+"Time" = "Timp";
+
+/* Field label */
+"Trend" = "Tendinţă";
+
+/* title for g7 config settings to upload readings */
+"Upload Readings" = "Urcă citirile de glicemie";
+
+/* G7 Progress bar label when sensor in warmup */
+"Warmup completes" = "Încălzirea s-a încheiat";
+
