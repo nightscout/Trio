@@ -69,6 +69,15 @@ struct BluetoothPermissionStepView: View {
                 allowTitle: String(localized: "Allow"),
                 denyTitle: String(localized: "Don’t Allow"),
                 onAllow: {
+                    /// Requests Bluetooth permission and updates onboarding state based on the system’s response.
+                    /// It calls `authorizeBluetooth`, which initializes `CBCentralManager` and triggers the
+                    /// native system permission prompt (if not previously shown).
+                    ///
+                    /// The resulting authorization is checked — if the user grants permission (`.authorized`),
+                    /// `hasBluetoothGranted` is set to `true`, allowing the app to proceed with Bluetooth operations.
+                    /// Otherwise, it remains `false`, and the user can be guided to manually enable Bluetooth later.
+                    ///
+                    /// This ensures the app only treats Bluetooth as granted when the system confirms it.
                     bluetoothManager.authorizeBluetooth { auth in
                         DispatchQueue.main.async {
                             state.hasBluetoothGranted = (auth == .authorized)
@@ -80,10 +89,22 @@ struct BluetoothPermissionStepView: View {
                     }
                 },
                 onDeny: {
-                    state.hasBluetoothGranted = false
-                    state.shouldDisplayBluetoothRequestAlert = false
-                    if let next = currentStep.wrappedValue.next {
-                        currentStep.wrappedValue = next
+                    /// Requests Bluetooth permission and updates onboarding state based on the system’s response.
+                    /// Although `authorizeBluetooth` is still called (to ensure iOS shows the app under
+                    /// Settings > Privacy & Security > Bluetooth), the app forcibly sets `hasBluetoothGranted` to `false`
+                    /// regardless of the system-reported authorization status.
+                    ///
+                    /// This ensures the app tracks user intent correctly (denial),
+                    /// while still letting the system recognize Bluetooth usage,
+                    /// so users can later re-enable it manually in iOS Settings.
+                    bluetoothManager.authorizeBluetooth { _ in
+                        DispatchQueue.main.async {
+                            state.hasBluetoothGranted = false
+                            state.shouldDisplayBluetoothRequestAlert = false
+                            if let next = currentStep.wrappedValue.next {
+                                currentStep.wrappedValue = next
+                            }
+                        }
                     }
                 }
             )
