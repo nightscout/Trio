@@ -25,7 +25,11 @@
 # - Second push to `dev`:     → `APP_DEV_VERSION = 0.5.0.2`
 # - ...
 #
+# Commit Handling:
 # The updated value is committed and pushed back to the `dev` branch.
+# - The bump commit includes the `[skip ci]` tag in its message
+# - This prevents the workflow from re-triggering itself in a loop
+# 
 #
 # Prerequisites:
 # - `APP_VERSION` must be present in `Config.xcconfig` in the form `x.y.z`
@@ -49,6 +53,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+         token: ${{ secrets.TRIO_TOKEN_AUTOBUMP }}
 
       - name: Set up Git
         run: |
@@ -96,5 +102,5 @@ jobs:
       - name: Commit and push updated dev version
         run: |
           git add Config.xcconfig
-          git commit -m "CI: Bump APP_DEV_VERSION to $NEW_DEV_VERSION"
+          git commit -m "CI: Bump APP_DEV_VERSION to $NEW_DEV_VERSION [skip ci]"
           git push
