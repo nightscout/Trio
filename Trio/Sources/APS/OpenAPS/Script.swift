@@ -10,7 +10,7 @@ struct Script {
             do {
                 body = try String(contentsOf: url)
             } catch {
-                print("Error loading script: \(error.localizedDescription)")
+                debug(.openAPS, "Error loading script: \(error)")
                 body = "Error loading script"
             }
         } else {
