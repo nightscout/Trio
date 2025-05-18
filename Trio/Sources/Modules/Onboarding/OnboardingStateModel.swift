@@ -696,6 +696,34 @@ extension Onboarding {
         func applyToSettings() {
             var settingsCopy = settingsManager.settings
             settingsCopy.units = units
+            
+            // ensure existing values cannot exceed new guardrails
+            if !isFreshTrioInstall {
+                let providedSettings = settingsProvider.settings
+                settingsCopy.lowGlucose = min(settingsCopy.lowGlucose, providedSettings.lowGlucose.max)
+                settingsCopy.highGlucose = min(settingsCopy.highGlucose, providedSettings.highGlucose.max)
+                settingsCopy.carbsRequiredThreshold = min(
+                    settingsCopy.carbsRequiredThreshold,
+                    providedSettings.carbsRequiredThreshold.max
+                )
+                settingsCopy.individualAdjustmentFactor = min(
+                    settingsCopy.individualAdjustmentFactor,
+                    providedSettings.individualAdjustmentFactor.max
+                )
+                settingsCopy.timeCap = min(settingsCopy.timeCap, providedSettings.timeCap.max)
+                settingsCopy.minuteInterval = min(settingsCopy.minuteInterval, providedSettings.minuteInterval.max)
+                settingsCopy.delay = min(settingsCopy.delay, providedSettings.delay.max)
+                settingsCopy.high = min(settingsCopy.high, providedSettings.high.max)
+                settingsCopy.low = min(settingsCopy.low, providedSettings.low.max)
+                settingsCopy.hours = min(settingsCopy.hours, Int(providedSettings.hours.max))
+                settingsCopy.maxCarbs = min(settingsCopy.maxCarbs, providedSettings.maxCarbs.max)
+                settingsCopy.maxFat = min(settingsCopy.maxFat, providedSettings.maxFat.max)
+                settingsCopy.maxProtein = min(settingsCopy.maxProtein, providedSettings.maxProtein.max)
+                settingsCopy.overrideFactor = min(settingsCopy.overrideFactor, providedSettings.overrideFactor.max)
+                settingsCopy.fattyMealFactor = min(settingsCopy.fattyMealFactor, providedSettings.fattyMealFactor.max)
+                settingsCopy.sweetMealFactor = min(settingsCopy.sweetMealFactor, providedSettings.sweetMealFactor.max)
+            }
+            
             settingsManager.settings = settingsCopy
         }
 
