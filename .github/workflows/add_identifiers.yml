@@ -8,20 +8,16 @@ jobs:
     name: Validate
     uses: ./.github/workflows/validate_secrets.yml
     secrets: inherit
-  
+
   identifiers:
     name: Add Identifiers
     needs: validate
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
-      # Uncomment to manually select latest Xcode if needed
-      #- name: Select Latest Xcode
-      #  run: "sudo xcode-select --switch /Applications/Xcode_13.0.app/Contents/Developer"
-      
       # Checks-out the repo
       - name: Checkout Repo
         uses: actions/checkout@v4
-      
+
       # Patch Fastlane Match to not print tables
       - name: Patch Match Tables
         run: |
@@ -40,7 +36,7 @@ jobs:
       # Sync the GitHub runner clock with the Windows time server (workaround as suggested in https://github.com/actions/runner/issues/2996)
       - name: Sync clock
         run: sudo sntp -sS time.windows.com
-      
+
       # Create or update identifiers for app
       - name: Fastlane Provision
         run: bundle exec fastlane identifiers

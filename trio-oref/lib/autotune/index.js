@@ -412,7 +412,7 @@ function tuneAllTheThings (inputs) {
     var maxCR = pumpCarbRatio * autotuneMax;
     if (maxCR > 150) { maxCR = 150 }
     var minCR = pumpCarbRatio * autotuneMin;
-    if (minCR < 1) { minCR = 3 }
+    if (minCR < 1) { minCR = 1 }
     // safety cap fullNewCR
     if (typeof(pumpCarbRatio) !== 'undefined') {
         if (fullNewCR > maxCR) {
