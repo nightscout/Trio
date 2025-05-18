@@ -50,10 +50,16 @@ struct ForecastChart: View {
     }
 
     private var forecastChartLabels: some View {
-        HStack {
+        // Check if carbs are backdated (date is in the past)
+        let isBackdated = state.date < Date()
+
+        // When backdated, display no carbs as this label is only supposed to show current entered carbs
+        let displayedCarbs = isBackdated ? 0 : state.carbs
+
+        return HStack {
             HStack {
                 Image(systemName: "fork.knife")
-                Text("\(state.carbs.description) g")
+                Text("\(displayedCarbs.description) g")
             }
             .font(.footnote)
             .foregroundStyle(.orange)

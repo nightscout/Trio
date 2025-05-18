@@ -380,12 +380,17 @@ extension Treatments {
                 minPredBG
             }
 
+            // Use the cob value of the simulation if carbs are backdated, otherwise set `simulatedCOB` to nil so that the cob value of the most recent determination gets used in the Bolus Calc Manager
+            let simulatedCOB: Int16? = (simulatedDetermination != nil && date < Date()) ?
+                Int16(truncating: NSNumber(value: (simulatedDetermination?.cob as NSDecimalNumber?)?.doubleValue ?? 0)) : nil
+
             let result = await bolusCalculationManager.handleBolusCalculation(
                 carbs: carbs,
                 useFattyMealCorrection: useFattyMealCorrectionFactor,
                 useSuperBolus: useSuperBolus,
                 lastLoopDate: apsManager.lastLoopDate,
-                minPredBG: localMinPredBG
+                minPredBG: localMinPredBG,
+                simulatedCOB: simulatedCOB
             )
 
             // Update state properties with calculation results on main thread
@@ -834,7 +839,11 @@ extension Treatments.StateModel {
         } else {
             simulatedDetermination = await Task { [self] in
                 debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
-                return await apsManager.simulateDetermineBasal(simulatedCarbsAmount: carbs, simulatedBolusAmount: amount)
+                return await apsManager.simulateDetermineBasal(
+                    simulatedCarbsAmount: carbs,
+                    simulatedBolusAmount: amount,
+                    simulatedCarbsDate: date
+                )
             }.value
 
             // Update evBG and minPredBG from simulated determination

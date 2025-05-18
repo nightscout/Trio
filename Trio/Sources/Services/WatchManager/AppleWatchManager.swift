@@ -622,7 +622,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         useFattyMealCorrection: false,
                         useSuperBolus: false,
                         lastLoopDate: apsManager.lastLoopDate,
-                        minPredBG: minPredBG
+                        minPredBG: minPredBG,
+                        simulatedCOB: nil // TODO:
                     )
 
                     // Send recommendation back to watch
