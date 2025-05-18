@@ -61,15 +61,11 @@ extension Onboarding {
                 return false
             }
 
-            debug(.default, "Checking for fresh install in \(documentsURL.path)...")
-
             let expectedLogsFolder = "logs"
             let expectedPreferencesFile = OpenAPS.Settings.preferences
 
             do {
                 let contents = try fileManager.contentsOfDirectory(atPath: documentsURL.path)
-
-                debug(.default, "Found \(contents) in \(documentsURL.path)...")
 
                 // Expect exactly 2 entries: "logs" and the preferences file
                 guard contents.count == 2 else {
@@ -80,8 +76,6 @@ extension Onboarding {
                 // Ensure they match exactly
                 let expectedSet = Set([expectedLogsFolder, expectedPreferencesFile])
                 let actualSet = Set(contents)
-
-                debug(.default, "Expected: \(expectedSet), Actual: \(actualSet)")
 
                 let isFreshInstall = expectedSet == actualSet
                 debug(.default, "Trio install is fresh; new user.")
@@ -742,6 +736,18 @@ extension Onboarding {
             // default suspendZeroesIOB to true
             if !preferences.suspendZerosIOB {
                 preferences.suspendZerosIOB = true
+            }
+
+            // ensure correct bolusIncrement is set, if user is onboarding with paired pump
+            if let pumpManager = apsManager?.pumpManager {
+                let bolusIncrement = Decimal(
+                    pumpManager.supportedBolusVolumes.first ??
+                        Double(
+                            settingsManager.preferences
+                                .bolusIncrement
+                        )
+                )
+                preferences.bolusIncrement = bolusIncrement != 0.025 ? bolusIncrement : 0.1
             }
 
             settingsManager.preferences = preferences
