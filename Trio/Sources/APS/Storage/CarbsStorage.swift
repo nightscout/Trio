@@ -147,13 +147,19 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         createdAt: Date,
         actualDate: Date?
     ) -> ([CarbsEntry], Decimal) {
-        let interval = min(settings.settings.minuteInterval, settingsProvider.settings.minuteInterval.max)
-        let timeCap = min(settings.settings.timeCap, settingsProvider.settings.timeCap.max)
-        let adjustment = min(
-            settings.settings.individualAdjustmentFactor,
-            settingsProvider.settings.individualAdjustmentFactor.max
+        let trioSettings = settings.settings
+        let providerSettings = settingsProvider.settings
+
+        let interval = max(
+            min(trioSettings.minuteInterval, providerSettings.minuteInterval.max),
+            providerSettings.minuteInterval.min
         )
-        let delay = min(settings.settings.delay, settingsProvider.settings.delay.max)
+        let timeCap = max(min(trioSettings.timeCap, providerSettings.timeCap.max), providerSettings.timeCap.min)
+        let adjustment = max(
+            min(trioSettings.individualAdjustmentFactor, providerSettings.individualAdjustmentFactor.max),
+            providerSettings.individualAdjustmentFactor.min
+        )
+        let delay = max(min(trioSettings.delay, providerSettings.delay.max), providerSettings.delay.min)
 
         let kcal = protein * 4 + fat * 9
         let carbEquivalents = (kcal / 10) * adjustment
