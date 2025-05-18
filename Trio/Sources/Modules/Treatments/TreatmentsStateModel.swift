@@ -1,6 +1,7 @@
 import Combine
 import CoreData
 import Foundation
+import LocalAuthentication
 import LoopKit
 import Observation
 import SwiftUI
@@ -474,14 +475,19 @@ extension Treatments {
                     }
                     await apsManager.enactBolus(amount: maxAmount, isSMB: false, callback: nil)
                 } else {
-                    print("authentication failed")
+                    debug(.bolusState, "Authentication failed")
+                    throw UnlockError(error: LAError(.authenticationFailed))
                 }
             } catch {
-                print("authentication error for pump bolus: \(error.localizedDescription)")
+                debug(.bolusState, "Authentication error for pump bolus: \(error)")
                 await MainActor.run {
                     self.isAwaitingDeterminationResult = false
                     self.showDeterminationFailureAlert = true
-                    self.determinationFailureMessage = error.localizedDescription
+                    self
+                        .determinationFailureMessage =
+                        String(
+                            localized: "Authentication failed. Please ensure you have configured a Passcode for your iPhone under iOS Settings > Face ID & Code."
+                        )
                 }
             }
         }
@@ -510,14 +516,19 @@ extension Treatments {
                     // perform determine basal sync
                     try await apsManager.determineBasalSync()
                 } else {
-                    print("authentication failed")
+                    debug(.bolusState, "Authentication failed")
+                    throw UnlockError(error: LAError(.authenticationFailed))
                 }
             } catch {
-                print("authentication error for external insulin: \(error.localizedDescription)")
+                debug(.bolusState, "authentication error for external insulin: \(error)")
                 await MainActor.run {
                     self.isAwaitingDeterminationResult = false
                     self.showDeterminationFailureAlert = true
-                    self.determinationFailureMessage = error.localizedDescription
+                    self
+                        .determinationFailureMessage =
+                        String(
+                            localized: "Authentication failed. Please ensure you have configured a Passcode for your iPhone under iOS Settings > Face ID & Code."
+                        )
                 }
             }
         }
