@@ -380,8 +380,13 @@ extension Treatments {
                 minPredBG
             }
 
+            // Check if carbs are actually backdated (more than 15 minutes in the past)
+            // This ensures we only consider it backdated if the user has deliberately changed the date
+            let minutesThreshold = 15.0 // 15 minutes threshold
+            let isBackdated = date.timeIntervalSinceNow < -minutesThreshold * 60 && simulatedDetermination != nil
+
             // Use the cob value of the simulation if carbs are backdated, otherwise set `simulatedCOB` to nil so that the cob value of the most recent determination gets used in the Bolus Calc Manager
-            let simulatedCOB: Int16? = (simulatedDetermination != nil && date < Date()) ?
+            let simulatedCOB: Int16? = isBackdated ?
                 Int16(truncating: NSNumber(value: (simulatedDetermination?.cob as NSDecimalNumber?)?.doubleValue ?? 0)) : nil
 
             let result = await bolusCalculationManager.handleBolusCalculation(
