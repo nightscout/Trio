@@ -237,6 +237,7 @@ jobs:
       - name: Fastlane Build & Archive
         run: bundle exec fastlane build_trio
         env:
+          MATCH_READONLY: "false"
           TEAMID: ${{ secrets.TEAMID }}
           GH_PAT: ${{ secrets.GH_PAT }}
           FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
