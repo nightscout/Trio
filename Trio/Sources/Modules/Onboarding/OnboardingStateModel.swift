@@ -696,34 +696,62 @@ extension Onboarding {
         func applyToSettings() {
             var settingsCopy = settingsManager.settings
             settingsCopy.units = units
-            
+
             // ensure existing values cannot exceed new guardrails
             if !isFreshTrioInstall {
                 let providedSettings = settingsProvider.settings
-                settingsCopy.lowGlucose = min(settingsCopy.lowGlucose, providedSettings.lowGlucose.max)
-                settingsCopy.highGlucose = min(settingsCopy.highGlucose, providedSettings.highGlucose.max)
-                settingsCopy.carbsRequiredThreshold = min(
+
+                settingsCopy.lowGlucose = max(
+                    min(settingsCopy.lowGlucose, providedSettings.lowGlucose.max),
+                    providedSettings.lowGlucose.min
+                )
+                settingsCopy.highGlucose = max(
+                    min(settingsCopy.highGlucose, providedSettings.highGlucose.max),
+                    providedSettings.highGlucose.min
+                )
+                settingsCopy.carbsRequiredThreshold = max(min(
                     settingsCopy.carbsRequiredThreshold,
                     providedSettings.carbsRequiredThreshold.max
-                )
-                settingsCopy.individualAdjustmentFactor = min(
+                ), providedSettings.carbsRequiredThreshold.min)
+                settingsCopy.individualAdjustmentFactor = max(min(
                     settingsCopy.individualAdjustmentFactor,
                     providedSettings.individualAdjustmentFactor.max
+                ), providedSettings.individualAdjustmentFactor.min)
+                settingsCopy.timeCap = max(min(settingsCopy.timeCap, providedSettings.timeCap.max), providedSettings.timeCap.min)
+                settingsCopy.minuteInterval = max(
+                    min(settingsCopy.minuteInterval, providedSettings.minuteInterval.max),
+                    providedSettings.minuteInterval.min
                 )
-                settingsCopy.timeCap = min(settingsCopy.timeCap, providedSettings.timeCap.max)
-                settingsCopy.minuteInterval = min(settingsCopy.minuteInterval, providedSettings.minuteInterval.max)
-                settingsCopy.delay = min(settingsCopy.delay, providedSettings.delay.max)
-                settingsCopy.high = min(settingsCopy.high, providedSettings.high.max)
-                settingsCopy.low = min(settingsCopy.low, providedSettings.low.max)
-                settingsCopy.hours = min(settingsCopy.hours, Int(providedSettings.hours.max))
-                settingsCopy.maxCarbs = min(settingsCopy.maxCarbs, providedSettings.maxCarbs.max)
-                settingsCopy.maxFat = min(settingsCopy.maxFat, providedSettings.maxFat.max)
-                settingsCopy.maxProtein = min(settingsCopy.maxProtein, providedSettings.maxProtein.max)
-                settingsCopy.overrideFactor = min(settingsCopy.overrideFactor, providedSettings.overrideFactor.max)
-                settingsCopy.fattyMealFactor = min(settingsCopy.fattyMealFactor, providedSettings.fattyMealFactor.max)
-                settingsCopy.sweetMealFactor = min(settingsCopy.sweetMealFactor, providedSettings.sweetMealFactor.max)
+                settingsCopy.delay = max(min(settingsCopy.delay, providedSettings.delay.max), providedSettings.delay.min)
+                settingsCopy.high = max(min(settingsCopy.high, providedSettings.high.max), providedSettings.high.min)
+                settingsCopy.low = max(min(settingsCopy.low, providedSettings.low.max), providedSettings.low.min)
+                settingsCopy.hours = max(
+                    min(settingsCopy.hours, Int(providedSettings.hours.max)),
+                    Int(providedSettings.hours.min)
+                )
+                settingsCopy.maxCarbs = max(
+                    min(settingsCopy.maxCarbs, providedSettings.maxCarbs.max),
+                    providedSettings.maxCarbs.min
+                )
+                settingsCopy.maxFat = max(min(settingsCopy.maxFat, providedSettings.maxFat.max), providedSettings.maxFat.min)
+                settingsCopy.maxProtein = max(
+                    min(settingsCopy.maxProtein, providedSettings.maxProtein.max),
+                    providedSettings.maxProtein.min
+                )
+                settingsCopy.overrideFactor = max(
+                    min(settingsCopy.overrideFactor, providedSettings.overrideFactor.max),
+                    providedSettings.overrideFactor.min
+                )
+                settingsCopy.fattyMealFactor = max(
+                    min(settingsCopy.fattyMealFactor, providedSettings.fattyMealFactor.max),
+                    providedSettings.fattyMealFactor.min
+                )
+                settingsCopy.sweetMealFactor = max(
+                    min(settingsCopy.sweetMealFactor, providedSettings.sweetMealFactor.max),
+                    providedSettings.sweetMealFactor.min
+                )
             }
-            
+
             settingsManager.settings = settingsCopy
         }
 
