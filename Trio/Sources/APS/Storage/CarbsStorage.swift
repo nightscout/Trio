@@ -27,6 +27,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
     private let updateSubject = PassthroughSubject<Void, Never>()
 
+    private let settingsProvider = PickerSettingsProvider.shared
+
     var updatePublisher: AnyPublisher<Void, Never> {
         updateSubject.eraseToAnyPublisher()
     }
@@ -111,7 +113,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
 
      - Returns: The computed duration in hours.
      */
-    private func calculateComputedDuration(fpus: Decimal, timeCap: Int) -> Int {
+    private func calculateComputedDuration(fpus: Decimal, timeCap: Decimal) -> Decimal {
         switch fpus {
         case ..<2:
             return 3
@@ -145,22 +147,25 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         createdAt: Date,
         actualDate: Date?
     ) -> ([CarbsEntry], Decimal) {
-        let interval = settings.settings.minuteInterval
-        let timeCap = settings.settings.timeCap
-        let adjustment = settings.settings.individualAdjustmentFactor
-        let delay = settings.settings.delay
+        let interval = min(settings.settings.minuteInterval, settingsProvider.settings.minuteInterval.max)
+        let timeCap = min(settings.settings.timeCap, settingsProvider.settings.timeCap.max)
+        let adjustment = min(
+            settings.settings.individualAdjustmentFactor,
+            settingsProvider.settings.individualAdjustmentFactor.max
+        )
+        let delay = min(settings.settings.delay, settingsProvider.settings.delay.max)
 
         let kcal = protein * 4 + fat * 9
         let carbEquivalents = (kcal / 10) * adjustment
         let fpus = carbEquivalents / 10
         var computedDuration = calculateComputedDuration(fpus: fpus, timeCap: timeCap)
 
-        var carbEquivalentSize: Decimal = carbEquivalents / Decimal(computedDuration)
-        carbEquivalentSize /= Decimal(60 / interval)
+        var carbEquivalentSize: Decimal = carbEquivalents / computedDuration
+        carbEquivalentSize /= Decimal(60) / interval
 
         if carbEquivalentSize < 1.0 {
             carbEquivalentSize = 1.0
-            computedDuration = Int(carbEquivalents / carbEquivalentSize)
+            computedDuration = min(carbEquivalents / carbEquivalentSize, timeCap)
         }
 
         let roundedEquivalent: Double = round(Double(carbEquivalentSize * 10)) / 10
@@ -173,8 +178,8 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         var firstIndex = true
 
         while carbEquivalents > 0, numberOfEquivalents > 0 {
-            useDate = firstIndex ? useDate.addingTimeInterval(delay.minutes.timeInterval) : useDate
-                .addingTimeInterval(interval.minutes.timeInterval)
+            useDate = firstIndex ? useDate.addingTimeInterval(TimeInterval(delay)) : useDate
+                .addingTimeInterval(TimeInterval(interval))
             firstIndex = false
 
             let eachCarbEntry = CarbsEntry(
