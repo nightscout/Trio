@@ -312,8 +312,10 @@ struct PopupView: View {
     /// Don't allow total carbs to exceed Max IOB setting.
     /// Formula: (Current COB + New Carbs) / Carb Ratio = COB Correction Dose
     private var cobCardContent: some View {
-        // Check if carbs are backdated (date is in the past)
-        let isBackdated = state.date < Date()
+        // Check if carbs are actually backdated (more than 15 minutes in the past)
+        // This ensures we only consider it backdated if the user has deliberately changed the date
+        let minutesThreshold = 15.0 // 15 minutes threshold
+        let isBackdated = state.date.timeIntervalSinceNow < -minutesThreshold * 60 && state.simulatedDetermination != nil
 
         // Determine COB and carbs to display based on backdating status
         let displayedCOB = isBackdated ? (state.simulatedDetermination?.cob ?? Decimal(state.cob)) : Decimal(state.cob)

@@ -50,8 +50,10 @@ struct ForecastChart: View {
     }
 
     private var forecastChartLabels: some View {
-        // Check if carbs are backdated (date is in the past)
-        let isBackdated = state.date < Date()
+        // Check if carbs are actually backdated (more than 15 minutes in the past)
+        // This ensures we only consider it backdated if the user has deliberately changed the date
+        let minutesThreshold = 15.0 // 15 minutes threshold
+        let isBackdated = state.date.timeIntervalSinceNow < -minutesThreshold * 60 && state.simulatedDetermination != nil
 
         // When backdated, display no carbs as this label is only supposed to show current entered carbs
         let displayedCarbs = isBackdated ? 0 : state.carbs

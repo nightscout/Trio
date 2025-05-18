@@ -468,7 +468,6 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             insulinCalculated: insulinCalculated,
             factoredInsulin: factoredInsulin,
             wholeCalc: wholeCalc,
-            correctionInsulin: targetDifferenceInsulin,
             iobInsulinReduction: iobInsulinReduction,
             superBolusInsulin: superBolusInsulin,
             targetDifference: targetDifference,
@@ -516,7 +515,6 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
                 insulinCalculated: 0,
                 factoredInsulin: 0,
                 wholeCalc: 0,
-                correctionInsulin: 0,
                 iobInsulinReduction: 0,
                 superBolusInsulin: 0,
                 targetDifference: 0,
@@ -557,7 +555,6 @@ struct CalculationResult: Sendable {
     let insulinCalculated: Decimal // Final calculated insulin amount which respects limits
     let factoredInsulin: Decimal // Total calculation after adjustments
     let wholeCalc: Decimal // Total calculation before adjustments
-    let correctionInsulin: Decimal // Insulin for BG correction
     let iobInsulinReduction: Decimal // IOB reduction amount
     let superBolusInsulin: Decimal // Additional insulin for super bolus
     let targetDifference: Decimal // Difference from target BG
