@@ -1,3 +1,4 @@
+import Foundation
 import LoopKitUI
 import SwiftUI
 import Swinject
@@ -21,6 +22,7 @@ extension CGMSettings {
         @State private var period: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_Period")
         @State private var noiseAmplitude: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_NoiseAmplitude")
         @State private var produceStaleValues: Bool = UserDefaults.standard.bool(forKey: "GlucoseSimulator_ProduceStaleValues")
+        @State private var workInterval: Double = UserDefaults.standard.double(forKey: "GlucoseSimulator_WorkInterval")
 
         // Initialize state variables with defaults if needed
         private func initializeSimulatorSettings() {
@@ -36,6 +38,9 @@ extension CGMSettings {
             if noiseAmplitude == 0 {
                 noiseAmplitude = OscillatingGenerator.Defaults.noiseAmplitude
             }
+            if workInterval == 0 {
+                workInterval = OscillatingGenerator.Defaults.workInterval
+            }
             // produceStaleValues is already initialized as false by default
         }
 
@@ -46,6 +51,7 @@ extension CGMSettings {
             UserDefaults.standard.set(period, forKey: "GlucoseSimulator_Period")
             UserDefaults.standard.set(noiseAmplitude, forKey: "GlucoseSimulator_NoiseAmplitude")
             UserDefaults.standard.set(produceStaleValues, forKey: "GlucoseSimulator_ProduceStaleValues")
+            UserDefaults.standard.set(workInterval, forKey: "GlucoseSimulator_WorkInterval")
         }
 
         var body: some View {
@@ -380,6 +386,36 @@ extension CGMSettings {
                                 .padding(.bottom)
                         }
                     }.listRowBackground(Color.chart)
+
+                    Section {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("Data Interval:").bold()
+
+                                Spacer()
+
+                                Text(Int(workInterval / 60).description).bold()
+
+                                Text("minutes").foregroundStyle(Color.secondary)
+                            }.padding(.top)
+
+                            Slider(value: $workInterval, in: 60 ... 300, step: 30)
+                                .accentColor(.accentColor)
+                                .onChange(of: workInterval) { _, newValue in
+                                    print("Setting work interval to: \(newValue) seconds")
+                                    UserDefaults.standard.set(newValue, forKey: "GlucoseSimulator_WorkInterval")
+                                }
+                                .padding(.vertical)
+
+                            Text(
+                                "The time between new glucose readings (default: 5 minutes). Reducing this will generate readings more frequently."
+                            )
+                            .font(.footnote)
+                            .foregroundStyle(Color.secondary)
+                            .lineLimit(nil)
+                            .padding(.bottom)
+                        }
+                    }.listRowBackground(Color.chart)
                 }
 
                 Section {
@@ -389,6 +425,7 @@ extension CGMSettings {
                         period = OscillatingGenerator.Defaults.period
                         noiseAmplitude = OscillatingGenerator.Defaults.noiseAmplitude
                         produceStaleValues = OscillatingGenerator.Defaults.produceStaleValues
+                        workInterval = OscillatingGenerator.Defaults.workInterval
                         saveSimulatorSettings()
                     }, label: {
                         Text("Reset to Defaults")
