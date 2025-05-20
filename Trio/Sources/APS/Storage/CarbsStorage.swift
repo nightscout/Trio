@@ -150,16 +150,10 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         let trioSettings = settings.settings
         let providerSettings = settingsProvider.settings
 
-        let interval = max(
-            min(trioSettings.minuteInterval, providerSettings.minuteInterval.max),
-            providerSettings.minuteInterval.min
-        )
-        let timeCap = max(min(trioSettings.timeCap, providerSettings.timeCap.max), providerSettings.timeCap.min)
-        let adjustment = max(
-            min(trioSettings.individualAdjustmentFactor, providerSettings.individualAdjustmentFactor.max),
-            providerSettings.individualAdjustmentFactor.min
-        )
-        let delay = max(min(trioSettings.delay, providerSettings.delay.max), providerSettings.delay.min)
+        let interval = trioSettings.minuteInterval.clamp(to: providerSettings.minuteInterval)
+        let timeCap = trioSettings.timeCap.clamp(to: providerSettings.timeCap)
+        let adjustment = trioSettings.individualAdjustmentFactor.clamp(to: providerSettings.individualAdjustmentFactor)
+        let delay = trioSettings.delay.clamp(to: providerSettings.delay)
 
         let kcal = protein * 4 + fat * 9
         let carbEquivalents = (kcal / 10) * adjustment
@@ -183,9 +177,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         var futureCarbArray = [CarbsEntry]()
         var firstIndex = true
 
+        // convert Decimal minutes to TimeInterval in seconds
+        let delayTimeInterval = TimeInterval(delay * 60)
+        let intervalTimeInterval = TimeInterval(interval * 60)
         while carbEquivalents > 0, numberOfEquivalents > 0 {
-            useDate = firstIndex ? useDate.addingTimeInterval(TimeInterval(delay)) : useDate
-                .addingTimeInterval(TimeInterval(interval))
+            useDate = firstIndex ? useDate.addingTimeInterval(delayTimeInterval) : useDate
+                .addingTimeInterval(intervalTimeInterval)
             firstIndex = false
 
             let eachCarbEntry = CarbsEntry(
