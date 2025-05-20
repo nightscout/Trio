@@ -458,6 +458,14 @@ extension Treatments {
             }
         }
 
+        /// Returns a user-facing localized error message for a given authentication error.
+        ///
+        /// This function inspects the provided `Error` to determine whether it is an `LAError`,
+        /// and maps its error code to a human-readable, localized string describing the reason
+        /// for the failure. If the error is not an `LAError`, a generic fallback message is returned.
+        ///
+        /// - Parameter error: The `Error` returned from an authentication attempt (e.g., via `LAContext.evaluatePolicy`).
+        /// - Returns: A localized `String` describing the cause of the authentication failure.
         private func parseAuthenticationError(from error: Error) -> String {
             guard let laError = error as? LAError else {
                 return String(
