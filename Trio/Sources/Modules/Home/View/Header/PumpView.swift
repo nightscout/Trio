@@ -26,7 +26,7 @@ struct PumpView: View {
             return "hourglass.bottomhalf.filled"
         case 12 ..< 60:
             return "hourglass"
-        case 0 ..< 12:
+        case -8 ..< 12:
             return "hourglass.tophalf.filled"
         default:
             return "hourglass"
