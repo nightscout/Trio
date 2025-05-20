@@ -458,6 +458,83 @@ extension Treatments {
             }
         }
 
+        private func parseAuthenticationError(from error: Error) -> String {
+            guard let laError = error as? LAError else {
+                return String(
+                    localized: "An unknown authentication error occurred. Please try again."
+                )
+            }
+
+            switch laError.code {
+            case .authenticationFailed:
+                return String(
+                    localized: "Authentication failed. Please try again."
+                )
+
+            case .userCancel:
+                return String(
+                    localized: "Authentication was canceled by you."
+                )
+
+            case .userFallback:
+                return String(
+                    localized: "You tapped the fallback option, but no fallback method is configured."
+                )
+
+            case .systemCancel:
+                return String(
+                    localized: "Authentication was canceled by the system. Try again."
+                )
+
+            case .appCancel:
+                return String(
+                    localized: "Authentication was canceled by the app."
+                )
+
+            case .invalidContext:
+                return String(
+                    localized: "Authentication context is invalid. Please try again."
+                )
+
+            case .notInteractive:
+                return String(
+                    localized: "Authentication UI cannot be displayed. Try restarting the app."
+                )
+
+            case .passcodeNotSet:
+                return String(
+                    localized: "Authentication requires a device passcode. Please set one in iOS Settings > Face ID & Passcode."
+                )
+
+            case .biometryNotAvailable:
+                return String(
+                    localized: "Biometric authentication is not available on this device."
+                )
+
+            case .biometryNotEnrolled:
+                return String(
+                    localized: "No biometric identities are enrolled. Please set up Face ID or Touch ID."
+                )
+
+            case .biometryLockout,
+                 .touchIDLockout:
+                return String(
+                    localized: "Biometric authentication is locked due to multiple failed attempts. Please unlock your device using your passcode."
+                )
+
+            case .biometryDisconnected,
+                 .biometryNotPaired:
+                return String(
+                    localized: "Biometric accessory is missing or not connected. Please reconnect it and try again."
+                )
+
+            default:
+                return String(
+                    localized: "An unknown biometric authentication error occurred. Please try again."
+                )
+            }
+        }
+
         func addPumpInsulin() async {
             guard amount > 0 else {
                 showModal(for: nil)
@@ -474,20 +551,14 @@ extension Treatments {
                         self.isAwaitingDeterminationResult = true
                     }
                     await apsManager.enactBolus(amount: maxAmount, isSMB: false, callback: nil)
-                } else {
-                    debug(.bolusState, "Authentication failed")
-                    throw UnlockError(error: LAError(.authenticationFailed))
                 }
             } catch {
                 debug(.bolusState, "Authentication error for pump bolus: \(error)")
+
                 await MainActor.run {
                     self.isAwaitingDeterminationResult = false
                     self.showDeterminationFailureAlert = true
-                    self
-                        .determinationFailureMessage =
-                        String(
-                            localized: "Authentication failed. Please ensure you have configured a Passcode for your iPhone under iOS Settings > Face ID & Code."
-                        )
+                    self.determinationFailureMessage = parseAuthenticationError(from: error)
                 }
             }
         }
@@ -515,20 +586,13 @@ extension Treatments {
                     await pumpHistoryStorage.storeExternalInsulinEvent(amount: amount, timestamp: date)
                     // perform determine basal sync
                     try await apsManager.determineBasalSync()
-                } else {
-                    debug(.bolusState, "Authentication failed")
-                    throw UnlockError(error: LAError(.authenticationFailed))
                 }
             } catch {
                 debug(.bolusState, "authentication error for external insulin: \(error)")
                 await MainActor.run {
                     self.isAwaitingDeterminationResult = false
                     self.showDeterminationFailureAlert = true
-                    self
-                        .determinationFailureMessage =
-                        String(
-                            localized: "Authentication failed. Please ensure you have configured a Passcode for your iPhone under iOS Settings > Face ID & Code."
-                        )
+                    self.determinationFailureMessage = parseAuthenticationError(from: error)
                 }
             }
         }
