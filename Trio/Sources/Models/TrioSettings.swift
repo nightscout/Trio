@@ -50,7 +50,6 @@ struct TrioSettings: JSON, Equatable {
     var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
     var high: Decimal = 180
     var low: Decimal = 70
-    var hours: Int = 6
     var glucoseColorScheme: GlucoseColorScheme = .staticColor
     var xGridLines: Bool = true
     var yGridLines: Bool = true
@@ -235,10 +234,6 @@ extension TrioSettings: Decodable {
 
         if let high = try? container.decode(Decimal.self, forKey: .high) {
             settings.high = high
-        }
-
-        if let hours = try? container.decode(Int.self, forKey: .hours) {
-            settings.hours = hours
         }
 
         if let glucoseColorScheme = try? container.decode(GlucoseColorScheme.self, forKey: .glucoseColorScheme) {
