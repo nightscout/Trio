@@ -626,6 +626,7 @@
 		DDD1631A2C4C695E00CD525A /* EditOverrideForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163192C4C695E00CD525A /* EditOverrideForm.swift */; };
 		DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */; };
 		DDD1631F2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */; };
+		DDD5889D2DDDC9A900C8848D /* TimeAgoFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD5889C2DDDC9A900C8848D /* TimeAgoFormatter.swift */; };
 		DDD6D4D32CDE90720029439A /* EstimatedA1cDisplayUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD6D4D22CDE90720029439A /* EstimatedA1cDisplayUnit.swift */; };
 		DDD78A912DC4064800AC63F3 /* carbhistory.json in Resources */ = {isa = PBXBuildFile; fileRef = DDD78A902DC4064800AC63F3 /* carbhistory.json */; };
 		DDD78AD92DC421B500AC63F3 /* enacted.json in Resources */ = {isa = PBXBuildFile; fileRef = DDD78AD72DC421B500AC63F3 /* enacted.json */; };
@@ -1442,6 +1443,7 @@
 		DDD163192C4C695E00CD525A /* EditOverrideForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditOverrideForm.swift; sourceTree = "<group>"; };
 		DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOverrideForm.swift; sourceTree = "<group>"; };
 		DDD1631E2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrioCoreDataPersistentContainer.xcdatamodel; sourceTree = "<group>"; };
+		DDD5889C2DDDC9A900C8848D /* TimeAgoFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeAgoFormatter.swift; sourceTree = "<group>"; };
 		DDD6D4D22CDE90720029439A /* EstimatedA1cDisplayUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EstimatedA1cDisplayUnit.swift; sourceTree = "<group>"; };
 		DDD78A902DC4064800AC63F3 /* carbhistory.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = carbhistory.json; sourceTree = "<group>"; };
 		DDD78AD72DC421B500AC63F3 /* enacted.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = enacted.json; sourceTree = "<group>"; };
@@ -2384,6 +2386,7 @@
 		388E5A5A25B6F05F0019842D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				DDD5889C2DDDC9A900C8848D /* TimeAgoFormatter.swift */,
 				DD82D4B72DCAB2BA00BAFC77 /* PropertyPersistentFlags.swift */,
 				DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */,
 				BD249DA62D42FE3800412DEB /* Calendar+GlucoseStatsChart.swift */,
@@ -4151,6 +4154,7 @@
 				CEB434E328B8F9DB00B70274 /* BluetoothStateManager.swift in Sources */,
 				BDC2EA452C3043B000E5BBD0 /* OverrideStorage.swift in Sources */,
 				3811DE4225C9D4A100A708ED /* SettingsDataFlow.swift in Sources */,
+				DDD5889D2DDDC9A900C8848D /* TimeAgoFormatter.swift in Sources */,
 				CEE9A6562BBB418300EB5194 /* CalibrationsRootView.swift in Sources */,
 				3811DE2525C9D48300A708ED /* MainRootView.swift in Sources */,
 				CE94598229E9E3D30047C9C6 /* WatchConfigProvider.swift in Sources */,
