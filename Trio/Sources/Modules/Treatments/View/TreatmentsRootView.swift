@@ -400,12 +400,12 @@ extension Treatments {
             }) {
                 MealPresetView(state: state)
             }
-            .alert("Determination Failed", isPresented: $state.showDeterminationFailureAlert) {
+            .alert("Error while processing Treatment", isPresented: $state.showDeterminationFailureAlert) {
                 Button("OK", role: .cancel) {
                     state.hideModal()
                 }
             } message: {
-                Text("Failed to update COB/IOB: \(state.determinationFailureMessage)")
+                Text("\(state.determinationFailureMessage)")
             }
         }
 
