@@ -40,6 +40,29 @@ func info(
     }.perform()
 }
 
+func info(
+    _ category: Logger.Category,
+    _ message: String,
+    notificationText: String,
+    type: MessageType = .info,
+    file: String = #file,
+    function: String = #function,
+    line: UInt = #line
+) {
+    DispatchWorkItem(qos: .background, flags: .enforceQoS) {
+        loggerLock.perform {
+            category.logger.info(
+                message,
+                notificationText: notificationText,
+                type: type,
+                file: file,
+                function: function,
+                line: line
+            )
+        }
+    }.perform()
+}
+
 func warning(
     _ category: Logger.Category,
     _ message: String,
@@ -246,11 +269,22 @@ final class Logger {
         function: String = #function,
         line: UInt = #line
     ) {
+        info(message, notificationText: message, type: type, file: file, function: function, line: line)
+    }
+
+    func info(
+        _ message: String,
+        notificationText: String,
+        type: MessageType = .info,
+        file: String = #file,
+        function: String = #function,
+        line: UInt = #line
+    ) {
         let printedMessage = "INFO: \(message)"
         os_log("%@ - %@ - %d %{public}@", log: log, type: .info, file.file, function, line, printedMessage)
         reporter.log(category.name, printedMessage, file: file, function: function, line: line)
 
-        showAlert(message, type: type)
+        showAlert(notificationText, type: type)
     }
 
     func warning(
