@@ -1,0 +1,428 @@
+/* Description for an inactive alert modifier */
+" (inactive)" = " (ei-aktiivinen)";
+
+/* Format string for low battery alert body for RileyLink. (1: device name) */
+"\"%1$@\" has a low battery" = "\"%1$@\" has a low battery";
+
+/* Unit format string for an RSSI value in decibles */
+"%@ dB" = "%@ dB";
+
+/* Format string for alert content body for lowReservoir pod alert. (1: reminder value) */
+"%1$@ insulin or less remaining in Pod. Change Pod soon." = "%1$@ insulin or less remaining in Pod. Change Pod soon.";
+
+/* Format string for activation time exceeded
+   Pod state when activation not completed in the time allowed */
+"Activation time exceeded" = "Aktivointiaika ylitetty";
+
+/* Description for auto-off */
+"Auto-off" = "Auto-Off";
+
+/* Description for auto-off alarm */
+"Auto-off alarm" = "Autom. pois -varoitus";
+
+/* Pod state when basal initialized */
+"Basal initialized" = "Basaali alustettu";
+
+/* Pod state when running below fifty units */
+"Below 50 units" = "Alle 50 yksikköä";
+
+/* Pump Event title for UnfinalizedDose with doseType of .bolus */
+"Bolus" = "Bolus";
+
+/* Error message shown when operation could not be completed due to existing bolus in progress */
+"Bolus in progress" = "Bolus vireillä";
+
+/* The format string describing a bolus. (1: The amount delivered)(2: Start time of the dose)(3: duration)(4: scheduled certainty) */
+"Bolus: %1$@U %2$@ %3$@ %4$@" = "Bolus: %1$@U %2$@ %3$@ %4$@";
+
+/* Delivery status when bolusing */
+"Bolusing" = "Annostellaan bolus";
+
+/* Delivery status when bolusing and temp basal is running */
+"Bolusing with temp basal" = "Annostellaan bolus ja tilap. basaali";
+
+/* Pod state when inserting cannula */
+"Cannula inserting" = "Asetetaan kanyyli";
+
+/* String describing a dose that was certainly scheduled */
+"Certain" = "Varma";
+
+/* Alert content body for podExpireImminent pod alert */
+"Change Pod now. Insulin delivery will stop in 1 hour." = "Change Pod now. Insulin delivery will stop in 1 hour.";
+
+/* Alert content body for podExpiring pod alert */
+"Change Pod now. Pod has been active for 72 hours." = "Change Pod now. Pod has been active for 72 hours.";
+
+/* Format string for invalid message error code (1: error code number) */
+"Command error %1$u" = "Komentovirhe %1$u";
+
+/* Status highlight that delivery is uncertain. */
+"Comms Issue" = "Yhteysongelma";
+
+/* Error message when command is rejected because an unacknowledged command is pending. */
+"Communication issue: Unacknowledged command pending." = "Communication issue: Unacknowledged command pending.";
+
+/* Description for BeepPreference.manualCommands */
+"Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used." = "Confidence reminders will sound for commands you initiate, like bolus, cancel bolus, suspend, resume, save notification reminders, etc. When the app automatically adjusts delivery, no confidence reminders are used.";
+
+/* Description for BeepPreference.extended */
+"Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate." = "Confidence reminders will sound when the app automatically adjusts delivery as well as for commands you initiate.";
+
+/* The title for AlarmCode.other notification */
+"Critical Pod Error" = "Critical Pod Error";
+
+/* Recovery suggestion when unexpected address received */
+"Crosstalk possible. Please move to a new location" = "Crosstalk possible. Please move to a new location";
+
+/* Pod state when pod has been deactivated */
+"Deactivated" = "Deaktivoitu";
+
+/* Title string for BeepPreference.silent */
+"Disabled" = "Disabled";
+
+/* Description for Empty reservoir pod fault */
+"Empty reservoir" = "Säiliö tyhjä";
+
+/* Error message shown when empty response from pod was received */
+"Empty response from pod" = "Tyhjä vastaus pumpulta";
+
+/* Pod state error event logged shutting down */
+"Error event logged, shutting down" = "Virhetapahtuma, suljetaan";
+
+/* Description for expiration alert */
+"Expiration alert" = "Pumppu vanhenee -varoitus";
+
+/* Title string for BeepPreference.extended */
+"Extended" = "Extended";
+
+/* Delivery status when extended bolus is running */
+"Extended bolus running" = "Extended bolus running";
+
+/* Delivery status when extended bolus and temp basal is running */
+"Extended bolus running with temp basal" = "Extended bolus running with temp basal";
+
+/* Pod state when fault event has occurred */
+"Fault event occurred" = "Virhetapahtuma";
+
+/* Status highlight that when pod is deactivating. */
+"Finish Deactivation" = "Finish Deactivation";
+
+/* Status highlight that when pod is activating. */
+"Finish Pairing" = "Finish Pairing";
+
+/* Description for finish setup */
+"Finish setup " = "Lopeta asennus";
+
+/* Description for finish setup reminder */
+"Finish setup reminder" = "Finish setup reminder";
+
+/* Pod inititialized */
+"Initialized" = "Aloitettu";
+
+/* Pod state when inserting cannula */
+"Inserting cannula" = "Asetetaan kanyyli";
+
+/* The default notification body for AlarmCodes */
+"Insulin delivery stopped. Change Pod now." = "Insulin delivery stopped. Change Pod now.";
+
+/* Status highlight that insulin delivery was suspended. */
+"Insulin Suspended" = "Insuliini pysäytetty";
+
+/* Error description for OmniBLEPumpManagerError.insulinTypeNotConfigured */
+"Insulin type not configured" = "Insulin type not configured";
+
+/* The format string for Internal pod fault (1: The fault code value) */
+"Internal pod fault %1$03d" = "Sisäinen pumpun vika %1$03d";
+
+/* The format string describing a bolus that was interrupted. (1: The amount delivered)(2: The amount scheduled)(3: Start time of the dose)(4: duration)(5: scheduled certainty) */
+"InterruptedBolus: %1$@ U (%2$@ U scheduled) %3$@ %4$@ %5$@" = "KeskeytettyBolus: %1$@ U (%2$@ U ohjelmoitu) %3$@ %4$@ %5$@";
+
+/* Error message for when unexpected address is received (1: received address) (2: expected address) */
+"Invalid address 0x%x. Expected 0x%x" = "Virheellinen osoite 0x%1$x. Odotettu 0x%2$x";
+
+/* Description for MessageError invalidAddress */
+"Invalid address: (%1$@)" = "Virheellinen osoite: (%1$@)";
+
+/* Description for MessageError invalidCrc */
+"Invalid CRC" = "Virheellinen CRC";
+
+/* Error description for OmniBLEPumpManagerError.invalidSetting */
+"Invalid Setting" = "Invalid Setting";
+
+/* Alert content title for lowReservoir pod alert */
+"Low Reservoir" = "Low Reservoir";
+
+/* Format string for description for low reservoir advisory (1: reminder units) */
+"Low reservoir advisory (%1$gU)" = "Low reservoir advisory (%1$gU)";
+
+/* Description for low reservoir alarm */
+"Low reservoir advisory alarm" = "Säiliö lähes tyhjä -tiedotehälytys";
+
+/* Title for RileyLink low battery alert */
+"Low RileyLink Battery" = "Low RileyLink Battery";
+
+/* Recovery suggestion when no RileyLink is available */
+"Make sure your RileyLink is nearby and powered on" = "Varmista, että RileyLink on riittävän lähellä ja kytketty päälle";
+
+/* Status highlight when manual temp basal is running. */
+"Manual Basal" = "Manual Basal";
+
+/* Pod memory initialized */
+"Memory initialized" = "Muisti alustettu";
+
+/* Recovery suggestion for PodCommsError.tooManyPodsFound */
+"Move to a new area away from any other pods and try again." = "Move to a new area away from any other pods and try again.";
+
+/* Alert content body for multiCommand pod alert
+   Alert content title for multiCommand pod alert */
+"Multiple Command Alert" = "Multiple Command Alert";
+
+/* Pod alert state when no alerts are active */
+"No alerts" = "Ei hälytyksiä";
+
+/* Description for BeepPreference.silent */
+"No confidence reminders are used." = "No confidence reminders are used.";
+
+/* Description for Fault Event Code .noFaults */
+"No faults" = "Ei vikoja";
+
+/* Status highlight message for emptyReservoir alarm.
+   Status highlight that a pump is out of insulin. */
+"No Insulin" = "Ei insuliinia";
+
+/* Status highlight that when no pod is paired. */
+"No Pod" = "Ei pumppua";
+
+/* Error message shown when no pod is paired */
+"No pod paired" = "Ei yhdistettyä pumppua";
+
+/* Error message for PodCommsError.noPodsFound */
+"No pods found" = "No pods found";
+
+/* Error message shown when no response from pod was received */
+"No response from pod" = "Ei vastausta pumpusta";
+
+/* Error message shown when no response from pod was received */
+"No RileyLink available" = "Ei RileyLinkiä lähistöllä";
+
+/* Delivery status when basal is running
+   Pod state when running above fifty units */
+"Normal" = "Normaali";
+
+/* Description for MessageError notEnoughData */
+"Not enough data" = "Tietoja ei ole tarpeeksi";
+
+/* Description for Occlusion detected pod fault */
+"Occlusion detected" = "Tukos havaittu";
+
+/* Generic title of the omnipod pump manager */
+"Omnipod" = "Omnipod";
+
+/* Pod status after pairing */
+"Paired" = "Yhdistetty";
+
+/* Pod status when pairing completed */
+"Pairing completed" = "Pairing completed";
+
+/* Description for MessageError parsingError. (1: decription of error), (2: hexadecimal data starting at offset) */
+"Parsing Error: %1$@ in (%2$@)" = "Parsing Error: %1$@ in (%2$@)";
+
+/* Recovery suggestion on unexpected pod change */
+"Please bring only original pod in range or deactivate original pod" = "Tuo vain alkuperäinen pumppu kantaman sisälle tai poista alkuperäinen pumppu käytöstä";
+
+/* Recovery suggestion when no response is received from pod */
+"Please bring your pod closer to the RileyLink and try again" = "Vie pumppu ja RileyLink lähemmäksi toisiaan ja yritä uudelleen";
+
+/* Alert content body for finishSetupReminder pod alert */
+"Please finish pairing your pod." = "Please finish pairing your pod.";
+
+/* Recover suggestion shown when no pod is paired */
+"Please pair a new pod" = "Yhdistä uusi pumppu";
+
+/* Recovery suggestion when pairing signal strength is too high */
+"Please reposition the RileyLink further from the pod" = "Siirrä RileyLink kauemmas pumpusta";
+
+/* Recovery suggestion when pairing signal strength is too low */
+"Please reposition the RileyLink relative to the pod" = "Muuta RileyLinkin paikkaa suhteessa pumppuun";
+
+/* Error message shown when user cannot pair because pod is already paired */
+"Pod already paired" = "Pumppu on jo yhdistetty";
+
+/* Error message shown when prime is attempted, but pod is already primed */
+"Pod already primed" = "Pumppu on jo alustettu";
+
+/* Status highlight message for other alarm. */
+"Pod Error" = "Pod Error";
+
+/* Description for expiration advisory alarm */
+"Pod expiration advisory alarm" = "Pumppu vanhenemassa -tiedotehälytys";
+
+/* The title for pod expiration notification */
+"Pod Expiration Notice" = "Pumppu vanhenemassa -ilmoitus";
+
+/* Description for Pod expired pod fault */
+"Pod expired" = "Pumppu vanhentunut";
+
+/* Format string for alert content body for userPodExpiration pod alert. (1: time until expiration) */
+"Pod expires in %1$@." = "Pod expires in %1$@.";
+
+/* Format string for pod fault code */
+"Pod Fault: %1$@" = "Pumppuvirhe: %1$@";
+
+/* Error message when cannula insertion fails because the pod is in an unexpected state */
+"Pod is not in a state ready for cannula insertion." = "Pumppu ei ole valmis kanyylin asettamiseen.";
+
+/* Error message when prime fails because the pod is in an unexpected state */
+"Pod is not in a state ready for priming." = "Pumppu ei ole valmis alustukseen.";
+
+/* Error message action could not be performed because pod is suspended */
+"Pod is suspended" = "Pumppu on pysäytetty";
+
+/* Status highlight message for occlusion alarm. */
+"Pod Occlusion" = "Pod Occlusion";
+
+/* Alert content title for finishSetupReminder pod alert */
+"Pod Pairing Incomplete" = "Pod Pairing Incomplete";
+
+/* Error message shown when pod sends ack instead of response */
+"Pod sent ack instead of response" = "Pumppu lähetti kuittauksen vastauksen sijaan";
+
+/* Pod state when prime or cannula insertion has not completed in the time allotted */
+"Pod setup window expired" = "Pumpun asennusaika umpeutui";
+
+/* Description for pod suspended reminder */
+"Pod suspended reminder" = "Pod suspended reminder";
+
+/* Format string for poor pod signal strength */
+"Poor signal strength" = "Heikko signaali";
+
+/* Delivery status when pod is priming
+   Pod status when priming */
+"Priming" = "Alustetaan";
+
+/* Pod state when priming completed */
+"Priming completed" = "Alustus valmis";
+
+/* Pod state when ready for basal programming */
+"Ready for basal programming" = "Valmis basaalin ohjelmointiin";
+
+/* Pod state when ready for cannula insertion */
+"Ready to insert cannula" = "Valmis kanyylin asetukseen";
+
+/* Pod pairing reminder initialized */
+"Reminder initialized" = "Muistutus alustettu";
+
+/* Pump Event title for UnfinalizedDose with doseType of .resume */
+"Resume" = "Resume";
+
+/* Recovery suggestion when pod is suspended */
+"Resume delivery" = "Resume delivery";
+
+/* Alert content title for suspendEnded pod alert */
+"Resume Insulin" = "Resume Insulin";
+
+/* The format string describing a resume. (1: Time)(2: Scheduled certainty */
+"Resume: %1$@ %2$@" = "Jatka: %1$@ %2$@";
+
+/* Delivery status when basal is running */
+"Scheduled Basal" = "Ohjelmoitu basaali";
+
+/* Description for shutdown imminent */
+"Shutdown imminent" = "Shutdown imminent";
+
+/* Description for shutdown imminent alarm */
+"Shutdown imminent alarm" = "Mykistä hälytys";
+
+/* Status highlight when communications with the pod haven't happened recently. */
+"Signal Loss" = "Signal Loss";
+
+/* Format string for pod signal strength too high */
+"Signal strength too high" = "Signaali liian voimakas";
+
+/* Pump Event title for UnfinalizedDose with doseType of .suspend */
+"Suspend" = "Suspend";
+
+/* Alert content body for suspendInProgress pod alert
+   Alert content title for suspendInProgress pod alert */
+"Suspend In Progress Reminder" = "Suspend In Progress Reminder";
+
+/* Description for suspend time expired */
+"Suspend time expired" = "Suspend time expired";
+
+/* Delivery status when insulin delivery is suspended */
+"Suspended" = "Pysäytetty";
+
+/* The format string describing a suspend. (1: Time)(2: Scheduled certainty */
+"Suspend: %1$@ %2$@" = "Pysäytä: %1$@ %2$@";
+
+/* Delivery status when insulin delivery is suspended */
+"Suspended" = "Pysäytetty";
+
+/* Alert notification body for suspendEnded pod alert user notification */
+"Suspension time is up. Open the app and resume." = "Suspension time is up. Open the app and resume.";
+
+/* Pod tank fill completed */
+"Tank fill completed" = "Säiliön täyttö valmis";
+
+/* Pod power to motor activated */
+"Tank power activated" = "Säiliön virta aktivoitu";
+
+/* Pump Event title for UnfinalizedDose with doseType of .tempBasal */
+"Temp Basal" = "Tilapäinen basaali";
+
+/* Error message shown when temp basal could not be set due to existing temp basal in progress */
+"Temp basal in progress" = "Tilapäinen basaali meneillään";
+
+/* Delivery status when temp basal is running */
+"Temp basal running" = "Tilapäinen basaali käynnissä";
+
+/* The format string describing a temp basal. (1: The rate)(2: Start time)(3: duration)(4: volume)(5: scheduled certainty */
+"TempBasal: %1$@ U/hour %2$@ %3$@ %4$@ U %5$@" = "TilapBasaali: %1$@ U/h %2$@ %3$@ %4$@ U %5$@";
+
+/* Alert content body for suspendEnded pod alert */
+"The insulin suspension period has ended.\n\nYou can resume delivery from the banner on the home screen or from your pump settings screen. You will be reminded again in 15 minutes." = "The insulin suspension period has ended.\n\nYou can resume delivery from the banner on the home screen or from your pump settings screen. You will be reminded again in 15 minutes.";
+
+/* Alert content body for timeOffsetChangeDetected pod alert */
+"The time on your pump is different from the current time. You can review the pump time and and sync to current time in settings." = "The time on your pump is different from the current time. You can review the pump time and and sync to current time in settings.";
+
+/* Alert content title for timeOffsetChangeDetected pod alert */
+"Time Change Detected" = "Time Change Detected";
+
+/* The format string for pod expiration notification body (1: time until expiration) */
+"Time to replace your pod! Your pod will expire in %1$@" = "Aika vaihtaa pumppu! Pumppu vanhenee %1$@";
+
+/* Error message for PodCommsError.tooManyPodsFound */
+"Too many pods found" = "Too many pods found";
+
+/* Recovery suggestion when ack received instead of response */
+"Try again" = "Yritä uudelleen";
+
+/* String describing a dose that was possibly scheduled */
+"Uncertain" = "Epävarma";
+
+/* Description for MessageError invalidSequence */
+"Unexpected message sequence number" = "Odottamaton viestin järjestysnumero";
+
+/* Format string for unexpected pod change */
+"Unexpected pod change" = "Odottamaton pumpun vaihto";
+
+/* Error message shown when empty response from pod was received */
+"Unexpected response from pod" = "Odottamaton vastaus pumpusta";
+
+/* The format string for Unknown pod fault (1: The fault code value) */
+"Unknown pod fault %1$03d" = "Tuntematon pumppuvirhe %1$03d";
+
+/* Format string for description of MessageError unknownValue. (1: value) (2: Type) */
+"Unknown Value (%1$@) for type %2$@" = "Tuntematon arvo (%1$@) tyypille %2$@";
+
+/* Format string for description of MessageError validationFailed. (1: description of validation failure) */
+"Validation failed: %1$@" = "Vahvistus epäonnistui: %1$@";
+
+/* Recovery suggestion when operation could not be completed due to existing bolus in progress */
+"Wait for existing bolus to finish, or cancel bolus" = "Odota, että meneillään oleva bolus päättyy tai kumoa bolus";
+
+/* Recovery suggestion when operation could not be completed due to existing temp basal in progress */
+"Wait for existing temp basal to finish, or suspend to cancel" = "Odota, että meneillään oleva tilapäinen basaali päättyy tai pysäytä pumppu kumotaksesi";
+
+/* Description waiting for pairing reminder */
+"Waiting for pairing reminder" = "Odotetaan yhdistämismuistutusta";

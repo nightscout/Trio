@@ -57,7 +57,7 @@ platform :ios do
     BUNDLE_ID = ENV["BUNDLE_ID"]
 
     update_project_team(
-      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      path: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       teamid: "#{TEAMID}"
     )
 
@@ -75,7 +75,7 @@ platform :ios do
     current_build_number = previous_build_number + 1
 
     increment_build_number(
-      xcodeproj: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      xcodeproj: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       build_number: current_build_number
     )      
     
@@ -85,8 +85,9 @@ platform :ios do
       app_identifier: [
         "#{BUNDLE_ID}",
         "#{BUNDLE_ID}.watchkitapp",
-        "#{BUNDLE_ID}.watchkitapp.watchkitextension",
+        "#{BUNDLE_ID}.watchkitapp.TrioWatchComplication",
         "#{BUNDLE_ID}.LiveActivity"
+
       ]
     )
 
@@ -98,7 +99,7 @@ platform :ios do
     current_build_number = previous_build_number + 1
 
     increment_build_number(
-      xcodeproj: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      xcodeproj: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       build_number: current_build_number
     )
     
@@ -107,27 +108,28 @@ platform :ios do
     ]
 
     update_code_signing_settings(
-      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      path: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       profile_name: mapping["#{BUNDLE_ID}"],
       code_sign_identity: "iPhone Distribution",
-      targets: ["FreeAPS"]
+      targets: ["Trio"]
     )
 
     update_code_signing_settings(
-      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
-      profile_name: mapping["#{BUNDLE_ID}.watchkitapp.watchkitextension"],
-      code_sign_identity: "iPhone Distribution",
-      targets: ["FreeAPSWatch WatchKit Extension"]
-    )
-    
-    update_code_signing_settings(
-      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      path: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       profile_name: mapping["#{BUNDLE_ID}.watchkitapp"],
       code_sign_identity: "iPhone Distribution",
-      targets: ["FreeAPSWatch"]
+      targets: ["Trio Watch App"]
     )
+
     update_code_signing_settings(
-      path: "#{GITHUB_WORKSPACE}/FreeAPS.xcodeproj",
+      path: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
+      profile_name: mapping["#{BUNDLE_ID}.watchkitapp.TrioWatchComplication"],
+      code_sign_identity: "iPhone Distribution",
+      targets: ["Trio Watch Complication Extension"]
+    )
+
+    update_code_signing_settings(
+      path: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
       profile_name: mapping["#{BUNDLE_ID}.LiveActivity"],
       code_sign_identity: "iPhone Distribution",
       targets: ["LiveActivityExtension"]
@@ -187,16 +189,17 @@ platform :ios do
     configure_bundle_id("Trio", "#{BUNDLE_ID}", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS,
       Spaceship::ConnectAPI::BundleIdCapability::Type::HEALTHKIT,
-      Spaceship::ConnectAPI::BundleIdCapability::Type::NFC_TAG_READING
+      Spaceship::ConnectAPI::BundleIdCapability::Type::NFC_TAG_READING,
+      Spaceship::ConnectAPI::BundleIdCapability::Type::PUSH_NOTIFICATIONS
     ])
 
-    configure_bundle_id("Trio WatchKit Extension", "#{BUNDLE_ID}.watchkitapp.watchkitextension", [
-      Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS,
-      Spaceship::ConnectAPI::BundleIdCapability::Type::HEALTHKIT
+    configure_bundle_id("Trio Watch Complication", "#{BUNDLE_ID}.watchkitapp.TrioWatchComplication", [
+      Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
     ])
     
-    configure_bundle_id("Trio Watch", "#{BUNDLE_ID}.watchkitapp", [
-      Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
+    configure_bundle_id("Trio Watch App", "#{BUNDLE_ID}.watchkitapp", [
+      Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS,
+      Spaceship::ConnectAPI::BundleIdCapability::Type::HEALTHKIT
     ])
 
     configure_bundle_id("Trio LiveActivity", "#{BUNDLE_ID}.LiveActivity", [])
@@ -222,8 +225,8 @@ platform :ios do
       git_basic_authorization: Base64.strict_encode64("#{GITHUB_REPOSITORY_OWNER}:#{GH_PAT}"),
       app_identifier: [
         "#{BUNDLE_ID}",
-        "#{BUNDLE_ID}.watchkitapp.watchkitextension",
         "#{BUNDLE_ID}.watchkitapp",
+        "#{BUNDLE_ID}.watchkitapp.TrioWatchComplication",
         "#{BUNDLE_ID}.LiveActivity"
       ]
     )

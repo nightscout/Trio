@@ -1,0 +1,10 @@
+{
+    "units": "grams",
+    "schedule": [
+        {
+            "start": "00:00:00",
+            "offset": 0,
+            "ratio": 30
+        }
+    ]
+}
