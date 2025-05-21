@@ -176,7 +176,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                             try self.privateContext.save()
 
                         } catch {
-                            print("Failed to delete OpenAPS_Battery entries: \(error.localizedDescription)")
+                            debug(.deviceManager, "Failed to delete OpenAPS_Battery entries: \(error)")
                         }
                     }
                 }

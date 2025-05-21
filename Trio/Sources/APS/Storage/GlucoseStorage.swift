@@ -287,7 +287,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 let results = try self.context.fetch(fr)
                 date = results.first?.date
             } catch let error as NSError {
-                print("Fetch error: \(DebuggingIdentifiers.failed) \(error.localizedDescription), \(error.userInfo)")
+                debug(.storage, "Fetch error: \(DebuggingIdentifiers.failed) \(error), \(error.userInfo)")
             }
         }
 
