@@ -16,6 +16,23 @@ struct PumpView: View {
         return formatter
     }
 
+    private var hourglassIcon: String {
+        guard let expiration = expiresAtDate else { return "hourglass" }
+
+        let hoursRemaining = expiration.timeIntervalSince(timerDate) / 3600
+
+        switch hoursRemaining {
+        case 60 ... 72:
+            return "hourglass.bottomhalf.filled"
+        case 12 ..< 60:
+            return "hourglass"
+        case -8 ..< 12:
+            return "hourglass.tophalf.filled"
+        default:
+            return "hourglass"
+        }
+    }
+
     var body: some View {
         if let pumpStatusHighlightMessage = pumpStatusHighlightMessage { // display message instead pump info
             VStack(alignment: .center) {
@@ -80,7 +97,7 @@ struct PumpView: View {
 
                 if let date = expiresAtDate {
                     HStack {
-                        Image(systemName: "stopwatch.fill")
+                        Image(systemName: hourglassIcon)
                             .font(.callout)
                             .foregroundStyle(timerColor)
 
