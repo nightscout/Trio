@@ -61,15 +61,11 @@ extension Onboarding {
                 return false
             }
 
-            debug(.default, "Checking for fresh install in \(documentsURL.path)...")
-
             let expectedLogsFolder = "logs"
             let expectedPreferencesFile = OpenAPS.Settings.preferences
 
             do {
                 let contents = try fileManager.contentsOfDirectory(atPath: documentsURL.path)
-
-                debug(.default, "Found \(contents) in \(documentsURL.path)...")
 
                 // Expect exactly 2 entries: "logs" and the preferences file
                 guard contents.count == 2 else {
@@ -80,8 +76,6 @@ extension Onboarding {
                 // Ensure they match exactly
                 let expectedSet = Set([expectedLogsFolder, expectedPreferencesFile])
                 let actualSet = Set(contents)
-
-                debug(.default, "Expected: \(expectedSet), Actual: \(actualSet)")
 
                 let isFreshInstall = expectedSet == actualSet
                 debug(.default, "Trio install is fresh; new user.")
@@ -258,10 +252,12 @@ extension Onboarding {
             isConnectingToNS = false
             isValidNightscoutURL = false
 
-            // Attempt to fetch existing units, therapy settings and delivery limits from file
-            units = settingsManager.settings.units
-            fetchExistingTherapySettingsFromFile()
-            fetchExistingDeliveryLimtisFromFile()
+            if !isFreshTrioInstall {
+                // Attempt to fetch existing units, therapy settings and delivery limits from file
+                units = settingsManager.settings.units
+                fetchExistingTherapySettingsFromFile()
+                fetchExistingDeliveryLimtisFromFile()
+            }
         }
 
         // MARK: - Helpers
@@ -417,15 +413,16 @@ extension Onboarding {
         ///   - `units` from app settings.
         func fetchExistingDeliveryLimtisFromFile() {
             let pumpSettingsFromFile = provider.pumpSettingsFromFile
+            let providedSettings = settingsProvider.settings
 
             if let pumpSettingsFromFile = pumpSettingsFromFile {
-                maxBolus = pumpSettingsFromFile.maxBolus
-                maxBasal = pumpSettingsFromFile.maxBasal
+                maxBolus = pumpSettingsFromFile.maxBolus.clamp(to: providedSettings.maxBolus)
+                maxBasal = pumpSettingsFromFile.maxBasal.clamp(to: providedSettings.maxBasal)
             }
 
             let preferences = settingsManager.preferences
-            maxIOB = preferences.maxIOB
-            maxCOB = preferences.maxCOB
+            maxIOB = preferences.maxIOB.clamp(to: providedSettings.maxIOB)
+            maxCOB = preferences.maxCOB.clamp(to: providedSettings.maxCOB)
             minimumSafetyThreshold = preferences.threshold_setting
         }
 
@@ -702,6 +699,30 @@ extension Onboarding {
         func applyToSettings() {
             var settingsCopy = settingsManager.settings
             settingsCopy.units = units
+
+            // ensure existing values cannot exceed new guardrails
+            if !isFreshTrioInstall {
+                let providedSettings = settingsProvider.settings
+
+                settingsCopy.lowGlucose = settingsCopy.lowGlucose.clamp(to: providedSettings.lowGlucose)
+                settingsCopy.highGlucose = settingsCopy.highGlucose.clamp(to: providedSettings.highGlucose)
+                settingsCopy.carbsRequiredThreshold = settingsCopy.carbsRequiredThreshold
+                    .clamp(to: providedSettings.carbsRequiredThreshold)
+                settingsCopy.individualAdjustmentFactor = settingsCopy.individualAdjustmentFactor
+                    .clamp(to: providedSettings.individualAdjustmentFactor)
+                settingsCopy.timeCap = settingsCopy.timeCap.clamp(to: providedSettings.timeCap)
+                settingsCopy.minuteInterval = settingsCopy.minuteInterval.clamp(to: providedSettings.minuteInterval)
+                settingsCopy.delay = settingsCopy.delay.clamp(to: providedSettings.delay)
+                settingsCopy.high = settingsCopy.high.clamp(to: providedSettings.high)
+                settingsCopy.low = settingsCopy.low.clamp(to: providedSettings.low)
+                settingsCopy.maxCarbs = settingsCopy.maxCarbs.clamp(to: providedSettings.maxCarbs)
+                settingsCopy.maxFat = settingsCopy.maxFat.clamp(to: providedSettings.maxFat)
+                settingsCopy.maxProtein = settingsCopy.maxProtein.clamp(to: providedSettings.maxProtein)
+                settingsCopy.overrideFactor = settingsCopy.overrideFactor.clamp(to: providedSettings.overrideFactor)
+                settingsCopy.fattyMealFactor = settingsCopy.fattyMealFactor.clamp(to: providedSettings.fattyMealFactor)
+                settingsCopy.sweetMealFactor = settingsCopy.sweetMealFactor.clamp(to: providedSettings.sweetMealFactor)
+            }
+
             settingsManager.settings = settingsCopy
         }
 
@@ -742,6 +763,18 @@ extension Onboarding {
             // default suspendZeroesIOB to true
             if !preferences.suspendZerosIOB {
                 preferences.suspendZerosIOB = true
+            }
+
+            // ensure correct bolusIncrement is set, if user is onboarding with paired pump
+            if let pumpManager = apsManager?.pumpManager {
+                let bolusIncrement = Decimal(
+                    pumpManager.supportedBolusVolumes.first ??
+                        Double(
+                            settingsManager.preferences
+                                .bolusIncrement
+                        )
+                )
+                preferences.bolusIncrement = bolusIncrement != 0.025 ? bolusIncrement : 0.1
             }
 
             settingsManager.preferences = preferences
