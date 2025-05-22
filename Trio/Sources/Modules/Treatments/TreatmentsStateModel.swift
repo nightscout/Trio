@@ -383,8 +383,13 @@ extension Treatments {
             }
 
             // Use the cob value of the simulation if we have a simulated determination
-            let simulatedCOB: Int16? =
-                Int16(truncating: NSNumber(value: (simulatedDetermination?.cob as NSDecimalNumber?)?.doubleValue ?? 0))
+            var simulatedCOB: Int16?
+            if let simulatedCobValue = simulatedDetermination?.cob {
+                // Convert Decimal to Int16 and cap at maxCOB
+                let cobInt16 = Int16(truncating: NSDecimalNumber(decimal: simulatedCobValue))
+                let maxCobInt16 = Int16(truncating: NSDecimalNumber(decimal: maxCOB))
+                simulatedCOB = min(maxCobInt16, cobInt16)
+            }
 
             // Check if this is a backdated entry by comparing with the default date
             let isBackdated = date != defaultDate
