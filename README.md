@@ -71,7 +71,8 @@ TODO: Add link: Trio Website (under development, not existing yet)
 
 [OpenAPS documentation](https://openaps.readthedocs.io/en/latest/)
 
-TODO: Add link and status graphic: Crowdin Project for translation of Trio (not existing yet)
+[Crowdin](https://crowdin.com/project/trio) Project for translation of Trio
+TODO: Add status graphic for the Crowdin Project
 
 # Support
 
