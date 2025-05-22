@@ -89,6 +89,7 @@ extension Treatments {
         var note: String = ""
 
         var date = Date()
+        let defaultDate = Date()
 
         var carbsRequired: Decimal?
         var useFPUconversion: Bool = false
@@ -381,18 +382,12 @@ extension Treatments {
                 minPredBG
             }
 
-            // Check if carbs are actually backdated (more than 15 minutes in the past)
-            // This ensures we only consider it backdated if the user has deliberately changed the date
-            let minutesThreshold = 15.0 // 15 minutes threshold
-            let isBackdated = date.timeIntervalSinceNow < -minutesThreshold * 60 && simulatedDetermination != nil
+            // Use the cob value of the simulation if we have a simulated determination
+            let simulatedCOB: Int16? =
+                Int16(truncating: NSNumber(value: (simulatedDetermination?.cob as NSDecimalNumber?)?.doubleValue ?? 0))
 
-            // Use the cob value of the simulation if carbs are backdated, otherwise set `simulatedCOB` to nil so that the cob value of the most recent determination gets used in the Bolus Calc Manager
-            let simulatedCOB: Int16? = isBackdated ?
-                Int16(truncating: NSNumber(value: (simulatedDetermination?.cob as NSDecimalNumber?)?.doubleValue ?? 0)) : nil
-            // If the user backdates carbs the current carb value must be set to 0
-            // otherwise the calc would recommend insulin for carbs + backdated carbs
-            // e.g. you enter 50g carbs and backdate them 1h -> calc would recommend insulin for 50g + ~45g (where ~45g is the partially absorbed cob)
-            let carbs: Decimal = isBackdated ? 0 : self.carbs
+            // Check if this is a backdated entry by comparing with the default date
+            let isBackdated = date != defaultDate
 
             let result = await bolusCalculationManager.handleBolusCalculation(
                 carbs: carbs,
@@ -400,7 +395,8 @@ extension Treatments {
                 useSuperBolus: useSuperBolus,
                 lastLoopDate: apsManager.lastLoopDate,
                 minPredBG: localMinPredBG,
-                simulatedCOB: simulatedCOB
+                simulatedCOB: simulatedCOB,
+                isBackdated: isBackdated
             )
 
             // Update state properties with calculation results on main thread

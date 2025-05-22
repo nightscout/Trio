@@ -10,7 +10,8 @@ protocol BolusCalculationManager {
         useSuperBolus: Bool,
         lastLoopDate: Date,
         minPredBG: Decimal?,
-        simulatedCOB: Int16?
+        simulatedCOB: Int16?,
+        isBackdated: Bool
     ) async -> CalculationResult
 }
 
@@ -290,7 +291,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         useSuperBolus: Bool,
         lastLoopDate: Date,
         minPredBG: Decimal?,
-        simulatedCOB: Int16?
+        simulatedCOB: Int16?,
+        isBackdated: Bool
     ) async throws -> CalculationInput {
         do {
             // Get settings
@@ -338,15 +340,20 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
                 )
             }
 
+            // If the entry is backdated (user explicitly changed the date), set carbs to 0
+            // This prevents double-counting of carbs (entered carbs + COB from backdated entry)
+            let effectiveCarbs = isBackdated ? 0 : carbs
+            let effectiveCob = isBackdated ? simulatedCOB : bolusVars.cob
+
             return CalculationInput(
-                carbs: carbs,
+                carbs: effectiveCarbs,
                 currentBG: glucoseVars.currentBG,
                 deltaBG: glucoseVars.deltaBG,
                 target: bolusVars.target,
                 isf: bolusVars.isf,
                 carbRatio: bolusVars.carbRatio,
                 iob: bolusVars.iob,
-                cob: simulatedCOB ?? bolusVars.cob,
+                cob: effectiveCob ?? bolusVars.cob,
                 useFattyMealCorrectionFactor: useFattyMealCorrection,
                 fattyMealFactor: settings.fattyMealFactor,
                 useSuperBolus: useSuperBolus,
@@ -492,7 +499,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         useSuperBolus: Bool,
         lastLoopDate: Date,
         minPredBG: Decimal? = nil,
-        simulatedCOB: Int16? = nil
+        simulatedCOB: Int16? = nil,
+        isBackdated: Bool = false
     ) async -> CalculationResult {
         do {
             let input = try await prepareCalculationInput(
@@ -501,7 +509,8 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
                 useSuperBolus: useSuperBolus,
                 lastLoopDate: lastLoopDate,
                 minPredBG: minPredBG,
-                simulatedCOB: simulatedCOB
+                simulatedCOB: simulatedCOB,
+                isBackdated: isBackdated
             )
             let result = await calculateInsulin(input: input)
             return result

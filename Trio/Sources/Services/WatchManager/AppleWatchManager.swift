@@ -623,7 +623,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         useSuperBolus: false,
                         lastLoopDate: apsManager.lastLoopDate,
                         minPredBG: minPredBG,
-                        simulatedCOB: nil // TODO:
+                        simulatedCOB: nil,
+                        isBackdated: false // we cannot backdate carbs via watch
                     )
 
                     // Send recommendation back to watch
