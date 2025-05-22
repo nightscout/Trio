@@ -52,15 +52,16 @@ extension Notification.Name {
         SecurityAssembly()
     ], parent: nil, defaultObjectScope: .container)
 
+    // Simple thread-safe wrapper
+    private static let resolverLock = NSRecursiveLock()
+
     var resolver: Resolver {
-        TrioApp.assembler.resolver
+        TrioApp.resolver
     }
 
-    // Temp static var
-    // Use to backward compatibility with old Dependencies logic on Logger
-    // TODO: Remove var after update "Use Dependencies" logic in Logger
     static var resolver: Resolver {
-        TrioApp.assembler.resolver
+        // Return a simple wrapper that adds locking
+        LockedResolver(resolver: assembler.resolver, lock: resolverLock)
     }
 
     private func loadServices() {
@@ -465,5 +466,255 @@ extension Notification.Name {
 public extension Bundle {
     var appDevVersion: String? {
         object(forInfoDictionaryKey: "AppDevVersion") as? String
+    }
+}
+
+// Super simple wrapper that just adds a lock
+private struct LockedResolver: Resolver {
+    let resolver: Resolver
+    let lock: NSRecursiveLock
+
+    func resolve<Service, Arg1>(_ serviceType: Service.Type, argument: Arg1) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, argument: argument)
+    }
+
+    func resolve<Service, Arg1>(_ serviceType: Service.Type, name: String?, argument: Arg1) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, name: name, argument: argument)
+    }
+
+    func resolve<Service, Arg1, Arg2>(_ serviceType: Service.Type, arguments arg1: Arg1, _ arg2: Arg2) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, arguments: arg1, arg2)
+    }
+
+    func resolve<Service, Arg1, Arg2>(
+        _ serviceType: Service.Type,
+        name: String?,
+        arguments arg1: Arg1,
+        _ arg2: Arg2
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, name: name, arguments: arg1, arg2)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3>(
+        _ serviceType: Service.Type,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, arguments: arg1, arg2, arg3)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3>(
+        _ serviceType: Service.Type,
+        name: String?,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, name: name, arguments: arg1, arg2, arg3)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3, Arg4>(
+        _ serviceType: Service.Type,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3,
+        _ arg4: Arg4
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, arguments: arg1, arg2, arg3, arg4)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3, Arg4>(
+        _ serviceType: Service.Type,
+        name: String?,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3,
+        _ arg4: Arg4
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, name: name, arguments: arg1, arg2, arg3, arg4)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5>(
+        _ serviceType: Service.Type,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3,
+        _ arg4: Arg4,
+        _ arg5: Arg5
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, arguments: arg1, arg2, arg3, arg4, arg5)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5>(
+        _ serviceType: Service.Type,
+        name: String?,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3,
+        _ arg4: Arg4,
+        _ arg5: Arg5
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, name: name, arguments: arg1, arg2, arg3, arg4, arg5)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>(
+        _ serviceType: Service.Type,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3,
+        _ arg4: Arg4,
+        _ arg5: Arg5,
+        _ arg6: Arg6
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, arguments: arg1, arg2, arg3, arg4, arg5, arg6)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>(
+        _ serviceType: Service.Type,
+        name: String?,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3,
+        _ arg4: Arg4,
+        _ arg5: Arg5,
+        _ arg6: Arg6
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, name: name, arguments: arg1, arg2, arg3, arg4, arg5, arg6)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>(
+        _ serviceType: Service.Type,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3,
+        _ arg4: Arg4,
+        _ arg5: Arg5,
+        _ arg6: Arg6,
+        _ arg7: Arg7
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, arguments: arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>(
+        _ serviceType: Service.Type,
+        name: String?,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3,
+        _ arg4: Arg4,
+        _ arg5: Arg5,
+        _ arg6: Arg6,
+        _ arg7: Arg7
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, name: name, arguments: arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>(
+        _ serviceType: Service.Type,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3,
+        _ arg4: Arg4,
+        _ arg5: Arg5,
+        _ arg6: Arg6,
+        _ arg7: Arg7,
+        _ arg8: Arg8
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, arguments: arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>(
+        _ serviceType: Service.Type,
+        name: String?,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3,
+        _ arg4: Arg4,
+        _ arg5: Arg5,
+        _ arg6: Arg6,
+        _ arg7: Arg7,
+        _ arg8: Arg8
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, name: name, arguments: arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>(
+        _ serviceType: Service.Type,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3,
+        _ arg4: Arg4,
+        _ arg5: Arg5,
+        _ arg6: Arg6,
+        _ arg7: Arg7,
+        _ arg8: Arg8,
+        _ arg9: Arg9
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, arguments: arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    }
+
+    func resolve<Service, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>(
+        _ serviceType: Service.Type,
+        name: String?,
+        arguments arg1: Arg1,
+        _ arg2: Arg2,
+        _ arg3: Arg3,
+        _ arg4: Arg4,
+        _ arg5: Arg5,
+        _ arg6: Arg6,
+        _ arg7: Arg7,
+        _ arg8: Arg8,
+        _ arg9: Arg9
+    ) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, name: name, arguments: arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    }
+
+    func resolve<Service>(_ serviceType: Service.Type) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType)
+    }
+
+    func resolve<Service>(_ serviceType: Service.Type, name: String?) -> Service? {
+        lock.lock()
+        defer { lock.unlock() }
+        return resolver.resolve(serviceType, name: name)
     }
 }
