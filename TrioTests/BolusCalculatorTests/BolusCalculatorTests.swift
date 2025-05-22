@@ -487,7 +487,8 @@ import Testing
             useSuperBolus: false,
             lastLoopDate: Date(),
             minPredBG: nil,
-            simulatedCOB: nil
+            simulatedCOB: nil,
+            isBackdated: false
         )
 
         // Then
@@ -659,6 +660,56 @@ import Testing
         if let originalISFValues = originalISFValues {
             fileStorage.save(originalISFValues, as: OpenAPS.Settings.insulinSensitivities)
         }
+    }
+
+    @Test("Calculate insulin with backdated carbs") func testHandleBolusCalculationFunction() async throws {
+        // STEP 1: Setup test scenario
+        let currentDate = Date()
+        let backdatedCarbsDate = currentDate.addingTimeInterval(-120 * 60) // 2 hours ago
+        let carbs: Decimal = 30 // 30g of carbs, backdated 2 hour
+        let cob: Int16 = 50
+
+        // Get the COB value for the backdated carbs
+        // Use the actual APS Manager to calculate simulated COB for more realistic test
+        let determination = await apsManager.simulateDetermineBasal(
+            simulatedCarbsAmount: carbs,
+            simulatedBolusAmount: 0,
+            simulatedCarbsDate: backdatedCarbsDate
+        )
+        let simulatedCOB = determination?.cob ?? Decimal(cob)
+
+        // STEP 2: Calculate results for normal and backdated carbs
+        let resultBackdated = await calculator.handleBolusCalculation(
+            carbs: carbs,
+            useFattyMealCorrection: false,
+            useSuperBolus: false,
+            lastLoopDate: Date.now.addingTimeInterval(-5.minutes.timeInterval),
+            minPredBG: 80,
+            simulatedCOB: Int16(truncating: NSDecimalNumber(decimal: simulatedCOB)),
+            isBackdated: true
+        )
+
+        let resultNormalEntry = await calculator.handleBolusCalculation(
+            carbs: carbs,
+            useFattyMealCorrection: false,
+            useSuperBolus: false,
+            lastLoopDate: Date.now.addingTimeInterval(-5.minutes.timeInterval),
+            minPredBG: 80,
+            simulatedCOB: Int16(truncating: NSDecimalNumber(decimal: simulatedCOB)),
+            isBackdated: false
+        )
+
+        // STEP 3: Compare
+        // The backdated scenario should recommend less insulin than the current time scenario
+        #expect(
+            resultBackdated.insulinCalculated < resultNormalEntry.insulinCalculated,
+            """
+            Backdated carbs should result in lower insulin recommendation
+            Current time: \(resultNormalEntry.insulinCalculated)U
+            Backdated: \(resultBackdated.insulinCalculated)U
+            Difference: \(resultNormalEntry.insulinCalculated - resultBackdated.insulinCalculated)U
+            """
+        )
     }
 
     @Test("Calculate insulin with backdated carbs") func testBackdatedCarbsCalculation() async throws {
