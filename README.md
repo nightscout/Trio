@@ -47,16 +47,16 @@ xed .
 
 ## To build directly in GitHub, without using Xcode:
 
-Instructions:
+**Instructions**:
 
-For main branch:
-* https://github.com/nightscout/Trio/blob/main/fastlane/testflight.md   
+- For **`main`** branch:  
+   https://github.com/nightscout/Trio/blob/main/fastlane/testflight.md
+- For **`dev`** branch:
+  https://github.com/nightscout/Trio/blob/dev/fastlane/testflight.md
 
-For dev branch:
-* https://github.com/nightscout/Trio/blob/dev/fastlane/testflight.md   
+Instructions in **greater detail**, but **not Trio-specific**:
 
-Instructions in greater detail, but not Trio-specific:  
-* https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
+- https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
 
 ## Please understand that Trio is:
 
@@ -65,24 +65,18 @@ Instructions in greater detail, but not Trio-specific:
 
 # Documentation
 
-[Discord Trio - Server ](https://discord.triodocs.org/)
-
-[Trio documentation](https://triodocs.org/)
-
-TODO: Add link: Trio Website (under development, not existing yet)
-
-[OpenAPS documentation](https://openaps.readthedocs.io/en/latest/)
-
-[Crowdin](https://crowdin.com/project/trio) Project for translation of Trio
-TODO: Add status graphic for the Crowdin Project
+- [Discord Trio - Server ](https://discord.triodocs.org/)
+- [Trio documentation](https://triodocs.org/)
+- TODO: Add link: Trio Website (under development, not existing yet)
+- [OpenAPS documentation](https://openaps.readthedocs.io/en/latest/)
+- [Crowdin](https://crowdin.triodocs.org/) is the collaborative platform we are using to manage the **translation** and localization of the Trio App.  
+   TODO: Add status graphic for the Crowdin Project
 
 # Support
 
-[Trio Facebook Group](https://facebook.triodocs.org/)
-
-[Loop and Learn Facebook Group](https://m.facebook.com/groups/LOOPandLEARN/)
-
-[Looped Facebook Group](https://m.facebook.com/groups/TheLoopedGroup/)
+- [Trio Facebook Group](https://facebook.triodocs.org/)
+- [Loop and Learn Facebook Group](https://m.facebook.com/groups/LOOPandLEARN/)
+- [Looped Facebook Group](https://m.facebook.com/groups/TheLoopedGroup/)
 
 # Contribute
 
