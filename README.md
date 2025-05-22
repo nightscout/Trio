@@ -68,8 +68,8 @@ Instructions in **greater detail**, but **not Trio-specific**:
 - [Discord Trio - Server ](https://discord.triodocs.org/)
 - [Trio documentation](https://triodocs.org/)
 - [OpenAPS documentation](https://openaps.readthedocs.io/en/latest/)
-- [Crowdin](https://crowdin.triodocs.org/) is the collaborative platform we are using to manage the **translation** and localization of the Trio App.  
-   TODO: Add status graphic for the Crowdin Project
+- [Crowdin](https://crowdin.triodocs.org/) is the collaborative platform we are using to manage the **translation** and localization of the Trio App.
+<!--   TODO: Add status graphic for the Crowdin Project -->
 
 ## Support
 
