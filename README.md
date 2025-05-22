@@ -16,7 +16,7 @@ You can either use the Build Script or you can run each command manually.
 
 ### Build Script:
 
-If you copy, paste, and run the following script in Terminal, it will guide you through downloading and installing Trio. More information about the script can be found [here](https://docs.diy-trio.org/operate/build/#build-trio-with-script).
+If you copy, paste, and run the following script in Terminal, it will guide you through downloading and installing Trio. More information about the script can be found [here](https://triodocs.org/0.2.x/operate/build/#build-trio-with-script).
 
 ```
 /bin/bash -c "$(curl -fsSL \
@@ -63,7 +63,7 @@ Instructions in greater detail, but not Trio-specific:
 
 # Documentation
 
-[Discord Trio - Server ](http://discord.triodocs.org)
+[Discord Trio - Server ](https://discord.triodocs.org/)
 
 [Trio documentation](https://triodocs.org/)
 
@@ -75,7 +75,7 @@ TODO: Add link and status graphic: Crowdin Project for translation of Trio (not 
 
 # Support
 
-[Trio Facebook Group](https://facebook.triodocs.org)
+[Trio Facebook Group](https://facebook.triodocs.org/)
 
 [Loop and Learn Facebook Group](https://m.facebook.com/groups/LOOPandLEARN/)
 
