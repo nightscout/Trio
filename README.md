@@ -82,6 +82,10 @@ Instructions in **greater detail**, but **not Trio-specific**:
 
 If you would like to give something back to the Trio community, there are several ways to contribute:
 
+- **Help others**: assist users by answering questions and guiding them in support communities.
+- Improve the **documentation**: update or expand TrioDocs to help users build and use Trio.
+- Improve the **app**: contribute **code**, features, or fixes to the Trio iOS app.
+
 ### Pay it forward
 
 When you have successfully built Trio and managed to get it working well for your diabetes management, it's time to pay it forward.
