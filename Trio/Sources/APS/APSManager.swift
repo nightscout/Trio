@@ -1279,7 +1279,7 @@ extension BaseAPSManager: PumpManagerStatusObserver {
                 guard self.privateContext.hasChanges else { return }
                 try self.privateContext.save()
             } catch {
-                print("Failed to fetch or save battery: \(error.localizedDescription)")
+                debug(.apsManager, "Failed to fetch or save battery: \(error)")
             }
         }
         // TODO: - remove this after ensuring that NS still gets the same infos from Core Data
