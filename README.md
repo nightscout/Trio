@@ -63,7 +63,7 @@ Instructions in **greater detail**, but **not Trio-specific**:
 - an open-source system developed by enthusiasts and for use at your own risk
 - not CE or FDA approved for therapy.
 
-# Documentation
+## Documentation
 
 - [Discord Trio - Server ](https://discord.triodocs.org/)
 - [Trio documentation](https://triodocs.org/)
@@ -72,26 +72,29 @@ Instructions in **greater detail**, but **not Trio-specific**:
 - [Crowdin](https://crowdin.triodocs.org/) is the collaborative platform we are using to manage the **translation** and localization of the Trio App.  
    TODO: Add status graphic for the Crowdin Project
 
-# Support
+## Support
 
 - [Trio Facebook Group](https://facebook.triodocs.org/)
 - [Loop and Learn Facebook Group](https://m.facebook.com/groups/LOOPandLEARN/)
 - [Looped Facebook Group](https://m.facebook.com/groups/TheLoopedGroup/)
 
-# Contribute
+## Contribute
 
 If you would like to give something back to the Trio community, there are several ways to contribute:
 
-## Pay it forward
-When you have successfully built Trio and managed to get it working well for your diabetes management, it's time to pay it forward. 
-You can start by responding to questions in the Facebook or Discord support groups, helping others make the best out of Trio.
+### Pay it forward
 
-## Translate
-Trio is translated into several languages to make sure it's easy to understand and use all over the world. 
-Translation is done using [Crowdin](https://crowdin.com/project/trio), and does not require any programming skills.
+When you have successfully built Trio and managed to get it working well for your diabetes management, it's time to pay it forward.
+You can start by **responding to questions** in the **Facebook or Discord** support groups, **helping others** make the best out of Trio.
+
+### Translate
+
+Trio is translated into several languages to make sure it's easy to understand and use all over the world.
+Translation is done using [Crowdin](https://crowdin.triodocs.org/), and does not require any programming skills.
 If your preferred language is missing or you'd like to improve the translation, please sign up as a translator on [Crowdin](https://crowdin.com/project/trio).
 
-## Develop
+### Develop
+
 Do you speak JS or Swift? Do you have UI/UX skills? Do you know how to optimize API calls or improve data storage? Do you have experience with testing and release management?
 Trio is a collaborative project. We always welcome fellow enthusiasts who can contribute with new code, UI/UX improvements, code reviews, testing and release management.
 If you want to contribute to the development of Trio, please reach out on Discord or Facebook.
