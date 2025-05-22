@@ -34,11 +34,13 @@ git clone --branch=<branch> --recurse-submodules https://github.com/nightscout/T
 Create a ConfigOverride.xcconfig file that contains your Apple Developer ID (something like `123A4BCDE5`). This will automate signing of the build targets in Xcode:
 
 Copy the command below, and replace `xxxxxxxxxx` by your Apple Developer ID before running the command in Terminal.
+
 ```
 echo 'DEVELOPER_TEAM = xxxxxxxxxx' > ConfigOverride.xcconfig
 ```
 
 Then launch Xcode and build the Trio app:
+
 ```
 xed .
 ```
@@ -57,9 +59,9 @@ Instructions in greater detail, but not Trio-specific:
 * https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
 
 ## Please understand that Trio is:
+
 - an open-source system developed by enthusiasts and for use at your own risk
 - not CE or FDA approved for therapy.
-
 
 # Documentation
 
