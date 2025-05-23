@@ -89,6 +89,7 @@ extension Treatments {
         var note: String = ""
 
         var date = Date()
+        let defaultDate = Date()
 
         var carbsRequired: Decimal?
         var useFPUconversion: Bool = false
@@ -381,12 +382,26 @@ extension Treatments {
                 minPredBG
             }
 
+            // Use the cob value of the simulation if we have a simulated determination
+            var simulatedCOB: Int16?
+            if let simulatedCobValue = simulatedDetermination?.cob {
+                // Convert Decimal to Int16 and cap at maxCOB
+                let cobInt16 = Int16(truncating: NSDecimalNumber(decimal: simulatedCobValue))
+                let maxCobInt16 = Int16(truncating: NSDecimalNumber(decimal: maxCOB))
+                simulatedCOB = min(maxCobInt16, cobInt16)
+            }
+
+            // Check if this is a backdated entry by comparing with the default date
+            let isBackdated = date != defaultDate
+
             let result = await bolusCalculationManager.handleBolusCalculation(
                 carbs: carbs,
                 useFattyMealCorrection: useFattyMealCorrectionFactor,
                 useSuperBolus: useSuperBolus,
                 lastLoopDate: apsManager.lastLoopDate,
-                minPredBG: localMinPredBG
+                minPredBG: localMinPredBG,
+                simulatedCOB: simulatedCOB,
+                isBackdated: isBackdated
             )
 
             // Update state properties with calculation results on main thread
@@ -917,7 +932,11 @@ extension Treatments.StateModel {
         } else {
             simulatedDetermination = await Task { [self] in
                 debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
-                return await apsManager.simulateDetermineBasal(simulatedCarbsAmount: carbs, simulatedBolusAmount: amount)
+                return await apsManager.simulateDetermineBasal(
+                    simulatedCarbsAmount: carbs,
+                    simulatedBolusAmount: amount,
+                    simulatedCarbsDate: date
+                )
             }.value
 
             // Update evBG and minPredBG from simulated determination

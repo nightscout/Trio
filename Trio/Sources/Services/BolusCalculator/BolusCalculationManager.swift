@@ -9,9 +9,10 @@ protocol BolusCalculationManager {
         useFattyMealCorrection: Bool,
         useSuperBolus: Bool,
         lastLoopDate: Date,
-        minPredBG: Decimal?
-    ) async
-        -> CalculationResult
+        minPredBG: Decimal?,
+        simulatedCOB: Int16?,
+        isBackdated: Bool
+    ) async -> CalculationResult
 }
 
 final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
@@ -289,7 +290,9 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         useFattyMealCorrection: Bool,
         useSuperBolus: Bool,
         lastLoopDate: Date,
-        minPredBG: Decimal?
+        minPredBG: Decimal?,
+        simulatedCOB: Int16?,
+        isBackdated: Bool
     ) async throws -> CalculationInput {
         do {
             // Get settings
@@ -337,15 +340,20 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
                 )
             }
 
+            // If the entry is backdated (user explicitly changed the date), set carbs to 0
+            // This prevents double-counting of carbs (entered carbs + COB from backdated entry)
+            let effectiveCarbs = isBackdated ? 0 : carbs
+            let effectiveCob = isBackdated ? simulatedCOB : bolusVars.cob
+
             return CalculationInput(
-                carbs: carbs,
+                carbs: effectiveCarbs,
                 currentBG: glucoseVars.currentBG,
                 deltaBG: glucoseVars.deltaBG,
                 target: bolusVars.target,
                 isf: bolusVars.isf,
                 carbRatio: bolusVars.carbRatio,
                 iob: bolusVars.iob,
-                cob: bolusVars.cob,
+                cob: effectiveCob ?? bolusVars.cob,
                 useFattyMealCorrectionFactor: useFattyMealCorrection,
                 fattyMealFactor: settings.fattyMealFactor,
                 useSuperBolus: useSuperBolus,
@@ -384,6 +392,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         debug(.default, "15min insulin: \(fifteenMinutesInsulin)")
 
         // determine whole COB for which we want to dose insulin for and then determine insulin for wholeCOB
+        // we need to take backdated carbs into account - so we are using a freshly created (simulated) COB if carbs are backdated, otherwise it will default to the mostRecentDeterminations' COB value (as before)
         let wholeCob = min(Decimal(input.cob) + input.carbs, input.maxCOB)
         let wholeCobInsulin = wholeCob / input.carbRatio
         debug(.default, "Whole COB: \(wholeCob), COB insulin: \(wholeCobInsulin)")
@@ -466,7 +475,6 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             insulinCalculated: insulinCalculated,
             factoredInsulin: factoredInsulin,
             wholeCalc: wholeCalc,
-            correctionInsulin: targetDifferenceInsulin,
             iobInsulinReduction: iobInsulinReduction,
             superBolusInsulin: superBolusInsulin,
             targetDifference: targetDifference,
@@ -483,13 +491,16 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     ///   - useFattyMealCorrection: Whether to apply fatty meal correction
     ///   - useSuperBolus: Whether to use super bolus calculation
     ///   - minPredBG: Minimum Predicted Glucose determined by Oref
+    ///   - simulatedCOB: Optional simulated COB from backdated entries (if available)
     /// - Returns: CalculationResult containing the calculated insulin dose and details
     func handleBolusCalculation(
         carbs: Decimal,
         useFattyMealCorrection: Bool,
         useSuperBolus: Bool,
         lastLoopDate: Date,
-        minPredBG: Decimal? = nil
+        minPredBG: Decimal? = nil,
+        simulatedCOB: Int16? = nil,
+        isBackdated: Bool = false
     ) async -> CalculationResult {
         do {
             let input = try await prepareCalculationInput(
@@ -497,7 +508,9 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
                 useFattyMealCorrection: useFattyMealCorrection,
                 useSuperBolus: useSuperBolus,
                 lastLoopDate: lastLoopDate,
-                minPredBG: minPredBG
+                minPredBG: minPredBG,
+                simulatedCOB: simulatedCOB,
+                isBackdated: isBackdated
             )
             let result = await calculateInsulin(input: input)
             return result
@@ -511,7 +524,6 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
                 insulinCalculated: 0,
                 factoredInsulin: 0,
                 wholeCalc: 0,
-                correctionInsulin: 0,
                 iobInsulinReduction: 0,
                 superBolusInsulin: 0,
                 targetDifference: 0,
@@ -552,7 +564,6 @@ struct CalculationResult: Sendable {
     let insulinCalculated: Decimal // Final calculated insulin amount which respects limits
     let factoredInsulin: Decimal // Total calculation after adjustments
     let wholeCalc: Decimal // Total calculation before adjustments
-    let correctionInsulin: Decimal // Insulin for BG correction
     let iobInsulinReduction: Decimal // IOB reduction amount
     let superBolusInsulin: Decimal // Additional insulin for super bolus
     let targetDifference: Decimal // Difference from target BG
