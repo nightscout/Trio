@@ -16,7 +16,7 @@
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>$(APP_GROUP_ID)</string>
+		<string>group.org.nightscout.$(DEVELOPMENT_TEAM).trio.trio-app-group</string>
 	</array>
 </dict>
 </plist>
