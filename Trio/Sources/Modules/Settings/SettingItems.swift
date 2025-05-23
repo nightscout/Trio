@@ -181,8 +181,8 @@ enum SettingItems {
             searchContents: [
                 "Display Meal Presets",
                 "Recommended Bolus Percentage",
-                "Enable Fatty Meal Factor",
-                "Fatty Meal Factor",
+                "Enable Slow Meal Factor",
+                "Slow Meal Factor",
                 "Enable Super Bolus",
                 "Super Bolus Factor",
                 "Very Low Glucose Warning"
