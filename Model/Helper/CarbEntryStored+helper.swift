@@ -1,3 +1,7 @@
+// Trio
+// CarbEntryStored+helper.swift
+// Created by polscm32 on 2024-04-19.
+
 import CoreData
 import Foundation
 

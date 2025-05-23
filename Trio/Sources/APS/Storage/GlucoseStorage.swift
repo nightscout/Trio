@@ -1,3 +1,7 @@
+// Trio
+// GlucoseStorage.swift
+// Created by Ivan Valkou on 2021-03-01.
+
 import AVFAudio
 import Combine
 import CoreData
@@ -316,7 +320,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     func fetchLatestGlucose() throws -> GlucoseStored? {
         let predicate = NSPredicate.predicateFor20MinAgo
-        return (try CoreDataStack.shared.fetchEntities(
+        return try (CoreDataStack.shared.fetchEntities(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: predicate,
@@ -411,7 +415,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         async let allValues: [NightscoutTreatment] = storage
             .retrieveAsync(OpenAPS.Monitor.cgmState, as: [NightscoutTreatment].self) ?? []
 
-        let (alreadyUploadedValues, allValuesSet) = await (alreadyUploaded, allValues)
+        let (alreadyUploadedValues, allValuesSet) = await(alreadyUploaded, allValues)
         return Array(Set(allValuesSet).subtracting(Set(alreadyUploadedValues)))
     }
 

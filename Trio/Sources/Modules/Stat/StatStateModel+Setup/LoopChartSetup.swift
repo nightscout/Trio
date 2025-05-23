@@ -1,3 +1,7 @@
+// Trio
+// LoopChartSetup.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import CoreData
 import Foundation
 
@@ -119,7 +123,7 @@ extension Stat.StateModel {
         )
 
         // Wait for both results and convert to object IDs
-        let (allLoops, failedLoops) = try await (allLoopsResult, failedLoopsResult)
+        let (allLoops, failedLoops) = try await(allLoopsResult, failedLoopsResult)
 
         return (
             (allLoops as? [LoopStatRecord] ?? []).map(\.objectID),

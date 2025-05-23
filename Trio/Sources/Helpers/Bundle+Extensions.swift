@@ -1,3 +1,7 @@
+// Trio
+// Bundle+Extensions.swift
+// Created by Jon B.M on 2023-03-05.
+
 import Foundation
 
 extension Bundle {
@@ -60,7 +64,8 @@ extension Bundle {
             return "N/A"
         }
 
-        // NOTE: We have the `[\\W]*?` check to make sure that variations in number of tabs or new lines in the future does not influence the result.
+        // NOTE: We have the `[\\W]*?` check to make sure that variations in number of tabs or new lines in the future does not
+        // influence the result.
         guard let regex = try? NSRegularExpression(pattern: "<key>ExpirationDate</key>[\\W]*?<date>(.*?)</date>", options: [])
         else {
             print("Warning: Could not create regex.")

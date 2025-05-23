@@ -1,9 +1,13 @@
+// Trio
+// BuildDetails.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Foundation
 import Swinject
 
 class BuildDetails: Injectable {
     static var shared = BuildDetails()
-    @Injected() internal var nightscoutManager: NightscoutManager!
+    @Injected() var nightscoutManager: NightscoutManager!
 
     let dict: [String: Any]
     let previousExpireDateKey = "previousExpireDate"

@@ -1,3 +1,7 @@
+// Trio
+// PersistedProperty.swift
+// Created by Ivan Valkou on 2021-02-02.
+
 import Foundation
 
 /// Attention! Do not use this wrapper for mutating structure with `didSet` handler into property owner!

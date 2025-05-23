@@ -1,3 +1,7 @@
+// Trio
+// Forecast+CoreDataProperties.swift
+// Created by dnzxy on 2024-04-21.
+
 import CoreData
 import Foundation
 

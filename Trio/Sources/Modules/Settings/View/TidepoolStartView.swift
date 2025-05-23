@@ -1,3 +1,6 @@
+// Trio
+// TidepoolStartView.swift
+// Created by dsnallfot on 2024-05-22.
 
 import SwiftUI
 import Swinject
@@ -47,8 +50,8 @@ struct TidepoolStartView: BaseView {
                                     state.setupTidepool.toggle()
                                 }
                                 label: { Text("Connect to Tidepool").font(.title3) }
-                                    .frame(maxWidth: .infinity, alignment: .center)
-                                    .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .buttonStyle(.bordered)
                             }
                         }
 

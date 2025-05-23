@@ -1,3 +1,7 @@
+// Trio
+// NightscoutConnectView.swift
+// Created by Daniel Snällfot on 2024-05-21.
+
 import SwiftUI
 
 struct NightscoutConnectView: View {
@@ -75,8 +79,8 @@ struct NightscoutConnectView: View {
                         UIApplication.shared.open(URL(string: state.url)!, options: [:], completionHandler: nil)
                     }
                     label: { Label("Open Nightscout", systemImage: "waveform.path.ecg.rectangle").font(.title3).padding() }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .buttonStyle(.bordered)
                 }
                 .listRowBackground(Color.clear)
             }

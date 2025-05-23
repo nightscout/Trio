@@ -1,3 +1,7 @@
+// Trio
+// CGMSettingsView.swift
+// Created by Jon B.M on 2023-03-05.
+
 import LoopKit
 import LoopKitUI
 import SwiftUI

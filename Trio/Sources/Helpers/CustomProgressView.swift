@@ -1,3 +1,7 @@
+// Trio
+// CustomProgressView.swift
+// Created by polscm32 on 2024-02-21.
+
 import SwiftUI
 
 struct CustomProgressView: View {
@@ -55,7 +59,6 @@ enum ProgressText: CaseIterable {
         case .updatingIOB:
             return String(localized: "Updating IOB ...", comment: "Status message for updating IOB")
         case .updatingCOB:
-
             return String(localized: "Updating COB ...", comment: "Status message for updating COB")
         case .updatingHistory:
             return String(localized: "Updating History ...", comment: "Status message for updating history")

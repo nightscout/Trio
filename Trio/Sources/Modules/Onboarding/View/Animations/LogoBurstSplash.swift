@@ -1,3 +1,7 @@
+// Trio
+// LogoBurstSplash.swift
+// Created by Deniz Cengiz on 2025-04-18.
+
 import SwiftUI
 
 struct LogoBurstSplash<Content: View>: View {

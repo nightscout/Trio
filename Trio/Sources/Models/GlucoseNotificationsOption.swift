@@ -1,9 +1,7 @@
-//
-//  GlucoseNotificationOption.swift
-//  FreeAPS
-//
-//  Created by Kimberlie Skandis on 1/18/25.
-//
+// Trio
+// GlucoseNotificationsOption.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Foundation
 import SwiftUI
 

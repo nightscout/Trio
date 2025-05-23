@@ -1,3 +1,7 @@
+// Trio
+// CoreDataObserver.swift
+// Created by polscm32 aka Marvout on 2024-07-22.
+
 import Combine
 import CoreData
 import Foundation
@@ -39,7 +43,6 @@ func changedObjectsOnManagedObjectContextDidSavePublisher(
     Foundation.NotificationCenter.default
         .publisher(for: .NSManagedObjectContextDidSave)
         .compactMap { notification -> Set<NSManagedObjectID>? in
-
             var objectIDs = Set<NSManagedObjectID>()
 
             // Process inserted objects if requested

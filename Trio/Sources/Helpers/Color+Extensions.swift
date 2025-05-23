@@ -1,3 +1,7 @@
+// Trio
+// Color+Extensions.swift
+// Created by Ivan Valkou on 2021-03-30.
+
 import SwiftUI
 import UIKit
 

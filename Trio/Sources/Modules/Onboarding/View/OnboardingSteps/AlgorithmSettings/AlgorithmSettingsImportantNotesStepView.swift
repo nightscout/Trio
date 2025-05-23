@@ -1,9 +1,7 @@
-//
-//  AlgorithmSettingsImportantNotesStepView.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 14.04.25
-//
+// Trio
+// AlgorithmSettingsImportantNotesStepView.swift
+// Created by Deniz Cengiz on 2025-04-27.
+
 import SwiftUI
 
 struct AlgorithmSettingsImportantNotesStepView: View {

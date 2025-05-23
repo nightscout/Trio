@@ -1,3 +1,7 @@
+// Trio
+// ColorSchemeOption.swift
+// Created by Deniz Cengiz on 2024-09-20.
+
 enum ColorSchemeOption: String, JSON, CaseIterable, Identifiable {
     var id: String { rawValue }
 

@@ -1,9 +1,7 @@
-//
-//  FeatureSettingsView.swift
-//  Trio
-//
-//  Created by Deniz Cengiz on 26.07.24.
-//
+// Trio
+// NotificationsView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Foundation
 import LoopKitUI
 import SwiftUI
@@ -100,7 +98,7 @@ struct NotificationsView: BaseView {
             }
         )
         .alert(
-            isPresented: self.$showAlert,
+            isPresented: $showAlert,
             content: { self.notificationReminder() }
         )
         .sheet(isPresented: $shouldDisplayHint) {

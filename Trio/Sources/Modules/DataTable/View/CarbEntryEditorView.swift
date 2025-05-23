@@ -1,9 +1,7 @@
-//
-//  CarbEntryEditorView.swift
-//  FreeAPS
-//
-//  Created by Marvin Polscheit on 15.01.25.
-//
+// Trio
+// CarbEntryEditorView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import CoreData
 import SwiftUI
 

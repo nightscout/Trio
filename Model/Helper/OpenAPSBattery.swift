@@ -1,3 +1,7 @@
+// Trio
+// OpenAPSBattery.swift
+// Created by polscm32 on 2024-04-24.
+
 import CoreData
 import Foundation
 

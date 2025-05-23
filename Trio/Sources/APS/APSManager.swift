@@ -1,3 +1,7 @@
+// Trio
+// APSManager.swift
+// Created by Ivan Valkou on 2021-02-03.
+
 import Combine
 import CoreData
 import Foundation
@@ -681,7 +685,7 @@ final class BaseAPSManager: APSManager, Injectable {
     private func setValues(determinationID: NSManagedObjectID) async throws
         -> (NSDecimalNumber?, TimeInterval?, NSDecimalNumber?)
     {
-        return try await privateContext.perform {
+        try await privateContext.perform {
             do {
                 let determination = try self.privateContext.existingObject(with: determinationID) as? OrefDetermination
 

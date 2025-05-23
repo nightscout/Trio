@@ -1,3 +1,7 @@
+// Trio
+// TidepoolConfigView.swift
+// Created by Pierre L on 2024-03-23.
+
 import Foundation
 import LoopKit
 import LoopKitUI

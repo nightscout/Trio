@@ -1,3 +1,7 @@
+// Trio
+// NightscoutAPI.swift
+// Created by Ivan Valkou on 2021-02-04.
+
 import Combine
 import CommonCrypto
 import Foundation
@@ -171,8 +175,6 @@ extension NightscoutAPI {
         guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
             throw URLError(.badServerResponse)
         }
-
-        return
     }
 
     func deleteManualGlucose(withId id: String) async throws {

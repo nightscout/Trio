@@ -1,3 +1,7 @@
+// Trio
+// PumpHistoryEvent.swift
+// Created by Ivan Valkou on 2021-02-21.
+
 import Foundation
 import LoopKit
 

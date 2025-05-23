@@ -1,3 +1,7 @@
+// Trio
+// SimpleLogReporter.swift
+// Created by Ivan on 2021-04-08.
+
 import Foundation
 import SwiftDate
 

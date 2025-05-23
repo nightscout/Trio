@@ -1,3 +1,7 @@
+// Trio
+// RemoteControlConfig.swift
+// Created by Jonas Björkert on 2024-09-29.
+
 import Combine
 import SwiftUI
 import Swinject

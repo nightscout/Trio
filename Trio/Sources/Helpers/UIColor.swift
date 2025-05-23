@@ -1,3 +1,7 @@
+// Trio
+// UIColor.swift
+// Created by avouspierre on 2022-08-26.
+
 import SwiftUI
 
 extension UIColor {

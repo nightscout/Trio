@@ -1,3 +1,7 @@
+// Trio
+// Disk+Helpers.swift
+// Created by Ivan Valkou on 2021-11-24.
+
 import Foundation
 
 public extension Disk {
@@ -21,7 +25,8 @@ public extension Disk {
         }
     }
 
-    /// Construct URL for a potentially existing or non-existent file (Note: replaces `getURL(for:in:)` which would throw an error if file does not exist)
+    /// Construct URL for a potentially existing or non-existent file (Note: replaces `getURL(for:in:)` which would throw an error
+    /// if file does not exist)
     ///
     /// - Parameters:
     ///   - path: path of file relative to directory (set nil for entire directory)
@@ -106,10 +111,17 @@ public extension Disk {
         return false
     }
 
-    /// Sets the 'do not backup' attribute of the file or folder on disk to true. This ensures that the file holding the object data does not get deleted when the user's device has low storage, but prevents this file from being stored in any backups made of the device on iTunes or iCloud.
-    /// This is only useful for excluding cache and other application support files which are not needed in a backup. Some operations commonly made to user documents will cause the 'do not backup' property to be reset to false and so this should not be used on user documents.
-    /// Warning: You must ensure that you will purge and handle any files created with this attribute appropriately, as these files will persist on the user's disk even in low storage situtations. If you don't handle these files appropriately, then you aren't following Apple's file system guidlines and can face App Store rejection.
-    /// Ideally, you should let iOS handle deletion of files in low storage situations, and you yourself handle missing files appropriately (i.e. retrieving an image from the web again if it does not exist on disk anymore.)
+    /// Sets the 'do not backup' attribute of the file or folder on disk to true. This ensures that the file holding the object
+    /// data does not get deleted when the user's device has low storage, but prevents this file from being stored in any backups
+    /// made of the device on iTunes or iCloud.
+    /// This is only useful for excluding cache and other application support files which are not needed in a backup. Some
+    /// operations commonly made to user documents will cause the 'do not backup' property to be reset to false and so this should
+    /// not be used on user documents.
+    /// Warning: You must ensure that you will purge and handle any files created with this attribute appropriately, as these
+    /// files will persist on the user's disk even in low storage situtations. If you don't handle these files appropriately, then
+    /// you aren't following Apple's file system guidlines and can face App Store rejection.
+    /// Ideally, you should let iOS handle deletion of files in low storage situations, and you yourself handle missing files
+    /// appropriately (i.e. retrieving an image from the web again if it does not exist on disk anymore.)
     ///
     /// - Parameters:
     ///   - path: path of file relative to directory
@@ -123,10 +135,17 @@ public extension Disk {
         }
     }
 
-    /// Sets the 'do not backup' attribute of the file or folder on disk to true. This ensures that the file holding the object data does not get deleted when the user's device has low storage, but prevents this file from being stored in any backups made of the device on iTunes or iCloud.
-    /// This is only useful for excluding cache and other application support files which are not needed in a backup. Some operations commonly made to user documents will cause the 'do not backup' property to be reset to false and so this should not be used on user documents.
-    /// Warning: You must ensure that you will purge and handle any files created with this attribute appropriately, as these files will persist on the user's disk even in low storage situtations. If you don't handle these files appropriately, then you aren't following Apple's file system guidlines and can face App Store rejection.
-    /// Ideally, you should let iOS handle deletion of files in low storage situations, and you yourself handle missing files appropriately (i.e. retrieving an image from the web again if it does not exist on disk anymore.)
+    /// Sets the 'do not backup' attribute of the file or folder on disk to true. This ensures that the file holding the object
+    /// data does not get deleted when the user's device has low storage, but prevents this file from being stored in any backups
+    /// made of the device on iTunes or iCloud.
+    /// This is only useful for excluding cache and other application support files which are not needed in a backup. Some
+    /// operations commonly made to user documents will cause the 'do not backup' property to be reset to false and so this should
+    /// not be used on user documents.
+    /// Warning: You must ensure that you will purge and handle any files created with this attribute appropriately, as these
+    /// files will persist on the user's disk even in low storage situtations. If you don't handle these files appropriately, then
+    /// you aren't following Apple's file system guidlines and can face App Store rejection.
+    /// Ideally, you should let iOS handle deletion of files in low storage situations, and you yourself handle missing files
+    /// appropriately (i.e. retrieving an image from the web again if it does not exist on disk anymore.)
     ///
     /// - Parameters:
     ///   - url: URL of file in filesystem
@@ -139,8 +158,10 @@ public extension Disk {
         }
     }
 
-    /// Sets the 'do not backup' attribute of the file or folder on disk to false. This is the default behaviour so you don't have to use this function unless you already called doNotBackup(name:directory:) on a specific file.
-    /// This default backing up behaviour allows anything in the .documents and .caches directories to be stored in backups made of the user's device (on iCloud or iTunes)
+    /// Sets the 'do not backup' attribute of the file or folder on disk to false. This is the default behaviour so you don't have
+    /// to use this function unless you already called doNotBackup(name:directory:) on a specific file.
+    /// This default backing up behaviour allows anything in the .documents and .caches directories to be stored in backups made
+    /// of the user's device (on iCloud or iTunes)
     ///
     /// - Parameters:
     ///   - path: path of file relative to directory
@@ -154,8 +175,10 @@ public extension Disk {
         }
     }
 
-    /// Sets the 'do not backup' attribute of the file or folder on disk to false. This is the default behaviour so you don't have to use this function unless you already called doNotBackup(name:directory:) on a specific file.
-    /// This default backing up behaviour allows anything in the .documents and .caches directories to be stored in backups made of the user's device (on iCloud or iTunes)
+    /// Sets the 'do not backup' attribute of the file or folder on disk to false. This is the default behaviour so you don't have
+    /// to use this function unless you already called doNotBackup(name:directory:) on a specific file.
+    /// This default backing up behaviour allows anything in the .documents and .caches directories to be stored in backups made
+    /// of the user's device (on iCloud or iTunes)
     ///
     /// - Parameters:
     ///   - url: URL of file in filesystem

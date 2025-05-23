@@ -1,9 +1,7 @@
-//
-//  FeatureSettingsView.swift
-//  Trio
-//
-//  Created by Deniz Cengiz on 26.07.24.
-//
+// Trio
+// TherapySettingsView.swift
+// Created by Deniz Cengiz on 2024-07-26.
+
 import Foundation
 import SwiftUI
 import Swinject

@@ -1,3 +1,7 @@
+// Trio
+// LoopUIColorPalette+Default.swift
+// Created by avouspierre on 2022-08-26.
+
 import LoopKitUI
 import SwiftUI
 

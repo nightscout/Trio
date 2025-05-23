@@ -1,3 +1,7 @@
+// Trio
+// SavitzkyGolayFilter.swift
+// Created by Jon B Mårtensson on 2023-03-18.
+
 import Foundation
 
 /// allowed values are 0, 1, 2 or 3. It's the index in coefficients
@@ -28,13 +32,18 @@ private class IsSmoothable: SavitzkyGolaySmoothable {
 
 extension Array where Element: SavitzkyGolaySmoothable {
     /// - apply Savitzky Golay filter
-    /// - before applying the filter, the array will be prepended and append with a number of elements equal to the filterwidth, filterWidth default 5. Allowed values are 5, 4, 3, 2. If any other value is assigned, then 5 will be used
+    /// - before applying the filter, the array will be prepended and append with a number of elements equal to the filterwidth,
+    /// filterWidth default 5. Allowed values are 5, 4, 3, 2. If any other value is assigned, then 5 will be used
     /// - ...continue with 5 here in the explanation ...
-    /// - for the 5 last elements and 5 first elements, a regression is done. This regression is done used to give values to the 5 prepended and appended values. Which means it's as if we draw a line through the first 5 and 5 last original values, and use this line to give values to the 5 prepended and appended values
-    /// - the 5 prepended and appended values are then used in the filter algorithm, which means we can also filter the original 5 first and last elements
+    /// - for the 5 last elements and 5 first elements, a regression is done. This regression is done used to give values to the 5
+    /// prepended and appended values. Which means it's as if we draw a line through the first 5 and 5 last original values, and
+    /// use this line to give values to the 5 prepended and appended values
+    /// - the 5 prepended and appended values are then used in the filter algorithm, which means we can also filter the original 5
+    /// first and last elements
     /// see also example https://github.com/JohanDegraeve/xdripswift/wiki/Libre-value-smoothing
     mutating func smoothSavitzkyGolayQuaDratic(withFilterWidth filterWidth: Int = 5) {
-        // filterWidthToUse is the value of filterWidth to use in the algorithm. By default filterWidthToUse = parameter value filterWidth
+        // filterWidthToUse is the value of filterWidth to use in the algorithm. By default filterWidthToUse = parameter value
+        // filterWidth
         var filterWidthToUse = filterWidth
 
         // calculate coefficientsRowToUse based on filterWdith
@@ -63,9 +72,12 @@ extension Array where Element: SavitzkyGolaySmoothable {
         // the amount of elements must be at least 5. If that's not the case then don't apply any smoothing
         guard count >= filterWidthToUse else { return }
 
-        // create a new array, to which we will prepend and append 5 elements so that we can do also smoothing for the 5 last and 5 first values of the input array (which is self)
-        // the 5 elements will be estimated by doing linear regression of the first 5 and last 5 elements of the original input array respectively
-        // this is only a temporary array, but it will hold the elements of the original array, those elements will get a new value when doing the smoothing
+        // create a new array, to which we will prepend and append 5 elements so that we can do also smoothing for the 5 last and
+        // 5 first values of the input array (which is self)
+        // the 5 elements will be estimated by doing linear regression of the first 5 and last 5 elements of the original input
+        // array respectively
+        // this is only a temporary array, but it will hold the elements of the original array, those elements will get a new
+        // value when doing the smoothing
         var tempArray = [SavitzkyGolaySmoothable]()
         for element in self {
             tempArray.append(element)
@@ -81,7 +93,8 @@ extension Array where Element: SavitzkyGolaySmoothable {
         // the first 5 and the last 5 elements are of type IsSmoothable with value 0
 
         // - indicesArray is a help array needed for the function linearRegressionCreator
-        // - this will be the first parameter in the call to the linearRegression function, in fact it's an array of IsSmoothable with length = length of tempArray
+        // - this will be the first parameter in the call to the linearRegression function, in fact it's an array of IsSmoothable
+        // with length = length of tempArray
         // - we give each IsSmoothable the value of the index, meaning from 0 up to (length of tempArray) - 1
         // - in fact it's not really smoothable, it's just because we use isSmoothable in function linearRegressionCreator
         var indicesArray = [SavitzkyGolaySmoothable]()
@@ -89,11 +102,13 @@ extension Array where Element: SavitzkyGolaySmoothable {
             indicesArray.append(IsSmoothable(withValue: Double(index)))
         }
 
-        /// - this is a piece of code that we will execute two times, once for the firs 5 elements, then for the last 5, so we put it in a closure variable
-        /// - it calculates the regression function (which is nothing else but doing y = intercept + slope*x) for range defined by predictorRange in tempArray. It will be used for the 5 first and 5 last real values, ie the 5 first and 5 last real glucose values
+        /// - this is a piece of code that we will execute two times, once for the firs 5 elements, then for the last 5, so we put
+        /// it in a closure variable
+        /// - it calculates the regression function (which is nothing else but doing y = intercept + slope*x) for range defined by
+        /// predictorRange in tempArray. It will be used for the 5 first and 5 last real values, ie the 5 first and 5 last real
+        /// glucose values
         /// - then executes the regression for every element in the range defined by targetRange, again in tempArray
         let doRegression = { (predictorRange: Range<Int>, targetRange: Range<Int>) in
-
             // calculate the linearRegression function
             let linearRegression = linearRegressionCreator(indicesArray[predictorRange], tempArray[predictorRange])
 

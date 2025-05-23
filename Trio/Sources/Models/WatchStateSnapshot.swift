@@ -1,9 +1,7 @@
-//
-//  WatchStateSnapshot.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 18.04.25.
-//
+// Trio
+// WatchStateSnapshot.swift
+// Created by Deniz Cengiz on 2025-04-19.
+
 import Foundation
 
 struct WatchStateSnapshot {

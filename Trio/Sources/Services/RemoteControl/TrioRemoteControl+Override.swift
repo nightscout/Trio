@@ -1,8 +1,12 @@
+// Trio
+// TrioRemoteControl+Override.swift
+// Created by Jonas Björkert on 2024-10-22.
+
 import CoreData
 import Foundation
 
 extension TrioRemoteControl {
-    @MainActor internal func handleCancelOverrideCommand(_ pushMessage: PushMessage) async {
+    @MainActor func handleCancelOverrideCommand(_ pushMessage: PushMessage) async {
         await disableAllActiveOverrides()
 
         debug(
@@ -11,7 +15,7 @@ extension TrioRemoteControl {
         )
     }
 
-    @MainActor internal func handleStartOverrideCommand(_ pushMessage: PushMessage) async {
+    @MainActor func handleStartOverrideCommand(_ pushMessage: PushMessage) async {
         do {
             guard let overrideName = pushMessage.overrideName, !overrideName.isEmpty else {
                 await logError("Command rejected: override name is missing.", pushMessage: pushMessage)

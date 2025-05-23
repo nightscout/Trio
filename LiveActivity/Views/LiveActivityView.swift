@@ -1,9 +1,7 @@
-//
-//  LiveActivityView.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 17.10.24.
-//
+// Trio
+// LiveActivityView.swift
+// Created by Deniz Cengiz on 2024-10-17.
+
 import ActivityKit
 import Foundation
 import SwiftUI
@@ -111,8 +109,10 @@ struct LiveActivityView: View {
             .privacySensitive()
             .padding(.all, 14)
             .foregroundStyle(Color.primary)
-            // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark mode)
-            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of the interface style)
+            // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark
+            // mode)
+            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of
+            // the interface style)
             // The colorScheme environment variable does work here, but BackgroundStyle gives us this functionality for free
             .foregroundStyle(Color.primary)
             .background(BackgroundStyle.background.opacity(0.4))
@@ -139,8 +139,10 @@ struct LiveActivityView: View {
             .privacySensitive()
             .padding(.all, 15)
             .foregroundStyle(Color.primary)
-            /// Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark mode)
-            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of the interface style)
+            /// Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark
+            /// mode)
+            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of
+            // the interface style)
             // The colorScheme environment variable does work here, but BackgroundStyle gives us this functionality for free
             .foregroundStyle(Color.primary)
             .background(BackgroundStyle.background.opacity(0.4))

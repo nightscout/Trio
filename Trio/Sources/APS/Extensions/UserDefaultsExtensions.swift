@@ -1,3 +1,7 @@
+// Trio
+// UserDefaultsExtensions.swift
+// Created by Ivan Valkou on 2021-02-17.
+
 import Foundation
 import LoopKit
 import RileyLinkBLEKit

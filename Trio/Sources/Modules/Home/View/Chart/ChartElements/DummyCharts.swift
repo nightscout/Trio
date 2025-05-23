@@ -1,9 +1,14 @@
+// Trio
+// DummyCharts.swift
+// Created by polscm32 on 2024-09-08.
+
 import Charts
 import Foundation
 import SwiftUI
 
 extension MainChartView {
-    /// empty chart that just shows the Y axis and Y grid lines. Created separately from `mainChart` to allow main chart to scroll horizontally while having a fixed Y axis
+    /// empty chart that just shows the Y axis and Y grid lines. Created separately from `mainChart` to allow main chart to scroll
+    /// horizontally while having a fixed Y axis
     var staticYAxisChart: some View {
         Chart {
             /// high and low threshold lines

@@ -1,3 +1,7 @@
+// Trio
+// NightscoutStatus.swift
+// Created by Ivan Valkou on 2021-03-05.
+
 import Foundation
 
 struct NightscoutStatus: JSON {

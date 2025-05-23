@@ -1,3 +1,7 @@
+// Trio
+// MainRootView.swift
+// Created by Ivan Valkou on 2021-02-02.
+
 import SwiftUI
 import Swinject
 

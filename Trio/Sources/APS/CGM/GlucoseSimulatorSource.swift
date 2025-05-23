@@ -3,7 +3,9 @@
 /// Source publish fake data about glucose's level, creates ascending and descending trends
 ///
 /// Enter point of Source is GlucoseSimulatorSource.fetch method. Method is called from FetchGlucoseManager module.
-/// Not more often than a specified period (default - 300 seconds), it returns a Combine-publisher that publishes data on glucose values (global type BloodGlucose). If there is no up-to-date data (or the publication period has not passed yet), then a publisher of type Empty is returned, otherwise it returns a publisher of type Just.
+/// Not more often than a specified period (default - 300 seconds), it returns a Combine-publisher that publishes data on glucose
+/// values (global type BloodGlucose). If there is no up-to-date data (or the publication period has not passed yet), then a
+/// publisher of type Empty is returned, otherwise it returns a publisher of type Just.
 ///
 /// Simulator composition
 /// ===================
@@ -53,9 +55,7 @@ final class GlucoseSimulatorSource: GlucoseSource {
 
     /// The glucose generator used to create simulated values
     /// Uses OscillatingGenerator to create a sinusoidal pattern around 120 mg/dL
-    private lazy var generator: BloodGlucoseGenerator = {
-        OscillatingGenerator()
-    }()
+    private lazy var generator: BloodGlucoseGenerator = OscillatingGenerator()
 
     /// Determines if new glucose values can be generated based on the time elapsed since the last fetch
     private var canGenerateNewValues: Bool {

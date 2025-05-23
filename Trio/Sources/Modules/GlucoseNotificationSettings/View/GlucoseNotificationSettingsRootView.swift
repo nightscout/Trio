@@ -1,3 +1,7 @@
+// Trio
+// GlucoseNotificationSettingsRootView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import ActivityKit
 import Combine
 import SwiftUI

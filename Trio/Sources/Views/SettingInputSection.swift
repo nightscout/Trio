@@ -1,3 +1,7 @@
+// Trio
+// SettingInputSection.swift
+// Created by Deniz Cengiz on 2024-07-27.
+
 import SwiftUI
 
 struct SettingInputSection<VerboseHint: View>: View {

@@ -1,3 +1,7 @@
+// Trio
+// ContactImageDetailView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import SwiftUI
 
 struct ContactImageDetailView: View {
@@ -168,12 +172,12 @@ struct ContactImageDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(10)
             })
-                .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
-                .background(isUnchanged ? Color(.systemGray4) : Color(.systemBlue))
-                .disabled(isUnchanged)
-                .tint(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .padding(5)
+            .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+            .background(isUnchanged ? Color(.systemGray4) : Color(.systemBlue))
+            .disabled(isUnchanged)
+            .tint(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(5)
         }
     }
 

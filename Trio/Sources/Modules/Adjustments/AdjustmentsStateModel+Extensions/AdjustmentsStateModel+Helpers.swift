@@ -1,3 +1,7 @@
+// Trio
+// AdjustmentsStateModel+Helpers.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import SwiftUI
 
 extension Adjustments.StateModel {
@@ -5,7 +9,7 @@ extension Adjustments.StateModel {
     func percentageDescription(_ percent: Double) -> Text? {
         if percent.isNaN || percent == 100 { return nil }
 
-        var description: String = "Insulin doses will be "
+        var description = "Insulin doses will be "
 
         if percent < 100 {
             description += "decreased by "

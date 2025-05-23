@@ -1,3 +1,7 @@
+// Trio
+// TrioSettings.swift
+// Created by Ivan Valkou on 2021-03-03.
+
 import Foundation
 
 enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {

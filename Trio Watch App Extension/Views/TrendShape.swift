@@ -1,3 +1,7 @@
+// Trio
+// TrendShape.swift
+// Created by Jonas Björkert on 2025-05-23.
+
 import SwiftUI
 
 struct Triangle: Shape {

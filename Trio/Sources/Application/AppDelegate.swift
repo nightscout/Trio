@@ -1,3 +1,7 @@
+// Trio
+// AppDelegate.swift
+// Created by Ivan Valkou on 2021-11-24.
+
 import FirebaseCore
 import FirebaseCrashlytics
 import SwiftUI

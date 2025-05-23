@@ -1,3 +1,7 @@
+// Trio
+// AdjustmentsProvider.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 extension Adjustments {
     final class Provider: BaseProvider, AdjustmentsProvider {
         func getBGTargets() async -> BGTargets {

@@ -1,3 +1,7 @@
+// Trio
+// TargetsEditorRootView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Charts
 import SwiftUI
 import Swinject
@@ -50,11 +54,11 @@ extension TargetsEditor {
                             .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
                             .padding(10)
                         })
-                            .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
-                            .disabled(shouldDisableButton)
-                            .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
-                            .tint(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                        .disabled(shouldDisableButton)
+                        .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
+                        .tint(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                 }.padding(5)
             }

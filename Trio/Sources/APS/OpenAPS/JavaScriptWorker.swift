@@ -1,3 +1,7 @@
+// Trio
+// JavaScriptWorker.swift
+// Created by Ivan Valkou on 2021-01-29.
+
 import Foundation
 import JavaScriptCore
 
@@ -86,13 +90,13 @@ final class JavaScriptWorker {
                 )
             }.joined(separator: "\n")
 
-            sanitizedLogs.split(separator: "\n").forEach { logLine in
+            for logLine in sanitizedLogs.split(separator: "\n") {
                 if !logLine.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     debug(.openAPS, "\(fileName): \(logLine)")
                 }
             }
         } else {
-            logs.split(separator: "\n").forEach { logLine in
+            for logLine in logs.split(separator: "\n") {
                 if !logLine.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     debug(.openAPS, "\(fileName): \(logLine)")
                 }
@@ -137,7 +141,7 @@ final class JavaScriptWorker {
         defer {
             returnContext(context)
         }
-        scripts.forEach { script in
+        for script in scripts {
             let fileName = URL(fileURLWithPath: script.name).lastPathComponent
             context.setObject(fileName, forKeyedSubscript: "scriptName" as NSString)
             context.evaluateScript(script.body)

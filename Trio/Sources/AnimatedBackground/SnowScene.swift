@@ -1,3 +1,7 @@
+// Trio
+// SnowScene.swift
+// Created by Jon B.M on 2021-12-22.
+
 import Foundation
 import SpriteKit
 

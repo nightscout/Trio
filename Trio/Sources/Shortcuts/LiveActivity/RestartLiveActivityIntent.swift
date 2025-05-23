@@ -1,3 +1,7 @@
+// Trio
+// RestartLiveActivityIntent.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import AppIntents
 import Foundation
 

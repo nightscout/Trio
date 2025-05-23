@@ -1,9 +1,7 @@
-//
-//  LiveActivityBGLabelView.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 17.10.24.
-//
+// Trio
+// LiveActivityBGLabelView.swift
+// Created by Deniz Cengiz on 2024-10-17.
+
 import Foundation
 import SwiftUI
 import WidgetKit

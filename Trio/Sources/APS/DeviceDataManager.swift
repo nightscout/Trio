@@ -1,3 +1,7 @@
+// Trio
+// DeviceDataManager.swift
+// Created by Ivan Valkou on 2021-02-03.
+
 import Algorithms
 import Combine
 import CoreData
@@ -646,7 +650,7 @@ extension BaseDeviceDataManager: CGMManagerDelegate {
 
 extension BaseDeviceDataManager: AlertObserver {
     func AlertDidUpdate(_ alerts: [AlertEntry]) {
-        alerts.forEach { alert in
+        for alert in alerts {
             if alert.acknowledgedDate == nil {
                 ackAlert(alert: alert)
             }

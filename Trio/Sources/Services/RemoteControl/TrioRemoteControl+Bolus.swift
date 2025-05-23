@@ -1,7 +1,11 @@
+// Trio
+// TrioRemoteControl+Bolus.swift
+// Created by Jonas Björkert on 2024-10-22.
+
 import Foundation
 
 extension TrioRemoteControl {
-    internal func handleBolusCommand(_ pushMessage: PushMessage) async throws {
+    func handleBolusCommand(_ pushMessage: PushMessage) async throws {
         guard let bolusAmount = pushMessage.bolusAmount else {
             await logError("Command rejected: bolus amount is missing or invalid.", pushMessage: pushMessage)
             return

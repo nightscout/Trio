@@ -1,9 +1,7 @@
-//
-//  PropertyPersistentFlags.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 06.05.25.
-//
+// Trio
+// PropertyPersistentFlags.swift
+// Created by Deniz Cengiz on 2025-05-06.
+
 import Foundation
 
 /// Centralized store for app-wide persistent flags backed by property list (.plist) files.

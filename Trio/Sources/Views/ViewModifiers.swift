@@ -1,3 +1,7 @@
+// Trio
+// ViewModifiers.swift
+// Created by Ivan Valkou on 2021-02-02.
+
 import Combine
 import SwiftUI
 
@@ -123,10 +127,10 @@ struct ClearButton: ViewModifier {
             content
             if !text.isEmpty {
                 Button { self.text = "" }
-                label: {
-                    Image(systemName: "delete.left")
-                        .foregroundColor(.gray)
-                }
+                    label: {
+                        Image(systemName: "delete.left")
+                            .foregroundColor(.gray)
+                    }
             }
         }
     }

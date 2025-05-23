@@ -1,3 +1,7 @@
+// Trio
+// Router.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Combine
 import SwiftUI
 import Swinject
@@ -24,7 +28,7 @@ struct MessageContent {
     var subtype: MessageSubtype = .algorithm
     var title: String = ""
     var useAPN: Bool = true
-    var trigger: UNNotificationTrigger? = nil
+    var trigger: UNNotificationTrigger?
     var action: NotificationAction = .none
 }
 

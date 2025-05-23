@@ -1,3 +1,7 @@
+// Trio
+// MainChartHelper.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Charts
 import CoreData
 import Foundation
@@ -155,7 +159,6 @@ extension MainChartView {
 
     var mainChartYAxis: some AxisContent {
         AxisMarks(position: .trailing) { value in
-
             if displayYgridLines {
                 AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             } else {

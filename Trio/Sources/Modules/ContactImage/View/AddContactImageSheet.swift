@@ -1,3 +1,7 @@
+// Trio
+// AddContactImageSheet.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import SwiftUI
 
 struct AddContactImageSheet: View {
@@ -193,11 +197,11 @@ struct AddContactImageSheet: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(10)
             })
-                .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
-                .background(Color(.systemBlue))
-                .tint(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .padding(5)
+            .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+            .background(Color(.systemBlue))
+            .tint(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(5)
         }
     }
 

@@ -1,3 +1,7 @@
+// Trio
+// TreatmentsStateModel.swift
+// Created by Ivan Valkou on 2021-03-06.
+
 import Combine
 import CoreData
 import Foundation
@@ -207,7 +211,8 @@ extension Treatments {
             }
         }
 
-        /// Observes changes to the `bolusProgress` published by the `apsManager` to update the `isBolusInProgress` property in real time.
+        /// Observes changes to the `bolusProgress` published by the `apsManager` to update the `isBolusInProgress` property in
+        /// real time.
         ///
         /// - Important:
         ///   - `apsManager.bolusProgress` is a `CurrentValueSubject<Decimal?, Never>`.
@@ -632,7 +637,8 @@ extension Treatments {
                 )]
                 try await carbsStorage.storeCarbs(carbsToStore, areFetchedFromRemote: false)
 
-                // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
+                // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the
+                // APSManger does a sync
                 if amount <= 0 {
                     await MainActor.run {
                         self.isAwaitingDeterminationResult = true
@@ -949,13 +955,13 @@ extension Treatments.StateModel {
         guard minCount > 0 else { return }
 
         async let minForecastResult = Task {
-            await (0 ..< self.minCount).map { index in
+            await(0 ..< self.minCount).map { index in
                 nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.min() ?? 0
             }
         }.value
 
         async let maxForecastResult = Task {
-            await (0 ..< self.minCount).map { index in
+            await(0 ..< self.minCount).map { index in
                 nonEmptyArrays.compactMap { $0.indices.contains(index) ? $0[index] : nil }.max() ?? 0
             }
         }.value

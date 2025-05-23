@@ -1,3 +1,7 @@
+// Trio
+// KeychainItemAccessibility.swift
+// Created by Ivan Valkou on 2021-02-02.
+
 import Foundation
 
 protocol KeychainAttrRepresentable {
@@ -63,7 +67,7 @@ private let keychainItemAccessibilityLookup: [KeychainItemAccessibility: CFStrin
 }()
 
 extension KeychainItemAccessibility: KeychainAttrRepresentable {
-    internal var keychainAttrValue: CFString {
+    var keychainAttrValue: CFString {
         keychainItemAccessibilityLookup[self]!
     }
 }

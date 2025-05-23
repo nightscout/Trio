@@ -1,3 +1,7 @@
+// Trio
+// View+Snapshot.swift
+// Created by Ivan Valkou on 2021-03-16.
+
 import SwiftUI
 
 extension View {

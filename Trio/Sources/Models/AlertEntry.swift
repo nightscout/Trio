@@ -1,3 +1,6 @@
+// Trio
+// AlertEntry.swift
+// Created by avouspierre on 2022-10-08.
 
 import Foundation
 import LoopKit

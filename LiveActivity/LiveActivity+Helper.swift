@@ -1,9 +1,7 @@
-//
-//  LiveActivity+Helper.swift
-//  LiveActivityExtension
-//
-//  Created by Cengiz Deniz on 17.10.24.
-//
+// Trio
+// LiveActivity+Helper.swift
+// Created by Deniz Cengiz on 2024-10-17.
+
 import ActivityKit
 import Charts
 import SwiftUI
@@ -179,6 +177,7 @@ func bgAndTrend(
             case .minimal:
                 let scaledText = text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
                 scaledText.foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
+
             case .compact:
                 text.scaleEffect(x: 0.8, y: 0.8, anchor: .leading).padding(.trailing, -3)
 

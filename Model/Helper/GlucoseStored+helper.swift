@@ -1,3 +1,7 @@
+// Trio
+// GlucoseStored+helper.swift
+// Created by polscm32 on 2024-04-18.
+
 import CoreData
 import Foundation
 
@@ -168,7 +172,8 @@ extension GlucoseStored: Encodable {
     }
 }
 
-// In order to show the correct direction in the bobble we convert the direction property of the NSManagedObject GlucoseStored back to the Direction type
+// In order to show the correct direction in the bobble we convert the direction property of the NSManagedObject GlucoseStored
+// back to the Direction type
 extension GlucoseStored {
     var directionEnum: BloodGlucose.Direction? {
         BloodGlucose.Direction(rawValue: direction ?? "")

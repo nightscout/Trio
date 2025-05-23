@@ -1,9 +1,7 @@
-//
-//  PulsingLogoAnimation.swift
-//  Trio
-//
-//  Created by Marvin Polscheit on 11.04.25.
-//
+// Trio
+// PulsingLogoAnimation.swift
+// Created by polscm32 on 2025-04-11.
+
 import SwiftUI
 
 struct PulsingLogoAnimation: View {

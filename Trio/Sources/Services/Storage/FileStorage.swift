@@ -1,3 +1,7 @@
+// Trio
+// FileStorage.swift
+// Created by Ivan Valkou on 2021-02-05.
+
 import Foundation
 
 protocol FileStorage {
@@ -213,7 +217,8 @@ extension FileStorage {
         value < threshold ? correctUnitParsingOffsets(value.asMgdL) : value
     }
 
-    /// Parses mmol/L settings stored on file to mg/dL if necessary and updates the preferences, settings,  insulin sensitivities, and glucose targets.
+    /// Parses mmol/L settings stored on file to mg/dL if necessary and updates the preferences, settings,  insulin sensitivities,
+    /// and glucose targets.
     /// - Returns: A boolean indicating whether any settings were parsed and updated.
     func parseOnFileSettingsToMgdL() -> Bool {
         debug(.businessLogic, "Check for mmol/L settings stored on file.")

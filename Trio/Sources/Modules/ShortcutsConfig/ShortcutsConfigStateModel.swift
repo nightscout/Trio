@@ -1,9 +1,7 @@
-//
-//  ShortcutsConfigStateModel.swift
-//  Trio
-//
-//  Created by Pierre LAGARDE on 01/05/2024.
-//
+// Trio
+// ShortcutsConfigStateModel.swift
+// Created by Auggie Fisher on 2024-07-24.
+
 import SwiftUI
 
 extension ShortcutsConfig {

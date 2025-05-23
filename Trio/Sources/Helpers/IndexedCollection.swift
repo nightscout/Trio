@@ -1,3 +1,7 @@
+// Trio
+// IndexedCollection.swift
+// Created by Ivan Valkou on 2021-02-21.
+
 import Foundation
 
 struct IndexedCollection<Base: RandomAccessCollection>: RandomAccessCollection {

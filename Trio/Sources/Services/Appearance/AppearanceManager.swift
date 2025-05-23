@@ -1,4 +1,9 @@
+// Trio
+// AppearanceManager.swift
+// Created by Ivan Valkou on 2021-02-02.
+
 import UIKit
+
 protocol AppearanceManager {
     func setupGlobalAppearance()
 }

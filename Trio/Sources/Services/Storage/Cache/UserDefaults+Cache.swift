@@ -1,3 +1,7 @@
+// Trio
+// UserDefaults+Cache.swift
+// Created by Ivan Valkou on 2021-02-02.
+
 import Foundation
 
 extension UserDefaults: Cache {
@@ -6,7 +10,7 @@ extension UserDefaults: Cache {
     }
 
     func getValue<T: Codable>(_: T.Type, forKey key: String, defaultValue: T?, reportError: Bool) -> T? {
-        guard let data = self.data(forKey: key) else { return defaultValue }
+        guard let data = data(forKey: key) else { return defaultValue }
         let decoder = JSONDecoder()
         do {
             let decoded = try decoder.decode(DecodableWrapper<T>.self, from: data)

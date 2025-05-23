@@ -1,3 +1,7 @@
+// Trio
+// AdjustmentsRootView+Overrides.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import CoreData
 import SwiftUI
 
@@ -133,13 +137,12 @@ extension Adjustments.RootView {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(10)
             })
-                .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
-                .disabled(!state.isOverrideEnabled)
-                .background(!state.isOverrideEnabled ? Color(.systemGray4) : Color(.systemRed))
-                .tint(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                .padding(5)
+            .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+            .disabled(!state.isOverrideEnabled)
+            .background(!state.isOverrideEnabled ? Color(.systemGray4) : Color(.systemRed))
+            .tint(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(5)
         }
     }
 

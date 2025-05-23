@@ -1,3 +1,7 @@
+// Trio
+// GlucoseChartView.swift
+// Created by polscm32 on 2024-09-07.
+
 import Charts
 import Foundation
 import SwiftUI

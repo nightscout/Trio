@@ -1,3 +1,7 @@
+// Trio
+// TrioRemoteControl.swift
+// Created by Jonas Björkert on 2024-09-29.
+
 import CoreData
 import Foundation
 import Swinject
@@ -5,16 +9,16 @@ import Swinject
 class TrioRemoteControl: Injectable {
     static let shared = TrioRemoteControl()
 
-    @Injected() internal var tempTargetsStorage: TempTargetsStorage!
-    @Injected() internal var carbsStorage: CarbsStorage!
-    @Injected() internal var nightscoutManager: NightscoutManager!
-    @Injected() internal var overrideStorage: OverrideStorage!
-    @Injected() internal var settings: SettingsManager!
+    @Injected() var tempTargetsStorage: TempTargetsStorage!
+    @Injected() var carbsStorage: CarbsStorage!
+    @Injected() var nightscoutManager: NightscoutManager!
+    @Injected() var overrideStorage: OverrideStorage!
+    @Injected() var settings: SettingsManager!
 
     private let timeWindow: TimeInterval = 600 // Defines how old messages that are accepted, 10 minutes
 
-    internal let pumpHistoryFetchContext: NSManagedObjectContext
-    internal let viewContext: NSManagedObjectContext
+    let pumpHistoryFetchContext: NSManagedObjectContext
+    let viewContext: NSManagedObjectContext
 
     private init() {
         pumpHistoryFetchContext = CoreDataStack.shared.newTaskContext()

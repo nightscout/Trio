@@ -1,3 +1,7 @@
+// Trio
+// TrioRemoteControl+Meal.swift
+// Created by Jonas Björkert on 2024-10-22.
+
 import Foundation
 
 extension TrioRemoteControl {
@@ -58,7 +62,6 @@ extension TrioRemoteControl {
                         "Command rejected: newer carb entries have been logged since the command was sent.",
                         pushMessage: pushMessage
                     )
-                    return
                 }
             }
         }

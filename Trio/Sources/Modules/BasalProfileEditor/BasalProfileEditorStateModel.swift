@@ -1,3 +1,7 @@
+// Trio
+// BasalProfileEditorStateModel.swift
+// Created by Ivan Valkou on 2021-03-03.
+
 import Observation
 import SwiftUI
 

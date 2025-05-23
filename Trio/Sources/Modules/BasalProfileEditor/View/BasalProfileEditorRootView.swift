@@ -1,3 +1,7 @@
+// Trio
+// BasalProfileEditorRootView.swift
+// Created by Ivan Valkou on 2021-03-03.
+
 import Charts
 import SwiftUI
 import Swinject
@@ -106,11 +110,11 @@ extension BasalProfileEditor {
                             .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
                             .padding(10)
                         })
-                            .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
-                            .disabled(shouldDisableButton)
-                            .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
-                            .tint(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                        .disabled(shouldDisableButton)
+                        .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
+                        .tint(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                 }.padding(5)
             }

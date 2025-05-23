@@ -1,3 +1,7 @@
+// Trio
+// Disk+Data.swift
+// Created by Ivan Valkou on 2021-11-24.
+
 import Foundation
 
 public extension Disk {

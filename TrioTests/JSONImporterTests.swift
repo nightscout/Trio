@@ -1,9 +1,7 @@
-//
-//  JSONImporterTests.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 21.04.25.
-//
+// Trio
+// JSONImporterTests.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import CoreData
 import Foundation
 import Swinject
@@ -25,7 +23,7 @@ class BundleReference {}
         importer = JSONImporter(context: context, coreDataStack: coreDataStack)
     }
 
-    @Test("Import glucose history with value checks") func testImportGlucoseHistoryDetails() async throws {
+    @Test("Import glucose history with value checks") func importGlucoseHistoryDetails() async throws {
         let testBundle = Bundle(for: BundleReference.self)
         let path = testBundle.path(forResource: "glucose", ofType: "json")!
         let url = URL(filePath: path)
@@ -49,11 +47,11 @@ class BundleReference {}
         #expect(allReadings.last?.glucose == 127)
         #expect(allReadings.last?.date == Date("2025-04-27T19:37:50.327Z"))
 
-        let manualCount = allReadings.filter({ $0.isManual }).count
+        let manualCount = allReadings.filter(\.isManual).count
         #expect(manualCount == 1)
     }
 
-    @Test("Skip importing old glucose values") func testSkipImportOldGlucoseValues() async throws {
+    @Test("Skip importing old glucose values") func skipImportOldGlucoseValues() async throws {
         let testBundle = Bundle(for: BundleReference.self)
         let path = testBundle.path(forResource: "glucose", ofType: "json")!
         let url = URL(filePath: path)
@@ -73,7 +71,7 @@ class BundleReference {}
         #expect(allReadings.isEmpty)
     }
 
-    @Test("Import pump history with value checks") func testImportPumpHistoryDetails() async throws {
+    @Test("Import pump history with value checks") func importPumpHistoryDetails() async throws {
         let testBundle = Bundle(for: BundleReference.self)
         let path = testBundle.path(forResource: "pumphistory-24h-zoned", ofType: "json")!
         let url = URL(filePath: path)
@@ -136,7 +134,7 @@ class BundleReference {}
         #expect(resumeCount == 1)
     }
 
-    @Test("Skipping old pump history entries") func testSkipOldPumpHistoryEntries() async throws {
+    @Test("Skipping old pump history entries") func skipOldPumpHistoryEntries() async throws {
         let testBundle = Bundle(for: BundleReference.self)
         let path = testBundle.path(forResource: "pumphistory-24h-zoned", ofType: "json")!
         let url = URL(filePath: path)
@@ -155,7 +153,7 @@ class BundleReference {}
         #expect(allReadings.isEmpty)
     }
 
-    @Test("Import pump history with external insulin") func testImportPumpHistoryWithExternalInsulin() async throws {
+    @Test("Import pump history with external insulin") func importPumpHistoryWithExternalInsulin() async throws {
         let testBundle = Bundle(for: BundleReference.self)
         let path = testBundle.path(forResource: "pumphistory-with-external", ofType: "json")!
         let url = URL(filePath: path)
@@ -190,7 +188,7 @@ class BundleReference {}
         #expect(bolus!.amount.isApproximatelyEqual(to: 0.88, epsilon: 0.01))
     }
 
-    @Test("Import carb history with value checks") func testImportCarbHistoryDetails() async throws {
+    @Test("Import carb history with value checks") func importCarbHistoryDetails() async throws {
         let testBundle = Bundle(for: BundleReference.self)
         let path = testBundle.path(forResource: "carbhistory", ofType: "json")!
         let url = URL(filePath: path)
@@ -216,7 +214,7 @@ class BundleReference {}
         #expect(allCarbEntries.last?.date == Date("2025-04-28T05:03:43.332Z"))
     }
 
-    @Test("Skip importing old carb entries") func testSkipImportOldCarbEntries() async throws {
+    @Test("Skip importing old carb entries") func skipImportOldCarbEntries() async throws {
         let testBundle = Bundle(for: BundleReference.self)
         let path = testBundle.path(forResource: "carbhistory", ofType: "json")!
         let url = URL(filePath: path)
@@ -236,7 +234,7 @@ class BundleReference {}
         #expect(allCarbEntries.isEmpty)
     }
 
-    @Test("Import determination data with value checks") func testImportDeterminationDetails() async throws {
+    @Test("Import determination data with value checks") func importDeterminationDetails() async throws {
         let testBundle = Bundle(for: BundleReference.self)
         let enactedPath = testBundle.path(forResource: "enacted", ofType: "json")!
         let enactedUrl = URL(filePath: enactedPath)
@@ -355,7 +353,7 @@ class BundleReference {}
         }
     }
 
-    @Test("Skip importing old determinations") func testSkipImportOldDeterminationData() async throws {
+    @Test("Skip importing old determinations") func skipImportOldDeterminationData() async throws {
         let testBundle = Bundle(for: BundleReference.self)
         let enactedPath = testBundle.path(forResource: "enacted", ofType: "json")!
         let enactedUrl = URL(filePath: enactedPath)
@@ -378,7 +376,7 @@ class BundleReference {}
         #expect(determinations.isEmpty)
     }
 
-    @Test("Import determination data with suggested newer than enacted") func testImportDeterminationDetailsWithNewerSuggested(
+    @Test("Import determination data with suggested newer than enacted") func importDeterminationDetailsWithNewerSuggested(
     ) async throws {
         let testBundle = Bundle(for: BundleReference.self)
         let enactedPath = testBundle.path(forResource: "enacted", ofType: "json")!

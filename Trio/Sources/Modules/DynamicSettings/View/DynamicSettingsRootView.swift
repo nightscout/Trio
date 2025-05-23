@@ -1,3 +1,7 @@
+// Trio
+// DynamicSettingsRootView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import SwiftUI
 import Swinject
 

@@ -1,3 +1,7 @@
+// Trio
+// Interpolation.swift
+// Created by Ivan Valkou on 2021-03-21.
+
 import CoreGraphics
 
 func pointInLine(_ a: CGPoint, _ b: CGPoint, _ t: CGFloat) -> CGPoint {

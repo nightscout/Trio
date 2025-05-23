@@ -1,3 +1,7 @@
+// Trio
+// DataTableDataFlow.swift
+// Created by Ivan Valkou on 2021-04-04.
+
 import CoreData
 import Foundation
 import HealthKit

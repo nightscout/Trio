@@ -1,3 +1,7 @@
+// Trio
+// NightscoutConfigProvider.swift
+// Created by Ivan Valkou on 2021-02-04.
+
 import Combine
 import Foundation
 import HealthKit

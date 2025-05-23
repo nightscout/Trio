@@ -1,3 +1,7 @@
+// Trio
+// WatchMessageKeys.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 enum WatchMessageKeys {
     // Request/Response Keys
     static let date = "date"

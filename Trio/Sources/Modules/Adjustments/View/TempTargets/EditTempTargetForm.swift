@@ -1,3 +1,7 @@
+// Trio
+// EditTempTargetForm.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Foundation
 import SwiftUI
 
@@ -208,13 +212,13 @@ struct EditTempTargetForm: View {
                                         .computeSliderHigh(usingTarget: target),
                                     step: 5
                                 ) {}
-                                minimumValueLabel: {
-                                    Text("\(state.computeSliderLow(usingTarget: target), specifier: "%.0f")%")
-                                }
-                                maximumValueLabel: {
-                                    Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
-                                }
-                                .listRowSeparator(.hidden, edges: .top)
+                                    minimumValueLabel: {
+                                        Text("\(state.computeSliderLow(usingTarget: target), specifier: "%.0f")%")
+                                    }
+                                    maximumValueLabel: {
+                                        Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
+                                    }
+                                    .listRowSeparator(.hidden, edges: .top)
                             }
                         }
                     )
@@ -317,7 +321,8 @@ struct EditTempTargetForm: View {
                                 createTempTargetRunEntry: false
                             )
 
-                            // If the temp target which currently gets edited is enabled, then store it to the Temp Target JSON so that oref uses it
+                            // If the temp target which currently gets edited is enabled, then store it to the Temp Target JSON so
+                            // that oref uses it
                             if isEnabled {
                                 let tempTarget = TempTarget(
                                     name: name,
@@ -348,9 +353,9 @@ struct EditTempTargetForm: View {
             }, label: {
                 Text("Save")
             })
-                .disabled(!hasChanges)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .tint(.white)
+            .disabled(!hasChanges)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .tint(.white)
 
             Spacer()
         }.listRowBackground(hasChanges ? Color(.systemBlue) : Color(.systemGray4))

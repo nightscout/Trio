@@ -1,3 +1,7 @@
+// Trio
+// TidepoolManager.swift
+// Created by Pierre L on 2024-03-22.
+
 import Combine
 import CoreData
 import Foundation
@@ -196,11 +200,10 @@ extension BaseTidepoolManager {
     }
 
     func uploadCarbs(_ carbs: [CarbsEntry]) {
-        guard !carbs.isEmpty, let tidepoolService = self.tidepoolService else { return }
+        guard !carbs.isEmpty, let tidepoolService = tidepoolService else { return }
 
         processQueue.async {
-            carbs.chunks(ofCount: tidepoolService.carbDataLimit ?? 100).forEach { chunk in
-
+            for chunk in carbs.chunks(ofCount: tidepoolService.carbDataLimit ?? 100) {
                 let syncCarb: [SyncCarbObject] = Array(chunk).map {
                     $0.convertSyncCarb()
                 }
@@ -243,7 +246,7 @@ extension BaseTidepoolManager {
     }
 
     func deleteCarbs(withSyncId id: UUID, carbs: Decimal, at: Date, enteredBy: String) {
-        guard let tidepoolService = self.tidepoolService else { return }
+        guard let tidepoolService = tidepoolService else { return }
 
         processQueue.async {
             let syncCarb: [SyncCarbObject] = [SyncCarbObject(
@@ -288,7 +291,7 @@ extension BaseTidepoolManager {
     }
 
     func uploadDose(_ events: [PumpHistoryEvent]) async {
-        guard !events.isEmpty, let tidepoolService = self.tidepoolService else { return }
+        guard !events.isEmpty, let tidepoolService = tidepoolService else { return }
 
         do {
             // Fetch all temp basal entries from Core Data for the last 24 hours
@@ -428,7 +431,7 @@ extension BaseTidepoolManager {
     }
 
     func deleteInsulin(withSyncId id: String, amount: Decimal, at: Date) {
-        guard let tidepoolService = self.tidepoolService else { return }
+        guard let tidepoolService = tidepoolService else { return }
 
         // must be an array here, because `tidepoolService.uploadDoseData` expects a `deleted` array
         let doseDataToDelete: [DoseEntry] = [DoseEntry(
@@ -601,7 +604,7 @@ extension BaseTidepoolManager {
     }
 
     func uploadGlucose(_ glucose: [StoredGlucoseSample]) {
-        guard !glucose.isEmpty, let tidepoolService = self.tidepoolService else { return }
+        guard !glucose.isEmpty, let tidepoolService = tidepoolService else { return }
 
         let chunks = glucose.chunks(ofCount: tidepoolService.glucoseDataLimit ?? 100)
 

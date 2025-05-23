@@ -1,3 +1,7 @@
+// Trio
+// NightscoutExercise.swift
+// Created by Deniz Cengiz on 2024-07-06.
+
 import Foundation
 
 struct NightscoutExercise: JSON, Hashable, Equatable {

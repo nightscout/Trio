@@ -1,3 +1,7 @@
+// Trio
+// CompletedStepView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import SwiftUI
 
 /// Completed step view shown at the end of onboarding.

@@ -1,3 +1,7 @@
+// Trio
+// OpenAPS.swift
+// Created by Ivan Valkou on 2021-01-29.
+
 import Combine
 import CoreData
 import Foundation
@@ -61,24 +65,28 @@ final class OpenAPS {
             newOrefDetermination.isUploadedToNS = false
 
             if let predictions = determination.predictions {
-                ["iob": predictions.iob, "zt": predictions.zt, "cob": predictions.cob, "uam": predictions.uam]
-                    .forEach { type, values in
-                        if let values = values {
-                            let forecast = Forecast(context: self.context)
-                            forecast.id = UUID()
-                            forecast.type = type
-                            forecast.date = Date()
-                            forecast.orefDetermination = newOrefDetermination
+                for (type, values) in [
+                    "iob": predictions.iob,
+                    "zt": predictions.zt,
+                    "cob": predictions.cob,
+                    "uam": predictions.uam
+                ] {
+                    if let values = values {
+                        let forecast = Forecast(context: self.context)
+                        forecast.id = UUID()
+                        forecast.type = type
+                        forecast.date = Date()
+                        forecast.orefDetermination = newOrefDetermination
 
-                            for (index, value) in values.enumerated() {
-                                let forecastValue = ForecastValue(context: self.context)
-                                forecastValue.index = Int32(index)
-                                forecastValue.value = Int32(value)
-                                forecast.addToForecastValues(forecastValue)
-                            }
-                            newOrefDetermination.addToForecasts(forecast)
+                        for (index, value) in values.enumerated() {
+                            let forecastValue = ForecastValue(context: self.context)
+                            forecastValue.index = Int32(index)
+                            forecastValue.value = Int32(value)
+                            forecast.addToForecastValues(forecastValue)
                         }
+                        newOrefDetermination.addToForecasts(forecast)
                     }
+                }
             }
         }
 
@@ -258,7 +266,8 @@ final class OpenAPS {
                 byAdding: .second,
                 value: -1,
                 to: Date()
-            )! // adding -1s to the current Date ensures that oref actually uses the mock entry to calculate iob and not guard it away
+            )! // adding -1s to the current Date ensures that oref actually uses the mock entry to calculate iob and not guard it
+        // away
         let dateFormatted = PumpEventStored.dateFormatter.string(from: oneSecondAgo)
 
         let bolusDTO = BolusDTO(
@@ -308,16 +317,16 @@ final class OpenAPS {
             autosens,
             reservoir,
             hasSufficientTdd
-        ) = await (
-            try parsePumpHistory(await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
-            try carbs,
-            try glucose,
-            try oref2,
+        ) = try await(
+            parsePumpHistory(await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
+            carbs,
+            glucose,
+            oref2,
             profileAsync,
             basalAsync,
             autosenseAsync,
             reservoirAsync,
-            try hasSufficientTddForDynamic
+            hasSufficientTddForDynamic
         )
 
         // Meal calculation
@@ -463,10 +472,10 @@ final class OpenAPS {
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
 
         // Await the results of asynchronous tasks
-        let (pumpHistoryJSON, carbsAsJSON, glucoseAsJSON, profile, basalProfile, tempTargets) = await (
-            try parsePumpHistory(await pumpHistoryObjectIDs),
-            try carbs,
-            try glucose,
+        let (pumpHistoryJSON, carbsAsJSON, glucoseAsJSON, profile, basalProfile, tempTargets) = try await(
+            parsePumpHistory(await pumpHistoryObjectIDs),
+            carbs,
+            glucose,
             getProfile,
             getBasalProfile,
             getTempTargets
@@ -506,7 +515,7 @@ final class OpenAPS {
         async let getModel = loadFileFromStorageAsync(name: Settings.model)
         async let getTrioSettingDefaults = loadFileFromStorageAsync(name: Trio.settings)
 
-        let (pumpSettings, bgTargets, basalProfile, isf, cr, tempTargets, model, trioSettings) = await (
+        let (pumpSettings, bgTargets, basalProfile, isf, cr, tempTargets, model, trioSettings) = await(
             getPumpSettings,
             getBGTargets,
             getBasalProfile,

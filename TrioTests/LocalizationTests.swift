@@ -1,3 +1,6 @@
+// Trio
+// LocalizationTests.swift
+// Created by Jonas Björkert on 2025-05-18.
 
 import Foundation
 import Testing
@@ -5,7 +8,7 @@ import Testing
 private let bundle = Bundle.main
 
 @Suite("Localization Tests", .serialized) struct LocalizationTests {
-    @Test("No stray % inside format strings") func testNoStrayPercent() {
+    @Test("No stray % inside format strings") func noStrayPercent() {
         // Array to collect strings with issues
         var offenders: [(lang: String, key: String, value: String, file: String)] = []
 
@@ -70,7 +73,8 @@ private let bundle = Bundle.main
             the value contains printf placeholders:
 
             \(offenders.map { "\($0.lang) – \($0.file)\n⟨key⟩   \($0.key)\n⟨value⟩ \($0.value)" }
-                .joined(separator: "\n\n"))
+                .joined(separator: "\n\n")
+            )
             """
         )
     }

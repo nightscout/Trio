@@ -1,3 +1,7 @@
+// Trio
+// MealSettingsStateModel.swift
+// Created by Jon B.M on 2023-03-05.
+
 import SwiftUI
 
 extension MealSettings {

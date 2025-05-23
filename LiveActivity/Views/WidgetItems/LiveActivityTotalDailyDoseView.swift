@@ -1,3 +1,7 @@
+// Trio
+// LiveActivityTotalDailyDoseView.swift
+// Created by Deniz Cengiz on 2024-10-17.
+
 import Foundation
 import SwiftUI
 import WidgetKit

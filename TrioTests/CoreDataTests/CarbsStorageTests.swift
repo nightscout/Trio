@@ -1,3 +1,7 @@
+// Trio
+// CarbsStorageTests.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import CoreData
 import Foundation
 import Swinject
@@ -31,13 +35,13 @@ import Testing
         injectServices(resolver)
     }
 
-    @Test("Storage is correctly initialized") func testStorageInitialization() {
+    @Test("Storage is correctly initialized") func storageInitialization() {
         #expect(storage != nil, "CarbsStorage should be injected")
         #expect(storage is BaseCarbsStorage, "Storage should be of type BaseCarbsStorage")
         #expect(storage.updatePublisher != nil, "Update publisher should be available")
     }
 
-    @Test("Store and retrieve carbs entries") func testStoreAndRetrieveCarbs() async throws {
+    @Test("Store and retrieve carbs entries") func storeAndRetrieveCarbs() async throws {
         // Given
         let testEntries = [
             CarbsEntry(
@@ -77,7 +81,7 @@ import Testing
         #expect(recentEntries[0].note == "Test meal", "Note should match")
     }
 
-    @Test("Delete carbs entry") func testDeleteCarbsEntry() async throws {
+    @Test("Delete carbs entry") func deleteCarbsEntry() async throws {
         // Given
         let testEntry = CarbsEntry(
             id: UUID().uuidString,
@@ -186,7 +190,8 @@ import Testing
         #expect(carbNonFpuEntry?.protein == 10, "Original carbs should match")
         #expect(carbNonFpuEntry?.fat == 20, "Original carbs should match")
 
-        // Additional carb-fpu entries should be created for fat/protein with isFPU set to true and the carbs set to the amount of each carbEquivalent
+        // Additional carb-fpu entries should be created for fat/protein with isFPU set to true and the carbs set to the amount of
+        // each carbEquivalent
         let carbFpuEntry = allStoredEntries?.filter { $0.isFPU == true }
         #expect(carbFpuEntry?.isEmpty == false, "Should have additional carb-fpu entries")
 

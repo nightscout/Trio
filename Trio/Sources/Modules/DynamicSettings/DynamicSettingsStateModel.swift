@@ -1,3 +1,7 @@
+// Trio
+// DynamicSettingsStateModel.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Combine
 import CoreData
 import Observation
@@ -45,7 +49,8 @@ extension DynamicSettings {
             units = settingsManager.settings.units
 
             /// DynamicISF handling
-            /// Initially, load once from storage and infer `dynamicSensitivityType` based on values of `useNewFormula` (log) and/or `sigmoid`
+            /// Initially, load once from storage and infer `dynamicSensitivityType` based on values of `useNewFormula` (log)
+            /// and/or `sigmoid`
             let storedUseNewFormula = settingsManager.preferences.useNewFormula
             let storedSigmoid = settingsManager.preferences.sigmoid
             inferDynamicSensitivityType(useNewFormula: storedUseNewFormula, sigmoid: storedSigmoid)

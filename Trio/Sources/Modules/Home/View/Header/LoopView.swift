@@ -1,3 +1,7 @@
+// Trio
+// LoopView.swift
+// Created by Ivan Valkou on 2021-03-15.
+
 import CoreData
 import SwiftDate
 import SwiftUI
@@ -46,7 +50,8 @@ struct LoopView: View {
                 .deliverAt !=
                 nil
             {
-                // previously the .timestamp property was used here because this only gets updated when the reportenacted function in the aps manager gets called
+                // previously the .timestamp property was used here because this only gets updated when the reportenacted function
+                // in the aps manager gets called
                 Text(timeString)
             } else {
                 Text("--")
@@ -68,7 +73,8 @@ struct LoopView: View {
     private var color: Color {
         guard determination.first?.timestamp != nil
         else {
-            // previously the .timestamp property was used here because this only gets updated when the reportenacted function in the aps manager gets called
+            // previously the .timestamp property was used here because this only gets updated when the reportenacted function in
+            // the aps manager gets called
             return .secondary
         }
         guard manualTempBasal == false else {

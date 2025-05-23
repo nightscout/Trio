@@ -1,9 +1,7 @@
-//
-//  StartupGuideStepView.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 06.04.25.
-//
+// Trio
+// StartupGuideStepView.swift
+// Created by Deniz Cengiz on 2025-04-27.
+
 import SwiftUI
 
 struct StartupGuideStepView: View {

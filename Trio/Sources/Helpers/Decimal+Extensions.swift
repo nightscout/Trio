@@ -1,3 +1,7 @@
+// Trio
+// Decimal+Extensions.swift
+// Created by Ivan Valkou on 2021-03-01.
+
 import CoreGraphics
 import Foundation
 

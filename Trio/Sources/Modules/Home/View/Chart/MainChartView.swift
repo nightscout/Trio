@@ -1,3 +1,7 @@
+// Trio
+// MainChartView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Charts
 import CoreData
 import SwiftUI
