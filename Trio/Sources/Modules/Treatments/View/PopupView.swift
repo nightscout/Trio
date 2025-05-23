@@ -588,7 +588,7 @@ struct PopupView: View {
 
     /// Card showing applied factors to the final insulin calculation.
     /// Dynamically changes card based on user's selection in the Treatment view.
-    /// User can choose Fatty Meal, Super Bolus, or neither, but not both.
+    /// User can choose Slow Meal, Super Bolus, or neither, but not both.
     private var factorsCardContent: some View {
         Grid(alignment: .center) {
             // Choose the layout based on which options are selected
@@ -630,7 +630,7 @@ struct PopupView: View {
                 }
                 .unitStyle()
 
-            // Case: Full Bolus × Rec. Bolus % × Fatty Meal %
+            // Case: Full Bolus × Rec. Bolus % × Slow Meal %
             case (false, true):
                 // Row 1: Header.
                 GridRow(alignment: .lastTextBaseline) {
@@ -762,7 +762,7 @@ struct PopupView: View {
                     .unitStyle()
                 }
 
-            // This case should never occur as you can't apply a Super Bolus to a Fatty Meal
+            // This case should never occur as you can't apply a Super Bolus to a Slow Meal
             // Per app logic, these options are mutually exclusive
             case (true, true):
                 Text("")

@@ -93,7 +93,7 @@ extension BolusCalculatorConfig {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Fatty Meal")
+                            hintLabel = String(localized: "Slow Meal")
                         }
                     ),
                     units: state.units,
@@ -107,10 +107,10 @@ extension BolusCalculatorConfig {
                         Text("Default Percent: 70%").bold()
                         Text("Do not enable this feature until you have optimized your CR (carb ratio) setting.").bold()
                         Text(
-                            "Enabling this setting adds a \"Fatty Meal\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear for you to select."
+                            "Enabling this setting adds a \"Slow Meal\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear for you to select."
                         )
                         Text(
-                            "When \"Fatty Meal\" is selected in the bolus calculator, the recommended bolus will be multiplied by the \"Slow Meal Bolus Percentage\" as well as the \"Recommended Bolus Percentage\"."
+                            "When \"Slow Meal\" is selected in the bolus calculator, the recommended bolus will be multiplied by the \"Slow Meal Bolus Percentage\" as well as the \"Recommended Bolus Percentage\"."
                         )
                         Text(
                             "If you have a \"Recommended Bolus Percentage\" of 80%, and a \"Slow Meal Bolus Percentage\" of 70%, your recommended bolus will be multiplied by: (80 × 70) / 100 = 56%."
