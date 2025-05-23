@@ -99,7 +99,8 @@ struct PumpView: View {
                     HStack {
                         Image(systemName: hourglassIcon)
                             .font(.callout)
-                            .foregroundStyle(timerColor)
+                            .foregroundStyle(timerColor, Color.yellow)
+                            .symbolRenderingMode(.palette)
 
                         let remainingTimeString = remainingTimeString(time: date.timeIntervalSince(timerDate))
 
