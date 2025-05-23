@@ -1,3 +1,7 @@
+// Trio
+// CalibrationsRootView.swift
+// Created by Pierre L on 2024-04-02.
+
 import SwiftUI
 import Swinject
 
@@ -58,7 +62,7 @@ extension Calibrations {
                             }
                         }
                         label: { Text("Add") }
-                            .disabled(state.newCalibration <= 0)
+                        .disabled(state.newCalibration <= 0)
                     }.listRowBackground(Color.chart)
 
                     Section(header: Text("Info")) {
@@ -79,13 +83,13 @@ extension Calibrations {
                             state.removeLast()
                         }
                         label: { Text("Remove Last") }
-                            .disabled(state.calibrations.isEmpty)
+                        .disabled(state.calibrations.isEmpty)
 
                         Button {
                             state.removeAll()
                         }
                         label: { Text("Remove All") }
-                            .disabled(state.calibrations.isEmpty)
+                        .disabled(state.calibrations.isEmpty)
                         List {
                             ForEach(state.items) { item in
                                 HStack {

@@ -1,3 +1,7 @@
+// Trio
+// Protected.swift
+// Created by Ivan Valkou on 2021-11-24.
+
 import Foundation
 
 private protocol Lock {
@@ -52,8 +56,7 @@ final class UnfairLock: Lock {
 
 /// A thread-safe wrapper around a value.
 @propertyWrapper
-@dynamicMemberLookup
-final class Protected<T> {
+@dynamicMemberLookup final class Protected<T> {
     private let lock = UnfairLock()
 
     private var value: T

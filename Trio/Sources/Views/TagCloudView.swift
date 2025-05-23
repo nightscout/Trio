@@ -1,3 +1,7 @@
+// Trio
+// TagCloudView.swift
+// Created by Ivan Valkou on 2021-12-15.
+
 import Combine
 import Foundation
 import SwiftUI

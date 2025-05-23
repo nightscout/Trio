@@ -1,3 +1,7 @@
+// Trio
+// ManualTempBasalRootView.swift
+// Created by Ivan Valkou on 2021-03-07.
+
 import SwiftUI
 import Swinject
 
@@ -46,9 +50,9 @@ extension ManualTempBasal {
 
                 Section {
                     Button { state.enact() }
-                    label: { Text("Enact") }
+                        label: { Text("Enact") }
                     Button { state.cancel() }
-                    label: { Text("Cancel Temp Basal") }
+                        label: { Text("Cancel Temp Basal") }
                 }
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))

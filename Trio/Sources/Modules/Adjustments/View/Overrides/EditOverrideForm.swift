@@ -1,3 +1,7 @@
+// Trio
+// EditOverrideForm.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Foundation
 import SwiftUI
 
@@ -542,9 +546,9 @@ struct EditOverrideForm: View {
                 }, label: {
                     Text("Save Override")
                 })
-                    .disabled(isInvalid) // Disable button if changes are invalid
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .tint(.white)
+                .disabled(isInvalid) // Disable button if changes are invalid
+                .frame(maxWidth: .infinity, alignment: .center)
+                .tint(.white)
             }
         )
         .listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))

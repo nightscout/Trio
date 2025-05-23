@@ -1,3 +1,7 @@
+// Trio
+// DataTableRootView.swift
+// Created by Ivan Valkou on 2021-04-04.
+
 import CoreData
 import SwiftUI
 import Swinject
@@ -100,34 +104,34 @@ extension DataTable {
 
                 // Show custom progress view
                 /// don't show it if glucose is stale as it will block the UI
-                if state.waitForSuggestion && state.isGlucoseDataFresh(glucoseStored.first?.date) {
+                if state.waitForSuggestion, state.isGlucoseDataFresh(glucoseStored.first?.date) {
                     CustomProgressView(text: progressText.displayName)
                 }
             })
-                .background(appState.trioBackgroundColor(for: colorScheme))
-                .onAppear(perform: configureView)
-                .onDisappear {
-                    state.carbEntryDeleted = false
-                    state.insulinEntryDeleted = false
-                }
-                .navigationTitle("History")
-                .navigationBarTitleDisplayMode(.large)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing, content: {
-                        addButton({
-                            showManualGlucose = true
-                            state.manualGlucose = 0
-                        })
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .onAppear(perform: configureView)
+            .onDisappear {
+                state.carbEntryDeleted = false
+                state.insulinEntryDeleted = false
+            }
+            .navigationTitle("History")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing, content: {
+                    addButton({
+                        showManualGlucose = true
+                        state.manualGlucose = 0
                     })
+                })
+            }
+            .sheet(isPresented: $showManualGlucose) {
+                addGlucoseView()
+            }
+            .sheet(isPresented: $state.showCarbEntryEditor) {
+                if let carbEntry = state.carbEntryToEdit {
+                    CarbEntryEditorView(state: state, carbEntry: carbEntry)
                 }
-                .sheet(isPresented: $showManualGlucose) {
-                    addGlucoseView()
-                }
-                .sheet(isPresented: $state.showCarbEntryEditor) {
-                    if let carbEntry = state.carbEntryToEdit {
-                        CarbEntryEditorView(state: state, carbEntry: carbEntry)
-                    }
-                }
+            }
         }
 
         @ViewBuilder func addButton(_ action: @escaping () -> Void) -> some View {
@@ -455,8 +459,8 @@ extension DataTable {
                                     state.mode = .glucose
                                 }
                                 label: { Text("Save") }
-                                    .frame(maxWidth: .infinity, alignment: .center)
-                                    .disabled(state.manualGlucose < limitLow || state.manualGlucose > limitHigh)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .disabled(state.manualGlucose < limitLow || state.manualGlucose > limitHigh)
                             }
                         }
                         .listRowBackground(

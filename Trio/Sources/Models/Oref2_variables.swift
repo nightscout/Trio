@@ -1,3 +1,7 @@
+// Trio
+// Oref2_variables.swift
+// Created by Jon B Mårtensson on 2023-05-14.
+
 import Foundation
 
 struct Oref2_variables: JSON, Equatable {

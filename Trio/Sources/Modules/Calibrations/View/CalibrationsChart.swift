@@ -1,3 +1,7 @@
+// Trio
+// CalibrationsChart.swift
+// Created by Pierre L on 2024-04-02.
+
 import SwiftUI
 
 struct CalibrationsChart: View {

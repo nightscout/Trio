@@ -1,3 +1,7 @@
+// Trio
+// Disk+UIImage.swift
+// Created by Ivan Valkou on 2021-11-24.
+
 import Foundation
 import UIKit
 

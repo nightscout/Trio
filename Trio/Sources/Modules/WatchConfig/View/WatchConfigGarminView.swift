@@ -1,3 +1,7 @@
+// Trio
+// WatchConfigGarminView.swift
+// Created by dsnallfot on 2024-05-22.
+
 import SwiftUI
 
 struct WatchConfigGarminView: View {

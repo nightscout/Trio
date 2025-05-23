@@ -1,9 +1,7 @@
-//
-//  OnboardingView+AlgorithmUtil.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 15.04.25.
-//
+// Trio
+// OnboardingView+AlgorithmUtil.swift
+// Created by Deniz Cengiz on 2025-04-01.
+
 import SwiftUI
 
 protocol AlgorithmSubstepProtocol: Identifiable, RawRepresentable {
@@ -150,14 +148,18 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
                 localized: "Allow SMB when a manual Temporary Target is set under \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue)."
             )
         case .enableSMBAfterCarbs: return String(localized: "Allow SMB for 6 hrs after a carb entry.")
-        case .enableSMBWithHighGlucoseTarget: return String(localized: "Allow SMB when glucose is above the High Glucose Target value.")
+        case .enableSMBWithHighGlucoseTarget: return String(
+                localized: "Allow SMB when glucose is above the High Glucose Target value."
+            )
         case .allowSMBWithHighTempTarget: return String(
                 localized: "Allow SMB when a manual Temporary Target is set greater than \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue)."
             )
         case .enableUAM: return String(localized: "Enable Unannounced Meals SMB.")
         case .maxSMBMinutes: return String(localized: "Limits the size of a single Super Micro Bolus (SMB) dose.")
         case .maxUAMMinutes: return String(localized: "Limits the size of a single Unannounced Meal (UAM) SMB dose.")
-        case .maxDeltaGlucoseThreshold: return String(localized: "Disables SMBs if last two glucose values differ by more than this percent.")
+        case .maxDeltaGlucoseThreshold: return String(
+                localized: "Disables SMBs if last two glucose values differ by more than this percent."
+            )
         case .highTempTargetRaisesSensitivity: return String(
                 localized: "Increase sensitivity when glucose is above target if a manual Temp Target > \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) is set."
             )

@@ -1,3 +1,7 @@
+// Trio
+// CalendarManager.swift
+// Created by Ivan Valkou on 2021-11-16.
+
 import Combine
 import CoreData
 import EventKit
@@ -11,7 +15,7 @@ protocol CalendarManager {
 }
 
 final class BaseCalendarManager: CalendarManager, Injectable {
-    private lazy var eventStore: EKEventStore = { EKEventStore() }()
+    private lazy var eventStore: EKEventStore = .init()
 
     @Persisted(key: "CalendarManager.currentCalendarID") var currentCalendarID: String? = nil
     @Injected() private var settingsManager: SettingsManager!

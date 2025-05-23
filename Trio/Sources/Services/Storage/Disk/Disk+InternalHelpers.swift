@@ -1,3 +1,7 @@
+// Trio
+// Disk+InternalHelpers.swift
+// Created by Ivan Valkou on 2021-11-24.
+
 import Foundation
 
 extension Disk {

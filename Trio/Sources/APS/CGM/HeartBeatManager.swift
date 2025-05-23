@@ -1,3 +1,7 @@
+// Trio
+// HeartBeatManager.swift
+// Created by Johan Degraeve on 2022-09-21.
+
 import Foundation
 
 class HeartBeatManager {
@@ -37,7 +41,9 @@ class HeartBeatManager {
             UserDefaults.standard.cgmTransmitterDeviceAddress = sharedUserDefaults
                 .string(forKey: keyForcgmTransmitterDeviceAddress)
 
-            // assign new bluetoothTransmitter. If return value is nil, and if it was not nil before, and if it was currently connected then it will disconnect automatically, because there's no other reference to it, hence deinit will be called
+            // assign new bluetoothTransmitter. If return value is nil, and if it was not nil before, and if it was currently
+            // connected then it will disconnect automatically, because there's no other reference to it, hence deinit will be
+            // called
             bluetoothTransmitter = setupBluetoothTransmitter(sharedData: sharedUserDefaults, heartbeat: heartbeat)
         }
     }
@@ -65,7 +71,8 @@ class HeartBeatManager {
                 return newBluetoothTransmitter
 
             } else {
-                // looks like a coding error, xdrip4iOS did set a value for cgmTransmitterDeviceAddress in sharedUserDefaults but did not set a value for cgmTransmitter_CBUUID_Service or cgmTransmitter_CBUUID_Receive
+                // looks like a coding error, xdrip4iOS did set a value for cgmTransmitterDeviceAddress in sharedUserDefaults but
+                // did not set a value for cgmTransmitter_CBUUID_Service or cgmTransmitter_CBUUID_Receive
 
                 return nil
             }

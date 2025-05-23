@@ -1,3 +1,7 @@
+// Trio
+// WatchConfigRootView.swift
+// Created by Jon B Mårtensson on 2023-05-14.
+
 import SwiftUI
 import Swinject
 

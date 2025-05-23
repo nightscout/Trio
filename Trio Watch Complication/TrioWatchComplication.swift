@@ -1,3 +1,7 @@
+// Trio
+// TrioWatchComplication.swift
+// Created by Jonas Björkert on 2025-05-23.
+
 import SwiftUI
 import WidgetKit
 

@@ -1,9 +1,7 @@
-//
-//  StartupForceCloseWarningStepView.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 27.04.25.
-//
+// Trio
+// StartupForceCloseWarningStepView.swift
+// Created by Deniz Cengiz on 2025-04-27.
+
 import SwiftUI
 
 struct StartupForceCloseWarningStepView: View {

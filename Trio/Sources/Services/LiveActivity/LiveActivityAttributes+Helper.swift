@@ -1,3 +1,7 @@
+// Trio
+// LiveActivityAttributes+Helper.swift
+// Created by polscm32 on 2024-06-05.
+
 import Foundation
 
 extension UserDefaults {
@@ -67,7 +71,7 @@ extension LiveActivityAttributes.ContentState {
     ) {
         let glucose = bg.glucose
         let formattedBG = Self.formatGlucose(Int(glucose), units: units, forceSign: false)
-        var rotationDegrees: Double = 0.0
+        var rotationDegrees = 0.0
 
         switch bg.direction {
         case .doubleUp,

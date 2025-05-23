@@ -1,3 +1,7 @@
+// Trio
+// CustomCGMOptionsView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import LoopKitUI
 import SwiftUI
 import Swinject
@@ -80,8 +84,8 @@ extension CGMSettings {
                                         systemImage: "waveform.path.ecg.rectangle"
                                     ).font(.title3)
                                         .padding() }
-                                    .frame(maxWidth: .infinity, alignment: .center)
-                                    .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .buttonStyle(.bordered)
                             }.listRowBackground(Color.clear)
                         }
                     }
@@ -166,8 +170,8 @@ extension CGMSettings {
                                 systemImage: "waveform.path.ecg.rectangle"
                             ).font(.title3)
                                 .padding() }
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .buttonStyle(.bordered)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .buttonStyle(.bordered)
                     }
                     .listRowBackground(Color.clear)
                 }
@@ -394,8 +398,8 @@ extension CGMSettings {
                         Text("Reset to Defaults")
 
                     })
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .tint(.white)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .tint(.white)
                 }.listRowBackground(Color.accentColor)
 
             }.listSectionSpacing(sectionSpacing)
@@ -418,11 +422,11 @@ extension CGMSettings {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .padding(10)
                 })
-                    .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
-                    .background(Color(.systemRed))
-                    .tint(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .padding(5)
+                .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                .background(Color(.systemRed))
+                .tint(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(5)
             }
         }
     }

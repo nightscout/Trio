@@ -1,3 +1,7 @@
+// Trio
+// UserDefaultsExtension.swift
+// Created by polscm32 on 2024-05-26.
+
 import CoreData
 import Foundation
 

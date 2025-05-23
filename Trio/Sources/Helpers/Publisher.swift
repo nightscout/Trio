@@ -1,3 +1,7 @@
+// Trio
+// Publisher.swift
+// Created by Ivan Valkou on 2021-02-02.
+
 import Combine
 
 protocol OptionalType {

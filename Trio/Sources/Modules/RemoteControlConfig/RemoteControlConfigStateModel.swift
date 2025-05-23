@@ -1,3 +1,7 @@
+// Trio
+// RemoteControlConfigStateModel.swift
+// Created by Jonas Björkert on 2024-09-29.
+
 import SwiftUI
 
 extension RemoteControlConfig {

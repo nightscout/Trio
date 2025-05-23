@@ -1,3 +1,7 @@
+// Trio
+// ConvenienceExtensions.swift
+// Created by Ivan Valkou on 2021-04-06.
+
 import UIKit
 
 protocol Occupiable {

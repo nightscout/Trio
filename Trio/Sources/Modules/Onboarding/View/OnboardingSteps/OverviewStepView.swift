@@ -1,9 +1,7 @@
-//
-//  OverviewStepView.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 06.04.25.
-//
+// Trio
+// OverviewStepView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import SwiftUI
 
 struct OverviewStepView: View {

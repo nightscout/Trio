@@ -1,3 +1,7 @@
+// Trio
+// TreatmentsProvider.swift
+// Created by Ivan Valkou on 2021-03-06.
+
 extension Treatments {
     final class Provider: BaseProvider, TreatmentsProvider {
         func getPumpSettings() async -> PumpSettings {

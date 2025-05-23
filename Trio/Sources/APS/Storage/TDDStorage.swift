@@ -1,3 +1,7 @@
+// Trio
+// TDDStorage.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import CoreData
 import Foundation
 import LoopKitUI
@@ -89,7 +93,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         async let weightedAverage = calculateWeightedAverage()
 
         // Await all concurrent calculations
-        let (hours, bolus, scheduled, temp, weighted) = try await (
+        let (hours, bolus, scheduled, temp, weighted) = try await(
             pumpDataHours,
             bolusInsulin,
             scheduledBasalInsulin,
@@ -142,7 +146,8 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     }
 
     /// Stores the Total Daily Dose (TDD) result in Core Data
-    /// - Parameter tddResult: The TDD result to store, containing total insulin, bolus, temp basal, scheduled basal and weighted average
+    /// - Parameter tddResult: The TDD result to store, containing total insulin, bolus, temp basal, scheduled basal and weighted
+    /// average
     func storeTDD(_ tddResult: TDDResult) async {
         await privateContext.perform {
             let tddStored = TDDStored(context: self.privateContext)
@@ -195,7 +200,8 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                 totalBolusInsulin + (event.amount as Decimal? ?? 0)
 //                debug(
 //                    .apsManager,
-//                    "Bolus \(event.amount ?? 0) U dosed at \(event.timestamp.ISO8601Format()) added. New total bolus = \(newTotalBolusInsulin) U"
+//                    "Bolus \(event.amount ?? 0) U dosed at \(event.timestamp.ISO8601Format()) added. New total bolus =
+//                    \(newTotalBolusInsulin) U"
 //                )
 //                return newTotalBolusInsulin
             }
@@ -271,7 +277,8 @@ final class BaseTDDStorage: TDDStorage, Injectable {
 
 //                        debug(
 //                            .apsManager,
-//                            "Temp basal: \(rate) U/hr for \(durationHours) hr (Start: \(actualStart.ISO8601Format()), End: \(actualEnd.ISO8601Format())) = \(insulin) U"
+//                            "Temp basal: \(rate) U/hr for \(durationHours) hr (Start: \(actualStart.ISO8601Format()), End:
+//                            \(actualEnd.ISO8601Format())) = \(insulin) U"
 //                        )
                     }
                 }
@@ -337,7 +344,8 @@ final class BaseTDDStorage: TDDStorage, Injectable {
 
 //                    debug(
 //                        .apsManager,
-//                        "Scheduled Insulin added: \(insulin) U. Duration: \(durationHours) hrs (Start: \(currentTime.ISO8601Format()), End: \(endTime.ISO8601Format()))"
+//                        "Scheduled Insulin added: \(insulin) U. Duration: \(durationHours) hrs (Start:
+//                        \(currentTime.ISO8601Format()), End: \(endTime.ISO8601Format()))"
 //                    )
                 }
 

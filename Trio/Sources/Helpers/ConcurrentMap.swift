@@ -1,3 +1,7 @@
+// Trio
+// ConcurrentMap.swift
+// Created by Ivan Valkou on 2021-03-16.
+
 import Foundation
 
 extension Collection where Index == Int {

@@ -1,3 +1,7 @@
+// Trio
+// LoopStats.swift
+// Created by Jon B.M on 2023-03-05.
+
 import Foundation
 
 struct LoopStats: JSON, Equatable {

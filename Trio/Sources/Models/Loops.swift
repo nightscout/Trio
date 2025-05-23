@@ -1,3 +1,7 @@
+// Trio
+// Loops.swift
+// Created by Jon B Mårtensson on 2023-08-26.
+
 import Foundation
 
 struct Loops: JSON, Equatable {

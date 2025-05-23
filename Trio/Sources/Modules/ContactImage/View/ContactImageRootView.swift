@@ -1,3 +1,7 @@
+// Trio
+// ContactImageRootView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Contacts
 import ContactsUI
 import SwiftUI

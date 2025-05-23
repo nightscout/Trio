@@ -1,3 +1,7 @@
+// Trio
+// CoreDataError.swift
+// Created by polscm32 on 2024-05-27.
+
 import Foundation
 
 enum CoreDataError: Error {

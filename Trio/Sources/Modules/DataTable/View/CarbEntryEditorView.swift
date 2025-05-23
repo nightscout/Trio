@@ -1,3 +1,7 @@
+// Trio
+// CarbEntryEditorView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 //
 //  CarbEntryEditorView.swift
 //  FreeAPS

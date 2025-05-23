@@ -1,3 +1,7 @@
+// Trio
+// SyncAccess.swift
+// Created by Ivan Valkou on 2021-02-02.
+
 import Foundation
 
 @propertyWrapper class SyncAccess<T> {

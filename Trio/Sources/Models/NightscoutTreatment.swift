@@ -1,3 +1,7 @@
+// Trio
+// NightscoutTreatment.swift
+// Created by Ivan Valkou on 2021-03-08.
+
 import Foundation
 
 struct NightscoutTreatment: JSON, Hashable, Equatable {

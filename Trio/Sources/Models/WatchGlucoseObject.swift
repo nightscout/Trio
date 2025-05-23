@@ -1,9 +1,7 @@
-//
-//  WatchGlucoseObject.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 23.01.25.
-//
+// Trio
+// WatchGlucoseObject.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Foundation
 
 struct WatchGlucoseObject: Hashable, Equatable, Codable {

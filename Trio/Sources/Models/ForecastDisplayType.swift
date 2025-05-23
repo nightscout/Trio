@@ -1,3 +1,7 @@
+// Trio
+// ForecastDisplayType.swift
+// Created by Deniz Cengiz on 2024-08-25.
+
 import Foundation
 
 enum ForecastDisplayType: String, JSON, CaseIterable, Identifiable, Codable, Hashable {

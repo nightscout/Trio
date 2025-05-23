@@ -1,3 +1,7 @@
+// Trio
+// BluetoothStateManager.swift
+// Created by avouspierre on 2022-08-26.
+
 import CoreBluetooth
 import LoopKit
 import LoopKitUI

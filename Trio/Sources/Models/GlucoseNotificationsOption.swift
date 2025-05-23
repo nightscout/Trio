@@ -1,3 +1,7 @@
+// Trio
+// GlucoseNotificationsOption.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 //
 //  GlucoseNotificationOption.swift
 //  FreeAPS

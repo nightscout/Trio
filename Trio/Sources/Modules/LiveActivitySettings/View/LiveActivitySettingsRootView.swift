@@ -1,3 +1,7 @@
+// Trio
+// LiveActivitySettingsRootView.swift
+// Created by Deniz Cengiz on 2024-08-02.
+
 import ActivityKit
 import SwiftUI
 import Swinject
@@ -40,8 +44,8 @@ extension LiveActivitySettings {
                             UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
                         }
                         label: { Label("Open iOS Settings", systemImage: "gear.circle").font(.title3).padding() }
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .buttonStyle(.bordered)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .buttonStyle(.bordered)
                     }
                     .listRowBackground(Color.clear)
                 } else {

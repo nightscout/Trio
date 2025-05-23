@@ -1,3 +1,7 @@
+// Trio
+// MainStateModel.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Combine
 import LoopKitUI
 import SwiftMessages
@@ -334,8 +338,7 @@ extension MessageView {
     }
 }
 
-@available(iOS 16.0, *)
-extension Main.StateModel: CompletionDelegate {
+@available(iOS 16.0, *) extension Main.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
         // close the window
         router.mainSecondaryModalView.send(nil)

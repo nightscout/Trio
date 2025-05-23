@@ -1,9 +1,7 @@
-//
-//  TimeAgoFormatter.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 21.05.25.
-//
+// Trio
+// TimeAgoFormatter.swift
+// Created by Deniz Cengiz on 2025-05-21.
+
 import Foundation
 
 enum TimeAgoFormatter {

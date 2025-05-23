@@ -1,3 +1,7 @@
+// Trio
+// FetchGlucoseManager.swift
+// Created by Ivan Valkou on 2021-03-25.
+
 import Combine
 import Foundation
 import HealthKit
@@ -315,7 +319,7 @@ extension FetchGlucoseManager {
     /// Dispatches given `functionToInvoke` to the CGM manager's queue (if any).
     func performOnCGMManagerQueue(_ functionToInvoke: @escaping () -> Void) {
         // If a CGM manager exists and it defines a delegate queue, use it
-        if let cgmManager = self.cgmManager,
+        if let cgmManager = cgmManager,
            let managerQueue = cgmManager.delegateQueue
         {
             managerQueue.async {

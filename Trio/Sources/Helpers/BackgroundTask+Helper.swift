@@ -1,3 +1,7 @@
+// Trio
+// BackgroundTask+Helper.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import UIKit
 
 /// Ends a background task safely and ensures it is not called multiple times.

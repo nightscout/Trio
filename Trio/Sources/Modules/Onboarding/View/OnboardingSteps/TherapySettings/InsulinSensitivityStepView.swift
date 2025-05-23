@@ -1,9 +1,7 @@
-//
-//  InsulinSensitivityStepView.swift
-//  Trio
-//
-//  Created by Marvin Polscheit on 19.03.25.
-//
+// Trio
+// InsulinSensitivityStepView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Charts
 import SwiftUI
 import UIKit

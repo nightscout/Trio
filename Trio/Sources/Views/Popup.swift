@@ -1,3 +1,7 @@
+// Trio
+// Popup.swift
+// Created by Ivan Valkou on 2021-03-15.
+
 import SwiftUI
 
 struct Popup<T: View>: ViewModifier {

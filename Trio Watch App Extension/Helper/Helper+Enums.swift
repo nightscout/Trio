@@ -1,3 +1,7 @@
+// Trio
+// Helper+Enums.swift
+// Created by Jonas Björkert on 2025-05-23.
+
 import SwiftUI
 import WatchKit
 
@@ -62,6 +66,7 @@ enum WatchSize {
 
         case CGRect(x: 0, y: 0, width: 205, height: 251):
             return .watch49mm
+
         default:
             return .unknown
         }

@@ -1,9 +1,7 @@
-//
-//  AlgorithmSettingsContentsStepView.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 14.04.25
-//
+// Trio
+// AlgorithmSettingsContentsStepView.swift
+// Created by Deniz Cengiz on 2025-04-28.
+
 import SwiftUI
 
 struct AlgorithmSettingsContentsStepView: View {

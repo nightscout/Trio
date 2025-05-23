@@ -1,3 +1,7 @@
+// Trio
+// CarbRatioEditorStateModel.swift
+// Created by Ivan Valkou on 2021-03-03.
+
 import SwiftUI
 
 extension CarbRatioEditor {

@@ -1,3 +1,7 @@
+// Trio
+// OnboardingRootView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Foundation
 import SwiftUI
 import Swinject
@@ -121,7 +125,8 @@ extension Onboarding {
                             )
                             .padding(.top)
                         } else {
-                            // avoid letting content scroll beneath the status bar / dynamic island for content views with no progress bar (which adds top spacing)
+                            // avoid letting content scroll beneath the status bar / dynamic island for content views with no
+                            // progress bar (which adds top spacing)
                             Color.clear.frame(height: 1)
                         }
 
@@ -393,7 +398,8 @@ struct OnboardingStepContent: View {
             .onChange(of: currentSMBSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
             .onChange(of: currentTargetBehaviorSubstep) { _, _ in scrollProxy.scrollTo("top", anchor: .top) }
             .safeAreaInset(edge: .top) {
-                // avoid letting content scroll beneath the status bar / dynamic island for content views with not progress bar (which adds top spacing)
+                // avoid letting content scroll beneath the status bar / dynamic island for content views with not progress bar
+                // (which adds top spacing)
                 if currentStep == .startupInfo || currentStep == .completed {
                     Color.clear.frame(height: 0)
                 }
@@ -682,7 +688,8 @@ struct OnboardingNavigationButtons: View {
             if let next = DeliveryLimitSubstep(rawValue: currentDeliverySubstep.rawValue + 1) {
                 currentDeliverySubstep = next
             } else {
-                /// Setting delivery substep to the last substep (`.minimumSafetyThreshold`) and `showingChapterCompletion` to non-`nil`
+                /// Setting delivery substep to the last substep (`.minimumSafetyThreshold`) and `showingChapterCompletion` to
+                /// non-`nil`
                 /// prompts display of chapter completion screen; if user navigates back, it stays at correct substep.
                 currentDeliverySubstep = .minimumSafetyThreshold
                 showingChapterCompletion = .deliveryLimits
@@ -726,7 +733,8 @@ struct OnboardingNavigationButtons: View {
             if let next = TargetBehaviorSubstep(rawValue: currentTargetBehaviorSubstep.rawValue + 1) {
                 currentTargetBehaviorSubstep = next
             } else {
-                /// Setting target behavior substep to the last substep (`.halfBasalTarget`) and `showingChapterCompletion` to non-`nil`
+                /// Setting target behavior substep to the last substep (`.halfBasalTarget`) and `showingChapterCompletion` to
+                /// non-`nil`
                 /// prompts display of chapter completion screen; if user navigates back, it stays at correct substep.
                 currentTargetBehaviorSubstep = .halfBasalTarget
                 showingChapterCompletion = .algorithmSettings

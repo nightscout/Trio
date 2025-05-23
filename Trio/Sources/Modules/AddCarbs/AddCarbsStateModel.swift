@@ -1,3 +1,7 @@
+// Trio
+// AddCarbsStateModel.swift
+// Created by Ivan Valkou on 2021-03-05.
+
 import CoreData
 import Foundation
 import SwiftUI

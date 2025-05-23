@@ -1,21 +1,18 @@
+// Trio
+// HKUnit.swift
+// Created by Ivan Valkou on 2021-11-10.
+
 import HealthKit
 
 extension HKUnit {
-    static let milligramsPerDeciliter: HKUnit = {
-        HKUnit.gramUnit(with: .milli).unitDivided(by: .literUnit(with: .deci))
-    }()
+    static let milligramsPerDeciliter: HKUnit = HKUnit.gramUnit(with: .milli).unitDivided(by: .literUnit(with: .deci))
 
-    static let millimolesPerLiter: HKUnit = {
-        HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassBloodGlucose).unitDivided(by: .liter())
-    }()
+    static let millimolesPerLiter: HKUnit = HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassBloodGlucose)
+        .unitDivided(by: .liter())
 
-    static let internationalUnitsPerHour: HKUnit = {
-        HKUnit.internationalUnit().unitDivided(by: .hour())
-    }()
+    static let internationalUnitsPerHour: HKUnit = HKUnit.internationalUnit().unitDivided(by: .hour())
 
-    static let gramsPerUnit: HKUnit = {
-        HKUnit.gram().unitDivided(by: .internationalUnit())
-    }()
+    static let gramsPerUnit: HKUnit = HKUnit.gram().unitDivided(by: .internationalUnit())
 
     var foundationUnit: Unit? {
         if self == HKUnit.milligramsPerDeciliter {

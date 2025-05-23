@@ -1,3 +1,7 @@
+// Trio
+// ShortcutsConfigView.swift
+// Created by Auggie Fisher on 2024-07-24.
+
 import Combine
 import SwiftUI
 import Swinject
@@ -35,8 +39,8 @@ extension ShortcutsConfig {
                         UIApplication.shared.open(URL(string: "shortcuts://")!)
                     }
                     label: { Label("Open iOS Shortcuts", systemImage: "arrow.triangle.branch").font(.title3).padding() }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .buttonStyle(.bordered)
                 }
                 .listRowBackground(Color.clear)
 

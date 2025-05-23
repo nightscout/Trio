@@ -1,3 +1,7 @@
+// Trio
+// ISFEditorStateModel.swift
+// Created by Ivan Valkou on 2021-03-03.
+
 import CoreData
 import Observation
 import SwiftUI

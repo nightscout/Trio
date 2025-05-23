@@ -1,3 +1,7 @@
+// Trio
+// DecimalPickerSettings.swift
+// Created by Deniz Cengiz on 2024-08-12.
+
 import SwiftUI
 
 class PickerSettingsProvider: ObservableObject {

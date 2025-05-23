@@ -1,9 +1,7 @@
-//
-//  StartupReturningUserStepView.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 27.04.25.
-//
+// Trio
+// StartupReturningUserStepView.swift
+// Created by Deniz Cengiz on 2025-04-27.
+
 import SwiftUI
 
 struct StartupReturningUserStepView: View {

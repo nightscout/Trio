@@ -1,3 +1,7 @@
+// Trio
+// AutotuneConfigProvider.swift
+// Created by Ivan Valkou on 2021-03-13.
+
 import Combine
 
 extension AutotuneConfig {

@@ -1,3 +1,7 @@
+// Trio
+// Constants.swift
+// Created by Ivan Valkou on 2021-02-17.
+
 extension OpenAPS {
     enum Bundle {
         static let iob = "bundle/iob.js"

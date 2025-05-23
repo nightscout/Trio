@@ -1,3 +1,7 @@
+// Trio
+// BaseStateModel.swift
+// Created by Ivan Valkou on 2021-11-07.
+
 import Combine
 import SwiftUI
 import Swinject

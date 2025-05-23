@@ -1,3 +1,7 @@
+// Trio
+// TempTargetHelpView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import SwiftUI
 
 struct TempTargetHelpView: View {
@@ -25,7 +29,7 @@ struct TempTargetHelpView: View {
             .navigationBarTitle("Help", displayMode: .inline)
 
             Button { state.isHelpSheetPresented.toggle() }
-            label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center) }
+                label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center) }
                 .buttonStyle(.bordered)
                 .padding(.top)
         }

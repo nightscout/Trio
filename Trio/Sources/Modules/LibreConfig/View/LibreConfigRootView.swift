@@ -1,3 +1,7 @@
+// Trio
+// LibreConfigRootView.swift
+// Created by Ivan Valkou on 2021-11-10.
+
 import LibreTransmitter
 import SwiftUI
 import Swinject

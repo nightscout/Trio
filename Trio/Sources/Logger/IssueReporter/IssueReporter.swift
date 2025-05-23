@@ -1,3 +1,7 @@
+// Trio
+// IssueReporter.swift
+// Created by Ivan Valkou on 2021-03-07.
+
 import Foundation
 
 protocol IssueReporter: AnyObject {

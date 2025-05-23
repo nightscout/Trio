@@ -1,9 +1,7 @@
-//
-//  BasalProfileStepView.swift
-//  Trio
-//
-//  Created by Marvin Polscheit on 19.03.25.
-//
+// Trio
+// BasalProfileStepView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Charts
 import SwiftUI
 import UIKit
@@ -104,7 +102,7 @@ struct BasalProfileStepView: View {
             return 0.0
         }
 
-        var total: Double = 0.0
+        var total = 0.0
 
         // Safely create profile items with proper error checking
         let profileItems = items.compactMap { item -> (timeIndex: Int, rate: Decimal)? in

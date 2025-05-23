@@ -1,3 +1,7 @@
+// Trio
+// LiveActivity.swift
+// Created by 10nas on 2023-11-28.
+
 import ActivityKit
 import SwiftUI
 import WidgetKit

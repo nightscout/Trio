@@ -1,3 +1,7 @@
+// Trio
+// LiveActivityManager.swift
+// Created by 10nas on 2023-11-28.
+
 import ActivityKit
 import Combine
 import CoreData
@@ -11,7 +15,8 @@ import UIKit
 
     /// Determines if the current activity needs to be recreated.
     ///
-    /// - Returns: `true` if the activity is dismissed, ended, stale, or has been active for more than 60 minutes; otherwise, `false`.
+    /// - Returns: `true` if the activity is dismissed, ended, stale, or has been active for more than 60 minutes; otherwise,
+    /// `false`.
     func needsRecreation() -> Bool {
         switch activity.activityState {
         case .dismissed,
@@ -35,8 +40,7 @@ import UIKit
 ///
 /// Additionally, it supports a restart functionality (via `restartActivityFromLiveActivityIntent()`)
 /// via iOS shortcuts, similar to other iOS apps like xDrip4iOS or Sweet Dreams.
-@available(iOS 16.2, *)
-final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver {
+@available(iOS 16.2, *) final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver {
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var storage: FileStorage!
@@ -395,7 +399,8 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
 
     /// Restarts the live activity from a Live Activity Intent.
     ///
-    /// This method mimics xdrip's `restartActivityFromLiveActivityIntent()` behavior by verifying that a valid content state exists,
+    /// This method mimics xdrip's `restartActivityFromLiveActivityIntent()` behavior by verifying that a valid content state
+    /// exists,
     /// ending the current live activity, and starting a new one using the current state.
     @MainActor func restartActivityFromLiveActivityIntent() async {
         guard let latestGlucose = latestGlucose,
@@ -435,8 +440,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
     }
 }
 
-@available(iOS 16.2, *)
-extension LiveActivityManager {
+@available(iOS 16.2, *) extension LiveActivityManager {
     /// Updates the live activity when new glucose data is available.
     ///
     /// This function adjusts the live activity content based on new glucose readings and triggers an update to the live activity.

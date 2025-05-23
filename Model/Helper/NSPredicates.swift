@@ -1,3 +1,7 @@
+// Trio
+// NSPredicates.swift
+// Created by polscm32 on 2024-04-16.
+
 import CoreData
 import Foundation
 

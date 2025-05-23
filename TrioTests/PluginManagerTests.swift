@@ -1,3 +1,7 @@
+// Trio
+// PluginManagerTests.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Foundation
 import Swinject
 import Testing
@@ -12,7 +16,7 @@ import Testing
         injectServices(resolver)
     }
 
-    @Test("Can load CGM managers") func testCGMManagerLoad() {
+    @Test("Can load CGM managers") func cGMManagerLoad() {
         // Given
         let cgmLoopManagers = pluginManager.availableCGMManagers
 
@@ -26,7 +30,7 @@ import Testing
         }
     }
 
-    @Test("Available managers have valid descriptors") func testManagerDescriptors() {
+    @Test("Available managers have valid descriptors") func managerDescriptors() {
         // Given/When
         let cgmManagers = pluginManager.availableCGMManagers
 

@@ -1,3 +1,7 @@
+// Trio
+// DynamicGlucoseColor.swift
+// Created by Deniz Cengiz on 2024-08-28.
+
 import Foundation
 import SwiftUI
 

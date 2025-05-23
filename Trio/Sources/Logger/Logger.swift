@@ -1,3 +1,7 @@
+// Trio
+// Logger.swift
+// Created by Ivan Valkou on 2021-03-07.
+
 import os.log
 import os.signpost
 import UIKit

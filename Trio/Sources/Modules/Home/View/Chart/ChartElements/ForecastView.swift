@@ -1,3 +1,7 @@
+// Trio
+// ForecastView.swift
+// Created by polscm32 on 2024-09-08.
+
 import Charts
 import Foundation
 import SwiftUI

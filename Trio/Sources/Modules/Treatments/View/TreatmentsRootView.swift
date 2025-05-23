@@ -1,3 +1,7 @@
+// Trio
+// TreatmentsRootView.swift
+// Created by Ivan Valkou on 2021-03-05.
+
 import Charts
 import CoreData
 import LoopKitUI
@@ -202,7 +206,8 @@ extension Treatments {
 
                             // Time
                             HStack {
-                                // Semi-hacky workaround to make sure the List renders the horizontal divider properly between the `Time` and `Note` rows within the Section
+                                // Semi-hacky workaround to make sure the List renders the horizontal divider properly between the
+                                // `Time` and `Note` rows within the Section
                                 HStack {
                                     Text("")
                                     Image(systemName: "clock").padding(.leading, -7)
@@ -216,7 +221,7 @@ extension Treatments {
                                         .padding(.trailing, 5)
                                 } else {
                                     Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
-                                    label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                        label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
 
                                     DatePicker(
                                         "Time",
@@ -286,8 +291,8 @@ extension Treatments {
                                     }, label: {
                                         Image(systemName: "info.circle")
                                     })
-                                        .foregroundStyle(.blue)
-                                        .buttonStyle(PlainButtonStyle())
+                                    .foregroundStyle(.blue)
+                                    .buttonStyle(PlainButtonStyle())
                                 }
                                 Spacer()
                                 Button {

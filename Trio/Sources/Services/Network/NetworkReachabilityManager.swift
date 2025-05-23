@@ -1,3 +1,7 @@
+// Trio
+// NetworkReachabilityManager.swift
+// Created by Ivan Valkou on 2021-11-24.
+
 #if !(os(watchOS) || os(Linux) || os(Windows))
 
     import Foundation
@@ -68,7 +72,7 @@
         open var flags: SCNetworkReachabilityFlags? {
             var flags = SCNetworkReachabilityFlags()
 
-            return (SCNetworkReachabilityGetFlags(reachability, &flags)) ? flags : nil
+            return SCNetworkReachabilityGetFlags(reachability, &flags) ? flags : nil
         }
 
         /// The current network reachability status.

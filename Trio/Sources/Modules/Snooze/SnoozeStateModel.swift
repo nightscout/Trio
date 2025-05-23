@@ -1,3 +1,7 @@
+// Trio
+// SnoozeStateModel.swift
+// Created by Ivan Valkou on 2021-11-07.
+
 import Observation
 import SwiftUI
 

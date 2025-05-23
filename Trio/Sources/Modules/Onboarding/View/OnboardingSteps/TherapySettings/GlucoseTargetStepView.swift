@@ -1,9 +1,7 @@
-//
-//  GlucoseTargetStepView.swift
-//  Trio
-//
-//  Created by Marvin Polscheit on 19.03.25.
-//
+// Trio
+// GlucoseTargetStepView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Charts
 import Foundation
 import SwiftUI

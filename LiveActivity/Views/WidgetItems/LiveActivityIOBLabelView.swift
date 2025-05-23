@@ -1,3 +1,7 @@
+// Trio
+// LiveActivityIOBLabelView.swift
+// Created by Deniz Cengiz on 2024-10-17.
+
 //
 //  LiveActivityWidgetItems.swift
 //  LiveActivityExtension

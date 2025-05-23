@@ -1,3 +1,7 @@
+// Trio
+// CarbRatioEditorRootView.swift
+// Created by Ivan Valkou on 2021-02-02.
+
 import Charts
 import SwiftUI
 import Swinject

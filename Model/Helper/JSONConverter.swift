@@ -1,3 +1,7 @@
+// Trio
+// JSONConverter.swift
+// Created by polscm32 on 2024-05-01.
+
 import Foundation
 
 class JSONConverter {

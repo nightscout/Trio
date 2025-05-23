@@ -1,3 +1,7 @@
+// Trio
+// HealthKitStateModel.swift
+// Created by Jon B.M on 2021-12-05.
+
 import Combine
 import SwiftUI
 

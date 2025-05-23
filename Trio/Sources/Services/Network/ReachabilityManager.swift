@@ -1,3 +1,7 @@
+// Trio
+// ReachabilityManager.swift
+// Created by Ivan Valkou on 2021-04-05.
+
 import Foundation
 
 typealias ReachabilityStatus = NetworkReachabilityManager.NetworkReachabilityStatus

@@ -1,3 +1,7 @@
+// Trio
+// HomeStateModel.swift
+// Created by Ivan Valkou on 2021-02-02.
+
 import CGMBLEKitUI
 import Combine
 import CoreData
@@ -219,7 +223,8 @@ extension Home {
             }
         }
 
-        // These combine subscribers are only necessary due to the batch inserts of glucose/FPUs which do not trigger a ManagedObjectContext change notification
+        // These combine subscribers are only necessary due to the batch inserts of glucose/FPUs which do not trigger a
+        // ManagedObjectContext change notification
         private func registerSubscribers() {
             glucoseStorage.updatePublisher
                 .receive(on: queue)
@@ -531,7 +536,8 @@ extension Home {
             Task {
                 await apsManager.cancelBolus(nil)
 
-                // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
+                // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator
+                // again
                 try await apsManager.determineBasalSync()
             }
         }

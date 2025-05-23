@@ -1,3 +1,7 @@
+// Trio
+// PumpHistoryStorage.swift
+// Created by Ivan Valkou on 2021-02-26.
+
 import Combine
 import CoreData
 import Foundation
@@ -60,7 +64,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
                 switch event.type {
                 case .bolus:
-
                     guard let dose = event.dose else { continue }
                     let amount = self.roundDose(
                         dose.unitsInDeliverableIncrements,
@@ -453,7 +456,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         targetTop: nil,
                         targetBottom: nil
                     )
-
                 default:
                     return nil
                 }
@@ -530,6 +532,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         isSMB: event.bolus?.isSMB ?? true,
                         isExternal: event.bolus?.isExternal ?? false
                     )
+
                 case PumpEvent.tempBasal.rawValue:
                     if let id = event.id, let timestamp = event.timestamp, let tempBasal = event.tempBasal,
                        let tempBasalRate = tempBasal.rate

@@ -12,6 +12,7 @@ assertEnvironment "${SRCROOT}" "Please set SRCROOT to project root folder"
 unset SDKROOT
 
 swift run -c release --package-path BuildTools swiftformat "${SRCROOT}" \
+--header "Trio\n{file}\nCreated by {author.name} on {created}." \
 --enable andOperator,\
 anyObjectProtocol,\
 blankLinesAroundMark,\
@@ -24,7 +25,6 @@ duplicateImports,\
 elseOnSameLine,\
 emptyBraces,\
 enumNamespaces,\
-fileHeader,\
 hoistPatternLet,\
 indent,\
 isEmpty,\
@@ -83,7 +83,6 @@ redundantInit,\
 trailingClosures \
 --commas inline \
 --exponentcase uppercase \
---header strip \
 --hexliteralcase uppercase \
 --ifdef indent \
 --indent 4 \
@@ -97,4 +96,4 @@ trailingClosures \
 --typeattributes same-line \
 --varattributes same-line \
 --wrapcollections before-first \
---exclude Pods,Generated,R.generated.swift,fastlane/swift,Dependencies, LoopKit, LibreTransmitter,G7SensorKit,OmniKit, dexcom-share-client-swift,CGMBLEKit,RileyLinkKit,OmniBLE,MinimedKit,TidepoolService
+--exclude Pods,Generated,R.generated.swift,fastlane/swift,Dependencies, LoopKit, LibreTransmitter,G7SensorKit,OmniKit, dexcom-share-client-swift,CGMBLEKit,RileyLinkKit,OmniBLE,MinimedKit,TidepoolService,DanaKit

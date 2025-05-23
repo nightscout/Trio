@@ -1,9 +1,7 @@
-//
-//  GarminWatchState.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 25.01.25.
-//
+// Trio
+// GarminWatchState.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Foundation
 import SwiftUI
 

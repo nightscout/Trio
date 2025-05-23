@@ -1,3 +1,7 @@
+// Trio
+// PumpSettingsView.swift
+// Created by Ivan Valkou on 2021-02-25.
+
 import LoopKitUI
 import SwiftUI
 import UIKit

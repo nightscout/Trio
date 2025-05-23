@@ -1,3 +1,7 @@
+// Trio
+// LiveActivityWidgetConfiguration.swift
+// Created by Deniz Cengiz on 2024-10-03.
+
 import Charts
 import Foundation
 import SwiftUI

@@ -1,3 +1,7 @@
+// Trio
+// CoreDataStack.swift
+// Created by polscm32 on 2024-04-16.
+
 import CoreData
 import Foundation
 import OSLog
@@ -448,7 +452,8 @@ extension CoreDataStack {
         context.name = "fetchContext"
         context.transactionAuthor = "fetchEntities"
 
-        /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
+        /// we need to ensure that the fetch immediately returns a value as long as the whole app does not use the async await
+        /// pattern, otherwise we could perform this asynchronously with backgroundContext.perform and not block the thread
         return try context.performAndWait {
             do {
                 if propertiesToFetch != nil {
@@ -547,7 +552,8 @@ extension CoreDataStack {
 
 // MARK: - Save
 
-/// This function is used when terminating the App to ensure any unsaved changes on the view context made their way to the persistent container
+/// This function is used when terminating the App to ensure any unsaved changes on the view context made their way to the
+/// persistent container
 extension CoreDataStack {
     func save() {
         let context = persistentContainer.viewContext

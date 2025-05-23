@@ -1,3 +1,7 @@
+// Trio
+// Battery.swift
+// Created by Ivan Valkou on 2021-02-28.
+
 import Foundation
 
 struct Battery: JSON {

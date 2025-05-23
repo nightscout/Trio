@@ -1,3 +1,7 @@
+// Trio
+// BolusCalculationManager.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import CoreData
 import Foundation
 import Swinject
@@ -65,7 +69,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         sweetMealFactor: Decimal,
         maxCarbs: Decimal
     ) {
-        return (
+        (
             units: settingsManager.settings.units,
             fraction: settingsManager.settings.overrideFactor,
             fattyMealFactor: settingsManager.settings.fattyMealFactor,
@@ -389,7 +393,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         debug(.default, "Whole COB: \(wholeCob), COB insulin: \(wholeCobInsulin)")
 
         // determine how much the calculator reduces/ increases the bolus because of IOB
-        let iobInsulinReduction = (-1) * input.iob
+        let iobInsulinReduction = -1 * input.iob
         debug(.default, "IOB reduction: \(iobInsulinReduction)")
 
         // adding everything together
@@ -411,11 +415,13 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         }
 
         // apply custom factor at the end of the calculations
-        // apply custom factor if fatty meal toggle in bolus calc config settings is on and the box for fatty meals is checked (in RootView)
+        // apply custom factor if fatty meal toggle in bolus calc config settings is on and the box for fatty meals is checked (in
+        // RootView)
         var factoredInsulin = wholeCalc
         debug(.default, "Initial factored insulin: \(factoredInsulin)")
 
-        // Apply Recommended Bolus Percentage (input.fraction) and if selected apply Fatty Meal Bolus Percentage (input.fattyMealFactor)
+        // Apply Recommended Bolus Percentage (input.fraction) and if selected apply Fatty Meal Bolus Percentage
+        // (input.fattyMealFactor)
         // If factoredInsulin is negative, though, don't apply either
         if factoredInsulin > 0 {
             factoredInsulin *= input.fraction

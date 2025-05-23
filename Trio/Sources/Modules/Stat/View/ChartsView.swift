@@ -1,3 +1,7 @@
+// Trio
+// ChartsView.swift
+// Created by Jon B Mårtensson on 2023-06-06.
+
 import Charts
 import CoreData
 import SwiftDate

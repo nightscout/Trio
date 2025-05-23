@@ -1,3 +1,7 @@
+// Trio
+// BolusProgressViewStyle.swift
+// Created by Ivan on 2021-04-10.
+
 import SwiftUI
 
 public struct BolusProgressViewStyle: ProgressViewStyle {

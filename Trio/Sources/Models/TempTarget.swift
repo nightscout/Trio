@@ -1,3 +1,7 @@
+// Trio
+// TempTarget.swift
+// Created by Ivan Valkou on 2021-03-01.
+
 import Foundation
 
 struct TempTarget: JSON, Identifiable, Equatable, Hashable {

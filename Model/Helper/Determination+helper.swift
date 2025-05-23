@@ -1,3 +1,7 @@
+// Trio
+// Determination+helper.swift
+// Created by polscm32 on 2024-04-18.
+
 import CoreData
 import Foundation
 

@@ -1,3 +1,7 @@
+// Trio
+// OverridePresetsIntentRequest.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import CoreData
 import Foundation
 import UIKit
@@ -22,7 +26,8 @@ import UIKit
             // Fetch all Override Presets via OverrideStorage
             let allOverridePresetsIDs = try await overrideStorage.fetchForOverridePresets()
 
-            // Since we are fetching on a different background Thread we need to unpack the NSManagedObjectID on the correct Thread first
+            // Since we are fetching on a different background Thread we need to unpack the NSManagedObjectID on the correct
+            // Thread first
             return try await coredataContext.perform {
                 let overrideObjects = try allOverridePresetsIDs.compactMap { id in
                     try self.coredataContext.existingObject(with: id) as? OverrideStored

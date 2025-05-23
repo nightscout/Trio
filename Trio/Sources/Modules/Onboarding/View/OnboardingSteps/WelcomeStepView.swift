@@ -1,3 +1,7 @@
+// Trio
+// WelcomeStepView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import SwiftUI
 
 /// Welcome step view shown at the beginning of onboarding.

@@ -1,3 +1,7 @@
+// Trio
+// DataTableStateModel.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import CoreData
 import HealthKit
 import Observation
@@ -43,7 +47,8 @@ extension DataTable {
         }
 
         /// Initiates the glucose deletion process asynchronously
-        /// - Parameter treatmentObjectID: NSManagedObjectID to be able to transfer the object safely from one thread to another thread
+        /// - Parameter treatmentObjectID: NSManagedObjectID to be able to transfer the object safely from one thread to another
+        /// thread
         func invokeGlucoseDeletionTask(_ treatmentObjectID: NSManagedObjectID) {
             Task {
                 await deleteGlucose(treatmentObjectID)
@@ -107,7 +112,8 @@ extension DataTable {
             Task {
                 do {
                     /// Set the variables that control the CustomProgressView BEFORE the actual deletion
-                    /// otherwise the determineBasalSync gets executed first, sets waitForSuggestion to false and afterwards waitForSuggestion is set in this function to true, leading to an endless animation
+                    /// otherwise the determineBasalSync gets executed first, sets waitForSuggestion to false and afterwards
+                    /// waitForSuggestion is set in this function to true, leading to an endless animation
                     await MainActor.run {
                         carbEntryDeleted = true
                         waitForSuggestion = true
@@ -236,9 +242,11 @@ extension DataTable {
                     return
                 }
 
-                /// Set variables that control the CustomProgressView to true AFTER the authentication and BEFORE the actual determineBasalSync
+                /// Set variables that control the CustomProgressView to true AFTER the authentication and BEFORE the actual
+                /// determineBasalSync
                 /// We definitely need to set the variables BEFORE the actual sync
-                /// otherwise the determineBasalSync gets executed first, sets waitForSuggestion to false and afterwards waitForSuggestion is set in this function to true, leading to an endless animation
+                /// otherwise the determineBasalSync gets executed first, sets waitForSuggestion to false and afterwards
+                /// waitForSuggestion is set in this function to true, leading to an endless animation
                 /// But we also want it AFTER the authentication
                 /// otherwise the animation would pop up even before the authentication prompt appears to the user
                 await MainActor.run {
@@ -394,13 +402,15 @@ extension DataTable {
             if ((originalEntry.entryValues?.carbs ?? 0) == 0 && (originalEntry.entryValues?.fat ?? 0) > 0) ||
                 ((originalEntry.entryValues?.carbs ?? 0) == 0 && (originalEntry.entryValues?.protein ?? 0) > 0)
             {
-                // Delete the zero-carb-entry and all its carb equivalents connected by the same fpuID from remote services and Core Data
+                // Delete the zero-carb-entry and all its carb equivalents connected by the same fpuID from remote services and
+                // Core Data
                 // Use fpuID
                 try await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: true)
             } else if ((originalEntry.entryValues?.carbs ?? 0) > 0 && (originalEntry.entryValues?.fat ?? 0) > 0) ||
                 ((originalEntry.entryValues?.carbs ?? 0) > 0 && (originalEntry.entryValues?.protein ?? 0) > 0)
             {
-                // Delete carb entry and carb equivalents that are all connected by the same fpuID from remote services and Core Data
+                // Delete carb entry and carb equivalents that are all connected by the same fpuID from remote services and Core
+                // Data
                 // Use fpuID
                 try await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: true)
 
@@ -482,8 +492,10 @@ extension DataTable {
         /// If the user taps on an FPU entry in the DataTable list, there are two cases:
         /// - the User has entered this FPU entry WITH carbs
         /// - the User has entered this FPU entry WITHOUT carbs
-        /// In the first case, we simply need to load the corresponding carb entry. For this case THIS is the entry we want to edit.
-        /// In the second case, we need to load the zero-carb entry that actually holds the FPU values (and the carbs). For this case THIS is the entry we want to edit.
+        /// In the first case, we simply need to load the corresponding carb entry. For this case THIS is the entry we want to
+        /// edit.
+        /// In the second case, we need to load the zero-carb entry that actually holds the FPU values (and the carbs). For this
+        /// case THIS is the entry we want to edit.
         /// - Parameter objectID: The ID of the FPU entry
         /// - Returns: A tuple containing the entry values and ID, or nil if not found
         func handleFPUEntry(_ objectID: NSManagedObjectID) async

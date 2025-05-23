@@ -1,3 +1,7 @@
+// Trio
+// SettingInputHintView.swift
+// Created by Deniz Cengiz on 2024-07-27.
+
 import SwiftUI
 
 struct SettingInputHintView<HintView: View>: View {

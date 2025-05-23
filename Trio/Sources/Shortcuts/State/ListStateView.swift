@@ -1,3 +1,7 @@
+// Trio
+// ListStateView.swift
+// Created by Ivan Valkou on 2021-03-15.
+
 import AppIntents
 import Foundation
 import SwiftUI
@@ -116,7 +120,6 @@ struct ListStateView: View {
              "SingleDown",
              "TripleDown":
             return Image(systemName: "arrow.down")
-
         case "NONE",
              "NOT COMPUTABLE",
              "RATE OUT OF RANGE":

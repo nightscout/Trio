@@ -1,3 +1,7 @@
+// Trio
+// JSON.swift
+// Created by Ivan Valkou on 2021-01-29.
+
 import Foundation
 
 @dynamicMemberLookup protocol JSON: Codable {

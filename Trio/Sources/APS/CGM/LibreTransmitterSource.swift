@@ -1,3 +1,7 @@
+// Trio
+// LibreTransmitterSource.swift
+// Created by Ivan Valkou on 2021-11-10.
+
 import Combine
 import Foundation
 import LibreTransmitter

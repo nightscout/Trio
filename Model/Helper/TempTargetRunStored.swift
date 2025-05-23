@@ -1,9 +1,7 @@
-//
-//  TempTargetRunStored.swift
-//  Trio
-//
-//  Created by Marvin Polscheit on 15.11.24.
-//
+// Trio
+// TempTargetRunStored.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import CoreData
 
 extension NSPredicate {

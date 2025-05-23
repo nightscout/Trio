@@ -1,9 +1,7 @@
-//
-//  GarminDevice.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 23.01.25.
-//
+// Trio
+// GarminDevice.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import ConnectIQ
 
 /// A Codable wrapper around IQDevice so we can persist it easily.

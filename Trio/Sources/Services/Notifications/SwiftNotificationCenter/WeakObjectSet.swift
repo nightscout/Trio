@@ -1,3 +1,7 @@
+// Trio
+// WeakObjectSet.swift
+// Created by Ivan Valkou on 2021-02-23.
+
 import Foundation
 
 struct WeakObject<T: AnyObject>: Equatable, Hashable {

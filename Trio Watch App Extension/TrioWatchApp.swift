@@ -1,3 +1,7 @@
+// Trio
+// TrioWatchApp.swift
+// Created by Jonas Björkert on 2025-05-23.
+
 import SwiftUI
 
 @main struct TrioWatchApp: App {

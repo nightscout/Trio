@@ -1,3 +1,7 @@
+// Trio
+// SettingsManager.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import Foundation
 import LoopKit
 import Swinject
@@ -87,6 +91,7 @@ final class BaseSettingsManager: SettingsManager, Injectable {
         case .fiasp,
              .lyumjev:
             prefs.curve = .ultraRapid
+
         default:
             prefs.curve = .rapidActing
         }

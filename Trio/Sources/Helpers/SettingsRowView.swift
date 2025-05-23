@@ -1,3 +1,7 @@
+// Trio
+// SettingsRowView.swift
+// Created by polscm32 on 2024-02-10.
+
 import SwiftUI
 
 struct SettingsRowView: View {

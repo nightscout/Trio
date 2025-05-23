@@ -1,3 +1,7 @@
+// Trio
+// AdjustmentsRootView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import CoreData
 import SwiftUI
 import Swinject
@@ -179,11 +183,13 @@ extension Adjustments {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         Task {
-                            /// To avoid editing the Preset when a Preset-Override is running we first duplicate the Preset-Override as a non-Preset Override
+                            /// To avoid editing the Preset when a Preset-Override is running we first duplicate the
+                            /// Preset-Override as a non-Preset Override
                             /// The currentActiveOverride variable in the State will update automatically via MOC notification
                             await state.duplicateOverridePresetAndCancelPreviousOverride()
 
-                            /// selectedOverride is used for passing the chosen Override to the EditSheet so we have to set the updated currentActiveOverride to be the selectedOverride
+                            /// selectedOverride is used for passing the chosen Override to the EditSheet so we have to set the
+                            /// updated currentActiveOverride to be the selectedOverride
                             selectedOverride = state.currentActiveOverride
 
                             /// Now we can show the Edit sheet
@@ -204,11 +210,13 @@ extension Adjustments {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         Task {
-                            /// To avoid editing the Preset when a Preset-Override is running we first duplicate the Preset-Override as a non-Preset Override
+                            /// To avoid editing the Preset when a Preset-Override is running we first duplicate the
+                            /// Preset-Override as a non-Preset Override
                             /// The currentActiveOverride variable in the State will update automatically via MOC notification
                             await state.duplicateTempTargetPresetAndCancelPreviousTempTarget()
 
-                            /// selectedOverride is used for passing the chosen Override to the EditSheet so we have to set the updated currentActiveOverride to be the selectedOverride
+                            /// selectedOverride is used for passing the chosen Override to the EditSheet so we have to set the
+                            /// updated currentActiveOverride to be the selectedOverride
                             selectedTempTarget = state.currentActiveTempTarget
 
                             /// Now we can show the Edit sheet
@@ -233,10 +241,10 @@ extension Adjustments {
                     Text("Stop Override")
 
                 })
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .disabled(!state.isOverrideEnabled)
-                    .listRowBackground(!state.isOverrideEnabled ? Color(.systemGray4) : Color(.systemRed))
-                    .tint(.white)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .disabled(!state.isOverrideEnabled)
+                .listRowBackground(!state.isOverrideEnabled ? Color(.systemGray4) : Color(.systemRed))
+                .tint(.white)
             case .tempTargets:
                 Button(action: {
                     Task {
@@ -251,10 +259,10 @@ extension Adjustments {
                     Text("Stop Temp Target")
 
                 })
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .disabled(!state.isTempTargetEnabled)
-                    .listRowBackground(!state.isTempTargetEnabled ? Color(.systemGray4) : Color(.systemRed))
-                    .tint(.white)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .disabled(!state.isTempTargetEnabled)
+                .listRowBackground(!state.isTempTargetEnabled ? Color(.systemGray4) : Color(.systemRed))
+                .tint(.white)
             }
         }
 

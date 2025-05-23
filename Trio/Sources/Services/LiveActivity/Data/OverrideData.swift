@@ -1,3 +1,7 @@
+// Trio
+// OverrideData.swift
+// Created by polscm32 on 2024-07-01.
+
 import Foundation
 
 struct OverrideData {

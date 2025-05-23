@@ -1,3 +1,7 @@
+// Trio
+// LoopStatusView.swift
+// Created by Deniz Cengiz on 2025-04-21.
+
 import SwiftUI
 
 struct LoopStatusView: View {
@@ -141,7 +145,8 @@ struct LoopStatusView: View {
     private var statusBadgeColor: Color {
         guard let determination = state.determinationsFromPersistence.first, determination.timestamp != nil
         else {
-            // previously the .timestamp property was used here because this only gets updated when the reportenacted function in the aps manager gets called
+            // previously the .timestamp property was used here because this only gets updated when the reportenacted function in
+            // the aps manager gets called
             return .secondary
         }
 

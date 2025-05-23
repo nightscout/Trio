@@ -1,9 +1,7 @@
-//
-//  NotificationPermissionStepView.swift
-//  Trio
-//
-//  Created by Cengiz Deniz on 18.04.25.
-//
+// Trio
+// NotificationPermissionStepView.swift
+// Created by Deniz Cengiz on 2025-04-18.
+
 import SwiftUI
 import UserNotifications
 

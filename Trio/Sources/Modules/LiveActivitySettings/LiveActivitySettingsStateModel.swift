@@ -1,3 +1,7 @@
+// Trio
+// LiveActivitySettingsStateModel.swift
+// Created by Deniz Cengiz on 2024-08-02.
+
 import Combine
 import SwiftUI
 

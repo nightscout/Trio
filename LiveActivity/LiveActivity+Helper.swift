@@ -1,3 +1,7 @@
+// Trio
+// LiveActivity+Helper.swift
+// Created by Deniz Cengiz on 2024-10-17.
+
 //
 //  LiveActivity+Helper.swift
 //  LiveActivityExtension
@@ -179,6 +183,7 @@ func bgAndTrend(
             case .minimal:
                 let scaledText = text.scaleEffect(x: 0.7, y: 0.7, anchor: .leading)
                 scaledText.foregroundStyle(hasStaticColorScheme ? .primary : glucoseColor)
+
             case .compact:
                 text.scaleEffect(x: 0.8, y: 0.8, anchor: .leading).padding(.trailing, -3)
 

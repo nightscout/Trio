@@ -1,3 +1,7 @@
+// Trio
+// ServiceAssembly.swift
+// Created by Ivan Valkou on 2021-02-03.
+
 import Foundation
 import HealthKit
 import Swinject

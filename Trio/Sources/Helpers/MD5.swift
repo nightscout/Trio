@@ -1,3 +1,7 @@
+// Trio
+// MD5.swift
+// Created by Ivan Valkou on 2021-02-26.
+
 import CryptoKit
 import Foundation
 

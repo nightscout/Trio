@@ -1,3 +1,7 @@
+// Trio
+// BaseKeychain.swift
+// Created by Ivan Valkou on 2021-02-02.
+
 import Foundation
 import Security
 
@@ -16,7 +20,8 @@ private let SecReturnData = kSecReturnData as String
 private let SecReturnPersistentRef = kSecReturnPersistentRef as String
 private let SecValueData = kSecValueData as String
 
-/// KeychainWrapper is a class to help make Keychain access in Swift more straightforward. It is designed to make accessing the Keychain services more like using NSUserDefaults, which is much more familiar to people.
+/// KeychainWrapper is a class to help make Keychain access in Swift more straightforward. It is designed to make accessing the
+/// Keychain services more like using NSUserDefaults, which is much more familiar to people.
 final class BaseKeychain: Keychain {
     enum Config {
         static let defaultAccessibilityLevel = KeychainItemAccessibility.afterFirstUnlock
@@ -37,18 +42,18 @@ final class BaseKeychain: Keychain {
         let v: T
     }
 
-    /// ServiceName is used for the kSecAttrService property to uniquely identify this keychain accessor. If no service name is specified, KeychainWrapper will default to using the bundleIdentifier.
+    /// ServiceName is used for the kSecAttrService property to uniquely identify this keychain accessor. If no service name is
+    /// specified, KeychainWrapper will default to using the bundleIdentifier.
     private(set) var serviceName: String
 
-    /// AccessGroup is used for the kSecAttrAccessGroup property to identify which Keychain Access Group this entry belongs to. This allows you to use the KeychainWrapper with shared keychain access between different applications.
+    /// AccessGroup is used for the kSecAttrAccessGroup property to identify which Keychain Access Group this entry belongs to.
+    /// This allows you to use the KeychainWrapper with shared keychain access between different applications.
     private(set) var accessGroup: String?
 
     private let defaultSynchronizable: Bool
     private let defaultAccessibilityLevel: KeychainItemAccessibility
 
-    private static let defaultServiceName: String = {
-        Bundle.main.bundleIdentifier ?? "SwiftBaseKeychain"
-    }()
+    private static let defaultServiceName: String = Bundle.main.bundleIdentifier ?? "SwiftBaseKeychain"
 
     init(
         serviceName: String = BaseKeychain.defaultServiceName,
@@ -248,9 +253,11 @@ final class BaseKeychain: Keychain {
         removeObject(forKey: key, withAccessibility: defaultAccessibilityLevel)
     }
 
-    /// Remove all keychain data added through KeychainWrapper. This will only delete items matching the currnt ServiceName and AccessGroup if one is set.
+    /// Remove all keychain data added through KeychainWrapper. This will only delete items matching the currnt ServiceName and
+    /// AccessGroup if one is set.
     func removeAllKeys() -> Result<Void, KeychainError> {
-        // Setup dictionary to access keychain and specify we are using a generic password (rather than a certificate, internet password, etc)
+        // Setup dictionary to access keychain and specify we are using a generic password (rather than a certificate, internet
+        // password, etc)
         var keychainQueryDictionary: [String: Any] = [SecClass: kSecClassGenericPassword]
 
         // Uniquely identify this keychain accessor
@@ -258,7 +265,7 @@ final class BaseKeychain: Keychain {
         keychainQueryDictionary[SecAttrSynchronizable] = SecAttrSynchronizableAny
 
         // Set the keychain access group if defined
-        if let accessGroup = self.accessGroup {
+        if let accessGroup = accessGroup {
             keychainQueryDictionary[SecAttrAccessGroup] = accessGroup
         }
 
@@ -334,7 +341,7 @@ final class BaseKeychain: Keychain {
         keychainQueryDictionary[SecAttrAccessible] = accessibility.keychainAttrValue
 
         // Set the keychain access group if defined
-        if let accessGroup = self.accessGroup {
+        if let accessGroup = accessGroup {
             keychainQueryDictionary[SecAttrAccessGroup] = accessGroup
         }
 

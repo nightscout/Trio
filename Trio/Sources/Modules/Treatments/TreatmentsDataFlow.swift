@@ -1,3 +1,7 @@
+// Trio
+// TreatmentsDataFlow.swift
+// Created by Ivan Valkou on 2021-03-06.
+
 enum Treatments {
     enum Config {}
 }

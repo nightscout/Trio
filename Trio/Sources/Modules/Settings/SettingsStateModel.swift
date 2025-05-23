@@ -1,3 +1,7 @@
+// Trio
+// SettingsStateModel.swift
+// Created by Ivan Valkou on 2021-02-02.
+
 import LoopKit
 import LoopKitUI
 import SwiftUI
@@ -59,7 +63,8 @@ extension Settings {
             hideModal()
         }
 
-        // Commenting this out for now, as not needed and possibly dangerous for users to be able to nuke their pump pairing informations via the debug menu
+        // Commenting this out for now, as not needed and possibly dangerous for users to be able to nuke their pump pairing
+        // informations via the debug menu
         // Leaving it in here, as it may be a handy functionality for further testing or developers.
         // See https://github.com/nightscout/Trio/pull/277 for more information
 //

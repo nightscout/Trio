@@ -1,3 +1,7 @@
+// Trio
+// SettingItems.swift
+// Created by Deniz Cengiz on 2024-08-07.
+
 import Foundation
 import LoopKitUI
 import SwiftUI
