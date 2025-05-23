@@ -415,7 +415,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         var factoredInsulin = wholeCalc
         debug(.default, "Initial factored insulin: \(factoredInsulin)")
 
-        // Apply Recommended Bolus Percentage (input.fraction) and if selected apply Fatty Meal Bolus Percentage (input.fattyMealFactor)
+        // Apply Recommended Bolus Percentage (input.fraction) and if selected apply Slow Meal Bolus Percentage (input.fattyMealFactor)
         // If factoredInsulin is negative, though, don't apply either
         if factoredInsulin > 0 {
             factoredInsulin *= input.fraction

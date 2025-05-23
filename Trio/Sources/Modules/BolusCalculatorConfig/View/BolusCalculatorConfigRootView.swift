@@ -98,8 +98,8 @@ extension BolusCalculatorConfig {
                     ),
                     units: state.units,
                     type: .conditionalDecimal("fattyMealFactor"),
-                    label: String(localized: "Enable Fatty Meal Option"),
-                    conditionalLabel: String(localized: "Fatty Meal Bolus Percentage"),
+                    label: String(localized: "Enable Slow Meal Option"),
+                    conditionalLabel: String(localized: "Slow Meal Bolus Percentage"),
                     miniHint: String(localized: "Add and set a bolus option for meals that absorb slowly."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
@@ -110,10 +110,10 @@ extension BolusCalculatorConfig {
                             "Enabling this setting adds a \"Fatty Meal\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear for you to select."
                         )
                         Text(
-                            "When \"Fatty Meal\" is selected in the bolus calculator, the recommended bolus will be multiplied by the \"Fatty Meal Bolus Percentage\" as well as the \"Recommended Bolus Percentage\"."
+                            "When \"Fatty Meal\" is selected in the bolus calculator, the recommended bolus will be multiplied by the \"Slow Meal Bolus Percentage\" as well as the \"Recommended Bolus Percentage\"."
                         )
                         Text(
-                            "If you have a \"Recommended Bolus Percentage\" of 80%, and a \"Fatty Meal Bolus Percentage\" of 70%, your recommended bolus will be multiplied by: (80 × 70) / 100 = 56%."
+                            "If you have a \"Recommended Bolus Percentage\" of 80%, and a \"Slow Meal Bolus Percentage\" of 70%, your recommended bolus will be multiplied by: (80 × 70) / 100 = 56%."
                         )
                         Text("This could be useful for slow absorbing meals like pizza.")
                     }
