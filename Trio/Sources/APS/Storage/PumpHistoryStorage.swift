@@ -2,7 +2,7 @@
 // Trio
 // PumpHistoryStorage.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Sam King on 2025-05-07.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marvin Polscheit and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
@@ -69,7 +69,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
                 switch event.type {
                 case .bolus:
-
                     guard let dose = event.dose else { continue }
                     let amount = self.roundDose(
                         dose.unitsInDeliverableIncrements,
@@ -462,7 +461,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         targetTop: nil,
                         targetBottom: nil
                     )
-
                 default:
                     return nil
                 }
@@ -539,6 +537,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         isSMB: event.bolus?.isSMB ?? true,
                         isExternal: event.bolus?.isExternal ?? false
                     )
+
                 case PumpEvent.tempBasal.rawValue:
                     if let id = event.id, let timestamp = event.timestamp, let tempBasal = event.tempBasal,
                        let tempBasalRate = tempBasal.rate

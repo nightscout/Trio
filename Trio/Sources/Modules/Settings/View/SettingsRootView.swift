@@ -2,7 +2,7 @@
 // Trio
 // SettingsRootView.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Mike Plante on 2025-05-14.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Deniz Cengiz and Jonas Björkert.
 //
 // Documentation available under: https://triodocs.org/
@@ -287,7 +287,8 @@ extension Settings {
 //                                    .frame(maxWidth: .infinity, alignment: .trailing)
 //                                    .buttonStyle(.borderedProminent)
 //                            }
-//                            // Commenting this out for now, as not needed and possibly dangerous for users to be able to nuke their pump pairing informations via the debug menu
+//                            // Commenting this out for now, as not needed and possibly dangerous for users to be able to nuke
+//                            /their pump pairing informations via the debug menu
 //                            // Leaving it in here, as it may be a handy functionality for further testing or developers.
 //                            // See https://github.com/nightscout/Trio/pull/277 for more information
 //                            //
@@ -306,7 +307,8 @@ extension Settings {
 //                            Text("Autosense")
 //                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.autosense), from: self)
 //                            //                            Text("Pump History")
-//                            //                                .navigationLink(to: .configEditor(file: OpenAPS.Monitor.pumpHistory), from: self)
+//                            //                                .navigationLink(to: .configEditor(file:
+//                            /OpenAPS.Monitor.pumpHistory), from: self)
 //                            Text("Basal profile")
 //                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.basalProfile), from: self)
 //                    Text("Targets ranges")
@@ -321,7 +323,8 @@ extension Settings {
 //                            Text("Profile")
 //                                .navigationLink(to: .configEditor(file: OpenAPS.Settings.profile), from: self)
 //                            //                            Text("Carbs")
-//                            //                                .navigationLink(to: .configEditor(file: OpenAPS.Monitor.carbHistory), from: self)
+//                            //                                .navigationLink(to: .configEditor(file:
+//                            /OpenAPS.Monitor.carbHistory), from: self)
 //                        }
 //
 //                        Group {
@@ -332,7 +335,8 @@ extension Settings {
 //                            Text("Middleware")
 //                                .navigationLink(to: .configEditor(file: OpenAPS.Middleware.determineBasal), from: self)
 //                            //                            Text("Statistics")
-//                            //                                .navigationLink(to: .configEditor(file: OpenAPS.Monitor.statistics), from: self)
+//                            //                                .navigationLink(to: .configEditor(file:
+//                            /OpenAPS.Monitor.statistics), from: self)
 //                            Text("Edit settings json")
 //                                .navigationLink(to: .configEditor(file: OpenAPS.Trio.settings), from: self)
 //                        }

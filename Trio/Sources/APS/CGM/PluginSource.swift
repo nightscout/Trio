@@ -2,7 +2,7 @@
 // Trio
 // PluginSource.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Sam King on 2025-03-13.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by avouspierre and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
@@ -41,7 +41,8 @@ final class PluginSource: GlucoseSource {
     /// If no valid data is fetched within the timeout, it returns an empty array.
     ///
     /// - Parameter timer: An optional `DispatchTimer` (not used in the function but can be used to trigger fetch logic).
-    /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if an error occurs or the timeout is reached.
+    /// - Returns: An `AnyPublisher` that emits an array of `BloodGlucose` values or an empty array if an error occurs or the
+    /// timeout is reached.
     func fetch(_: DispatchTimer?) -> AnyPublisher<[BloodGlucose], Never> {
         Publishers.Merge(
             callBLEFetch(),
@@ -145,7 +146,7 @@ extension PluginSource: CGMManagerDelegate {
 
             // TODO: Events in APS ?
             // currently only display in log the date of the event
-            events.forEach { event in
+            for event in events {
                 debug(.deviceManager, "events from CGM at \(event.date)")
 
                 if event.type == .sensorStart {
@@ -224,7 +225,6 @@ extension PluginSource: CGMManagerDelegate {
 
         switch readingResult {
         case let .newData(values):
-
             var sensorActivatedAt: Date?
             var sensorStartDate: Date?
             var sensorTransmitterID: String?

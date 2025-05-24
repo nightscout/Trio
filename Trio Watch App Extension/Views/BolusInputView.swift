@@ -133,8 +133,8 @@ struct BolusInputView: View {
                         format: "\(String(localized: "Recommended:", comment: "Recommended bolus on Watch")) %.1f \(String(localized: "U", comment: "Insulin unit"))",
                         NSDecimalNumber(decimal: state.recommendedBolus).doubleValue
                     ))
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                 }
             }
         }

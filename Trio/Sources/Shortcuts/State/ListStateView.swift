@@ -2,8 +2,8 @@
 // Trio
 // ListStateView.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-02-19.
-// Most contributions by Jon B Mårtensson and Deniz Cengiz.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Jon B Mårtensson and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
 
@@ -125,7 +125,6 @@ struct ListStateView: View {
              "SingleDown",
              "TripleDown":
             return Image(systemName: "arrow.down")
-
         case "NONE",
              "NOT COMPUTABLE",
              "RATE OUT OF RANGE":

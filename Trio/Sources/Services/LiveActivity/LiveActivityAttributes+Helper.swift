@@ -2,7 +2,7 @@
 // Trio
 // LiveActivityAttributes+Helper.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-02-07.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marvin Polscheit and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
@@ -76,7 +76,7 @@ extension LiveActivityAttributes.ContentState {
     ) {
         let glucose = bg.glucose
         let formattedBG = Self.formatGlucose(Int(glucose), units: units, forceSign: false)
-        var rotationDegrees: Double = 0.0
+        var rotationDegrees = 0.0
 
         switch bg.direction {
         case .doubleUp,

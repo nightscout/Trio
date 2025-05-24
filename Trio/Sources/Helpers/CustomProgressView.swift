@@ -2,7 +2,7 @@
 // Trio
 // CustomProgressView.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by dsnallfot on 2025-03-14.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marvin Polscheit and dsnallfot.
 //
 // Documentation available under: https://triodocs.org/
@@ -64,7 +64,6 @@ enum ProgressText: CaseIterable {
         case .updatingIOB:
             return String(localized: "Updating IOB ...", comment: "Status message for updating IOB")
         case .updatingCOB:
-
             return String(localized: "Updating COB ...", comment: "Status message for updating COB")
         case .updatingHistory:
             return String(localized: "Updating History ...", comment: "Status message for updating history")

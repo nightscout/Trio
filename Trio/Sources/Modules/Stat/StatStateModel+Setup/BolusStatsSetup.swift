@@ -2,7 +2,7 @@
 // Trio
 // BolusStatsSetup.swift
 // Created by Marvin Polscheit on 2025-02-03.
-// Last edited by Sam King on 2025-05-10.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marvin Polscheit and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
@@ -213,7 +213,7 @@ extension Stat.StateModel {
     /// - Parameter range: A tuple containing the start and end dates to get averages for
     /// - Returns: A tuple containing the average total, carb and correction bolus values for the date range
     func getCachedBolusAverages(for range: (start: Date, end: Date)) -> (manual: Double, smb: Double, external: Double) {
-        return calculateBolusAveragesForDateRange(from: range.start, to: range.end)
+        calculateBolusAveragesForDateRange(from: range.start, to: range.end)
     }
 
     /// Returns the total bolus values for the given date range from the cache

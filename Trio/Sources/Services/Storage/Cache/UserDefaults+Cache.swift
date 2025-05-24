@@ -2,8 +2,8 @@
 // Trio
 // UserDefaults+Cache.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-01-01.
-// Most contributions by Ivan Valkou.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Ivan Valkou and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
 
@@ -15,7 +15,7 @@ extension UserDefaults: Cache {
     }
 
     func getValue<T: Codable>(_: T.Type, forKey key: String, defaultValue: T?, reportError: Bool) -> T? {
-        guard let data = self.data(forKey: key) else { return defaultValue }
+        guard let data = data(forKey: key) else { return defaultValue }
         let decoder = JSONDecoder()
         do {
             let decoded = try decoder.decode(DecodableWrapper<T>.self, from: data)

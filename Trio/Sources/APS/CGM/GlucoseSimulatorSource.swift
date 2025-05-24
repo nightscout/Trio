@@ -2,7 +2,7 @@
 // Trio
 // GlucoseSimulatorSource.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-02-28.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marvin Polscheit and Vasiliy Usov.
 //
 // Documentation available under: https://triodocs.org/
@@ -48,9 +48,7 @@ final class GlucoseSimulatorSource: GlucoseSource {
 
     /// The glucose generator used to create simulated values
     /// Uses OscillatingGenerator to create a sinusoidal pattern around 120 mg/dL
-    private lazy var generator: BloodGlucoseGenerator = {
-        OscillatingGenerator()
-    }()
+    private lazy var generator: BloodGlucoseGenerator = OscillatingGenerator()
 
     /// Determines if new glucose values can be generated based on the time elapsed since the last fetch
     private var canGenerateNewValues: Bool {

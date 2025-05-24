@@ -2,7 +2,7 @@
 // Trio
 // NightscoutManager.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Jonas Björkert on 2025-05-13.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Deniz Cengiz and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
@@ -111,7 +111,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         /// Ensure that Nightscout Manager holds the `lastEnactedDetermination`, if one exists, on initialization.
         /// We have to set this here in `init()`, so there's a `lastEnactedDetermination` available after an app restart
-        /// for `uploadDeviceStatus()`, as within that fuction `lastEnactedDetermination` is reassigned at the very end of the function.
+        /// for `uploadDeviceStatus()`, as within that fuction `lastEnactedDetermination` is reassigned at the very end of the
+        /// function.
         /// This way, we ensure the latest enacted determination is always part of `devicestatus` and avoid having instances
         /// where the first uploaded non-enacted determination (i.e., "suggested"), lacks the "enacted" data.
         Task {
@@ -138,7 +139,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
     private func registerHandlers() {
         /// We add debouncing behavior here for two main reasons
-        /// 1. To ensure that any upload flag updates have properly been performed, and in subsequent fetching processes only truly unuploaded data is fetched
+        /// 1. To ensure that any upload flag updates have properly been performed, and in subsequent fetching processes only
+        /// truly unuploaded data is fetched
         /// 2. To not spam the user's NS site with a high number of uploads in a very short amount of time (less than 1sec)
         coreDataPublisher?
             .filteredByEntityName("OrefDetermination")
@@ -294,7 +296,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 Task {
                     await self.uploadOverrides()
 
-                    // Post a notification indicating that the upload has finished and that we can end the background task in the OverridePresetsIntentRequest
+                    // Post a notification indicating that the upload has finished and that we can end the background task in the
+                    // OverridePresetsIntentRequest
                     Foundation.NotificationCenter.default.post(name: .didUpdateOverrideConfiguration, object: nil)
                 }
             }
@@ -306,7 +309,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 Task {
                     await self.uploadTempTargets()
 
-                    // Post a notification indicating that the upload has finished and that we can end the background task in the TempTargetPresetsIntentRequest
+                    // Post a notification indicating that the upload has finished and that we can end the background task in the
+                    // TempTargetPresetsIntentRequest
                     Foundation.NotificationCenter.default.post(name: .didUpdateTempTargetConfiguration, object: nil)
                 }
             }
@@ -540,7 +544,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         async let fetchedIOBEntry = storage.retrieveAsync(OpenAPS.Monitor.iob, as: [IOBEntry].self)
         async let fetchedPumpStatus = storage.retrieveAsync(OpenAPS.Monitor.status, as: PumpStatus.self)
 
-        var (fetchedEnactedDetermination, fetchedSuggestedDetermination) = try await (
+        var (fetchedEnactedDetermination, fetchedSuggestedDetermination) = try await(
             determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(enactedDeterminationID),
             determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(suggestedDeterminationID)
         )
@@ -554,7 +558,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             return
         }
 
-        // Unwrap fetchedSuggestedDetermination and manipulate the timestamp field to ensure deliverAt and timestamp for a suggestion truly match!
+        // Unwrap fetchedSuggestedDetermination and manipulate the timestamp field to ensure deliverAt and timestamp for a
+        // suggestion truly match!
         var modifiedSuggestedDetermination = fetchedSuggestedDetermination
         if var suggestion = fetchedSuggestedDetermination {
             suggestion.timestamp = suggestion.deliverAt
@@ -571,7 +576,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             suggestion.reason = injectTDD(into: suggestion.reason, tdd: tdd)
             suggestion.tdd = tdd
 
-            // Check whether the last suggestion that was uploaded is the same that is fetched again when we are attempting to upload the enacted determination
+            // Check whether the last suggestion that was uploaded is the same that is fetched again when we are attempting to
+            // upload the enacted determination
             // Apparently we are too fast; so the flag update is not fast enough to have the predicate filter last suggestion out
             // If this check is truthy, set suggestion to nil so it's not uploaded again
             if let lastSuggested = lastSuggestedDetermination, lastSuggested.deliverAt == suggestion.deliverAt {
@@ -1192,7 +1198,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 }
 
                 /// Check for an existing stored override and delete if needed
-                /// This is neccessary when a running override is cancelled, or replaced with a new override, before its duration is over.
+                /// This is neccessary when a running override is cancelled, or replaced with a new override, before its duration
+                /// is over.
                 try await overridesStorage.checkIfShouldDeleteNightscoutOverrideEntry(
                     forCreatedAt: createdAtString,
                     newDuration: overrideRun.duration,

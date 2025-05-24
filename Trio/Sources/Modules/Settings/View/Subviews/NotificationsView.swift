@@ -2,7 +2,7 @@
 // Trio
 // NotificationsView.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-02-19.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by tmhastings and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
@@ -103,7 +103,7 @@ struct NotificationsView: BaseView {
             }
         )
         .alert(
-            isPresented: self.$showAlert,
+            isPresented: $showAlert,
             content: { self.notificationReminder() }
         )
         .sheet(isPresented: $shouldDisplayHint) {

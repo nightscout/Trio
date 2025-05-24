@@ -2,29 +2,22 @@
 // Trio
 // HKUnit.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-02-19.
-// Most contributions by Ivan Valkou and Deniz Cengiz.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Ivan Valkou and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
 
 import HealthKit
 
 extension HKUnit {
-    static let milligramsPerDeciliter: HKUnit = {
-        HKUnit.gramUnit(with: .milli).unitDivided(by: .literUnit(with: .deci))
-    }()
+    static let milligramsPerDeciliter: HKUnit = HKUnit.gramUnit(with: .milli).unitDivided(by: .literUnit(with: .deci))
 
-    static let millimolesPerLiter: HKUnit = {
-        HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassBloodGlucose).unitDivided(by: .liter())
-    }()
+    static let millimolesPerLiter: HKUnit = HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassBloodGlucose)
+        .unitDivided(by: .liter())
 
-    static let internationalUnitsPerHour: HKUnit = {
-        HKUnit.internationalUnit().unitDivided(by: .hour())
-    }()
+    static let internationalUnitsPerHour: HKUnit = HKUnit.internationalUnit().unitDivided(by: .hour())
 
-    static let gramsPerUnit: HKUnit = {
-        HKUnit.gram().unitDivided(by: .internationalUnit())
-    }()
+    static let gramsPerUnit: HKUnit = HKUnit.gram().unitDivided(by: .internationalUnit())
 
     var foundationUnit: Unit? {
         if self == HKUnit.milligramsPerDeciliter {

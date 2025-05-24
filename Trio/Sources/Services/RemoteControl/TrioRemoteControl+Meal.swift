@@ -2,7 +2,7 @@
 // Trio
 // TrioRemoteControl+Meal.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Daniel Snällfot on 2025-03-18.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Jonas Björkert and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
@@ -67,7 +67,6 @@ extension TrioRemoteControl {
                         "Command rejected: newer carb entries have been logged since the command was sent.",
                         pushMessage: pushMessage
                     )
-                    return
                 }
             }
         }

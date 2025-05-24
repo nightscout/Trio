@@ -2,7 +2,7 @@
 // Trio
 // ShortcutsConfigView.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-02-19.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Deniz Cengiz and Auggie Fisher.
 //
 // Documentation available under: https://triodocs.org/
@@ -44,8 +44,8 @@ extension ShortcutsConfig {
                         UIApplication.shared.open(URL(string: "shortcuts://")!)
                     }
                     label: { Label("Open iOS Shortcuts", systemImage: "arrow.triangle.branch").font(.title3).padding() }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .buttonStyle(.bordered)
                 }
                 .listRowBackground(Color.clear)
 

@@ -2,7 +2,7 @@
 // Trio
 // NightscoutAPI.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Sam King on 2025-05-10.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Ivan Valkou and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
@@ -180,8 +180,6 @@ extension NightscoutAPI {
         guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
             throw URLError(.badServerResponse)
         }
-
-        return
     }
 
     func deleteManualGlucose(withId id: String) async throws {

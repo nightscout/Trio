@@ -2,7 +2,7 @@
 // Trio
 // HomeStateModel.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Sam King on 2025-05-10.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marvin Polscheit and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
@@ -228,7 +228,8 @@ extension Home {
             }
         }
 
-        // These combine subscribers are only necessary due to the batch inserts of glucose/FPUs which do not trigger a ManagedObjectContext change notification
+        // These combine subscribers are only necessary due to the batch inserts of glucose/FPUs which do not trigger a
+        // ManagedObjectContext change notification
         private func registerSubscribers() {
             glucoseStorage.updatePublisher
                 .receive(on: queue)
@@ -540,7 +541,8 @@ extension Home {
             Task {
                 await apsManager.cancelBolus(nil)
 
-                // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator again
+                // perform determine basal sync, otherwise you have could end up with too much iob when opening the calculator
+                // again
                 try await apsManager.determineBasalSync()
             }
         }

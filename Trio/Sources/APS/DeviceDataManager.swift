@@ -2,7 +2,7 @@
 // Trio
 // DeviceDataManager.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Sam King on 2025-05-10.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Ivan Valkou and avouspierre.
 //
 // Documentation available under: https://triodocs.org/
@@ -655,7 +655,7 @@ extension BaseDeviceDataManager: CGMManagerDelegate {
 
 extension BaseDeviceDataManager: AlertObserver {
     func AlertDidUpdate(_ alerts: [AlertEntry]) {
-        alerts.forEach { alert in
+        for alert in alerts {
             if alert.acknowledgedDate == nil {
                 ackAlert(alert: alert)
             }

@@ -2,8 +2,8 @@
 // Trio
 // HeartBeatManager.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-01-01.
-// Most contributions by Johan Degraeve and Jon B.M.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Johan Degraeve and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
 
@@ -46,7 +46,9 @@ class HeartBeatManager {
             UserDefaults.standard.cgmTransmitterDeviceAddress = sharedUserDefaults
                 .string(forKey: keyForcgmTransmitterDeviceAddress)
 
-            // assign new bluetoothTransmitter. If return value is nil, and if it was not nil before, and if it was currently connected then it will disconnect automatically, because there's no other reference to it, hence deinit will be called
+            // assign new bluetoothTransmitter. If return value is nil, and if it was not nil before, and if it was currently
+            // connected then it will disconnect automatically, because there's no other reference to it, hence deinit will be
+            // called
             bluetoothTransmitter = setupBluetoothTransmitter(sharedData: sharedUserDefaults, heartbeat: heartbeat)
         }
     }
@@ -74,7 +76,8 @@ class HeartBeatManager {
                 return newBluetoothTransmitter
 
             } else {
-                // looks like a coding error, xdrip4iOS did set a value for cgmTransmitterDeviceAddress in sharedUserDefaults but did not set a value for cgmTransmitter_CBUUID_Service or cgmTransmitter_CBUUID_Receive
+                // looks like a coding error, xdrip4iOS did set a value for cgmTransmitterDeviceAddress in sharedUserDefaults but
+                // did not set a value for cgmTransmitter_CBUUID_Service or cgmTransmitter_CBUUID_Receive
 
                 return nil
             }

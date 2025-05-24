@@ -2,7 +2,7 @@
 // Trio
 // SettingsManager.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by tmhastings and Ivan Valkou.
 //
 // Documentation available under: https://triodocs.org/
@@ -96,6 +96,7 @@ final class BaseSettingsManager: SettingsManager, Injectable {
         case .fiasp,
              .lyumjev:
             prefs.curve = .ultraRapid
+
         default:
             prefs.curve = .rapidActing
         }

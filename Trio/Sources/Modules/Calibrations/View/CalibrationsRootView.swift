@@ -2,7 +2,7 @@
 // Trio
 // CalibrationsRootView.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Mike Plante on 2025-03-11.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Ivan Valkou and Mike Plante.
 //
 // Documentation available under: https://triodocs.org/
@@ -67,7 +67,7 @@ extension Calibrations {
                             }
                         }
                         label: { Text("Add") }
-                            .disabled(state.newCalibration <= 0)
+                        .disabled(state.newCalibration <= 0)
                     }.listRowBackground(Color.chart)
 
                     Section(header: Text("Info")) {
@@ -88,13 +88,13 @@ extension Calibrations {
                             state.removeLast()
                         }
                         label: { Text("Remove Last") }
-                            .disabled(state.calibrations.isEmpty)
+                        .disabled(state.calibrations.isEmpty)
 
                         Button {
                             state.removeAll()
                         }
                         label: { Text("Remove All") }
-                            .disabled(state.calibrations.isEmpty)
+                        .disabled(state.calibrations.isEmpty)
                         List {
                             ForEach(state.items) { item in
                                 HStack {

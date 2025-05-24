@@ -2,7 +2,7 @@
 // Trio
 // UIDevice+Extensions.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marc G. Fournier and Marc G Fournier.
 //
 // Documentation available under: https://triodocs.org/
@@ -27,19 +27,16 @@ extension UIDevice {
                 return "iPhone 8 Plus"
             case "iPhone10,6":
                 return "iPhone X"
-
             case "iPhone11,2":
                 return "iPhone Xs"
             case "iPhone11,8":
                 return "iPhone XR"
-
             case "iPhone12,1":
                 return "iPhone 11"
             case "iPhone12,5":
                 return "iPhone 11 Pro Max"
             case "iPhone12,8":
                 return "iPhone SE (2nd Gen)"
-
             case "iPhone13,1":
                 return "iPhone 12 mini"
             case "iPhone13,2":
@@ -48,7 +45,6 @@ extension UIDevice {
                 return "iPhone 12 Pro"
             case "iPhone13,4":
                 return "iPhone 12 Pro Max"
-
             case "iPhone14,2":
                 return "iPhone 13 Pro"
             case "iPhone14,3":
@@ -63,12 +59,10 @@ extension UIDevice {
                 return "iPhone 14"
             case "iPhone14,8":
                 return "iPhone 14 Plus"
-
             case "iPhone15,2":
                 return "iPhone 14 Pro"
             case "iPhone15,3":
                 return "iPhone 14 Pro Max"
-
             default:
                 return identifier
             }

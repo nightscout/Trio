@@ -106,7 +106,8 @@ struct TrioMainWatchView: View {
             }
             .onAppear {
                 /// Hard reset variables when main view appears
-                /// Reset `bolusAmount` and `recommendedBolus` to ensure no stale / old value is set when user opens bolus input or meal combo the next time.
+                /// Reset `bolusAmount` and `recommendedBolus` to ensure no stale / old value is set when user opens bolus input
+                /// or meal combo the next time.
                 state.bolusAmount = 0
                 state.recommendedBolus = 0
             }

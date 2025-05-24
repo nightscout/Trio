@@ -2,7 +2,7 @@
 // Trio
 // ContactImageManager.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-03-05.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marvin Polscheit and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
@@ -185,7 +185,8 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     /// Updates the `ContactImageState` with the latest data from Core Data.
     /// This function fetches glucose values and determination entries, processes the data,
     /// and updates the `state` object, which represents the current contact trick state.
-    /// - Important: This function must be called on the main actor to ensure thread safety. Otherwise, we would need to ensure thread safety by either using an actor or a perform closure
+    /// - Important: This function must be called on the main actor to ensure thread safety. Otherwise, we would need to ensure
+    /// thread safety by either using an actor or a perform closure
     @MainActor func updateContactImageState() async {
         do {
             // Get NSManagedObjectIDs on backgroundContext

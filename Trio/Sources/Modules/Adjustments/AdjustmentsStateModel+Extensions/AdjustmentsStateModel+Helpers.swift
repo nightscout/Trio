@@ -2,8 +2,8 @@
 // Trio
 // AdjustmentsStateModel+Helpers.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-03-07.
-// Most contributions by Deniz Cengiz.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
 
@@ -14,7 +14,7 @@ extension Adjustments.StateModel {
     func percentageDescription(_ percent: Double) -> Text? {
         if percent.isNaN || percent == 100 { return nil }
 
-        var description: String = "Insulin doses will be "
+        var description = "Insulin doses will be "
 
         if percent < 100 {
             description += "decreased by "

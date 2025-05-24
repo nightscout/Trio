@@ -2,7 +2,7 @@
 // Trio
 // AppleWatchManager.swift
 // Created by Marvin Polscheit on 2025-01-02.
-// Last edited by t1dude on 2025-05-13.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Deniz Cengiz and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
@@ -155,7 +155,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     /// Prepares the current state data to be sent to the Watch
-    /// - Returns: WatchState containing current glucose readings and trends and determination infos for displaying cob and iob in the view
+    /// - Returns: WatchState containing current glucose readings and trends and determination infos for displaying cob and iob in
+    /// the view
     func setupWatchState() async -> WatchState {
         do {
             // Get NSManagedObjectIDs

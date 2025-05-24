@@ -2,7 +2,7 @@
 // Trio
 // TidepoolStartView.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-02-19.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Deniz Cengiz and dsnallfot.
 //
 // Documentation available under: https://triodocs.org/
@@ -55,8 +55,8 @@ struct TidepoolStartView: BaseView {
                                     state.setupTidepool.toggle()
                                 }
                                 label: { Text("Connect to Tidepool").font(.title3) }
-                                    .frame(maxWidth: .infinity, alignment: .center)
-                                    .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .buttonStyle(.bordered)
                             }
                         }
 

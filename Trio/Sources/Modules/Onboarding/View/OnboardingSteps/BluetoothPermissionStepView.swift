@@ -2,8 +2,8 @@
 // Trio
 // BluetoothPermissionStepView.swift
 // Created by Deniz Cengiz on 2025-04-18.
-// Last edited by Deniz Cengiz on 2025-05-17.
-// Most contributions by Deniz Cengiz.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
 
@@ -118,10 +118,13 @@ struct BluetoothPermissionStepView: View {
 /// Presents a real UIAlertController, pinned to the system's own style
 ///
 /// Why use this?
-/// SwiftUI’s built‑in .alert will always inherit the color scheme of its host view (in our case, we have forced .dark for the entire onboarding screen).
+/// SwiftUI’s built‑in .alert will always inherit the color scheme of its host view (in our case, we have forced .dark for the
+/// entire onboarding screen).
 /// There’s no way to tell SwiftUI “use the system setting here only for this one alert.”
-/// The workaround is to present a plain UIKit UIAlertController ourself, in its own representable, and explicitly tell it to use the system’s interface style instead of inheriting our forced dark mode.
-/// We enforce usage of the system's interface style by setting its overrideUserInterfaceStyle to whatever the device is actually using (.light or .dark).
+/// The workaround is to present a plain UIKit UIAlertController ourself, in its own representable, and explicitly tell it to use
+/// the system’s interface style instead of inheriting our forced dark mode.
+/// We enforce usage of the system's interface style by setting its overrideUserInterfaceStyle to whatever the device is actually
+/// using (.light or .dark).
 struct SystemAlert: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
 

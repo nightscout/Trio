@@ -2,7 +2,7 @@
 // Trio
 // LoopChartSetup.swift
 // Created by Marvin Polscheit on 2025-02-03.
-// Last edited by Sam King on 2025-05-10.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marvin Polscheit and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
@@ -128,7 +128,7 @@ extension Stat.StateModel {
         )
 
         // Wait for both results and convert to object IDs
-        let (allLoops, failedLoops) = try await (allLoopsResult, failedLoopsResult)
+        let (allLoops, failedLoops) = try await(allLoopsResult, failedLoopsResult)
 
         return (
             (allLoops as? [LoopStatRecord] ?? []).map(\.objectID),

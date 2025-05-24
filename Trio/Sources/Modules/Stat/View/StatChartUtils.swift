@@ -2,8 +2,8 @@
 // Trio
 // StatChartUtils.swift
 // Created by Deniz Cengiz on 2025-03-02.
-// Last edited by Deniz Cengiz on 2025-03-08.
-// Most contributions by Deniz Cengiz.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
 
@@ -11,7 +11,7 @@ import Charts
 import Foundation
 import SwiftUI
 
-struct StatChartUtils {
+enum StatChartUtils {
     /// Returns the time interval length for the visible domain based on the selected duration.
     /// - Parameter selectedInterval: The selected time interval for statistics.
     /// - Returns: The time interval in seconds.

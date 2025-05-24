@@ -2,7 +2,7 @@
 // Trio
 // MainStateModel.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-05-12.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by kskandis and Ivan Valkou.
 //
 // Documentation available under: https://triodocs.org/
@@ -343,8 +343,7 @@ extension MessageView {
     }
 }
 
-@available(iOS 16.0, *)
-extension Main.StateModel: CompletionDelegate {
+@available(iOS 16.0, *) extension Main.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
         // close the window
         router.mainSecondaryModalView.send(nil)

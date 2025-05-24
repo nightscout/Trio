@@ -2,7 +2,7 @@
 // Trio
 // GarminManager.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Sam King on 2025-05-10.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Deniz Cengiz and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
@@ -247,7 +247,8 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
             return await backgroundContext.perform {
                 var watchState = GarminWatchState()
 
-                /// Pull `glucose`, `trendRaw`, `delta`, `lastLoopDateInterval`, `iob`, `cob`,  `isf`, and `eventualBGRaw` from the latest determination.
+                /// Pull `glucose`, `trendRaw`, `delta`, `lastLoopDateInterval`, `iob`, `cob`,  `isf`, and `eventualBGRaw` from
+                /// the latest determination.
                 if let latestDetermination = determinationObjects.first {
                     watchState.lastLoopDateInterval = latestDetermination.timestamp.map {
                         guard $0.timeIntervalSince1970 > 0 else { return 0 }
@@ -421,7 +422,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// if each app is installed and then sending messages asynchronously.
     /// - Parameter state: The dictionary representing the watch state to be broadcast.
     private func broadcastStateToWatchApps(_ state: NSDictionary) {
-        watchApps.forEach { app in
+        for app in watchApps {
             connectIQ?.getAppStatus(app) { [weak self] status in
                 guard status?.isInstalled == true else {
                     debug(.watchManager, "Garmin: App not installed on device: \(app.uuid!)")

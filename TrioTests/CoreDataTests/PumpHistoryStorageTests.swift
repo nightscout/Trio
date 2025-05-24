@@ -2,7 +2,7 @@
 // Trio
 // PumpHistoryStorageTests.swift
 // Created by Marvin Polscheit on 2025-02-13.
-// Last edited by Sam King on 2025-04-22.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marvin Polscheit and Sam King.
 //
 // Documentation available under: https://triodocs.org/
@@ -42,7 +42,7 @@ import Testing
         injectServices(resolver)
     }
 
-    @Test("Storage is correctly initialized") func testStorageInitialization() {
+    @Test("Storage is correctly initialized") func storageInitialization() {
         // Verify storage exists
         #expect(storage != nil, "PumpHistoryStorage should be injected")
 
@@ -55,7 +55,7 @@ import Testing
         #expect(storage.updatePublisher != nil, "Update publisher should be available")
     }
 
-    @Test("Test read and delete using generic CoreDataStack functions") func testFetchAndDeletePumpEvents() async throws {
+    @Test("Test read and delete using generic CoreDataStack functions") func fetchAndDeletePumpEvents() async throws {
         // Given
         let date = Date()
 
@@ -234,7 +234,7 @@ import Testing
         #expect(bolusEvent?.isUploadedToTidepool == false, "Should not be uploaded to Tidepool")
     }
 
-    @Test("Test store function for manual boluses") func testStorePumpEventsWithManualBoluses() async throws {
+    @Test("Test store function for manual boluses") func storePumpEventsWithManualBoluses() async throws {
         // Given
         let date = Date()
 
@@ -296,7 +296,7 @@ import Testing
         #expect(fetchedEvent?.isUploadedToTidepool == false, "Should not be uploaded to Tidepool")
     }
 
-    @Test("Test duplicates in PumpHistoryStorage") func testDuplicatePumpEvents() async throws {
+    @Test("Test duplicates in PumpHistoryStorage") func duplicatePumpEvents() async throws {
         // Given
         let date = Date()
         let twoHoursAgo = date - 2.hours.timeInterval

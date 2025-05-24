@@ -2,8 +2,8 @@
 // Trio
 // LoopView.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-03-07.
-// Most contributions by Ivan Valkou and Marvin Polscheit.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Ivan Valkou and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
 
@@ -55,7 +55,8 @@ struct LoopView: View {
                 .deliverAt !=
                 nil
             {
-                // previously the .timestamp property was used here because this only gets updated when the reportenacted function in the aps manager gets called
+                // previously the .timestamp property was used here because this only gets updated when the reportenacted function
+                // in the aps manager gets called
                 Text(timeString)
             } else {
                 Text("--")
@@ -81,7 +82,8 @@ struct LoopView: View {
     private var color: Color {
         guard determination.first?.timestamp != nil
         else {
-            // previously the .timestamp property was used here because this only gets updated when the reportenacted function in the aps manager gets called
+            // previously the .timestamp property was used here because this only gets updated when the reportenacted function in
+            // the aps manager gets called
             return .secondary
         }
         guard manualTempBasal == false else {

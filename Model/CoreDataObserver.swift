@@ -2,7 +2,7 @@
 // Trio
 // CoreDataObserver.swift
 // Created by Marvin Polscheit on 2024-07-22.
-// Last edited by Marvin Polscheit on 2025-02-21.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
@@ -48,7 +48,6 @@ func changedObjectsOnManagedObjectContextDidSavePublisher(
     Foundation.NotificationCenter.default
         .publisher(for: .NSManagedObjectContextDidSave)
         .compactMap { notification -> Set<NSManagedObjectID>? in
-
             var objectIDs = Set<NSManagedObjectID>()
 
             // Process inserted objects if requested

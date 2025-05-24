@@ -2,7 +2,7 @@
 // Trio
 // ViewModifiers.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-02-06.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Ivan Valkou and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
@@ -132,10 +132,10 @@ struct ClearButton: ViewModifier {
             content
             if !text.isEmpty {
                 Button { self.text = "" }
-                label: {
-                    Image(systemName: "delete.left")
-                        .foregroundColor(.gray)
-                }
+                    label: {
+                        Image(systemName: "delete.left")
+                            .foregroundColor(.gray)
+                    }
             }
         }
     }

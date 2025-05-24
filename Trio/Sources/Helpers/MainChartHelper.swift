@@ -2,7 +2,7 @@
 // Trio
 // MainChartHelper.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Sam King on 2025-05-10.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marvin Polscheit and Sam King.
 //
 // Documentation available under: https://triodocs.org/
@@ -164,7 +164,6 @@ extension MainChartView {
 
     var mainChartYAxis: some AxisContent {
         AxisMarks(position: .trailing) { value in
-
             if displayYgridLines {
                 AxisGridLine(stroke: .init(lineWidth: 0.5, dash: [2, 3]))
             } else {

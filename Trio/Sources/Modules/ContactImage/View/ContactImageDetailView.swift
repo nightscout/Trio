@@ -2,7 +2,7 @@
 // Trio
 // ContactImageDetailView.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-02-10.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Deniz Cengiz and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
@@ -175,12 +175,12 @@ struct ContactImageDetailView: View {
             }, label: {
                 Text("Save").padding(10)
             })
-                .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
-                .background(isUnchanged ? Color(.systemGray4) : Color(.systemBlue))
-                .disabled(isUnchanged)
-                .tint(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .padding(5)
+            .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+            .background(isUnchanged ? Color(.systemGray4) : Color(.systemBlue))
+            .disabled(isUnchanged)
+            .tint(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(5)
         }
     }
 

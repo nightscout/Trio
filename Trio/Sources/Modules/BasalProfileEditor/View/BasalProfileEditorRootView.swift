@@ -2,8 +2,8 @@
 // Trio
 // BasalProfileEditorRootView.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-04-20.
-// Most contributions by Deniz Cengiz and Andreas Stokholm.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Andreas Stokholm and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
 
@@ -115,11 +115,11 @@ extension BasalProfileEditor {
                             .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
                             .padding(10)
                         })
-                            .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
-                            .disabled(shouldDisableButton)
-                            .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
-                            .tint(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                        .disabled(shouldDisableButton)
+                        .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
+                        .tint(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                 }.padding(5)
             }

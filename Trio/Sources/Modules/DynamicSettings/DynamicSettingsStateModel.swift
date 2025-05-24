@@ -2,7 +2,7 @@
 // Trio
 // DynamicSettingsStateModel.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by tmhastings on 2025-04-02.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Deniz Cengiz and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
@@ -54,7 +54,8 @@ extension DynamicSettings {
             units = settingsManager.settings.units
 
             /// DynamicISF handling
-            /// Initially, load once from storage and infer `dynamicSensitivityType` based on values of `useNewFormula` (log) and/or `sigmoid`
+            /// Initially, load once from storage and infer `dynamicSensitivityType` based on values of `useNewFormula` (log)
+            /// and/or `sigmoid`
             let storedUseNewFormula = settingsManager.preferences.useNewFormula
             let storedSigmoid = settingsManager.preferences.sigmoid
             inferDynamicSensitivityType(useNewFormula: storedUseNewFormula, sigmoid: storedSigmoid)

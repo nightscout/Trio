@@ -2,7 +2,7 @@
 // Trio
 // AddTempTargetForm.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-03-07.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Robert and Mike Plante.
 //
 // Documentation available under: https://triodocs.org/
@@ -29,7 +29,8 @@ struct AddTempTargetForm: View {
     @State private var hasChanges = false
 
     @State private var didPressSave =
-        false // only used for fixing the Disclaimer showing up after pressing save (after the state was resetted), maybe refactor this...
+        false // only used for fixing the Disclaimer showing up after pressing save (after the state was resetted), maybe refactor
+    // this...
     @State private var shouldDisplayHint = false
     @State var hintDetent = PresentationDetent.large
     @State var selectedVerboseHint: String?
@@ -263,7 +264,9 @@ struct AddTempTargetForm: View {
                                 if noNameSpecified { state.tempTargetName = "Custom Target" }
                                 didPressSave.toggle()
 
-                                /// We need to call dismiss() either before state.invokeSaveOfCustomTempTargets() or as a callback within the function BEFORE we await the Task, otherwise the sheet gets only closed when the scheduled Temp Target gets enacted
+                                /// We need to call dismiss() either before state.invokeSaveOfCustomTempTargets() or as a callback
+                                /// within the function BEFORE we await the Task, otherwise the sheet gets only closed when the
+                                /// scheduled Temp Target gets enacted
                                 dismiss()
 
                                 try await state.invokeSaveOfCustomTempTargets()
@@ -274,9 +277,9 @@ struct AddTempTargetForm: View {
                     }, label: {
                         Text("Start Temp Target")
                     })
-                        .disabled(isTempTargetInvalid)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .tint(.white)
+                    .disabled(isTempTargetInvalid)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .tint(.white)
                 }
             ).listRowBackground(isTempTargetInvalid ? Color(.systemGray4) : Color(.systemBlue))
 
@@ -296,9 +299,9 @@ struct AddTempTargetForm: View {
                     Text("Save as Preset")
 
                 })
-                    .disabled(isSavePresetInvalid)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .tint(.white)
+                .disabled(isSavePresetInvalid)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .tint(.white)
             }
 
             .listRowBackground(

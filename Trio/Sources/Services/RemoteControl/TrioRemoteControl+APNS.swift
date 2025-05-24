@@ -2,7 +2,7 @@
 // Trio
 // TrioRemoteControl+APNS.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Jonas Björkert on 2025-03-15.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Jonas Björkert and Marvin Polscheit.
 //
 // Documentation available under: https://triodocs.org/
@@ -10,7 +10,7 @@
 import Foundation
 
 extension TrioRemoteControl {
-    internal func handleAPNSChanges(deviceToken: String?) async throws {
+    func handleAPNSChanges(deviceToken: String?) async throws {
         let previousDeviceToken = UserDefaults.standard.string(forKey: "deviceToken")
         let previousIsAPNSProduction = UserDefaults.standard.bool(forKey: "isAPNSProduction")
 

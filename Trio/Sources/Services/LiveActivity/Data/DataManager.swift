@@ -2,17 +2,17 @@
 // Trio
 // DataManager.swift
 // Created by Deniz Cengiz on 2025-01-01.
-// Last edited by Deniz Cengiz on 2025-03-06.
+// Last edited by Marvin Polscheit on 2025-05-24.
 // Most contributions by Marvin Polscheit and Deniz Cengiz.
 //
 // Documentation available under: https://triodocs.org/
 
 import Foundation
 
-// Fetch Data for Glucose and Determination from Core Data and map them to the Structs in order to pass them thread safe to the glucoseDidUpdate/ pushUpdate function
+// Fetch Data for Glucose and Determination from Core Data and map them to the Structs in order to pass them thread safe to the
+// glucoseDidUpdate/ pushUpdate function
 
-@available(iOS 16.2, *)
-extension LiveActivityManager {
+@available(iOS 16.2, *) extension LiveActivityManager {
     func fetchAndMapGlucose() async throws -> [GlucoseData] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
