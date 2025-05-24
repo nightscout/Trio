@@ -56,8 +56,6 @@ generate_header() {
 // Most contributions by ${top_contributor}${second_contributor:+ and ${second_contributor}}.
 //
 // Documentation available under: https://triodocs.org/
-//
-//
 EOF
 }
 
