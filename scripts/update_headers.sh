@@ -175,6 +175,13 @@ main() {
             process_file "$file"
         fi
     done < <(get_modified_files)
+
+    # Find all Swift files
+    #while IFS= read -r -d '' file; do
+    #    if ! is_excluded "$file"; then
+    #        process_file "$file"
+    #    fi
+    #done < <(find . -name "*.swift" -type f -print0)
     
     echo -e "${GREEN}✨ Done!${NC}"
 }
