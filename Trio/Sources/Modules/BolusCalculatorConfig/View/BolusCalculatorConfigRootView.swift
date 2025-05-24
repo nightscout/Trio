@@ -115,7 +115,9 @@ extension BolusCalculatorConfig {
                         Text(
                             "If you have a \"Recommended Bolus Percentage\" of 80%, and a \"Reduced Bolus Percentage\" of 70%, your recommended bolus will be multiplied by: (80 × 70) / 100 = 56%."
                         )
-                        Text("This could be useful for slow absorbing meals like pizza.")
+                        Text(
+                            "This is useful for slow-absorbing meals where high fat, protein, or fiber can delay carb absorption and cause a slower rise in blood sugar, so a reduced bolus helps match insulin to the delayed effect."
+                        )
                     }
                 )
 
