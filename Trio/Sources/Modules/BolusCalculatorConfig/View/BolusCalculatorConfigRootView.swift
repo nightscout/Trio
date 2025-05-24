@@ -93,13 +93,13 @@ extension BolusCalculatorConfig {
                         get: { selectedVerboseHint },
                         set: {
                             selectedVerboseHint = $0.map { AnyView($0) }
-                            hintLabel = String(localized: "Fatty Meal")
+                            hintLabel = String(localized: "Reduced Bolus")
                         }
                     ),
                     units: state.units,
                     type: .conditionalDecimal("fattyMealFactor"),
-                    label: String(localized: "Enable Fatty Meal Option"),
-                    conditionalLabel: String(localized: "Fatty Meal Bolus Percentage"),
+                    label: String(localized: "Enable Reduced Bolus Option"),
+                    conditionalLabel: String(localized: "Reduced Bolus Percentage"),
                     miniHint: String(localized: "Add and set a bolus option for meals that absorb slowly."),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
@@ -107,15 +107,17 @@ extension BolusCalculatorConfig {
                         Text("Default Percent: 70%").bold()
                         Text("Do not enable this feature until you have optimized your CR (carb ratio) setting.").bold()
                         Text(
-                            "Enabling this setting adds a \"Fatty Meal\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear for you to select."
+                            "Enabling this setting adds a \"Reduced Bolus\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear for you to select."
                         )
                         Text(
-                            "When \"Fatty Meal\" is selected in the bolus calculator, the recommended bolus will be multiplied by the \"Fatty Meal Bolus Percentage\" as well as the \"Recommended Bolus Percentage\"."
+                            "When \"Reduced Bolus\" is selected in the bolus calculator, the recommended bolus will be multiplied by the \"Reduced Bolus Percentage\" as well as the \"Recommended Bolus Percentage\"."
                         )
                         Text(
-                            "If you have a \"Recommended Bolus Percentage\" of 80%, and a \"Fatty Meal Bolus Percentage\" of 70%, your recommended bolus will be multiplied by: (80 × 70) / 100 = 56%."
+                            "If you have a \"Recommended Bolus Percentage\" of 80%, and a \"Reduced Bolus Percentage\" of 70%, your recommended bolus will be multiplied by: (80 × 70) / 100 = 56%."
                         )
-                        Text("This could be useful for slow absorbing meals like pizza.")
+                        Text(
+                            "This is useful for slow-absorbing meals where high fat, protein, or fiber can delay carb absorption and cause a slower rise in blood sugar, so a reduced bolus helps match insulin to the delayed effect."
+                        )
                     }
                 )
 
