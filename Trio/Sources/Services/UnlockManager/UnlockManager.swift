@@ -5,10 +5,6 @@ protocol UnlockManager {
     func unlock() async throws -> Bool
 }
 
-struct UnlockError: Error {
-    let error: Error?
-}
-
 final class BaseUnlockManager: UnlockManager {
     @MainActor func unlock() async throws -> Bool {
         let context = LAContext()
@@ -18,7 +14,7 @@ final class BaseUnlockManager: UnlockManager {
             _ = try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)
             return true
         } catch {
-            throw UnlockError(error: error)
+            throw error
         }
     }
 }

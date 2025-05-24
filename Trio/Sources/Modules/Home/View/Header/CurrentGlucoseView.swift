@@ -81,17 +81,7 @@ struct CurrentGlucoseView: View {
                         }
                     }
                     HStack {
-                        let minutesAgo = -1 * (glucose.last?.date?.timeIntervalSinceNow ?? 0) / 60
-                        var minutesAgoString: String {
-                            if minutesAgo > 1 {
-                                let minuteString = Formatter.timaAgoFormatter.string(for: Double(minutesAgo)) ?? ""
-                                return minuteString + "\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
-                            } else {
-                                return "<" + "\u{00A0}" + "1" + "\u{00A0}" +
-                                    String(localized: "m", comment: "Abbreviation for Minutes")
-                            }
-                        }
-
+                        let minutesAgoString = TimeAgoFormatter.minutesAgo(from: glucose.last?.date)
                         Group {
                             Text(minutesAgoString)
                             Text(delta)

@@ -247,6 +247,7 @@
 		3B997DCB2DC00849006B6BB2 /* JSONImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B997DCA2DC00849006B6BB2 /* JSONImporter.swift */; };
 		3B997DCF2DC00A3A006B6BB2 /* JSONImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */; };
 		3B997DD32DC02AEF006B6BB2 /* glucose.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B997DD12DC02AEF006B6BB2 /* glucose.json */; };
+		3BA8D1B32DDB87150006191F /* DecimalExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */; };
 		3BAD36B22D7CDC1A00CC298D /* MainLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */; };
 		3BAD36CC2D7D420E00CC298D /* CoreDataInitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */; };
 		3BCA5F7C2DC7B16400A7EAC7 /* pumphistory-with-external.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */; };
@@ -615,6 +616,7 @@
 		DDB37CC72D05127500D99BF4 /* FontExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB37CC62D05127500D99BF4 /* FontExtensions.swift */; };
 		DDBD53FC2DAA903100F940A6 /* OverviewStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDBD53FB2DAA903100F940A6 /* OverviewStepView.swift */; };
 		DDC38E102D9B377800ADCB46 /* OnboardingView+Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC38E0F2D9B376900ADCB46 /* OnboardingView+Util.swift */; };
+		DDC6CA6D2DD90A2A0060EE25 /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC6CA6C2DD90A2A0060EE25 /* LocalizationTests.swift */; };
 		DDCAE8332D78D4A800B1BB51 /* TherapySettingsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */; };
 		DDCE790F2D6F97FC000A4D7A /* SubmodulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */; };
 		DDCEBF5B2CC1B76400DF4C36 /* LiveActivity+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */; };
@@ -625,6 +627,7 @@
 		DDD1631A2C4C695E00CD525A /* EditOverrideForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD163192C4C695E00CD525A /* EditOverrideForm.swift */; };
 		DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */; };
 		DDD1631F2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DDD1631D2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodeld */; };
+		DDD5889D2DDDC9A900C8848D /* TimeAgoFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD5889C2DDDC9A900C8848D /* TimeAgoFormatter.swift */; };
 		DDD6D4D32CDE90720029439A /* EstimatedA1cDisplayUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD6D4D22CDE90720029439A /* EstimatedA1cDisplayUnit.swift */; };
 		DDD78A912DC4064800AC63F3 /* carbhistory.json in Resources */ = {isa = PBXBuildFile; fileRef = DDD78A902DC4064800AC63F3 /* carbhistory.json */; };
 		DDD78AD92DC421B500AC63F3 /* enacted.json in Resources */ = {isa = PBXBuildFile; fileRef = DDD78AD72DC421B500AC63F3 /* enacted.json */; };
@@ -1056,6 +1059,7 @@
 		3B997DCA2DC00849006B6BB2 /* JSONImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONImporter.swift; sourceTree = "<group>"; };
 		3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONImporterTests.swift; sourceTree = "<group>"; };
 		3B997DD12DC02AEF006B6BB2 /* glucose.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = glucose.json; sourceTree = "<group>"; };
+		3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalExtensions.swift; sourceTree = "<group>"; };
 		3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainLoadingView.swift; sourceTree = "<group>"; };
 		3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataInitializationCoordinator.swift; sourceTree = "<group>"; };
 		3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-with-external.json"; sourceTree = "<group>"; };
@@ -1430,6 +1434,7 @@
 		DDB37CC62D05127500D99BF4 /* FontExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtensions.swift; sourceTree = "<group>"; };
 		DDBD53FB2DAA903100F940A6 /* OverviewStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewStepView.swift; sourceTree = "<group>"; };
 		DDC38E0F2D9B376900ADCB46 /* OnboardingView+Util.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnboardingView+Util.swift"; sourceTree = "<group>"; };
+		DDC6CA6C2DD90A2A0060EE25 /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
 		DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapySettingsUtil.swift; sourceTree = "<group>"; };
 		DDCE790E2D6F97F7000A4D7A /* SubmodulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmodulesView.swift; sourceTree = "<group>"; };
 		DDCEBF5A2CC1B76400DF4C36 /* LiveActivity+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LiveActivity+Helper.swift"; sourceTree = "<group>"; };
@@ -1440,6 +1445,7 @@
 		DDD163192C4C695E00CD525A /* EditOverrideForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditOverrideForm.swift; sourceTree = "<group>"; };
 		DDD1631B2C4C697400CD525A /* AddOverrideForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddOverrideForm.swift; sourceTree = "<group>"; };
 		DDD1631E2C4C6F6900CD525A /* TrioCoreDataPersistentContainer.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrioCoreDataPersistentContainer.xcdatamodel; sourceTree = "<group>"; };
+		DDD5889C2DDDC9A900C8848D /* TimeAgoFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeAgoFormatter.swift; sourceTree = "<group>"; };
 		DDD6D4D22CDE90720029439A /* EstimatedA1cDisplayUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EstimatedA1cDisplayUnit.swift; sourceTree = "<group>"; };
 		DDD78A902DC4064800AC63F3 /* carbhistory.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = carbhistory.json; sourceTree = "<group>"; };
 		DDD78AD72DC421B500AC63F3 /* enacted.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = enacted.json; sourceTree = "<group>"; };
@@ -2382,6 +2388,7 @@
 		388E5A5A25B6F05F0019842D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				DDD5889C2DDDC9A900C8848D /* TimeAgoFormatter.swift */,
 				DD82D4B72DCAB2BA00BAFC77 /* PropertyPersistentFlags.swift */,
 				DDCAE8322D78D49C00B1BB51 /* TherapySettingsUtil.swift */,
 				BD249DA62D42FE3800412DEB /* Calendar+GlucoseStatsChart.swift */,
@@ -2442,13 +2449,14 @@
 		38A504F625DDA0E200C5B9E8 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				CE2FAD39297D93F0001A872C /* BloodGlucoseExtensions.swift */,
+				3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */,
 				DDB37CC62D05127500D99BF4 /* FontExtensions.swift */,
-				38A5049125DD9C4000C5B9E8 /* UserDefaultsExtensions.swift */,
-				38BF021625E7CBBC00579895 /* PumpManagerExtensions.swift */,
 				CEB434E628B9053300B70274 /* LoopUIColorPalette+Default.swift */,
 				CE48C86328CA69D5007C0598 /* OmniBLEPumpManagerExtensions.swift */,
 				CE48C86528CA6B48007C0598 /* OmniPodManagerExtensions.swift */,
-				CE2FAD39297D93F0001A872C /* BloodGlucoseExtensions.swift */,
+				38BF021625E7CBBC00579895 /* PumpManagerExtensions.swift */,
+				38A5049125DD9C4000C5B9E8 /* UserDefaultsExtensions.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -2557,6 +2565,7 @@
 		38FCF3EE25E9028E0078B0D1 /* TrioTests */ = {
 			isa = PBXGroup;
 			children = (
+				DDC6CA6C2DD90A2A0060EE25 /* LocalizationTests.swift */,
 				3B997DD22DC02AEF006B6BB2 /* JSONImporterData */,
 				BD8FC05C2D6618BE00B95AED /* BolusCalculatorTests */,
 				BD8FC0552D66187700B95AED /* CoreDataTests */,
@@ -4148,6 +4157,7 @@
 				CEB434E328B8F9DB00B70274 /* BluetoothStateManager.swift in Sources */,
 				BDC2EA452C3043B000E5BBD0 /* OverrideStorage.swift in Sources */,
 				3811DE4225C9D4A100A708ED /* SettingsDataFlow.swift in Sources */,
+				DDD5889D2DDDC9A900C8848D /* TimeAgoFormatter.swift in Sources */,
 				CEE9A6562BBB418300EB5194 /* CalibrationsRootView.swift in Sources */,
 				3811DE2525C9D48300A708ED /* MainRootView.swift in Sources */,
 				CE94598229E9E3D30047C9C6 /* WatchConfigProvider.swift in Sources */,
@@ -4535,6 +4545,7 @@
 				DDD163122C4C689900CD525A /* AdjustmentsStateModel.swift in Sources */,
 				BD47FDD72D8B64D20043966B /* CarbRatioStepView.swift in Sources */,
 				3B2F77862D7E52ED005ED9FA /* TDD.swift in Sources */,
+				3BA8D1B32DDB87150006191F /* DecimalExtensions.swift in Sources */,
 				DD3F1F892D9E078D00DCE7B3 /* TherapySettingEditorView.swift in Sources */,
 				DD1745132C54169400211FAC /* DevicesView.swift in Sources */,
 				7F7B756BE8543965D9FDF1A2 /* DataTableDataFlow.swift in Sources */,
@@ -4632,6 +4643,7 @@
 				CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */,
 				BD8FC0622D6619E600B95AED /* OverrideStorageTests.swift in Sources */,
 				BD8FC0592D66189700B95AED /* TestAssembly.swift in Sources */,
+				DDC6CA6D2DD90A2A0060EE25 /* LocalizationTests.swift in Sources */,
 				3B997DCF2DC00A3A006B6BB2 /* JSONImporterTests.swift in Sources */,
 				BD8FC0662D661A0000B95AED /* GlucoseStorageTests.swift in Sources */,
 				BD8FC05B2D6618AF00B95AED /* DeterminationStorageTests.swift in Sources */,
