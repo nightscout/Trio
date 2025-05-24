@@ -128,9 +128,9 @@ enum SettingItems {
             title: "Dynamic Settings",
             view: .dynamicISF,
             searchContents: [
-                "Activate Dynamic Sensitivity (ISF)",
-                "Activate Dynamic Carb Ratio (CR)",
+                "Dynamic ISF",
                 "Use Sigmoid Formula",
+                "Use Logarithmic Formula",
                 "Adjustment Factor",
                 "AF",
                 "Sigmoid Adjustment Factor",
