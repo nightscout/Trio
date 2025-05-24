@@ -399,18 +399,16 @@ extension Home {
                 /// eventualBG string at bottomTrailing
 
                 if let eventualBG = state.enactedAndNonEnactedDeterminations.first?.eventualBG {
-                    let bg = eventualBG as Decimal
+                    let eventualGlucose = eventualBG as Decimal
                     HStack {
                         Image(systemName: "arrow.right.circle")
-                            .font(.callout).fontWeight(.bold)
-                        Text(
-                            Formatter.decimalFormatterWithTwoFractionDigits.string(
-                                from: (
-                                    state.units == .mmolL ? bg
-                                        .asMmolL : bg
-                                ) as NSNumber
-                            )!
-                        ).font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                            .font(.callout)
+                            .fontWeight(.bold)
+
+                        Text(state.units == .mgdL ? eventualGlucose.description : eventualGlucose.formattedAsMmolL)
+                            .font(.callout)
+                            .fontWeight(.bold)
+                            .fontDesign(.rounded)
                     }
                     // aligns the evBG icon exactly with the first pixel of loop status icon
                     .padding(.leading, 12)
