@@ -1,13 +1,16 @@
 import Foundation
 
-enum CGMType: String, JSON, CaseIterable, Identifiable {
+enum CGMType: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     case none
     case nightscout
     case xdrip
-    case simulator
     case enlite
     case plugin
+
+    #if DEBUG_SIMULATORS
+        case simulator
+    #endif
 
     var displayName: String {
         switch self {
@@ -17,12 +20,14 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
             return "Nightscout as CGM"
         case .xdrip:
             return "xDrip4iOS"
-        case .simulator:
-            return String(localized: "Glucose Simulator", comment: "Glucose Simulator CGM type")
         case .enlite:
             return "Medtronic Enlite"
         case .plugin:
             return "Plugin CGM"
+        #if DEBUG_SIMULATORS
+            case .simulator:
+                return String(localized: "Glucose Simulator", comment: "Glucose Simulator CGM type")
+        #endif
         }
     }
 
@@ -34,10 +39,12 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
             return nil
         case .xdrip:
             return URL(string: "xdripswift://")!
-        case .simulator:
-            return nil
         case .plugin:
             return nil
+        #if DEBUG_SIMULATORS
+            case .simulator:
+                return nil
+        #endif
         }
     }
 
@@ -61,12 +68,14 @@ enum CGMType: String, JSON, CaseIterable, Identifiable {
                 "Using shared app group with external CGM app xDrip4iOS",
                 comment: "Shared app group xDrip4iOS"
             )
-        case .simulator:
-            return String(localized: "Glucose Simulator for Demo Only", comment: "Simple simulator")
         case .enlite:
             return String(localized: "Minilink transmitter", comment: "Minilink transmitter")
         case .plugin:
             return String(localized: "Plugin CGM", comment: "Plugin CGM")
+        #if DEBUG_SIMULATORS
+            case .simulator:
+                return String(localized: "Glucose Simulator for Demo Only", comment: "Simple simulator")
+        #endif
         }
     }
 }

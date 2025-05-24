@@ -62,9 +62,12 @@ extension CGMSettings {
                             nightscoutSection
                         } else if cgmCurrent.type == .xdrip {
                             xDripConfigurationSection
-                        } else if cgmCurrent.type == .simulator {
-                            simulatorConfigurationSection
                         }
+                        #if DEBUG_SIMULATORS
+                            if cgmCurrent.type == .simulator {
+                                simulatorConfigurationSection
+                            }
+                        #endif
 
                         if let appURL = cgmCurrent.type.appURL {
                             Section {
@@ -121,9 +124,11 @@ extension CGMSettings {
                     }
                 } message: { Text("Are you sure you want to delete \(cgmCurrent.displayName)?") }
                 .onAppear {
-                    if cgmCurrent.type == .simulator {
-                        initializeSimulatorSettings()
-                    }
+                    #if DEBUG_SIMULATORS
+                        if cgmCurrent.type == .simulator {
+                            initializeSimulatorSettings()
+                        }
+                    #endif
                 }
             }
         }
