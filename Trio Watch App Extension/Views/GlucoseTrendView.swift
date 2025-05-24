@@ -1,3 +1,12 @@
+//
+// Trio
+// GlucoseTrendView.swift
+// Created by Deniz Cengiz on 2025-01-03.
+// Last edited by Deniz Cengiz on 2025-02-21.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct GlucoseTrendView: View {

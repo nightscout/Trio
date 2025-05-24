@@ -1,16 +1,11 @@
-/// Glucose source - Blood Glucose Simulator
-///
-/// Source publish fake data about glucose's level, creates ascending and descending trends
-///
-/// Enter point of Source is GlucoseSimulatorSource.fetch method. Method is called from FetchGlucoseManager module.
-/// Not more often than a specified period (default - 300 seconds), it returns a Combine-publisher that publishes data on glucose values (global type BloodGlucose). If there is no up-to-date data (or the publication period has not passed yet), then a publisher of type Empty is returned, otherwise it returns a publisher of type Just.
-///
-/// Simulator composition
-/// ===================
-///
-/// class GlucoseSimulatorSource - main class
-/// protocol BloodGlucoseGenerator
-///  - OscillatingGenerator: BloodGlucoseGenerator - Generates sinusoidal glucose values around a center point
+//
+// Trio
+// GlucoseSimulatorSource.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-02-28.
+// Most contributions by Marvin Polscheit and Vasiliy Usov.
+//
+// Documentation available under: https://triodocs.org/
 
 import Combine
 import Foundation

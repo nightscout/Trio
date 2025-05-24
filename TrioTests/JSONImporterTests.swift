@@ -1,9 +1,12 @@
 //
-//  JSONImporterTests.swift
-//  Trio
+// Trio
+// JSONImporterTests.swift
+// Created by Deniz Cengiz on 2025-04-21.
+// Last edited by Sam King on 2025-05-04.
+// Most contributions by Deniz Cengiz and Sam King.
 //
-//  Created by Cengiz Deniz on 21.04.25.
-//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 import Swinject

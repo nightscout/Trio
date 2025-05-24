@@ -1,3 +1,12 @@
+//
+// Trio
+// BolusProgressOverlay.swift
+// Created by Marvin Polscheit on 2025-01-04.
+// Last edited by Deniz Cengiz on 2025-04-19.
+// Most contributions by Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 // import SwiftUI
 //
 // struct BolusProgressOverlay: View {

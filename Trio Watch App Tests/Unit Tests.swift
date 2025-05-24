@@ -1,3 +1,12 @@
+//
+// Trio
+// Unit Tests.swift
+// Created by Marvin Polscheit on 2025-01-08.
+// Last edited by Marvin Polscheit on 2025-01-08.
+// Most contributions by Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUICore
 import Testing
 @testable import Trio_Watch_App

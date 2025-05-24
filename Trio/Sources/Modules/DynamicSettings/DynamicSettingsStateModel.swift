@@ -1,3 +1,12 @@
+//
+// Trio
+// DynamicSettingsStateModel.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by tmhastings on 2025-04-02.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import CoreData
 import Observation

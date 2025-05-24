@@ -1,3 +1,12 @@
+//
+// Trio
+// HeartBeatManager.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-01-01.
+// Most contributions by Johan Degraeve and Jon B.M.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 class HeartBeatManager {

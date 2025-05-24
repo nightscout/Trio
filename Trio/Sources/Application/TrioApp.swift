@@ -1,3 +1,12 @@
+//
+// Trio
+// TrioApp.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Sam King on 2025-05-12.
+// Most contributions by Deniz Cengiz and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import BackgroundTasks
 import CoreData
 import Foundation

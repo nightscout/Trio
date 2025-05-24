@@ -1,3 +1,12 @@
+//
+// Trio
+// CalibrationsTests.swift
+// Created by Deniz Cengiz on 2025-01-05.
+// Last edited by Deniz Cengiz on 2025-03-01.
+// Most contributions by Marvin Polscheit and Pierre L.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import Swinject
 import Testing

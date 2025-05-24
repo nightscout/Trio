@@ -1,3 +1,12 @@
+//
+// Trio
+// TrioRemoteControl+APNS.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Jonas Björkert on 2025-03-15.
+// Most contributions by Jonas Björkert and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 extension TrioRemoteControl {

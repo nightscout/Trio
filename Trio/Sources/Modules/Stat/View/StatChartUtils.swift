@@ -1,3 +1,12 @@
+//
+// Trio
+// StatChartUtils.swift
+// Created by Deniz Cengiz on 2025-03-02.
+// Last edited by Deniz Cengiz on 2025-03-08.
+// Most contributions by Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import Foundation
 import SwiftUI

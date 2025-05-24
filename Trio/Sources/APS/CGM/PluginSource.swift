@@ -1,3 +1,12 @@
+//
+// Trio
+// PluginSource.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Sam King on 2025-03-13.
+// Most contributions by avouspierre and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import CGMBLEKit
 import Combine
 import Foundation

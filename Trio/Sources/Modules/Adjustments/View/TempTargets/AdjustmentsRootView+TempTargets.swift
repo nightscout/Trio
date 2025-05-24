@@ -1,3 +1,12 @@
+//
+// Trio
+// AdjustmentsRootView+TempTargets.swift
+// Created by Deniz Cengiz on 2025-01-09.
+// Last edited by Deniz Cengiz on 2025-03-23.
+// Most contributions by Deniz Cengiz and dsnallfot.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import SwiftUI
 

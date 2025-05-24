@@ -1,3 +1,12 @@
+//
+// Trio
+// CarbRatioEditorRootView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-04-20.
+// Most contributions by Andreas Stokholm and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import SwiftUI
 import Swinject

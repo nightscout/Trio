@@ -1,3 +1,12 @@
+//
+// Trio
+// CoreDataError.swift
+// Created by Marvin Polscheit on 2024-05-27.
+// Last edited by Deniz Cengiz on 2025-02-21.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 enum CoreDataError: Error {

@@ -1,3 +1,12 @@
+//
+// Trio
+// AdjustmentsRootView+Overrides.swift
+// Created by Deniz Cengiz on 2025-01-09.
+// Last edited by Deniz Cengiz on 2025-03-07.
+// Most contributions by Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import SwiftUI
 

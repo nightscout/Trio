@@ -1,3 +1,12 @@
+//
+// Trio
+// LoopChartSetup.swift
+// Created by Marvin Polscheit on 2025-02-03.
+// Last edited by Sam King on 2025-05-10.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

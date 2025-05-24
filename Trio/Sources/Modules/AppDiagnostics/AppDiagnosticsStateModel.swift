@@ -1,3 +1,12 @@
+//
+// Trio
+// AppDiagnosticsStateModel.swift
+// Created by Deniz Cengiz on 2025-04-06.
+// Last edited by Sam King on 2025-05-07.
+// Most contributions by Deniz Cengiz and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import FirebaseCrashlytics
 import Observation
 import SwiftUI

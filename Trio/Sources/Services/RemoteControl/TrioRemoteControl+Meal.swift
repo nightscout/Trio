@@ -1,3 +1,12 @@
+//
+// Trio
+// TrioRemoteControl+Meal.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Daniel Snällfot on 2025-03-18.
+// Most contributions by Jonas Björkert and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 extension TrioRemoteControl {

@@ -1,3 +1,12 @@
+//
+// Trio
+// LiveActivitySettingsRootView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-03-01.
+// Most contributions by Deniz Cengiz and tmhastings.
+//
+// Documentation available under: https://triodocs.org/
+
 import ActivityKit
 import SwiftUI
 import Swinject

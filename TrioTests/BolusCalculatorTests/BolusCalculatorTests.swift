@@ -1,3 +1,12 @@
+//
+// Trio
+// BolusCalculatorTests.swift
+// Created by Marvin Polscheit on 2025-02-13.
+// Last edited by Deniz Cengiz on 2025-05-04.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import Testing
 

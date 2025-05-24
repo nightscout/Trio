@@ -1,9 +1,12 @@
 //
-//  BasalProfileStepView.swift
-//  Trio
+// Trio
+// BasalProfileStepView.swift
+// Created by Deniz Cengiz on 2025-05-04.
+// Last edited by Deniz Cengiz on 2025-05-04.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
 //
-//  Created by Marvin Polscheit on 19.03.25.
-//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import SwiftUI
 import UIKit

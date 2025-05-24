@@ -1,3 +1,12 @@
+//
+// Trio
+// ManualTempBasalRootView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Mike Plante on 2025-03-11.
+// Most contributions by Ivan Valkou and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 import Swinject
 

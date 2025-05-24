@@ -1,3 +1,12 @@
+//
+// Trio
+// GlucoseStorageTests.swift
+// Created by Marvin Polscheit on 2025-02-19.
+// Last edited by Sam King on 2025-03-07.
+// Most contributions by Marvin Polscheit and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 import Swinject

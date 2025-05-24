@@ -1,3 +1,12 @@
+//
+// Trio
+// AdjustmentsRootView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-01-09.
+// Most contributions by Marvin Polscheit and Robert.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import SwiftUI
 import Swinject

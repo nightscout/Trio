@@ -1,3 +1,12 @@
+//
+// Trio
+// ContactImageManager.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-03-05.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import Contacts
 import CoreData

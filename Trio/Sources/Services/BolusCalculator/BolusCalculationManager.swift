@@ -1,3 +1,12 @@
+//
+// Trio
+// BolusCalculationManager.swift
+// Created by Marvin Polscheit on 2025-01-08.
+// Last edited by Sam King on 2025-05-10.
+// Most contributions by Marvin Polscheit and Mike Plante.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 import Swinject

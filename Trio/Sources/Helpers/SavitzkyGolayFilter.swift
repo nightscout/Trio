@@ -1,3 +1,12 @@
+//
+// Trio
+// SavitzkyGolayFilter.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-01-01.
+// Most contributions by Pierre L.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 /// allowed values are 0, 1, 2 or 3. It's the index in coefficients

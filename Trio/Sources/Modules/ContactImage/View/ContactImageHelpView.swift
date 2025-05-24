@@ -1,3 +1,12 @@
+//
+// Trio
+// ContactImageHelpView.swift
+// Created by Marvin Polscheit on 2025-01-03.
+// Last edited by Deniz Cengiz on 2025-02-19.
+// Most contributions by Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct ContactImageHelpView: View {

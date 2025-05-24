@@ -1,3 +1,12 @@
+//
+// Trio
+// SettingsRootView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Mike Plante on 2025-05-14.
+// Most contributions by Deniz Cengiz and Jonas Björkert.
+//
+// Documentation available under: https://triodocs.org/
+
 import HealthKit
 import LoopKit
 import LoopKitUI

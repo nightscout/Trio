@@ -1,3 +1,12 @@
+//
+// Trio
+// CustomCGMOptionsView.swift
+// Created by Deniz Cengiz on 2025-02-17.
+// Last edited by Sam King on 2025-03-14.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import LoopKitUI
 import SwiftUI
 import Swinject

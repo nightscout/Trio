@@ -1,3 +1,12 @@
+//
+// Trio
+// NightscoutLoginStepView.swift
+// Created by Deniz Cengiz on 2025-04-03.
+// Last edited by Deniz Cengiz on 2025-04-05.
+// Most contributions by Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct NightscoutLoginStepView: View {

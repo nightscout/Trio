@@ -1,3 +1,12 @@
+//
+// Trio
+// SettingsStateModel.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by marv-out on 2025-03-29.
+// Most contributions by Ivan Valkou and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import LoopKit
 import LoopKitUI
 import SwiftUI

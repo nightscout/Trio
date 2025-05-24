@@ -1,3 +1,12 @@
+//
+// Trio
+// APSManager.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Sam King on 2025-05-10.
+// Most contributions by Marvin Polscheit and Ivan Valkou.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import CoreData
 import Foundation

@@ -1,3 +1,12 @@
+//
+// Trio
+// PumpHistoryStorageTests.swift
+// Created by Marvin Polscheit on 2025-02-13.
+// Last edited by Sam King on 2025-04-22.
+// Most contributions by Marvin Polscheit and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 import Swinject

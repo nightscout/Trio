@@ -1,3 +1,12 @@
+//
+// Trio
+// CustomProgressView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by dsnallfot on 2025-03-14.
+// Most contributions by Marvin Polscheit and dsnallfot.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct CustomProgressView: View {

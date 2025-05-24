@@ -1,3 +1,12 @@
+//
+// Trio
+// LiveActivityManager.swift
+// Created by Deniz Cengiz on 2025-03-01.
+// Last edited by Marvin Polscheit on 2025-05-14.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import ActivityKit
 import Combine
 import CoreData

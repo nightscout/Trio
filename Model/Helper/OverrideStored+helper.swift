@@ -1,3 +1,12 @@
+//
+// Trio
+// OverrideStored+helper.swift
+// Created by Marvin Polscheit on 2024-06-24.
+// Last edited by Robert on 2025-02-08.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

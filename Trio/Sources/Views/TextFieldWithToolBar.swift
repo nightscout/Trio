@@ -1,3 +1,12 @@
+//
+// Trio
+// TextFieldWithToolBar.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Mike Plante on 2025-03-11.
+// Most contributions by Marvin Polscheit and Mike Plante.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 import UIKit
 

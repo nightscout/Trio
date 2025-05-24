@@ -1,3 +1,12 @@
+//
+// Trio
+// PluginManagerTests.swift
+// Created by Deniz Cengiz on 2025-01-05.
+// Last edited by Sam King on 2025-03-21.
+// Most contributions by Marvin Polscheit and Pierre L.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import Swinject
 import Testing

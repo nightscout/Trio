@@ -1,3 +1,12 @@
+//
+// Trio
+// BuildDetails.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Jonas Björkert on 2025-04-05.
+// Most contributions by Jonas Björkert and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import Swinject
 

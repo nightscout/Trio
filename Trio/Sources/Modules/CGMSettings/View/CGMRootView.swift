@@ -1,3 +1,12 @@
+//
+// Trio
+// CGMRootView.swift
+// Created by Deniz Cengiz on 2025-02-17.
+// Last edited by Deniz Cengiz on 2025-05-05.
+// Most contributions by Deniz Cengiz and avouspierre.
+//
+// Documentation available under: https://triodocs.org/
+
 import LoopKitUI
 import SwiftUI
 import Swinject

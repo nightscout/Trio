@@ -1,3 +1,12 @@
+//
+// Trio
+// BloodGlucose.swift
+// Created by Deniz Cengiz on 2025-04-21.
+// Last edited by Sam King on 2025-04-29.
+// Most contributions by Deniz Cengiz and Ivan Valkou.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import HealthKit
 import LoopKit

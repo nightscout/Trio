@@ -1,9 +1,12 @@
 //
-//  MainMigrationErrorView.swift
-//  Trio
+// Trio
+// MainMigrationErrorView.swift
+// Created by Deniz Cengiz on 2025-05-03.
+// Last edited by Deniz Cengiz on 2025-05-04.
+// Most contributions by Deniz Cengiz.
 //
-//  Created by Cengiz Deniz on 21.04.25.
-//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 extension Main {

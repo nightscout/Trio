@@ -1,9 +1,12 @@
 //
-//  FeatureSettingsView.swift
-//  Trio
+// Trio
+// NotificationsView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-02-19.
+// Most contributions by tmhastings and Deniz Cengiz.
 //
-//  Created by Deniz Cengiz on 26.07.24.
-//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import LoopKitUI
 import SwiftUI

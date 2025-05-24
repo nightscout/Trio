@@ -1,3 +1,12 @@
+//
+// Trio
+// ContactImageState.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-01-01.
+// Most contributions by Marc R Kellerman and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 struct ContactImageState: Codable {

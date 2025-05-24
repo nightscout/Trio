@@ -1,3 +1,12 @@
+//
+// Trio
+// WatchState+Requests.swift
+// Created by Marvin Polscheit on 2025-01-15.
+// Last edited by Sam King on 2025-05-10.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import WatchConnectivity
 

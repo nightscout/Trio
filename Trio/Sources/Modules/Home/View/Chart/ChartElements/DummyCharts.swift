@@ -1,3 +1,12 @@
+//
+// Trio
+// DummyCharts.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-01-15.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import Foundation
 import SwiftUI

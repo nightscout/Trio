@@ -1,3 +1,12 @@
+//
+// Trio
+// UserDefaultsExtension.swift
+// Created by Marvin Polscheit on 2024-05-26.
+// Last edited by Marvin Polscheit on 2024-05-26.
+// Most contributions by Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

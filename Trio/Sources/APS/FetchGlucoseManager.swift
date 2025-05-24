@@ -1,3 +1,12 @@
+//
+// Trio
+// FetchGlucoseManager.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Sam King on 2025-05-10.
+// Most contributions by Pierre L and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import Foundation
 import HealthKit

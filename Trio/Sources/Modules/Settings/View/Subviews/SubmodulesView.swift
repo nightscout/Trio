@@ -1,3 +1,12 @@
+//
+// Trio
+// SubmodulesView.swift
+// Created by Jonas Björkert on 2025-02-26.
+// Last edited by Jonas Björkert on 2025-04-05.
+// Most contributions by Jonas Björkert.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct SubmodulesView: View {

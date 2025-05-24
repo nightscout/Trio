@@ -1,3 +1,12 @@
+//
+// Trio
+// CoreDataStack.swift
+// Created by Marvin Polscheit on 2024-04-16.
+// Last edited by Sam King on 2025-05-10.
+// Most contributions by Marvin Polscheit and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 import OSLog

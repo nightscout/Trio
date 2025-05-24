@@ -1,3 +1,12 @@
+//
+// Trio
+// JSONImporter.swift
+// Created by Deniz Cengiz on 2025-04-21.
+// Last edited by Deniz Cengiz on 2025-05-04.
+// Most contributions by Deniz Cengiz and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

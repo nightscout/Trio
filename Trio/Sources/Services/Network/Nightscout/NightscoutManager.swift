@@ -1,3 +1,12 @@
+//
+// Trio
+// NightscoutManager.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Jonas Björkert on 2025-05-13.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import CoreData
 import Foundation

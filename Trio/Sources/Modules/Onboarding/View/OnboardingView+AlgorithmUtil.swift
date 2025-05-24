@@ -1,9 +1,12 @@
 //
-//  OnboardingView+AlgorithmUtil.swift
-//  Trio
+// Trio
+// OnboardingView+AlgorithmUtil.swift
+// Created by Deniz Cengiz on 2025-04-15.
+// Last edited by Deniz Cengiz on 2025-05-04.
+// Most contributions by Deniz Cengiz.
 //
-//  Created by Cengiz Deniz on 15.04.25.
-//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 protocol AlgorithmSubstepProtocol: Identifiable, RawRepresentable {

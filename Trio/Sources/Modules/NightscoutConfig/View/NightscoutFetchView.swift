@@ -1,3 +1,11 @@
+//
+// Trio
+// NightscoutFetchView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-02-19.
+// Most contributions by Deniz Cengiz and Daniel Snällfot.
+//
+// Documentation available under: https://triodocs.org/
 
 import SwiftUI
 

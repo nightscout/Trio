@@ -1,9 +1,12 @@
 //
-//  PropertyPersistentFlags.swift
-//  Trio
+// Trio
+// PropertyPersistentFlags.swift
+// Created by Deniz Cengiz on 2025-05-06.
+// Last edited by Deniz Cengiz on 2025-05-07.
+// Most contributions by Deniz Cengiz.
 //
-//  Created by Cengiz Deniz on 06.05.25.
-//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 /// Centralized store for app-wide persistent flags backed by property list (.plist) files.

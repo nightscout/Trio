@@ -1,9 +1,12 @@
 //
-//  BluetoothPermissionStepView.swift
-//  Trio
+// Trio
+// BluetoothPermissionStepView.swift
+// Created by Deniz Cengiz on 2025-04-18.
+// Last edited by Deniz Cengiz on 2025-05-17.
+// Most contributions by Deniz Cengiz.
 //
-//  Created by Cengiz Deniz on 18.04.25.
-//
+// Documentation available under: https://triodocs.org/
+
 import CoreBluetooth
 import SwiftUI
 import UIKit

@@ -150,6 +150,7 @@ process_file() {
     
     # Write new header and content
     echo "$header" > "$file"
+    echo "" >> "$file"
     echo "$content" >> "$file"
     
     echo -e "${GREEN}✅ Updated header for: $file${NC}"
