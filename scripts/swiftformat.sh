@@ -24,7 +24,6 @@ duplicateImports,\
 elseOnSameLine,\
 emptyBraces,\
 enumNamespaces,\
-fileHeader,\
 hoistPatternLet,\
 indent,\
 isEmpty,\
@@ -83,7 +82,6 @@ redundantInit,\
 trailingClosures \
 --commas inline \
 --exponentcase uppercase \
---header strip \
 --hexliteralcase uppercase \
 --ifdef indent \
 --indent 4 \
