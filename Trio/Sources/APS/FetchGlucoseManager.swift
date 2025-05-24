@@ -169,7 +169,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         if let manager = newManager {
             cgmManager = manager
             removeCalibrations()
-//            glucoseSource = nil
+            //            glucoseSource = nil
         } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
             cgmManager = cgmManagerFromRawValue(rawCGMManager)
             updateManagerUnits(cgmManager)
@@ -186,14 +186,30 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                 glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
             case .nightscout:
                 glucoseSource = nightscoutManager
-            case .simulator:
-                glucoseSource = simulatorSource
+            #if DEBUG_SIMULATORS
+                case .simulator:
+                    glucoseSource = simulatorSource
+            #endif
             case .enlite:
                 glucoseSource = deviceDataManager
             case .plugin:
                 glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
             }
         }
+
+        // Set loop interval for APSManager and filter time in FetchGlucoseManager
+        #if DEBUG_SIMULATORS
+            if self.cgmGlucoseSourceType == .simulator {
+                // Set loop interval to 10 seconds
+                let newLoopInterval = 10.0
+                UserDefaults.standard.set(newLoopInterval, forKey: "Config_LoopInterval")
+                // Set filter time in FetchGlucoseManager to 10s so that new glucose values don't get filtered out
+                UserDefaults.standard.set(10, forKey: "Config_FilterTime")
+            } else {
+                UserDefaults.standard.set(3.minutes.timeInterval, forKey: "Config_LoopInterval")
+                UserDefaults.standard.set(3.5 * 60, forKey: "Config_FilterTime")
+            }
+        #endif
     }
 
     /// Upload cgmManager from raw value

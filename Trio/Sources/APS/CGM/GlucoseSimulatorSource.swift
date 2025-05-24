@@ -26,11 +26,22 @@ final class GlucoseSimulatorSource: GlucoseSource {
     var glucoseManager: FetchGlucoseManager?
 
     private enum Config {
-        /// Minimum time period between data publications (in seconds)
+        /// Default time period between data publications (in seconds)
         static let workInterval: TimeInterval = 300
+        /// Minimum time period between data publications (in seconds)
+        static let minWorkInterval: TimeInterval = 60
         /// Default number of blood glucose items to generate at first run
         /// 288 = 1 day * 24 hours * 60 minutes * 60 seconds / workInterval
         static let defaultBGItems = 288
+    }
+
+    /// The custom work interval for generating glucose values (in seconds)
+    private var customWorkInterval: TimeInterval {
+        get { UserDefaults.standard.double(forKey: "GlucoseSimulator_WorkInterval") != 0 ?
+            UserDefaults.standard.double(forKey: "GlucoseSimulator_WorkInterval") :
+            Config.workInterval
+        }
+        set { UserDefaults.standard.set(newValue, forKey: "GlucoseSimulator_WorkInterval") }
     }
 
     /// The last glucose value that was generated
@@ -60,7 +71,7 @@ final class GlucoseSimulatorSource: GlucoseSource {
     /// Determines if new glucose values can be generated based on the time elapsed since the last fetch
     private var canGenerateNewValues: Bool {
         guard let lastDate = lastFetchDate else { return true }
-        if Calendar.current.dateComponents([.second], from: lastDate, to: Date()).second! >= Int(Config.workInterval) {
+        if Calendar.current.dateComponents([.second], from: lastDate, to: Date()).second! >= Int(customWorkInterval) {
             return true
         } else {
             return false
@@ -78,7 +89,7 @@ final class GlucoseSimulatorSource: GlucoseSource {
         let glucoses = generator.getBloodGlucoses(
             startDate: lastFetchDate,
             finishDate: Date(),
-            withInterval: Config.workInterval
+            withInterval: customWorkInterval
         )
 
         if let lastItem = glucoses.last {
@@ -120,6 +131,7 @@ class OscillatingGenerator: BloodGlucoseGenerator {
         static let period: Double = 10800.0 // 3 hours in seconds
         static let noiseAmplitude: Double = 5.0
         static let produceStaleValues: Bool = false
+        static let workInterval: Double = 300.0 // 5 minutes in seconds
     }
 
     /// UserDefaults keys for storing simulator parameters
@@ -129,6 +141,7 @@ class OscillatingGenerator: BloodGlucoseGenerator {
         static let period = "GlucoseSimulator_Period"
         static let noiseAmplitude = "GlucoseSimulator_NoiseAmplitude"
         static let produceStaleValues = "GlucoseSimulator_ProduceStaleValues"
+        static let workInterval = "GlucoseSimulator_WorkInterval"
     }
 
     /// Amplitude of the oscillation (±45 mg/dL to create range from ~80 to ~170)

@@ -138,7 +138,6 @@ extension CGMSettings {
                     case .enlite,
                          .nightscout,
                          .none,
-                         .simulator,
                          .xdrip:
 
                         CustomCGMOptionsView(
@@ -147,6 +146,16 @@ extension CGMSettings {
                             cgmCurrent: state.cgmCurrent,
                             deleteCGM: state.deleteCGM
                         )
+
+                    #if DEBUG_SIMULATORS
+                        case .simulator:
+                            CustomCGMOptionsView(
+                                resolver: self.resolver,
+                                state: state,
+                                cgmCurrent: state.cgmCurrent,
+                                deleteCGM: state.deleteCGM
+                            )
+                    #endif
 
                     case .plugin:
                         if let fetchGlucoseManager = state.fetchGlucoseManager,
