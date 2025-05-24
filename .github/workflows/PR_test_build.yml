@@ -1,0 +1,84 @@
+name: Test-build pull request
+run-name: PR ${{ vars.PR_NUMBER }}
+on:
+  workflow_dispatch:
+
+jobs:
+  # Builds Trio
+  build:
+    name: Build
+    runs-on: macos-14
+    permissions:
+      contents: write
+
+    steps:
+      # Uncomment to manually select Xcode version if needed
+      #- name: Select Xcode version
+      #  run: "sudo xcode-select --switch /Applications/Xcode_15.0.1.app/Contents/Developer"
+
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          repository: nightscout/Trio
+          ref: dev
+          token: ${{ secrets.GH_PAT }}
+          submodules: recursive
+          fetch-depth: 1
+          
+      - name: Checkout pull request for building
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          gh pr checkout ${{ vars.PR_NUMBER }} --repo nightscout/Trio --recurse-submodules
+          git submodule
+
+      - name: Get ALTERNATIVE_BUNDLE_ID, or set empty value if it does not exist as a repository variable
+        run: echo "ALTERNATIVE_BUNDLE_ID=${{ vars.ALTERNATIVE_BUNDLE_ID }}" >> $GITHUB_ENV
+
+      - name: Check if alternative bundle ID is set
+        if: ${{ env.ALTERNATIVE_BUNDLE_ID == '' }}
+        run: echo 'ALTERNATIVE_BUNDLE_ID is not set. Skipping BUNDLE_IDENTIFIER configuration.'
+
+      - name: Use alternative bundle ID for PR test build
+        if: ${{ env.ALTERNATIVE_BUNDLE_ID != '' }}
+        run: echo 'BUNDLE_IDENTIFIER = ${{ env.ALTERNATIVE_BUNDLE_ID }}' >> Config.xcconfig
+
+      # Patch Fastlane Match to not print tables
+      - name: Patch Match Tables
+        run: find /usr/local/lib/ruby/gems -name table_printer.rb | xargs sed -i "" "/puts(Terminal::Table.new(params))/d"
+      
+      # Install project dependencies
+      - name: Install project dependencies
+        run: bundle install
+      
+      # Build signed Trio IPA file
+      - name: Fastlane Build & Archive
+        run: bundle exec fastlane build_trio
+        env:
+          TEAMID: ${{ secrets.TEAMID }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
+          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
+          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      
+      # Upload to TestFlight
+      - name: Fastlane upload to TestFlight
+        run: bundle exec fastlane release
+        env:
+          TEAMID: ${{ secrets.TEAMID }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
+          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
+          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+      # Upload Build artifacts
+      - name: Upload build log, IPA and Symbol artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            artifacts
+            buildlog
