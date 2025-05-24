@@ -1,3 +1,12 @@
+//
+// Trio
+// AppDiagnosticsRootView.swift
+// Created by Deniz Cengiz on 2025-04-06.
+// Last edited by Deniz Cengiz on 2025-05-16.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 import Swinject
 

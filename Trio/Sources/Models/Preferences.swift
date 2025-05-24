@@ -1,3 +1,12 @@
+//
+// Trio
+// Preferences.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-05-08.
+// Most contributions by tmhastings and Ivan Valkou.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 struct Preferences: JSON, Equatable {

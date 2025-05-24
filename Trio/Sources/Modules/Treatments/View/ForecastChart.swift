@@ -1,3 +1,12 @@
+//
+// Trio
+// ForecastChart.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-03-24.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import CoreData
 import Foundation

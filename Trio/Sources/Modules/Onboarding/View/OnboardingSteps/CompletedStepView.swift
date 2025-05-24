@@ -1,3 +1,12 @@
+//
+// Trio
+// CompletedStepView.swift
+// Created by Deniz Cengiz on 2025-04-05.
+// Last edited by Deniz Cengiz on 2025-05-03.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 /// Completed step view shown at the end of onboarding.

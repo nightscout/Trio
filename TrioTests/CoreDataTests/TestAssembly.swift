@@ -1,3 +1,12 @@
+//
+// Trio
+// TestAssembly.swift
+// Created by Marvin Polscheit on 2025-02-13.
+// Last edited by Marvin Polscheit on 2025-02-19.
+// Most contributions by Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 import Swinject

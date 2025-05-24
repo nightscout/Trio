@@ -1,3 +1,12 @@
+//
+// Trio
+// FileStorageTests.swift
+// Created by Deniz Cengiz on 2025-01-05.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Ivan Valkou.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import Testing
 
@@ -11,7 +20,7 @@ import Testing
         let value: Decimal
     }
 
-    @Test("Can save and retrieve object") func testSaveAndRetrieve() {
+    @Test("Can save and retrieve object") func saveAndRetrieve() {
         // Given
         let dummy = DummyObject(id: "123", value: 78.2)
 
@@ -23,7 +32,7 @@ import Testing
         #expect(retrieved == dummy)
     }
 
-    @Test("Can save and retrieve async") func testAsyncSaveAndRetrieve() async {
+    @Test("Can save and retrieve async") func asyncSaveAndRetrieve() async {
         // Given
         let dummy = DummyObject(id: "123", value: 78.2)
 
@@ -35,7 +44,7 @@ import Testing
         #expect(retrieved == dummy)
     }
 
-    @Test("Can append single value") func testAppendSingleValue() {
+    @Test("Can append single value") func appendSingleValue() {
         // Given
         let dummy1 = DummyObject(id: "1", value: 10.0)
         let dummy2 = DummyObject(id: "2", value: 20.0)
@@ -51,7 +60,7 @@ import Testing
         #expect(retrieved?.contains(dummy2) == true)
     }
 
-    @Test("Can append multiple values") func testAppendMultipleValues() {
+    @Test("Can append multiple values") func appendMultipleValues() {
         // Given
         let dummy1 = DummyObject(id: "1", value: 10.0)
         let newDummies = [
@@ -68,7 +77,7 @@ import Testing
         #expect(retrieved?.count == 3)
     }
 
-    @Test("Can append unique values by key path") func testAppendUniqueByKeyPath() {
+    @Test("Can append unique values by key path") func appendUniqueByKeyPath() {
         // Given
         let dummy1 = DummyObject(id: "1", value: 10.0)
         let dummy2 = DummyObject(id: "1", value: 20.0) // Same id
@@ -82,7 +91,7 @@ import Testing
         #expect(retrieved?.count == 1, "Should not append duplicate id")
     }
 
-    @Test("Can remove file") func testRemoveFile() {
+    @Test("Can remove file") func removeFile() {
         // Given
         let dummy = DummyObject(id: "123", value: 78.2)
         storage.save(dummy, as: "to_delete")
@@ -95,7 +104,7 @@ import Testing
         #expect(retrieved == nil)
     }
 
-    @Test("Can rename file") func testRenameFile() {
+    @Test("Can rename file") func renameFile() {
         // Given
         let dummy = DummyObject(id: "123", value: 78.2)
         storage.save(dummy, as: "old_name")
@@ -124,7 +133,7 @@ import Testing
         #expect(retrieved == dummy)
     }
 
-    @Test("Can parse mmol/L settings to mg/dL") func testParseSettingsToMgdL() {
+    @Test("Can parse mmol/L settings to mg/dL") func parseSettingsToMgdL() {
         // Given
         var preferences = Preferences()
         preferences.threshold_setting = 5.5 // mmol/L

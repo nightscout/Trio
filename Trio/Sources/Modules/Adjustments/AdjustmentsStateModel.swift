@@ -1,3 +1,12 @@
+//
+// Trio
+// AdjustmentsStateModel.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Robert on 2025-03-05.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import CoreData
 import Observation

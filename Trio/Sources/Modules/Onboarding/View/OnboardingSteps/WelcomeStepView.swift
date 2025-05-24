@@ -1,3 +1,12 @@
+//
+// Trio
+// WelcomeStepView.swift
+// Created by Deniz Cengiz on 2025-04-05.
+// Last edited by Deniz Cengiz on 2025-04-27.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 /// Welcome step view shown at the beginning of onboarding.

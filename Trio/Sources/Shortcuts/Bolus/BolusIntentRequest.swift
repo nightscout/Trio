@@ -1,3 +1,12 @@
+//
+// Trio
+// BolusIntentRequest.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by dsnallfot on 2025-03-14.
+// Most contributions by Auggie Fisher and dsnallfot.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import CoreData
 import Foundation

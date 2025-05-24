@@ -1,3 +1,12 @@
+//
+// Trio
+// Determination.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Jonas Björkert on 2025-03-17.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 struct Determination: JSON, Equatable {

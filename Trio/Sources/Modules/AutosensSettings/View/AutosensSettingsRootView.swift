@@ -1,3 +1,12 @@
+//
+// Trio
+// AutosensSettingsRootView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-05-04.
+// Most contributions by Deniz Cengiz and Andreas Stokholm.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 import Swinject
 

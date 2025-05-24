@@ -1,3 +1,12 @@
+//
+// Trio
+// OnboardingStateModel+Nightscout.swift
+// Created by Deniz Cengiz on 2025-04-03.
+// Last edited by Sam King on 2025-05-10.
+// Most contributions by Deniz Cengiz and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import Foundation
 import SwiftUI

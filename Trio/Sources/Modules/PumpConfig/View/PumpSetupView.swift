@@ -1,3 +1,12 @@
+//
+// Trio
+// PumpSetupView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-01-22.
+// Most contributions by avouspierre and Ivan Valkou.
+//
+// Documentation available under: https://triodocs.org/
+
 import DanaKit
 import LoopKit
 import LoopKitUI

@@ -1,3 +1,12 @@
+//
+// Trio
+// PumpConfigStateModel.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-04-26.
+// Most contributions by Ivan Valkou and avouspierre.
+//
+// Documentation available under: https://triodocs.org/
+
 import LoopKit
 import LoopKitUI
 import SwiftDate

@@ -1,3 +1,12 @@
+//
+// Trio
+// LoopStatsView.swift
+// Created by Deniz Cengiz on 2025-03-06.
+// Last edited by Deniz Cengiz on 2025-03-23.
+// Most contributions by Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftDate
 import SwiftUI
 

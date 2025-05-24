@@ -1,9 +1,12 @@
 //
-//  LiveActivityWidgetItems.swift
-//  LiveActivityExtension
+// Trio
+// LiveActivityIOBLabelView.swift
+// Created by Deniz Cengiz on 2024-10-17.
+// Last edited by Deniz Cengiz on 2025-02-21.
+// Most contributions by Deniz Cengiz.
 //
-//  Created by Cengiz Deniz on 17.10.24.
-//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import SwiftUI
 import WidgetKit

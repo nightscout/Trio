@@ -1,3 +1,12 @@
+//
+// Trio
+// JSONImporter.swift
+// Created by Deniz Cengiz on 2025-04-21.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Deniz Cengiz and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 
@@ -65,8 +74,10 @@ class JSONImporter {
     /// - Parameters:
     ///   - type: The `NSManagedObject` subclass to fetch (e.g., `GlucoseStored.self`, `PumpEventStored.self`)
     ///   - predicate: A preconstructed predicate that filters the entity by date/timestamp range.
-    ///   - sortKey: The string name of the date-like field used to sort the fetch results. **This must match the key used in Core Data.**
-    ///   - dateKeyPath: A key path pointing to the `Date?` property on the entity used to extract the actual date value from each record.
+    ///   - sortKey: The string name of the date-like field used to sort the fetch results. **This must match the key used in Core
+    /// Data.**
+    ///   - dateKeyPath: A key path pointing to the `Date?` property on the entity used to extract the actual date value from each
+    /// record.
     ///
     /// - Returns: A `Set<Date>` containing all non-nil date values from the fetched entities.
     /// - Throws: `CoreDataError.fetchError` if casting the fetched objects fails, or if the fetch itself fails.
@@ -327,8 +338,10 @@ class JSONImporter {
         backgroundContext.parent = context
 
         try await backgroundContext.perform {
-            /// We know both determination entries are from within last 24 hrs via `checkDeterminationDate()` in the earlier `guard` clause
-            /// If their `deliverAt` does not match, and if `suggestedDeliverAt` is newer, it is worth storing them both, as that represents
+            /// We know both determination entries are from within last 24 hrs via `checkDeterminationDate()` in the earlier
+            /// `guard` clause
+            /// If their `deliverAt` does not match, and if `suggestedDeliverAt` is newer, it is worth storing them both, as that
+            /// represents
             /// a more recent algorithm run that did not cause a dosing enactment, e.g., a carb entry or a manual bolus.
             if suggestedDeliverAt > enactedDeliverAt {
                 try suggestedDetermination.store(in: backgroundContext)
@@ -697,24 +710,23 @@ extension Determination: Codable {
         newOrefDetermination.isUploadedToNS = true
 
         if let predictions = predictions {
-            ["iob": predictions.iob, "zt": predictions.zt, "cob": predictions.cob, "uam": predictions.uam]
-                .forEach { type, values in
-                    if let values = values {
-                        let forecast = Forecast(context: context)
-                        forecast.id = UUID()
-                        forecast.type = type
-                        forecast.date = Date()
-                        forecast.orefDetermination = newOrefDetermination
+            for (type, values) in ["iob": predictions.iob, "zt": predictions.zt, "cob": predictions.cob, "uam": predictions.uam] {
+                if let values = values {
+                    let forecast = Forecast(context: context)
+                    forecast.id = UUID()
+                    forecast.type = type
+                    forecast.date = Date()
+                    forecast.orefDetermination = newOrefDetermination
 
-                        for (index, value) in values.enumerated() {
-                            let forecastValue = ForecastValue(context: context)
-                            forecastValue.index = Int32(index)
-                            forecastValue.value = Int32(value)
-                            forecast.addToForecastValues(forecastValue)
-                        }
-                        newOrefDetermination.addToForecasts(forecast)
+                    for (index, value) in values.enumerated() {
+                        let forecastValue = ForecastValue(context: context)
+                        forecastValue.index = Int32(index)
+                        forecastValue.value = Int32(value)
+                        forecast.addToForecastValues(forecastValue)
                     }
+                    newOrefDetermination.addToForecasts(forecast)
                 }
+            }
         }
     }
 

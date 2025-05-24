@@ -1,3 +1,12 @@
+//
+// Trio
+// BolusInputView.swift
+// Created by Marvin Polscheit on 2025-01-02.
+// Last edited by Deniz Cengiz on 2025-04-19.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import SwiftUI
 import WatchKit
@@ -124,8 +133,8 @@ struct BolusInputView: View {
                         format: "\(String(localized: "Recommended:", comment: "Recommended bolus on Watch")) %.1f \(String(localized: "U", comment: "Insulin unit"))",
                         NSDecimalNumber(decimal: state.recommendedBolus).doubleValue
                     ))
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                 }
             }
         }

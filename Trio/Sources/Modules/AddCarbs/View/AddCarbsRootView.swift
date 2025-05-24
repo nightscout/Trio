@@ -1,3 +1,12 @@
+//
+// Trio
+// AddCarbsRootView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Jon B Mårtensson and Ivan Valkou.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import SwiftUI
 import Swinject
@@ -80,34 +89,34 @@ extension AddCarbs {
                                     .useFPUconversion ? NSLocalizedString("Hide Fat & Protein", comment: "") :
                                     NSLocalizedString("Fat & Protein", comment: "")
                             ) }
-                            .controlSize(.mini)
-                            .buttonStyle(BorderlessButtonStyle())
+                        .controlSize(.mini)
+                        .buttonStyle(BorderlessButtonStyle())
                         Button {
                             isPromtPresented = true
                         }
                         label: { Text("Save as Preset") }
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                            .controlSize(.mini)
-                            .buttonStyle(BorderlessButtonStyle())
-                            .foregroundColor(
-                                (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) ||
-                                    (
-                                        (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal) == state
-                                            .carbs && (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal) == state
-                                            .fat && (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal) ==
-                                            state
-                                            .protein
-                                    ) ? .secondary : .orange
-                            )
-                            .disabled(
-                                (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) ||
-                                    (
-                                        (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal) == state
-                                            .carbs && (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal) == state
-                                            .fat && (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal) == state
-                                            .protein
-                                    )
-                            )
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .controlSize(.mini)
+                        .buttonStyle(BorderlessButtonStyle())
+                        .foregroundColor(
+                            (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) ||
+                                (
+                                    (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal) == state
+                                        .carbs && (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal) == state
+                                        .fat && (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal) ==
+                                        state
+                                        .protein
+                                ) ? .secondary : .orange
+                        )
+                        .disabled(
+                            (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) ||
+                                (
+                                    (((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal) == state
+                                        .carbs && (((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal) == state
+                                        .fat && (((state.selection?.protein ?? 0) as NSDecimalNumber) as Decimal) == state
+                                        .protein
+                                )
+                        )
                     }
                     .popover(isPresented: $isPromtPresented) {
                         presetPopover
@@ -130,19 +139,19 @@ extension AddCarbs {
                         state.add()
                     }
                     label: { Text(state.saveButtonText()).font(.title3) }
-                        .disabled(
-                            mealSaved
-                                || state.carbs > state.maxCarbs
-                                || state.fat > state.maxFat
-                                || state.protein > state.maxProtein
-                                || (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0)
-                        )
-                        .foregroundStyle(
-                            mealSaved || (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) ? .gray :
-                                state.carbs > state.maxCarbs || state.fat > state.maxFat || state.protein > state
-                                .maxProtein ? .red : .blue
-                        )
-                        .frame(maxWidth: .infinity, alignment: .center)
+                    .disabled(
+                        mealSaved
+                            || state.carbs > state.maxCarbs
+                            || state.fat > state.maxFat
+                            || state.protein > state.maxProtein
+                            || (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0)
+                    )
+                    .foregroundStyle(
+                        mealSaved || (state.carbs <= 0 && state.fat <= 0 && state.protein <= 0) ? .gray :
+                            state.carbs > state.maxCarbs || state.fat > state.maxFat || state.protein > state
+                            .maxProtein ? .red : .blue
+                    )
+                    .frame(maxWidth: .infinity, alignment: .center)
                 } footer: { Text(state.waitersNotepad().description) }
 
                 if !state.useFPUconversion {
@@ -178,7 +187,7 @@ extension AddCarbs {
                         dish = ""
                         noteSaved = false
                         isPromtPresented = false }
-                    label: { Text("Cancel") }
+                        label: { Text("Cancel") }
                 } header: { Text("Enter Meal Preset Name") }
             }
         }
@@ -246,16 +255,16 @@ extension AddCarbs {
                         if state.carbs == 0, state.fat == 0, state.protein == 0 { state.summation = [] }
                     }
                     label: { Text("[ -1 ]") }
-                        .disabled(
-                            state
-                                .selection == nil ||
-                                (
-                                    !state.summation.contains(state.selection?.dish ?? "") && (state.selection?.dish ?? "") != ""
-                                )
-                        )
-                        .buttonStyle(BorderlessButtonStyle())
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .accentColor(.minus)
+                    .disabled(
+                        state
+                            .selection == nil ||
+                            (
+                                !state.summation.contains(state.selection?.dish ?? "") && (state.selection?.dish ?? "") != ""
+                            )
+                    )
+                    .buttonStyle(BorderlessButtonStyle())
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .accentColor(.minus)
                     Button {
                         state.carbs += ((state.selection?.carbs ?? 0) as NSDecimalNumber) as Decimal
                         state.fat += ((state.selection?.fat ?? 0) as NSDecimalNumber) as Decimal
@@ -264,9 +273,9 @@ extension AddCarbs {
                         state.addPresetToNewMeal()
                     }
                     label: { Text("[ +1 ]") }
-                        .disabled(state.selection == nil)
-                        .buttonStyle(BorderlessButtonStyle())
-                        .accentColor(.blue)
+                    .disabled(state.selection == nil)
+                    .buttonStyle(BorderlessButtonStyle())
+                    .accentColor(.blue)
                 }
             }
         }

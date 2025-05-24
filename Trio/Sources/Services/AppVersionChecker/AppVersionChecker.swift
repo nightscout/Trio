@@ -1,3 +1,12 @@
+//
+// Trio
+// AppVersionChecker.swift
+// Created by Jonas Björkert on 2025-02-20.
+// Last edited by Jonas Björkert on 2025-02-21.
+// Most contributions by Jonas Björkert.
+//
+// Documentation available under: https://triodocs.org/
+
 import UIKit
 
 /// AppVersionChecker is a singleton responsible for checking the app's version status.

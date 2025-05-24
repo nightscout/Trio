@@ -1,3 +1,12 @@
+//
+// Trio
+// ConfigEditorRootView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Ivan Valkou and Jon B Mårtensson.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 import Swinject
 
@@ -23,9 +32,9 @@ extension ConfigEditor {
                         ToolbarItemGroup(placement: .bottomBar) {
                             Spacer()
                             Button { showShareSheet = true }
-                            label: {
-                                Image(systemName: "square.and.arrow.up")
-                            }
+                                label: {
+                                    Image(systemName: "square.and.arrow.up")
+                                }
                         }
                     }
                     .navigationBarItems(

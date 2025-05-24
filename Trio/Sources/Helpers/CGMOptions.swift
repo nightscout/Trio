@@ -1,3 +1,12 @@
+//
+// Trio
+// CGMOptions.swift
+// Created by avouspierre on 2025-02-09.
+// Last edited by Deniz Cengiz on 2025-02-10.
+// Most contributions by avouspierre and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 let cgmOptions: [CGMOption] = [
     CGMOption(name: "Dexcom G5", predicate: { $0.type == .plugin && $0.displayName.contains("G5") }),
     CGMOption(name: "Dexcom G6 / ONE", predicate: { $0.type == .plugin && $0.displayName.contains("G6") }),

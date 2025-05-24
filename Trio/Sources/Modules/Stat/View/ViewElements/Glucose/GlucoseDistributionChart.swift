@@ -1,3 +1,12 @@
+//
+// Trio
+// GlucoseDistributionChart.swift
+// Created by Deniz Cengiz on 2025-03-06.
+// Last edited by Deniz Cengiz on 2025-03-27.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import SwiftUI
 

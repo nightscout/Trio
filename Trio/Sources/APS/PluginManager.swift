@@ -1,3 +1,12 @@
+//
+// Trio
+// PluginManager.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Sam King on 2025-03-27.
+// Most contributions by Sam King and Pierre L.
+//
+// Documentation available under: https://triodocs.org/
+
 import CGMBLEKit
 import Foundation
 import G7SensorKit

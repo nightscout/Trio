@@ -1,3 +1,12 @@
+//
+// Trio
+// HomeStateModel+CGM.swift
+// Created by Sam King on 2025-03-20.
+// Last edited by Sam King on 2025-03-22.
+// Most contributions by Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import LoopKitUI
 
 /// Notes on the CGM lifecycle:

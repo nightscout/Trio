@@ -1,3 +1,12 @@
+//
+// Trio
+// WidgetBobble 2.swift
+// Created by Marvin Polscheit on 2023-12-10.
+// Last edited by Marvin Polscheit on 2023-12-10.
+// Most contributions by Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct WidgetBobble: View {

@@ -1,3 +1,12 @@
+//
+// Trio
+// GlucoseChartView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Sam King on 2025-03-07.
+// Most contributions by Sam King and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import Foundation
 import SwiftUI

@@ -1,3 +1,12 @@
+//
+// Trio
+// NightscoutUploadView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by marionbarker on 2025-04-04.
+// Most contributions by Deniz Cengiz and marionbarker.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct NightscoutUploadView: View {

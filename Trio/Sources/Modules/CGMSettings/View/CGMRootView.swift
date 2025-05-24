@@ -1,3 +1,12 @@
+//
+// Trio
+// CGMRootView.swift
+// Created by Deniz Cengiz on 2025-02-17.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Deniz Cengiz and avouspierre.
+//
+// Documentation available under: https://triodocs.org/
+
 import LoopKitUI
 import SwiftUI
 import Swinject
@@ -140,7 +149,6 @@ extension CGMSettings {
                          .none,
                          .simulator,
                          .xdrip:
-
                         CustomCGMOptionsView(
                             resolver: self.resolver,
                             state: state,

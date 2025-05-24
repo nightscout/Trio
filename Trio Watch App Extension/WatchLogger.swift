@@ -1,3 +1,12 @@
+//
+// Trio
+// WatchLogger.swift
+// Created by Deniz Cengiz on 2025-04-19.
+// Last edited by Deniz Cengiz on 2025-04-22.
+// Most contributions by Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import WatchConnectivity
 

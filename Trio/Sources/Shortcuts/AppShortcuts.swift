@@ -1,3 +1,12 @@
+//
+// Trio
+// AppShortcuts.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-03-02.
+// Most contributions by Pierre L and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import AppIntents
 import Foundation
 

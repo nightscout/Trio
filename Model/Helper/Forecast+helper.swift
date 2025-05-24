@@ -1,3 +1,12 @@
+//
+// Trio
+// Forecast+helper.swift
+// Created by dnzxy on 2024-04-21.
+// Last edited by Marvin Polscheit on 2024-05-25.
+// Most contributions by dnzxy and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

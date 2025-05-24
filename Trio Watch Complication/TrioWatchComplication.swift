@@ -1,3 +1,12 @@
+//
+// Trio
+// TrioWatchComplication.swift
+// Created by Deniz Cengiz on 2025-01-06.
+// Last edited by Paul Plant on 2025-01-25.
+// Most contributions by Deniz Cengiz and Paul Plant.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 import WidgetKit
 

@@ -1,3 +1,12 @@
+//
+// Trio
+// CGMSettingsStateModel.swift
+// Created by Deniz Cengiz on 2025-02-17.
+// Last edited by Marvin Polscheit on 2025-04-26.
+// Most contributions by Pierre L and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import CGMBLEKit
 import Combine
 import G7SensorKit

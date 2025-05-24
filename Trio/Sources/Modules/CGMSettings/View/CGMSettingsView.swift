@@ -1,3 +1,12 @@
+//
+// Trio
+// CGMSettingsView.swift
+// Created by Deniz Cengiz on 2025-02-17.
+// Last edited by Deniz Cengiz on 2025-02-17.
+// Most contributions by Pierre L and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import LoopKit
 import LoopKitUI
 import SwiftUI

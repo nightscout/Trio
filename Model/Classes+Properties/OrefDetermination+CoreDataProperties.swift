@@ -1,3 +1,12 @@
+//
+// Trio
+// OrefDetermination+CoreDataProperties.swift
+// Created by Deniz Cengiz on 2024-09-11.
+// Last edited by Robert on 2025-01-26.
+// Most contributions by Deniz Cengiz and dnzxy.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

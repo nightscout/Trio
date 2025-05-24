@@ -1,3 +1,12 @@
+//
+// Trio
+// CarbsGlucose+helper.swift
+// Created by Marvin Polscheit on 2024-07-28.
+// Last edited by Marvin Polscheit on 2024-07-28.
+// Most contributions by Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 struct CarbAndGlucose: Encodable {

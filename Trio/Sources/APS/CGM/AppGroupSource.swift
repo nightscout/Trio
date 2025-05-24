@@ -1,3 +1,12 @@
+//
+// Trio
+// AppGroupSource.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-02-19.
+// Most contributions by Ivan Valkou and Pierre L.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import Foundation
 import LoopKit

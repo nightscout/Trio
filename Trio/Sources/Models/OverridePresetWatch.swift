@@ -1,9 +1,12 @@
 //
-//  OverridePreset.swift
-//  Trio
+// Trio
+// OverridePresetWatch.swift
+// Created by Marvin Polscheit on 2025-01-03.
+// Last edited by Deniz Cengiz on 2025-01-23.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
 //
-//  Created by Marvin Polscheit on 03.01.25.
-//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import SwiftUI
 

@@ -1,3 +1,12 @@
+//
+// Trio
+// TargetBehavoirStateModel.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Robert on 2025-02-25.
+// Most contributions by Deniz Cengiz and Robert.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 extension TargetBehavoir {

@@ -1,3 +1,12 @@
+//
+// Trio
+// LogoBurstSplash.swift
+// Created by Deniz Cengiz on 2025-04-18.
+// Last edited by Deniz Cengiz on 2025-04-18.
+// Most contributions by Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct LogoBurstSplash<Content: View>: View {

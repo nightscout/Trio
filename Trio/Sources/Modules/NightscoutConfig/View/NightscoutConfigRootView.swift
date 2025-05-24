@@ -1,3 +1,12 @@
+//
+// Trio
+// NightscoutConfigRootView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-05-10.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import SwiftUI
 import Swinject

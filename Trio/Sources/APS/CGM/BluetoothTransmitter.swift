@@ -1,11 +1,22 @@
+//
+// Trio
+// BluetoothTransmitter.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Johan Degraeve and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreBluetooth
 import Foundation
 import os
 
-/// Generic bluetoothtransmitter class that handles scanning, connect, discover services, discover characteristics, subscribe to receive characteristic, reconnect.
+/// Generic bluetoothtransmitter class that handles scanning, connect, discover services, discover characteristics, subscribe to
+/// receive characteristic, reconnect.
 ///
 /// - the connection will be set up and a subscribe to a characteristic will be done
-/// - a heartbeat function is called each time there's a disconnect (needed for Dexcom) or if there's data received on the receive characteristic
+/// - a heartbeat function is called each time there's a disconnect (needed for Dexcom) or if there's data received on the receive
+/// characteristic
 /// - the class does nothing with the data itself
 class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     // MARK: - private properties
@@ -77,7 +88,8 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
 
     // MARK: - public functions
 
-    /// will try to connect to the device, first by calling retrievePeripherals, if peripheral not known, then by calling startScanning
+    /// will try to connect to the device, first by calling retrievePeripherals, if peripheral not known, then by calling
+    /// startScanning
     func connect() {
         if !retrievePeripherals(centralManager!) {
             startScanning()
@@ -156,7 +168,9 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
         }
     }
 
-    /// try to connect to peripheral to which connection was successfully done previously, and that has a uuid that matches the stored deviceAddress. If such peripheral exists, then try to connect, it's not necessary to start scanning. iOS will connect as soon as the peripheral comes in range, or bluetooth status is switched on, whatever is necessary
+    /// try to connect to peripheral to which connection was successfully done previously, and that has a uuid that matches the
+    /// stored deviceAddress. If such peripheral exists, then try to connect, it's not necessary to start scanning. iOS will
+    /// connect as soon as the peripheral comes in range, or bluetooth status is switched on, whatever is necessary
     ///
     /// the result of the attempt to try to find such device, is returned
     fileprivate func retrievePeripherals(_ central: CBCentralManager) -> Bool {
@@ -209,7 +223,8 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
 
         debug(.deviceManager, "Did discover peripheral with name: \(deviceName)")
 
-        // check if stored address not nil, in which case we already connected before and we expect a full match with the already known device name
+        // check if stored address not nil, in which case we already connected before and we expect a full match with the already
+        // known device name
         if peripheral.identifier.uuidString == deviceAddress {
             debug(.deviceManager, "    stored address matches peripheral address, will try to connect")
 
@@ -248,7 +263,8 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
 
         /// in case status changed to powered on and if device address known then try to retrieveperipherals
         if central.state == .poweredOn {
-            /// try to connect to device to which connection was successfully done previously, this attempt is done by callling retrievePeripherals(central)
+            /// try to connect to device to which connection was successfully done previously, this attempt is done by callling
+            /// retrievePeripherals(central)
             _ = retrievePeripherals(central)
         }
     }
@@ -343,9 +359,11 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
         _: CBCentralManager,
         willRestoreState _: [String: Any]
     ) {
-        // willRestoreState must be defined, otherwise the app would crash (because the centralManager was created with a CBCentralManagerOptionRestoreIdentifierKey)
+        // willRestoreState must be defined, otherwise the app would crash (because the centralManager was created with a
+        // CBCentralManagerOptionRestoreIdentifierKey)
         // even if it's an empty function
-        // trace is called here because it allows us to see in the issue reports if there was a restart after app crash or removed from memory - in all other cases (force closed by user) this function is not called
+        // trace is called here because it allows us to see in the issue reports if there was a restart after app crash or removed
+        // from memory - in all other cases (force closed by user) this function is not called
 
         debug(.deviceManager, "in willRestoreState")
     }

@@ -1,3 +1,12 @@
+//
+// Trio
+// PumpHistoryEvent.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Sam King on 2025-05-04.
+// Most contributions by Ivan Valkou and avouspierre.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import LoopKit
 

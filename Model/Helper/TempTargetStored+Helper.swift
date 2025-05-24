@@ -1,3 +1,12 @@
+//
+// Trio
+// TempTargetStored+Helper.swift
+// Created by Marvin Polscheit on 2024-09-15.
+// Last edited by Marvin Polscheit on 2025-02-28.
+// Most contributions by Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

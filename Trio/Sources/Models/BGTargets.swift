@@ -1,3 +1,12 @@
+//
+// Trio
+// BGTargets.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-01-03.
+// Most contributions by Ivan Valkou and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 struct BGTargets: JSON {

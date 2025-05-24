@@ -1,5 +1,12 @@
-/// This actor provides us with logic to handle cases when a caller
-/// tries to initialize a coreDataStack that is already initialized.
+//
+// Trio
+// CoreDataInitializationCoordinator.swift
+// Created by Sam King on 2025-03-09.
+// Last edited by Sam King on 2025-03-09.
+// Most contributions by Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 actor CoreDataInitializationCoordinator {
     private var isInitialized = false
     private var initializationTask: Task<Void, Error>?

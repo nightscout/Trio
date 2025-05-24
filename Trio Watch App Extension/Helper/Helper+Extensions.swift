@@ -1,3 +1,12 @@
+//
+// Trio
+// Helper+Extensions.swift
+// Created by Deniz Cengiz on 2025-01-04.
+// Last edited by Marvin Polscheit on 2025-01-07.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import SwiftUI
 

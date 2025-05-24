@@ -1,3 +1,12 @@
+//
+// Trio
+// ChartsView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-02-19.
+// Most contributions by Jon Mårtensson and tmhastings.
+//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import CoreData
 import SwiftDate

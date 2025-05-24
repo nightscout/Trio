@@ -1,3 +1,12 @@
+//
+// Trio
+// TempTargetStored+CoreDataProperties.swift
+// Created by Deniz Cengiz on 2025-01-05.
+// Last edited by Robert on 2025-02-07.
+// Most contributions by Deniz Cengiz and Robert.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

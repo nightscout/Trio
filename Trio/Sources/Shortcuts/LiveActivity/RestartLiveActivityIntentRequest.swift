@@ -1,3 +1,12 @@
+//
+// Trio
+// RestartLiveActivityIntentRequest.swift
+// Created by Deniz Cengiz on 2025-03-01.
+// Last edited by Deniz Cengiz on 2025-03-04.
+// Most contributions by Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import AppIntents
 import Foundation
 import UIKit

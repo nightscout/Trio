@@ -1,4 +1,12 @@
-/// A HTTP response status code.
+//
+// Trio
+// HTTPResponseStatus.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-01-01.
+// Most contributions by Ivan Valkou.
+//
+// Documentation available under: https://triodocs.org/
+
 public enum HTTPResponseStatus {
     /* use custom if you want to use a non-standard response code or
      have it available in a (UInt, String) pair from a higher-level web framework. */

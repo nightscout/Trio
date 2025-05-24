@@ -1,3 +1,12 @@
+//
+// Trio
+// TrioMainWatchView.swift
+// Created by Marvin Polscheit on 2025-01-02.
+// Last edited by Deniz Cengiz on 2025-04-19.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import SwiftUI
 import WatchKit
@@ -97,7 +106,8 @@ struct TrioMainWatchView: View {
             }
             .onAppear {
                 /// Hard reset variables when main view appears
-                /// Reset `bolusAmount` and `recommendedBolus` to ensure no stale / old value is set when user opens bolus input or meal combo the next time.
+                /// Reset `bolusAmount` and `recommendedBolus` to ensure no stale / old value is set when user opens bolus input
+                /// or meal combo the next time.
                 state.bolusAmount = 0
                 state.recommendedBolus = 0
             }

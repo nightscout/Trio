@@ -1,9 +1,12 @@
 //
-//  GlucoseNotificationOption.swift
-//  FreeAPS
+// Trio
+// GlucoseNotificationsOption.swift
+// Created by Deniz Cengiz on 2025-01-22.
+// Last edited by dsnallfot on 2025-03-03.
+// Most contributions by dsnallfot and kskandis.
 //
-//  Created by Kimberlie Skandis on 1/18/25.
-//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import SwiftUI
 

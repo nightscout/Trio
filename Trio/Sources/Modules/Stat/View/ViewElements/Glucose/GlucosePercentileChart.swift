@@ -1,3 +1,12 @@
+//
+// Trio
+// GlucosePercentileChart.swift
+// Created by Deniz Cengiz on 2025-03-06.
+// Last edited by Deniz Cengiz on 2025-03-09.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import SwiftUI
 

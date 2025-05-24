@@ -1,3 +1,12 @@
+//
+// Trio
+// NightscoutStatus.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Jonas Björkert on 2025-03-15.
+// Most contributions by Jan Dittmer and Ivan Valkou.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 struct NightscoutStatus: JSON {

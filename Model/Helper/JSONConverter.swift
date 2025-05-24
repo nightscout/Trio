@@ -1,3 +1,12 @@
+//
+// Trio
+// JSONConverter.swift
+// Created by Marvin Polscheit on 2024-05-01.
+// Last edited by Marvin Polscheit on 2024-05-01.
+// Most contributions by Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 class JSONConverter {

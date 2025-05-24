@@ -1,9 +1,12 @@
 //
-//  AlgorithmSettingsSubstepView.swift
-//  Trio
+// Trio
+// AlgorithmSettingsSubstepView.swift
+// Created by Deniz Cengiz on 2025-04-20.
+// Last edited by Deniz Cengiz on 2025-05-04.
+// Most contributions by Deniz Cengiz.
 //
-//  Created by Cengiz Deniz on 15.04.25.
-//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepresentable>: View where Substep.RawValue == Int {

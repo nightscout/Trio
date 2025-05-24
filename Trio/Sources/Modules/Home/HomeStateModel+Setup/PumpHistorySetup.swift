@@ -1,3 +1,12 @@
+//
+// Trio
+// PumpHistorySetup.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 
@@ -53,7 +62,8 @@ extension Home.StateModel {
     }
 
     // Setup Last Bolus to display the bolus progress bar
-    // The predicate filters out all external boluses to prevent the progress bar from displaying the amount of an external bolus when an external bolus is added after a pump bolus
+    // The predicate filters out all external boluses to prevent the progress bar from displaying the amount of an external bolus
+    // when an external bolus is added after a pump bolus
     func setupLastBolus() {
         Task {
             do {

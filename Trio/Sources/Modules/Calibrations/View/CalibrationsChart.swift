@@ -1,3 +1,12 @@
+//
+// Trio
+// CalibrationsChart.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-01-03.
+// Most contributions by Pierre L and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct CalibrationsChart: View {

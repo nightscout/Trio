@@ -1,9 +1,12 @@
 //
-//  WatchStateSnapshot.swift
-//  Trio
+// Trio
+// WatchStateSnapshot.swift
+// Created by Deniz Cengiz on 2025-04-19.
+// Last edited by Deniz Cengiz on 2025-04-19.
+// Most contributions by Deniz Cengiz.
 //
-//  Created by Cengiz Deniz on 18.04.25.
-//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 struct WatchStateSnapshot {

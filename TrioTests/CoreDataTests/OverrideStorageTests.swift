@@ -1,3 +1,12 @@
+//
+// Trio
+// OverrideStorageTests.swift
+// Created by Marvin Polscheit on 2025-02-19.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 import Swinject
@@ -13,7 +22,8 @@ import Testing
 
     init() async throws {
         // Create test context
-        // As we are only using this single test context to initialize our in-memory DeterminationStorage we need to perform the Unit Tests serialized
+        // As we are only using this single test context to initialize our in-memory DeterminationStorage we need to perform the
+        // Unit Tests serialized
         coreDataStack = try await CoreDataStack.createForTests()
         testContext = coreDataStack.newTaskContext()
 
@@ -32,7 +42,7 @@ import Testing
         injectServices(resolver)
     }
 
-    @Test("Storage is correctly initialized") func testStorageInitialization() {
+    @Test("Storage is correctly initialized") func storageInitialization() {
         // Verify storage exists
         #expect(storage != nil, "OverrideStorage should be injected")
 
@@ -40,7 +50,7 @@ import Testing
         #expect(storage is BaseOverrideStorage, "Storage should be of type BaseOverrideStorage")
     }
 
-    @Test("Store and retrieve override") func testStoreAndRetrieveOverride() async throws {
+    @Test("Store and retrieve override") func storeAndRetrieveOverride() async throws {
         // Given
         let testOverride = Override(
             name: "Test Override",
@@ -86,7 +96,7 @@ import Testing
         #expect(storedOverride?.isPreset == false, "isPreset should match")
     }
 
-    @Test("Store and retrieve override preset") func testStoreAndRetrieveOverridePreset() async throws {
+    @Test("Store and retrieve override preset") func storeAndRetrieveOverridePreset() async throws {
         // Given
         let testPreset = Override(
             name: "Test Preset",

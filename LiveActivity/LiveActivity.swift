@@ -1,3 +1,12 @@
+//
+// Trio
+// LiveActivity.swift
+// Created by 10nas on 2023-11-28.
+// Last edited by Deniz Cengiz on 2025-01-26.
+// Most contributions by Deniz Cengiz and Mike Plante.
+//
+// Documentation available under: https://triodocs.org/
+
 import ActivityKit
 import SwiftUI
 import WidgetKit

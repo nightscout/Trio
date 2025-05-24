@@ -1,3 +1,12 @@
+//
+// Trio
+// GlucoseStorageTests.swift
+// Created by Marvin Polscheit on 2025-02-19.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 import Swinject
@@ -13,7 +22,8 @@ import Testing
 
     init() async throws {
         // Create test context
-        // As we are only using this single test context to initialize our in-memory DeterminationStorage we need to perform the Unit Tests serialized
+        // As we are only using this single test context to initialize our in-memory DeterminationStorage we need to perform the
+        // Unit Tests serialized
         coreDataStack = try await CoreDataStack.createForTests()
         testContext = coreDataStack.newTaskContext()
 
@@ -32,7 +42,7 @@ import Testing
         injectServices(resolver)
     }
 
-    @Test("Storage is correctly initialized") func testStorageInitialization() {
+    @Test("Storage is correctly initialized") func storageInitialization() {
         // Verify storage exists
         #expect(storage != nil, "GlucoseStorage should be injected")
 
@@ -40,7 +50,7 @@ import Testing
         #expect(storage is BaseGlucoseStorage, "Storage should be of type BaseGlucoseStorage")
     }
 
-    @Test("Store and retrieve glucose entries") func testStoreAndRetrieveGlucose() async throws {
+    @Test("Store and retrieve glucose entries") func storeAndRetrieveGlucose() async throws {
         // Given
         let testGlucose = [
             BloodGlucose(direction: BloodGlucose.Direction.flat, date: 123, dateString: Date(), glucose: 126)
@@ -131,7 +141,7 @@ import Testing
         #expect(entry.eventType == .capillaryGlucose, "Type should be capillaryGlucose")
     }
 
-    @Test("Test glucose alarms") func testGlucoseAlarms() async throws {
+    @Test("Test glucose alarms") func glucoseAlarms() async throws {
         // Given
         let lowGlucose = [
             BloodGlucose(direction: BloodGlucose.Direction.flat, date: 123, dateString: Date(), glucose: 55)

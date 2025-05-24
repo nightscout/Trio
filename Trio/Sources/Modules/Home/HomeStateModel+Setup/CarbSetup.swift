@@ -1,3 +1,12 @@
+//
+// Trio
+// CarbSetup.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-02-19.
+// Most contributions by Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

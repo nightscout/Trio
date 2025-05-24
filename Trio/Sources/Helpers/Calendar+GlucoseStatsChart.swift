@@ -1,3 +1,12 @@
+//
+// Trio
+// Calendar+GlucoseStatsChart.swift
+// Created by Marvin Polscheit on 2025-02-03.
+// Last edited by Marvin Polscheit on 2025-02-03.
+// Most contributions by Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 extension Calendar {

@@ -1,3 +1,12 @@
+//
+// Trio
+// PopupView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Mike Plante on 2025-03-29.
+// Most contributions by Mike Plante and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 // MARK: - Style Extensions

@@ -1,3 +1,12 @@
+//
+// Trio
+// OnboardingManager.swift
+// Created by Marvin Polscheit on 2025-03-17.
+// Last edited by Deniz Cengiz on 2025-05-06.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import SwiftUI
 import Swinject

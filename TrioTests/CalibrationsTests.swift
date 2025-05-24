@@ -1,3 +1,12 @@
+//
+// Trio
+// CalibrationsTests.swift
+// Created by Deniz Cengiz on 2025-01-05.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Pierre L.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import Swinject
 import Testing
@@ -13,7 +22,7 @@ import Testing
         injectServices(resolver)
     }
 
-    @Test("Can create simple calibration") func testCreateSimpleCalibration() {
+    @Test("Can create simple calibration") func createSimpleCalibration() {
         // Given
         calibrationService.removeAllCalibrations()
         let calibration = Calibration(x: 100.0, y: 102.0)
@@ -28,7 +37,7 @@ import Testing
         #expect(calibrationService.calibrate(value: 104) == 106)
     }
 
-    @Test("Can handle multiple calibrations") func testCreateMultipleCalibration() {
+    @Test("Can handle multiple calibrations") func createMultipleCalibration() {
         // Given
         calibrationService.removeAllCalibrations()
         let calibration = Calibration(x: 100.0, y: 120)
@@ -52,7 +61,7 @@ import Testing
         #expect(calibrationService.calibrations.isEmpty)
     }
 
-    @Test("Handles calibration bounds correctly") func testCalibrationBounds() {
+    @Test("Handles calibration bounds correctly") func calibrationBounds() {
         // Given
         calibrationService.removeAllCalibrations()
 

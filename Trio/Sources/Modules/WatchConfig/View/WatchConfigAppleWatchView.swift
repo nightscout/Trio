@@ -1,3 +1,12 @@
+//
+// Trio
+// WatchConfigAppleWatchView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-02-19.
+// Most contributions by Deniz Cengiz and Marc R Kellerman.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 import Swinject
 

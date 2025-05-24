@@ -1,3 +1,12 @@
+//
+// Trio
+// BolusIntent.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Auggie Fisher and dsnallfot.
+//
+// Documentation available under: https://triodocs.org/
+
 import AppIntents
 import Foundation
 import Intents
@@ -16,7 +25,8 @@ import Swinject
         controlStyle: .field,
         /// The 200 upperBound does nothing here, the true max is set based on pump max
         /// An upperBound is specificed so that we can usethe lowerBound of 0, which ensures no negatives are allowed
-        /// A preferred approach would be to just block negatives and not specify an upperBound here, since it is implemented elsewhere
+        /// A preferred approach would be to just block negatives and not specify an upperBound here, since it is implemented
+        /// elsewhere
         inclusiveRange: (lowerBound: 0, upperBound: 200),
         requestValueDialog: IntentDialog(
             LocalizedStringResource(
