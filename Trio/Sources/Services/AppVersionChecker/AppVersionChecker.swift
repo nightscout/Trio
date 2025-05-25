@@ -1,52 +1,52 @@
 import UIKit
 
-/// AppVersionChecker is a singleton responsible for checking the app's version status.
-/// It fetches version data from remote sources (GitHub), caches the results, and notifies the user
-/// if an update is available or if the current version is blacklisted.
+// AppVersionChecker is a singleton responsible for checking the app's version status.
+// It fetches version data from remote sources (GitHub), caches the results, and notifies the user
+// if an update is available or if the current version is blacklisted.
 final class AppVersionChecker {
-    /// Shared singleton instance.
+    // Shared singleton instance.
     static let shared = AppVersionChecker()
 
-    /// Private initializer to enforce the singleton pattern.
+    // Private initializer to enforce the singleton pattern.
     private init() {}
 
     // MARK: - Persisted Properties
 
-    /// Cached app version for which data was last fetched.
+    // Cached app version for which data was last fetched.
     @Persisted(key: "cachedForVersion") private var cachedForVersion: String? = nil
-    /// The latest version fetched from GitHub.
+    // The latest version fetched from GitHub.
     @Persisted(key: "latestVersion") private var persistedLatestVersion: String? = nil
-    /// The date when the latest version was checked.
+    // The date when the latest version was checked.
     @Persisted(key: "latestVersionChecked") private var latestVersionChecked: Date? = .distantPast
-    /// Boolean flag indicating whether the current version is blacklisted.
+    // Boolean flag indicating whether the current version is blacklisted.
     @Persisted(key: "currentVersionBlackListed") private var currentVersionBlackListed: Bool = false
-    /// Timestamp for the last time a blacklist notification was shown.
+    // Timestamp for the last time a blacklist notification was shown.
     @Persisted(key: "lastBlacklistNotificationShown") private var lastBlacklistNotificationShown: Date? = .distantPast
-    /// Timestamp for the last time a version update notification was shown.
+    // Timestamp for the last time a version update notification was shown.
     @Persisted(key: "lastVersionUpdateNotificationShown") private var lastVersionUpdateNotificationShown: Date? = .distantPast
-    /// Timestamp for the last time an expiration notification was shown.
+    // Timestamp for the last time an expiration notification was shown.
     @Persisted(key: "lastExpirationNotificationShown") private var lastExpirationNotificationShown: Date? = .distantPast
 
     // Dev version properties
-    /// Cached app version for which dev data was last fetched.
+    // Cached app version for which dev data was last fetched.
     @Persisted(key: "cachedForDevVersion") private var cachedForDevVersion: String? = nil
-    /// The latest dev version fetched from GitHub.
+    // The latest dev version fetched from GitHub.
     @Persisted(key: "latestDevVersion") private var persistedLatestDevVersion: String? = nil
-    /// The date when the latest dev version was checked.
+    // The date when the latest dev version was checked.
     @Persisted(key: "latestDevVersionChecked") private var latestDevVersionChecked: Date? = .distantPast
 
     // MARK: - Nested Types
 
-    /// GitHubDataType defines the type of data to fetch from GitHub for version checking.
+    // GitHubDataType defines the type of data to fetch from GitHub for version checking.
     private enum GitHubDataType {
-        /// The configuration file containing version information.
+        // The configuration file containing version information.
         case versionConfig
-        /// The configuration file containing dev version information.
+        // The configuration file containing dev version information.
         case devVersionConfig
-        /// The JSON file listing blacklisted versions.
+        // The JSON file listing blacklisted versions.
         case blacklistedVersions
 
-        /// Returns the URL string associated with the data type.
+        // Returns the URL string associated with the data type.
         var url: String {
             switch self {
             case .versionConfig:
@@ -59,29 +59,27 @@ final class AppVersionChecker {
         }
     }
 
-    /// Model for decoding the blacklist JSON from GitHub.
+    // Model for decoding the blacklist JSON from GitHub.
     private struct Blacklist: Decodable {
-        /// Array of blacklisted version entries.
+        // Array of blacklisted version entries.
         let blacklistedVersions: [VersionEntry]
     }
 
-    /// Model representing a single version entry in the blacklist.
+    // Model representing a single version entry in the blacklist.
     private struct VersionEntry: Decodable {
-        /// The version string that is blacklisted.
+        // The version string that is blacklisted.
         let version: String
     }
 
     // MARK: - Public Methods
 
-    /**
-     Checks for a new or blacklisted version and presents an alert if necessary.
-
-     This method determines whether there is an update or if the current version is blacklisted.
-     Depending on the result, it displays an alert on the given view controller, ensuring that alerts
-     are not shown too frequently (24 hours for blacklist and 2 weeks for update notifications).
-
-     - Parameter viewController: The UIViewController on which to present any alerts.
-     */
+    // Checks for a new or blacklisted version and presents an alert if necessary.
+    //
+    // This method determines whether there is an update or if the current version is blacklisted.
+    // Depending on the result, it displays an alert on the given view controller, ensuring that alerts
+    // are not shown too frequently (24 hours for blacklist and 2 weeks for update notifications).
+    //
+    // - Parameter viewController: The UIViewController on which to present any alerts.
     func checkAndNotifyVersionStatus(in viewController: UIViewController) {
         checkForNewVersion { [weak viewController] latestVersion, isNewer, isBlacklisted in
             guard let vc = viewController else { return }
@@ -122,19 +120,17 @@ final class AppVersionChecker {
         }
     }
 
-    /**
-     Refreshes the version information and returns the current state.
-
-     This method triggers a version check (using cached values if valid or fetching fresh data)
-     and then returns the current app version along with the latest version info, a flag indicating
-     whether the latest version is newer, and a flag indicating if the current version is blacklisted.
-
-     - Parameter completion: A closure that receives the following parameters:
-     - currentVersion: The current app version.
-     - latestVersion: The latest version fetched from GitHub (if available).
-     - isNewer: `true` if the fetched version is newer than the current version.
-     - isBlacklisted: `true` if the current version is blacklisted.
-     */
+    // Refreshes the version information and returns the current state.
+    //
+    // This method triggers a version check (using cached values if valid or fetching fresh data)
+    // and then returns the current app version along with the latest version info, a flag indicating
+    // whether the latest version is newer, and a flag indicating if the current version is blacklisted.
+    //
+    // - Parameter completion: A closure that receives the following parameters:
+    // - currentVersion: The current app version.
+    // - latestVersion: The latest version fetched from GitHub (if available).
+    // - isNewer: `true` if the fetched version is newer than the current version.
+    // - isBlacklisted: `true` if the current version is blacklisted.
     func refreshVersionInfo(completion: @escaping (
         String,
         String?,
@@ -147,17 +143,15 @@ final class AppVersionChecker {
         }
     }
 
-    /**
-     Checks for the latest dev version with caching and comparison.
-
-     This method attempts to use cached dev version data if it is less than 24 hours old and
-     corresponds to the current app version. If the cache is invalid or outdated,
-     it fetches fresh data from GitHub.
-
-     - Parameter completion: A closure that receives:
-     - latestDevVersion: The latest dev version string (if available).
-     - isNewer: `true` if the fetched dev version is newer than the current version.
-     */
+    // Checks for the latest dev version with caching and comparison.
+    //
+    // This method attempts to use cached dev version data if it is less than 24 hours old and
+    // corresponds to the current app version. If the cache is invalid or outdated,
+    // it fetches fresh data from GitHub.
+    //
+    // - Parameter completion: A closure that receives:
+    // - latestDevVersion: The latest dev version string (if available).
+    // - isNewer: `true` if the fetched dev version is newer than the current version.
     func checkForNewDevVersion(completion: @escaping (String?, Bool) -> Void) {
         // For dev version, we need to compare against the current dev version, not the main version
         let currentDevVersion = Bundle.main.object(forInfoDictionaryKey: "AppDevVersion") as? String ?? version()
@@ -183,15 +177,13 @@ final class AppVersionChecker {
         fetchDevVersionAndUpdateCache(currentVersion: currentDevVersion, completion: completion)
     }
 
-    /**
-     Fetches dev version data from GitHub, updates persisted values, and invokes the completion handler.
-
-     - Parameters:
-     - currentVersion: The current app version.
-     - completion: A closure that receives:
-     - latestDevVersion: The latest dev version string from GitHub (if available).
-     - isNewer: `true` if the fetched dev version is newer than the current version.
-     */
+    // Fetches dev version data from GitHub, updates persisted values, and invokes the completion handler.
+    //
+    // - Parameters:
+    // - currentVersion: The current app version.
+    // - completion: A closure that receives:
+    // - latestDevVersion: The latest dev version string from GitHub (if available).
+    // - isNewer: `true` if the fetched dev version is newer than the current version.
     private func fetchDevVersionAndUpdateCache(currentVersion: String, completion: @escaping (String?, Bool) -> Void) {
         fetchData(for: .devVersionConfig) { versionData in
             DispatchQueue.main.async {
@@ -227,18 +219,16 @@ final class AppVersionChecker {
 
     // MARK: - Core Version Checking Logic
 
-    /**
-     Checks whether there is a new or blacklisted version.
-
-     This method attempts to use cached version data if it is less than 24 hours old and
-     corresponds to the current app version. If the cache is invalid or outdated,
-     it fetches fresh data from GitHub.
-
-     - Parameter completion: A closure that receives:
-     - latestVersion: The latest version string (if available).
-     - isNewer: `true` if the fetched version is newer than the current version.
-     - isBlacklisted: `true` if the current version is blacklisted.
-     */
+    // Checks whether there is a new or blacklisted version.
+    //
+    // This method attempts to use cached version data if it is less than 24 hours old and
+    // corresponds to the current app version. If the cache is invalid or outdated,
+    // it fetches fresh data from GitHub.
+    //
+    // - Parameter completion: A closure that receives:
+    // - latestVersion: The latest version string (if available).
+    // - isNewer: `true` if the fetched version is newer than the current version.
+    // - isBlacklisted: `true` if the current version is blacklisted.
     private func checkForNewVersion(completion: @escaping (String?, Bool, Bool) -> Void) {
         let currentVersion = version()
         let now = Date()
@@ -270,20 +260,18 @@ final class AppVersionChecker {
         fetchDataAndUpdateCache(currentVersion: currentVersion, completion: completion)
     }
 
-    /**
-     Fetches version and blacklist data from GitHub, updates persisted values, and invokes the completion handler.
-
-     This method performs two sequential network requests: first for the version configuration and then for the
-     blacklisted versions. After parsing the fetched data and comparing version values, it updates the cache and calls
-     the completion handler with the results.
-
-     - Parameters:
-     - currentVersion: The current app version.
-     - completion: A closure that receives:
-     - latestVersion: The latest version string from GitHub (if available).
-     - isNewer: `true` if the fetched version is newer than the current version.
-     - isBlacklisted: `true` if the current version is blacklisted.
-     */
+    // Fetches version and blacklist data from GitHub, updates persisted values, and invokes the completion handler.
+    //
+    // This method performs two sequential network requests: first for the version configuration and then for the
+    // blacklisted versions. After parsing the fetched data and comparing version values, it updates the cache and calls
+    // the completion handler with the results.
+    //
+    // - Parameters:
+    // - currentVersion: The current app version.
+    // - completion: A closure that receives:
+    // - latestVersion: The latest version string from GitHub (if available).
+    // - isNewer: `true` if the fetched version is newer than the current version.
+    // - isBlacklisted: `true` if the current version is blacklisted.
     private func fetchDataAndUpdateCache(currentVersion: String, completion: @escaping (String?, Bool, Bool) -> Void) {
         fetchData(for: .versionConfig) { versionData in
             self.fetchData(for: .blacklistedVersions) { blacklistData in
@@ -319,16 +307,14 @@ final class AppVersionChecker {
 
     // MARK: - Data Fetching Helper
 
-    /**
-     Fetches data from GitHub for a specified data type.
-
-     This helper method builds a URL from the provided GitHubDataType and executes a network request.
-     If the request is successful and returns valid data (HTTP status 200), the data is passed to the completion handler.
-
-     - Parameters:
-     - dataType: The type of GitHub data to fetch (version configuration or blacklisted versions).
-     - completion: A closure that receives the fetched data as an optional `Data` object.
-     */
+    // Fetches data from GitHub for a specified data type.
+    //
+    // This helper method builds a URL from the provided GitHubDataType and executes a network request.
+    // If the request is successful and returns valid data (HTTP status 200), the data is passed to the completion handler.
+    //
+    // - Parameters:
+    // - dataType: The type of GitHub data to fetch (version configuration or blacklisted versions).
+    // - completion: A closure that receives the fetched data as an optional `Data` object.
     private func fetchData(for dataType: GitHubDataType, completion: @escaping (Data?) -> Void) {
         guard let url = URL(string: dataType.url) else {
             completion(nil)
@@ -349,15 +335,13 @@ final class AppVersionChecker {
 
     // MARK: - Helpers
 
-    /**
-     Parses the version string from the contents of a configuration file.
-
-     The method scans each line of the provided content for an occurrence of "APP_VERSION" and then
-     extracts the version number following the "=" delimiter.
-
-     - Parameter contents: A string containing the contents of the configuration file.
-     - Returns: The extracted version string if found; otherwise, `nil`.
-     */
+    // Parses the version string from the contents of a configuration file.
+    //
+    // The method scans each line of the provided content for an occurrence of "APP_VERSION" and then
+    // extracts the version number following the "=" delimiter.
+    //
+    // - Parameter contents: A string containing the contents of the configuration file.
+    // - Returns: The extracted version string if found; otherwise, `nil`.
     private func parseVersionFromConfig(contents: String) -> String? {
         let lines = contents.split(separator: "\n")
         for line in lines {
@@ -373,15 +357,13 @@ final class AppVersionChecker {
         return nil
     }
 
-    /**
-     Parses the dev version string from the contents of a configuration file.
-
-     The method scans each line of the provided content for an occurrence of "APP_DEV_VERSION" and then
-     extracts the version number following the "=" delimiter.
-
-     - Parameter contents: A string containing the contents of the configuration file.
-     - Returns: The extracted dev version string if found; otherwise, `nil`.
-     */
+    // Parses the dev version string from the contents of a configuration file.
+    //
+    // The method scans each line of the provided content for an occurrence of "APP_DEV_VERSION" and then
+    // extracts the version number following the "=" delimiter.
+    //
+    // - Parameter contents: A string containing the contents of the configuration file.
+    // - Returns: The extracted dev version string if found; otherwise, `nil`.
     private func parseDevVersionFromConfig(contents: String) -> String? {
         let lines = contents.split(separator: "\n")
         for line in lines {
@@ -397,18 +379,16 @@ final class AppVersionChecker {
         return nil
     }
 
-    /**
-     Compares two version strings to determine if the fetched version is newer than the current version.
-
-     The version strings are split into numeric components and compared sequentially.
-     If any component of the fetched version is greater than its counterpart in the current version,
-     the function returns `true`; if lower, it returns `false`.
-
-     - Parameters:
-     - fetchedVersion: The version string obtained from GitHub.
-     - currentVersion: The current app version.
-     - Returns: `true` if the fetched version is newer than the current version; otherwise, `false`.
-     */
+    // Compares two version strings to determine if the fetched version is newer than the current version.
+    //
+    // The version strings are split into numeric components and compared sequentially.
+    // If any component of the fetched version is greater than its counterpart in the current version,
+    // the function returns `true`; if lower, it returns `false`.
+    //
+    // - Parameters:
+    // - fetchedVersion: The version string obtained from GitHub.
+    // - currentVersion: The current app version.
+    // - Returns: `true` if the fetched version is newer than the current version; otherwise, `false`.
     private func isVersion(_ fetchedVersion: String, newerThan currentVersion: String) -> Bool {
         let fetchedComponents = fetchedVersion.split(separator: ".").map { Int($0) ?? 0 }
         let currentComponents = currentVersion.split(separator: ".").map { Int($0) ?? 0 }
@@ -426,26 +406,22 @@ final class AppVersionChecker {
         return false
     }
 
-    /**
-     Retrieves the current app version from the main bundle.
-
-     - Returns: The current app version as defined in the app's Info.plist under "CFBundleShortVersionString",
-     or `"Unknown"` if not available.
-     */
+    // Retrieves the current app version from the main bundle.
+    //
+    // - Returns: The current app version as defined in the app's Info.plist under "CFBundleShortVersionString",
+    // or `"Unknown"` if not available.
     private func version() -> String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
     }
 
-    /**
-     Presents an alert on the specified view controller with a given title and message.
-
-     The alert is dispatched to the main thread to ensure UI updates occur correctly.
-
-     - Parameters:
-     - viewController: The UIViewController on which the alert should be presented.
-     - title: The title text for the alert.
-     - message: The body message of the alert.
-     */
+    // Presents an alert on the specified view controller with a given title and message.
+    //
+    // The alert is dispatched to the main thread to ensure UI updates occur correctly.
+    //
+    // - Parameters:
+    // - viewController: The UIViewController on which the alert should be presented.
+    // - title: The title text for the alert.
+    // - message: The body message of the alert.
     private func showAlert(on viewController: UIViewController, title: String, message: String) {
         DispatchQueue.main.async {
             let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
