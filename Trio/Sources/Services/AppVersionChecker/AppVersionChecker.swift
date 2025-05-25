@@ -27,12 +27,22 @@ final class AppVersionChecker {
     /// Timestamp for the last time an expiration notification was shown.
     @Persisted(key: "lastExpirationNotificationShown") private var lastExpirationNotificationShown: Date? = .distantPast
 
+    // Dev version properties
+    /// Cached app version for which dev data was last fetched.
+    @Persisted(key: "cachedForDevVersion") private var cachedForDevVersion: String? = nil
+    /// The latest dev version fetched from GitHub.
+    @Persisted(key: "latestDevVersion") private var persistedLatestDevVersion: String? = nil
+    /// The date when the latest dev version was checked.
+    @Persisted(key: "latestDevVersionChecked") private var latestDevVersionChecked: Date? = .distantPast
+
     // MARK: - Nested Types
 
     /// GitHubDataType defines the type of data to fetch from GitHub for version checking.
     private enum GitHubDataType {
         /// The configuration file containing version information.
         case versionConfig
+        /// The configuration file containing dev version information.
+        case devVersionConfig
         /// The JSON file listing blacklisted versions.
         case blacklistedVersions
 
@@ -41,6 +51,8 @@ final class AppVersionChecker {
             switch self {
             case .versionConfig:
                 return "https://raw.githubusercontent.com/nightscout/Trio/refs/heads/main/Config.xcconfig"
+            case .devVersionConfig:
+                return "https://raw.githubusercontent.com/nightscout/Trio/refs/heads/dev/Config.xcconfig"
             case .blacklistedVersions:
                 return "https://raw.githubusercontent.com/nightscout/Trio/refs/heads/main/blacklisted-versions.json"
             }
@@ -132,6 +144,84 @@ final class AppVersionChecker {
         let currentVersion = version()
         checkForNewVersion { latestVersion, isNewer, isBlacklisted in
             completion(currentVersion, latestVersion, isNewer, isBlacklisted)
+        }
+    }
+
+    /**
+     Checks for the latest dev version with caching and comparison.
+
+     This method attempts to use cached dev version data if it is less than 24 hours old and
+     corresponds to the current app version. If the cache is invalid or outdated,
+     it fetches fresh data from GitHub.
+
+     - Parameter completion: A closure that receives:
+     - latestDevVersion: The latest dev version string (if available).
+     - isNewer: `true` if the fetched dev version is newer than the current version.
+     */
+    func checkForNewDevVersion(completion: @escaping (String?, Bool) -> Void) {
+        // For dev version, we need to compare against the current dev version, not the main version
+        let currentDevVersion = Bundle.main.object(forInfoDictionaryKey: "AppDevVersion") as? String ?? version()
+        let now = Date()
+
+        // Retrieve cached values
+        let lastChecked = latestDevVersionChecked ?? .distantPast
+        let cachedVersion = cachedForDevVersion
+        let persistedLatestDev = persistedLatestDevVersion
+
+        // Use cached data if it is valid (less than 24 hours old) and matches the current version
+        if let cachedVersion = cachedVersion,
+           cachedVersion == currentDevVersion,
+           now.timeIntervalSince(lastChecked) < 24 * 3600,
+           let persistedLatestDev = persistedLatestDev
+        {
+            let isNewer = isVersion(persistedLatestDev, newerThan: currentDevVersion)
+            completion(persistedLatestDev, isNewer)
+            return
+        }
+
+        // Otherwise, fetch fresh data from GitHub and update the cache
+        fetchDevVersionAndUpdateCache(currentVersion: currentDevVersion, completion: completion)
+    }
+
+    /**
+     Fetches dev version data from GitHub, updates persisted values, and invokes the completion handler.
+
+     - Parameters:
+     - currentVersion: The current app version.
+     - completion: A closure that receives:
+     - latestDevVersion: The latest dev version string from GitHub (if available).
+     - isNewer: `true` if the fetched dev version is newer than the current version.
+     */
+    private func fetchDevVersionAndUpdateCache(currentVersion: String, completion: @escaping (String?, Bool) -> Void) {
+        fetchData(for: .devVersionConfig) { versionData in
+            DispatchQueue.main.async {
+                // Parse the dev version from the fetched configuration data
+                let configContents = versionData.flatMap { String(data: $0, encoding: .utf8) }
+                let fetchedDevVersion = configContents.flatMap { self.parseDevVersionFromConfig(contents: $0) }
+
+                #if DEBUG
+                    print("AppVersionChecker.fetchDevVersion: Current dev version: \(currentVersion)")
+                    print("AppVersionChecker.fetchDevVersion: Fetched dev version: \(fetchedDevVersion ?? "nil")")
+                    if let contents = configContents {
+                        let lines = contents.split(separator: "\n")
+                        for line in lines where line.contains("VERSION") {
+                            print("AppVersionChecker.fetchDevVersion: Config line: \(line)")
+                        }
+                    }
+                #endif
+
+                // Determine if the fetched dev version is newer than the current version
+                let isNewer = fetchedDevVersion.map {
+                    self.isVersion($0, newerThan: currentVersion)
+                } ?? false
+
+                // Update persisted cache
+                self.persistedLatestDevVersion = fetchedDevVersion
+                self.latestDevVersionChecked = Date()
+                self.cachedForDevVersion = currentVersion
+
+                completion(fetchedDevVersion, isNewer)
+            }
         }
     }
 
@@ -271,7 +361,31 @@ final class AppVersionChecker {
     private func parseVersionFromConfig(contents: String) -> String? {
         let lines = contents.split(separator: "\n")
         for line in lines {
-            if line.contains("APP_VERSION") {
+            if line.contains("APP_VERSION"), !line.contains("APP_DEV_VERSION") {
+                let components = line.split(separator: "=").map {
+                    $0.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                if components.count > 1 {
+                    return components[1]
+                }
+            }
+        }
+        return nil
+    }
+
+    /**
+     Parses the dev version string from the contents of a configuration file.
+
+     The method scans each line of the provided content for an occurrence of "APP_DEV_VERSION" and then
+     extracts the version number following the "=" delimiter.
+
+     - Parameter contents: A string containing the contents of the configuration file.
+     - Returns: The extracted dev version string if found; otherwise, `nil`.
+     */
+    private func parseDevVersionFromConfig(contents: String) -> String? {
+        let lines = contents.split(separator: "\n")
+        for line in lines {
+            if line.contains("APP_DEV_VERSION") {
                 let components = line.split(separator: "=").map {
                     $0.trimmingCharacters(in: .whitespacesAndNewlines)
                 }
