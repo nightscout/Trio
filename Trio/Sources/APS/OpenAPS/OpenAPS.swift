@@ -119,7 +119,7 @@ final class OpenAPS {
         }
     }
 
-    private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil) async throws -> String {
+    private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil, carbsDate: Date? = nil) async throws -> String {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
@@ -136,13 +136,16 @@ final class OpenAPS {
             var jsonArray = self.jsonConverter.convertToJSON(carbResults)
 
             if let additionalCarbs = additionalCarbs {
+                let formattedDate = carbsDate.map { ISO8601DateFormatter().string(from: $0) } ?? ISO8601DateFormatter()
+                    .string(from: Date())
+
                 let additionalEntry = [
                     "carbs": Double(additionalCarbs),
-                    "actualDate": ISO8601DateFormatter().string(from: Date()),
+                    "actualDate": formattedDate,
                     "id": UUID().uuidString,
                     "note": NSNull(),
                     "protein": 0,
-                    "created_at": ISO8601DateFormatter().string(from: Date()),
+                    "created_at": formattedDate,
                     "isFPU": false,
                     "fat": 0,
                     "enteredBy": "Trio"
@@ -278,6 +281,7 @@ final class OpenAPS {
         clock: Date = Date(),
         simulatedCarbsAmount: Decimal? = nil,
         simulatedBolusAmount: Decimal? = nil,
+        simulatedCarbsDate: Date? = nil,
         simulation: Bool = false
     ) async throws -> Determination? {
         debug(.openAPS, "Start determineBasal")
@@ -287,7 +291,7 @@ final class OpenAPS {
 
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
-        async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0)
+        async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0, carbsDate: simulatedCarbsDate)
         async let glucose = fetchAndProcessGlucose()
         async let oref2 = oref2()
         async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
