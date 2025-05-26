@@ -910,7 +910,10 @@ extension Treatments.StateModel {
             target = (mostRecentDetermination.currentTarget ?? currentBGTarget as NSDecimalNumber) as Decimal
             isf = (mostRecentDetermination.insulinSensitivity ?? currentISF as NSDecimalNumber) as Decimal
             cob = mostRecentDetermination.cob as Int16
-            iob = (mostRecentDetermination.iob ?? 0) as Decimal
+            // FIXME: for now we fall back to determinationIob but we should use
+            // a more formal error state if we can't collect the needed information
+            let determinationIob = (mostRecentDetermination.iob ?? 0) as Decimal
+            iob = (try? await apsManager.iobForDisplay(at: Date())) ?? determinationIob
             basal = (mostRecentDetermination.tempBasal ?? 0) as Decimal
             carbRatio = (mostRecentDetermination.carbRatio ?? currentCarbRatio as NSDecimalNumber) as Decimal
             insulinCalculated = await calculateInsulin()
