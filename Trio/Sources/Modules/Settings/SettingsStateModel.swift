@@ -120,19 +120,6 @@ extension Settings {
                 value: trioSettings.smoothGlucose ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             // Check for pump info
-            if let pumpManager = pluginManager.pumpManager {
-                addSetting(
-                    category: devicesCategory,
-                    name: String(localized: "Pump"),
-                    value: String(describing: type(of: pumpManager)).replacingOccurrences(of: "Manager", with: "")
-                )
-            } else {
-                addSetting(
-                    category: devicesCategory,
-                    name: String(localized: "Pump"),
-                    value: String(localized: "Not Connected")
-                )
-            }
 
             // Therapy Settings
             let therapyCategory = String(localized: "Therapy", comment: "Therapy menu item in the Settings main view.")
@@ -155,63 +142,6 @@ extension Settings {
             let isfProfile = trioSettings.isfProfile
             let crProfile = trioSettings.carbRatio
             let targetProfile = trioSettings.targetProfile
-
-            // Basal Profile
-            if !basalProfile.isEmpty {
-                let basalSubcategory = "\(therapyCategory) - \(String(localized: "Basal Profile"))"
-                for entry in basalProfile {
-                    let timeString = String(format: "%02d:%02d", entry.start.hours, entry.start.minutes)
-                    addSetting(
-                        category: basalSubcategory,
-                        name: timeString,
-                        value: String(describing: entry.rate),
-                        unit: "U/hr"
-                    )
-                }
-            }
-
-            // ISF Profile
-            if !isfProfile.isEmpty {
-                let isfSubcategory = "\(therapyCategory) - \(String(localized: "Insulin Sensitivity Factors"))"
-                for entry in isfProfile {
-                    let timeString = String(format: "%02d:%02d", entry.start.hours, entry.start.minutes)
-                    addSetting(
-                        category: isfSubcategory,
-                        name: timeString,
-                        value: String(describing: entry.value),
-                        unit: trioSettings.units == .mgdL ? "mg/dL/U" : "mmol/L/U"
-                    )
-                }
-            }
-
-            // CR Profile
-            if !crProfile.isEmpty {
-                let crSubcategory = "\(therapyCategory) - \(String(localized: "Carb Ratios"))"
-                for entry in crProfile {
-                    let timeString = String(format: "%02d:%02d", entry.start.hours, entry.start.minutes)
-                    addSetting(
-                        category: crSubcategory,
-                        name: timeString,
-                        value: String(describing: entry.value),
-                        unit: "g/U"
-                    )
-                }
-            }
-
-            // Target Profile
-            if !targetProfile.isEmpty {
-                let targetSubcategory = "\(therapyCategory) - \(String(localized: "Target Glucose"))"
-                for entry in targetProfile {
-                    let timeString = String(format: "%02d:%02d", entry.start.hours, entry.start.minutes)
-                    let targetValue = trioSettings.units == .mgdL ? entry.value : entry.value.asMmolL
-                    addSetting(
-                        category: targetSubcategory,
-                        name: timeString,
-                        value: String(describing: targetValue),
-                        unit: trioSettings.units.rawValue
-                    )
-                }
-            }
 
             // Algorithm Settings
             let algorithmCategory = String(localized: "Algorithm", comment: "Algorithm menu item in the Settings main view.")
