@@ -1,3 +1,12 @@
+//
+// Trio
+// OnboardingView+Util.swift
+// Created by Deniz Cengiz on 2025-04-01.
+// Last edited by Mike Plante on 2025-05-04.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 /// Represents the navigation direction in the onboarding flow

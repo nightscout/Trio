@@ -1,3 +1,12 @@
+//
+// Trio
+// TimeInRangeType.swift
+// Created by Deniz Cengiz on 2025-03-20.
+// Last edited by Deniz Cengiz on 2025-03-27.
+// Most contributions by Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 
 enum TimeInRangeType: String, JSON, CaseIterable, Identifiable, Codable, Hashable {

@@ -1,3 +1,12 @@
+//
+// Trio
+// OverrideSetup.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 
@@ -84,7 +93,8 @@ extension Home.StateModel {
         overrideRunStored = objects
     }
 
-    /// Cancels the running Override, creates an entry in the OverrideRunStored Core Data entity and posts a custom notification so that the AdjustmentsView gets updated
+    /// Cancels the running Override, creates an entry in the OverrideRunStored Core Data entity and posts a custom notification
+    /// so that the AdjustmentsView gets updated
     @MainActor func cancelOverride(withID id: NSManagedObjectID) async {
         do {
             guard let profileToCancel = try viewContext.existingObject(with: id) as? OverrideStored else { return }

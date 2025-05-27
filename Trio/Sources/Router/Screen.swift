@@ -1,3 +1,12 @@
+//
+// Trio
+// Screen.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-04-26.
+// Most contributions by Deniz Cengiz and Ivan Valkou.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 import Swinject
 

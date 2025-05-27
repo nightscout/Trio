@@ -1,3 +1,12 @@
+//
+// Trio
+// WatchConfigStateModel.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-01-24.
+// Most contributions by Pierre L and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import ConnectIQ
 import SwiftUI
 

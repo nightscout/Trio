@@ -1,3 +1,12 @@
+//
+// Trio
+// TempTargetsStorage.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 import SwiftDate
@@ -169,7 +178,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
 
                 let retrievedTargets = storage.retrieve(file, as: [TempTarget].self) ?? []
                 uniqEvents = retrievedTargets
-                    .filter { $0.isWithinLastDay }
+                    .filter(\.isWithinLastDay)
                     .sorted(by: { $0.createdAt > $1.createdAt })
 
                 storage.save(uniqEvents, as: file)

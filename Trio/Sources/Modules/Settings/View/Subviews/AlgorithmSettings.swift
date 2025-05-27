@@ -1,9 +1,12 @@
 //
-//  FeatureSettingsView.swift
-//  Trio
+// Trio
+// AlgorithmSettings.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-01-01.
+// Most contributions by Deniz Cengiz and tmhastings.
 //
-//  Created by Deniz Cengiz on 26.07.24.
-//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import SwiftUI
 import Swinject

@@ -1,3 +1,12 @@
+//
+// Trio
+// Formatters.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-03-07.
+// Most contributions by Marvin Polscheit and Ivan Valkou.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import HealthKit
 

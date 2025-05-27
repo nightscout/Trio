@@ -1,3 +1,12 @@
+//
+// Trio
+// DeterminationStorage.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import CoreData
 import Foundation
@@ -13,7 +22,7 @@ protocol DeterminationStorage {
     ) async -> (UUID, Forecast?, [ForecastValue])
     func getOrefDeterminationNotYetUploadedToNightscout(_ determinationIds: [NSManagedObjectID]) async -> Determination?
     func fetchForecastHierarchy(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext)
-    async throws -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
+        async throws -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
 }
 
 final class BaseDeterminationStorage: DeterminationStorage, Injectable {
@@ -86,7 +95,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
         for data: (id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID]),
         in context: NSManagedObjectContext
     ) async -> (UUID, Forecast?, [ForecastValue]) {
-        return await context.perform {
+        await context.perform {
             var forecast: Forecast?
             var forecastValues: [ForecastValue] = []
 
@@ -205,7 +214,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
     }
 
     func fetchForecastHierarchy(for determinationID: NSManagedObjectID, in context: NSManagedObjectContext)
-    async throws -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
+        async throws -> [(id: UUID, forecastID: NSManagedObjectID, forecastValueIDs: [NSManagedObjectID])]
     {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: Forecast.self,

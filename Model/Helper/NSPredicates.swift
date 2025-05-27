@@ -1,3 +1,12 @@
+//
+// Trio
+// NSPredicates.swift
+// Created by Marvin Polscheit on 2024-04-20.
+// Last edited by Deniz Cengiz on 2025-05-02.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

@@ -1,3 +1,12 @@
+//
+// Trio
+// AddOverrideForm.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Mike Plante and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import SwiftUI
 
@@ -406,9 +415,9 @@ struct AddOverrideForm: View {
                     }, label: {
                         Text("Start Override")
                     })
-                        .disabled(isInvalid)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .tint(.white)
+                    .disabled(isInvalid)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .tint(.white)
                 }
             ).listRowBackground(isInvalid ? Color(.systemGray4) : Color(.systemBlue))
 
@@ -422,9 +431,9 @@ struct AddOverrideForm: View {
                     Text("Save as Preset")
 
                 })
-                    .disabled(isInvalid)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .tint(.white)
+                .disabled(isInvalid)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .tint(.white)
             }
             .listRowBackground(
                 isInvalid ? Color(.systemGray4) : Color.secondary

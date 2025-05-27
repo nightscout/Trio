@@ -1,9 +1,12 @@
 //
-//  GarminWatchState.swift
-//  Trio
+// Trio
+// GarminWatchState.swift
+// Created by Deniz Cengiz on 2025-01-25.
+// Last edited by Deniz Cengiz on 2025-01-25.
+// Most contributions by Deniz Cengiz.
 //
-//  Created by Cengiz Deniz on 25.01.25.
-//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import SwiftUI
 

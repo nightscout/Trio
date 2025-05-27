@@ -1,3 +1,12 @@
+//
+// Trio
+// Unit Tests.swift
+// Created by Marvin Polscheit on 2025-01-08.
+// Last edited by Marvin Polscheit on 2025-01-08.
+// Most contributions by Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUICore
 import Testing
 @testable import Trio_Watch_App
@@ -8,7 +17,7 @@ import XCTest
 
     // MARK: - Color Conversion Tests
 
-    @Test("Hex string to color conversion") func testHexStringToColor() throws {
+    @Test("Hex string to color conversion") func hexStringToColor() throws {
         // Given
         let whiteHex = "#FFFFFF"
         let blackHex = "#000000"
@@ -24,7 +33,7 @@ import XCTest
 
     // MARK: - WatchState Tests
 
-    @Test("WatchState initialization with default values") func testWatchStateInitialization() throws {
+    @Test("WatchState initialization with default values") func watchStateInitialization() throws {
         #expect(watchState.currentGlucose == "--")
         #expect(watchState.currentGlucoseColorString == "#ffffff")
         #expect(watchState.glucoseValues.isEmpty)
@@ -33,17 +42,17 @@ import XCTest
         #expect(watchState.lastLoopTime == "--")
     }
 
-    @Test("Bolus limits have correct default values") func testBolusLimits() throws {
+    @Test("Bolus limits have correct default values") func bolusLimits() throws {
         #expect(watchState.maxBolus == Decimal(10))
         #expect(watchState.bolusIncrement == Decimal(0.05))
     }
 
-    @Test("Carb limits have correct default values") func testCarbLimits() throws {
+    @Test("Carb limits have correct default values") func carbLimits() throws {
         #expect(watchState.maxCarbs == Decimal(250))
         #expect(watchState.maxCOB == Decimal(120))
     }
 
-    @Test("Bolus cancellation resets all related values") func testBolusCancellation() throws {
+    @Test("Bolus cancellation resets all related values") func bolusCancellation() throws {
         // Given
         watchState.bolusProgress = 0.5
         watchState.activeBolusAmount = 5.0
@@ -58,7 +67,7 @@ import XCTest
         #expect(watchState.activeBolusAmount == 0)
     }
 
-    @Test("Meal bolus combo state transitions work correctly") func testMealBolusComboState() throws {
+    @Test("Meal bolus combo state transitions work correctly") func mealBolusComboState() throws {
         // Given - Initial state
         #expect(!watchState.isMealBolusCombo)
         #expect(watchState.mealBolusStep == .savingCarbs)
@@ -80,7 +89,7 @@ import XCTest
         #expect(!watchState.isMealBolusCombo)
     }
 
-    @Test("Acknowledgment states transition correctly") func testAcknowledgmentStates() throws {
+    @Test("Acknowledgment states transition correctly") func acknowledgmentStates() throws {
         // Given - Initial state
         #expect(watchState.acknowledgementStatus == .pending)
         #expect(!watchState.showAcknowledgmentBanner)

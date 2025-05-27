@@ -1,3 +1,12 @@
+//
+// Trio
+// Determination+helper.swift
+// Created by Marvin Polscheit on 2024-04-20.
+// Last edited by Marvin Polscheit on 2025-04-06.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

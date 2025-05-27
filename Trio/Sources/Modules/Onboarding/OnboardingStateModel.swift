@@ -1,3 +1,12 @@
+//
+// Trio
+// OnboardingStateModel.swift
+// Created by Marvin Polscheit on 2025-03-23.
+// Last edited by Deniz Cengiz on 2025-05-10.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import DanaKit
 import FirebaseCrashlytics

@@ -1,3 +1,12 @@
+//
+// Trio
+// MainLoadingView.swift
+// Created by Sam King on 2025-03-07.
+// Last edited by Deniz Cengiz on 2025-05-03.
+// Most contributions by Deniz Cengiz and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 extension Main {

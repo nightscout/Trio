@@ -1,3 +1,12 @@
+//
+// Trio
+// BolusCalculatorStateModel.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Mike Plante on 2025-03-02.
+// Most contributions by Jon B Mårtensson and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 extension BolusCalculatorConfig {

@@ -1,3 +1,12 @@
+//
+// Trio
+// TempTargetStorageTests.swift
+// Created by Marvin Polscheit on 2025-02-19.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 import Swinject
@@ -31,7 +40,7 @@ import Testing
         injectServices(resolver)
     }
 
-    @Test("Storage is correctly initialized") func testStorageInitialization() {
+    @Test("Storage is correctly initialized") func storageInitialization() {
         // Verify storage exists
         #expect(storage != nil, "TempTargetsStorage should be injected")
 
@@ -41,7 +50,7 @@ import Testing
         )
     }
 
-    @Test("Store and retrieve temp target") func testStoreAndRetrieveTempTarget() async throws {
+    @Test("Store and retrieve temp target") func storeAndRetrieveTempTarget() async throws {
         // Given
         let testTarget = TempTarget(
             name: "Test Target",
@@ -75,7 +84,7 @@ import Testing
         #expect(storedTarget?.duration == 60, "Duration should match")
     }
 
-    @Test("Delete temp target Preset") func testDeleteTempTarget() async throws {
+    @Test("Delete temp target Preset") func deleteTempTarget() async throws {
         // Given
         let testTarget = TempTarget(
             name: "Delete Test",

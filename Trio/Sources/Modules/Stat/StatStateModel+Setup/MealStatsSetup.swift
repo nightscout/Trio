@@ -1,3 +1,12 @@
+//
+// Trio
+// MealStatsSetup.swift
+// Created by Marvin Polscheit on 2025-02-03.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 
@@ -147,7 +156,7 @@ extension Stat.StateModel {
     /// - Parameter range: A tuple containing the start and end dates to get averages for
     /// - Returns: A tuple containing the average carbs, fat and protein values for the date range
     func getCachedMealAverages(for range: (start: Date, end: Date)) -> (carbs: Double, fat: Double, protein: Double) {
-        return calculateAveragesForDateRange(from: range.start, to: range.end)
+        calculateAveragesForDateRange(from: range.start, to: range.end)
     }
 
     /// Calculates the average macronutrient values for a given date range

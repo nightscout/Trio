@@ -1,3 +1,12 @@
+//
+// Trio
+// TreatmentsRootView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import CoreData
 import LoopKitUI
@@ -202,7 +211,8 @@ extension Treatments {
 
                             // Time
                             HStack {
-                                // Semi-hacky workaround to make sure the List renders the horizontal divider properly between the `Time` and `Note` rows within the Section
+                                // Semi-hacky workaround to make sure the List renders the horizontal divider properly between the
+                                // `Time` and `Note` rows within the Section
                                 HStack {
                                     Text("")
                                     Image(systemName: "clock").padding(.leading, -7)
@@ -216,7 +226,7 @@ extension Treatments {
                                         .padding(.trailing, 5)
                                 } else {
                                     Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
-                                    label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                        label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
 
                                     DatePicker(
                                         "Time",
@@ -294,8 +304,8 @@ extension Treatments {
                                     }, label: {
                                         Image(systemName: "info.circle")
                                     })
-                                        .foregroundStyle(.blue)
-                                        .buttonStyle(PlainButtonStyle())
+                                    .foregroundStyle(.blue)
+                                    .buttonStyle(PlainButtonStyle())
                                 }
                                 Spacer()
                                 Button {

@@ -1,3 +1,12 @@
+//
+// Trio
+// CarbEntryStored+helper.swift
+// Created by dnzxy on 2024-05-01.
+// Last edited by Marvin Polscheit on 2025-01-28.
+// Most contributions by Marvin Polscheit and dnzxy.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

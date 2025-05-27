@@ -1,9 +1,19 @@
+//
+// Trio
+// DummyCharts.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import Foundation
 import SwiftUI
 
 extension MainChartView {
-    /// empty chart that just shows the Y axis and Y grid lines. Created separately from `mainChart` to allow main chart to scroll horizontally while having a fixed Y axis
+    /// empty chart that just shows the Y axis and Y grid lines. Created separately from `mainChart` to allow main chart to scroll
+    /// horizontally while having a fixed Y axis
     var staticYAxisChart: some View {
         Chart {
             /// high and low threshold lines

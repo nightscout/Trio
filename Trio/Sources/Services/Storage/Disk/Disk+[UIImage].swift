@@ -1,3 +1,12 @@
+//
+// Trio
+// Disk+[UIImage].swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Ivan Valkou and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import UIKit
 
@@ -155,7 +164,7 @@ public extension Disk {
         do {
             let url = try getExistingFileURL(for: path, in: directory)
             let fileUrls = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: [])
-            let sortedFileUrls = fileUrls.sorted(by: { (url1, url2) -> Bool in
+            let sortedFileUrls = fileUrls.sorted(by: { url1, url2 -> Bool in
                 if let fileNameInt1 = fileNameInt(url1), let fileNameInt2 = fileNameInt(url2) {
                     return fileNameInt1 <= fileNameInt2
                 }

@@ -1,3 +1,12 @@
+//
+// Trio
+// CarbsInputView.swift
+// Created by Marvin Polscheit on 2025-01-02.
+// Last edited by Deniz Cengiz on 2025-02-21.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import SwiftUI
 

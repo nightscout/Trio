@@ -1,3 +1,12 @@
+//
+// Trio
+// AutosensSettingsStateModel.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Sam King on 2025-05-10.
+// Most contributions by Andreas Stokholm and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Observation
 import SwiftUI

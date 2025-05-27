@@ -1,3 +1,12 @@
+//
+// Trio
+// AdjustmentsStateModel+Overrides.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import CoreData
 import Foundation
@@ -159,7 +168,7 @@ extension Adjustments.StateModel {
 
             async let storeOverride: () = overrideStorage.storeOverride(override: preset)
             async let resetState: () = resetStateVariables()
-            _ = try await (storeOverride, resetState)
+            _ = try await(storeOverride, resetState)
 
             setupOverridePresetsArray()
             try await nightscoutManager.uploadProfiles()

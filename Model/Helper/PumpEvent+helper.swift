@@ -1,3 +1,12 @@
+//
+// Trio
+// PumpEvent+helper.swift
+// Created by Marvin Polscheit on 2024-05-05.
+// Last edited by Sam King on 2025-04-22.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 

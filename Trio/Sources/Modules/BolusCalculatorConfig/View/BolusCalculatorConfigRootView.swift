@@ -1,3 +1,12 @@
+//
+// Trio
+// BolusCalculatorConfigRootView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Eric Bouchut on 2025-04-14.
+// Most contributions by Deniz Cengiz and Mike Plante.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 import Swinject
 

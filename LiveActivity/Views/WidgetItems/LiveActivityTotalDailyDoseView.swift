@@ -1,3 +1,12 @@
+//
+// Trio
+// LiveActivityTotalDailyDoseView.swift
+// Created by Deniz Cengiz on 2025-01-26.
+// Last edited by Deniz Cengiz on 2025-02-21.
+// Most contributions by Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import SwiftUI
 import WidgetKit

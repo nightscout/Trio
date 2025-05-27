@@ -1,3 +1,12 @@
+//
+// Trio
+// OverrideHelpView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct OverrideHelpView: View {
@@ -38,7 +47,7 @@ struct OverrideHelpView: View {
             .navigationBarTitle("Help", displayMode: .inline)
 
             Button { state.isHelpSheetPresented.toggle() }
-            label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center) }
+                label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center) }
                 .buttonStyle(.bordered)
                 .padding(.top)
         }

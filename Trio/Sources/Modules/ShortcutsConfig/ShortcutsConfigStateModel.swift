@@ -1,9 +1,12 @@
 //
-//  ShortcutsConfigStateModel.swift
-//  Trio
+// Trio
+// ShortcutsConfigStateModel.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-01-01.
+// Most contributions by Auggie Fisher and Deniz Cengiz.
 //
-//  Created by Pierre LAGARDE on 01/05/2024.
-//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 extension ShortcutsConfig {

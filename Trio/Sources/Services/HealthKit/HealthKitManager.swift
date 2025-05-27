@@ -1,3 +1,12 @@
+//
+// Trio
+// HealthKitManager.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import CoreData
 import Foundation
@@ -404,6 +413,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                             debug(.service, "Created HealthKit sample for bolus entry: \(sample)")
                             insulinSamples.append(sample)
                         }
+
                     case .tempBasal:
                         // For temp basal events, process them and adjust overlapping durations if necessary
                         guard let duration = event.duration, let amount = event.amount else { continue }

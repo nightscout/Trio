@@ -1,3 +1,12 @@
+//
+// Trio
+// StateIntentRequest.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Deniz Cengiz on 2025-02-21.
+// Most contributions by Pierre L and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import AppIntents
 import CoreData
 import Foundation

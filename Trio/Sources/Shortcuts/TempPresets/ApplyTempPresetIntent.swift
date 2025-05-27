@@ -1,3 +1,12 @@
+//
+// Trio
+// ApplyTempPresetIntent.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by dsnallfot on 2025-03-14.
+// Most contributions by Jon B Mårtensson and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import AppIntents
 import Foundation
 

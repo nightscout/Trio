@@ -1,3 +1,12 @@
+//
+// Trio
+// NightscoutConnectView.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Deniz Cengiz and Daniel Snällfot.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct NightscoutConnectView: View {
@@ -75,8 +84,8 @@ struct NightscoutConnectView: View {
                         UIApplication.shared.open(URL(string: state.url)!, options: [:], completionHandler: nil)
                     }
                     label: { Label("Open Nightscout", systemImage: "waveform.path.ecg.rectangle").font(.title3).padding() }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .buttonStyle(.bordered)
                 }
                 .listRowBackground(Color.clear)
             }

@@ -1,9 +1,12 @@
 //
-//  LiveActivityView.swift
-//  Trio
+// Trio
+// LiveActivityView.swift
+// Created by Deniz Cengiz on 2024-10-17.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
 //
-//  Created by Cengiz Deniz on 17.10.24.
-//
+// Documentation available under: https://triodocs.org/
+
 import ActivityKit
 import Foundation
 import SwiftUI
@@ -111,8 +114,10 @@ struct LiveActivityView: View {
             .privacySensitive()
             .padding(.all, 14)
             .foregroundStyle(Color.primary)
-            // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark mode)
-            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of the interface style)
+            // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark
+            // mode)
+            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of
+            // the interface style)
             // The colorScheme environment variable does work here, but BackgroundStyle gives us this functionality for free
             .foregroundStyle(Color.primary)
             .background(BackgroundStyle.background.opacity(0.4))
@@ -139,8 +144,10 @@ struct LiveActivityView: View {
             .privacySensitive()
             .padding(.all, 15)
             .foregroundStyle(Color.primary)
-            /// Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark mode)
-            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of the interface style)
+            /// Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark
+            /// mode)
+            // Semantic UIColors do NOT (as of iOS 17.1.1). Like UIColor.systemBackgroundColor (it does not adapt to changes of
+            // the interface style)
             // The colorScheme environment variable does work here, but BackgroundStyle gives us this functionality for free
             .foregroundStyle(Color.primary)
             .background(BackgroundStyle.background.opacity(0.4))

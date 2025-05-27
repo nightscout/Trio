@@ -1,3 +1,12 @@
+//
+// Trio
+// WatchState.swift
+// Created by Marvin Polscheit on 2025-01-02.
+// Last edited by Deniz Cengiz on 2025-04-22.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import SwiftUI
 

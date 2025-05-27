@@ -1,3 +1,12 @@
+//
+// Trio
+// DeliveryLimitsStepView.swift
+// Created by Deniz Cengiz on 2025-04-02.
+// Last edited by Deniz Cengiz on 2025-04-15.
+// Most contributions by Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct DeliveryLimitsStepView: View {

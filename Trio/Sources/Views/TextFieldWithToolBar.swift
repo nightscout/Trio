@@ -1,3 +1,12 @@
+//
+// Trio
+// TextFieldWithToolBar.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Mike Plante.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 import UIKit
 
@@ -249,7 +258,7 @@ public struct TextFieldWithToolBar: View {
         let components = processedText.components(separatedBy: currentDecimalSeparator)
 
         // Process the integer part (before decimal)
-        var integerPart = components[0].filter { $0.isNumber }
+        var integerPart = components[0].filter(\.isNumber)
         // Remove leading zeros for accurate digit counting
         while integerPart.hasPrefix("0") && integerPart.count > 1 {
             integerPart.removeFirst()
@@ -257,7 +266,7 @@ public struct TextFieldWithToolBar: View {
         let integerDigits = integerPart.count
 
         // Count fraction digits (after decimal separator)
-        let fractionDigits = components.count > 1 ? components[1].filter { $0.isNumber }.count : 0
+        let fractionDigits = components.count > 1 ? components[1].filter(\.isNumber).count : 0
 
         // Validate against the formatter's digit limits
         if integerDigits > numberFormatter.maximumIntegerDigits ||

@@ -1,10 +1,20 @@
+//
+// Trio
+// BolusCalculatorTests.swift
+// Created by Marvin Polscheit on 2025-02-13.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Foundation
 import Testing
 
 @testable import Trio
 
 /// ⚠️ NOTE:
-/// If tests in this suite are failing unexpectedly (e.g. sudden unexplainable mismatches for decimal places for calculated values),
+/// If tests in this suite are failing unexpectedly (e.g. sudden unexplainable mismatches for decimal places for calculated
+/// values),
 /// try running the test suite on a clean simulator.
 ///
 /// You can reset the simulator from the menu: **Device > Erase All Content and Settings**
@@ -21,12 +31,12 @@ import Testing
         injectServices(resolver)
     }
 
-    @Test("Calculator is correctly initialized") func testCalculatorInitialization() {
+    @Test("Calculator is correctly initialized") func calculatorInitialization() {
         #expect(calculator != nil, "BolusCalculationManager should be injected")
         #expect(calculator is BaseBolusCalculationManager, "Calculator should be of type BaseBolusCalculationManager")
     }
 
-    @Test("Calculate insulin for standard meal") func testStandardMealCalculation() async throws {
+    @Test("Calculate insulin for standard meal") func standardMealCalculation() async throws {
         // STEP 1: Setup test scenario
         // We need to provide a CalculationInput struct
         let carbs: Decimal = 80
@@ -37,8 +47,8 @@ import Testing
         let carbRatio: Decimal = 10 // Should result in 8U for carbs
         let iob: Decimal = 1.0 // Should subtract from final result
         let cob: Int16 = 20
-        let useFattyMealCorrectionFactor: Bool = false
-        let useSuperBolus: Bool = false
+        let useFattyMealCorrectionFactor = false
+        let useSuperBolus = false
         let fattyMealFactor: Decimal = 0.8
         let sweetMealFactor: Decimal = 2
         let basal: Decimal = 1.5
@@ -135,7 +145,7 @@ import Testing
         #expect(result.wholeCobInsulin == wholeCobInsulin, "Insulin for total carbs should be \(wholeCobInsulin)U")
     }
 
-    @Test("Calculate insulin for fatty meal") func testFattyMealCalculation() async throws {
+    @Test("Calculate insulin for fatty meal") func fattyMealCalculation() async throws {
         // STEP 1: Setup test scenario
         // We need to provide a CalculationInput struct
         let carbs: Decimal = 80
@@ -146,8 +156,8 @@ import Testing
         let carbRatio: Decimal = 10 // Should result in 8U for carbs
         let iob: Decimal = 1.0 // Should subtract from final result
         let cob: Int16 = 20
-        let useFattyMealCorrectionFactor: Bool = true // now set to true
-        let useSuperBolus: Bool = false
+        let useFattyMealCorrectionFactor = true // now set to true
+        let useSuperBolus = false
         let fattyMealFactor: Decimal = 0.8
         let sweetMealFactor: Decimal = 2
         let basal: Decimal = 1.5
@@ -226,7 +236,7 @@ import Testing
         )
     }
 
-    @Test("Calculate insulin with super bolus") func testSuperBolusCalculation() async throws {
+    @Test("Calculate insulin with super bolus") func superBolusCalculation() async throws {
         // STEP 1: Setup test scenario
         // We need to provide a CalculationInput struct
         let carbs: Decimal = 80
@@ -237,8 +247,8 @@ import Testing
         let carbRatio: Decimal = 10 // Should result in 8U for carbs
         let iob: Decimal = 1.0 // Should subtract from final result
         let cob: Int16 = 20
-        let useFattyMealCorrectionFactor: Bool = false
-        let useSuperBolus: Bool = true // Super bolus enabled
+        let useFattyMealCorrectionFactor = false
+        let useSuperBolus = true // Super bolus enabled
         let fattyMealFactor: Decimal = 0.8
         let sweetMealFactor: Decimal = 2
         let basal: Decimal = 1.5 // Will be added to insulin calculation when super bolus is enabled
@@ -321,15 +331,19 @@ import Testing
             """
         )
 
-        // The difference should be the difference of super bolus (= standard dose + the basal rate * sweetMealFactor) limited by max bolus, and the standard dose.
+        // The difference should be the difference of super bolus (= standard dose + the basal rate * sweetMealFactor) limited by
+        // max bolus, and the standard dose.
         let actualDifference = (superBolusResult.insulinCalculated - standardResult.insulinCalculated)
         let expectedDifference = min(superBolusResult.insulinCalculated, maxBolus) - standardResult.insulinCalculated
         #expect(
             actualDifference == expectedDifference,
             """
             Super bolus difference incorrect
-            Expected difference: min(\(expectedSuperBolusInsulin), \(maxBolus)) U (basal \(basal)U × sweetMealFactor \(sweetMealFactor) + standard dose \(standardResult
-                .insulinCalculated)) - standard dose \(standardResult.insulinCalculated)
+            Expected difference: min(\(expectedSuperBolusInsulin), \(maxBolus)) U (basal \(basal)U × sweetMealFactor \(
+                sweetMealFactor
+            ) + standard dose \(standardResult
+                .insulinCalculated
+            )) - standard dose \(standardResult.insulinCalculated)
             Actual difference: \(actualDifference)U
             Standard result: \(standardResult)
             SuperBolus result: \(superBolusResult)
@@ -337,7 +351,7 @@ import Testing
         )
     }
 
-    @Test("Calculate insulin with low glucose forecast (minPredBG < 54)") func testMinPredBGGuardBolusCalculation() async throws {
+    @Test("Calculate insulin with low glucose forecast (minPredBG < 54)") func minPredBGGuardBolusCalculation() async throws {
         // STEP 1: Setup test scenario
         // We need to provide a CalculationInput struct
         let carbs: Decimal = 80
@@ -348,8 +362,8 @@ import Testing
         let carbRatio: Decimal = 10 // Should result in 8U for carbs
         let iob: Decimal = 1.0 // Should subtract from final result
         let cob: Int16 = 20
-        let useFattyMealCorrectionFactor: Bool = false
-        let useSuperBolus: Bool = false
+        let useFattyMealCorrectionFactor = false
+        let useSuperBolus = false
         let fattyMealFactor: Decimal = 0.8
         let sweetMealFactor: Decimal = 2
         let basal: Decimal = 1.5 // Will be added to insulin calculation when super bolus is enabled
@@ -424,7 +438,7 @@ import Testing
         )
     }
 
-    @Test("Calculate insulin with stale loop (longer than 15min ago)") func testStaleLoopBolusCalculation() async throws {
+    @Test("Calculate insulin with stale loop (longer than 15min ago)") func staleLoopBolusCalculation() async throws {
         // STEP 1: Setup test scenario
         // We need to provide a CalculationInput struct
         let carbs: Decimal = 80
@@ -435,8 +449,8 @@ import Testing
         let carbRatio: Decimal = 10 // Should result in 8U for carbs
         let iob: Decimal = 1.0 // Should subtract from final result
         let cob: Int16 = 20
-        let useFattyMealCorrectionFactor: Bool = false
-        let useSuperBolus: Bool = false
+        let useFattyMealCorrectionFactor = false
+        let useSuperBolus = false
         let fattyMealFactor: Decimal = 0.8
         let sweetMealFactor: Decimal = 2
         let basal: Decimal = 1.5 // Will be added to insulin calculation when super bolus is enabled
@@ -476,7 +490,7 @@ import Testing
         #expect(result.insulinCalculated == 0, "Loop is stale; insulin calculated set to 0 U for safety!")
     }
 
-    @Test("Calculate insulin with zero carbs") func testZeroCarbsCalculation() async throws {
+    @Test("Calculate insulin with zero carbs") func zeroCarbsCalculation() async throws {
         // Given
         let carbs: Decimal = 0
 
@@ -831,7 +845,8 @@ import Testing
     }
 }
 
-// Copied over from BolusCalculationManager as they are not included in the protocol definition (and I don´t want them to be included)
+// Copied over from BolusCalculationManager as they are not included in the protocol definition (and I don´t want them to be
+// included)
 
 extension BolusCalculatorTests {
     private enum SettingType {
@@ -850,7 +865,7 @@ extension BolusCalculatorTests {
         sweetMealFactor: Decimal,
         maxCarbs: Decimal
     ) {
-        return (
+        (
             units: settingsManager.settings.units,
             fraction: settingsManager.settings.overrideFactor,
             fattyMealFactor: settingsManager.settings.fattyMealFactor,

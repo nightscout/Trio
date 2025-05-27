@@ -1,3 +1,12 @@
+//
+// Trio
+// Router.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by kskandis and Ivan Valkou.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import SwiftUI
 import Swinject
@@ -24,7 +33,7 @@ struct MessageContent {
     var subtype: MessageSubtype = .algorithm
     var title: String = ""
     var useAPN: Bool = true
-    var trigger: UNNotificationTrigger? = nil
+    var trigger: UNNotificationTrigger?
     var action: NotificationAction = .none
 }
 

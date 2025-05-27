@@ -1,3 +1,12 @@
+//
+// Trio
+// DecimalPickerSettings.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Mike Plante on 2025-05-09.
+// Most contributions by Deniz Cengiz and Mike Plante.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 class PickerSettingsProvider: ObservableObject {

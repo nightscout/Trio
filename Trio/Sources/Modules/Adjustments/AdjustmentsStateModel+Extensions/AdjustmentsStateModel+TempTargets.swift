@@ -1,3 +1,12 @@
+//
+// Trio
+// AdjustmentsStateModel+TempTargets.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import CoreData
 import Foundation
@@ -8,14 +17,15 @@ extension Adjustments.StateModel {
     /// Updates the latest Temp Target configuration for UI state and logic.
     /// First get the latest Temp Target corresponding NSManagedObjectID with a background fetch
     /// Then unpack it on the view context and update the State variables which can be used on in the View for some Logic
-    /// This also needs to be called when we cancel an Temp Target via the Home View to update the State of the Button for this case
+    /// This also needs to be called when we cancel an Temp Target via the Home View to update the State of the Button for this
+    /// case
     func updateLatestTempTargetConfiguration() {
         Task {
             do {
                 let id = try await tempTargetStorage.loadLatestTempTargetConfigurations(fetchLimit: 1)
                 async let updateState: () = updateLatestTempTargetConfigurationOfState(from: id)
                 async let setTempTarget: () = setCurrentTempTarget(from: id)
-                _ = await (updateState, setTempTarget)
+                _ = await(updateState, setTempTarget)
 
                 // perform determine basal sync to immediately apply temp target changes
                 try await apsManager.determineBasalSync()
@@ -69,7 +79,7 @@ extension Adjustments.StateModel {
     /// Sets up Temp Targets using fetch and update functions.
     func setupTempTargets(
         fetchFunction: @escaping () async throws -> [NSManagedObjectID],
-        updateFunction: @escaping @MainActor([TempTargetStored]) -> Void
+        updateFunction: @escaping @MainActor ([TempTargetStored]) -> Void
     ) {
         Task {
             do {
@@ -205,7 +215,8 @@ extension Adjustments.StateModel {
         await disableAllActiveTempTargets(createTempTargetRunEntry: true)
         let tempTarget = TempTarget(
             name: tempTargetName,
-            /// We don't need to use the state var date here as we are using a different function for scheduled Temp Targets 'saveScheduledTempTarget()'
+            /// We don't need to use the state var date here as we are using a different function for scheduled Temp Targets
+            /// 'saveScheduledTempTarget()'
             createdAt: Date(),
             targetTop: tempTargetTarget,
             targetBottom: tempTargetTarget,

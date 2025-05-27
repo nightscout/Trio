@@ -1,3 +1,12 @@
+//
+// Trio
+// ToggleStyles.swift
+// Created by Deniz Cengiz on 2025-04-17.
+// Last edited by Deniz Cengiz on 2025-04-17.
+// Most contributions by Jon B Mårtensson and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 struct RadioButtonToggleStyle: ToggleStyle {

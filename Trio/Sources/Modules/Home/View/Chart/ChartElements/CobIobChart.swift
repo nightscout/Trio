@@ -1,3 +1,12 @@
+//
+// Trio
+// CobIobChart.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Marvin Polscheit and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import Charts
 import Foundation
 import SwiftUI
@@ -94,8 +103,10 @@ extension MainChartView {
 
     func drawCOBIOBChart() -> some ChartContent {
         // Filter out duplicate entries by `deliverAt`,
-        // We sometimes get two determinations when editing carbs, one without the entry-to-be-edited and then another one after editing the entry.
-        // We are fetching determinations in descending order, so the first one is the latter determination (with correct amounts), so keeping the first one encountered.
+        // We sometimes get two determinations when editing carbs, one without the entry-to-be-edited and then another one after
+        // editing the entry.
+        // We are fetching determinations in descending order, so the first one is the latter determination (with correct
+        // amounts), so keeping the first one encountered.
         var seenDates = Set<Date>()
         let filteredDeterminations = state.enactedAndNonEnactedDeterminations.filter { item in
             if let date = item.deliverAt {
@@ -111,7 +122,6 @@ extension MainChartView {
         }
 
         return ForEach(filteredDeterminations) { item in
-
             // MARK: - COB line and area mark
 
             let amountCOB = Int(item.cob)

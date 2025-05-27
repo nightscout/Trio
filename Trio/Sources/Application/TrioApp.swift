@@ -1,3 +1,12 @@
+//
+// Trio
+// TrioApp.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Deniz Cengiz and Sam King.
+//
+// Documentation available under: https://triodocs.org/
+
 import BackgroundTasks
 import CoreData
 import Foundation
@@ -165,7 +174,8 @@ extension Notification.Name {
                     // Notify of completed initialization
                     Foundation.NotificationCenter.default.post(name: .initializationCompleted, object: nil)
                     UIApplication.shared.registerForRemoteNotifications()
-                    // Cancel scheduled not looping notifications when app was completely shut down and has now re-initialized completely
+                    // Cancel scheduled not looping notifications when app was completely shut down and has now re-initialized
+                    // completely
                     self.clearNotLoopingNotifications()
 
                     do {
@@ -343,7 +353,8 @@ extension Notification.Name {
         .onChange(of: scenePhase) { _, newScenePhase in
             debug(.default, "APPLICATION PHASE: \(newScenePhase)")
 
-            /// If the App goes to the background we should ensure that all the changes are saved from the viewContext to the Persistent Container
+            /// If the App goes to the background we should ensure that all the changes are saved from the viewContext to the
+            /// Persistent Container
             if newScenePhase == .background {
                 coreDataStack.save()
             }

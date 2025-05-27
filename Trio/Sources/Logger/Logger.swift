@@ -1,3 +1,12 @@
+//
+// Trio
+// Logger.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-02-17.
+// Most contributions by Ivan Valkou and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import os.log
 import os.signpost
 import UIKit

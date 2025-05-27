@@ -1,3 +1,12 @@
+//
+// Trio
+// CustomNotification.swift
+// Created by Marvin Polscheit on 2024-05-31.
+// Last edited by Deniz Cengiz on 2025-01-23.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
+//
+// Documentation available under: https://triodocs.org/
+
 import Combine
 import Foundation
 

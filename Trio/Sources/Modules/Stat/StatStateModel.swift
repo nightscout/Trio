@@ -1,3 +1,12 @@
+//
+// Trio
+// StatStateModel.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by Marvin Polscheit on 2025-05-24.
+// Most contributions by Deniz Cengiz and Marvin Polscheit.
+//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import Foundation
 import Observation
@@ -97,7 +106,7 @@ extension Stat {
                 // Calculate hourly stats and glucose range stats asynchronously with fetched glucose IDs
                 async let hourlyStats: () = calculateHourlyStatsForGlucoseAreaChart(from: ids)
                 async let glucoseRangeStats: () = calculateGlucoseRangeStatsForStackedChart(from: ids)
-                _ = await (hourlyStats, glucoseRangeStats)
+                _ = await(hourlyStats, glucoseRangeStats)
             }
         }
 

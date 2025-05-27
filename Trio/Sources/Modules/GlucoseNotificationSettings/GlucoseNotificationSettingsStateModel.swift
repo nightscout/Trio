@@ -1,3 +1,12 @@
+//
+// Trio
+// GlucoseNotificationSettingsStateModel.swift
+// Created by Deniz Cengiz on 2025-01-01.
+// Last edited by kskandis on 2025-03-04.
+// Most contributions by Ivan Valkou and kskandis.
+//
+// Documentation available under: https://triodocs.org/
+
 import SwiftUI
 
 extension GlucoseNotificationSettings {

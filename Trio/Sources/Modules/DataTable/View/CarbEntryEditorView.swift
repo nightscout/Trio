@@ -1,9 +1,12 @@
 //
-//  CarbEntryEditorView.swift
-//  FreeAPS
+// Trio
+// CarbEntryEditorView.swift
+// Created by Deniz Cengiz on 2025-01-22.
+// Last edited by Mike Plante on 2025-03-11.
+// Most contributions by Marvin Polscheit and Deniz Cengiz.
 //
-//  Created by Marvin Polscheit on 15.01.25.
-//
+// Documentation available under: https://triodocs.org/
+
 import CoreData
 import SwiftUI
 
