@@ -16,7 +16,7 @@ struct CancelOverrideIntent: AppIntent {
     @MainActor func perform() async throws -> some ProvidesDialog {
         await OverridePresetsIntentRequest().cancelOverride()
         return .result(
-            dialog: IntentDialog(LocalizedStringResource("Override canceled"))
+            dialog: IntentDialog(stringLiteral: String(localized: "Override canceled"))
         )
     }
 }
