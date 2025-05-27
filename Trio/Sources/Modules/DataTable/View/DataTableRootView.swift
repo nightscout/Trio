@@ -7,6 +7,7 @@ extension DataTable {
         case none = "All Types"
         case bolus = "Bolus Only"
         case smb = "SMB Only"
+        case externalBolus = "External Only"
         case tempBasal = "Temp Basal Only"
         case pumpState = "Pump State Only"
     }
@@ -213,12 +214,17 @@ extension DataTable {
                     return true
                 case .bolus:
                     if let bolus = item.bolus {
-                        return !bolus.isSMB
+                        return !bolus.isSMB && !bolus.isExternal
                     }
                     return false
                 case .smb:
                     if let bolus = item.bolus {
                         return bolus.isSMB
+                    }
+                    return false
+                case .externalBolus:
+                    if let bolus = item.bolus {
+                        return bolus.isExternal
                     }
                     return false
                 case .tempBasal:
@@ -548,8 +554,13 @@ extension DataTable {
                     Image(systemName: "chevron.down")
                         .font(.caption2)
                 }
-                .font(.caption)
                 .foregroundStyle(treatmentTypeFilter != .none ? .orange : .secondary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .overlay(
+                    Capsule()
+                        .stroke((treatmentTypeFilter != .none ? Color.orange : Color.secondary).opacity(0.4), lineWidth: 2)
+                )
             }
             .menuStyle(.borderlessButton)
         }
@@ -557,7 +568,17 @@ extension DataTable {
         @ViewBuilder private func treatmentView(_ item: PumpEventStored) -> some View {
             HStack {
                 if let bolus = item.bolus, let amount = bolus.amount {
-                    Image(systemName: "circle.fill").foregroundColor(bolus.isExternal ? Color.blue : Color.insulin)
+                    let bolusColor: Color = {
+                        if bolus.isExternal {
+                            return Color(red: 0.6, green: 0.8, blue: 1.0) // Very light blue that works in both modes
+                        } else if bolus.isSMB {
+                            return Color.darkerBlue // Dark blue
+                        } else {
+                            return Color.insulin // Regular insulin color
+                        }
+                    }()
+
+                    Image(systemName: "circle.fill").foregroundColor(bolusColor)
                     Text(bolus.isSMB ? "SMB" : item.type ?? "Bolus")
                     Text(
                         (Formatter.decimalFormatterWithTwoFractionDigits.string(from: amount) ?? "0") +
