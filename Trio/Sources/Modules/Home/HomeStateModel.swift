@@ -106,8 +106,6 @@ extension Home {
         var listOfCGM: [CGMModel] = []
         var cgmCurrent = cgmDefaultModel
         var shouldRunDeleteOnSettingsChange = true
-        var iobForDisplay: Decimal?
-        var iobForDisplayUpdatedAt: Date?
 
         var showCarbsRequiredBadge: Bool = true
         private(set) var setupPumpType: PumpConfig.PumpType = .minimed
@@ -217,9 +215,6 @@ extension Home {
                     group.addTask {
                         self.setupTempTargetsRunStored()
                     }
-                    group.addTask {
-                        self.setupIobForDisplay()
-                    }
                 }
             }
         }
@@ -270,7 +265,6 @@ extension Home {
                 self.setupLastBolus()
                 self.displayPumpStatusHighlightMessage()
                 self.displayPumpStatusBadge()
-                self.setupIobForDisplay()
             }.store(in: &subscriptions)
 
             coreDataPublisher?.filteredByEntityName("OpenAPS_Battery").sink { [weak self] _ in
@@ -312,7 +306,6 @@ extension Home {
             timer.eventHandler = {
                 DispatchQueue.main.async { [weak self] in
                     self?.timerDate = Date()
-                    self?.setupIobForDisplayOnTimer()
                 }
             }
             timer.resume()

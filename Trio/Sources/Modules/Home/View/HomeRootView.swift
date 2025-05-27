@@ -431,8 +431,8 @@ extension Home {
                         .foregroundColor(Color.insulin)
                     Text(
                         (
-                            state.iobForDisplay.flatMap({ Formatter.decimalFormatterWithTwoFractionDigits
-                                    .string(from: $0 as NSNumber) }) ?? "??"
+                            Formatter.decimalFormatterWithTwoFractionDigits
+                                .string(from: (state.enactedAndNonEnactedDeterminations.first?.iob ?? 0) as NSNumber) ?? "0"
                         ) +
                             String(localized: " U", comment: "Insulin unit")
                     )

@@ -30,7 +30,6 @@ protocol APSManager {
     func roundBolus(amount: Decimal) -> Decimal
     var lastError: CurrentValueSubject<Error?, Never> { get }
     func cancelBolus(_ callback: ((Bool, String) -> Void)?) async
-    func iobForDisplay(at: Date) async throws -> Decimal?
 }
 
 enum APSError: LocalizedError {
@@ -416,11 +415,6 @@ final class BaseAPSManager: APSManager, Injectable {
         await tddStorage.storeTDD(tddResult)
     }
 
-    /// Calculate the iob at a given time using oref
-    func iobForDisplay(at: Date) async throws -> Decimal? {
-        try await openAPS.iobForDisplay(clock: at)
-    }
-
     func determineBasal() async throws {
         debug(.apsManager, "Start determine basal")
 
@@ -455,12 +449,6 @@ final class BaseAPSManager: APSManager, Injectable {
             return true
         }
 
-        guard isValidGlucoseData else {
-            debug(.apsManager, "Glucose validation failed")
-            processError(APSError.glucoseError(message: "Glucose validation failed"))
-            return
-        }
-
         do {
             let now = Date()
 
@@ -471,6 +459,10 @@ final class BaseAPSManager: APSManager, Injectable {
             _ = try await autosenseResult
             try await openAPS.createProfiles()
             let determination = try await openAPS.determineBasal(currentTemp: await currentTemp, clock: now)
+
+            guard isValidGlucoseData else {
+                throw APSError.glucoseError(message: "Glucose validation failed")
+            }
 
             if let determination = determination {
                 // Capture weak self in closure
