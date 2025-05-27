@@ -145,195 +145,235 @@ extension Settings {
 
             // Algorithm Settings
             let algorithmCategory = String(localized: "Algorithm", comment: "Algorithm menu item in the Settings main view.")
+            
+            // Autosens Settings
+            let autosensSubcategory = String(localized: "Autosens")
             addSetting(
                 category: algorithmCategory,
+                subcategory: autosensSubcategory,
                 name: String(localized: "Autosens Max"),
                 value: String(describing: preferences.autosensMax)
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: autosensSubcategory,
                 name: String(localized: "Autosens Min"),
                 value: String(describing: preferences.autosensMin)
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: autosensSubcategory,
                 name: String(localized: "Rewind Resets Autosens"),
                 value: preferences.rewindResetsAutosens ? String(localized: "Enabled") : String(localized: "Disabled")
             )
 
             // SMB Settings
+            let smbSubcategory = String(localized: "SMB")
             addSetting(
                 category: algorithmCategory,
+                subcategory: smbSubcategory,
                 name: String(localized: "Enable SMB Always"),
                 value: preferences.enableSMBAlways ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: smbSubcategory,
                 name: String(localized: "Enable SMB With COB"),
                 value: preferences.enableSMBWithCOB ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: smbSubcategory,
                 name: String(localized: "Enable SMB With Temporary Target"),
                 value: preferences.enableSMBWithTemptarget ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: smbSubcategory,
                 name: String(localized: "Enable SMB After Carbs"),
                 value: preferences.enableSMBAfterCarbs ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: smbSubcategory,
                 name: String(localized: "Enable UAM"),
                 value: preferences.enableUAM ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: smbSubcategory,
                 name: String(localized: "Max SMB Basal Minutes"),
                 value: String(describing: preferences.maxSMBBasalMinutes),
                 unit: String(localized: "minutes")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: smbSubcategory,
                 name: String(localized: "Max UAM SMB Basal Minutes"),
                 value: String(describing: preferences.maxUAMSMBBasalMinutes),
                 unit: String(localized: "minutes")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: smbSubcategory,
                 name: String(localized: "SMB Delivery Ratio"),
                 value: String(describing: preferences.smbDeliveryRatio)
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: smbSubcategory,
                 name: String(localized: "SMB Interval"),
                 value: String(describing: preferences.smbInterval),
                 unit: String(localized: "minutes")
             )
 
             // Dynamic Settings
+            let dynamicSubcategory = String(localized: "Dynamic Settings")
             addSetting(
                 category: algorithmCategory,
+                subcategory: dynamicSubcategory,
                 name: String(localized: "Dynamic ISF"),
                 value: preferences.useNewFormula ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: dynamicSubcategory,
                 name: String(localized: "Sigmoid"),
                 value: preferences.sigmoid ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: dynamicSubcategory,
                 name: String(localized: "Adjustment Factor (AF)"),
                 value: String(describing: preferences.adjustmentFactor)
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: dynamicSubcategory,
                 name: String(localized: "Sigmoid Adjustment Factor"),
                 value: String(describing: preferences.adjustmentFactorSigmoid)
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: dynamicSubcategory,
                 name: String(localized: "Weighted Average of TDD"),
                 value: preferences.useWeightedAverage ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: dynamicSubcategory,
                 name: String(localized: "Adjust Basal"),
                 value: preferences.tddAdjBasal ? String(localized: "Enabled") : String(localized: "Disabled")
             )
 
             // Target Behavior
+            let targetBehaviorSubcategory = String(localized: "Target Behavior")
             addSetting(
                 category: algorithmCategory,
+                subcategory: targetBehaviorSubcategory,
                 name: String(localized: "High Temptarget Raises Sensitivity"),
                 value: preferences.highTemptargetRaisesSensitivity ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: targetBehaviorSubcategory,
                 name: String(localized: "Low Temptarget Lowers Sensitivity"),
                 value: preferences.lowTemptargetLowersSensitivity ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: targetBehaviorSubcategory,
                 name: String(localized: "Sensitivity Raises Target"),
                 value: preferences.sensitivityRaisesTarget ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: targetBehaviorSubcategory,
                 name: String(localized: "Resistance Lowers Target"),
                 value: preferences.resistanceLowersTarget ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: targetBehaviorSubcategory,
                 name: String(localized: "Half Basal Exercise Target"),
                 value: trioSettings.units == .mgdL ? String(describing: preferences.halfBasalExerciseTarget) : String(describing: preferences.halfBasalExerciseTarget.asMmolL),
                 unit: trioSettings.units.rawValue
             )
 
             // Additional Algorithm Settings
+            let additionalsSubcategory = String(localized: "Additionals")
             addSetting(
                 category: algorithmCategory,
+                subcategory: additionalsSubcategory,
                 name: String(localized: "Max Daily Safety Multiplier"),
                 value: String(describing: preferences.maxDailySafetyMultiplier)
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: additionalsSubcategory,
                 name: String(localized: "Current Basal Safety Multiplier"),
                 value: String(describing: preferences.currentBasalSafetyMultiplier)
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: additionalsSubcategory,
                 name: String(localized: "Use Custom Peak Time"),
                 value: preferences.useCustomPeakTime ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: additionalsSubcategory,
                 name: String(localized: "Insulin Peak Time"),
                 value: String(describing: preferences.insulinPeakTime),
                 unit: String(localized: "minutes")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: additionalsSubcategory,
                 name: String(localized: "Skip Neutral Temps"),
                 value: preferences.skipNeutralTemps ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: additionalsSubcategory,
                 name: String(localized: "Unsuspend If No Temp"),
                 value: preferences.unsuspendIfNoTemp ? String(localized: "Enabled") : String(localized: "Disabled")
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: additionalsSubcategory,
                 name: String(localized: "Suspend Zeros IOB"),
                 value: preferences.suspendZerosIOB ? String(localized: "Enabled") : String(localized: "Disabled")
             )
-
-            // Additional Advanced Algorithm Settings
             addSetting(
                 category: algorithmCategory,
+                subcategory: additionalsSubcategory,
                 name: String(localized: "Min 5m Carb Impact"),
                 value: trioSettings.units == .mgdL ? String(describing: preferences.min5mCarbimpact) : String(describing: preferences.min5mCarbimpact.asMmolL),
                 unit: trioSettings.units == .mgdL ? "mg/dL" : "mmol/L"
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: additionalsSubcategory,
                 name: String(localized: "Remaining Carbs Fraction"),
                 value: String(describing: preferences.remainingCarbsFraction)
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: additionalsSubcategory,
                 name: String(localized: "Remaining Carbs Cap"),
                 value: String(describing: preferences.remainingCarbsCap),
                 unit: "g"
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: additionalsSubcategory,
                 name: String(localized: "Noisy CGM Target Multiplier"),
                 value: String(describing: preferences.noisyCGMTargetMultiplier)
             )
             addSetting(
                 category: algorithmCategory,
+                subcategory: additionalsSubcategory,
                 name: String(localized: "Duration of Insulin Action (DIA)"),
                 value: String(describing: preferences.insulinActionCurve),
                 unit: String(localized: "hours")
