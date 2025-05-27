@@ -623,7 +623,7 @@ extension DataTable {
         @ViewBuilder private func treatmentView(_ item: PumpEventStored) -> some View {
             HStack {
                 if let bolus = item.bolus, let amount = bolus.amount {
-                    Image(systemName: "circle.fill").foregroundColor(bolus.isExternal ? Color.blue : Color.insulin)
+                    Image(systemName: "circle.fill").foregroundColor(Color.insulin)
                     Text(bolus.isSMB ? "SMB" : item.type ?? "Bolus")
                     Text(
                         (Formatter.decimalFormatterWithTwoFractionDigits.string(from: amount) ?? "0") +
