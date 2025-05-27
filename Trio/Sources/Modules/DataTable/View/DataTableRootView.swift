@@ -10,7 +10,7 @@ extension DataTable {
         case tempBasal = "Temp Basal Only"
         case pumpState = "Pump State Only"
     }
-    
+
     struct RootView: BaseView {
         let resolver: Resolver
 
@@ -541,7 +541,10 @@ extension DataTable {
                 HStack(spacing: 4) {
                     Image(systemName: "line.3.horizontal.decrease.circle")
                         .symbolRenderingMode(.hierarchical)
-                    Text(treatmentTypeFilter == .none ? "Filter" : String(treatmentTypeFilter.rawValue.split(separator: " ").first ?? ""))
+                    Text(
+                        treatmentTypeFilter == .none ? "Filter" :
+                            String(treatmentTypeFilter.rawValue.split(separator: " ").first ?? "")
+                    )
                     Image(systemName: "chevron.down")
                         .font(.caption2)
                 }
@@ -554,7 +557,7 @@ extension DataTable {
         @ViewBuilder private func treatmentView(_ item: PumpEventStored) -> some View {
             HStack {
                 if let bolus = item.bolus, let amount = bolus.amount {
-                    Image(systemName: "circle.fill").foregroundColor(Color.insulin)
+                    Image(systemName: "circle.fill").foregroundColor(bolus.isExternal ? Color.blue : Color.insulin)
                     Text(bolus.isSMB ? "SMB" : item.type ?? "Bolus")
                     Text(
                         (Formatter.decimalFormatterWithTwoFractionDigits.string(from: amount) ?? "0") +
