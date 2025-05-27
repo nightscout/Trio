@@ -255,7 +255,7 @@ extension Treatments {
                                 HStack(spacing: 10) {
                                     if state.fattyMeals {
                                         Toggle(isOn: $state.useFattyMealCorrectionFactor) {
-                                            Text("Fatty Meal")
+                                            Text("Reduced Bolus")
                                         }
                                         .toggleStyle(RadioButtonToggleStyle())
                                         .font(.footnote)
