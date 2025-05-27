@@ -3,13 +3,16 @@ import SwiftUI
 import Swinject
 
 extension DataTable {
-    enum TreatmentTypeFilter: String, CaseIterable {
-        case none = "All Types"
-        case bolus = "Bolus Only"
-        case smb = "SMB Only"
-        case externalBolus = "External Only"
-        case tempBasal = "Temp Basal Only"
-        case pumpState = "Pump State Only"
+    struct TreatmentTypeFilter: OptionSet {
+        let rawValue: Int
+
+        static let bolus = TreatmentTypeFilter(rawValue: 1 << 0)
+        static let smb = TreatmentTypeFilter(rawValue: 1 << 1)
+        static let external = TreatmentTypeFilter(rawValue: 1 << 2)
+        static let tempBasal = TreatmentTypeFilter(rawValue: 1 << 3)
+        static let pumpState = TreatmentTypeFilter(rawValue: 1 << 4)
+
+        static let all: TreatmentTypeFilter = [.bolus, .smb, .external, .tempBasal, .pumpState]
     }
 
     struct RootView: BaseView {
@@ -29,7 +32,7 @@ extension DataTable {
         @State private var isAmountUnconfirmed: Bool = true
 
         // Treatment filter state
-        @State private var treatmentTypeFilter: TreatmentTypeFilter = .none
+        @State private var treatmentTypeFilter: TreatmentTypeFilter = .all
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.managedObjectContext) var context
@@ -208,30 +211,33 @@ extension DataTable {
                     return false
                 }
 
-                // Then apply type filter
-                switch treatmentTypeFilter {
-                case .none:
+                // If no filters are selected, show nothing
+                if treatmentTypeFilter.isEmpty {
+                    return false
+                }
+
+                // If all filters are selected, show everything
+                if treatmentTypeFilter == .all {
                     return true
-                case .bolus:
-                    if let bolus = item.bolus {
-                        return !bolus.isSMB && !bolus.isExternal
+                }
+
+                // Apply type filter with OR logic
+                if let bolus = item.bolus {
+                    if treatmentTypeFilter.contains(.smb), bolus.isSMB {
+                        return true
+                    }
+                    if treatmentTypeFilter.contains(.external), bolus.isExternal {
+                        return true
+                    }
+                    if treatmentTypeFilter.contains(.bolus), !bolus.isSMB, !bolus.isExternal {
+                        return true
                     }
                     return false
-                case .smb:
-                    if let bolus = item.bolus {
-                        return bolus.isSMB
-                    }
-                    return false
-                case .externalBolus:
-                    if let bolus = item.bolus {
-                        return bolus.isExternal
-                    }
-                    return false
-                case .tempBasal:
-                    return item.tempBasal != nil
-                case .pumpState:
+                } else if item.tempBasal != nil {
+                    return treatmentTypeFilter.contains(.tempBasal)
+                } else {
                     // Pump events that are not bolus or temp basal
-                    return item.bolus == nil && item.tempBasal == nil
+                    return treatmentTypeFilter.contains(.pumpState)
                 }
             }
         }
@@ -538,47 +544,86 @@ extension DataTable {
 
         private var treatmentFilterPicker: some View {
             Menu {
-                Picker("Filter", selection: $treatmentTypeFilter) {
-                    ForEach(TreatmentTypeFilter.allCases, id: \.self) { filter in
-                        Text(filter.rawValue).tag(filter)
+                Button {
+                    treatmentTypeFilter.formSymmetricDifference(.bolus)
+                } label: {
+                    Label {
+                        Text("Bolus")
+                    } icon: {
+                        if treatmentTypeFilter.contains(.bolus) {
+                            Image(systemName: "checkmark")
+                        }
                     }
+                }
+
+                Button {
+                    treatmentTypeFilter.formSymmetricDifference(.smb)
+                } label: {
+                    Label {
+                        Text("SMB")
+                    } icon: {
+                        if treatmentTypeFilter.contains(.smb) {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+
+                Button {
+                    treatmentTypeFilter.formSymmetricDifference(.external)
+                } label: {
+                    Label {
+                        Text("External")
+                    } icon: {
+                        if treatmentTypeFilter.contains(.external) {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+
+                Button {
+                    treatmentTypeFilter.formSymmetricDifference(.tempBasal)
+                } label: {
+                    Label {
+                        Text("Temp Basal")
+                    } icon: {
+                        if treatmentTypeFilter.contains(.tempBasal) {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+
+                Button {
+                    treatmentTypeFilter.formSymmetricDifference(.pumpState)
+                } label: {
+                    Label {
+                        Text("Pump State")
+                    } icon: {
+                        if treatmentTypeFilter.contains(.pumpState) {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+
+                Divider()
+
+                Button {
+                    treatmentTypeFilter = treatmentTypeFilter == .all ? [] : .all
+                } label: {
+                    Text(treatmentTypeFilter == .all ? "Clear All" : "Select All")
                 }
             } label: {
                 HStack(spacing: 4) {
+                    Text("Type")
                     Image(systemName: "line.3.horizontal.decrease.circle")
-                        .symbolRenderingMode(.hierarchical)
-                    Text(
-                        treatmentTypeFilter == .none ? "Filter" :
-                            String(treatmentTypeFilter.rawValue.split(separator: " ").first ?? "")
-                    )
-                    Image(systemName: "chevron.down")
-                        .font(.caption2)
                 }
-                .foregroundStyle(treatmentTypeFilter != .none ? .orange : .secondary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .overlay(
-                    Capsule()
-                        .stroke((treatmentTypeFilter != .none ? Color.orange : Color.secondary).opacity(0.4), lineWidth: 2)
-                )
+                .foregroundColor(treatmentTypeFilter != .all ? .accentColor : .secondary)
             }
-            .menuStyle(.borderlessButton)
         }
 
         @ViewBuilder private func treatmentView(_ item: PumpEventStored) -> some View {
             HStack {
                 if let bolus = item.bolus, let amount = bolus.amount {
-                    let bolusColor: Color = {
-                        if bolus.isExternal {
-                            return Color(red: 0.6, green: 0.8, blue: 1.0) // Very light blue that works in both modes
-                        } else if bolus.isSMB {
-                            return Color.darkerBlue // Dark blue
-                        } else {
-                            return Color.insulin // Regular insulin color
-                        }
-                    }()
-
-                    Image(systemName: "circle.fill").foregroundColor(bolusColor)
+                    Image(systemName: "circle.fill").foregroundColor(bolus.isExternal ? Color.blue : Color.insulin)
                     Text(bolus.isSMB ? "SMB" : item.type ?? "Bolus")
                     Text(
                         (Formatter.decimalFormatterWithTwoFractionDigits.string(from: amount) ?? "0") +
