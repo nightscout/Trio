@@ -16,6 +16,7 @@ extension Settings {
         @StateObject var state = StateModel()
 
         @State private var showShareSheet = false
+        @State private var showSettingsExport = false
         @State private var searchText: String = ""
 
         @State private var shouldDisplayHint: Bool = false
@@ -191,6 +192,20 @@ extension Settings {
                             .frame(maxWidth: .infinity, alignment: .leading)
 
                             Button {
+                                showSettingsExport.toggle()
+                            } label: {
+                                HStack {
+                                    Text("Export Settings")
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                        .font(.footnote)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                            Button {
                                 if let url = URL(string: "https://github.com/nightscout/Trio/issues/new/choose") {
                                     UIApplication.shared.open(url)
                                 }
@@ -342,6 +357,11 @@ extension Settings {
             }
             .sheet(isPresented: $showShareSheet) {
                 ShareSheet(activityItems: state.logItems())
+            }
+            .sheet(isPresented: $showSettingsExport) {
+                if let settingsURL = state.exportSettings() {
+                    ShareSheet(activityItems: [settingsURL])
+                }
             }
             .onAppear(perform: configureView)
             .navigationTitle("Settings")
