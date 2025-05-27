@@ -3,6 +3,14 @@ import SwiftUI
 import Swinject
 
 extension DataTable {
+    enum TreatmentTypeFilter: String, CaseIterable {
+        case none = "All Types"
+        case bolus = "Bolus Only"
+        case smb = "SMB Only"
+        case tempBasal = "Temp Basal Only"
+        case pumpState = "Pump State Only"
+    }
+    
     struct RootView: BaseView {
         let resolver: Resolver
 
@@ -18,6 +26,9 @@ extension DataTable {
         @State private var showFutureEntries: Bool = false // default to hide future entries
         @State private var showManualGlucose: Bool = false
         @State private var isAmountUnconfirmed: Bool = true
+
+        // Treatment filter state
+        @State private var treatmentTypeFilter: TreatmentTypeFilter = .none
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.managedObjectContext) var context
@@ -172,12 +183,12 @@ extension DataTable {
         private var treatmentsList: some View {
             List {
                 HStack {
-                    Text("Insulin").foregroundStyle(.secondary)
+                    treatmentFilterPicker
                     Spacer()
                     Text("Time").foregroundStyle(.secondary)
                 }
-                if !pumpEventStored.isEmpty {
-                    ForEach(pumpEventStored.filter({ !showFutureEntries ? $0.timestamp ?? Date() <= Date() : true })) { item in
+                if !filteredTreatments.isEmpty {
+                    ForEach(filteredTreatments) { item in
                         treatmentView(item)
                     }
                 } else {
@@ -187,6 +198,36 @@ extension DataTable {
                     )
                 }
             }.listRowBackground(Color.chart)
+        }
+
+        private var filteredTreatments: [PumpEventStored] {
+            pumpEventStored.filter { item in
+                // First apply future filter
+                if !showFutureEntries, (item.timestamp ?? Date()) > Date() {
+                    return false
+                }
+
+                // Then apply type filter
+                switch treatmentTypeFilter {
+                case .none:
+                    return true
+                case .bolus:
+                    if let bolus = item.bolus {
+                        return !bolus.isSMB
+                    }
+                    return false
+                case .smb:
+                    if let bolus = item.bolus {
+                        return bolus.isSMB
+                    }
+                    return false
+                case .tempBasal:
+                    return item.tempBasal != nil
+                case .pumpState:
+                    // Pump events that are not bolus or temp basal
+                    return item.bolus == nil && item.tempBasal == nil
+                }
+            }
         }
 
         private var mealsList: some View {
@@ -487,6 +528,27 @@ extension DataTable {
                     Image(systemName: showFutureEntries ? "calendar.badge.minus" : "calendar.badge.plus")
                 }.frame(maxWidth: .infinity, alignment: .trailing)
             }).buttonStyle(.borderless)
+        }
+
+        private var treatmentFilterPicker: some View {
+            Menu {
+                Picker("Filter", selection: $treatmentTypeFilter) {
+                    ForEach(TreatmentTypeFilter.allCases, id: \.self) { filter in
+                        Text(filter.rawValue).tag(filter)
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
+                        .symbolRenderingMode(.hierarchical)
+                    Text(treatmentTypeFilter == .none ? "Filter" : String(treatmentTypeFilter.rawValue.split(separator: " ").first ?? ""))
+                    Image(systemName: "chevron.down")
+                        .font(.caption2)
+                }
+                .font(.caption)
+                .foregroundStyle(treatmentTypeFilter != .none ? .orange : .secondary)
+            }
+            .menuStyle(.borderlessButton)
         }
 
         @ViewBuilder private func treatmentView(_ item: PumpEventStored) -> some View {
