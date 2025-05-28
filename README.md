@@ -16,7 +16,7 @@ You can either use the Build Script or you can run each command manually.
 
 ### Build Script:
 
-If you copy, paste, and run the following script in Terminal, it will guide you through downloading and installing Trio. More information about the script can be found [here](https://docs.diy-trio.org/operate/build/#build-trio-with-script).
+If you copy, paste, and run the following script in Terminal, it will guide you through downloading and installing Trio. More information about the script can be found [here](https://triodocs.org/0.2.x/operate/build/#build-trio-with-script).
 
 ```
 /bin/bash -c "$(curl -fsSL \
@@ -34,67 +34,70 @@ git clone --branch=<branch> --recurse-submodules https://github.com/nightscout/T
 Create a ConfigOverride.xcconfig file that contains your Apple Developer ID (something like `123A4BCDE5`). This will automate signing of the build targets in Xcode:
 
 Copy the command below, and replace `xxxxxxxxxx` by your Apple Developer ID before running the command in Terminal.
+
 ```
 echo 'DEVELOPER_TEAM = xxxxxxxxxx' > ConfigOverride.xcconfig
 ```
 
 Then launch Xcode and build the Trio app:
+
 ```
 xed .
 ```
 
 ## To build directly in GitHub, without using Xcode:
 
-Instructions:
+**Instructions**:
 
-For main branch:
-* https://github.com/nightscout/Trio/blob/main/fastlane/testflight.md   
+- For **`main`** branch:  
+   https://github.com/nightscout/Trio/blob/main/fastlane/testflight.md
+- For **`dev`** branch:
+  https://github.com/nightscout/Trio/blob/dev/fastlane/testflight.md
 
-For dev branch:
-* https://github.com/nightscout/Trio/blob/dev/fastlane/testflight.md   
+Instructions in **greater detail**, but **not Trio-specific**:
 
-Instructions in greater detail, but not Trio-specific:  
-* https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
+- https://loopkit.github.io/loopdocs/gh-actions/gh-overview/
 
 ## Please understand that Trio is:
+
 - an open-source system developed by enthusiasts and for use at your own risk
 - not CE or FDA approved for therapy.
 
+## Documentation
 
-# Documentation
+- [Discord Trio - Server ](https://discord.triodocs.org/)
+- [Trio documentation](https://triodocs.org/)
+- [OpenAPS documentation](https://openaps.readthedocs.io/en/latest/)
+- [Crowdin](https://crowdin.triodocs.org/) is the collaborative platform we are using to manage the **translation** and localization of the Trio App.
+<!--   TODO: Add status graphic for the Crowdin Project -->
 
-[Discord Trio - Server ](http://discord.triodocs.org)
+## Support
 
-[Trio documentation](https://triodocs.org/)
+- [Trio Facebook Group](https://facebook.triodocs.org/)
+- [Loop and Learn Facebook Group](https://m.facebook.com/groups/LOOPandLEARN/)
+- [Looped Facebook Group](https://m.facebook.com/groups/TheLoopedGroup/)
 
-TODO: Add link: Trio Website (under development, not existing yet)
-
-[OpenAPS documentation](https://openaps.readthedocs.io/en/latest/)
-
-TODO: Add link and status graphic: Crowdin Project for translation of Trio (not existing yet)
-
-# Support
-
-[Trio Facebook Group](https://facebook.triodocs.org)
-
-[Loop and Learn Facebook Group](https://m.facebook.com/groups/LOOPandLEARN/)
-
-[Looped Facebook Group](https://m.facebook.com/groups/TheLoopedGroup/)
-
-# Contribute
+## Contribute
 
 If you would like to give something back to the Trio community, there are several ways to contribute:
 
-## Pay it forward
-When you have successfully built Trio and managed to get it working well for your diabetes management, it's time to pay it forward. 
-You can start by responding to questions in the Facebook or Discord support groups, helping others make the best out of Trio.
+- **Help others**: assist users by answering questions and guiding them in support communities.
+- Improve the **documentation**: update or expand TrioDocs to help users build and use Trio.
+- Improve the **app**: contribute **code**, features, or fixes to the Trio iOS app.
 
-## Translate
-Trio is translated into several languages to make sure it's easy to understand and use all over the world. 
-Translation is done using [Crowdin](https://crowdin.com/project/trio), and does not require any programming skills.
+### Pay it forward
+
+When you have successfully built Trio and managed to get it working well for your diabetes management, it's time to pay it forward.
+You can start by **responding to questions** in the **Facebook or Discord** support groups, **helping others** make the best out of Trio.
+
+### Translate
+
+Trio is translated into several languages to make sure it's easy to understand and use all over the world.
+Translation is done using [Crowdin](https://crowdin.triodocs.org/), and does not require any programming skills.
 If your preferred language is missing or you'd like to improve the translation, please sign up as a translator on [Crowdin](https://crowdin.com/project/trio).
 
-## Develop
+### Develop
+
 Do you speak JS or Swift? Do you have UI/UX skills? Do you know how to optimize API calls or improve data storage? Do you have experience with testing and release management?
 Trio is a collaborative project. We always welcome fellow enthusiasts who can contribute with new code, UI/UX improvements, code reviews, testing and release management.
 If you want to contribute to the development of Trio, please reach out on Discord or Facebook.
