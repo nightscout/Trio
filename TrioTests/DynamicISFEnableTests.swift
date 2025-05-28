@@ -15,8 +15,8 @@ import Testing
         context = coreDataStack.newTaskContext()
     }
 
-    @Test("Confirm 80% of samples from last 7 days enables Dynamic ISF") func test80PercentSamplesEnablingLogic() async throws {
-        let numberOfSamples = Int(288 * 7 * 0.8) // 80% of 7 days of samples
+    func testEnableLogic(percentSamples: Double) async throws -> Bool {
+        let numberOfSamples = Int(288 * 7 * percentSamples)
         let now = Date() // internal function uses Date()
 
         try await context.perform {
@@ -33,7 +33,16 @@ import Testing
             try context.save()
         }
 
-        let enabled = try await BaseTDDStorage.hasSufficientTDD(context: context)
+        return try await BaseTDDStorage.hasSufficientTDD(context: context)
+    }
+
+    @Test("Confirm samples from last 7 days enables Dynamic ISF") func testPercentSamplesEnablingLogic() async throws {
+        let enabled = try await testEnableLogic(percentSamples: 0.8)
         #expect(enabled)
+    }
+
+    @Test("Confirm insufficient samples from last 7 days disables Dynamic ISF") func testPercentSamplesDisablesLogic() async throws {
+        let enabled = try await testEnableLogic(percentSamples: 0.7)
+        #expect(!enabled)
     }
 }
