@@ -19,9 +19,7 @@ extension DataTable {
         @State private var showManualGlucose: Bool = false
         @State private var isAmountUnconfirmed: Bool = true
         @State private var selectedTreatmentTypes: Set<String> = []
-        private var allTreatmentTypes: [String] {
-            Set(pumpEventStored.compactMap { $0.type ?? "Unknown" }).sorted()
-        }
+        @State private var isFilterSheetPresented: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.managedObjectContext) var context
@@ -61,6 +59,28 @@ extension DataTable {
             predicate: NSPredicate.tempTargetRunStoredFromOneDayAgo,
             animation: .bouncy
         ) var tempTargetRunStored: FetchedResults<TempTargetRunStored>
+
+        private func resolvedType(for event: PumpEventStored) -> String {
+            if let bolus = event.bolus {
+                if bolus.isSMB {
+                    return "SMB"
+                } else if bolus.isExternal {
+                    return "External Bolus"
+                } else {
+                    return "Bolus"
+                }
+            } else if event.tempBasal != nil {
+                return "Temp Basal"
+            }
+            return event.type ?? "Unknown"
+        }
+
+        private var allTreatmentTypes: [String] {
+            let filtered = pumpEventStored
+                .filter { !showFutureEntries ? $0.timestamp ?? Date() <= Date() : true }
+            let types = filtered.map { resolvedType(for: $0) }
+            return Array(Set(types)).sorted()
+        }
 
         private var manualGlucoseFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -132,6 +152,42 @@ extension DataTable {
                         CarbEntryEditorView(state: state, carbEntry: carbEntry)
                     }
                 }
+
+                .sheet(isPresented: $isFilterSheetPresented) {
+                    NavigationView {
+                        List {
+                            ForEach(allTreatmentTypes, id: \.self) { type in
+                                Button {
+                                    if selectedTreatmentTypes.contains(type) {
+                                        selectedTreatmentTypes.remove(type)
+                                    } else {
+                                        selectedTreatmentTypes.insert(type)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Image(systemName: selectedTreatmentTypes.contains(type) ? "checkmark.square" : "square")
+                                        Text(type)
+                                    }
+                                }
+                            }
+                            if !selectedTreatmentTypes.isEmpty {
+                                Button(role: .destructive) {
+                                    selectedTreatmentTypes.removeAll()
+                                } label: {
+                                    Label("Clear Filters", systemImage: "xmark.circle")
+                                }
+                            }
+                        }
+                        .navigationTitle("Filter Treatments")
+                        .toolbar {
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button("Done") {
+                                    isFilterSheetPresented = false
+                                }
+                            }
+                        }
+                    }
+                }
         }
 
         @ViewBuilder func addButton(_ action: @escaping () -> Void) -> some View {
@@ -175,38 +231,9 @@ extension DataTable {
 
         private var treatmentsList: some View {
             List {
-                HStack {
-                    Menu {
-                        ForEach(allTreatmentTypes, id: \.self) { type in
-                            Button {
-                                if selectedTreatmentTypes.contains(type) {
-                                    selectedTreatmentTypes.remove(type)
-                                } else {
-                                    selectedTreatmentTypes.insert(type)
-                                }
-                            } label: {
-                                Label(type, systemImage: selectedTreatmentTypes.contains(type) ? "checkmark.square" : "square")
-                            }
-                        }
-                        if !selectedTreatmentTypes.isEmpty {
-                            Divider()
-                            Button("Clear Filters") {
-                                selectedTreatmentTypes.removeAll()
-                            }
-                        }
-                    } label: {
-                        Label("Filter", systemImage: "line.3.horizontal.decrease.circle")
-                    }
-                    Spacer()
-                    Text("Time").foregroundStyle(.secondary)
-                }
+                treatmentsHeader
                 if !pumpEventStored.isEmpty {
-                    ForEach(
-                        pumpEventStored
-                            .filter {
-                                selectedTreatmentTypes.isEmpty ? true : selectedTreatmentTypes.contains($0.type ?? "Unknown") }
-                            .filter { !showFutureEntries ? $0.timestamp ?? Date() <= Date() : true }
-                    ) { item in
+                    ForEach(filteredPumpEvents) { item in
                         treatmentView(item)
                     }
                 } else {
@@ -217,6 +244,40 @@ extension DataTable {
                 }
             }
             .listRowBackground(Color.chart)
+        }
+
+        private var treatmentsHeader: some View {
+            HStack {
+                Button {
+                    isFilterSheetPresented = true
+                } label: {
+                    Label("Filter", systemImage: "line.3.horizontal.decrease.circle")
+                }
+                if !selectedTreatmentTypes.isEmpty {
+                    Button {
+                        selectedTreatmentTypes.removeAll()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.red)
+                            .accessibilityLabel("Clear Filters")
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, 4)
+                }
+                Spacer()
+                Text("Time").foregroundStyle(.secondary)
+            }
+        }
+
+        private var filteredPumpEvents: [PumpEventStored] {
+            pumpEventStored
+                .filter { shouldIncludeEvent($0) }
+                .filter { !showFutureEntries ? $0.timestamp ?? Date() <= Date() : true }
+        }
+
+        private func shouldIncludeEvent(_ event: PumpEventStored) -> Bool {
+            let type = resolvedType(for: event)
+            return selectedTreatmentTypes.isEmpty || selectedTreatmentTypes.contains(type)
         }
 
         private var mealsList: some View {
