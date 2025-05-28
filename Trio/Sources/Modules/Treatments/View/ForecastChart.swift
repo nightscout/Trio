@@ -126,6 +126,11 @@ struct ForecastChart: View {
         }
     }
 
+    private var maxGlucoseMgDl: Decimal {
+        let maxGlucose = state.glucoseFromPersistence.map({ Decimal($0.glucose) }).max() ?? 300
+        return maxGlucose > 300 ? 400 : 300
+    }
+
     private var forecastChart: some View {
         Chart {
             drawGlucose()
@@ -176,7 +181,7 @@ struct ForecastChart: View {
         .chartXAxis { forecastChartXAxis }
         .chartXScale(domain: startMarker ... endMarker)
         .chartYAxis { forecastChartYAxis }
-        .chartYScale(domain: state.units == .mgdL ? 0 ... 300 : 0.asMmolL ... 300.asMmolL)
+        .chartYScale(domain: state.units == .mgdL ? 0 ... maxGlucoseMgDl : 0.asMmolL ... maxGlucoseMgDl.asMmolL)
         .chartLegend {
             if state.forecastDisplayType == ForecastDisplayType.lines {
                 HStack(spacing: 10) {
