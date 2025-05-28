@@ -224,6 +224,14 @@ extension Treatments {
                                         displayedComponents: [.hourAndMinute]
                                     ).controlSize(.mini)
                                         .labelsHidden()
+                                        .onChange(of: state.date) { _, _ in
+                                            // Trigger simulation when date changes to update forecasts for backdated carbs
+                                            Task {
+                                                // `updateForecasts()` does update the `simulatedDetermination` of type `Determination?` var on the main thread, so I can use this to pass its cob value into the bolus calc manager
+                                                await state.updateForecasts()
+                                                state.insulinCalculated = await state.calculateInsulin()
+                                            }
+                                        }
                                     Button {
                                         state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
                                     }
@@ -247,7 +255,7 @@ extension Treatments {
                                 HStack(spacing: 10) {
                                     if state.fattyMeals {
                                         Toggle(isOn: $state.useFattyMealCorrectionFactor) {
-                                            Text("Fatty Meal")
+                                            Text("Reduced Bolus")
                                         }
                                         .toggleStyle(RadioButtonToggleStyle())
                                         .font(.footnote)

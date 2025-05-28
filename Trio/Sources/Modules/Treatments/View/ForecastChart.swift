@@ -50,10 +50,18 @@ struct ForecastChart: View {
     }
 
     private var forecastChartLabels: some View {
-        HStack {
+        // Check if carbs are actually backdated (more than 15 minutes in the past)
+        // This ensures we only consider it backdated if the user has deliberately changed the date
+        let minutesThreshold = 15.0 // 15 minutes threshold
+        let isBackdated = state.date.timeIntervalSinceNow < -minutesThreshold * 60 && state.simulatedDetermination != nil
+
+        // When backdated, display no carbs as this label is only supposed to show current entered carbs
+        let displayedCarbs = isBackdated ? 0 : state.carbs
+
+        return HStack {
             HStack {
                 Image(systemName: "fork.knife")
-                Text("\(state.carbs.description) g")
+                Text("\(displayedCarbs.description) g")
             }
             .font(.footnote)
             .foregroundStyle(.orange)

@@ -52,15 +52,16 @@ extension Notification.Name {
         SecurityAssembly()
     ], parent: nil, defaultObjectScope: .container)
 
+    // Simple thread-safe wrapper
+    private static let resolverLock = NSRecursiveLock()
+
     var resolver: Resolver {
-        TrioApp.assembler.resolver
+        TrioApp.resolver
     }
 
-    // Temp static var
-    // Use to backward compatibility with old Dependencies logic on Logger
-    // TODO: Remove var after update "Use Dependencies" logic in Logger
     static var resolver: Resolver {
-        TrioApp.assembler.resolver
+        // Return a simple wrapper that adds locking
+        LockedResolver(resolver: assembler.resolver, lock: resolverLock)
     }
 
     private func loadServices() {
