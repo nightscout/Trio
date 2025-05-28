@@ -18,6 +18,10 @@ extension DataTable {
         @State private var showFutureEntries: Bool = false // default to hide future entries
         @State private var showManualGlucose: Bool = false
         @State private var isAmountUnconfirmed: Bool = true
+        @State private var selectedTreatmentTypes: Set<String> = []
+        private var allTreatmentTypes: [String] {
+            Set(pumpEventStored.compactMap { $0.type ?? "Unknown" }).sorted()
+        }
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.managedObjectContext) var context
@@ -172,12 +176,37 @@ extension DataTable {
         private var treatmentsList: some View {
             List {
                 HStack {
-                    Text("Insulin").foregroundStyle(.secondary)
+                    Menu {
+                        ForEach(allTreatmentTypes, id: \.self) { type in
+                            Button {
+                                if selectedTreatmentTypes.contains(type) {
+                                    selectedTreatmentTypes.remove(type)
+                                } else {
+                                    selectedTreatmentTypes.insert(type)
+                                }
+                            } label: {
+                                Label(type, systemImage: selectedTreatmentTypes.contains(type) ? "checkmark.square" : "square")
+                            }
+                        }
+                        if !selectedTreatmentTypes.isEmpty {
+                            Divider()
+                            Button("Clear Filters") {
+                                selectedTreatmentTypes.removeAll()
+                            }
+                        }
+                    } label: {
+                        Label("Filter", systemImage: "line.3.horizontal.decrease.circle")
+                    }
                     Spacer()
                     Text("Time").foregroundStyle(.secondary)
                 }
                 if !pumpEventStored.isEmpty {
-                    ForEach(pumpEventStored.filter({ !showFutureEntries ? $0.timestamp ?? Date() <= Date() : true })) { item in
+                    ForEach(
+                        pumpEventStored
+                            .filter {
+                                selectedTreatmentTypes.isEmpty ? true : selectedTreatmentTypes.contains($0.type ?? "Unknown") }
+                            .filter { !showFutureEntries ? $0.timestamp ?? Date() <= Date() : true }
+                    ) { item in
                         treatmentView(item)
                     }
                 } else {
@@ -186,7 +215,8 @@ extension DataTable {
                         systemImage: "syringe"
                     )
                 }
-            }.listRowBackground(Color.chart)
+            }
+            .listRowBackground(Color.chart)
         }
 
         private var mealsList: some View {
