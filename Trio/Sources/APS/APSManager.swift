@@ -22,7 +22,11 @@ protocol APSManager {
     func enactTempBasal(rate: Double, duration: TimeInterval) async
     func determineBasal() async throws
     func determineBasalSync() async throws
-    func simulateDetermineBasal(simulatedCarbsAmount: Decimal, simulatedBolusAmount: Decimal) async -> Determination?
+    func simulateDetermineBasal(
+        simulatedCarbsAmount: Decimal,
+        simulatedBolusAmount: Decimal,
+        simulatedCarbsDate: Date?
+    ) async -> Determination?
     func roundBolus(amount: Decimal) -> Decimal
     var lastError: CurrentValueSubject<Error?, Never> { get }
     func cancelBolus(_ callback: ((Bool, String) -> Void)?) async
@@ -445,12 +449,6 @@ final class BaseAPSManager: APSManager, Injectable {
             return true
         }
 
-        guard isValidGlucoseData else {
-            debug(.apsManager, "Glucose validation failed")
-            processError(APSError.glucoseError(message: "Glucose validation failed"))
-            return
-        }
-
         do {
             let now = Date()
 
@@ -461,6 +459,10 @@ final class BaseAPSManager: APSManager, Injectable {
             _ = try await autosenseResult
             try await openAPS.createProfiles()
             let determination = try await openAPS.determineBasal(currentTemp: await currentTemp, clock: now)
+
+            guard isValidGlucoseData else {
+                throw APSError.glucoseError(message: "Glucose validation failed")
+            }
 
             if let determination = determination {
                 // Capture weak self in closure
@@ -480,7 +482,11 @@ final class BaseAPSManager: APSManager, Injectable {
         _ = try await determineBasal()
     }
 
-    func simulateDetermineBasal(simulatedCarbsAmount: Decimal, simulatedBolusAmount: Decimal) async -> Determination? {
+    func simulateDetermineBasal(
+        simulatedCarbsAmount: Decimal,
+        simulatedBolusAmount: Decimal,
+        simulatedCarbsDate: Date? = nil
+    ) async -> Determination? {
         do {
             let temp = try await fetchCurrentTempBasal(date: Date.now)
             return try await openAPS.determineBasal(
@@ -488,11 +494,12 @@ final class BaseAPSManager: APSManager, Injectable {
                 clock: Date(),
                 simulatedCarbsAmount: simulatedCarbsAmount,
                 simulatedBolusAmount: simulatedBolusAmount,
+                simulatedCarbsDate: simulatedCarbsDate,
                 simulation: true
             )
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Error occurred in invokeDummyDetermineBasalSync: \(error)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Error occurred in simulateDetermineBasal: \(error)"
             )
             return nil
         }
