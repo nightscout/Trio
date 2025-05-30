@@ -84,7 +84,7 @@ import Testing
         // correctionInsulin = targetDifferenceInsulin = 2U
         // iobInsulinReduction = 1U
         // superBolusInsulin = 0U (disabled)
-        // no adjustment for fatty meals (disabled)
+        // no adjustment for reduced bolus (disabled)
         // wholeCalc = round(wholeCobInsulin + correctionInsulin + fifteenMinutesInsulin - iobInsulinReduction, 3) = 11.125U
         // insulinCalculated = round(wholeCalc × fraction, 3) = 8.9U
 
@@ -135,7 +135,7 @@ import Testing
         #expect(result.wholeCobInsulin == wholeCobInsulin, "Insulin for total carbs should be \(wholeCobInsulin)U")
     }
 
-    @Test("Calculate insulin for fatty meal") func testFattyMealCalculation() async throws {
+    @Test("Calculate insulin for reduced bolus") func testFattyMealCalculation() async throws {
         // STEP 1: Setup test scenario
         // We need to provide a CalculationInput struct
         let carbs: Decimal = 80
@@ -180,10 +180,10 @@ import Testing
             lastLoopDate: Date()
         )
 
-        // STEP 3: Calculate insulin with fatty meal enabled
+        // STEP 3: Calculate insulin with reduced bolus enabled
         let fattyMealResult = await calculator.calculateInsulin(input: input)
 
-        // STEP 4: Calculate insulin with fatty meal disabled for comparison
+        // STEP 4: Calculate insulin with reduced bolus disabled for comparison
         let standardInput = CalculationInput(
             carbs: carbs,
             currentBG: currentBG,
@@ -208,7 +208,7 @@ import Testing
         let standardResult = await calculator.calculateInsulin(input: standardInput)
 
         // STEP 5: Verify results
-        // Fatty meal should reduce the insulin amount by the fatty meal factor (0.8)
+        // Reduced bolus should reduce the insulin amount by the reduced bolus factor (0.8)
         let expectedReduction = fattyMealFactor
         let actualReduction = Decimal(
             (Double(fattyMealResult.insulinCalculated) / Double(standardResult.insulinCalculated) * 10.0).rounded() / 10.0
@@ -217,11 +217,11 @@ import Testing
         #expect(
             actualReduction == expectedReduction,
             """
-            Fatty meal calculation incorrect
+            Reduced bolus calculation incorrect
             Expected reduction factor: \(expectedReduction)
             Actual reduction factor: \(actualReduction)
             Standard calculation: \(standardResult.insulinCalculated)U
-            Fatty meal calculation: \(fattyMealResult.insulinCalculated)U
+            Reduced bolus calculation: \(fattyMealResult.insulinCalculated)U
             """
         )
     }
@@ -522,7 +522,7 @@ import Testing
         // Then
         #expect(units == expectedUnits, "Units should match settings")
         #expect(fraction == expectedFraction, "Override factor should match settings")
-        #expect(fattyMealFactor == expectedFattyMealFactor, "Fatty meal factor should match settings")
+        #expect(fattyMealFactor == expectedFattyMealFactor, "Reduced bolus factor should match settings")
         #expect(sweetMealFactor == expectedSweetMealFactor, "Sweet meal factor should match settings")
         #expect(maxCarbs == expectedMaxCarbs, "Max carbs should match settings")
 

@@ -420,11 +420,11 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         }
 
         // apply custom factor at the end of the calculations
-        // apply custom factor if fatty meal toggle in bolus calc config settings is on and the box for fatty meals is checked (in RootView)
+        // apply custom factor if reduced bolus toggle in bolus calc config settings is on and the box for reduced bolus is checked (in RootView)
         var factoredInsulin = wholeCalc
         debug(.default, "Initial factored insulin: \(factoredInsulin)")
 
-        // Apply Recommended Bolus Percentage (input.fraction) and if selected apply Fatty Meal Bolus Percentage (input.fattyMealFactor)
+        // Apply Recommended Bolus Percentage (input.fraction) and if selected apply Reduced Bolus Percentage (input.fattyMealFactor)
         // If factoredInsulin is negative, though, don't apply either
         if factoredInsulin > 0 {
             factoredInsulin *= input.fraction
@@ -432,7 +432,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
 
             if input.useFattyMealCorrectionFactor {
                 factoredInsulin *= input.fattyMealFactor
-                debug(.default, "After fatty meal factor (\(input.fattyMealFactor)): \(factoredInsulin)")
+                debug(.default, "After reduced bolus factor (\(input.fattyMealFactor)): \(factoredInsulin)")
             }
         }
 
@@ -488,7 +488,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     /// Handles the complete bolus calculation process
     /// - Parameters:
     ///   - carbs: Amount of carbohydrates to be consumed
-    ///   - useFattyMealCorrection: Whether to apply fatty meal correction
+    ///   - useFattyMealCorrection: Whether to apply reduced bolus correction
     ///   - useSuperBolus: Whether to use super bolus calculation
     ///   - minPredBG: Minimum Predicted Glucose determined by Oref
     ///   - simulatedCOB: Optional simulated COB from backdated entries (if available)
@@ -546,8 +546,8 @@ struct CalculationInput: Sendable {
     let carbRatio: Decimal // Carb to insulin ratio
     let iob: Decimal // Insulin on Board
     let cob: Int16 // Carbs on Board
-    let useFattyMealCorrectionFactor: Bool // Whether to apply fatty meal correction
-    let fattyMealFactor: Decimal // Factor for fatty meal adjustment
+    let useFattyMealCorrectionFactor: Bool // Whether to apply reduced bolus correction
+    let fattyMealFactor: Decimal // Factor for reduced bolus adjustment
     let useSuperBolus: Bool // Whether to use super bolus calculation
     let sweetMealFactor: Decimal // Factor for sweet meal adjustment
     let basal: Decimal // Current basal rate

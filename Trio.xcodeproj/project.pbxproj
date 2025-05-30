@@ -201,6 +201,7 @@
 		38FEF3FC2737E53800574A46 /* MainStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF3FB2737E53800574A46 /* MainStateModel.swift */; };
 		38FEF3FE2738083E00574A46 /* CGMSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF3FD2738083E00574A46 /* CGMSettingsProvider.swift */; };
 		38FEF413273B317A00574A46 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FEF412273B317A00574A46 /* HKUnit.swift */; };
+		3B0B4E6C2DE1439F005C6627 /* LockedResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0B4E6B2DE1439A005C6627 /* LockedResolver.swift */; };
 		3B2F77862D7E52ED005ED9FA /* TDD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77852D7E52ED005ED9FA /* TDD.swift */; };
 		3B2F77882D7E5387005ED9FA /* CurrentTDDSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */; };
 		3B3B57C92DA07B3400849D16 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3B57C82DA07B3400849D16 /* GoogleService-Info.plist */; };
@@ -248,6 +249,7 @@
 		3B997DCF2DC00A3A006B6BB2 /* JSONImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */; };
 		3B997DD32DC02AEF006B6BB2 /* glucose.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B997DD12DC02AEF006B6BB2 /* glucose.json */; };
 		3BA8D1B32DDB87150006191F /* DecimalExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */; };
+		3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */; };
 		3BAD36B22D7CDC1A00CC298D /* MainLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */; };
 		3BAD36CC2D7D420E00CC298D /* CoreDataInitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */; };
 		3BCA5F7C2DC7B16400A7EAC7 /* pumphistory-with-external.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */; };
@@ -1035,6 +1037,7 @@
 		38FEF3FB2737E53800574A46 /* MainStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainStateModel.swift; sourceTree = "<group>"; };
 		38FEF3FD2738083E00574A46 /* CGMSettingsProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGMSettingsProvider.swift; sourceTree = "<group>"; };
 		38FEF412273B317A00574A46 /* HKUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HKUnit.swift; sourceTree = "<group>"; };
+		3B0B4E6B2DE1439A005C6627 /* LockedResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockedResolver.swift; sourceTree = "<group>"; };
 		3B2F77852D7E52ED005ED9FA /* TDD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDD.swift; sourceTree = "<group>"; };
 		3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentTDDSetup.swift; sourceTree = "<group>"; };
 		3B3B57C82DA07B3400849D16 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -1060,6 +1063,7 @@
 		3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONImporterTests.swift; sourceTree = "<group>"; };
 		3B997DD12DC02AEF006B6BB2 /* glucose.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = glucose.json; sourceTree = "<group>"; };
 		3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalExtensions.swift; sourceTree = "<group>"; };
+		3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFEnableTests.swift; sourceTree = "<group>"; };
 		3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainLoadingView.swift; sourceTree = "<group>"; };
 		3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataInitializationCoordinator.swift; sourceTree = "<group>"; };
 		3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-with-external.json"; sourceTree = "<group>"; };
@@ -2105,8 +2109,9 @@
 			isa = PBXGroup;
 			children = (
 				38E4451D274DB04600EC9A94 /* AppDelegate.swift */,
-				388E595B25AD948C0019842D /* TrioApp.swift */,
 				BD4ED4FC2CF9D5E8000EDC9C /* AppState.swift */,
+				3B0B4E6B2DE1439A005C6627 /* LockedResolver.swift */,
+				388E595B25AD948C0019842D /* TrioApp.swift */,
 			);
 			path = Application;
 			sourceTree = "<group>";
@@ -2572,6 +2577,7 @@
 				BD8FC0552D66187700B95AED /* CoreDataTests */,
 				38FCF3F125E9028E0078B0D1 /* Info.plist */,
 				CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */,
+				3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */,
 				38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */,
 				3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */,
 				CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */,
@@ -4260,6 +4266,7 @@
 				3811DE0C25C9D32F00A708ED /* BaseProvider.swift in Sources */,
 				CE95BF5A2BA62E4A00DC3DE3 /* PluginSource.swift in Sources */,
 				DD21FCB52C6952AD00AF2C25 /* DecimalPickerSettings.swift in Sources */,
+				3B0B4E6C2DE1439F005C6627 /* LockedResolver.swift in Sources */,
 				3811DE5C25C9D4D500A708ED /* Formatters.swift in Sources */,
 				3871F39F25ED895A0013ECB5 /* Decimal+Extensions.swift in Sources */,
 				CEE9A6592BBB418300EB5194 /* CalibrationsDataFlow.swift in Sources */,
@@ -4649,6 +4656,7 @@
 				3B997DCF2DC00A3A006B6BB2 /* JSONImporterTests.swift in Sources */,
 				BD8FC0662D661A0000B95AED /* GlucoseStorageTests.swift in Sources */,
 				BD8FC05B2D6618AF00B95AED /* DeterminationStorageTests.swift in Sources */,
+				3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */,
 				CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */,
 				38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */,
 				BD8FC0602D6619DB00B95AED /* CarbsStorageTests.swift in Sources */,
