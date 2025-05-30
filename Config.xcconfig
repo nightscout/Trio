@@ -9,7 +9,7 @@ DEVELOPER_TEAM = ##TEAM_ID##
 // Typically this is not modified unless you want to create a separate (unique) app using your ID
 // It must include $(DEVELOPMENT_TEAM)
 // For example: myOwnApp.$(DEVELOPMENT_TEAM).trio
-BUNDLE_IDENTIFIER = org.nightscout.$(DEVELOPMENT_TEAM).tai
+BUNDLE_IDENTIFIER = org.nightscout.$(DEVELOPMENT_TEAM).trio
 
 // Danger zone - do not modify these unless you know what you are doing
 
