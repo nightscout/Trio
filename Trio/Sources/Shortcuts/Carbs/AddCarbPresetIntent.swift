@@ -76,13 +76,13 @@ import Swinject
             if let cq = carbQuantity {
                 quantityCarbs = cq
             } else {
-                quantityCarbs = try await $carbQuantity.requestValue("How many carbs ?")
+                quantityCarbs = try await $carbQuantity.requestValue("How many carbs do you want to add?")
             }
 
             let quantityCarbsName = quantityCarbs.toString()
             if confirmBeforeApplying {
                 try await requestConfirmation(
-                    result: .result(dialog: "Are you sure to add \(quantityCarbsName) g of carbs ?")
+                    result: .result(dialog: "Do you want to add \(quantityCarbsName) grams of carbs?")
                 )
             }
 

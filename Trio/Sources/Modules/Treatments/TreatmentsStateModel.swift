@@ -1,6 +1,7 @@
 import Combine
 import CoreData
 import Foundation
+import LocalAuthentication
 import LoopKit
 import Observation
 import SwiftUI
@@ -88,6 +89,7 @@ extension Treatments {
         var note: String = ""
 
         var date = Date()
+        let defaultDate = Date()
 
         var carbsRequired: Decimal?
         var useFPUconversion: Bool = false
@@ -380,12 +382,26 @@ extension Treatments {
                 minPredBG
             }
 
+            // Use the cob value of the simulation if we have a simulated determination
+            var simulatedCOB: Int16?
+            if let simulatedCobValue = simulatedDetermination?.cob {
+                // Convert Decimal to Int16 and cap at maxCOB
+                let cobInt16 = Int16(truncating: NSDecimalNumber(decimal: simulatedCobValue))
+                let maxCobInt16 = Int16(truncating: NSDecimalNumber(decimal: maxCOB))
+                simulatedCOB = min(maxCobInt16, cobInt16)
+            }
+
+            // Check if this is a backdated entry by comparing with the default date
+            let isBackdated = date != defaultDate
+
             let result = await bolusCalculationManager.handleBolusCalculation(
                 carbs: carbs,
                 useFattyMealCorrection: useFattyMealCorrectionFactor,
                 useSuperBolus: useSuperBolus,
                 lastLoopDate: apsManager.lastLoopDate,
-                minPredBG: localMinPredBG
+                minPredBG: localMinPredBG,
+                simulatedCOB: simulatedCOB,
+                isBackdated: isBackdated
             )
 
             // Update state properties with calculation results on main thread
@@ -457,6 +473,91 @@ extension Treatments {
             }
         }
 
+        /// Returns a user-facing localized error message for a given authentication error.
+        ///
+        /// This function inspects the provided `Error` to determine whether it is an `LAError`,
+        /// and maps its error code to a human-readable, localized string describing the reason
+        /// for the failure. If the error is not an `LAError`, a generic fallback message is returned.
+        ///
+        /// - Parameter error: The `Error` returned from an authentication attempt (e.g., via `LAContext.evaluatePolicy`).
+        /// - Returns: A localized `String` describing the cause of the authentication failure.
+        private func parseAuthenticationError(from error: Error) -> String {
+            guard let laError = error as? LAError else {
+                return String(
+                    localized: "An unknown authentication error occurred. Please try again."
+                )
+            }
+
+            switch laError.code {
+            case .authenticationFailed:
+                return String(
+                    localized: "Authentication failed. Please try again."
+                )
+
+            case .userCancel:
+                return String(
+                    localized: "Authentication was canceled by you."
+                )
+
+            case .userFallback:
+                return String(
+                    localized: "You tapped the fallback option, but no fallback method is configured."
+                )
+
+            case .systemCancel:
+                return String(
+                    localized: "Authentication was canceled by the system. Try again."
+                )
+
+            case .appCancel:
+                return String(
+                    localized: "Authentication was canceled by the app."
+                )
+
+            case .invalidContext:
+                return String(
+                    localized: "Authentication context is invalid. Please try again."
+                )
+
+            case .notInteractive:
+                return String(
+                    localized: "Authentication UI cannot be displayed. Try restarting the app."
+                )
+
+            case .passcodeNotSet:
+                return String(
+                    localized: "Authentication requires a device passcode. Please set one in iOS Settings > Face ID & Passcode."
+                )
+
+            case .biometryNotAvailable:
+                return String(
+                    localized: "Biometric authentication is not available on this device."
+                )
+
+            case .biometryNotEnrolled:
+                return String(
+                    localized: "No biometric identities are enrolled. Please set up Face ID or Touch ID."
+                )
+
+            case .biometryLockout,
+                 .touchIDLockout:
+                return String(
+                    localized: "Biometric authentication is locked due to multiple failed attempts. Please unlock your device using your passcode."
+                )
+
+            case .biometryDisconnected,
+                 .biometryNotPaired:
+                return String(
+                    localized: "Biometric accessory is missing or not connected. Please reconnect it and try again."
+                )
+
+            default:
+                return String(
+                    localized: "An unknown biometric authentication error occurred. Please try again."
+                )
+            }
+        }
+
         func addPumpInsulin() async {
             guard amount > 0 else {
                 showModal(for: nil)
@@ -473,15 +574,14 @@ extension Treatments {
                         self.isAwaitingDeterminationResult = true
                     }
                     await apsManager.enactBolus(amount: maxAmount, isSMB: false, callback: nil)
-                } else {
-                    print("authentication failed")
                 }
             } catch {
-                print("authentication error for pump bolus: \(error.localizedDescription)")
+                debug(.bolusState, "Authentication error for pump bolus: \(error)")
+
                 await MainActor.run {
                     self.isAwaitingDeterminationResult = false
                     self.showDeterminationFailureAlert = true
-                    self.determinationFailureMessage = error.localizedDescription
+                    self.determinationFailureMessage = parseAuthenticationError(from: error)
                 }
             }
         }
@@ -509,15 +609,13 @@ extension Treatments {
                     await pumpHistoryStorage.storeExternalInsulinEvent(amount: amount, timestamp: date)
                     // perform determine basal sync
                     try await apsManager.determineBasalSync()
-                } else {
-                    print("authentication failed")
                 }
             } catch {
-                print("authentication error for external insulin: \(error.localizedDescription)")
+                debug(.bolusState, "authentication error for external insulin: \(error)")
                 await MainActor.run {
                     self.isAwaitingDeterminationResult = false
                     self.showDeterminationFailureAlert = true
-                    self.determinationFailureMessage = error.localizedDescription
+                    self.determinationFailureMessage = parseAuthenticationError(from: error)
                 }
             }
         }
@@ -834,7 +932,11 @@ extension Treatments.StateModel {
         } else {
             simulatedDetermination = await Task { [self] in
                 debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
-                return await apsManager.simulateDetermineBasal(simulatedCarbsAmount: carbs, simulatedBolusAmount: amount)
+                return await apsManager.simulateDetermineBasal(
+                    simulatedCarbsAmount: carbs,
+                    simulatedBolusAmount: amount,
+                    simulatedCarbsDate: date
+                )
             }.value
 
             // Update evBG and minPredBG from simulated determination
