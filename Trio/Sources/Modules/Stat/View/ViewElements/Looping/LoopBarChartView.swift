@@ -36,9 +36,11 @@ struct LoopBarChartView: View {
             .chartXAxis {
                 AxisMarks(position: .bottom) { value in
                     if let percentage = value.as(Double.self) {
-                        AxisValueLabel {
-                            Text("\(Int(percentage))%")
-                                .font(.footnote)
+                        if selectedInterval != .today {
+                            AxisValueLabel {
+                                Text("\(Int(percentage))%")
+                                    .font(.footnote)
+                            }
                         }
                         AxisGridLine()
                     }

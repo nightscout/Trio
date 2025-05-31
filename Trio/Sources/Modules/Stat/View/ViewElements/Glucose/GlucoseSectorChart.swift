@@ -8,6 +8,7 @@ struct GlucoseSectorChart: View {
     let units: GlucoseUnits
     let glucose: [GlucoseStored]
     let timeInRangeType: TimeInRangeType
+    let showChart: Bool
 
     @State private var selectedCount: Int?
     @State private var selectedRange: GlucoseRange?
@@ -23,119 +24,169 @@ struct GlucoseSectorChart: View {
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 20) {
-            // Calculate total number of glucose readings
-            let total = Decimal(glucose.count)
-            // Count readings greater than high limit (180 mg/dL)
-            let high = glucose.filter { $0.glucose > Int(highLimit) }.count
-            // Count readings between low limit (TITR: 70 mg/dL, TING 63 mg/dL) and 140 mg/dL (tight control)
-            let tight = glucose
-                .filter { $0.glucose >= timeInRangeType.bottomThreshold && $0.glucose <= timeInRangeType.topThreshold }.count
-            // Count readings between 140 and high limit (normal range)
-            let normal = glucose.filter { $0.glucose >= timeInRangeType.bottomThreshold && $0.glucose <= Int(highLimit) }.count
-            // Count readings less than low limit (low)
-            let low = glucose.filter { $0.glucose < timeInRangeType.bottomThreshold }.count
+        if glucose.count < 1 {
+            Text("No glucose readings found.")
+        } else {
+            HStack(alignment: .center, spacing: 20) {
+                // Calculate total number of glucose readings
+                let total = Decimal(glucose.count)
+                // Count readings greater than high limit (180 mg/dL)
+                let high = glucose.filter { $0.glucose > Int(highLimit) }.count
+                // Count readings between low limit (TITR: 70 mg/dL, TING 63 mg/dL) and 140 mg/dL (tight control)
+                let tight = glucose
+                    .filter { $0.glucose >= timeInRangeType.bottomThreshold && $0.glucose <= timeInRangeType.topThreshold }.count
+                // Count readings between 140 and high limit (normal range)
+                let normal = glucose.filter { $0.glucose >= timeInRangeType.bottomThreshold && $0.glucose <= Int(highLimit) }
+                    .count
+                // Count readings less than low limit (low)
+                let low = glucose.filter { $0.glucose < timeInRangeType.bottomThreshold }.count
+                // Count readings less than very low limit (54 mg/dL)
+                let veryLow = glucose.filter { $0.glucose < 54 }.count
+                // Count readings less than very high limit (250 mg/dL)
+                let veryHigh = glucose.filter { $0.glucose > 250 }.count
 
-            let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
-            let sumReadings = justGlucoseArray.reduce(0, +)
+                let justGlucoseArray = glucose.compactMap({ each in Int(each.glucose as Int16) })
+                let sumReadings = justGlucoseArray.reduce(0, +)
 
-            let glucoseAverage = Decimal(sumReadings) / total
-            let medianGlucose = StatChartUtils.medianCalculation(array: justGlucoseArray)
+                let glucoseAverage = Decimal(sumReadings) / total
+                let medianGlucose = StatChartUtils.medianCalculation(array: justGlucoseArray)
 
-            let lowPercentage = Decimal(low) / total * 100
-            let tightPercentage = Decimal(tight) / total * 100
-            let inRangePercentage = Decimal(normal) / total * 100
-            let highPercentage = Decimal(high) / total * 100
+                let lowPercentage = Decimal(low) / total * 100
+                let tightPercentage = Decimal(tight) / total * 100
+                let inRangePercentage = Decimal(normal) / total * 100
+                let highPercentage = Decimal(high) / total * 100
+                let veryLowPercentage = Decimal(veryLow) / total * 100
+                let veryHighPercentage = Decimal(veryHigh) / total * 100
 
-            VStack(alignment: .leading, spacing: 10) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("\(formatValue(Decimal(timeInRangeType.bottomThreshold)))-\(formatValue(highLimit))").font(.subheadline)
+                if !showChart {
+                    Spacer()
+                }
+
+                VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(
+                            "\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(highLimit.formatted(for: units))"
+                        )
+                        .font(.subheadline)
                         .foregroundStyle(Color.secondary)
-                    Text(inRangePercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
-                        .foregroundStyle(Color.loopGreen)
-                }
+                        Text(inRangePercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
+                            .foregroundStyle(Color.loopGreen)
+                    }
 
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(
-                        "\(formatValue(Decimal(timeInRangeType.bottomThreshold)))-\(formatValue(Decimal(timeInRangeType.topThreshold)))"
-                    )
-                    .font(.subheadline)
-                    .foregroundStyle(Color.secondary)
-                    Text(tightPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
-                        .foregroundStyle(Color.green)
-                }
-            }.padding(.leading, 5)
-
-            VStack(alignment: .leading, spacing: 10) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("> \(formatValue(highLimit))").font(.subheadline)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(
+                            "\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units))"
+                        )
+                        .font(.subheadline)
                         .foregroundStyle(Color.secondary)
-                    Text(highPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
-                        .foregroundStyle(Color.orange)
+                        Text(tightPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
+                            .foregroundStyle(Color.green)
+                    }
+                }.padding(.leading, 5)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("> \(highLimit.formatted(for: units))").font(.subheadline)
+                            .foregroundStyle(Color.secondary)
+                        Text(highPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
+                            .foregroundStyle(Color.loopYellow)
+                    }
+
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(
+                            "< \(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))"
+                        )
+                        .font(.subheadline)
+                        .foregroundStyle(Color.secondary)
+                        Text(lowPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
+                            .foregroundStyle(Color.red)
+                    }
+                }
+                // Very Low and Very High do fit
+                if !showChart {
+                    VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("> \(Decimal(250).formatted(for: units))").font(.subheadline)
+                                .foregroundStyle(Color.secondary)
+                            Text(
+                                veryHighPercentage
+                                    .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
+                            )
+                            .foregroundStyle(Color.orange)
+                        }
+
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(
+                                "< \(Decimal(54).formatted(for: units))"
+                            )
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondary)
+                            Text(
+                                veryLowPercentage
+                                    .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
+                            )
+                            .foregroundStyle(Color.purple)
+                        }
+                    }
                 }
 
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(
-                        "< \(formatValue(Decimal(timeInRangeType.bottomThreshold)))"
-                    )
-                    .font(.subheadline)
-                    .foregroundStyle(Color.secondary)
-                    Text(lowPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
-                        .foregroundStyle(Color.loopRed)
-                }
-            }
+                VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Average").font(.subheadline).foregroundStyle(Color.secondary)
+                        Text(
+                            units == .mgdL ? glucoseAverage
+                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) : glucoseAverage
+                                .asMmolL
+                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
+                        )
+                    }
 
-            VStack(alignment: .leading, spacing: 10) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("Average").font(.subheadline).foregroundStyle(Color.secondary)
-                    Text(
-                        units == .mgdL ? glucoseAverage
-                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) : glucoseAverage.asMmolL
-                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
-                    )
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Median").font(.subheadline).foregroundStyle(Color.secondary)
+                        Text(
+                            units == .mgdL ? medianGlucose
+                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) : medianGlucose
+                                .asMmolL
+                                .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
+                        )
+                    }
                 }
 
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("Median").font(.subheadline).foregroundStyle(Color.secondary)
-                    Text(
-                        units == .mgdL ? medianGlucose
-                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) : medianGlucose.asMmolL
-                            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
-                    )
+                if showChart {
+                    Chart {
+                        ForEach(rangeData, id: \.range) { data in
+                            SectorMark(
+                                angle: .value("Percentage", data.count),
+                                innerRadius: .ratio(0.618),
+                                outerRadius: selectedRange == data.range ? 100 : 80
+                            )
+                            .foregroundStyle(data.color)
+                        }
+                    }
+                    .chartAngleSelection(value: $selectedCount)
+                    .frame(height: 100)
+                } else {
+                    Spacer()
                 }
             }
-
-            Chart {
-                ForEach(rangeData, id: \.range) { data in
-                    SectorMark(
-                        angle: .value("Percentage", data.count),
-                        innerRadius: .ratio(0.618),
-                        outerRadius: selectedRange == data.range ? 100 : 80,
-                        angularInset: 1.5
-                    )
-                    .foregroundStyle(data.color)
+            .onChange(of: selectedCount) { _, newValue in
+                if let newValue {
+                    withAnimation {
+                        getSelectedRange(value: newValue)
+                    }
+                } else {
+                    withAnimation {
+                        selectedRange = nil
+                    }
                 }
             }
-            .chartAngleSelection(value: $selectedCount)
-            .frame(height: 100)
-        }
-        .onChange(of: selectedCount) { _, newValue in
-            if let newValue {
-                withAnimation {
-                    getSelectedRange(value: newValue)
+            .overlay(alignment: .top) {
+                if let selectedRange {
+                    let data = getDetailedData(for: selectedRange)
+                    RangeDetailPopover(data: data)
+                        .transition(.scale.combined(with: .opacity))
+                        .offset(y: -150) // TODO: make this dynamic
                 }
-            } else {
-                withAnimation {
-                    selectedRange = nil
-                }
-            }
-        }
-        .overlay(alignment: .top) {
-            if let selectedRange {
-                let data = getDetailedData(for: selectedRange)
-                RangeDetailPopover(data: data)
-                    .transition(.scale.combined(with: .opacity))
-                    .offset(y: -150) // TODO: make this dynamic
             }
         }
     }
@@ -167,7 +218,7 @@ struct GlucoseSectorChart: View {
 
         // Return array of tuples with range data
         return [
-            (.high, highCount, Decimal(highCount) / Decimal(total) * 100, .orange),
+            (.high, highCount, Decimal(highCount) / Decimal(total) * 100, .loopYellow),
             (.inRange, inRangeCount, Decimal(inRangeCount) / Decimal(total) * 100, .green),
             (.low, lowCount, Decimal(lowCount) / Decimal(total) * 100, .red)
         ]
@@ -216,15 +267,18 @@ struct GlucoseSectorChart: View {
 
             return RangeDetail(
                 title: String(localized: "High Glucose"),
-                color: .orange,
+                color: .loopYellow,
                 items: [
-                    (String(localized: "Very High (>\(formatValue(250)))"), formatPercentage(Decimal(veryHigh) / total * 100)),
                     (
-                        String(localized: "High (\(formatValue(highLimit))-\(formatValue(250)))"),
+                        String(localized: "Very High (>\(Decimal(250).formatted(for: units)))"),
+                        formatPercentage(Decimal(veryHigh) / total * 100)
+                    ),
+                    (
+                        String(localized: "High (\(highLimit.formatted(for: units))-\(Decimal(250).formatted(for: units)))"),
                         formatPercentage(Decimal(high) / total * 100)
                     ),
-                    (String(localized: "Average"), formatValue(average)),
-                    (String(localized: "Median"), formatValue(median)),
+                    (String(localized: "Average"), average.formatted(for: units)),
+                    (String(localized: "Median"), median.formatted(for: units)),
                     (String(localized: "SD"), formatSD(standardDeviation))
                 ]
             )
@@ -242,18 +296,18 @@ struct GlucoseSectorChart: View {
                 items: [
                     (
                         String(
-                            localized: "Normal (\(formatValue(Decimal(timeInRangeType.bottomThreshold)))-\(formatValue(highLimit)))"
+                            localized: "Normal (\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(highLimit.formatted(for: units)))"
                         ),
                         formatPercentage(Decimal(glucoseValues.count) / total * 100)
                     ),
                     (
                         String(
-                            localized: "\(timeInRangeType == .timeInTightRange ? "TITR" : "TING") (\(formatValue(Decimal(timeInRangeType.bottomThreshold)))-\(formatValue(Decimal(timeInRangeType.topThreshold))))"
+                            localized: "\(timeInRangeType == .timeInTightRange ? "TITR" : "TING") (\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units)))"
                         ),
                         formatPercentage(Decimal(tight) / total * 100)
                     ),
-                    (String(localized: "Average"), formatValue(average)),
-                    (String(localized: "Median"), formatValue(median)),
+                    (String(localized: "Average"), average.formatted(for: units)),
+                    (String(localized: "Median"), median.formatted(for: units)),
                     (String(localized: "SD"), formatSD(standardDeviation))
                 ]
             )
@@ -271,12 +325,17 @@ struct GlucoseSectorChart: View {
                 color: .red,
                 items: [
                     (
-                        String(localized: "Low (\(formatValue(54))-\(formatValue(Decimal(timeInRangeType.bottomThreshold))))"),
+                        String(
+                            localized: "Low (\(Decimal(54).formatted(for: units))-\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units)))"
+                        ),
                         formatPercentage(Decimal(low) / total * 100)
                     ),
-                    (String(localized: "Very Low (<\(formatValue(54)))"), formatPercentage(Decimal(veryLow) / total * 100)),
-                    (String(localized: "Average"), formatValue(average)),
-                    (String(localized: "Median"), formatValue(median)),
+                    (
+                        String(localized: "Very Low (<\(Decimal(54).formatted(for: units))"),
+                        formatPercentage(Decimal(veryLow) / total * 100)
+                    ),
+                    (String(localized: "Average"), average.formatted(for: units)),
+                    (String(localized: "Median"), median.formatted(for: units)),
                     (String(localized: "SD"), formatSD(standardDeviation))
                 ]
             )
@@ -318,13 +377,6 @@ struct GlucoseSectorChart: View {
         units == .mgdL ? sd.formatted(
             .number.grouping(.never).rounded().precision(.fractionLength(0))
         ) : sd.formattedAsMmolL
-    }
-
-    /// Formats a glucose value based on the current units.
-    /// - Parameter value: A decimal value representing the glucose level.
-    /// - Returns: A formatted string of the glucose value.
-    private func formatValue(_ value: Decimal) -> String {
-        units == .mgdL ? value.description : value.formattedAsMmolL
     }
 }
 
