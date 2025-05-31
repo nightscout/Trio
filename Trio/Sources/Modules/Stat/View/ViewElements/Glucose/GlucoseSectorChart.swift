@@ -38,8 +38,12 @@ struct GlucoseSectorChart: View {
                 // Count readings between 140 and high limit (normal range)
                 let normal = glucose.filter { $0.glucose >= timeInRangeType.bottomThreshold && $0.glucose <= Int(highLimit) }
                     .count
-                // Count readings less than low limit (low)
-                let low = glucose.filter { $0.glucose < timeInRangeType.bottomThreshold }.count
+                // Count readings less than low limit (low) (70 mg/dL if not showing chart, otherwise 70 for TITR and 63 for TING)
+                let low = glucose.filter { $0.glucose < (showChart ? Int(timeInRangeType.bottomThreshold) : 70) }.count
+                // Count readings less than moderately low limit (63 mg/dL)
+                let moderatelyLow = glucose.filter { $0.glucose < 63 }.count
+                // Count readings less than moderately high limit (220 mg/dL)
+                let moderatelyHigh = glucose.filter { $0.glucose > 220 }.count
                 // Count readings less than very low limit (54 mg/dL)
                 let veryLow = glucose.filter { $0.glucose < 54 }.count
                 // Count readings less than very high limit (250 mg/dL)
@@ -55,12 +59,10 @@ struct GlucoseSectorChart: View {
                 let tightPercentage = Decimal(tight) / total * 100
                 let inRangePercentage = Decimal(normal) / total * 100
                 let highPercentage = Decimal(high) / total * 100
+                let moderatelyLowPercentage = Decimal(moderatelyLow) / total * 100
+                let moderatelyHighPercentage = Decimal(moderatelyHigh) / total * 100
                 let veryLowPercentage = Decimal(veryLow) / total * 100
                 let veryHighPercentage = Decimal(veryHigh) / total * 100
-
-                if !showChart {
-                    Spacer()
-                }
 
                 VStack(alignment: .leading, spacing: 10) {
                     VStack(alignment: .leading, spacing: 5) {
@@ -94,7 +96,7 @@ struct GlucoseSectorChart: View {
 
                     VStack(alignment: .leading, spacing: 5) {
                         Text(
-                            "< \(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))"
+                            "< \(Decimal(showChart ? timeInRangeType.bottomThreshold : 70).formatted(for: units))"
                         )
                         .font(.subheadline)
                         .foregroundStyle(Color.secondary)
@@ -102,8 +104,32 @@ struct GlucoseSectorChart: View {
                             .foregroundStyle(Color.red)
                     }
                 }
-                // Very Low and Very High do fit
+                // If not showing chart, show extra stats
                 if !showChart {
+                    VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("> \(Decimal(220).formatted(for: units))").font(.subheadline)
+                                .foregroundStyle(Color.secondary)
+                            Text(
+                                moderatelyHighPercentage
+                                    .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
+                            )
+                            .foregroundStyle(Color.loopYellow)
+                        }
+
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(
+                                "< \(Decimal(63).formatted(for: units))"
+                            )
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondary)
+                            Text(
+                                moderatelyLowPercentage
+                                    .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
+                            )
+                            .foregroundStyle(Color.red)
+                        }
+                    }
                     VStack(alignment: .leading, spacing: 10) {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("> \(Decimal(250).formatted(for: units))").font(.subheadline)
@@ -132,7 +158,7 @@ struct GlucoseSectorChart: View {
 
                 VStack(alignment: .leading, spacing: 10) {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("Average").font(.subheadline).foregroundStyle(Color.secondary)
+                        Text(showChart ? "Average" : "Avg").font(.subheadline).foregroundStyle(Color.secondary)
                         Text(
                             units == .mgdL ? glucoseAverage
                                 .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) : glucoseAverage
@@ -142,7 +168,7 @@ struct GlucoseSectorChart: View {
                     }
 
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("Median").font(.subheadline).foregroundStyle(Color.secondary)
+                        Text(showChart ? "Median" : "Med").font(.subheadline).foregroundStyle(Color.secondary)
                         Text(
                             units == .mgdL ? medianGlucose
                                 .formatted(.number.grouping(.never).rounded().precision(.fractionLength(0))) : medianGlucose
@@ -165,8 +191,6 @@ struct GlucoseSectorChart: View {
                     }
                     .chartAngleSelection(value: $selectedCount)
                     .frame(height: 100)
-                } else {
-                    Spacer()
                 }
             }
             .onChange(of: selectedCount) { _, newValue in
