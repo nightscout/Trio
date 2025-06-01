@@ -35,7 +35,7 @@ extension TrioRemoteControl {
         } catch {
             debug(
                 .remoteControl,
-                "\(DebuggingIdentifiers.failed) Failed to handle start override command: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Failed to handle start override command: \(error)"
             )
             await logError(
                 "Command failed: \(error.localizedDescription)",
@@ -61,7 +61,7 @@ extension TrioRemoteControl {
                 debug(.remoteControl, "Remote command processed successfully. \(pushMessage.humanReadableDescription())")
             }
         } catch {
-            debug(.remoteControl, "Failed to enact override preset: \(error.localizedDescription)")
+            debug(.remoteControl, "Failed to enact override preset: \(error)")
         }
     }
 
@@ -111,7 +111,7 @@ extension TrioRemoteControl {
         } catch {
             debug(
                 .remoteControl,
-                "\(DebuggingIdentifiers.failed) Failed to disable active overrides: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Failed to disable active overrides: \(error)"
             )
         }
     }

@@ -268,7 +268,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     fetchedDate = date
                 }
             } catch {
-                debugPrint("Fetch error: \(DebuggingIdentifiers.failed) \(error.localizedDescription)")
+                debugPrint("Fetch error: \(DebuggingIdentifiers.failed) \(error)")
             }
         }
 
@@ -287,7 +287,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 let results = try self.context.fetch(fr)
                 date = results.first?.date
             } catch let error as NSError {
-                print("Fetch error: \(DebuggingIdentifiers.failed) \(error.localizedDescription), \(error.userInfo)")
+                debug(.storage, "Fetch error: \(DebuggingIdentifiers.failed) \(error), \(error.userInfo)")
             }
         }
 
@@ -568,7 +568,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 debugPrint("\(#file) \(#function) \(DebuggingIdentifiers.succeeded) deleted glucose from core data")
             } catch {
                 debugPrint(
-                    "\(#file) \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data: \(error.localizedDescription)"
+                    "\(#file) \(#function) \(DebuggingIdentifiers.failed) error while deleting glucose from core data: \(error)"
                 )
             }
         }

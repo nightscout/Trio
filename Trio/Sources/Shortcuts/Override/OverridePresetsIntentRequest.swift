@@ -37,7 +37,7 @@ import UIKit
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Error fetching/processing overrides: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Error fetching/processing overrides: \(error)"
             )
             throw error
         }
@@ -72,7 +72,7 @@ import UIKit
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) Failed to fetch Override: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Failed to fetch Override: \(error)"
                 )
                 throw error
             }
@@ -145,7 +145,7 @@ import UIKit
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Failed to enact override: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Failed to enact override: \(error)"
             )
             endBackgroundTaskSafely(&backgroundTaskID, taskName: "Override Enact")
             return false
@@ -231,7 +231,7 @@ import UIKit
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Overrides with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Overrides with error: \(error)"
             )
             if var backgroundTaskID = backgroundTaskID {
                 debug(.default, "Ending background task for override cancel")

@@ -11,7 +11,7 @@ extension Home.StateModel {
                 // Get the NSManagedObjects and map them to TDD on the Main Thread
                 try await updateTDDArray(with: tddObjectIds, keyPath: \.fetchedTDDs)
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch TDDs: \(error.localizedDescription)")
+                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch TDDs: \(error)")
             }
         }
     }

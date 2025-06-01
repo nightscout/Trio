@@ -12,7 +12,7 @@ extension Home.StateModel {
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) Error setting up battery array: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Error setting up battery array: \(error)"
                 )
             }
         }

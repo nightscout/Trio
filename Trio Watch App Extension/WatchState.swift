@@ -151,7 +151,7 @@ import WatchConnectivity
         DispatchQueue.main.async {
             if let error = error {
                 Task {
-                    await WatchLogger.shared.log("⌚️ Watch session activation failed: \(error.localizedDescription)", force: true)
+                    await WatchLogger.shared.log("⌚️ Watch session activation failed: \(error)", force: true)
                     await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                     await WatchLogger.shared.persistLogsLocally()
                 }
@@ -272,7 +272,7 @@ import WatchConnectivity
     func session(_: WCSession, didFinish _: WCSessionUserInfoTransfer, error: (any Error)?) {
         if let error = error {
             Task {
-                await WatchLogger.shared.log("⌚️ transferUserInfo failed with error: \(error.localizedDescription)")
+                await WatchLogger.shared.log("⌚️ transferUserInfo failed with error: \(error)")
                 await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                 await WatchLogger.shared.persistLogsLocally()
             }

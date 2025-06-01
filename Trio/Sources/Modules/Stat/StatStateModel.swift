@@ -135,7 +135,7 @@ extension Stat {
                     return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Error fetching glucose for stats: \(error.localizedDescription)")
+                debug(.default, "\(DebuggingIdentifiers.failed) Error fetching glucose for stats: \(error)")
                 return []
             }
         }
@@ -148,7 +148,7 @@ extension Stat {
                 glucoseFromPersistence = glucoseObjects
             } catch {
                 debugPrint(
-                    "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error.localizedDescription)"
+                    "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error)"
                 )
             }
         }

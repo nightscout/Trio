@@ -11,9 +11,9 @@ extension Home.StateModel {
                     .getNSManagedObject(with: ids, context: viewContext)
                 await updateOverrideArray(with: overrideObjects)
             } catch let error as CoreDataError {
-                debug(.default, "Core Data error in setupOverrides: \(error.localizedDescription)")
+                debug(.default, "Core Data error in setupOverrides: \(error)")
             } catch {
-                debug(.default, "Unexpected error in setupOverrides: \(error.localizedDescription)")
+                debug(.default, "Unexpected error in setupOverrides: \(error)")
             }
         }
     }
@@ -55,9 +55,9 @@ extension Home.StateModel {
                     .getNSManagedObject(with: ids, context: viewContext)
                 await updateOverrideRunStoredArray(with: overrideRunObjects)
             } catch let error as CoreDataError {
-                debug(.default, "Core Data error in setupOverrideRunStored: \(error.localizedDescription)")
+                debug(.default, "Core Data error in setupOverrideRunStored: \(error)")
             } catch {
-                debug(.default, "Unexpected error in setupOverrideRunStored: \(error.localizedDescription)")
+                debug(.default, "Unexpected error in setupOverrideRunStored: \(error)")
             }
         }
     }

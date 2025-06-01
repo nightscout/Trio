@@ -9,8 +9,7 @@ extension AppDiagnostics {
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
-
-        @State private var shouldDisplayPrivacyPolicy: Bool = false
+        @Environment(\.openURL) var openURL
 
         var body: some View {
             List {
@@ -90,12 +89,13 @@ extension AppDiagnostics {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Privacy Policy") {
-                        shouldDisplayPrivacyPolicy = true
+                        if let url = URL(string: "https://github.com/nightscout/Trio/blob/dev/PRIVACY_POLICY.md") {
+                            openURL(url)
+                        } else {
+                            debug(.default, "Invalid URL! Could not gracefully unwrap privacy policy link!")
+                        }
                     }
                 }
-            }
-            .sheet(isPresented: $shouldDisplayPrivacyPolicy) {
-                PrivacyPolicyView()
             }
         }
     }

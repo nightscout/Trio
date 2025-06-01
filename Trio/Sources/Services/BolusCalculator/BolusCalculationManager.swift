@@ -361,7 +361,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Error preparing calculation input: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Error preparing calculation input: \(error)"
             )
             // Return default values in case of error
             throw error
@@ -504,7 +504,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Error in bolus calculation: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Error in bolus calculation: \(error)"
             )
             // Return safe default values
             return CalculationResult(

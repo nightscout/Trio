@@ -164,7 +164,9 @@ struct ContactImageDetailView: View {
             Button(action: {
                 saveChanges()
             }, label: {
-                Text("Save").padding(10)
+                Text("Save")
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(10)
             })
                 .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
                 .background(isUnchanged ? Color(.systemGray4) : Color(.systemBlue))

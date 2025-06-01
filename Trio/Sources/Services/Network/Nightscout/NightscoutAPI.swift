@@ -93,7 +93,7 @@ extension NightscoutAPI {
                 return reading
             }
         } catch {
-            warning(.nightscout, "Glucose fetching error: \(error.localizedDescription)")
+            warning(.nightscout, "Glucose fetching error: \(error)")
             return []
         }
     }
@@ -141,7 +141,7 @@ extension NightscoutAPI {
             let carbs = try JSONCoding.decoder.decode([CarbsEntry].self, from: data)
             return carbs
         } catch {
-            warning(.nightscout, "Carbs fetching error: \(error.localizedDescription)")
+            warning(.nightscout, "Carbs fetching error: \(error)")
             throw error
         }
     }
@@ -281,7 +281,7 @@ extension NightscoutAPI {
             let tempTargets = try JSONCoding.decoder.decode([TempTarget].self, from: data)
             return tempTargets
         } catch {
-            warning(.nightscout, "TempTarget fetching error: \(error.localizedDescription)")
+            warning(.nightscout, "TempTarget fetching error: \(error)")
             throw error
         }
     }
@@ -312,7 +312,7 @@ extension NightscoutAPI {
 //            debugPrint("Payload treatments size: \(encodedBody.count) bytes")
 //            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
-            debugPrint("Error encoding payload: \(error.localizedDescription)")
+            debugPrint("Error encoding payload: \(error)")
             throw error
         }
         request.httpMethod = "POST"
@@ -348,7 +348,7 @@ extension NightscoutAPI {
 //            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
 //            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
-            debugPrint("Error encoding payload: \(error.localizedDescription)")
+            debugPrint("Error encoding payload: \(error)")
             throw error
         }
         request.httpMethod = "POST"
@@ -385,7 +385,7 @@ extension NightscoutAPI {
 //            debugPrint("Payload status size: \(encodedBody.count) bytes")
 //            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
-            debugPrint("Error encoding payload: \(error.localizedDescription)")
+            debugPrint("Error encoding payload: \(error)")
             throw error
         }
 
@@ -424,7 +424,7 @@ extension NightscoutAPI {
 //            debugPrint("Payload profile upload size: \(encodedBody.count) bytes")
 //            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
-            debugPrint("Error encoding payload: \(error.localizedDescription)")
+            debugPrint("Error encoding payload: \(error)")
             throw error
         }
         request.httpMethod = "POST"
@@ -489,7 +489,7 @@ extension NightscoutAPI {
 //            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
 //            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
-            debugPrint("Error encoding payload: \(error.localizedDescription)")
+            debugPrint("Error encoding payload: \(error)")
             throw error
         }
         request.httpMethod = "POST"
@@ -546,7 +546,7 @@ extension NightscoutAPI {
 
             return fetchedProfile
         } catch {
-            warning(.nightscout, "Could not fetch Nightscout Profile! Error: \(error.localizedDescription)")
+            warning(.nightscout, "Could not fetch Nightscout Profile! Error: \(error)")
             throw error
         }
     }

@@ -81,7 +81,7 @@ import Foundation
                 }
                 return value
             } catch {
-                debug(.storage, "❌ [PersistedProperty:\(key)] Failed to read value: \(error.localizedDescription)")
+                debug(.storage, "❌ [PersistedProperty:\(key)] Failed to read value: \(error)")
                 return nil
             }
         }
@@ -91,7 +91,7 @@ import Foundation
                     try FileManager.default.removeItem(at: storageURL)
                     debug(.storage, "[PersistedProperty:\(key)] Removed value.")
                 } catch {
-                    debug(.storage, "❌ [PersistedProperty:\(key)] Failed to remove value: \(error.localizedDescription)")
+                    debug(.storage, "❌ [PersistedProperty:\(key)] Failed to remove value: \(error)")
                 }
                 return
             }
@@ -108,7 +108,7 @@ import Foundation
 
                 debug(.storage, "✅ [PersistedProperty:\(key)] Saved value successfully.")
             } catch {
-                debug(.storage, "❌ [PersistedProperty:\(key)] Failed to write value: \(error.localizedDescription)")
+                debug(.storage, "❌ [PersistedProperty:\(key)] Failed to write value: \(error)")
             }
         }
     }

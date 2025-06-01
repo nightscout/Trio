@@ -77,7 +77,7 @@ extension Adjustments.StateModel {
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Failed to disable active overrides: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Failed to disable active overrides: \(error)"
             )
         }
     }
@@ -124,7 +124,7 @@ extension Adjustments.StateModel {
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Failed to save custom override: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Failed to save custom override: \(error)"
             )
         }
     }
@@ -166,7 +166,7 @@ extension Adjustments.StateModel {
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Failed to save override preset: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Failed to save override preset: \(error)"
             )
         }
     }
@@ -182,7 +182,7 @@ extension Adjustments.StateModel {
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) Failed to setup override presets: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Failed to setup override presets: \(error)"
                 )
             }
         }
@@ -197,7 +197,7 @@ extension Adjustments.StateModel {
             overridePresets = overrideObjects
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to extract Overrides: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to extract Overrides: \(error)"
             )
         }
     }
@@ -211,7 +211,7 @@ extension Adjustments.StateModel {
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Failed to delete override preset: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Failed to delete override preset: \(error)"
             )
         }
     }
@@ -238,7 +238,7 @@ extension Adjustments.StateModel {
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) Failed to update override configuration: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Failed to update override configuration: \(error)"
                 )
             }
         }
@@ -274,7 +274,7 @@ extension Adjustments.StateModel {
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to set active Override: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to set active Override: \(error)"
             )
         }
     }
@@ -298,7 +298,7 @@ extension Adjustments.StateModel {
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel previous Override: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel previous Override: \(error)"
             )
         }
     }

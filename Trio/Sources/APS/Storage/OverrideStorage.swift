@@ -232,7 +232,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
                     "OverrideStorage: \(#function) \(DebuggingIdentifiers.succeeded) deleted override from core data"
                 )
             } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) Error deleting override: \(error.localizedDescription)")
+                debugPrint("\(DebuggingIdentifiers.failed) Error deleting override: \(error)")
             }
         }
     }

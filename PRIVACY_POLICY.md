@@ -111,9 +111,9 @@ updating the "Last Updated" date.
 ## Contact Us
 
 If you have any questions about this Privacy Policy, please contact us
-on [Discord](http://discord.diy-trio.org/) or send us an email at
+on [Discord](http://discord.triodocs.org/) or send us an email at
 trio.diy.diabetes@gmail.com.
 
 ## Last Updated
 
-April 15, 2025
+May 14, 2025

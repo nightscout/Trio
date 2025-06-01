@@ -22,7 +22,7 @@ extension Adjustments.StateModel {
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to load latest temp target configuration with error: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to load latest temp target configuration with error: \(error)"
                 )
             }
         }
@@ -59,7 +59,7 @@ extension Adjustments.StateModel {
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to set active preset name with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to set active preset name with error: \(error)"
             )
         }
     }
@@ -79,7 +79,7 @@ extension Adjustments.StateModel {
             } catch {
                 debug(
                     .default,
-                    "\(DebuggingIdentifiers.failed) Failed to setup temp targets: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) Failed to setup temp targets: \(error)"
                 )
             }
         }
@@ -186,7 +186,7 @@ extension Adjustments.StateModel {
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Failed to enable scheduled temp target: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Failed to enable scheduled temp target: \(error)"
             )
         }
     }
@@ -329,7 +329,7 @@ extension Adjustments.StateModel {
         } catch {
             debug(
                 .default,
-                "\(DebuggingIdentifiers.failed) Failed to disable active temp targets: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Failed to disable active temp targets: \(error)"
             )
         }
     }
@@ -360,7 +360,7 @@ extension Adjustments.StateModel {
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel previous override with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel previous override with error: \(error)"
             )
         }
     }

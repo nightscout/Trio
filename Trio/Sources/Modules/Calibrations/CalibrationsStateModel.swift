@@ -81,7 +81,7 @@ extension Calibrations {
                     return
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Failed to add calibration: \(error.localizedDescription)")
+                debug(.default, "\(DebuggingIdentifiers.failed) Failed to add calibration: \(error)")
             }
         }
 

@@ -30,7 +30,7 @@ final class BaseFileStorage: FileStorage {
                     try Disk.save(value, to: .documents, as: name, encoder: JSONCoding.encoder)
                 }
             } catch {
-                debug(.storage, "Failed to save file '\(name)': \(error.localizedDescription)")
+                debug(.storage, "Failed to save file '\(name)': \(error)")
             }
         }
     }
@@ -45,7 +45,7 @@ final class BaseFileStorage: FileStorage {
                         try Disk.save(value, to: .documents, as: name, encoder: JSONCoding.encoder)
                     }
                 } catch {
-                    debug(.storage, "Failed to save file '\(name)': \(error.localizedDescription)")
+                    debug(.storage, "Failed to save file '\(name)': \(error)")
                 }
                 continuation.resume()
             }
@@ -57,7 +57,7 @@ final class BaseFileStorage: FileStorage {
             do {
                 return try Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
             } catch {
-                debug(.storage, "Failed to retrieve file '\(name)': \(error.localizedDescription)")
+                debug(.storage, "Failed to retrieve file '\(name)': \(error)")
                 return nil
             }
         }
@@ -70,7 +70,7 @@ final class BaseFileStorage: FileStorage {
                     let result = try Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
                     continuation.resume(returning: result)
                 } catch {
-                    debug(.storage, "Failed to retrieve file '\(name)': \(error.localizedDescription)")
+                    debug(.storage, "Failed to retrieve file '\(name)': \(error)")
                     continuation.resume(returning: nil)
                 }
             }
@@ -87,7 +87,7 @@ final class BaseFileStorage: FileStorage {
                 }
                 return string
             } catch {
-                debug(.storage, "Failed to retrieve file '\(name)': \(error.localizedDescription)")
+                debug(.storage, "Failed to retrieve file '\(name)': \(error)")
                 return nil
             }
         }
@@ -105,7 +105,7 @@ final class BaseFileStorage: FileStorage {
                     }
                     continuation.resume(returning: string)
                 } catch {
-                    debug(.storage, "Failed to retrieve file '\(name)': \(error.localizedDescription)")
+                    debug(.storage, "Failed to retrieve file '\(name)': \(error)")
                     continuation.resume(returning: nil)
                 }
             }
@@ -117,7 +117,7 @@ final class BaseFileStorage: FileStorage {
             do {
                 try Disk.append(newValue, to: name, in: .documents, decoder: JSONCoding.decoder, encoder: JSONCoding.encoder)
             } catch {
-                debug(.storage, "Failed to append to file '\(name)': \(error.localizedDescription)")
+                debug(.storage, "Failed to append to file '\(name)': \(error)")
             }
         }
     }
@@ -127,7 +127,7 @@ final class BaseFileStorage: FileStorage {
             do {
                 try Disk.append(newValues, to: name, in: .documents, decoder: JSONCoding.decoder, encoder: JSONCoding.encoder)
             } catch {
-                debug(.storage, "Failed to append to file '\(name)': \(error.localizedDescription)")
+                debug(.storage, "Failed to append to file '\(name)': \(error)")
             }
         }
     }
@@ -173,7 +173,7 @@ final class BaseFileStorage: FileStorage {
             do {
                 try Disk.remove(name, from: .documents)
             } catch {
-                debug(.storage, "Failed to remove file '\(name)': \(error.localizedDescription)")
+                debug(.storage, "Failed to remove file '\(name)': \(error)")
             }
         }
     }
@@ -183,7 +183,7 @@ final class BaseFileStorage: FileStorage {
             do {
                 try Disk.rename(name, in: .documents, to: newName)
             } catch {
-                debug(.storage, "Failed to rename file '\(name)' to '\(newName)': \(error.localizedDescription)")
+                debug(.storage, "Failed to rename file '\(name)' to '\(newName)': \(error)")
             }
         }
     }
@@ -198,7 +198,7 @@ final class BaseFileStorage: FileStorage {
         do {
             return try Disk.url(for: file, in: .documents)
         } catch {
-            debug(.storage, "Failed to get URL for file '\(file)': \(error.localizedDescription)")
+            debug(.storage, "Failed to get URL for file '\(file)': \(error)")
             return nil
         }
     }

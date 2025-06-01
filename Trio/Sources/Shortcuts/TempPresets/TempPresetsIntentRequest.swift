@@ -73,7 +73,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                 }
             } catch let error as NSError {
                 debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch TempTarget: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch TempTarget: \(error)"
                 )
                 return [TempPreset(id: UUID(), name: "", duration: 0)]
             }
@@ -94,7 +94,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                 return try self.coredataContext.fetch(fetchRequest).first?.objectID
             } catch {
                 debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch Temp Target: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch Temp Target: \(error)"
                 )
                 return nil
             }
@@ -169,7 +169,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             return intentSuccess
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Temp Target with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Temp Target with error: \(error)"
             )
 
             endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Enact")
@@ -246,7 +246,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Temp Targets with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to disable active Temp Targets with error: \(error)"
             )
             if var backgroundTaskID = backgroundTaskID {
                 debug(.default, "Ending background task for temp target cancel")

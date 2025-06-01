@@ -18,6 +18,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
         // the next app boot, but this is fine since the app will need
         // to boot after a crash
         Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(crashReportingEnabled)
+        Crashlytics.crashlytics().setCustomValue(Bundle.main.appDevVersion ?? "unknown", forKey: "app_dev_version")
 
         return true
     }
@@ -40,13 +41,13 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
                 } catch {
                     debug(
                         .default,
-                        "\(DebuggingIdentifiers.failed) failed to handle remote notification with error: \(error.localizedDescription)"
+                        "\(DebuggingIdentifiers.failed) failed to handle remote notification with error: \(error)"
                     )
                     completionHandler(.failed)
                 }
             }
         } catch {
-            debug(.remoteControl, "Error decoding push message: \(error.localizedDescription)")
+            debug(.remoteControl, "Error decoding push message: \(error)")
             completionHandler(.failed)
         }
     }
@@ -64,7 +65,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
             } catch {
                 debug(
                     .remoteControl,
-                    "\(DebuggingIdentifiers.failed) failed to register for remote notifications: \(error.localizedDescription)"
+                    "\(DebuggingIdentifiers.failed) failed to register for remote notifications: \(error)"
                 )
             }
         }
@@ -74,6 +75,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject, UNUserNoti
         _: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
-        debug(.remoteControl, "Failed to register for remote notifications: \(error.localizedDescription)")
+        debug(.remoteControl, "Failed to register for remote notifications: \(error)")
     }
 }

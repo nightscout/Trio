@@ -177,7 +177,7 @@ extension Home {
                 )
             }
 
-            return rateString + " " + String(localized: " U/hr", comment: "Unit per hour with space") + manualBasalString
+            return rateString + String(localized: " U/hr", comment: "Unit per hour with space") + manualBasalString
         }
 
         var overrideString: String? {

@@ -326,7 +326,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             }
         } catch {
             debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to send glucose notification with error: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to send glucose notification with error: \(error)"
             )
         }
     }

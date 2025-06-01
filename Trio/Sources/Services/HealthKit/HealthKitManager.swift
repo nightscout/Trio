@@ -165,7 +165,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         } catch {
             debug(
                 .service,
-                "\(DebuggingIdentifiers.failed) Error fetching glucose for health upload: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Error fetching glucose for health upload: \(error)"
             )
         }
     }
@@ -209,7 +209,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             await updateGlucoseAsUploaded(glucose)
 
         } catch {
-            debug(.service, "Failed to upload glucose samples to HealthKit: \(error.localizedDescription)")
+            debug(.service, "Failed to upload glucose samples to HealthKit: \(error)")
         }
     }
 
@@ -244,7 +244,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         } catch {
             debug(
                 .service,
-                "\(DebuggingIdentifiers.failed) Error fetching carbs for health upload: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Error fetching carbs for health upload: \(error)"
             )
         }
     }
@@ -330,7 +330,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             await updateCarbsAsUploaded(carbs)
 
         } catch {
-            debug(.service, "Failed to upload carb samples to HealthKit: \(error.localizedDescription)")
+            debug(.service, "Failed to upload carb samples to HealthKit: \(error)")
         }
     }
 
@@ -365,7 +365,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         } catch {
             debug(
                 .service,
-                "\(DebuggingIdentifiers.failed) Error fetching insulin events for health upload: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Error fetching insulin events for health upload: \(error)"
             )
         }
     }
@@ -458,10 +458,10 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                 debug(.service, "Successfully stored \(insulinSamples.count) insulin samples in HealthKit.")
                 await updateInsulinAsUploaded(insulinEvents)
             } catch {
-                debug(.service, "Failed to upload insulin samples to HealthKit: \(error.localizedDescription)")
+                debug(.service, "Failed to upload insulin samples to HealthKit: \(error)")
             }
         } catch {
-            debug(.service, "\(DebuggingIdentifiers.failed) Error fetching temp basal entries: \(error.localizedDescription)")
+            debug(.service, "\(DebuggingIdentifiers.failed) Error fetching temp basal entries: \(error)")
         }
     }
 

@@ -80,7 +80,7 @@ extension AlgorithmAdvancedSettings {
                             } catch {
                                 debug(
                                     .default,
-                                    "\(DebuggingIdentifiers.failed) failed to upload DIA to Nightscout: \(error.localizedDescription)"
+                                    "\(DebuggingIdentifiers.failed) failed to upload DIA to Nightscout: \(error)"
                                 )
                             }
                         }

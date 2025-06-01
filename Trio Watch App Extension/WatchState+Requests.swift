@@ -25,7 +25,7 @@ extension WatchState {
 
         session.sendMessage(message, replyHandler: nil) { error in
             Task {
-                await WatchLogger.shared.log("Error sending bolus request: \(error.localizedDescription)")
+                await WatchLogger.shared.log("Error sending bolus request: \(error)")
             }
         }
 
@@ -59,7 +59,7 @@ extension WatchState {
 
         session.sendMessage(message, replyHandler: nil) { error in
             Task {
-                await WatchLogger.shared.log("Error sending carbs request: \(error.localizedDescription)")
+                await WatchLogger.shared.log("Error sending carbs request: \(error)")
                 await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                 await WatchLogger.shared.persistLogsLocally()
             }
@@ -91,7 +91,7 @@ extension WatchState {
 
         session.sendMessage(message, replyHandler: nil) { error in
             Task {
-                await WatchLogger.shared.log("⌚️ Error sending cancel override request: \(error.localizedDescription)")
+                await WatchLogger.shared.log("⌚️ Error sending cancel override request: \(error)")
                 await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                 await WatchLogger.shared.persistLogsLocally()
             }
@@ -124,7 +124,7 @@ extension WatchState {
 
         session.sendMessage(message, replyHandler: nil) { error in
             Task {
-                await WatchLogger.shared.log("⌚️ Error sending activate override request: \(error.localizedDescription)")
+                await WatchLogger.shared.log("⌚️ Error sending activate override request: \(error)")
                 await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                 await WatchLogger.shared.persistLogsLocally()
             }
@@ -156,7 +156,7 @@ extension WatchState {
 
         session.sendMessage(message, replyHandler: nil) { error in
             Task {
-                await WatchLogger.shared.log("⌚️ Error sending cancel temp target request: \(error.localizedDescription)")
+                await WatchLogger.shared.log("⌚️ Error sending cancel temp target request: \(error)")
                 await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                 await WatchLogger.shared.persistLogsLocally()
             }
@@ -189,7 +189,7 @@ extension WatchState {
 
         session.sendMessage(message, replyHandler: nil) { error in
             Task {
-                await WatchLogger.shared.log("⌚️ Error sending activate temp target request: \(error.localizedDescription)")
+                await WatchLogger.shared.log("⌚️ Error sending activate temp target request: \(error)")
                 await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                 await WatchLogger.shared.persistLogsLocally()
             }
@@ -222,7 +222,7 @@ extension WatchState {
 
         session.sendMessage(message, replyHandler: nil) { error in
             Task {
-                await WatchLogger.shared.log("Error requesting bolus recommendation: \(error.localizedDescription)")
+                await WatchLogger.shared.log("Error requesting bolus recommendation: \(error)")
                 await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                 await WatchLogger.shared.persistLogsLocally()
             }
@@ -254,7 +254,7 @@ extension WatchState {
 
             session.sendMessage(message, replyHandler: nil) { error in
                 Task {
-                    await WatchLogger.shared.log("⌚️ Error requesting WatchState update: \(error.localizedDescription)")
+                    await WatchLogger.shared.log("⌚️ Error requesting WatchState update: \(error)")
                     await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                     await WatchLogger.shared.persistLogsLocally()
                 }

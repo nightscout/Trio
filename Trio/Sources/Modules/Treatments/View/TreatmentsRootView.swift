@@ -388,6 +388,9 @@ extension Treatments {
             .onDisappear {
                 state.isActive = false
                 state.addButtonPressed = false
+
+                // Cancel all Combine subscriptions and unregister State from broadcaster
+                state.cleanupTreatmentState()
             }
             .sheet(isPresented: $state.showInfo) {
                 PopupView(state: state)
@@ -397,12 +400,12 @@ extension Treatments {
             }) {
                 MealPresetView(state: state)
             }
-            .alert("Determination Failed", isPresented: $state.showDeterminationFailureAlert) {
+            .alert("Error while processing Treatment", isPresented: $state.showDeterminationFailureAlert) {
                 Button("OK", role: .cancel) {
                     state.hideModal()
                 }
             } message: {
-                Text("Failed to update COB/IOB: \(state.determinationFailureMessage)")
+                Text("\(state.determinationFailureMessage)")
             }
         }
 

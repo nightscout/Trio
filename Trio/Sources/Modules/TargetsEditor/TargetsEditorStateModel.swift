@@ -89,7 +89,7 @@ extension TargetsEditor {
                 } catch {
                     debug(
                         .default,
-                        "\(DebuggingIdentifiers.failed) failed to upload targets to Nightscout: \(error.localizedDescription)"
+                        "\(DebuggingIdentifiers.failed) failed to upload targets to Nightscout: \(error)"
                     )
                 }
             }

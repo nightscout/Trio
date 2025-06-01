@@ -9,6 +9,11 @@ enum Main {
 
         var id: Int { screen.id }
     }
+
+    struct SecondaryModalWrapper: Identifiable {
+        let id = UUID()
+        let view: AnyView
+    }
 }
 
 protocol MainProvider: Provider {}

@@ -19,9 +19,9 @@ extension Home.StateModel {
 
                 await updateForecastData()
             } catch let error as CoreDataError {
-                debug(.default, "Core Data error in setupDeterminationsArray: \(error.localizedDescription)")
+                debug(.default, "Core Data error in setupDeterminationsArray: \(error)")
             } catch {
-                debug(.default, "Unexpected error in setupDeterminationsArray: \(error.localizedDescription)")
+                debug(.default, "Unexpected error in setupDeterminationsArray: \(error)")
             }
         }
     }

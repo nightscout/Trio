@@ -94,7 +94,7 @@ extension TrioRemoteControl {
         } catch {
             debug(
                 .remoteControl,
-                "\(DebuggingIdentifiers.failed) Failed to disable active temp targets: \(error.localizedDescription)"
+                "\(DebuggingIdentifiers.failed) Failed to disable active temp targets: \(error)"
             )
             await logError("Failed to disable temp targets: \(error.localizedDescription)")
         }
