@@ -449,12 +449,6 @@ final class BaseAPSManager: APSManager, Injectable {
             return true
         }
 
-        guard isValidGlucoseData else {
-            debug(.apsManager, "Glucose validation failed")
-            processError(APSError.glucoseError(message: "Glucose validation failed"))
-            return
-        }
-
         do {
             let now = Date()
 
@@ -465,6 +459,10 @@ final class BaseAPSManager: APSManager, Injectable {
             _ = try await autosenseResult
             try await openAPS.createProfiles()
             let determination = try await openAPS.determineBasal(currentTemp: await currentTemp, clock: now)
+
+            guard isValidGlucoseData else {
+                throw APSError.glucoseError(message: "Glucose validation failed")
+            }
 
             if let determination = determination {
                 // Capture weak self in closure
