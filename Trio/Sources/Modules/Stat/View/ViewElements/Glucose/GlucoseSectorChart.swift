@@ -71,7 +71,7 @@ struct GlucoseSectorChart: View {
                         )
                         .font(.subheadline)
                         .foregroundStyle(Color.secondary)
-                        Text(inRangePercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
+                        Text(formatPercentage(inRangePercentage, tight: true))
                             .foregroundStyle(Color.loopGreen)
                     }
 
@@ -81,7 +81,7 @@ struct GlucoseSectorChart: View {
                         )
                         .font(.subheadline)
                         .foregroundStyle(Color.secondary)
-                        Text(tightPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
+                        Text(formatPercentage(tightPercentage, tight: true))
                             .foregroundStyle(Color.green)
                     }
                 }.padding(.leading, 5)
@@ -90,7 +90,7 @@ struct GlucoseSectorChart: View {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("> \(highLimit.formatted(for: units))").font(.subheadline)
                             .foregroundStyle(Color.secondary)
-                        Text(highPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
+                        Text(formatPercentage(highPercentage, tight: true))
                             .foregroundStyle(Color.loopYellow)
                     }
 
@@ -100,7 +100,7 @@ struct GlucoseSectorChart: View {
                         )
                         .font(.subheadline)
                         .foregroundStyle(Color.secondary)
-                        Text(lowPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%")
+                        Text(formatPercentage(lowPercentage, tight: true))
                             .foregroundStyle(Color.red)
                     }
                 }
@@ -110,11 +110,8 @@ struct GlucoseSectorChart: View {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("> \(Decimal(220).formatted(for: units))").font(.subheadline)
                                 .foregroundStyle(Color.secondary)
-                            Text(
-                                moderatelyHighPercentage
-                                    .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
-                            )
-                            .foregroundStyle(Color.loopYellow)
+                            Text(formatPercentage(moderatelyHighPercentage, tight: true))
+                                .foregroundStyle(Color.loopYellow)
                         }
 
                         VStack(alignment: .leading, spacing: 5) {
@@ -123,22 +120,16 @@ struct GlucoseSectorChart: View {
                             )
                             .font(.subheadline)
                             .foregroundStyle(Color.secondary)
-                            Text(
-                                moderatelyLowPercentage
-                                    .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
-                            )
-                            .foregroundStyle(Color.red)
+                            Text(formatPercentage(moderatelyLowPercentage, tight: true))
+                                .foregroundStyle(Color.red)
                         }
                     }
                     VStack(alignment: .leading, spacing: 10) {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("> \(Decimal(250).formatted(for: units))").font(.subheadline)
                                 .foregroundStyle(Color.secondary)
-                            Text(
-                                veryHighPercentage
-                                    .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
-                            )
-                            .foregroundStyle(Color.orange)
+                            Text(formatPercentage(veryHighPercentage, tight: true))
+                                .foregroundStyle(Color.orange)
                         }
 
                         VStack(alignment: .leading, spacing: 5) {
@@ -147,11 +138,8 @@ struct GlucoseSectorChart: View {
                             )
                             .font(.subheadline)
                             .foregroundStyle(Color.secondary)
-                            Text(
-                                veryLowPercentage
-                                    .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
-                            )
-                            .foregroundStyle(Color.purple)
+                            Text(formatPercentage(veryLowPercentage, tight: true))
+                                .foregroundStyle(Color.purple)
                         }
                     }
                 }
@@ -369,10 +357,14 @@ struct GlucoseSectorChart: View {
     /// Formats a percentage value to a string with one decimal place.
     /// - Parameter value: A decimal value representing the percentage.
     /// - Returns: A formatted percentage string
-    private func formatPercentage(_ value: Decimal) -> String {
+    private func formatPercentage(_ value: Decimal, tight: Bool = false) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .percent
-        formatter.maximumFractionDigits = 1
+        formatter.minimumFractionDigits = value == 100 ? 0 : 1
+        formatter.maximumFractionDigits = value == 100 ? 0 : 1
+        if tight {
+            formatter.positiveSuffix = "%"
+        }
         return formatter.string(from: NSDecimalNumber(decimal: value / 100)) ?? "0%"
     }
 
