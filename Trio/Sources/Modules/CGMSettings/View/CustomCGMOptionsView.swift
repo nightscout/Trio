@@ -63,11 +63,12 @@ extension CGMSettings {
                         } else if cgmCurrent.type == .xdrip {
                             xDripConfigurationSection
                         }
-                        #if DEBUG_SIMULATORS
+
+                        if !Bundle.main.simulatorVisibility.isHidden {
                             if cgmCurrent.type == .simulator {
                                 simulatorConfigurationSection
                             }
-                        #endif
+                        }
 
                         if let appURL = cgmCurrent.type.appURL {
                             Section {
@@ -124,11 +125,9 @@ extension CGMSettings {
                     }
                 } message: { Text("Are you sure you want to delete \(cgmCurrent.displayName)?") }
                 .onAppear {
-                    #if DEBUG_SIMULATORS
-                        if cgmCurrent.type == .simulator {
-                            initializeSimulatorSettings()
-                        }
-                    #endif
+                    if !Bundle.main.simulatorVisibility.isHidden && cgmCurrent.type == .simulator {
+                        initializeSimulatorSettings()
+                    }
                 }
             }
         }

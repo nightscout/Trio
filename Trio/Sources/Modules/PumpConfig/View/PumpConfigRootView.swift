@@ -1,3 +1,4 @@
+import LoopKitUI
 import SwiftUI
 import Swinject
 
@@ -86,7 +87,8 @@ extension PumpConfig {
                 .navigationBarTitleDisplayMode(.automatic)
                 .navigationBarItems(leading: displayClose ? Button("Close", action: state.hideModal) : nil)
                 .sheet(isPresented: $state.setupPump) {
-                    if let pumpManager = state.provider.apsManager.pumpManager {
+                    if let pumpManager = state.provider.apsManager.pumpManager
+                    {
                         PumpSettingsView(
                             pumpManager: pumpManager,
                             bluetoothManager: state.provider.apsManager.bluetoothManager!,
@@ -133,7 +135,9 @@ extension PumpConfig {
                     Button("Omnipod Eros") { state.addPump(.omnipod) }
                     Button("Omnipod DASH") { state.addPump(.omnipodBLE) }
                     Button("Dana(RS/-i)") { state.addPump(.dana) }
-                    Button("Pump Simulator") { state.addPump(.simulator) }
+                    if !Bundle.main.simulatorVisibility.isHidden {
+                        Button("Pump Simulator") { state.addPump(.simulator) }
+                    }
                 } message: { Text("Select Pump Model") }
             }
         }

@@ -132,7 +132,7 @@ extension Notification.Name {
 
         debug(
             .default,
-            "Trio Started: v\(devVersion)(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.shared.buildDate()))] [buildExpires: \(String(describing: BuildDetails.shared.calculateExpirationDate()))] [Branch: \(BuildDetails.shared.branchAndSha)] [submodules: \(submodulesInfo)]"
+            "Trio Started: v\(devVersion)(\(Bundle.main.appDevVersion ?? "")) [buildDate: \(String(describing: BuildDetails.shared.buildDate()))] [buildExpires: \(String(describing: BuildDetails.shared.calculateExpirationDate()))] [Branch: \(BuildDetails.shared.branchAndSha)] [submodules: \(submodulesInfo)]"
         )
         // Fix bug in iOS 18 related to the translucent tab bar
         configureTabBarAppearance()
@@ -466,5 +466,9 @@ extension Notification.Name {
 public extension Bundle {
     var appDevVersion: String? {
         object(forInfoDictionaryKey: "AppDevVersion") as? String
+    }
+
+    var hideSimulator: String? {
+        object(forInfoDictionaryKey: "HideSimulator") as? String
     }
 }

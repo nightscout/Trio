@@ -7,6 +7,7 @@ DEVELOPER_TEAM = ##TEAM_ID##
 BUNDLE_IDENTIFIER = org.nightscout.$(DEVELOPMENT_TEAM).trio
 APP_ICON = trioBlack
 APP_URL_SCHEME = Trio
+HIDE_SIMULATOR = 1 // Default is to hide glucose and pump simulator, change to 0 in your ConfigOverride to enable them in debug builds
 
 // Optional overrides
 #include? "../../ConfigOverride.xcconfig"

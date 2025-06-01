@@ -186,10 +186,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                 glucoseSource = AppGroupSource(from: "xDrip", cgmType: .xdrip)
             case .nightscout:
                 glucoseSource = nightscoutManager
-            #if DEBUG_SIMULATORS
-                case .simulator:
-                    glucoseSource = simulatorSource
-            #endif
+            case .simulator:
+                glucoseSource = simulatorSource
             case .enlite:
                 glucoseSource = deviceDataManager
             case .plugin:
@@ -198,7 +196,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         }
 
         // Set loop interval for APSManager and filter time in FetchGlucoseManager
-        #if DEBUG_SIMULATORS
+        if !Bundle.main.simulatorVisibility.isHidden {
             if self.cgmGlucoseSourceType == .simulator {
                 // Set loop interval to 10 seconds
                 let newLoopInterval = 10.0
@@ -209,7 +207,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                 UserDefaults.standard.set(3.minutes.timeInterval, forKey: "Config_LoopInterval")
                 UserDefaults.standard.set(3.5 * 60, forKey: "Config_FilterTime")
             }
-        #endif
+        }
     }
 
     /// Upload cgmManager from raw value

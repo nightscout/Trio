@@ -1,5 +1,7 @@
-let cgmOptions: [CGMOption] = {
-    var options: [CGMOption] = [
+import Foundation
+
+var cgmOptions: [CGMOption] {
+    var options = [
         CGMOption(name: "Dexcom G5", predicate: { $0.type == .plugin && $0.displayName.contains("G5") }),
         CGMOption(name: "Dexcom G6 / ONE", predicate: { $0.type == .plugin && $0.displayName.contains("G6") }),
         CGMOption(name: "Dexcom G7 / ONE+", predicate: { $0.type == .plugin && $0.displayName.contains("G7") }),
@@ -14,9 +16,9 @@ let cgmOptions: [CGMOption] = {
         CGMOption(name: "xDrip4iOS", predicate: { $0.type == .xdrip })
     ]
 
-    #if DEBUG_SIMULATORS
+    if !Bundle.main.simulatorVisibility.isHidden {
         options.append(CGMOption(name: "Glucose Simulator", predicate: { $0.type == .simulator }))
-    #endif
+    }
 
     return options
-}()
+}

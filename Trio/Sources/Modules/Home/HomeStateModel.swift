@@ -3,6 +3,7 @@ import Combine
 import CoreData
 import Foundation
 import LoopKitUI
+import MockKit
 import Observation
 import SwiftDate
 import SwiftUI
@@ -47,6 +48,7 @@ extension Home {
         var reservoir: Decimal?
         var pumpName = ""
         var pumpExpiresAtDate: Date?
+        private var didResetPumpSimulator = false
         var highTTraisesSens: Bool = false
         var lowTTlowersSens: Bool = false
         var isExerciseModeActive: Bool = false
@@ -158,6 +160,10 @@ extension Home {
 
             // Parallelize Setup functions
             setupHomeViewConcurrently()
+
+            // Check if simulators are selected and should be hidden
+            checkAndResetPumpSimulatorIfNeeded()
+            checkAndResetCGMSimulatorIfNeeded()
         }
 
         private func setupHomeViewConcurrently() {
@@ -449,6 +455,9 @@ extension Home {
         }
 
         func addPump(_ type: PumpConfig.PumpType) {
+            // Reset the flag when a new pump is selected
+            didResetPumpSimulator = false
+
             setupPumpType = type
             shouldDisplayPumpSetupSheet = true
         }
@@ -561,6 +570,15 @@ extension Home {
 
         private func setupReservoir() {
             Task {
+                // Skip setting reservoir if we've reset the pump simulator
+                if didResetPumpSimulator {
+                    debug(.service, "Skipping reservoir setup because pump simulator was reset")
+                    await MainActor.run {
+                        self.reservoir = nil
+                    }
+                    return
+                }
+
                 let reservoir = await provider.pumpReservoir()
                 await MainActor.run {
                     self.reservoir = reservoir
@@ -609,6 +627,48 @@ extension Home {
                     }
                     return
                 }
+            }
+        }
+
+        /// Checks if the pump simulator is selected and resets it if Bundle.main.simulatorVisibility.isHidden is true
+        private func checkAndResetPumpSimulatorIfNeeded() {
+            // Only proceed if simulators should be hidden
+            guard Bundle.main.simulatorVisibility.isHidden else { return }
+
+            // Check if the current pump is a simulator
+            if apsManager.pumpManager is MockPumpManager {
+                // Mark that we've reset the pump simulator
+                didResetPumpSimulator = true
+
+                // Reset the pump manager to nil to allow selecting a new pump
+                apsManager.pumpManager = nil
+
+                // Update UI state
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.pumpDisplayState = nil
+                    self.reservoir = nil
+                    self.pumpName = ""
+                }
+
+                debug(.service, "Pump simulator was reset because simulators are hidden")
+            }
+        }
+
+        /// Checks if the CGM simulator is selected and resets it if Bundle.main.simulatorVisibility.isHidden is true
+        private func checkAndResetCGMSimulatorIfNeeded() {
+            // Only proceed if simulators should be hidden
+            guard Bundle.main.simulatorVisibility.isHidden else { return }
+
+            debug(.service, "Checking if CGM simulator needs to be reset, current CGM type: \(settingsManager.settings.cgm)")
+
+            // Check if the current CGM is a simulator
+            if settingsManager.settings.cgm == .simulator {
+                debug(.service, "CGM simulator detected, resetting...")
+                // Reset the CGM
+                deleteCGM()
+
+                debug(.service, "CGM simulator was reset because simulators are hidden")
             }
         }
     }

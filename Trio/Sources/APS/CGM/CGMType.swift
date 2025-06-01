@@ -7,10 +7,7 @@ enum CGMType: String, Codable, CaseIterable, Identifiable {
     case xdrip
     case enlite
     case plugin
-
-    #if DEBUG_SIMULATORS
-        case simulator
-    #endif
+    case simulator
 
     var displayName: String {
         switch self {
@@ -24,10 +21,8 @@ enum CGMType: String, Codable, CaseIterable, Identifiable {
             return "Medtronic Enlite"
         case .plugin:
             return "Plugin CGM"
-        #if DEBUG_SIMULATORS
-            case .simulator:
-                return String(localized: "Glucose Simulator", comment: "Glucose Simulator CGM type")
-        #endif
+        case .simulator:
+            return String(localized: "Glucose Simulator", comment: "Glucose Simulator CGM type")
         }
     }
 
@@ -41,10 +36,8 @@ enum CGMType: String, Codable, CaseIterable, Identifiable {
             return URL(string: "xdripswift://")!
         case .plugin:
             return nil
-        #if DEBUG_SIMULATORS
-            case .simulator:
-                return nil
-        #endif
+        case .simulator:
+            return nil
         }
     }
 
@@ -72,10 +65,8 @@ enum CGMType: String, Codable, CaseIterable, Identifiable {
             return String(localized: "Minilink transmitter", comment: "Minilink transmitter")
         case .plugin:
             return String(localized: "Plugin CGM", comment: "Plugin CGM")
-        #if DEBUG_SIMULATORS
-            case .simulator:
-                return String(localized: "Glucose Simulator for Demo Only", comment: "Simple simulator")
-        #endif
+        case .simulator:
+            return String(localized: "Glucose Simulator for Demo Only", comment: "Simple simulator")
         }
     }
 }
