@@ -67,9 +67,11 @@ platform :ios do
       key_content: "#{FASTLANE_KEY}"
     )
 
+    previous_build_number = latest_testflight_build_number(
+      app_identifier: "#{BUNDLE_ID}",
+      api_key: api_key,
+    )
 
-    all_builds = Spaceship::ConnectAPI::Build.all(app_id: Spaceship::ConnectAPI::App.find("#{BUNDLE_ID}").id)
-    previous_build_number = all_builds.map(&:version).map(&:to_i).max || 0
     current_build_number = previous_build_number + 1
 
     increment_build_number(
@@ -87,6 +89,18 @@ platform :ios do
         "#{BUNDLE_ID}.LiveActivity"
 
       ]
+    )
+
+    previous_build_number = latest_testflight_build_number(
+      app_identifier: "#{BUNDLE_ID}",
+      api_key: api_key,
+    )
+
+    current_build_number = previous_build_number + 1
+
+    increment_build_number(
+      xcodeproj: "#{GITHUB_WORKSPACE}/Trio.xcodeproj",
+      build_number: current_build_number
     )
     
     mapping = Actions.lane_context[
