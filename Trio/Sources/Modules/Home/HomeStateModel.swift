@@ -48,7 +48,6 @@ extension Home {
         var reservoir: Decimal?
         var pumpName = ""
         var pumpExpiresAtDate: Date?
-        private var didResetPumpSimulator = false
         var highTTraisesSens: Bool = false
         var lowTTlowersSens: Bool = false
         var isExerciseModeActive: Bool = false
@@ -455,9 +454,6 @@ extension Home {
         }
 
         func addPump(_ type: PumpConfig.PumpType) {
-            // Reset the flag when a new pump is selected
-            didResetPumpSimulator = false
-
             setupPumpType = type
             shouldDisplayPumpSetupSheet = true
         }
@@ -570,9 +566,10 @@ extension Home {
 
         private func setupReservoir() {
             Task {
-                // Skip setting reservoir if we've reset the pump simulator
-                if didResetPumpSimulator {
-                    debug(.service, "Skipping reservoir setup because pump simulator was reset")
+                // Only proceed if we have a pump manager
+                /// fixes UI bug where reservoir is at 200 U although there is no pump
+                if apsManager.pumpManager == nil {
+                    debug(.service, "Skipping reservoir setup because pump manager is nil")
                     await MainActor.run {
                         self.reservoir = nil
                     }
@@ -637,9 +634,6 @@ extension Home {
 
             // Check if the current pump is a simulator
             if apsManager.pumpManager is MockPumpManager {
-                // Mark that we've reset the pump simulator
-                didResetPumpSimulator = true
-
                 // Reset the pump manager to nil to allow selecting a new pump
                 apsManager.pumpManager = nil
 
