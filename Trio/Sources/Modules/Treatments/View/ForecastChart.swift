@@ -50,9 +50,9 @@ struct ForecastChart: View {
     }
 
     private var forecastChartLabels: some View {
-        // Check if this is a backdated entry by comparing with the default date
-        let isBackdated = state.date != state.defaultDate
-        
+        // Check if this is a backdated entry by comparing with the default date using a tolerance
+        let isBackdated = abs(state.date.timeIntervalSince(state.defaultDate)) > 1.0
+
         // When backdated, display no carbs as this label is only supposed to show current entered carbs
         let displayedCarbs = isBackdated ? 0 : state.carbs
 
