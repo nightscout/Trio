@@ -52,7 +52,12 @@ struct OpenAPSSwift {
 
             iobInputs = IobInputs(history: pumpHistory, profile: profile, clock: clock, autosens: autosens)
 
-            let iobResult = try IobGenerator.generate(history: pumpHistory, profile: profile, clock: clock, autosens: autosens)
+            let iobResult = try IobGenerator.generate(
+                history: pumpHistory,
+                profile: profile,
+                clock: clock,
+                autosens: autosens
+            )
 
             return try (.success(JSONBridge.to(iobResult)), iobInputs)
         } catch {
