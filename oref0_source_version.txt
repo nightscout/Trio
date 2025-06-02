@@ -1,6 +1,8 @@
-oref0 branch: tcd-fixes - git version: af8f79c
+oref0 branch: fix-400-guard - git version: 6ad27e9
 
 Last commits:
+6ad27e9 Merge pull request #46 from nightscout/tcd
+d98e4fc Merge pull request #45 from nightscout/tcd-fixes
 af8f79c Fix typo; remove enableDynamicCR setting from profile/index.js
 ffb9374 Always add minPredBG to rT object
 814b629 Remove dynamicCR

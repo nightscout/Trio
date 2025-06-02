@@ -20,12 +20,20 @@ extension GlucoseStored {
         return request
     }
 
-    static func glucoseIsFlat(_ glucose: [GlucoseStored]) -> Bool {
-        guard glucose.count >= 6 else { return false }
+//    static func glucoseIsFlat(_ glucose: [GlucoseStored]) -> Bool {
+//        guard glucose.count >= 6 else { return false }
+//
+//        let firstValue = glucose.first?.glucose
+//
+//        return glucose.allSatisfy { $0.glucose == firstValue }
+//    }
+
+    static func glucoseIsHIGH(_ glucose: [GlucoseStored]) -> Bool {
+        guard glucose.count >= 4 else { return false }
 
         let firstValue = glucose.first?.glucose
 
-        return glucose.allSatisfy { $0.glucose == firstValue }
+        return glucose.allSatisfy { $0.glucose == firstValue && $0.glucose == 400 }
     }
 
     // Preview

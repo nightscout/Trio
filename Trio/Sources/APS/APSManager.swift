@@ -440,11 +440,11 @@ final class BaseAPSManager: APSManager, Injectable {
                 return false
             }
 
-            guard !GlucoseStored.glucoseIsFlat(glucose) else {
-                debug(.apsManager, "Glucose data is too flat")
-                self.processError(APSError.glucoseError(message: String(localized: "Glucose data is too flat")))
-                return false
-            }
+//            guard !GlucoseStored.glucoseIsFlat(glucose) else {
+//                debug(.apsManager, "Glucose data is too flat")
+//                self.processError(APSError.glucoseError(message: String(localized: "Glucose data is too flat")))
+//                return false
+//            }
 
             return true
         }

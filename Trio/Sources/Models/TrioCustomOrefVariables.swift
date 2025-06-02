@@ -1,6 +1,6 @@
 import Foundation
 
-struct Oref2_variables: JSON, Equatable {
+struct TrioCustomOrefVariables: JSON, Equatable {
     var average_total_data: Decimal
     var currentTDD: Decimal
     var weightedAverage: Decimal
@@ -21,6 +21,7 @@ struct Oref2_variables: JSON, Equatable {
     var end: Decimal
     var smbMinutes: Decimal
     var uamMinutes: Decimal
+    var shouldProtectDueToHIGH: Bool
 
     init(
         average_total_data: Decimal,
@@ -42,7 +43,8 @@ struct Oref2_variables: JSON, Equatable {
         start: Decimal,
         end: Decimal,
         smbMinutes: Decimal,
-        uamMinutes: Decimal
+        uamMinutes: Decimal,
+        shouldProtectDueToHIGH: Bool
     ) {
         self.average_total_data = average_total_data
         self.weightedAverage = weightedAverage
@@ -64,10 +66,11 @@ struct Oref2_variables: JSON, Equatable {
         self.end = end
         self.smbMinutes = smbMinutes
         self.uamMinutes = uamMinutes
+        self.shouldProtectDueToHIGH = shouldProtectDueToHIGH
     }
 }
 
-extension Oref2_variables {
+extension TrioCustomOrefVariables {
     private enum CodingKeys: String, CodingKey {
         case average_total_data
         case weightedAverage
@@ -89,5 +92,6 @@ extension Oref2_variables {
         case end
         case smbMinutes
         case uamMinutes
+        case shouldProtectDueToHIGH
     }
 }
