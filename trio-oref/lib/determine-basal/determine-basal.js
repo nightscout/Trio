@@ -436,7 +436,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         rT.reason = "If current system time " + systemTime + " is correct, then BG data is too old. The last BG data was read "+minAgo+"m ago at "+bgTime;
 
         // if BG is too old/noisy, or is completely unchanging, cancel any high temps and shorten any long zero temps
-    } else if ( glucose_status.short_avgdelta === 0 && glucose_status.long_avgdelta === 0 && bg != 400 ) {
+    } else if ( glucose_status.short_avgdelta === 0 && glucose_status.long_avgdelta === 0 ) {
         if ( glucose_status.last_cal && glucose_status.last_cal < 3 ) {
             rT.reason = "CGM was just calibrated";
         } else {
