@@ -15,7 +15,7 @@ jobs:
   test:
     name: Run Unit Tests
     runs-on: macos-15
-    if: github.repository_owner == 'nightscout'
+    #if: github.repository_owner == 'nightscout' # TODO: remove comment after testing
 
     steps:
       - name: Select Xcode version
