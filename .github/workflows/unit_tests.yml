@@ -1,0 +1,67 @@
+name: zzz [DO NOT RUN] Automated unit tests
+
+on:
+  workflow_dispatch: # TODO: remove this after testing
+  pull_request:
+    branches:
+      - dev
+      - main
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: macos-15
+    if: github.repository_owner == 'nightscout'
+
+    steps:
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_16.3.app/Contents/Developer
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Build for testing
+        run: |
+          set -o pipefail && \
+          time xcodebuild build-for-testing \
+            -workspace Trio.xcworkspace \
+            -scheme "Trio Tests" \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.4' \
+      - name: Run tests
+        run: |
+          set -o pipefail
+          time xcodebuild test-without-building \
+            -workspace Trio.xcworkspace \
+            -scheme "Trio Tests" \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.4' \
+          2>&1 | tee xcodebuild.log
+
+      - name: Annotate test results
+        if: always()
+        run: |
+          if [ -f xcodebuild.log ]; then
+            if grep -q "Failing tests:" xcodebuild.log; then
+              echo "::error title=Unit Tests Failed::Some tests failed"
+              echo "## ❌ Some tests failed:" >> $GITHUB_STEP_SUMMARY
+              grep -A 20 "Failing tests:" xcodebuild.log | \
+                grep -E '^\s+[A-Za-z0-9]+\..+\(\)' | \
+                sed 's/^/  - /' >> $GITHUB_STEP_SUMMARY
+              echo "::group::Failed Test List"
+              grep -A 20 "Failing tests:" xcodebuild.log | \
+                grep -E '^\s+[A-Za-z0-9]+\..+\(\)' | \
+                sed 's/^/  - /'
+              echo "::endgroup::"
+            else
+              echo "::notice title=Unit Tests Passed::✅ All tests passed"
+              echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "::warning::Test log (xcodebuild.log) not found"
+          fi
