@@ -5,10 +5,14 @@ struct IobGenerator {
         history: [PumpHistoryEvent],
         profile: Profile,
         clock: Date,
-        autosens: Autosens?,
-        fullOutput: Bool = false
+        autosens: Autosens?
     ) throws -> [IobResult] {
-        let pumpHistory = history.map { $0.computedEvent() }
+        // As a performance optimization, filter out any pump events
+        // that occurred before the DIA would use it
+        let diaAgo = Double(profile.dia ?? 10) * 60 * 60
+        // add an extra two hours to the DIA to ensure we get all temp basals
+        let lastDia = clock - diaAgo - 2.hoursToSeconds
+        let pumpHistory = history.filter({ $0.timestamp >= lastDia }).map({ $0.computedEvent() })
 
         let treatments = try IobHistory.calcTempTreatments(
             history: pumpHistory,
@@ -33,7 +37,7 @@ struct IobGenerator {
         let lastTemp = treatments.filter({ $0.rate != nil && ($0.duration ?? 0) > 0 }).sorted(by: { $0.timestamp < $1.timestamp })
             .last
 
-        let iStop = fullOutput ? 4 * 60 : 5 // look 4h into the future
+        let iStop = 4 * 60 // look 4h into the future
         var iobArray = try stride(from: 0, to: iStop, by: 5).map { minutes in
             let time = clock + minutes.minutesToSeconds
             let iob = try IobCalculation.iobTotal(treatments: treatments, profile: profile, time: time)

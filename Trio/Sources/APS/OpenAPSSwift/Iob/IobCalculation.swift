@@ -16,14 +16,17 @@ enum IobCalculation {
         let iobContrib: Decimal
     }
 
-    private static func lookupPeak(from profile: Profile) throws -> Decimal {
+    /// logic to look up insulinPeakTime, taking into account `useCustomPeakTime`
+    private static func lookupPeak(from profile: Profile) throws -> Double {
         switch (profile.curve, profile.useCustomPeakTime, profile.insulinPeakTime) {
         case (.rapidActing, true, let insulinPeakTime):
-            return insulinPeakTime.clamp(lowerBound: 50, upperBound: 120)
+            let peakTime = Double(insulinPeakTime)
+            return peakTime.clamp(lowerBound: 50, upperBound: 120)
         case (.rapidActing, false, _):
             return 75
         case (.ultraRapid, true, let insulinPeakTime):
-            return insulinPeakTime.clamp(lowerBound: 35, upperBound: 100)
+            let peakTime = Double(insulinPeakTime)
+            return peakTime.clamp(lowerBound: 35, upperBound: 100)
         case (.ultraRapid, false, _):
             return 55
         case (.bilinear, _, _):
@@ -31,26 +34,23 @@ enum IobCalculation {
         }
     }
 
-    private static func exp(_ x: Decimal) -> Decimal {
-        // Convert Decimal to Double, calculate exp, convert back to Decimal
-        let doubleX = NSDecimalNumber(decimal: x).doubleValue
-        return Decimal(Darwin.exp(doubleX))
-    }
-
+    /// Runs through the IoB calculation for a treatment.
+    ///
+    /// **IMPORTANT** this calculation uses Doubles internally for performance
     static func iobCalc(
         treatment: ComputedPumpHistoryEvent,
         time: Date,
         dia: Decimal,
         profile: Profile
     ) throws -> IobCalculationResult? {
-        guard let insulin = treatment.insulin else {
+        guard let insulin = treatment.insulin.map({ Double($0) }) else {
             return nil
         }
 
         let bolusTime = treatment.timestamp
-        let minsAgo = time.timeIntervalSince(bolusTime).secondsToMinutes.rounded()
+        let minsAgo = (time.timeIntervalSince(bolusTime) / 60.0).rounded()
         let peak = try lookupPeak(from: profile)
-        let end = dia * Decimal(60)
+        let end = Double(dia) * 60
 
         guard minsAgo < end else {
             return IobCalculationResult(activityContrib: 0, iobContrib: 0)
@@ -65,7 +65,7 @@ enum IobCalculation {
         let iobContrib = insulin *
             (1 - S * (1 - a) * ((pow(minsAgo, 2) / (tau * end * (1 - a)) - minsAgo / tau - 1) * exp(-minsAgo / tau) + 1))
 
-        return IobCalculationResult(activityContrib: activityContrib, iobContrib: iobContrib)
+        return IobCalculationResult(activityContrib: Decimal(activityContrib), iobContrib: Decimal(iobContrib))
     }
 
     static func iobTotal(treatments: [ComputedPumpHistoryEvent], profile: Profile, time now: Date) throws -> IobTotal {
