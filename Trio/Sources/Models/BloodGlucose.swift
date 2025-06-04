@@ -61,6 +61,7 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
 
     enum CodingKeys: String, CodingKey {
         case _id
+        case idKey = "id"
         case sgv
         case direction
         case date
@@ -77,7 +78,12 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        _id = try container.decode(String.self, forKey: ._id)
+        // Try to decode from "_id" first, then fall back to "id"
+        if let idValue = try container.decodeIfPresent(String.self, forKey: ._id) {
+            _id = idValue
+        } else {
+            _id = try container.decode(String.self, forKey: .idKey)
+        }
 
         sgv = try? container.decodeIfPresent(Int.self, forKey: .sgv)
         if sgv == nil {
@@ -89,8 +95,14 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
         }
 
         direction = try container.decodeIfPresent(Direction.self, forKey: .direction)
-        date = try container.decode(Decimal.self, forKey: .date)
         dateString = try container.decode(Date.self, forKey: .dateString)
+
+        do {
+            date = try container.decode(Decimal.self, forKey: .date)
+        } catch {
+            date = Decimal(dateString.timeIntervalSince1970 * 1000).rounded()
+        }
+
         unfiltered = try container.decodeIfPresent(Decimal.self, forKey: .unfiltered)
         filtered = try container.decodeIfPresent(Decimal.self, forKey: .filtered)
         noise = try container.decodeIfPresent(Int.self, forKey: .noise)
@@ -135,6 +147,10 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
     var id: String {
         _id ?? UUID().uuidString
     }
+
+    // this is a dummy property, we never set it. We have it for more flexible
+    // glucose record parsing (see the `init(from decoder: Decoder)` method)
+    var idKey: String?
 
     var sgv: Int?
     var direction: Direction?

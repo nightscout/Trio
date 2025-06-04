@@ -1,0 +1,26 @@
+[
+  {
+    "_id" : "49993FD5-7A1E-4B65-8DAD-0BADF347BF90",
+    "name" : "Cancel",
+    "targetBottom" : 0,
+    "created_at" : "2025-06-04T01:10:47.464Z",
+    "halfBasalTarget" : 160,
+    "targetTop" : 0,
+    "reason" : "Cancel",
+    "duration" : 0,
+    "enteredBy" : "Trio"
+  },
+  {
+    "_id" : "5A700914-327C-4C4C-8114-5125A6E9CA75",
+    "name" : "High sensitivity 110",
+    "targetBottom" : 110,
+    "created_at" : "2025-06-03T23:09:13.069Z",
+    "halfBasalTarget" : 160,
+    "targetTop" : 110,
+    "reason" : "Temp Target",
+    "duration" : 120,
+    "isPreset" : true,
+    "enabled" : true,
+    "enteredBy" : "Trio"
+  }
+]

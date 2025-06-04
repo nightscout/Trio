@@ -15,42 +15,7 @@ import Testing
 /// from the field. This server needs to run on the same machine as the simulator where this test runs.
 /// You can find more information about it from the `trio-oref-logs` repo.
 @Suite("IoB using real pump history JSON", .serialized) struct IobJsonTests {
-    private var originalTZ: String? = ProcessInfo.processInfo.environment["TZ"]
-    private var originalDefaultTimeZone: TimeZone? = TimeZone.current
-
-    // Helper function to set timezone
-    private func setTimezone(identifier: String) {
-        // Set environment variable
-        setenv("TZ", identifier, 1)
-        tzset() // Make the change take effect
-
-        // Force update the default TimeZone
-        // This is the critical missing piece
-        if let timeZone = TimeZone(identifier: identifier) {
-            TimeZone.ReferenceType.default = timeZone
-
-            // For extra assurance, you can log to verify
-            print("Timezone set to: \(TimeZone.current.identifier)")
-        } else {
-            print("Failed to create TimeZone with identifier: \(identifier)")
-        }
-    }
-
-    // Helper function to reset timezone
-    private func resetTimezone() {
-        // Restore system timezone from environment
-        if let originalTZ = originalTZ {
-            setenv("TZ", originalTZ, 1)
-        } else {
-            unsetenv("TZ")
-        }
-        tzset()
-
-        // Restore original default TimeZone
-        if let originalTimeZone = originalDefaultTimeZone {
-            TimeZone.ReferenceType.default = originalTimeZone
-        }
-    }
+    let timeZoneForTests = TimeZoneForTests()
 
     struct IobHistoryResult: Codable {
         var insulin: Decimal?
@@ -99,12 +64,12 @@ import Testing
                 continue
             }
 
-            setTimezone(identifier: algorithmComparison.timezone)
+            timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
 
             try await checkFixedJsAgainstSwift(iobInputs: iobInputs)
             try await checkBundleJsAgainstSwift(iobInputs: iobInputs)
 
-            resetTimezone()
+            timeZoneForTests.resetTimezone()
         }
     }
 
@@ -222,7 +187,7 @@ import Testing
         let algorithmComparison = try decoder.decode(AlgorithmComparison.self, from: data)
         let iobInputs = algorithmComparison.iobInput!
 
-        setTimezone(identifier: algorithmComparison.timezone)
+        timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
 
         let swiftIobHistory = try IobHistory.calcTempTreatments(
             history: iobInputs.history.map { $0.computedEvent() },
@@ -258,7 +223,7 @@ import Testing
         checkHistoryConsistency(swiftTreatments: swiftIobHistory, jsTreatments: jsIobHistory)
         checkRunningBasal(swiftTreatments: swiftIobHistory, jsTreatments: jsIobHistory)
 
-        resetTimezone()
+        timeZoneForTests.resetTimezone()
     }
 
     /// simple utility for creating inputs for Javascript for use in testing
@@ -282,7 +247,7 @@ import Testing
 
         try output.write(to: outputURL)
 
-        setTimezone(identifier: algorithmComparison.timezone)
+        timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
 
         let treatments = try IobHistory.calcTempTreatments(
             history: iobInputs.history.map { $0.computedEvent() },
@@ -294,7 +259,7 @@ import Testing
 
         let iobSomething = try IobCalculation.iobTotal(treatments: treatments, profile: iobInputs.profile, time: iobInputs.clock)
 
-        resetTimezone()
+        timeZoneForTests.resetTimezone()
 
         print(iobSomething.prettyPrintedJSON!)
 
