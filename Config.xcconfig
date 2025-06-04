@@ -19,7 +19,7 @@ TRIO_APP_GROUP_ID = group.org.nightscout.$(DEVELOPMENT_TEAM).trio.trio-app-group
 
 // The developers set the version numbers, please leave them alone
 APP_VERSION = 0.5.0
-APP_DEV_VERSION = 0.5.0.29
+APP_DEV_VERSION = 0.5.0.30
 APP_BUILD_NUMBER = 1
 COPYRIGHT_NOTICE =
 
