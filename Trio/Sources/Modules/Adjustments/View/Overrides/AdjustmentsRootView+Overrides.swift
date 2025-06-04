@@ -123,11 +123,7 @@ extension Adjustments.RootView {
                 .clipShape(Rectangle())
 
             Button(action: {
-                Task {
-                    // Save cancelled Override in OverrideRunStored Entity
-                    // Cancel ALL active Override
-                    await state.disableAllActiveOverrides(createOverrideRunEntry: true)
-                }
+                showCancelOverrideConfirmDialog = true
             }, label: {
                 Text("Stop Override")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
