@@ -27,4 +27,25 @@ import Foundation
             )
         }
     }
+
+    func bolusExternal(_ bolusAmount: Double) async throws -> String {
+        var bolusQuantity: Decimal = 0
+        if Decimal(bolusAmount) > settingsManager.pumpSettings.maxBolus {
+            return String(
+                localized:
+                "The bolus cannot be larger than the pump setting max bolus (\(settingsManager.pumpSettings.maxBolus.description))."
+            )
+        } else {
+            bolusQuantity = apsManager.roundBolus(amount: Decimal(bolusAmount))
+        }
+
+        await pumpHistoryStorage.storeExternalInsulinEvent(amount: bolusQuantity, timestamp: Date())
+        // perform determine basal sync
+        try await apsManager.determineBasalSync()
+
+        return String(
+            localized:
+            "A external bolus of \(bolusQuantity.formatted()) U of insulin was recorded."
+        )
+    }
 }

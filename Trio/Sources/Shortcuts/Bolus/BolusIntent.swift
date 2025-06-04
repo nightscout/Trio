@@ -26,6 +26,13 @@ import Swinject
     ) var bolusQuantity: Double
 
     @Parameter(
+        title: LocalizedStringResource("External Insulin"),
+        description: LocalizedStringResource("If toggled, Insulin will be added to IOB but it will not be delivered"),
+        default: false,
+        requestValueDialog: IntentDialog(stringLiteral: String(localized: "External Insulin?"))
+    ) var externalInsulin: Bool
+
+    @Parameter(
         title: LocalizedStringResource("Confirm Before applying"),
         description: LocalizedStringResource("If toggled, you will need to confirm before applying."),
         default: true
@@ -34,10 +41,12 @@ import Swinject
     static var parameterSummary: some ParameterSummary {
         When(\.$confirmBeforeApplying, .equalTo, true, {
             Summary("Applying \(\.$bolusQuantity) U") {
+                \.$externalInsulin
                 \.$confirmBeforeApplying
             }
         }, otherwise: {
             Summary("Immediately applying \(\.$bolusQuantity) U") {
+                \.$externalInsulin
                 \.$confirmBeforeApplying
             }
         })
@@ -59,12 +68,17 @@ import Swinject
                     )
                 )
             }
-
-            let finalBolusDisplay = try await BolusIntentRequest().bolus(amount)
-            return .result(
-                dialog: IntentDialog(finalBolusDisplay)
-            )
-
+            if externalInsulin {
+                let finalExternalBolusDisplay = try await BolusIntentRequest().bolusExternal(amount)
+                return .result(
+                    dialog: IntentDialog(stringLiteral: finalExternalBolusDisplay)
+                )
+            } else {
+                let finalBolusDisplay = try await BolusIntentRequest().bolus(amount)
+                return .result(
+                    dialog: IntentDialog(finalBolusDisplay)
+                )
+            }
         } catch {
             throw error
         }
