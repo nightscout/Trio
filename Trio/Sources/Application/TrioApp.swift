@@ -467,4 +467,8 @@ public extension Bundle {
     var appDevVersion: String? {
         object(forInfoDictionaryKey: "AppDevVersion") as? String
     }
+
+    var hideSimulator: String? {
+        object(forInfoDictionaryKey: "HideSimulator") as? String
+    }
 }

@@ -1,5 +1,6 @@
 import LoopKit
 import LoopKitUI
+import MockKit
 import SwiftDate
 import SwiftUI
 
@@ -17,6 +18,9 @@ extension PumpConfig {
                 .receive(on: DispatchQueue.main)
                 .assign(to: \.pumpState, on: self)
                 .store(in: &lifetime)
+
+            // Check if pump simulator is selected and should be hidden
+            checkAndResetPumpSimulatorIfNeeded()
 
             alertNotAck = provider.initialAlertNotAck()
             provider.alertNotAck
@@ -50,6 +54,25 @@ extension PumpConfig {
 
         func ack() {
             provider.deviceManager.alertHistoryStorage.forceNotification()
+        }
+
+        /// Checks if the pump simulator is selected and resets it if Bundle.main.simulatorVisibility.isHidden is true
+        private func checkAndResetPumpSimulatorIfNeeded() {
+            // Only proceed if simulators should be hidden
+            guard Bundle.main.simulatorVisibility.isHidden else { return }
+
+            // Check if the current pump is a simulator
+            if provider.apsManager.pumpManager is MockPumpManager {
+                // Reset the pump manager to nil to allow selecting a new pump
+                provider.apsManager.pumpManager = nil
+
+                // Update UI state
+                DispatchQueue.main.async {
+                    self.pumpState = nil
+                }
+
+                debug(.service, "Pump simulator was reset because simulators are hidden")
+            }
         }
     }
 }

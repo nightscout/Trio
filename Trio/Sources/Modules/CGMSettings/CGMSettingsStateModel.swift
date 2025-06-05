@@ -58,6 +58,9 @@ extension CGMSettings {
             units = settingsManager.settings.units
             broadcaster.register(SettingsObserver.self, observer: self)
 
+            // Check if CGM simulator is selected and should be hidden
+            checkAndResetCGMSimulatorIfNeeded()
+
             // collect the list of CGM available with plugins and CGMType defined manually
             listOfCGM = (
                 CGMType.allCases.filter { $0 != CGMType.plugin }.map {
@@ -148,6 +151,21 @@ extension CGMSettings {
                         $0.glucoseDidUpdate([])
                     }
                 }
+            }
+        }
+
+        /// Checks if the CGM simulator is selected and resets it if Bundle.main.simulatorVisibility.isHidden is true
+        private func checkAndResetCGMSimulatorIfNeeded() {
+            debug(.service, "checkAndResetCGMSimulatorIfNeeded called, isHidden: \(Bundle.main.simulatorVisibility.isHidden)")
+            debug(.service, "Current CGM type: \(cgmCurrent.type), id: \(cgmCurrent.id)")
+
+            // Only proceed if simulators should be hidden
+            guard Bundle.main.simulatorVisibility.isHidden else { return }
+
+            // Check if the current CGM is a simulator
+            if settingsManager.settings.cgm == .simulator {
+                // Reset the CGM
+                deleteCGM()
             }
         }
     }

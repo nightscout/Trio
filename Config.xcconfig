@@ -2,6 +2,7 @@
 APP_DISPLAY_NAME = Trio
 APP_ICON = trioBlack
 APP_URL_SCHEME = Trio
+HIDE_SIMULATOR = 1 // Default is to hide glucose and pump simulator, change to 0 in your ConfigOverride to enable them in debug builds
 
 // DEVELOPER_TEAM will be set to your Apple Developer ID - typically using ConfigOverride.xcconfig
 DEVELOPER_TEAM = ##TEAM_ID##

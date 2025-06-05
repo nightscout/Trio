@@ -372,6 +372,7 @@
 		BD47FDD92D8B657D0043966B /* InsulinSensitivityStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FDD82D8B65730043966B /* InsulinSensitivityStepView.swift */; };
 		BD47FDDB2D8B659B0043966B /* BasalProfileStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FDDA2D8B65960043966B /* BasalProfileStepView.swift */; };
 		BD47FDDD2D8B65B10043966B /* GlucoseTargetStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD47FDDC2D8B65AD0043966B /* GlucoseTargetStepView.swift */; };
+		BD4A38A82DE8C3DD00B0D5E6 /* SimulatorVisibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4A38A72DE8C3DD00B0D5E6 /* SimulatorVisibility.swift */; };
 		BD4D738D2D15A4080052227B /* TDDStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4D738B2D15A4080052227B /* TDDStored+CoreDataClass.swift */; };
 		BD4D738E2D15A4080052227B /* TDDStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4D738C2D15A4080052227B /* TDDStored+CoreDataProperties.swift */; };
 		BD4D73A22D15A42A0052227B /* TDDStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4D73A12D15A4220052227B /* TDDStorage.swift */; };
@@ -1187,6 +1188,7 @@
 		BD47FDD82D8B65730043966B /* InsulinSensitivityStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsulinSensitivityStepView.swift; sourceTree = "<group>"; };
 		BD47FDDA2D8B65960043966B /* BasalProfileStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasalProfileStepView.swift; sourceTree = "<group>"; };
 		BD47FDDC2D8B65AD0043966B /* GlucoseTargetStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseTargetStepView.swift; sourceTree = "<group>"; };
+		BD4A38A72DE8C3DD00B0D5E6 /* SimulatorVisibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorVisibility.swift; sourceTree = "<group>"; };
 		BD4D738B2D15A4080052227B /* TDDStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TDDStored+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		BD4D738C2D15A4080052227B /* TDDStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TDDStored+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		BD4D73A12D15A4220052227B /* TDDStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDDStorage.swift; sourceTree = "<group>"; };
@@ -2431,6 +2433,7 @@
 				DD1DB7CB2BECCA1F0048B367 /* BuildDetails.swift */,
 				DD6B7CB12C7B6F0800B75029 /* Rounding.swift */,
 				582DF9782C8CE1E5001F516D /* MainChartHelper.swift */,
+				BD4A38A72DE8C3DD00B0D5E6 /* SimulatorVisibility.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -4284,6 +4287,7 @@
 				BD793CB02CE7C61500D669AC /* OverrideRunStored+helper.swift in Sources */,
 				3B4196E02D8C4BC00091DFF7 /* HomeStateModel+CGM.swift in Sources */,
 				38D0B3D925EC07C400CB6E88 /* CarbsEntry.swift in Sources */,
+				BD4A38A82DE8C3DD00B0D5E6 /* SimulatorVisibility.swift in Sources */,
 				DD32CF9C2CC82499003686D6 /* TrioRemoteControl+TempTarget.swift in Sources */,
 				BD249D882D42FC0000412DEB /* BolusStatsView.swift in Sources */,
 				38A9260525F012D8009E3739 /* CarbRatios.swift in Sources */,

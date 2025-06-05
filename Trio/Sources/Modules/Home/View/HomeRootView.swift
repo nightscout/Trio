@@ -1,4 +1,5 @@
 import CoreData
+import LoopKitUI
 import SpriteKit
 import SwiftDate
 import SwiftUI
@@ -951,10 +952,13 @@ extension Home {
                 Button("Omnipod Eros") { state.addPump(.omnipod) }
                 Button("Omnipod DASH") { state.addPump(.omnipodBLE) }
                 Button("Dana(RS/-i)") { state.addPump(.dana) }
-                Button("Pump Simulator") { state.addPump(.simulator) }
+                if !Bundle.main.simulatorVisibility.isHidden {
+                    Button("Pump Simulator") { state.addPump(.simulator) }
+                }
             } message: { Text("Select Pump Model") }
             .sheet(isPresented: $state.shouldDisplayPumpSetupSheet) {
-                if let pumpManager = state.provider.apsManager.pumpManager {
+                if let pumpManager = state.provider.apsManager.pumpManager
+                {
                     PumpConfig.PumpSettingsView(
                         pumpManager: pumpManager,
                         bluetoothManager: state.provider.apsManager.bluetoothManager!,

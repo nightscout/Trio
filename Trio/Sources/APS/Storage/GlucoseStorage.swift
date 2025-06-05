@@ -40,7 +40,9 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
     }
 
     private enum Config {
-        static let filterTime: TimeInterval = 3.5 * 60
+        static var filterTime: TimeInterval {
+            UserDefaults.standard.double(forKey: "Config_FilterTime")
+        }
     }
 
     private let context: NSManagedObjectContext
