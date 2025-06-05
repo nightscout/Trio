@@ -668,6 +668,12 @@ final class BaseAPSManager: APSManager, Injectable {
             throw APSError.apsError(message: "Pump not set")
         }
 
+        // Check if pump is suspended and abort if it is
+        if pump.status.pumpStatus.suspended {
+            info(.apsManager, "Skipping enactDetermination because pump is suspended")
+            return // return without throwing an error
+        }
+
         // Unable to do temp basal during manual temp basal 😁
         if isManualTempBasal {
             throw APSError.manualBasalTemp(message: "Loop not possible during the manual basal temp")
