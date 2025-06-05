@@ -10,10 +10,6 @@ import Swinject
     // Description of the action in the Shortcuts app
     static var description = IntentDescription(LocalizedStringResource("Allow to add carbs in Trio."))
 
-    init() {
-        // dateAdded = Date()
-    }
-
     @Parameter(
         title: "Quantity Carbs",
         description: "Quantity of carbs in g",
