@@ -19,7 +19,8 @@ import Swinject
         /// A preferred approach would be to just block negatives and not specify an upperBound here, since it is implemented elsewhere
         inclusiveRange: (lowerBound: 0, upperBound: 200),
         requestValueDialog: IntentDialog(
-            LocalizedStringResource(
+            stringLiteral: String(
+                localized:
                 "Bolus amount (units of insulin)?"
             )
         )
@@ -52,8 +53,9 @@ import Swinject
                 try await requestConfirmation(
                     result: .result(
                         dialog: IntentDialog(
-                            LocalizedStringResource(
-                                "Are you sure you want to bolus \(bolusFormatted) U of insulin?"
+                            stringLiteral: String(
+                                localized:
+                                "Are you sure to bolus \(bolusFormatted) U of insulin?"
                             )
                         )
                     )
@@ -62,7 +64,7 @@ import Swinject
 
             let finalBolusDisplay = try await BolusIntentRequest().bolus(amount)
             return .result(
-                dialog: IntentDialog(finalBolusDisplay)
+                dialog: IntentDialog(stringLiteral: finalBolusDisplay)
             )
 
         } catch {
