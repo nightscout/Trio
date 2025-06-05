@@ -40,10 +40,10 @@ function generate(iob, currenttemp, glucose, profile, autosens = null, meal = nu
         basalprofile = basalProfile;
     }
     
-    var copied_trio_custom_oref_variables = {};
+    var trio_custom_oref_variables_temp = {};
     if (trio_custom_oref_variables) {
-        copied_trio_custom_oref_variables = trio_custom_oref_variables;
+        trio_custom_oref_variables_temp = trio_custom_oref_variables;
     }
     
-    return freeaps_determineBasal(glucose_status, currenttemp, iob, profile, autosens_data, meal_data, freeaps_basalSetTemp, microbolusAllowed, reservoir_data, clock, pumphistory, preferences, basalprofile, copied_trio_custom_oref_variables, middleware_was_used);
+    return freeaps_determineBasal(glucose_status, currenttemp, iob, profile, autosens_data, meal_data, freeaps_basalSetTemp, microbolusAllowed, reservoir_data, clock, pumphistory, preferences, basalprofile, trio_custom_oref_variables_temp, middleware_was_used);
 }

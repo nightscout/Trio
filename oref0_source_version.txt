@@ -1,6 +1,7 @@
-oref0 branch: fix-400-guard - git version: 1591b14
+oref0 branch: dev - git version: c0b46d3
 
 Last commits:
+c0b46d3 Merge pull request #47 from nightscout/fix-400-guard
 1591b14 Remove leftover != 400 condition
 4204b12 Remove autoISF adjustments from glucose-get-last
 2596f3f Refactor 400 glucose guard: - Remove old 400 guard - Replace with check that only disables SMBs and keeps TBR at neutral == current basal rate, if shouldProtectDueToHIGH is not null/undefined and true - Remove all other 400 guards
