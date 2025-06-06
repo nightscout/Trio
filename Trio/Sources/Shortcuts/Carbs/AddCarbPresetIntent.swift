@@ -15,7 +15,7 @@ import Swinject
         description: "Quantity of carbs in g",
         controlStyle: .field,
         inclusiveRange: (lowerBound: 0, upperBound: 200),
-        requestValueDialog: IntentDialog(stringLiteral: String(localized: "How many grams of carbs did you eat?")),
+        requestValueDialog: IntentDialog(stringLiteral: String(localized: "How many grams of carbs did you eat?"))
     ) var carbQuantity: Double?
 
     @Parameter(
