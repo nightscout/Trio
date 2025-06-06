@@ -98,15 +98,15 @@ final class OpenAPS {
     }
 
     // fetch glucose to pass it to the meal function and to determine basal
-    private func fetchAndProcessGlucose() async throws -> String {
+    private func fetchAndProcessGlucose(fetchLimit: Int?) async throws -> String {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgoInMinutes,
             key: "date",
             ascending: false,
-            fetchLimit: 72,
-            batchSize: 24
+            fetchLimit: fetchLimit,
+            batchSize: 48
         )
 
         return try await context.perform {
@@ -292,7 +292,7 @@ final class OpenAPS {
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
         async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0, carbsDate: simulatedCarbsDate)
-        async let glucose = fetchAndProcessGlucose()
+        async let glucose = fetchAndProcessGlucose(fetchLimit: 72)
         async let prepareTrioCustomOrefVariables = prepareTrioCustomOrefVariables()
         async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
         async let basalAsync = loadFileFromStorageAsync(name: Settings.basalProfile)
@@ -464,7 +464,7 @@ final class OpenAPS {
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
         async let carbs = fetchAndProcessCarbs()
-        async let glucose = fetchAndProcessGlucose()
+        async let glucose = fetchAndProcessGlucose(fetchLimit: nil)
         async let getProfile = loadFileFromStorageAsync(name: Settings.profile)
         async let getBasalProfile = loadFileFromStorageAsync(name: Settings.basalProfile)
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
