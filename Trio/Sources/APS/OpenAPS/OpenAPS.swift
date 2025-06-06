@@ -385,6 +385,10 @@ final class OpenAPS {
 
             return determination
         } else {
+            debug(
+                .openAPS,
+                "\(DebuggingIdentifiers.failed) No determination data. orefDetermination: \(orefDetermination), Determination(from: orefDetermination): \(String(describing: Determination(from: orefDetermination))), deliverAt: \(String(describing: Determination(from: orefDetermination)?.deliverAt))"
+            )
             throw APSError.apsError(message: "No determination data.")
         }
     }
