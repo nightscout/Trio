@@ -626,7 +626,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
 
             // Get weight percentage from preferences (default 0.65 if not set)
             let userPreferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
-            let weightPercentage = userPreferences?.weightPercentage ?? Decimal(0.65) // why is this 1 as default in oref2??
+            let weightPercentage = userPreferences?.weightPercentage ?? Decimal(0.65) // why is this 1 as default in trio-oref??
 
             // Calculate weighted average using the formula:
             // weightedTDD = (weightPercentage × recent_average) + ((1 - weightPercentage) × historical_average)
