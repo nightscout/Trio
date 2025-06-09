@@ -35,9 +35,9 @@ function generate(pumpsettings_data, bgtargets_data, isf_data, basalprofile_data
         temptargets_data = temptargets_input;
     }
     
-    var freeaps = { };
+    var trioData = { };
     if (trio_data) {
-        freeaps = trio_data;
+        trioData = trio_data;
     }
 
     var model_data = { };
@@ -98,7 +98,7 @@ function generate(pumpsettings_data, bgtargets_data, isf_data, basalprofile_data
 
     if (autotune_data) {
         if (autotune_data.basalprofile) { inputs.basals = autotune_data.basalprofile; }
-        if (!freeaps.onlyAutotuneBasals) {
+        if (!trioData.onlyAutotuneBasals) {
             if (autotune_data.isfProfile) { inputs.isf = autotune_data.isfProfile; }
             if (autotune_data.carb_ratio) { inputs.carbratio.schedule[0].ratio = autotune_data.carb_ratio; }
         }
