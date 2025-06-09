@@ -1,7 +1,7 @@
 //для pumpprofile.json параметры: settings/settings.json settings/bg_targets.json settings/insulin_sensitivities.json settings/basal_profile.json preferences.json settings/carb_ratios.json settings/temptargets.json settings/model.json
 //для profile.json параметры: settings/settings.json settings/bg_targets.json settings/insulin_sensitivities.json settings/basal_profile.json preferences.json settings/carb_ratios.json settings/temptargets.json settings/model.json settings/autotune.json
 
-function generate(pumpsettings_data, bgtargets_data, isf_data, basalprofile_data, preferences_input = false, carbratio_input = false, temptargets_input = false, model_input = false, autotune_input = false, freeaps_data) {
+function generate(pumpsettings_data, bgtargets_data, isf_data, basalprofile_data, preferences_input = false, carbratio_input = false, temptargets_input = false, model_input = false, autotune_input = false, trio_data) {
     if (bgtargets_data.units !== 'mg/dL') {
         if (bgtargets_data.units === 'mmol/L') {
             for (var i = 0, len = bgtargets_data.targets.length; i < len; i++) {
@@ -36,8 +36,8 @@ function generate(pumpsettings_data, bgtargets_data, isf_data, basalprofile_data
     }
     
     var freeaps = { };
-    if (freeaps_data) {
-        freeaps = freeaps_data;
+    if (trio_data) {
+        freeaps = trio_data;
     }
 
     var model_data = { };
@@ -103,5 +103,5 @@ function generate(pumpsettings_data, bgtargets_data, isf_data, basalprofile_data
             if (autotune_data.carb_ratio) { inputs.carbratio.schedule[0].ratio = autotune_data.carb_ratio; }
         }
     }
-    return freeaps_profile(inputs);
+    return trio_profile(inputs);
 }
