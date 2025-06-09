@@ -78,7 +78,8 @@ import Testing
             javascript: mealResultJavascript,
             javascriptDuration: 0.1,
             iobInputs: nil,
-            mealInputs: nil
+            mealInputs: nil,
+            autosensInputs: nil
         )
 
         if comparison.resultType == .valueDifference {

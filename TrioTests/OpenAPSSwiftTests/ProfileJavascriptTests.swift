@@ -328,7 +328,8 @@ struct ProfileGeneratorTests {
             javascript: jsResult,
             javascriptDuration: 1.0,
             iobInputs: nil,
-            mealInputs: nil
+            mealInputs: nil,
+            autosensInputs: nil
         )
 
         if comparison.resultType == .valueDifference {

@@ -85,7 +85,8 @@ enum JSONCompare {
         javascript: OrefFunctionResult,
         javascriptDuration: TimeInterval,
         iobInputs: IobInputs? = nil,
-        mealInputs: MealInputs? = nil
+        mealInputs: MealInputs? = nil,
+        autosensInputs: AutosensInputs? = nil
     ) {
         let comparison = createComparison(
             function: function,
@@ -94,7 +95,8 @@ enum JSONCompare {
             javascript: javascript,
             javascriptDuration: javascriptDuration,
             iobInputs: iobInputs,
-            mealInputs: mealInputs
+            mealInputs: mealInputs,
+            autosensInputs: autosensInputs
         )
 
         Task {
@@ -113,7 +115,8 @@ enum JSONCompare {
         javascript: OrefFunctionResult,
         javascriptDuration: TimeInterval,
         iobInputs: IobInputs?,
-        mealInputs: MealInputs?
+        mealInputs: MealInputs?,
+        autosensInputs: AutosensInputs?
     ) -> AlgorithmComparison {
         switch (swift, javascript) {
         case let (.success(swiftJson), .success(javascriptJson)):
@@ -127,7 +130,8 @@ enum JSONCompare {
                     swiftDuration: swiftDuration,
                     differences: differences.isEmpty ? nil : differences,
                     iobInputs: differences.isEmpty ? nil : iobInputs,
-                    mealInputs: differences.isEmpty ? nil : mealInputs
+                    mealInputs: differences.isEmpty ? nil : mealInputs,
+                    autosensInputs: differences.isEmpty ? nil : autosensInputs
                 )
             } catch {
                 return AlgorithmComparison(
@@ -154,7 +158,8 @@ enum JSONCompare {
                 jsDuration: javascriptDuration,
                 swiftException: AlgorithmException(error: swiftError),
                 iobInputs: iobInputs,
-                mealInputs: mealInputs
+                mealInputs: mealInputs,
+                autosensInputs: autosensInputs
             )
 
         case let (.success, .failure(jsError)):
@@ -164,7 +169,8 @@ enum JSONCompare {
                 swiftDuration: swiftDuration,
                 jsException: AlgorithmException(error: jsError),
                 iobInputs: iobInputs,
-                mealInputs: mealInputs
+                mealInputs: mealInputs,
+                autosensInputs: autosensInputs
             )
         }
     }

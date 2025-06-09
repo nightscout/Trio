@@ -76,7 +76,9 @@ struct AutosensGenerator {
             simulationProfile.currentBasal = try Basal.basalLookup(basalProfile, now: currGlucose.date)
             simulationProfile.temptargetSet = false
             let iob = try IobCalculation.iobTotal(treatments: treatments, profile: simulationProfile, time: currGlucose.date)
-            let bgi = (-iob.activity * sensitivity * 5).rounded(scale: 2)
+
+            // copying Javascript rounding
+            let bgi = (-iob.activity * sensitivity * 5 * 100 + 0.5).rounded(scale: 0, roundingMode: .down) / 100
 
             // BUG: the time span for deltaGlucose might be different
             // then the time span for bgi if there was a missing CGM

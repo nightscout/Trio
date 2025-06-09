@@ -21,9 +21,10 @@ enum OrefFunction: String, Codable {
         case dictionary
     }
 
-    case makeProfile
+    case autosens
     case iob
     case meal
+    case makeProfile
 
     // since we're removing some keys from our Profile that exist in Javascript
     // we need to let the difference function know which keys to ignore when
@@ -39,6 +40,8 @@ enum OrefFunction: String, Codable {
             // These aren't used by downstream calculations, so we
             // can ignore them in our comparison
             return Set(["maxDeviation", "minDeviation", "allDeviations", "bwCarbs", "bwFound", "journalCarbs", "nsCarbs"])
+        case .autosens:
+            return Set()
         }
     }
 
@@ -71,6 +74,11 @@ enum OrefFunction: String, Codable {
                 "slopeFromMinDeviation": 0.25,
                 "lastCarbTime": 1
             ]
+        case .autosens:
+            return [
+                "ratio": 0.01,
+                "newisf": 1
+            ]
         }
     }
 
@@ -81,6 +89,8 @@ enum OrefFunction: String, Codable {
         case .iob:
             return .array
         case .meal:
+            return .dictionary
+        case .autosens:
             return .dictionary
         }
     }
