@@ -381,7 +381,7 @@ struct GlucoseDailyPercentileChart: View {
     // Helper function to determine opacity based on selections
     private func getOpacity(for day: GlucoseDailyPercentileStats) -> Double {
         selectedDate.map { date in
-            StatChartUtils.isSameTimeUnit(day.date, date) ? 1 : 0.3
+            StatChartUtils.isSameTimeUnit(day.date, date, for: .total) ? 1 : 0.3
         } ?? 1
     }
 

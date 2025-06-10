@@ -107,7 +107,7 @@ struct StatChartUtils {
     static func isSameTimeUnit(
         _ date1: Date,
         _ date2: Date,
-        for selectedInterval: Stat.StateModel.StatsTimeInterval = .total
+        for selectedInterval: Stat.StateModel.StatsTimeInterval
     ) -> Bool {
         let calendar = Calendar.current
         switch selectedInterval {
