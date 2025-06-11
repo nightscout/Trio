@@ -440,12 +440,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 return false
             }
 
-            guard !GlucoseStored.glucoseIsFlat(glucose) else {
-                debug(.apsManager, "Glucose data is too flat")
-                self.processError(APSError.glucoseError(message: String(localized: "Glucose data is too flat")))
-                return false
-            }
-
             return true
         }
 
@@ -666,6 +660,12 @@ final class BaseAPSManager: APSManager, Injectable {
 
         guard let pump = pumpManager else {
             throw APSError.apsError(message: "Pump not set")
+        }
+
+        // Check if pump is suspended and abort if it is
+        if pump.status.pumpStatus.suspended {
+            info(.apsManager, "Skipping enactDetermination because pump is suspended")
+            return // return without throwing an error
         }
 
         // Unable to do temp basal during manual temp basal 😁

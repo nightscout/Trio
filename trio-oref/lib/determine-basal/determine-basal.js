@@ -44,15 +44,15 @@ function convert_bg(value, profile)
         return Math.round(value);
     }
 }
-function enable_smb(profile, microBolusAllowed, meal_data, bg, target_bg, high_bg, oref_variables, time) {
-    if (oref_variables.smbIsScheduledOff){
+function enable_smb(profile, microBolusAllowed, meal_data, bg, target_bg, high_bg, trio_custom_variables, time) {
+    if (trio_custom_variables.smbIsScheduledOff){
         /* Below logic is related to profile overrides which can disable SMBs or disable them for a scheduled window.
          * SMBs will be disabled from [start, end), such that if an SMB is scheduled to be disabled from 10 AM to 2 PM,
          * an SMB will not be allowed from 10:00:00 until 1:59:59.
          */
         let currentHour = new Date(time.getHours());
-        let startTime = oref_variables.start;
-        let endTime = oref_variables.end;
+        let startTime = trio_custom_variables.start;
+        let endTime = trio_custom_variables.end;
 
         if (startTime < endTime && (currentHour >= startTime && currentHour < endTime)) {
             console.error("SMB disabled: current time is in SMB disabled scheduled")
@@ -79,8 +79,8 @@ function enable_smb(profile, microBolusAllowed, meal_data, bg, target_bg, high_b
         console.error("SMB disabled due to Bolus Wizard activity in the last 6 hours.");
         return false;
     // Disable if invalid CGM reading (HIGH)
-    } else if (bg == 400) {
-            console.error("Invalid CGM (HIGH). SMBs disabled.");
+    } else if (!!trio_custom_variables.shouldProtectDueToHIGH) {
+        console.error("Invalid CGM (HIGH). SMBs disabled.");
         return false;
     }
 
@@ -142,22 +142,22 @@ function enable_smb(profile, microBolusAllowed, meal_data, bg, target_bg, high_b
 }
 
 
-var determine_basal = function determine_basal(glucose_status, currenttemp, iob_data, profile, autosens_data, meal_data, tempBasalFunctions, microBolusAllowed, reservoir_data, currentTime, pumphistory, preferences, basalprofile, oref2_variables, middleWare) {
+var determine_basal = function determine_basal(glucose_status, currenttemp, iob_data, profile, autosens_data, meal_data, tempBasalFunctions, microBolusAllowed, reservoir_data, currentTime, pumphistory, preferences, basalprofile, trio_custom_variables, middleWare) {
 
     var profileTarget = profile.min_bg;
-    var overrideTarget = oref2_variables.overrideTarget;
-    if (overrideTarget != 0 && overrideTarget != 6 && oref2_variables.useOverride && !profile.temptargetSet) {
+    var overrideTarget = trio_custom_variables.overrideTarget;
+    if (overrideTarget != 0 && overrideTarget != 6 && trio_custom_variables.useOverride && !profile.temptargetSet) {
         profileTarget = overrideTarget;
     }
-    const smbIsOff = oref2_variables.smbIsOff;
-    const advancedSettings = oref2_variables.advancedSettings;
-    const isfAndCr = oref2_variables.isfAndCr;
-    const isf = oref2_variables.isf;
-    const cr_ = oref2_variables.cr;
-    const smbMinutes = oref2_variables.smbMinutes;
-    const uamMinutes = oref2_variables.uamMinutes;
+    const smbIsOff = trio_custom_variables.smbIsOff;
+    const advancedSettings = trio_custom_variables.advancedSettings;
+    const isfAndCr = trio_custom_variables.isfAndCr;
+    const isf = trio_custom_variables.isf;
+    const cr_ = trio_custom_variables.cr;
+    const smbMinutes = trio_custom_variables.smbMinutes;
+    const uamMinutes = trio_custom_variables.uamMinutes;
     // tdd past 24 hour
-    let tdd = oref2_variables.currentTDD;
+    let tdd = trio_custom_variables.currentTDD;
     var logOutPut = "";
     var tddReason = "";
 
@@ -174,12 +174,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
 
 
-    const weightedAverage = oref2_variables.weightedAverage;
+    const weightedAverage = trio_custom_variables.weightedAverage;
     var overrideFactor = 1;
     var sensitivity = profile.sens;
     var carbRatio = profile.carb_ratio;
-    if (oref2_variables.useOverride) {
-        overrideFactor = oref2_variables.overridePercentage / 100;
+    if (trio_custom_variables.useOverride) {
+        overrideFactor = trio_custom_variables.overridePercentage / 100;
         if (isfAndCr) {
             sensitivity /= overrideFactor;
             carbRatio /= overrideFactor;
@@ -189,7 +189,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         }
     }
     const weightPercentage = profile.weightPercentage;
-    const average_total_data = oref2_variables.average_total_data;
+    const average_total_data = trio_custom_variables.average_total_data;
 
     // In case the autosens.min/max limits are reversed:
     const minLimitChris = Math.min(profile.autosens_min, profile.autosens_max);
@@ -390,11 +390,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var basal = profile_current_basal;
 
     // Print Current Override factor, if any
-    if (oref2_variables.useOverride) {
-        if (oref2_variables.duration == 0) {
+    if (trio_custom_variables.useOverride) {
+        if (trio_custom_variables.duration == 0) {
             console.log("Profile Override is active. Override " + round(overrideFactor * 100, 0) + "%. Override Duration: " + "Enabled indefinitely");
         } else
-            console.log("Profile Override is active. Override " + round(overrideFactor * 100, 0) + "%. Override Expires in: " + oref2_variables.duration + " min.");
+            console.log("Profile Override is active. Override " + round(overrideFactor * 100, 0) + "%. Override Expires in: " + trio_custom_variables.duration + " min.");
     }
 
     var bgTime = new Date(glucose_status.date);
@@ -425,21 +425,18 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (bg <= 10 || bg === 38 || noise >= 3) {  //Dexcom is in ??? mode or calibrating, or xDrip reports high noise
         rT.reason = "CGM is calibrating, in ??? state, or noise is high";
     }
-    var tooflat=false;
-    if (bg > 60 && glucose_status.delta == 0 && glucose_status.short_avgdelta > -1 && glucose_status.short_avgdelta < 1 && glucose_status.long_avgdelta > -1 && glucose_status.long_avgdelta < 1 && bg != 400) {
+    if (bg > 60 && glucose_status.delta == 0 && glucose_status.short_avgdelta > -1 && glucose_status.short_avgdelta < 1 && glucose_status.long_avgdelta > -1 && glucose_status.long_avgdelta < 1) {
         if (glucose_status.device == "fakecgm") {
             console.error("CGM data is unchanged (" + convert_bg(bg,profile) + "+" + convert_bg(glucose_status.delta,profile)+ ") for 5m w/ " + convert_bg(glucose_status.short_avgdelta,profile) + " mg/dL ~15m change & " + convert_bg(glucose_status.long_avgdelta,2) + " mg/dL ~45m change");
             console.error("Simulator mode detected (" + glucose_status.device + "): continuing anyway");
-        } else if (bg != 400) {
-            tooflat=true;
-        }
+        } 
     }
 
     if (minAgo > 12 || minAgo < -5) { // Dexcom data is too old, or way in the future
         rT.reason = "If current system time " + systemTime + " is correct, then BG data is too old. The last BG data was read "+minAgo+"m ago at "+bgTime;
 
         // if BG is too old/noisy, or is completely unchanging, cancel any high temps and shorten any long zero temps
-    } else if ( glucose_status.short_avgdelta === 0 && glucose_status.long_avgdelta === 0 && bg != 400 ) {
+    } else if ( glucose_status.short_avgdelta === 0 && glucose_status.long_avgdelta === 0 ) {
         if ( glucose_status.last_cal && glucose_status.last_cal < 3 ) {
             rT.reason = "CGM was just calibrated";
         } else {
@@ -447,30 +444,28 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         }
     }
 
-    if (bg != 400) {
-        if (bg <= 10 || bg === 38 || noise >= 3 || minAgo > 12 || minAgo < -5 || ( glucose_status.short_avgdelta === 0 && glucose_status.long_avgdelta === 0 ) ) {
-            if (currenttemp.rate >= basal) { // high temp is running
-                rT.reason += ". Canceling high temp basal of " + currenttemp.rate;
-                rT.deliverAt = deliverAt;
-                rT.temp = 'absolute';
-                rT.duration = 0;
-                rT.rate = 0;
-                return rT;
-                // don't use setTempBasal(), as it has logic that allows <120% high temps to continue running
-                //return tempBasalFunctions.setTempBasal(basal, 30, profile, rT, currenttemp);
-            } else if ( currenttemp.rate === 0 && currenttemp.duration > 30 ) { //shorten long zero temps to 30m
-                rT.reason += ". Shortening " + currenttemp.duration + "m long zero temp to 30m. ";
-                rT.deliverAt = deliverAt;
-                rT.temp = 'absolute';
-                rT.duration = 30;
-                rT.rate = 0;
-                return rT;
-                // don't use setTempBasal(), as it has logic that allows long zero temps to continue running
-                //return tempBasalFunctions.setTempBasal(0, 30, profile, rT, currenttemp);
-            } else { //do nothing.
-                rT.reason += ". Temp " + currenttemp.rate + " <= current basal " + basal + "U/hr; doing nothing. ";
-                return rT;
-            }
+    if (bg <= 10 || bg === 38 || noise >= 3 || minAgo > 12 || minAgo < -5 || ( glucose_status.short_avgdelta === 0 && glucose_status.long_avgdelta === 0 ) ) {
+        if (currenttemp.rate >= basal) { // high temp is running
+            rT.reason += ". Canceling high temp basal of " + currenttemp.rate;
+            rT.deliverAt = deliverAt;
+            rT.temp = 'absolute';
+            rT.duration = 0;
+            rT.rate = 0;
+            return rT;
+            // don't use setTempBasal(), as it has logic that allows <120% high temps to continue running
+            //return tempBasalFunctions.setTempBasal(basal, 30, profile, rT, currenttemp);
+        } else if ( currenttemp.rate === 0 && currenttemp.duration > 30 ) { //shorten long zero temps to 30m
+            rT.reason += ". Shortening " + currenttemp.duration + "m long zero temp to 30m. ";
+            rT.deliverAt = deliverAt;
+            rT.temp = 'absolute';
+            rT.duration = 30;
+            rT.rate = 0;
+            return rT;
+            // don't use setTempBasal(), as it has logic that allows long zero temps to continue running
+            //return tempBasalFunctions.setTempBasal(0, 30, profile, rT, currenttemp);
+        } else { //do nothing.
+            rT.reason += ". Temp " + currenttemp.rate + " <= current basal " + basal + "U/hr; doing nothing. ";
+            return rT;
         }
     }
 
@@ -782,7 +777,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             bg,
             target_bg,
             high_bg,
-            oref2_variables,
+            trio_custom_variables,
             systemTime
         );
     }
@@ -1508,11 +1503,11 @@ var maxDelta_bg_threshold;
                 uamMinutesSetting = profile.maxUAMSMBBasalMinutes;
             }
 
-            if (oref2_variables.useOverride && advancedSettings && smbMinutes !== smbMinutesSetting) {
+            if (trio_custom_variables.useOverride && advancedSettings && smbMinutes !== smbMinutesSetting) {
                 console.error("SMB Max Minutes - setting overriden from " + smbMinutesSetting + " to " + smbMinutes);
                 smbMinutesSetting = smbMinutes;
             }
-            if (oref2_variables.useOverride && advancedSettings && uamMinutes !== uamMinutesSetting) {
+            if (trio_custom_variables.useOverride && advancedSettings && uamMinutes !== uamMinutesSetting) {
                 console.error("UAM Max Minutes - setting overriden from " + uamMinutesSetting + " to " + uamMinutes);
                 uamMinutesSetting = uamMinutes;
             }
@@ -1621,8 +1616,8 @@ var maxDelta_bg_threshold;
 
         var maxSafeBasal = tempBasalFunctions.getMaxSafeBasal(profile);
 
-
-        if (bg == 400) {
+        // set neutral TBR at current basal rate because glucose is considered as requiring dosing Protect due to HIGH (400 mg/dL)
+        if (!!trio_custom_variables.shouldProtectDueToHIGH) {
             return tempBasalFunctions.setTempBasal(profile.current_basal, 30, profile, rT, currenttemp);
         }
 
