@@ -13,7 +13,7 @@ function generate(iob, currenttemp, glucose, profile, autosens = null, meal = nu
         console.log("Invalid middleware: " + error);
     };
 
-    var glucose_status = freeaps_glucoseGetLast(glucose);
+    var glucose_status = trio_glucoseGetLast(glucose);
     var autosens_data = null;
 
     if (autosens) {
@@ -45,5 +45,5 @@ function generate(iob, currenttemp, glucose, profile, autosens = null, meal = nu
         trio_custom_oref_variables_temp = trio_custom_oref_variables;
     }
     
-    return freeaps_determineBasal(glucose_status, currenttemp, iob, profile, autosens_data, meal_data, freeaps_basalSetTemp, microbolusAllowed, reservoir_data, clock, pumphistory, preferences, basalprofile, trio_custom_oref_variables_temp, middleware_was_used);
+    return trio_determineBasal(glucose_status, currenttemp, iob, profile, autosens_data, meal_data, trio_basalSetTemp, microbolusAllowed, reservoir_data, clock, pumphistory, preferences, basalprofile, trio_custom_oref_variables_temp, middleware_was_used);
 }

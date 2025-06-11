@@ -43,5 +43,5 @@ function generate(pumphistory_data, profile_data, glucose_data, pumpprofile_data
     , tune_insulin_curve: tune_insulin_curve
     };
 
-    return freeaps_autotunePrep(inputs);
+    return trio_autotunePrep(inputs);
 }
