@@ -38,7 +38,7 @@ struct StatChartUtils {
             let totalSeconds = Double(components.hour ?? 0) * 3600 + Double(components.minute ?? 0) * 60 +
                 Double(components.second ?? 0)
 
-            // Align start end end to midnight
+            // Align start end to midnight
             let alignedStart = totalSeconds > 12 * 3600 ?
                 calendar.date(byAdding: .day, value: 1, to: startOfDay)! : startOfDay
             let intervalLength = visibleDomainLength(for: selectedInterval)
