@@ -124,13 +124,11 @@ extension Stat.StateModel {
         // Calculate both types of statistics concurrently
         async let percentileStats = calculateDailyPercentileStats(
             for: dates,
-            selectedInterval: .total,
             glucose: glucoseObjects
         )
 
         async let distributionStats = calculateDailyDistributionStats(
             for: dates,
-            selectedInterval: .total,
             glucose: glucoseObjects,
             highLimit: highLimit,
             timeInRangeType: timeInRangeType
@@ -173,7 +171,6 @@ extension Stat.StateModel {
     /// - Returns: Array of (date, readings) tuples containing filtered readings for each date
     private func processGlucoseReadingsForDates(
         _ dates: [Date],
-        selectedInterval: StatsTimeIntervalWithToday,
         glucose: [GlucoseStored]
     ) async -> [(date: Date, readings: [GlucoseReading])] {
         let calendar = Calendar.current
@@ -196,36 +193,18 @@ extension Stat.StateModel {
             }
         }
 
-        // Handle both single day and multi-day cases using the same TaskGroup pattern
         return await withTaskGroup(of: (date: Date, readings: [GlucoseReading]).self) { group in
-            // For single day case, just process that one day
-            if dates.count == 1 {
-                let isTodayView = selectedInterval == .today
-                let dayStart = isTodayView ?
-                    calendar.startOfDay(for: Date.now) :
-                    calendar.date(byAdding: .day, value: -1, to: Date.now)!
-                let dayEnd = Date.now
-
+            for date in dates {
                 group.addTask {
+                    let dayStart = calendar.startOfDay(for: date)
+                    let dayEnd = calendar.isDateInToday(date) ?
+                        Date.now :
+                        calendar.date(byAdding: .day, value: 1, to: dayStart)!
+
                     let filteredReadings = glucoseReadings.filter {
                         $0.date >= dayStart && $0.date < dayEnd
                     }
-                    return (date: dayStart, readings: filteredReadings)
-                }
-            } else {
-                // For multi-day case, process each date
-                for date in dates {
-                    group.addTask {
-                        let dayStart = calendar.startOfDay(for: date)
-                        let dayEnd = calendar.isDateInToday(date) ?
-                            Date.now :
-                            calendar.date(byAdding: .day, value: 1, to: dayStart)!
-
-                        let filteredReadings = glucoseReadings.filter {
-                            $0.date >= dayStart && $0.date < dayEnd
-                        }
-                        return (date: date, readings: filteredReadings)
-                    }
+                    return (date: date, readings: filteredReadings)
                 }
             }
 
@@ -334,7 +313,6 @@ extension Stat.StateModel {
 
     func calculateDailyDistributionStats(
         for dates: [Date],
-        selectedInterval: StatsTimeIntervalWithToday,
         glucose: [GlucoseStored],
         highLimit: Decimal,
         timeInRangeType: TimeInRangeType
@@ -342,7 +320,6 @@ extension Stat.StateModel {
         // Process readings for each date
         let processedData = await processGlucoseReadingsForDates(
             dates,
-            selectedInterval: selectedInterval,
             glucose: glucose
         )
 
@@ -363,13 +340,11 @@ extension Stat.StateModel {
 
     func calculateDailyPercentileStats(
         for dates: [Date],
-        selectedInterval: StatsTimeIntervalWithToday,
         glucose: [GlucoseStored]
     ) async -> [GlucoseDailyPercentileStats] {
         // Process readings for each date
         let processedData = await processGlucoseReadingsForDates(
             dates,
-            selectedInterval: selectedInterval,
             glucose: glucose
         )
 
