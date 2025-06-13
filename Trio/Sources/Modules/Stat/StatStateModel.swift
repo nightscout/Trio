@@ -38,10 +38,10 @@ extension Stat {
         var bolusTotalsCache: [(Date, total: Double)] = []
 
         // Cache for Glucose Daily Stats
-        @MainActor var dailyGlucosePercentileStats: [GlucoseDailyPercentileStats] = []
-        @MainActor var glucosePercentileCache: [Date: GlucoseDailyPercentileStats] = [:]
-        @MainActor var dailyGlucoseDistributionStats: [GlucoseDailyDistributionStats] = []
-        @MainActor var glucoseDistributionCache: [Date: GlucoseDailyDistributionStats] = [:]
+        var dailyGlucosePercentileStats: [GlucoseDailyPercentileStats] = []
+        var glucosePercentileCache: [Date: GlucoseDailyPercentileStats] = [:]
+        var dailyGlucoseDistributionStats: [GlucoseDailyDistributionStats] = []
+        var glucoseDistributionCache: [Date: GlucoseDailyDistributionStats] = [:]
         var glucoseReadings: [GlucoseStored] = []
 
         // Selected Duration for Glucose Stats

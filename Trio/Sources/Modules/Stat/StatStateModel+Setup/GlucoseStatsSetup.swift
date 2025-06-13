@@ -105,7 +105,7 @@ extension Stat.StateModel {
     /// 2. Creating lookup caches for both stat types simultaneously
     ///
     /// - Parameter ids: Array of NSManagedObjectIDs for glucose readings
-    @MainActor func setupGlucoseStats(with ids: [NSManagedObjectID]) async {
+    func setupGlucoseStats(with ids: [NSManagedObjectID]) async {
         // Get dates for the past 90 days
         let dates = getDates()
 
