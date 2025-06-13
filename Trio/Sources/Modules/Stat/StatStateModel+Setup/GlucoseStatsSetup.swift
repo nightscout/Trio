@@ -199,7 +199,7 @@ extension Stat.StateModel {
             for await result in group {
                 results.append(result)
             }
-            return results.sorted { $0.date < $1.date }
+            return results
         }
     }
 
