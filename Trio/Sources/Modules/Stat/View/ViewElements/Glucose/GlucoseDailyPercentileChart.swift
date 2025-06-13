@@ -45,7 +45,7 @@ struct GlucoseDailyPercentileChart: View {
     @State private var selectedPercentile: GlucosePercentileType?
 
     // State model for accessing the shared calculations
-    @Environment(Stat.StateModel.self) private var state
+    let state: Stat.StateModel
 
     // Computes the visible date range based on the current scroll position
     @State private var visibleDateRange: (start: Date, end: Date) = (Date(), Date())

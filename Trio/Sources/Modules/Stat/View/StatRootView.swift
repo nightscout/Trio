@@ -163,8 +163,9 @@ extension Stat {
                                 units: state.units,
                                 timeInRangeType: state.timeInRangeType,
                                 selectedInterval: interval,
-                                isDaySelected: $isGlucoseDaySelected
-                            ).environment(state)
+                                isDaySelected: $isGlucoseDaySelected,
+                                state: state
+                            )
                         } else { // if state.selectedGlucoseChartType == .distributionByDay
                             GlucoseDailyDistributionChart(
                                 glucose: state.glucoseReadings,
@@ -173,8 +174,9 @@ extension Stat {
                                 timeInRangeType: state.timeInRangeType,
                                 selectedInterval: interval,
                                 eA1cDisplayUnit: state.eA1cDisplayUnit,
-                                isDaySelected: $isGlucoseDaySelected
-                            ).environment(state)
+                                isDaySelected: $isGlucoseDaySelected,
+                                state: state
+                            )
                         }
 
                     case .percentileByTime:
