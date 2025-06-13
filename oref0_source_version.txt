@@ -1,6 +1,8 @@
-oref0 branch: dev - git version: c0b46d3
+oref0 branch: dev - git version: 37896e5
 
 Last commits:
+37896e5 Merge pull request #48 from nightscout/fix-bundle-naming
+f21a187 Rename output library to trio_[name]
 c0b46d3 Merge pull request #47 from nightscout/fix-400-guard
 1591b14 Remove leftover != 400 condition
 4204b12 Remove autoISF adjustments from glucose-get-last
