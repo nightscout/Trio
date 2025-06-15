@@ -3,6 +3,7 @@ import CoreData
 import Foundation
 import LoopKit
 import LoopKitUI
+import OmniBLE
 import SwiftDate
 import Swinject
 
@@ -666,6 +667,20 @@ final class BaseAPSManager: APSManager, Injectable {
         if pump.status.pumpStatus.suspended {
             info(.apsManager, "Skipping enactDetermination because pump is suspended")
             return // return without throwing an error
+        }
+
+        // Directly check if the pod is faulted
+        if let omnipod = pump as? OmniBLEPumpManager, let podState = omnipod.state.podState {
+            if podState.isFaulted, let fault = podState.fault {
+                // Check if this is an empty reservoir fault (0x18)
+                if fault.faultEventCode.rawValue == 0x18 { // reservoirEmpty
+                    info(
+                        .apsManager,
+                        "Skipping enactDetermination because pod reservoir is empty"
+                    )
+                    return // return without throwing an error - empty reservoir is expected
+                }
+            }
         }
 
         // Unable to do temp basal during manual temp basal 😁
