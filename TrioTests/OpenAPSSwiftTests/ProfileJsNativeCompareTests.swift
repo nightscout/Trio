@@ -41,7 +41,11 @@ import Testing
             ]
         )
 
-        let preferences = Preferences()
+        var preferences = Preferences()
+
+        // Modify preferences to make sure that modified properties
+        // propogate to Profile
+        preferences.smbDeliveryRatio = 0.4
 
         let carbRatios = CarbRatios(
             units: .grams,

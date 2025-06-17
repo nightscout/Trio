@@ -34,6 +34,7 @@ extension Profile {
         weightPercentage = preferences.weightPercentage
         thresholdSetting = preferences.threshold_setting
         maxMealAbsorptionTime = preferences.maxMealAbsorptionTime
+        smbDeliveryRatio = preferences.smbDeliveryRatio
 
         // Bool properties
         highTemptargetRaisesSensitivity = preferences.highTemptargetRaisesSensitivity
