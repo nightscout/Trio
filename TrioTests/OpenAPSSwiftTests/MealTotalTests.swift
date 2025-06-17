@@ -43,7 +43,7 @@ import Testing
         return result.reversed()
     }
 
-    @Test("should calculate carb absorption correctly") func calculateCarbAbsorption() async {
+    @Test("should calculate carb absorption correctly") func calculateCarbAbsorption() async throws {
         let baseTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
         let mealTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
         let testTime = Date.from(isoString: "2016-06-19T13:00:00-04:00") // 1 hour after meal
@@ -90,9 +90,10 @@ import Testing
         ]
 
         let profile = createBasicProfile()
+
         let basalProfile = createBasicBasalProfile()
 
-        let result = MealTotal.recentCarbs(
+        let result = try MealTotal.recentCarbs(
             treatments: treatments,
             pumpHistory: pumpHistory,
             profile: profile,
@@ -107,7 +108,7 @@ import Testing
         #expect(result?.currentDeviation.isWithin(0.1, of: 3) == true)
     }
 
-    @Test("should return nil when no treatments provided") func emptyObjectWhenNoTreatments() async {
+    @Test("should return nil when no treatments provided") func emptyObjectWhenNoTreatments() async throws {
         let time = Date.from(isoString: "2016-06-19T13:00:00-04:00")
         let glucoseData = [
             BloodGlucose(
@@ -120,7 +121,7 @@ import Testing
         let profile = createBasicProfile()
         let basalProfile = createBasicBasalProfile()
 
-        let result = MealTotal.recentCarbs(
+        let result = try MealTotal.recentCarbs(
             treatments: [],
             pumpHistory: [],
             profile: profile,
@@ -132,7 +133,7 @@ import Testing
         #expect(result == nil)
     }
 
-    @Test("should calculate carbs correctly for treatments within the meal window") func calcCarbsWithinMealWindow() async {
+    @Test("should calculate carbs correctly for treatments within the meal window") func calcCarbsWithinMealWindow() async throws {
         let baseTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
         let testTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
 
@@ -169,7 +170,7 @@ import Testing
         let profile = createBasicProfile()
         let basalProfile = createBasicBasalProfile()
 
-        let result = MealTotal.recentCarbs(
+        let result = try MealTotal.recentCarbs(
             treatments: treatments,
             pumpHistory: [],
             profile: profile,
@@ -185,7 +186,7 @@ import Testing
         #expect(result?.mealCOB == 14)
     }
 
-    @Test("should ignore treatments outside the meal window") func ignoreTreatmentsOutsideMealWindow() async {
+    @Test("should ignore treatments outside the meal window") func ignoreTreatmentsOutsideMealWindow() async throws {
         let baseTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
         let treatmentTime = Date.from(isoString: "2016-06-19T06:00:00-04:00") // 6 hours before
         let testTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
@@ -223,7 +224,7 @@ import Testing
         let profile = createBasicProfile()
         let basalProfile = createBasicBasalProfile()
 
-        let result = MealTotal.recentCarbs(
+        let result = try MealTotal.recentCarbs(
             treatments: treatments,
             pumpHistory: [],
             profile: profile,
@@ -238,7 +239,7 @@ import Testing
         #expect(result?.currentDeviation.isWithin(0.1, of: 0.67) == true)
     }
 
-    @Test("should respect maxMealAbsorptionTime from profile") func respectMaxMealAbsorptionTime() async {
+    @Test("should respect maxMealAbsorptionTime from profile") func respectMaxMealAbsorptionTime() async throws {
         let baseTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
         let treatmentTime = Date.from(isoString: "2016-06-19T10:00:00-04:00") // 2 hours before
         let testTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
@@ -277,7 +278,7 @@ import Testing
         profile.maxMealAbsorptionTime = 2 // 2 hour window
         let basalProfile = createBasicBasalProfile()
 
-        let result = MealTotal.recentCarbs(
+        let result = try MealTotal.recentCarbs(
             treatments: treatments,
             pumpHistory: [],
             profile: profile,
@@ -291,7 +292,7 @@ import Testing
         #expect(result?.mealCOB == 0)
     }
 
-    @Test("should respect maxCOB from profile") func respectMaxCOB() async {
+    @Test("should respect maxCOB from profile") func respectMaxCOB() async throws {
         let baseTime = Date.from(isoString: "2016-06-19T12:00:00-04:00")
         let testTime = Date.from(isoString: "2016-06-19T13:00:00-04:00")
 
@@ -328,7 +329,7 @@ import Testing
         let profile = createBasicProfile()
         let basalProfile = createBasicBasalProfile()
 
-        let result = MealTotal.recentCarbs(
+        let result = try MealTotal.recentCarbs(
             treatments: treatments,
             pumpHistory: [],
             profile: profile,

@@ -217,7 +217,6 @@
 		3B2F77862D7E52ED005ED9FA /* TDD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77852D7E52ED005ED9FA /* TDD.swift */; };
 		3B2F77882D7E5387005ED9FA /* CurrentTDDSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */; };
 		3B3B57C92DA07B3400849D16 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3B57C82DA07B3400849D16 /* GoogleService-Info.plist */; };
-		3B3B57C92DA07B3400849D16 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3B57C82DA07B3400849D16 /* GoogleService-Info.plist */; };
 		3B4196E02D8C4BC00091DFF7 /* HomeStateModel+CGM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4196DF2D8C4BBB0091DFF7 /* HomeStateModel+CGM.swift */; };
 		3B4550532D862C0000551B0D /* PumpHistoryEvent+Duplicates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4550522D862BF200551B0D /* PumpHistoryEvent+Duplicates.swift */; };
 		3B47C6102DA0A28F00B0E5EF /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 3B47C60F2DA0A28F00B0E5EF /* FirebaseCrashlytics */; };
@@ -284,15 +283,16 @@
 		3BA8D1B32DDB87150006191F /* DecimalExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */; };
 		3BAD36B22D7CDC1A00CC298D /* MainLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */; };
 		3BAD36CC2D7D420E00CC298D /* CoreDataInitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */; };
+		3BBB76AA2E01C70B0040977D /* MealCob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BBB76A92E01C7070040977D /* MealCob.swift */; };
 		3BC0AA3B2DA74C87000DF7B7 /* iob-total.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA3A2DA74C87000DF7B7 /* iob-total.js */; };
 		3BC0AA3E2DA817EC000DF7B7 /* iob-calculate.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA3C2DA817EC000DF7B7 /* iob-calculate.js */; };
 		3BC0AA3F2DA817EC000DF7B7 /* iob-history.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA3D2DA817EC000DF7B7 /* iob-history.js */; };
 		3BC0AA412DA8B900000DF7B7 /* iob-history-prepare.js in Resources */ = {isa = PBXBuildFile; fileRef = 3BC0AA402DA8B8F7000DF7B7 /* iob-history-prepare.js */; };
 		3BC26E552D7418830066ACD6 /* IobSuspendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC26E542D7418830066ACD6 /* IobSuspendTests.swift */; };
 		3BC4053B2D931620006A03E9 /* IobJsonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC4053A2D931620006A03E9 /* IobJsonTests.swift */; };
+		3BCA5F7C2DC7B16400A7EAC7 /* pumphistory-with-external.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */; };
 		3BCE75B32D4B38AE009E9453 /* InsulinSensitivities+Convert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */; };
 		3BCE75B52D4B391F009E9453 /* Decimal+rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */; };
-		3BCA5F7C2DC7B16400A7EAC7 /* pumphistory-with-external.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */; };
 		3BD6CE262DC24CFD00FA0472 /* pumphistory-24h-zoned.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */; };
 		3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687B2D8DDD4600899469 /* SlideButton */; };
 		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
@@ -1162,15 +1162,16 @@
 		3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalExtensions.swift; sourceTree = "<group>"; };
 		3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainLoadingView.swift; sourceTree = "<group>"; };
 		3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataInitializationCoordinator.swift; sourceTree = "<group>"; };
+		3BBB76A92E01C7070040977D /* MealCob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCob.swift; sourceTree = "<group>"; };
 		3BC0AA3A2DA74C87000DF7B7 /* iob-total.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-total.js"; sourceTree = "<group>"; };
 		3BC0AA3C2DA817EC000DF7B7 /* iob-calculate.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-calculate.js"; sourceTree = "<group>"; };
 		3BC0AA3D2DA817EC000DF7B7 /* iob-history.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-history.js"; sourceTree = "<group>"; };
 		3BC0AA402DA8B8F7000DF7B7 /* iob-history-prepare.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "iob-history-prepare.js"; sourceTree = "<group>"; };
 		3BC26E542D7418830066ACD6 /* IobSuspendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobSuspendTests.swift; sourceTree = "<group>"; };
 		3BC4053A2D931620006A03E9 /* IobJsonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobJsonTests.swift; sourceTree = "<group>"; };
+		3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-with-external.json"; sourceTree = "<group>"; };
 		3BCE75B22D4B38A0009E9453 /* InsulinSensitivities+Convert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InsulinSensitivities+Convert.swift"; sourceTree = "<group>"; };
 		3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Decimal+rounding.swift"; sourceTree = "<group>"; };
-		3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-with-external.json"; sourceTree = "<group>"; };
 		3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-24h-zoned.json"; sourceTree = "<group>"; };
 		3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorProvider.swift; sourceTree = "<group>"; };
 		3BEA3ADB2D58F79700A67A1D /* AlgorithmComparison.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmComparison.swift; sourceTree = "<group>"; };
@@ -2705,9 +2706,7 @@
 				BD8FC0552D66187700B95AED /* CoreDataTests */,
 				38FCF3F125E9028E0078B0D1 /* Info.plist */,
 				CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */,
-				CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */,
 				38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */,
-				3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */,
 				3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */,
 				CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */,
 				3B5CD2C72D4AECD500CE213C /* OpenAPSSwiftTests */,
@@ -2835,6 +2834,20 @@
 			path = OpenAPSSwiftTests;
 			sourceTree = "<group>";
 		};
+		3B997DD22DC02AEF006B6BB2 /* JSONImporterData */ = {
+			isa = PBXGroup;
+			children = (
+				3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */,
+				DD3C47B22DC5608A003DD20D /* newerSuggested.json */,
+				DDD78AD72DC421B500AC63F3 /* enacted.json */,
+				DDD78AD82DC421B500AC63F3 /* suggested.json */,
+				DDD78A902DC4064800AC63F3 /* carbhistory.json */,
+				3B997DD12DC02AEF006B6BB2 /* glucose.json */,
+				3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */,
+			);
+			path = JSONImporterData;
+			sourceTree = "<group>";
+		};
 		3BEA3ADF2D58F79700A67A1D /* Logging */ = {
 			isa = PBXGroup;
 			children = (
@@ -2880,20 +2893,6 @@
 				3BFA5BF82D989F460072B082 /* MockTDDStorage.swift */,
 			);
 			path = mocks;
-			sourceTree = "<group>";
-		};
-		3B997DD22DC02AEF006B6BB2 /* JSONImporterData */ = {
-			isa = PBXGroup;
-			children = (
-				3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */,
-				DD3C47B22DC5608A003DD20D /* newerSuggested.json */,
-				DDD78AD72DC421B500AC63F3 /* enacted.json */,
-				DDD78AD82DC421B500AC63F3 /* suggested.json */,
-				DDD78A902DC4064800AC63F3 /* carbhistory.json */,
-				3B997DD12DC02AEF006B6BB2 /* glucose.json */,
-				3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */,
-			);
-			path = JSONImporterData;
 			sourceTree = "<group>";
 		};
 		4E8C7B59F8065047ECE20965 /* View */ = {
@@ -3682,9 +3681,10 @@
 		DD9E6DA02D59A11200514CEC /* Meal */ = {
 			isa = PBXGroup;
 			children = (
-				DD9E6DA62D5A694900514CEC /* MealTotal.swift */,
+				3BBB76A92E01C7070040977D /* MealCob.swift */,
 				DD9E6DA42D5A66B500514CEC /* MealGenerator.swift */,
 				DD9E6DA12D59A12200514CEC /* MealHistory.swift */,
+				DD9E6DA62D5A694900514CEC /* MealTotal.swift */,
 			);
 			path = Meal;
 			sourceTree = "<group>";
@@ -4265,7 +4265,6 @@
 				3BF92F322D86DEE9006B545A /* glucose-get-last.js in Resources */,
 				3BF92F332D86DEE9006B545A /* iob.js in Resources */,
 				3BEF6AB52D9750330076089D /* meal-input-sim.json in Resources */,
-				3BF92F342D86DEE9006B545A /* iob-history.js in Resources */,
 				3BF92F352D86DEE9006B545A /* basal-set-temp.js in Resources */,
 				3BF92F362D86DEE9006B545A /* autotune-core.js in Resources */,
 				3BC0AA3B2DA74C87000DF7B7 /* iob-total.js in Resources */,
@@ -4957,6 +4956,7 @@
 				DDE1795A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift in Sources */,
 				DDE1795B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift in Sources */,
 				DDE1795E2C910127003CDDB7 /* PumpEventStored+CoreDataClass.swift in Sources */,
+				3BBB76AA2E01C70B0040977D /* MealCob.swift in Sources */,
 				BDDAF9EF2D00554500B34E7A /* SelectionPopoverView.swift in Sources */,
 				DDE1795F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift in Sources */,
 				DDE179602C910127003CDDB7 /* StatsData+CoreDataClass.swift in Sources */,

@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import Trio
 
-@Suite("Testing meal using JSON inputs") struct MealJsonTests {
+@Suite("Meal testing using JSON inputs") struct MealJsonTests {
     @Test("Test against simulator inputs") func simulatorInputs() throws {
         let testBundle = Bundle(for: BundleReference.self)
         let path = testBundle.path(forResource: "meal-input-sim", ofType: "json")!
@@ -26,7 +26,7 @@ import Testing
         jsonData = (jsonInputs["meal"] as! String).data(using: .utf8)!
         let mealResultFromJs = try decoder.decode(ComputedCarbs.self, from: jsonData)
 
-        let mealResult = MealGeneratorError.generate(
+        let mealResult = try MealGeneratorError.generate(
             pumpHistory: pumpHistory,
             profile: profile,
             basalProfile: basalProfile,
@@ -35,7 +35,14 @@ import Testing
             glucoseHistory: glucoseHistory
         )
 
-        // we need something like this
-        // #expect(mealResult == mealResultFromJs)
+        #expect(mealResult?.mealCOB == mealResultFromJs.mealCOB)
+        #expect(mealResult?.carbs == mealResultFromJs.carbs)
+        #expect(mealResult?.nsCarbs == mealResultFromJs.nsCarbs)
+        #expect(mealResult?.currentDeviation == mealResultFromJs.currentDeviation)
+        // https://github.com/nightscout/Trio-dev/issues/539
+        // Ignore this check due to Issue 539
+        //#expect(mealResult?.allDeviations == mealResultFromJs.allDeviations)
+        #expect(mealResult?.maxDeviation == mealResultFromJs.maxDeviation)
+        #expect(mealResult?.minDeviation == mealResultFromJs.minDeviation)
     }
 }
