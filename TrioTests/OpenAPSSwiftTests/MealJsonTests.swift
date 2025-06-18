@@ -41,7 +41,7 @@ import Testing
         #expect(mealResult?.currentDeviation == mealResultFromJs.currentDeviation)
         // https://github.com/nightscout/Trio-dev/issues/539
         // Ignore this check due to Issue 539
-        //#expect(mealResult?.allDeviations == mealResultFromJs.allDeviations)
+        // #expect(mealResult?.allDeviations == mealResultFromJs.allDeviations)
         #expect(mealResult?.maxDeviation == mealResultFromJs.maxDeviation)
         #expect(mealResult?.minDeviation == mealResultFromJs.minDeviation)
     }

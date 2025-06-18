@@ -296,6 +296,8 @@
 		3BD6CE262DC24CFD00FA0472 /* pumphistory-24h-zoned.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */; };
 		3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687B2D8DDD4600899469 /* SlideButton */; };
 		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
+		3BE2F1E82E030E2F009E2900 /* MealCobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE2F1E72E030E2F009E2900 /* MealCobTests.swift */; };
+		3BE2F1EA2E031951009E2900 /* MealCobBucketingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE2F1E92E031951009E2900 /* MealCobBucketingTests.swift */; };
 		3BEA3AE02D58F79700A67A1D /* OrefFunction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BEA3ADE2D58F79700A67A1D /* OrefFunction.swift */; };
 		3BEA3AE12D58F79700A67A1D /* AlgorithmComparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BEA3ADB2D58F79700A67A1D /* AlgorithmComparison.swift */; };
 		3BEA3AE22D58F79700A67A1D /* JsSwiftOrefComparisonLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BEA3ADD2D58F79700A67A1D /* JsSwiftOrefComparisonLogger.swift */; };
@@ -1174,6 +1176,8 @@
 		3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Decimal+rounding.swift"; sourceTree = "<group>"; };
 		3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-24h-zoned.json"; sourceTree = "<group>"; };
 		3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TargetsEditorProvider.swift; sourceTree = "<group>"; };
+		3BE2F1E72E030E2F009E2900 /* MealCobTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCobTests.swift; sourceTree = "<group>"; };
+		3BE2F1E92E031951009E2900 /* MealCobBucketingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCobBucketingTests.swift; sourceTree = "<group>"; };
 		3BEA3ADB2D58F79700A67A1D /* AlgorithmComparison.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlgorithmComparison.swift; sourceTree = "<group>"; };
 		3BEA3ADC2D58F79700A67A1D /* JSONCompare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONCompare.swift; sourceTree = "<group>"; };
 		3BEA3ADD2D58F79700A67A1D /* JsSwiftOrefComparisonLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsSwiftOrefComparisonLogger.swift; sourceTree = "<group>"; };
@@ -2821,6 +2825,8 @@
 				3BC26E542D7418830066ACD6 /* IobSuspendTests.swift */,
 				3B1C5C382D68E269004E9273 /* IobTotalTests.swift */,
 				3BF8D14A2D530397001B3F84 /* JSONCompareTests.swift */,
+				3BE2F1E92E031951009E2900 /* MealCobBucketingTests.swift */,
+				3BE2F1E72E030E2F009E2900 /* MealCobTests.swift */,
 				3BEF6AB02D9731530076089D /* MealHistoryTests.swift */,
 				3BEF6AB62D9750710076089D /* MealJsonTests.swift */,
 				3BEF6AB22D97316A0076089D /* MealTotalTests.swift */,
@@ -5012,6 +5018,7 @@
 				3BEF6AB12D9731660076089D /* MealHistoryTests.swift in Sources */,
 				BD8FC0572D66188700B95AED /* PumpHistoryStorageTests.swift in Sources */,
 				BD8FC0642D6619EF00B95AED /* TempTargetStorageTests.swift in Sources */,
+				3BE2F1E82E030E2F009E2900 /* MealCobTests.swift in Sources */,
 				BD8FC0542D66186000B95AED /* TestError.swift in Sources */,
 				CEE9A65E2BBC9F6500EB5194 /* CalibrationsTests.swift in Sources */,
 				BD8FC0622D6619E600B95AED /* OverrideStorageTests.swift in Sources */,
@@ -5026,6 +5033,7 @@
 				3BF92F382D86E10B006B545A /* OpenAPSFixed.swift in Sources */,
 				3B1C5C442D68E269004E9273 /* IobJsonTypes.swift in Sources */,
 				3B1C5C452D68E269004E9273 /* IobTotalTests.swift in Sources */,
+				3BE2F1EA2E031951009E2900 /* MealCobBucketingTests.swift in Sources */,
 				3B1C5C472D68E269004E9273 /* IobCalculateTests.swift in Sources */,
 				3B1C5C482D68E269004E9273 /* IobHistoryTests.swift in Sources */,
 				3BC4053B2D931620006A03E9 /* IobJsonTests.swift in Sources */,

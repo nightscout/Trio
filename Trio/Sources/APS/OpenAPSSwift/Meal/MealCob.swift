@@ -55,7 +55,8 @@ struct MealCob {
     }
 
     /// Groups glucose readings into time buckets with interpolation for missing data points
-    private static func bucketGlucoseForCob(
+    /// Make this non-private to expose for test cases
+    static func bucketGlucoseForCob(
         glucose: [BloodGlucose],
         profile: Profile,
         mealDate: Date,
@@ -120,8 +121,10 @@ struct MealCob {
 
                 while remainingMinutes > 5 {
                     let previousBgTime = interpolationTime.addingTimeInterval(-5 * 60)
-                    let gapDelta = currentGlucose.glucose - lastBg
-                    let previousBg = interpolationBg + (5 / cappedElapsedMinutes * gapDelta)
+
+                    // Recalculate gapDelta using the current interpolationBg (like JS updates lastbg)
+                    let gapDelta = currentGlucose.glucose - interpolationBg
+                    let previousBg = interpolationBg + (5 / remainingMinutes * gapDelta)
 
                     bucketedData.append(BucketedGlucose(
                         glucose: previousBg.rounded(),
@@ -129,7 +132,7 @@ struct MealCob {
                     ))
 
                     remainingMinutes -= 5
-                    interpolationBg = previousBg
+                    interpolationBg = previousBg // Update reference point for next iteration
                     interpolationTime = previousBgTime
                 }
             } else if abs(elapsedMinutes) > 2 {
