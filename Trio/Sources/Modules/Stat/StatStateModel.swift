@@ -217,9 +217,9 @@ extension Stat.StateModel {
     /// Defines the available types of glucose charts
     enum GlucoseChartType: String, CaseIterable {
         /// Ambulatory Glucose Profile showing percentile ranges
-        case percentileByTime = "Percentile (over time)"
+        case percentileByTime = "Percentile"
         /// Time-based distribution of glucose ranges
-        case distributionByTime = "Distribution (over time)"
+        case distributionByTime = "Distribution"
         /// Day-based box plot of glucose percentile ranges
         case percentileByDay = "Percentile (by day)"
         /// Day-based distribution of glucose ranges
@@ -228,9 +228,9 @@ extension Stat.StateModel {
         var displayName: String {
             switch self {
             case .percentileByTime:
-                return String(localized: "Percentile (over time)")
+                return String(localized: "Percentile")
             case .distributionByTime:
-                return String(localized: "Distribution (over time)")
+                return String(localized: "Distribution")
             case .percentileByDay:
                 return String(localized: "Percentile (by day)")
             case .distributionByDay:
