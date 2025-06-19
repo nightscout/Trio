@@ -4,6 +4,12 @@ struct ComputedInsulinSensitivities: Codable {
     let units: GlucoseUnits
     let userPreferredUnits: GlucoseUnits
     let sensitivities: [ComputedInsulinSensitivityEntry]
+
+    func toInsulinSensitivities() -> InsulinSensitivities {
+        let sensitivities = self.sensitivities
+            .map { InsulinSensitivityEntry(sensitivity: $0.sensitivity, offset: $0.offset, start: $0.start) }
+        return InsulinSensitivities(units: units, userPreferredUnits: userPreferredUnits, sensitivities: sensitivities)
+    }
 }
 
 extension ComputedInsulinSensitivities {
