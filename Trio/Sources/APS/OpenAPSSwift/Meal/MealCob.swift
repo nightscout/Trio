@@ -69,6 +69,10 @@ struct MealCob {
         let stepSize = Decimal(5.minutesToSeconds)
 
         // I'm skipping the 4 hour limit from JS
+        // Note: in the JS implementation it does not add the `glucose`
+        // value to the bucket, so we will retain this behavior here
+        // to ensure mostly consistent timing between samples. In other
+        // words, JS only adds interpolated values, not the actual reading
         let interpolatedValues = stride(from: stepSize, to: timeBetweenSamples, by: stepSize).map { time in
             let newGlucose = lastBucket.glucose + slope * time
             let newDate = lastBucket.date - TimeInterval(time)
