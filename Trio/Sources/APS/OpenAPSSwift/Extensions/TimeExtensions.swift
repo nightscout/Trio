@@ -14,6 +14,10 @@ extension Decimal {
     var minutesToSeconds: TimeInterval {
         Double(self * 60)
     }
+
+    var hoursToSeconds: TimeInterval {
+        Double(minutesToSeconds * 60)
+    }
 }
 
 extension TimeInterval {

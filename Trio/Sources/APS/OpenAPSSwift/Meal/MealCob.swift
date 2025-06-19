@@ -2,9 +2,17 @@ import Foundation
 
 struct MealCob {
     /// Internal structure to keep track of bucketed glucose values
-    struct BucketedGlucose {
+    struct BucketedGlucose: Codable {
         let glucose: Decimal
         let date: Date
+        let samplesInBucket: Int
+
+        func average(adding glucose: BucketedGlucose) -> BucketedGlucose {
+            let total = Decimal(samplesInBucket) * self.glucose + glucose.glucose
+            let numSamples = samplesInBucket + 1
+            let newGlucoseAverage = total / Decimal(numSamples)
+            return BucketedGlucose(glucose: newGlucoseAverage, date: date, samplesInBucket: numSamples)
+        }
     }
 
     /// Result structure for carb absorption detection
@@ -54,6 +62,22 @@ struct MealCob {
         )
     }
 
+    private static func interpolateGlucose(lastBucket: BucketedGlucose, glucose: BucketedGlucose) -> [BucketedGlucose] {
+        let deltaGlucose = glucose.glucose - lastBucket.glucose
+        let timeBetweenSamples = Decimal(lastBucket.date.timeIntervalSince(glucose.date))
+        let slope = deltaGlucose / timeBetweenSamples
+        let stepSize = Decimal(5.minutesToSeconds)
+
+        // I'm skipping the 4 hour limit from JS
+        let interpolatedValues = stride(from: stepSize, to: timeBetweenSamples, by: stepSize).map { time in
+            let newGlucose = lastBucket.glucose + slope * time
+            let newDate = lastBucket.date - TimeInterval(time)
+            return BucketedGlucose(glucose: newGlucose, date: newDate, samplesInBucket: 1)
+        }
+
+        return interpolatedValues
+    }
+
     /// Groups glucose readings into time buckets with interpolation for missing data points
     /// Make this non-private to expose for test cases
     static func bucketGlucoseForCob(
@@ -62,93 +86,44 @@ struct MealCob {
         mealDate: Date,
         ciDate: Date?
     ) throws -> [BucketedGlucose] {
-        let glucoseData = glucose.compactMap({ (bg: BloodGlucose) -> BucketedGlucose? in
+        var glucoseData = glucose.compactMap({ (bg: BloodGlucose) -> BucketedGlucose? in
             guard let glucose = bg.glucose ?? bg.sgv else { return nil }
-            return BucketedGlucose(glucose: Decimal(glucose), date: bg.dateString)
+            return BucketedGlucose(glucose: Decimal(glucose), date: bg.dateString, samplesInBucket: 1)
         })
 
-        guard let first = glucoseData.first else { return [] }
+        var bucketedData: [BucketedGlucose] = []
 
-        var bucketedData = [first]
-        var foundPreMealBG = false
-        var lastBgIndex = 0
+        // make sure that all of our samples are later than the meal and
+        // before the maxMealAbsorptionTime expires. We also added a
+        // >= 39 glucose check from Javascript
+        let mealDoneDate = mealDate + profile.maxMealAbsorptionTime.hoursToSeconds
+        glucoseData = glucoseData.filter { $0.date >= mealDate && $0.date <= mealDoneDate && $0.glucose >= 39 }
 
-        for i in 1 ..< glucoseData.count {
-            let currentGlucose = glucoseData[i]
-            let bgTime = currentGlucose.date
+        // Only consider last ~45m of data in CI mode
+        // this allows us to calculate deviations for the last ~30m
+        if let ciDate = ciDate {
+            glucoseData = glucoseData.filter { ciDate >= $0.date && ciDate.timeIntervalSince($0.date) <= 45.minutesToSeconds }
+        }
 
-            // Skip invalid glucose readings
-            guard currentGlucose.glucose >= 39 else {
+        for glucose in glucoseData {
+            guard let lastBucket = bucketedData.last else {
+                bucketedData.append(glucose)
                 continue
             }
-
-            // Only consider BGs for maxMealAbsorptionTime hours after a meal
-            let hoursAfterMeal = Decimal(bgTime.timeIntervalSince(mealDate)) / 3600
-            if hoursAfterMeal > profile.maxMealAbsorptionTime || foundPreMealBG {
-                continue
-            } else if hoursAfterMeal < 0 {
-                foundPreMealBG = true
-            }
-
-            // In CI mode, only consider last ~45m of data
-            if let ciDate = ciDate {
-                let hoursAgo = ciDate.timeIntervalSince(bgTime) / (45 * 60)
-                if hoursAgo > 1 || hoursAgo < 0 {
-                    continue
-                }
-            }
-
-            // Determine last BG time
-            let lastBgTime: Date
-            if let lastDate = bucketedData.last?.date {
-                lastBgTime = lastDate
-            } else if lastBgIndex < glucoseData.count, lastBgIndex >= 0 {
-                lastBgTime = glucoseData[lastBgIndex].date
+            let timeBetweenSamples = lastBucket.date.timeIntervalSince(glucose.date)
+            let elapsedTime = timeBetweenSamples > 4.hoursToSeconds ? 4.hoursToSeconds : timeBetweenSamples
+            if elapsedTime > 8.minutesToSeconds {
+                // interpolate
+                let interpolatedGlucose = interpolateGlucose(lastBucket: lastBucket, glucose: glucose)
+                bucketedData.append(contentsOf: interpolatedGlucose)
+            } else if elapsedTime > 2.minutesToSeconds {
+                // add the new sample
+                bucketedData.append(BucketedGlucose(glucose: glucose.glucose, date: glucose.date, samplesInBucket: 1))
             } else {
-                throw CobError.couldNotDetermineLastBgTime
+                // average
+                bucketedData = Array(bucketedData.dropLast())
+                bucketedData.append(lastBucket.average(adding: glucose))
             }
-
-            let elapsedMinutes = bgTime.timeIntervalSince(lastBgTime) / 60
-
-            if abs(elapsedMinutes) > 8 {
-                // Interpolate missing data points
-                let lastBg = bucketedData.last?.glucose ?? glucoseData[lastBgIndex].glucose
-                // Cap interpolation at a maximum of 4h
-                let cappedElapsedMinutes = Decimal(min(240, abs(elapsedMinutes)))
-                var remainingMinutes = cappedElapsedMinutes
-                var interpolationTime = lastBgTime
-                var interpolationBg = lastBg
-
-                while remainingMinutes > 5 {
-                    let previousBgTime = interpolationTime.addingTimeInterval(-5 * 60)
-
-                    // Recalculate gapDelta using the current interpolationBg (like JS updates lastbg)
-                    let gapDelta = currentGlucose.glucose - interpolationBg
-                    let previousBg = interpolationBg + (5 / remainingMinutes * gapDelta)
-
-                    bucketedData.append(BucketedGlucose(
-                        glucose: previousBg.rounded(),
-                        date: previousBgTime
-                    ))
-
-                    remainingMinutes -= 5
-                    interpolationBg = previousBg // Update reference point for next iteration
-                    interpolationTime = previousBgTime
-                }
-            } else if abs(elapsedMinutes) > 2 {
-                bucketedData.append(currentGlucose)
-            } else {
-                // Average with previous reading
-                if let lastIndex = bucketedData.indices.last {
-                    let averageGlucose = (bucketedData[lastIndex].glucose + currentGlucose.glucose) / 2
-                    bucketedData[lastIndex] = BucketedGlucose(
-                        glucose: averageGlucose,
-                        date: bucketedData[lastIndex].date
-                    )
-                }
-            }
-
-            lastBgIndex = i
         }
 
         return bucketedData
