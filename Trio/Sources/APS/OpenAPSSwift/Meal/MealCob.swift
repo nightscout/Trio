@@ -151,7 +151,8 @@ struct MealCob {
         var allDeviations: [Decimal] = []
 
         // Process bucketed data (excluding last 3 entries to avoid incomplete deltas)
-        for i in 0 ..< (bucketedData.count - 3) {
+        // If bucketed data < 4, skips loop and just returns default values, matching JS behavior
+        for i in 0 ..< max(0, bucketedData.count - 3) {
             let bgTime = bucketedData[i].date
             let bg = bucketedData[i].glucose
 
