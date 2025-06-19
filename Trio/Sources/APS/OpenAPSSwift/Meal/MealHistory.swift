@@ -4,11 +4,8 @@ import Foundation
 struct MealInput {
     let timestamp: Date
     var carbs: Decimal? /// `current.carbs`
-    var nsCarbs: Decimal? /// `current.carbs` in NS
     var bolus: Decimal? /// from `current.amount` in Bolus events
-    var journalCarbs: Decimal?
-    var bwCarbs: Decimal?
-    // TODO: we probably do not need nsCarbs, journalCarbs, and bwCarbs
+    /// omitting nsCarbs, bwCarbs, journalCarbs
 }
 
 enum MealHistory {
@@ -16,12 +13,12 @@ enum MealHistory {
     /// and a non-nil property given by propName ("carbs", "bolus", etc.).
     static func arrayHasElementWithSameTimestampAndProperty(
         mealInputs: [MealInput],
-        t: Date,
+        dateTime: Date,
         propName: String
     ) -> Bool {
         // Create upper and lower bound, i.e. ± 2 seconds around t
-        let tMin = t.addingTimeInterval(-2)
-        let tMax = t.addingTimeInterval(2)
+        let tMin = dateTime.addingTimeInterval(-2)
+        let tMax = dateTime.addingTimeInterval(2)
 
         return mealInputs.contains { input in
             // Timestamp close enough?
@@ -66,15 +63,12 @@ enum MealHistory {
                 let temp = MealInput(
                     timestamp: current.createdAt,
                     carbs: current.carbs,
-                    nsCarbs: current.carbs,
-                    bolus: nil,
-                    journalCarbs: nil,
-                    bwCarbs: nil
+                    bolus: nil
                 )
 
                 if !arrayHasElementWithSameTimestampAndProperty(
                     mealInputs: mealInputs,
-                    t: current.createdAt,
+                    dateTime: current.createdAt,
                     propName: "carbs"
                 ) {
                     mealInputs.append(temp)
@@ -87,19 +81,16 @@ enum MealHistory {
         // Process pumpHistory
         for current in pumpHistory {
             // bolus event handling
-            if current.type == .bolus, let amt = current.amount {
+            if current.type == .bolus, let amount = current.amount {
                 let temp = MealInput(
                     timestamp: current.timestamp,
                     carbs: nil,
-                    nsCarbs: nil,
-                    bolus: amt,
-                    journalCarbs: nil,
-                    bwCarbs: nil
+                    bolus: amount
                 )
 
                 if !arrayHasElementWithSameTimestampAndProperty(
                     mealInputs: mealInputs,
-                    t: current.timestamp,
+                    dateTime: current.timestamp,
                     propName: "bolus"
                 ) {
                     mealInputs.append(temp)

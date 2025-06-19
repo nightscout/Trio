@@ -2,9 +2,6 @@ import Foundation
 
 struct ComputedCarbs: Codable {
     var carbs: Decimal
-    var nsCarbs: Decimal
-    var bwCarbs: Decimal
-    var journalCarbs: Decimal
     var mealCOB: Decimal
     var currentDeviation: Decimal
     var maxDeviation: Decimal
@@ -13,7 +10,6 @@ struct ComputedCarbs: Codable {
     var slopeFromMinDeviation: Decimal
     var allDeviations: [Decimal]
     var lastCarbTime: TimeInterval
-    var bwFound: Bool
 }
 
 struct IOBInput {
@@ -42,12 +38,8 @@ enum MealTotal {
 
         var _treatments = treatments
         var carbs = Decimal(0)
-        var nsCarbs = Decimal(0)
-        var bwCarbs = Decimal(0)
-        var journalCarbs = Decimal(0)
         let mealCarbTime: TimeInterval = time.timeIntervalSince1970
         var lastCarbTime: TimeInterval = 0
-        var bwFound: Bool = false
 
         let iobInputs = IOBInput(profile: profile, history: pumpHistory)
         var cobInputs = COBInputs(
@@ -63,9 +55,6 @@ enum MealTotal {
         })
 
         var carbsToRemove = Decimal(0)
-        var nsCarbsToRemove = Decimal(0)
-        var bwCarbsToRemove = Decimal(0)
-        var journalCarbsToRemove = Decimal(0)
 
         for treatment in _treatments {
             let now = time.timeIntervalSince1970
@@ -78,17 +67,6 @@ enum MealTotal {
 
             if treatmentTime > carbWindow, treatmentTime <= now {
                 if var _carbs = treatment.carbs, _carbs >= 1 {
-                    if var _nsCarbs = treatment.nsCarbs, _nsCarbs >= 1 {
-                        nsCarbs += _nsCarbs
-                    } else if var _bwCarbs = treatment.bwCarbs, _bwCarbs >= 1 {
-                        bwCarbs += _bwCarbs
-                        bwFound = true
-                    } else if var _journalCarbs = treatment.journalCarbs, _journalCarbs >= 1 {
-                        journalCarbs += _journalCarbs
-                    } else {
-                        print("Treatment carbs unclassified: \(treatment)")
-                    }
-
                     carbs += _carbs
 
                     cobInputs.mealDate = treatmentDate
@@ -109,17 +87,8 @@ enum MealTotal {
 
                     if myMealCOB < mealCOB {
                         carbsToRemove += treatment.carbs ?? 0
-                        if var _nsCarbs = treatment.nsCarbs, nsCarbs >= 1 {
-                            nsCarbsToRemove += _nsCarbs
-                        } else if var _bwCarbs = treatment.bwCarbs, bwCarbs >= 1 {
-                            bwCarbsToRemove += _bwCarbs
-                        } else if var _journalCarbs = treatment.journalCarbs, journalCarbs >= 1 {
-                            journalCarbsToRemove += _journalCarbs
-                        }
                     } else {
                         carbsToRemove = 0
-                        nsCarbsToRemove = 0
-                        bwCarbsToRemove = 0
                     }
                 }
             }
@@ -127,9 +96,6 @@ enum MealTotal {
 
         // only include carbs actually used in calculating COB
         carbs -= carbsToRemove
-        nsCarbs -= nsCarbsToRemove
-        bwCarbs -= bwCarbsToRemove
-        journalCarbs -= journalCarbsToRemove
 
         // calculate the current deviation and steepest deviation downslope over the last hour
         cobInputs.ciDate = time
@@ -155,9 +121,6 @@ enum MealTotal {
 
         return ComputedCarbs(
             carbs: carbs,
-            nsCarbs: nsCarbs,
-            bwCarbs: bwCarbs,
-            journalCarbs: journalCarbs,
             mealCOB: mealCOB,
             currentDeviation: finalCobResult.currentDeviation.rounded(scale: 2),
             maxDeviation: finalCobResult.maxDeviation.rounded(scale: 2),
@@ -165,8 +128,7 @@ enum MealTotal {
             slopeFromMaxDeviation: finalCobResult.slopeFromMaxDeviation.rounded(scale: 3),
             slopeFromMinDeviation: finalCobResult.slopeFromMinDeviation.rounded(scale: 3),
             allDeviations: finalCobResult.allDeviations,
-            lastCarbTime: lastCarbTime,
-            bwFound: bwFound
+            lastCarbTime: lastCarbTime
         )
     }
 }

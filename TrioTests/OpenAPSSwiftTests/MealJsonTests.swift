@@ -37,7 +37,6 @@ import Testing
 
         #expect(mealResult?.mealCOB == mealResultFromJs.mealCOB)
         #expect(mealResult?.carbs == mealResultFromJs.carbs)
-        #expect(mealResult?.nsCarbs == mealResultFromJs.nsCarbs)
         #expect(mealResult?.currentDeviation == mealResultFromJs.currentDeviation)
         // https://github.com/nightscout/Trio-dev/issues/539
         // Ignore this check due to Issue 539

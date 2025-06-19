@@ -18,7 +18,6 @@ import Testing
 
         #expect(output.count == 1)
         #expect(output[0].carbs == 20)
-        #expect(output[0].nsCarbs == 20)
         #expect(output[0].timestamp == Date.from(isoString: "2016-06-19T12:00:00-04:00"))
     }
 

@@ -74,18 +74,12 @@ import Testing
             MealInput(
                 timestamp: mealTime,
                 carbs: 30,
-                nsCarbs: 30,
-                bolus: nil,
-                journalCarbs: nil,
-                bwCarbs: nil
+                bolus: nil
             ),
             MealInput(
                 timestamp: mealTime,
                 carbs: nil,
-                nsCarbs: nil,
-                bolus: 3,
-                journalCarbs: nil,
-                bwCarbs: nil
+                bolus: 3
             )
         ]
 
@@ -141,10 +135,7 @@ import Testing
             MealInput(
                 timestamp: baseTime,
                 carbs: 20,
-                nsCarbs: 20,
-                bolus: nil,
-                journalCarbs: nil,
-                bwCarbs: nil
+                bolus: nil
             )
         ]
 
@@ -181,7 +172,6 @@ import Testing
 
         #expect(result != nil)
         #expect(result?.carbs == 20)
-        #expect(result?.nsCarbs == 20)
         #expect(result?.currentDeviation.isWithin(0.1, of: 0.67) == true)
         #expect(result?.mealCOB == 14)
     }
@@ -195,10 +185,7 @@ import Testing
             MealInput(
                 timestamp: treatmentTime,
                 carbs: 20,
-                nsCarbs: 20,
-                bolus: nil,
-                journalCarbs: nil,
-                bwCarbs: nil
+                bolus: nil
             )
         ]
 
@@ -248,10 +235,7 @@ import Testing
             MealInput(
                 timestamp: treatmentTime,
                 carbs: 20,
-                nsCarbs: 20,
-                bolus: nil,
-                journalCarbs: nil,
-                bwCarbs: nil
+                bolus: nil
             )
         ]
 
@@ -300,10 +284,7 @@ import Testing
             MealInput(
                 timestamp: baseTime,
                 carbs: 200,
-                nsCarbs: 200,
-                bolus: nil,
-                journalCarbs: nil,
-                bwCarbs: nil
+                bolus: nil
             )
         ]
 
