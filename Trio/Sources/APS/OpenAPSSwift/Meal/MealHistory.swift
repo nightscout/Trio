@@ -13,12 +13,19 @@ struct MealInput {
     }
 }
 
-enum MealHistory {
-    private struct MealInputKey: Hashable {
-        let timestamp: Date
-        let type: MealInput.InputType
-    }
+private struct MealInputKey: Hashable {
+    let timestamp: Date
+    let type: MealInput.InputType
+}
 
+enum MealHistory {
+    /// Converts carb and bolus records into a single, chronological list of MealInput,
+    /// removing any duplicate entries of the same type whose timestamps are within ±2 seconds.
+    /// - Parameters:
+    ///   - pumpHistory: Array of PumpHistoryEvent (bolus events)
+    ///   - carbHistory: Array of CarbsEntry (carb treatments)
+    /// - Returns: A deduplicated array of MealInput, preserving original order but collapsing
+    ///            any carb or bolus events that occur within 2 seconds of an earlier one.
     static func findMealInputs(
         pumpHistory: [PumpHistoryEvent],
         carbHistory: [CarbsEntry]

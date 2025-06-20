@@ -26,6 +26,40 @@ struct COBInputs {
 }
 
 enum MealTotal {
+    /// Calculates the effective carbohydrates on board (COB) and glucose deviations
+    /// resulting from recent meal entries within the user’s absorption window.
+    ///
+    /// This function:
+    /// 1. Filters `treatments` to only those within `profile.maxMealAbsorptionTime` hours before `time`.
+    /// 2. Iterates each carb entry (≥1 g), calling `MealCob.detectCarbAbsorption` in CI mode
+    ///    (last ~45 min) to estimate how much of the accumulated carbs remain unabsorbed,
+    ///    tracking the peak “COB driver” and removing any extra carbs that never drove COB.
+    /// 3. Subtracts out those “extra” carbs to yield the true total carbs counted.
+    /// 4. Performs a final COB + deviation pass anchored at the earliest valid carb timestamp,
+    ///    again in CI mode, to compute:
+    ///    – `currentDeviation`, `maxDeviation`, `minDeviation`,
+    ///    – `slopeFromMaxDeviation`, `slopeFromMinDeviation`,
+    ///    – the full series `allDeviations`,
+    ///    – and applies profile caps (`maxCOB`) and “zombie‐carb” safety (zero COB if no dev).
+    ///
+    /// - Parameters:
+    ///   - treatments:   list of past carb-and-bolus `MealInput` events
+    ///   - pumpHistory:  insulin pump history for IOB calculations
+    ///   - profile:      user profile (carb ratio, ISF, maxMealAbsorptionTime, maxCOB, etc.)
+    ///   - basalProfile: basal insulin schedule
+    ///   - glucose:      BG readings used to bucket and compute deviations
+    ///   - time:         the “now” timestamp at which to evaluate COB & deviations
+    ///
+    /// - Returns:
+    ///   A `ComputedCarbs` struct containing:
+    ///     • `carbs` – total carbs counted
+    ///     • `mealCOB` – carbs on board at peak
+    ///     • `currentDeviation`, `maxDeviation`, `minDeviation`
+    ///     • `slopeFromMaxDeviation`, `slopeFromMinDeviation`
+    ///     • `allDeviations` – the deviation history
+    ///     • `lastCarbTime` – timestamp of the most recent carb used
+    ///
+    /// - Throws: any errors from `MealCob.detectCarbAbsorption`.
     static func recentCarbs(
         treatments: [MealInput],
         pumpHistory: [PumpHistoryEvent],
@@ -36,7 +70,10 @@ enum MealTotal {
     ) throws -> ComputedCarbs? {
         guard treatments.isNotEmpty else { return nil }
 
+        // Re-assign to a var, so it can be sorted
         var _treatments = treatments
+
+        // Define defaults
         var carbs = Decimal(0)
         let mealCarbTime: TimeInterval = time.timeIntervalSince1970
         var lastCarbTime: TimeInterval = 0
@@ -60,13 +97,13 @@ enum MealTotal {
             let now = time.timeIntervalSince1970
 
             // Use new maxMealAbsorptionTime setting here instead of default 6 hrs
-            var carbWindow = now - TimeInterval(hours: Double(truncating: profile.maxMealAbsorptionTime as NSNumber))
+            let carbWindow = now - TimeInterval(hours: Double(truncating: profile.maxMealAbsorptionTime as NSNumber))
 
             let treatmentDate = treatment.timestamp
             let treatmentTime = treatmentDate.timeIntervalSince1970
 
             if treatmentTime > carbWindow, treatmentTime <= now {
-                if var _carbs = treatment.carbs, _carbs >= 1 {
+                if let _carbs = treatment.carbs, _carbs >= 1 {
                     carbs += _carbs
 
                     cobInputs.mealDate = treatmentDate

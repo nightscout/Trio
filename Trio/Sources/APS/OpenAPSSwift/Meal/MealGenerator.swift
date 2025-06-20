@@ -9,7 +9,7 @@ enum MealGeneratorError {
         carbHistory: [CarbsEntry],
         glucoseHistory: [BloodGlucose]
     ) throws -> ComputedCarbs? {
-        var treatments: [MealInput] = MealHistory.findMealInputs(pumpHistory: pumpHistory, carbHistory: carbHistory)
+        let treatments: [MealInput] = MealHistory.findMealInputs(pumpHistory: pumpHistory, carbHistory: carbHistory)
 
         // TODO: do we need to handle the clock timezone handling? We'll parse in a proper Swift Date anyhow
 
