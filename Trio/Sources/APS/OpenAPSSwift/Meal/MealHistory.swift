@@ -6,113 +6,69 @@ struct MealInput {
     var carbs: Decimal? /// `current.carbs`
     var bolus: Decimal? /// from `current.amount` in Bolus events
     /// omitting nsCarbs, bwCarbs, journalCarbs
+
+    enum InputType: String {
+        case carbs
+        case bolus
+    }
 }
 
 enum MealHistory {
-    /// Checks if `array` contains a MealInput with an entry that is ± 2 seconds around `t`.
-    /// and a non-nil property given by propName ("carbs", "bolus", etc.).
-    static func arrayHasElementWithSameTimestampAndProperty(
-        mealInputs: [MealInput],
-        dateTime: Date,
-        propName: String
-    ) -> Bool {
-        // Create upper and lower bound, i.e. ± 2 seconds around t
-        let tMin = dateTime.addingTimeInterval(-2)
-        let tMax = dateTime.addingTimeInterval(2)
-
-        return mealInputs.contains { input in
-            // Timestamp close enough?
-            guard input.timestamp >= tMin, input.timestamp <= tMax else {
-                return false
-            }
-
-            // Check the property name
-            switch propName {
-            case "carbs":
-                return input.carbs != nil
-            case "bolus":
-                return input.bolus != nil
-            default:
-                return false
-            }
-        }
+    private struct MealInputKey: Hashable {
+        let timestamp: Date
+        let type: MealInput.InputType
     }
 
-    // the overall function signature (from oref) should be this one:
-    //    static func findMealInputs(
-    //        pumpHistory: [PumpHistoryEvent],
-    //        profile _: Profile,
-    //        basalProfile _: [BasalProfileEntry],
-    //        clock _: Date,
-    //        carbHistory: [CarbsEntry],
-    //        glucoseHistory _: [BloodGlucose]
-    //    ) -> [MealInput] {
-    // however, we only require pumpHistory and carbHistory, so omiting the unused parameters
     static func findMealInputs(
         pumpHistory: [PumpHistoryEvent],
         carbHistory: [CarbsEntry]
     ) -> [MealInput] {
-        var mealInputs: [MealInput] = []
-        var duplicates = 0
+        let carbInputs = carbHistory.compactMap { entry -> MealInput? in
+            guard entry.carbs > 0 else { return nil }
+            return MealInput(
+                timestamp: entry.createdAt,
+                carbs: entry.carbs,
+                bolus: nil
+            )
+        }
 
-        // Process carbHistory
-        for current in carbHistory {
-            // The JS code checks `if (current.carbs && current.created_at)`
-            // In Swift, that's basically "non-nil carbs" and we rely on the type's Date.
-            if current.carbs > 0 {
-                let temp = MealInput(
-                    timestamp: current.createdAt,
-                    carbs: current.carbs,
-                    bolus: nil
-                )
+        let bolusInputs = pumpHistory.compactMap { ev -> MealInput? in
+            guard ev.type == .bolus, let amt = ev.amount else { return nil }
+            return MealInput(
+                timestamp: ev.timestamp,
+                carbs: nil,
+                bolus: amt
+            )
+        }
 
-                if !arrayHasElementWithSameTimestampAndProperty(
-                    mealInputs: mealInputs,
-                    dateTime: current.createdAt,
-                    propName: "carbs"
-                ) {
-                    mealInputs.append(temp)
-                } else {
-                    duplicates += 1
-                }
+        let combinedIputs = carbInputs + bolusInputs
+        var seenBuckets: [MealInput.InputType: Set<Int>] = [
+            .carbs: Set(),
+            .bolus: Set()
+        ]
+
+        var dedupedInputs: [MealInput] = []
+        dedupedInputs.reserveCapacity(combinedIputs.count)
+
+        for input in combinedIputs {
+            let type: MealInput.InputType = input.carbs != nil ? .carbs : .bolus
+            let tSec = Int(input.timestamp.timeIntervalSince1970)
+
+            // check if any second in [tSec-2 ... tSec+2] is already in our bucket
+            let bucket = seenBuckets[type]!
+            let isDuplicate = (tSec - 2 ... tSec + 2).contains { bucket.contains($0) }
+
+            if !isDuplicate {
+                dedupedInputs.append(input)
+
+                /// copies out bucket, mutates it, writes it back
+                /// ensuring every entry exists at least once, but is properly deduped
+                var newBucket = bucket
+                newBucket.insert(tSec)
+                seenBuckets[type] = newBucket
             }
         }
 
-        // Process pumpHistory
-        for current in pumpHistory {
-            // bolus event handling
-            if current.type == .bolus, let amount = current.amount {
-                let temp = MealInput(
-                    timestamp: current.timestamp,
-                    carbs: nil,
-                    bolus: amount
-                )
-
-                if !arrayHasElementWithSameTimestampAndProperty(
-                    mealInputs: mealInputs,
-                    dateTime: current.timestamp,
-                    propName: "bolus"
-                ) {
-                    mealInputs.append(temp)
-                } else {
-                    duplicates += 1
-                }
-            }
-
-            // Trio will never send any pump history contents of the following types to oref
-            // Ignoring for JavaScript -> Swift port.
-            // .bolusWizard
-            // .mealBolus
-            // .correctionBolus
-            // .snackBolus
-            // .nsCarbCorrection
-            // .journalCarbs
-            // and the `carbsVal = current.carbInput` handling
-        }
-
-        // We can also omit the deferred bolus wizard input processing
-        // TODO: log duplicates?
-
-        return mealInputs
+        return dedupedInputs
     }
 }
