@@ -2,7 +2,7 @@ import CoreData
 import Foundation
 
 /// A thread-safe value type to hold glucose data without Core Data dependencies
-struct GlucoseReading {
+struct GlucoseReading: Sendable {
     let value: Int
     let date: Date
 }
@@ -169,12 +169,13 @@ extension Stat.StateModel {
 
         // Extract the thread-safe glucose readings
         let privateContext = CoreDataStack.shared.newTaskContext()
-        var glucoseReadings: [GlucoseReading] = []
 
-        await privateContext.perform {
-            let readings = glucoseIDs.compactMap { privateContext.object(with: $0) as? GlucoseStored }
-            glucoseReadings = readings.compactMap { reading in
-                guard let date = reading.date else { return nil }
+        // Map into Sendable struct
+        let glucoseReadings: [GlucoseReading] = await privateContext.perform {
+            // Get NSManagedObject on private context and map into GlucoseReading struct
+            glucoseIDs.compactMap { id -> GlucoseReading? in
+                guard let reading = privateContext.object(with: id) as? GlucoseStored,
+                      let date = reading.date else { return nil }
                 return GlucoseReading(value: Int(reading.glucose), date: date)
             }
         }
