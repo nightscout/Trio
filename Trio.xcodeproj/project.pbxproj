@@ -258,6 +258,7 @@
 		3B4BA78F2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7882D8DC0EC0069D5B8 /* TidepoolServiceKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA7902D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */; };
 		3B4BA7912D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3B4FD3D22E05E40700EDDB1E /* SimpleCob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4FD3D12E05E40300EDDB1E /* SimpleCob.swift */; };
 		3B5CD1EC2D4912A600CE213C /* OpenAPSSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD1E92D4912A600CE213C /* OpenAPSSwift.swift */; };
 		3B5CD1ED2D4912A600CE213C /* JSONBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD1EA2D4912A600CE213C /* JSONBridge.swift */; };
 		3B5CD2982D4AEA3C00CE213C /* Carbs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5CD2922D4AEA3C00CE213C /* Carbs.swift */; };
@@ -1139,6 +1140,7 @@
 		3B4BA7692D8DBD690069D5B8 /* RileyLinkKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = RileyLinkKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7882D8DC0EC0069D5B8 /* TidepoolServiceKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TidepoolServiceKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TidepoolServiceKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B4FD3D12E05E40300EDDB1E /* SimpleCob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleCob.swift; sourceTree = "<group>"; };
 		3B5CD1E92D4912A600CE213C /* OpenAPSSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAPSSwift.swift; sourceTree = "<group>"; };
 		3B5CD1EA2D4912A600CE213C /* JSONBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONBridge.swift; sourceTree = "<group>"; };
 		3B5CD2912D4AEA3C00CE213C /* Basal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Basal.swift; sourceTree = "<group>"; };
@@ -3691,6 +3693,7 @@
 				DD9E6DA42D5A66B500514CEC /* MealGenerator.swift */,
 				DD9E6DA12D59A12200514CEC /* MealHistory.swift */,
 				DD9E6DA62D5A694900514CEC /* MealTotal.swift */,
+				3B4FD3D12E05E40300EDDB1E /* SimpleCob.swift */,
 			);
 			path = Meal;
 			sourceTree = "<group>";
@@ -4577,6 +4580,7 @@
 				3811DE5D25C9D4D500A708ED /* Publisher.swift in Sources */,
 				E00EEC0727368630002FF094 /* APSAssembly.swift in Sources */,
 				BD249D8A2D42FC1200412DEB /* GlucosePercentileChart.swift in Sources */,
+				3B4FD3D22E05E40700EDDB1E /* SimpleCob.swift in Sources */,
 				38B4F3AF25E2979F00E76A18 /* IndexedCollection.swift in Sources */,
 				58D08B222C8DAA8E00AA37D3 /* OverrideView.swift in Sources */,
 				BD0B2EF32C5998E600B3298F /* MealPresetView.swift in Sources */,
