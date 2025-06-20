@@ -7,8 +7,7 @@ on:
   #push:
 
   schedule:
-    - cron: "0 8 * * 3" # Checks for updates at 08:00 UTC every Wednesday
-    - cron: "0 6 1 * *" # Builds the app on the 1st of every month at 06:00 UTC
+    - cron: '0 0 1 2,4,6,8,10,12 *'
 
 env:
   UPSTREAM_REPO: nightscout/Trio
