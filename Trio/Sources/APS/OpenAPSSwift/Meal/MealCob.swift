@@ -35,7 +35,7 @@ struct MealCob {
         basalProfile: [BasalProfileEntry],
         profile: Profile,
         mealDate: Date,
-        ciDate: Date?
+        carbImpactDate: Date?
     ) throws -> CobResult {
         let treatments = try IobHistory.calcTempTreatments(
             history: pumpHistory.map { $0.computedEvent() },
@@ -49,7 +49,7 @@ struct MealCob {
             glucose: glucose,
             profile: profile,
             mealDate: mealDate,
-            ciDate: ciDate
+            carbImpactDate: carbImpactDate
         )
 
         return try calculateCarbAbsorption(
@@ -58,7 +58,7 @@ struct MealCob {
             basalProfile: basalProfile,
             profile: profile,
             mealDate: mealDate,
-            ciDate: ciDate
+            carbImpactDate: carbImpactDate
         )
     }
 
@@ -88,7 +88,7 @@ struct MealCob {
         glucose: [BloodGlucose],
         profile: Profile,
         mealDate: Date,
-        ciDate: Date?
+        carbImpactDate: Date?
     ) throws -> [BucketedGlucose] {
         var glucoseData = glucose.compactMap({ (bg: BloodGlucose) -> BucketedGlucose? in
             guard let glucose = bg.glucose ?? bg.sgv else { return nil }
@@ -105,8 +105,9 @@ struct MealCob {
 
         // Only consider last ~45m of data in CI mode
         // this allows us to calculate deviations for the last ~30m
-        if let ciDate = ciDate {
-            glucoseData = glucoseData.filter { ciDate >= $0.date && ciDate.timeIntervalSince($0.date) <= 45.minutesToSeconds }
+        if let carbImpactDate = carbImpactDate {
+            glucoseData = glucoseData
+                .filter { carbImpactDate >= $0.date && carbImpactDate.timeIntervalSince($0.date) <= 45.minutesToSeconds }
         }
 
         for glucose in glucoseData {
@@ -140,7 +141,7 @@ struct MealCob {
         basalProfile: [BasalProfileEntry],
         profile: Profile,
         mealDate: Date,
-        ciDate: Date?
+        carbImpactDate: Date?
     ) throws -> CobResult {
         var carbsAbsorbed: Decimal = 0
         var currentDeviation: Decimal = 0
@@ -153,43 +154,46 @@ struct MealCob {
         // Process bucketed data (excluding last 3 entries to avoid incomplete deltas)
         // If bucketed data < 4, skips loop and just returns default values, matching JS behavior
         for bucketCount in 0 ..< max(0, bucketedData.count - 3) {
-            let bgTime = bucketedData[bucketCount].date
-            let bg = bucketedData[bucketCount].glucose
+            let glucoseTime = bucketedData[bucketCount].date
+            let glucose = bucketedData[bucketCount].glucose
 
             // Skip invalid glucose readings
-            guard bg >= 39, bucketedData[bucketCount + 3].glucose >= 39 else {
+            guard glucose >= 39, bucketedData[bucketCount + 3].glucose >= 39 else {
                 continue
             }
 
             guard let isfProfile = profile.isfProfile?.toInsulinSensitivities() else {
                 throw CobError.missingIsfProfile
             }
-            let (sensitivity, _) = try Isf.isfLookup(isfDataInput: isfProfile, timestamp: bgTime)
+            let (sensitivity, _) = try Isf.isfLookup(isfDataInput: isfProfile, timestamp: glucoseTime)
             guard sensitivity > 0 else {
                 throw CobError.isfLookupError
             }
 
-            let avgDelta = (bg - bucketedData[bucketCount + 3].glucose) / 3
-            let delta = bg - bucketedData[bucketCount + 1].glucose
+            let avgDelta = (glucose - bucketedData[bucketCount + 3].glucose) / 3
+            let delta = glucose - bucketedData[bucketCount + 1].glucose
 
             var simulationProfile = profile
-            simulationProfile.currentBasal = try Basal.basalLookup(basalProfile, now: bgTime)
+            simulationProfile.currentBasal = try Basal.basalLookup(basalProfile, now: glucoseTime)
 
-            let iob = try IobCalculation.iobTotal(treatments: treatments, profile: simulationProfile, time: bgTime)
+            let iob = try IobCalculation.iobTotal(treatments: treatments, profile: simulationProfile, time: glucoseTime)
 
             // Copying Javascript rounding
-            let bgi: Decimal = (-iob.activity * sensitivity * 5 * 100 + 0.5).rounded(scale: 0, roundingMode: .down) / 100
-            let deviation = delta - bgi
+            // JS oref calls this "big" = "blood glucose impact"
+            let glucoseImpact: Decimal = (-iob.activity * sensitivity * 5 * 100 + 0.5)
+                .rounded(scale: 0, roundingMode: .down) / 100
+            let deviation = delta - glucoseImpact
 
             // Calculate the deviation right now, for use in min_5m
             if bucketCount == 0 {
-                currentDeviation = ((avgDelta - bgi) * 1000).rounded() / 1000
-                if let ciDate = ciDate, ciDate > bgTime {
+                currentDeviation = ((avgDelta - glucoseImpact) * 1000).rounded() / 1000
+                if let carbImpactDate = carbImpactDate, carbImpactDate > glucoseTime {
                     allDeviations.append(currentDeviation.rounded())
                 }
-            } else if let ciDate = ciDate, ciDate > bgTime {
-                let avgDeviation = ((avgDelta - bgi) * 1000).rounded() / 1000
-                let deviationSlope = (avgDeviation - currentDeviation) / Decimal(bgTime.timeIntervalSince(ciDate)) * 1000 * 60 * 5
+            } else if let carbImpactDate = carbImpactDate, carbImpactDate > glucoseTime {
+                let avgDeviation = ((avgDelta - glucoseImpact) * 1000).rounded() / 1000
+                let deviationSlope = (avgDeviation - currentDeviation) / Decimal(glucoseTime.timeIntervalSince(carbImpactDate)) *
+                    1000 * 60 * 5
 
                 if avgDeviation > maxDeviation {
                     slopeFromMaxDeviation = min(0, deviationSlope)
@@ -203,8 +207,8 @@ struct MealCob {
                 allDeviations.append(avgDeviation.rounded())
             }
 
-            // If bgTime is more recent than mealTime
-            if bgTime > mealDate {
+            // If glucoseTime is more recent than mealTime
+            if glucoseTime > mealDate {
                 guard let carbRatio = profile.carbRatio else {
                     throw CobError.missingCarbRatioInProfile
                 }
@@ -233,5 +237,5 @@ enum CobError: Error {
     case missingIsfProfile
     case isfLookupError
     case missingCarbRatioInProfile
-    case couldNotDetermineLastBgTime
+    case couldNotDetermineLastglucoseTime
 }

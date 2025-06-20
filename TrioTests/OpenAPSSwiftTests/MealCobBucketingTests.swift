@@ -46,7 +46,7 @@ import Testing
             glucose: glucose_data,
             profile: createDefaultProfile(),
             mealDate: mealTime,
-            ciDate: nil
+            carbImpactDate: nil
         )
 
         // Should return same number of entries
@@ -74,7 +74,7 @@ import Testing
             glucose: glucose_data,
             profile: createDefaultProfile(),
             mealDate: mealTime,
-            ciDate: nil
+            carbImpactDate: nil
         )
 
         // Should have interpolated 4 additional points (5, 10, 15, 20 minutes)
@@ -116,7 +116,7 @@ import Testing
             glucose: glucose_data,
             profile: profile,
             mealDate: mealTime,
-            ciDate: nil
+            carbImpactDate: nil
         )
 
         // Should only process up to 2 hours of data (24 entries + 1 initial = 25)
@@ -148,7 +148,7 @@ import Testing
             glucose: glucose_data,
             profile: createDefaultProfile(),
             mealDate: mealTime,
-            ciDate: ciTime
+            carbImpactDate: ciTime
         )
 
         // Should only include data within 45 minutes of ciTime
@@ -180,7 +180,7 @@ import Testing
             glucose: glucose_data,
             profile: createDefaultProfile(),
             mealDate: mealTime,
-            ciDate: nil
+            carbImpactDate: nil
         )
 
         // Should only process from meal time forward (in reverse chronological order)
@@ -213,7 +213,7 @@ import Testing
             glucose: glucose_data,
             profile: createDefaultProfile(),
             mealDate: mealTime,
-            ciDate: nil
+            carbImpactDate: nil
         )
 
         // Close readings should be averaged (in reverse chronological order)

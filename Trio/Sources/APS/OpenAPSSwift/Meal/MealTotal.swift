@@ -22,7 +22,7 @@ struct COBInputs {
     let iobInputs: IOBInput
     let basalProfile: [BasalProfileEntry]
     var mealDate: Date
-    var ciDate: Date?
+    var carbImpactDate: Date?
 }
 
 enum MealTotal {
@@ -78,7 +78,7 @@ enum MealTotal {
                         basalProfile: cobInputs.basalProfile,
                         profile: cobInputs.iobInputs.profile,
                         mealDate: cobInputs.mealDate,
-                        ciDate: cobInputs.ciDate
+                        carbImpactDate: cobInputs.carbImpactDate
                     ).carbsAbsorbed
 
                     // TODO: add logging?
@@ -98,7 +98,7 @@ enum MealTotal {
         carbs -= carbsToRemove
 
         // calculate the current deviation and steepest deviation downslope over the last hour
-        cobInputs.ciDate = time
+        cobInputs.carbImpactDate = time
         cobInputs.mealDate = time - Double(profile.maxMealAbsorptionTime) * 3600
 
         // set a hard upper limit on COB to mitigate impact of erroneous or malicious carb entry
@@ -111,7 +111,7 @@ enum MealTotal {
             basalProfile: cobInputs.basalProfile,
             profile: cobInputs.iobInputs.profile,
             mealDate: cobInputs.mealDate,
-            ciDate: cobInputs.ciDate
+            carbImpactDate: cobInputs.carbImpactDate
         )
 
         // if currentDeviation is null or maxDeviation is 0, set mealCOB to 0 for zombie-carb safety
