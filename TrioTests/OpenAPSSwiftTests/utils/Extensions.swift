@@ -1,6 +1,44 @@
 import Foundation
 @testable import Trio
 
+// Helper extension for Date from ISO string
+extension Date {
+    static func from(isoString: String) -> Date {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withDashSeparatorInDate, .withColonSeparatorInTime, .withTimeZone]
+        return formatter.date(from: isoString)!
+    }
+
+    var iso8601String: String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withDashSeparatorInDate, .withColonSeparatorInTime, .withTimeZone]
+        return formatter.string(from: self)
+    }
+}
+
+extension CarbsEntry {
+    static func forTest(createdAt: Date, carbs: Decimal) -> CarbsEntry {
+        CarbsEntry(
+            id: nil,
+            createdAt: createdAt,
+            actualDate: nil,
+            carbs: carbs,
+            fat: nil,
+            protein: nil,
+            note: nil,
+            enteredBy: nil,
+            isFPU: nil,
+            fpuID: nil
+        )
+    }
+}
+
+extension TimeInterval {
+    static func hours(_ hours: Double) -> TimeInterval {
+        hours * 60 * 60
+    }
+}
+
 extension [ComputedPumpHistoryEvent] {
     func netInsulin() -> Decimal { compactMap(\.insulin).reduce(0, +) }
 }
