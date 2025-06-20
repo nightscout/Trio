@@ -152,12 +152,12 @@ struct MealCob {
 
         // Process bucketed data (excluding last 3 entries to avoid incomplete deltas)
         // If bucketed data < 4, skips loop and just returns default values, matching JS behavior
-        for i in 0 ..< max(0, bucketedData.count - 3) {
-            let bgTime = bucketedData[i].date
-            let bg = bucketedData[i].glucose
+        for bucketCount in 0 ..< max(0, bucketedData.count - 3) {
+            let bgTime = bucketedData[bucketCount].date
+            let bg = bucketedData[bucketCount].glucose
 
             // Skip invalid glucose readings
-            guard bg >= 39, bucketedData[i + 3].glucose >= 39 else {
+            guard bg >= 39, bucketedData[bucketCount + 3].glucose >= 39 else {
                 continue
             }
 
@@ -169,8 +169,8 @@ struct MealCob {
                 throw CobError.isfLookupError
             }
 
-            let avgDelta = (bg - bucketedData[i + 3].glucose) / 3
-            let delta = bg - bucketedData[i + 1].glucose
+            let avgDelta = (bg - bucketedData[bucketCount + 3].glucose) / 3
+            let delta = bg - bucketedData[bucketCount + 1].glucose
 
             var simulationProfile = profile
             simulationProfile.currentBasal = try Basal.basalLookup(basalProfile, now: bgTime)
@@ -182,7 +182,7 @@ struct MealCob {
             let deviation = delta - bgi
 
             // Calculate the deviation right now, for use in min_5m
-            if i == 0 {
+            if bucketCount == 0 {
                 currentDeviation = ((avgDelta - bgi) * 1000).rounded() / 1000
                 if let ciDate = ciDate, ciDate > bgTime {
                     allDeviations.append(currentDeviation.rounded())
