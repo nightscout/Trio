@@ -64,4 +64,15 @@ struct OpenAPSSwift {
             return (.failure(error), iobInputs)
         }
     }
+
+    static func autosense(
+        glucose _: JSON,
+        pumpHistory _: JSON,
+        basalprofile _: JSON,
+        profile _: JSON,
+        carbs _: JSON,
+        temptargets _: JSON
+    ) -> OrefFunctionResult {
+        .failure(NSError(domain: "Some error", code: 1, userInfo: nil))
+    }
 }
