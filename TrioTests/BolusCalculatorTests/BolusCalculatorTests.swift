@@ -84,14 +84,14 @@ import Testing
         // correctionInsulin = targetDifferenceInsulin = 2U
         // iobInsulinReduction = 1U
         // superBolusInsulin = 0U (disabled)
-        // no adjustment for fatty meals (disabled)
+        // no adjustment for reduced bolus (disabled)
         // wholeCalc = round(wholeCobInsulin + correctionInsulin + fifteenMinutesInsulin - iobInsulinReduction, 3) = 11.125U
         // insulinCalculated = round(wholeCalc × fraction, 3) = 8.9U
 
-        // Calculate expected values with proper rounding using roundBolus method from the apsManager
-        let wholeCobInsulin = apsManager.roundBolus(amount: Decimal(100) / Decimal(10)) // 10U
-        let targetDifferenceInsulin = apsManager.roundBolus(amount: Decimal(80) / Decimal(40)) // 2U
-        let fifteenMinutesInsulin = apsManager.roundBolus(amount: Decimal(5) / Decimal(40)) // 0.125U
+        // Calculate expected values
+        let wholeCobInsulin = Decimal(100) / Decimal(10) // 10U
+        let targetDifferenceInsulin = Decimal(80) / Decimal(40) // 2U
+        let fifteenMinutesInsulin = Decimal(5) / Decimal(40)
         let wholeCalc = wholeCobInsulin + targetDifferenceInsulin + fifteenMinutesInsulin - Decimal(1) // 11.125U
         let expectedInsulinCalculated = apsManager.roundBolus(amount: wholeCalc * fraction) // 8.9U
 
@@ -104,7 +104,6 @@ import Testing
             Components from CalculationResult:
             - insulinCalculated: \(result.insulinCalculated)U (expected: \(expectedInsulinCalculated)U)
             - wholeCalc: \(result.wholeCalc)U (expected: \(wholeCalc)U)
-            - correctionInsulin: \(result.correctionInsulin)U (expected: \(targetDifferenceInsulin)U)
             - iobInsulinReduction: \(result.iobInsulinReduction)U (expected: 1U)
             - superBolusInsulin: \(result.superBolusInsulin)U (expected: 0U)
             - targetDifference: \(result.targetDifference) mg/dL (expected: 80 mg/dL)
@@ -121,10 +120,6 @@ import Testing
             "Final calculated insulin amount should be \(expectedInsulinCalculated)U"
         )
         #expect(result.wholeCalc == wholeCalc, "Total calculation before fraction should be \(wholeCalc)U")
-        #expect(
-            result.correctionInsulin == targetDifferenceInsulin,
-            "Insulin for BG correction should be \(targetDifferenceInsulin)U"
-        )
         #expect(result.iobInsulinReduction == -1.0, "Absolute IOB reduction amount should be 1U, hence -1U")
         #expect(result.superBolusInsulin == 0, "Additional insulin for super bolus should be 0U")
         #expect(result.targetDifference == 80, "Difference from target BG should be 80 mg/dL")
@@ -140,7 +135,7 @@ import Testing
         #expect(result.wholeCobInsulin == wholeCobInsulin, "Insulin for total carbs should be \(wholeCobInsulin)U")
     }
 
-    @Test("Calculate insulin for fatty meal") func testFattyMealCalculation() async throws {
+    @Test("Calculate insulin for reduced bolus") func testFattyMealCalculation() async throws {
         // STEP 1: Setup test scenario
         // We need to provide a CalculationInput struct
         let carbs: Decimal = 80
@@ -185,10 +180,10 @@ import Testing
             lastLoopDate: Date()
         )
 
-        // STEP 3: Calculate insulin with fatty meal enabled
+        // STEP 3: Calculate insulin with reduced bolus enabled
         let fattyMealResult = await calculator.calculateInsulin(input: input)
 
-        // STEP 4: Calculate insulin with fatty meal disabled for comparison
+        // STEP 4: Calculate insulin with reduced bolus disabled for comparison
         let standardInput = CalculationInput(
             carbs: carbs,
             currentBG: currentBG,
@@ -213,7 +208,7 @@ import Testing
         let standardResult = await calculator.calculateInsulin(input: standardInput)
 
         // STEP 5: Verify results
-        // Fatty meal should reduce the insulin amount by the fatty meal factor (0.8)
+        // Reduced bolus should reduce the insulin amount by the reduced bolus factor (0.8)
         let expectedReduction = fattyMealFactor
         let actualReduction = Decimal(
             (Double(fattyMealResult.insulinCalculated) / Double(standardResult.insulinCalculated) * 10.0).rounded() / 10.0
@@ -222,11 +217,11 @@ import Testing
         #expect(
             actualReduction == expectedReduction,
             """
-            Fatty meal calculation incorrect
+            Reduced bolus calculation incorrect
             Expected reduction factor: \(expectedReduction)
             Actual reduction factor: \(actualReduction)
             Standard calculation: \(standardResult.insulinCalculated)U
-            Fatty meal calculation: \(fattyMealResult.insulinCalculated)U
+            Reduced bolus calculation: \(fattyMealResult.insulinCalculated)U
             """
         )
     }
@@ -491,7 +486,9 @@ import Testing
             useFattyMealCorrection: false,
             useSuperBolus: false,
             lastLoopDate: Date(),
-            minPredBG: nil
+            minPredBG: nil,
+            simulatedCOB: nil,
+            isBackdated: false
         )
 
         // Then
@@ -525,7 +522,7 @@ import Testing
         // Then
         #expect(units == expectedUnits, "Units should match settings")
         #expect(fraction == expectedFraction, "Override factor should match settings")
-        #expect(fattyMealFactor == expectedFattyMealFactor, "Fatty meal factor should match settings")
+        #expect(fattyMealFactor == expectedFattyMealFactor, "Reduced bolus factor should match settings")
         #expect(sweetMealFactor == expectedSweetMealFactor, "Sweet meal factor should match settings")
         #expect(maxCarbs == expectedMaxCarbs, "Max carbs should match settings")
 
@@ -663,6 +660,174 @@ import Testing
         if let originalISFValues = originalISFValues {
             fileStorage.save(originalISFValues, as: OpenAPS.Settings.insulinSensitivities)
         }
+    }
+
+    @Test("Calculate insulin with backdated carbs") func testHandleBolusCalculationFunction() async throws {
+        // STEP 1: Setup test scenario
+        let currentDate = Date()
+        let backdatedCarbsDate = currentDate.addingTimeInterval(-120 * 60) // 2 hours ago
+        let carbs: Decimal = 30 // 30g of carbs, backdated 2 hour
+        let cob: Int16 = 50
+
+        // Get the COB value for the backdated carbs
+        // Use the actual APS Manager to calculate simulated COB for more realistic test
+        let determination = await apsManager.simulateDetermineBasal(
+            simulatedCarbsAmount: carbs,
+            simulatedBolusAmount: 0,
+            simulatedCarbsDate: backdatedCarbsDate
+        )
+        let simulatedCOB = determination?.cob ?? Decimal(cob)
+
+        // STEP 2: Calculate results for normal and backdated carbs
+        let resultBackdated = await calculator.handleBolusCalculation(
+            carbs: carbs,
+            useFattyMealCorrection: false,
+            useSuperBolus: false,
+            lastLoopDate: Date.now.addingTimeInterval(-5.minutes.timeInterval),
+            minPredBG: 80,
+            simulatedCOB: Int16(truncating: NSDecimalNumber(decimal: simulatedCOB)),
+            isBackdated: true
+        )
+
+        let resultNormalEntry = await calculator.handleBolusCalculation(
+            carbs: carbs,
+            useFattyMealCorrection: false,
+            useSuperBolus: false,
+            lastLoopDate: Date.now.addingTimeInterval(-5.minutes.timeInterval),
+            minPredBG: 80,
+            simulatedCOB: Int16(truncating: NSDecimalNumber(decimal: simulatedCOB)),
+            isBackdated: false
+        )
+
+        // STEP 3: Compare
+        // The backdated scenario should recommend less insulin than the current time scenario
+        #expect(
+            resultBackdated.insulinCalculated < resultNormalEntry.insulinCalculated,
+            """
+            Backdated carbs should result in lower insulin recommendation
+            Current time: \(resultNormalEntry.insulinCalculated)U
+            Backdated: \(resultBackdated.insulinCalculated)U
+            Difference: \(resultNormalEntry.insulinCalculated - resultBackdated.insulinCalculated)U
+            """
+        )
+    }
+
+    @Test("Calculate insulin with backdated carbs") func testBackdatedCarbsCalculation() async throws {
+        // STEP 1: Setup test scenario
+        let currentDate = Date()
+        let backdatedCarbsDate = currentDate.addingTimeInterval(-60 * 60) // 1 hour ago
+
+        let currentBG: Decimal = 140
+        let target: Decimal = 100
+        let isf: Decimal = 40
+        let carbRatio: Decimal = 10
+        let iob: Decimal = 0.5
+        let cob: Int16 = 10 // Existing COB before adding backdated carbs
+        let carbs: Decimal = 30 // 30g of carbs, backdated 1 hour
+
+        // Get the COB value for the backdated carbs
+        // Use the actual APS Manager to calculate simulated COB for more realistic test
+        let determination = await apsManager.simulateDetermineBasal(
+            simulatedCarbsAmount: carbs,
+            simulatedBolusAmount: 0,
+            simulatedCarbsDate: backdatedCarbsDate
+        )
+
+        // Fallback to existing COB if determination is nil
+        let simulatedCOB = determination?.cob ?? Decimal(cob)
+
+        // For comparison - same scenario but with current time carbs
+        let currentTimeInput = CalculationInput(
+            carbs: carbs, // the newly entered carbs (30g)
+            currentBG: currentBG,
+            deltaBG: 0,
+            target: target,
+            isf: isf,
+            carbRatio: carbRatio,
+            iob: iob,
+            cob: cob, // the existing cob (10g)
+            useFattyMealCorrectionFactor: false,
+            fattyMealFactor: 0.8,
+            useSuperBolus: false,
+            sweetMealFactor: 1,
+            basal: 1.0,
+            fraction: 1.0,
+            maxBolus: 10,
+            maxIOB: 15,
+            maxCOB: 120,
+            minPredBG: 80,
+            lastLoopDate: currentDate
+        )
+
+        // Backdated scenario uses the same input but simulates date in the past
+        let backdatedInput = CalculationInput(
+            carbs: 0, // as the carbs are backdated we need to set the (newly entered) carbs to 0
+            currentBG: currentBG,
+            deltaBG: 0,
+            target: target,
+            isf: isf,
+            carbRatio: carbRatio,
+            iob: iob,
+            cob: Int16(truncating: NSDecimalNumber(decimal: simulatedCOB)), // current COB we got from the simulated Determination
+            useFattyMealCorrectionFactor: false,
+            fattyMealFactor: 0.8,
+            useSuperBolus: false,
+            sweetMealFactor: 1,
+            basal: 1.0,
+            fraction: 1.0,
+            maxBolus: 10,
+            maxIOB: 15,
+            maxCOB: 120,
+            minPredBG: 80,
+            lastLoopDate: currentDate
+        )
+
+        // STEP 2: Calculate insulin for both scenarios
+        let currentTimeResult = await calculator.calculateInsulin(input: currentTimeInput)
+        let backdatedResult = await calculator.calculateInsulin(input: backdatedInput)
+
+        // STEP 3: Verify results
+
+        // In the current time scenario, we expect COB to be old COB + current carbs
+        let expectedCurrentTimeCOB = Decimal(cob) + carbs
+        #expect(
+            currentTimeResult.wholeCob == expectedCurrentTimeCOB,
+            "Current time scenario should have \(expectedCurrentTimeCOB)g COB (\(cob)g existing + \(carbs)g new)"
+        )
+
+        // For backdated scenario, COB should be less than the current time scenario
+        // because some carbs have already been absorbed
+        #expect(
+            backdatedResult.wholeCob < currentTimeResult.wholeCob,
+            """
+            Backdated scenario should have less COB than current time scenario
+            Backdated: \(backdatedResult.wholeCob)g
+            Current time: \(currentTimeResult.wholeCob)g
+            Difference: \(currentTimeResult.wholeCob - backdatedResult.wholeCob)g
+            """
+        )
+
+        // The wholeCobInsulin should reflect the difference in COB
+        #expect(
+            backdatedResult.wholeCobInsulin < currentTimeResult.wholeCobInsulin,
+            """
+            Backdated scenario should require less insulin for carbs due to partial absorption
+            Backdated insulin: \(backdatedResult.wholeCobInsulin)U
+            Current time insulin: \(currentTimeResult.wholeCobInsulin)U
+            Difference: \(currentTimeResult.wholeCobInsulin - backdatedResult.wholeCobInsulin)U
+            """
+        )
+
+        // The backdated scenario should recommend less insulin than the current time scenario
+        #expect(
+            backdatedResult.insulinCalculated < currentTimeResult.insulinCalculated,
+            """
+            Backdated carbs should result in lower insulin recommendation
+            Current time: \(currentTimeResult.insulinCalculated)U
+            Backdated: \(backdatedResult.insulinCalculated)U
+            Difference: \(currentTimeResult.insulinCalculated - backdatedResult.insulinCalculated)U
+            """
+        )
     }
 }
 

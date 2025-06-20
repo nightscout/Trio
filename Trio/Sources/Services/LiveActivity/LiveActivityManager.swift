@@ -360,12 +360,21 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
                 )
                 currentActivity = ActiveActivity(activity: activity, startDate: Date.now)
                 debug(.default, "[LiveActivityManager] Created new activity: \(activity.id)")
-                await pushUpdate(state)
+
+                // Update the newly created activity with actual data
+                let updateContent = ActivityContent(
+                    state: state,
+                    staleDate: Date.now.addingTimeInterval(5 * 60)
+                )
+                await activity.update(updateContent)
+                debug(.default, "[LiveActivityManager] Updated new activity with actual data")
             } catch {
                 debug(
                     .default,
                     "\(#file): Error creating new activity: \(error)"
                 )
+                // Reset currentActivity on error to allow retry on next update
+                currentActivity = nil
             }
         }
     }
@@ -427,6 +436,10 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
             debug(.default, "Waiting for Live Activity to end...")
             try? await Task.sleep(nanoseconds: 200_000_000) // 0.2s sleep
         }
+
+        // Add additional delay to ensure iOS has fully cleaned up the previous activity
+        debug(.default, "Waiting additional time for iOS to clean up...")
+        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s additional delay
 
         Task { @MainActor in
             await self.pushUpdate(contentState)

@@ -1,2 +1,2 @@
 These source files are copied from https://github.com/nightscout/trio-oref, and are for information purposes only.
-The algorithm is run based on minimised files in FreeAPS/Resources/javascript/bundle.
+The algorithm is run based on minimised files in Trio/Resources/javascript/bundle.

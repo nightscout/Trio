@@ -626,7 +626,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
 
             // Get weight percentage from preferences (default 0.65 if not set)
             let userPreferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
-            let weightPercentage = userPreferences?.weightPercentage ?? Decimal(0.65) // why is this 1 as default in oref2??
+            let weightPercentage = userPreferences?.weightPercentage ?? Decimal(0.65) // why is this 1 as default in trio-oref??
 
             // Calculate weighted average using the formula:
             // weightedTDD = (weightPercentage × recent_average) + ((1 - weightPercentage) × historical_average)
@@ -643,13 +643,18 @@ final class BaseTDDStorage: TDDStorage, Injectable {
     /// - The record's date is within the last 7 days.
     /// - The total value is greater than 0.
     ///
-    /// It then checks if at least 85% of the expected data points are present,
+    /// It then checks if at least 75% of the expected data points are present,
     /// assuming at least 288 expected entries per day (one every 5 minutes).
     ///
     /// - Returns: `true` if sufficient TDD data is available, otherwise `false`.
     /// - Throws: An error if the Core Data count operation fails.
     func hasSufficientTDD() async throws -> Bool {
-        try await privateContext.perform {
+        try await BaseTDDStorage.hasSufficientTDD(context: privateContext)
+    }
+
+    /// internal function with context exposed to enable testing
+    static func hasSufficientTDD(context: NSManagedObjectContext) async throws -> Bool {
+        try await context.perform {
             let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "TDDStored")
             fetchRequest.predicate = NSPredicate(
                 format: "date > %@ AND total > 0",
@@ -657,8 +662,8 @@ final class BaseTDDStorage: TDDStorage, Injectable {
             )
             fetchRequest.resultType = .countResultType
 
-            let count = try self.privateContext.count(for: fetchRequest)
-            let threshold = Int(Double(7 * 288) * 0.85)
+            let count = try context.count(for: fetchRequest)
+            let threshold = Int(Double(7 * 288) * 0.75)
             return count >= threshold
         }
     }

@@ -312,7 +312,14 @@ struct PopupView: View {
     /// Don't allow total carbs to exceed Max IOB setting.
     /// Formula: (Current COB + New Carbs) / Carb Ratio = COB Correction Dose
     private var cobCardContent: some View {
-        let hasExceededMaxCOB: Bool = Decimal(state.cob) + state.carbs > state.maxCOB
+        // Check if this is a backdated entry by comparing with the default date using a tolerance
+        let isBackdated = abs(state.date.timeIntervalSince(state.defaultDate)) > 1.0
+
+        // Determine COB and carbs to display based on backdating status
+        let displayedCOB = isBackdated ? (state.simulatedDetermination?.cob ?? Decimal(state.cob)) : Decimal(state.cob)
+        let displayedCarbs = isBackdated ? 0 : state.carbs
+
+        let hasExceededMaxCOB: Bool = displayedCOB + displayedCarbs > state.maxCOB
         return Group {
             Grid(alignment: .center) {
                 // Row 1: Column headers for the COB calculation
@@ -333,11 +340,11 @@ struct PopupView: View {
                 GridRow {
                     Text("(")
                         .operatorStyle()
-                    Text(Int(state.cob).description)
+                    Text(Int(displayedCOB).description)
                         .valueStyle()
                     Text("+")
                         .operatorStyle()
-                    Text(Int(state.carbs).description)
+                    Text(Int(displayedCarbs).description)
                         .valueStyle()
                     Text(")")
                         .operatorStyle()
@@ -377,6 +384,13 @@ struct PopupView: View {
                 .unitStyle()
             }
             .multilineTextAlignment(.center)
+
+            if isBackdated {
+                Text("Backdated carbs (\(Int(state.carbs)) g) included in COB calculation")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .padding(.top, 4)
+            }
 
             // Additional grid only displayed when Max COB limit has been exceeded
             if hasExceededMaxCOB {
@@ -588,7 +602,7 @@ struct PopupView: View {
 
     /// Card showing applied factors to the final insulin calculation.
     /// Dynamically changes card based on user's selection in the Treatment view.
-    /// User can choose Fatty Meal, Super Bolus, or neither, but not both.
+    /// User can choose Reduced Bolus, Super Bolus, or neither, but not both.
     private var factorsCardContent: some View {
         Grid(alignment: .center) {
             // Choose the layout based on which options are selected
@@ -630,7 +644,7 @@ struct PopupView: View {
                 }
                 .unitStyle()
 
-            // Case: Full Bolus × Rec. Bolus % × Fatty Meal %
+            // Case: Full Bolus × Rec. Bolus % × Reduced Bolus %
             case (false, true):
                 // Row 1: Header.
                 GridRow(alignment: .lastTextBaseline) {
@@ -640,7 +654,7 @@ struct PopupView: View {
                     Text("Rec. Bolus %")
                     Text("")
                         .layoutPriority(-15)
-                    Text("Fatty %")
+                    Text("Red. Bolus %")
                 }
                 .secondaryStyle()
 

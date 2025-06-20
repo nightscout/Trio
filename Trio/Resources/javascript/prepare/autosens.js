@@ -18,9 +18,9 @@ function generate(glucose_data, pumphistory_data, basalprofile, profile_data, ca
         temptargets: temptarget_data
     };
     detection_inputs.deviations = 96;
-    var ratio8h = freeaps_autosens(detection_inputs);
+    var ratio8h = trio_autosens(detection_inputs);
     detection_inputs.deviations = 288;
-    var ratio24h = freeaps_autosens(detection_inputs);
+    var ratio24h = trio_autosens(detection_inputs);
     var lowestRatio = ratio8h.ratio < ratio24h.ratio ? ratio8h : ratio24h;
     return lowestRatio;
 }

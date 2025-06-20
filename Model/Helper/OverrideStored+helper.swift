@@ -7,10 +7,12 @@ extension NSPredicate {
     }
 
     static var lastActiveOverride: NSPredicate {
-        let date = Date.oneDayAgo
-        return NSPredicate(
-            format: "date >= %@ AND enabled == %@",
-            date as NSDate,
+        // For non-indefinite overrides, we still want to filter by date
+        // For indefinite overrides, we want them regardless of date
+        NSPredicate(
+            format: "(date >= %@ OR indefinite == %@) AND enabled == %@",
+            Date.oneDayAgo as NSDate,
+            true as NSNumber,
             true as NSNumber
         )
     }

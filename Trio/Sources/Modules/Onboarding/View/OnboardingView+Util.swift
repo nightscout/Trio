@@ -386,25 +386,42 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
     func description(units: GlucoseUnits) -> any View {
         switch self {
         case .maxIOB:
-            return VStack(alignment: .leading, spacing: 8) {
-                Text(
-                    "Note: This setting must be greater than 0 for any automatic insulin dosing by Trio."
-                ).bold().foregroundStyle(Color.orange)
+            return VStack(alignment: .leading, spacing: 10) {
+                Text("Default: 0 units").bold()
 
                 Text(
-                    "This setting helps prevent delivering too much insulin at once. It’s typically a value close to the amount you might need for a very high blood sugar and the biggest meal of your life combined."
+                    "Note: This setting must be greater than 0 for any automatic insulin dosing by Trio (unless you currently have negative IOB)."
+                )
+                .bold()
+                .foregroundStyle(Color.orange)
+
+                Text(
+                    "Choose a value that covers your highest insulin needs — think about a correction for a very high glucose reading plus your biggest meal bolus. This gives Trio room to work while keeping you safe."
                 )
 
                 Text(
-                    "This is the maximum amount of Insulin On Board (IOB) above profile basal rates from all sources - positive temporary basal rates, manual or meal boluses, and SMBs - that Trio is allowed to accumulate to address an above target glucose."
+                    "Max IOB sets a safety limit on how much insulin Trio can automatically deliver above your scheduled basal rates. This prevents the system from giving too much insulin at once."
                 )
+
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Trio calculates your current Insulin On Board (IOB) from:")
+                    Text("• Boluses (including SMBs)")
+                    Text("• Temporary Basal Rates (TBRs)")
+                    Text("  ◦ A TBR higher than your scheduled rate will increase IOB")
+                    Text("  ◦ A TBR lower than your scheduled rate will decrease IOB")
+                }
+
                 Text(
-                    "If a calculated amount exceeds this limit, the suggested and / or delivered amount will be reduced so that active insulin on board (IOB) will not exceed this safety limit."
+                    "If delivering more insulin would push your IOB above this limit, Trio will reduce or skip the dose to stay within the safety boundary. This applies to SMBs, TBRs, and the recommendation from the bolus calculator."
                 )
-                Text(
-                    "Note: You can still manually bolus above this limit, but the suggested bolus amount will never exceed this in the bolus calculator."
-                )
+
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("What's NOT limited:")
+                    Text("• Manual boluses you enter yoursef")
+                    Text("• Manual temporary basal rates you set yourself")
+                }
             }
+            .fixedSize(horizontal: false, vertical: true)
         case .maxBolus:
             return VStack(alignment: .leading, spacing: 8) {
                 Text(

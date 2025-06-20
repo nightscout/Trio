@@ -1,7 +1,7 @@
 import Charts
 import CoreData
 import Foundation
-import SwiftUICore
+import SwiftUI
 
 enum MainChartHelper {
     // Calculates the glucose value thats the nearest to parameter 'time'

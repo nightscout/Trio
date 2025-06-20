@@ -28,7 +28,7 @@
 		190EBCC829FF13AA00BA767D /* UserInterfaceSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190EBCC729FF13AA00BA767D /* UserInterfaceSettingsStateModel.swift */; };
 		190EBCCB29FF13CB00BA767D /* UserInterfaceSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190EBCCA29FF13CB00BA767D /* UserInterfaceSettingsRootView.swift */; };
 		191F62682AD6B05A004D7911 /* NightscoutSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 191F62672AD6B05A004D7911 /* NightscoutSettings.swift */; };
-		1935364028496F7D001E0B16 /* Oref2_variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1935363F28496F7D001E0B16 /* Oref2_variables.swift */; };
+		1935364028496F7D001E0B16 /* TrioCustomOrefVariables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1935363F28496F7D001E0B16 /* TrioCustomOrefVariables.swift */; };
 		193F6CDD2A512C8F001240FD /* Loops.swift in Sources */ = {isa = PBXBuildFile; fileRef = 193F6CDC2A512C8F001240FD /* Loops.swift */; };
 		195D80B42AF6973A00D25097 /* DynamicSettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B32AF6973A00D25097 /* DynamicSettingsRootView.swift */; };
 		195D80B72AF697B800D25097 /* DynamicSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D80B62AF697B800D25097 /* DynamicSettingsDataFlow.swift */; };
@@ -215,6 +215,7 @@
 		3B1C5C452D68E269004E9273 /* IobTotalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C382D68E269004E9273 /* IobTotalTests.swift */; };
 		3B1C5C472D68E269004E9273 /* IobCalculateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C352D68E269004E9273 /* IobCalculateTests.swift */; };
 		3B1C5C482D68E269004E9273 /* IobHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B1C5C362D68E269004E9273 /* IobHistoryTests.swift */; };
+		3B0B4E6C2DE1439F005C6627 /* LockedResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0B4E6B2DE1439A005C6627 /* LockedResolver.swift */; };
 		3B2F77862D7E52ED005ED9FA /* TDD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77852D7E52ED005ED9FA /* TDD.swift */; };
 		3B2F77882D7E5387005ED9FA /* CurrentTDDSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */; };
 		3B3B57C92DA07B3400849D16 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3B57C82DA07B3400849D16 /* GoogleService-Info.plist */; };
@@ -291,6 +292,7 @@
 		3B997DCF2DC00A3A006B6BB2 /* JSONImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */; };
 		3B997DD32DC02AEF006B6BB2 /* glucose.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B997DD12DC02AEF006B6BB2 /* glucose.json */; };
 		3BA8D1B32DDB87150006191F /* DecimalExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */; };
+		3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */; };
 		3BAD36B22D7CDC1A00CC298D /* MainLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */; };
 		3BAD36CC2D7D420E00CC298D /* CoreDataInitializationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */; };
 		3BBB76AA2E01C70B0040977D /* MealCob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BBB76A92E01C7070040977D /* MealCob.swift */; };
@@ -923,7 +925,7 @@
 		190EBCC729FF13AA00BA767D /* UserInterfaceSettingsStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsStateModel.swift; sourceTree = "<group>"; };
 		190EBCCA29FF13CB00BA767D /* UserInterfaceSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInterfaceSettingsRootView.swift; sourceTree = "<group>"; };
 		191F62672AD6B05A004D7911 /* NightscoutSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutSettings.swift; sourceTree = "<group>"; };
-		1935363F28496F7D001E0B16 /* Oref2_variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Oref2_variables.swift; sourceTree = "<group>"; };
+		1935363F28496F7D001E0B16 /* TrioCustomOrefVariables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioCustomOrefVariables.swift; sourceTree = "<group>"; };
 		193F6CDC2A512C8F001240FD /* Loops.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loops.swift; sourceTree = "<group>"; };
 		195D80B32AF6973A00D25097 /* DynamicSettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicSettingsRootView.swift; sourceTree = "<group>"; };
 		195D80B62AF697B800D25097 /* DynamicSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicSettingsDataFlow.swift; sourceTree = "<group>"; };
@@ -1130,6 +1132,7 @@
 		3B1C5C382D68E269004E9273 /* IobTotalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobTotalTests.swift; sourceTree = "<group>"; };
 		3B1C5C3D2D68E269004E9273 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		3B1C5C3E2D68E269004E9273 /* IobJsonTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobJsonTypes.swift; sourceTree = "<group>"; };
+		3B0B4E6B2DE1439A005C6627 /* LockedResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockedResolver.swift; sourceTree = "<group>"; };
 		3B2F77852D7E52ED005ED9FA /* TDD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDD.swift; sourceTree = "<group>"; };
 		3B2F77872D7E5387005ED9FA /* CurrentTDDSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentTDDSetup.swift; sourceTree = "<group>"; };
 		3B3B57C82DA07B3400849D16 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -1184,6 +1187,7 @@
 		3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONImporterTests.swift; sourceTree = "<group>"; };
 		3B997DD12DC02AEF006B6BB2 /* glucose.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = glucose.json; sourceTree = "<group>"; };
 		3BA8D1B22DDB870F0006191F /* DecimalExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalExtensions.swift; sourceTree = "<group>"; };
+		3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicISFEnableTests.swift; sourceTree = "<group>"; };
 		3BAD36B12D7CDC1400CC298D /* MainLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainLoadingView.swift; sourceTree = "<group>"; };
 		3BAD36CB2D7D420500CC298D /* CoreDataInitializationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataInitializationCoordinator.swift; sourceTree = "<group>"; };
 		3BBB76A92E01C7070040977D /* MealCob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCob.swift; sourceTree = "<group>"; };
@@ -2266,8 +2270,9 @@
 			isa = PBXGroup;
 			children = (
 				38E4451D274DB04600EC9A94 /* AppDelegate.swift */,
-				388E595B25AD948C0019842D /* TrioApp.swift */,
 				BD4ED4FC2CF9D5E8000EDC9C /* AppState.swift */,
+				3B0B4E6B2DE1439A005C6627 /* LockedResolver.swift */,
+				388E595B25AD948C0019842D /* TrioApp.swift */,
 			);
 			path = Application;
 			sourceTree = "<group>";
@@ -2526,7 +2531,7 @@
 				3871F39B25ED892B0013ECB5 /* TempTarget.swift */,
 				3811DE8E25C9D80400A708ED /* User.swift */,
 				E0D4F80427513ECF00BDF1FE /* HealthKitSample.swift */,
-				1935363F28496F7D001E0B16 /* Oref2_variables.swift */,
+				1935363F28496F7D001E0B16 /* TrioCustomOrefVariables.swift */,
 				CE82E02628E869DF00473A9C /* AlertEntry.swift */,
 				19B0EF2028F6D66200069496 /* Statistics.swift */,
 				19012CDB291D2CB900FB8210 /* LoopStats.swift */,
@@ -2734,6 +2739,7 @@
 				BD8FC0552D66187700B95AED /* CoreDataTests */,
 				38FCF3F125E9028E0078B0D1 /* Info.plist */,
 				CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */,
+				3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */,
 				38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */,
 				3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */,
 				CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */,
@@ -4671,6 +4677,7 @@
 				3811DE0C25C9D32F00A708ED /* BaseProvider.swift in Sources */,
 				CE95BF5A2BA62E4A00DC3DE3 /* PluginSource.swift in Sources */,
 				DD21FCB52C6952AD00AF2C25 /* DecimalPickerSettings.swift in Sources */,
+				3B0B4E6C2DE1439F005C6627 /* LockedResolver.swift in Sources */,
 				3811DE5C25C9D4D500A708ED /* Formatters.swift in Sources */,
 				3871F39F25ED895A0013ECB5 /* Decimal+Extensions.swift in Sources */,
 				CEE9A6592BBB418300EB5194 /* CalibrationsDataFlow.swift in Sources */,
@@ -4757,7 +4764,7 @@
 				110AEDEB2C51A0AE00615CC9 /* ShortcutsConfigView.swift in Sources */,
 				38DF179027733EAD00B3528F /* SnowScene.swift in Sources */,
 				DD1DB7CC2BECCA1F0048B367 /* BuildDetails.swift in Sources */,
-				1935364028496F7D001E0B16 /* Oref2_variables.swift in Sources */,
+				1935364028496F7D001E0B16 /* TrioCustomOrefVariables.swift in Sources */,
 				CE2FAD3A297D93F0001A872C /* BloodGlucoseExtensions.swift in Sources */,
 				38E4453A274E411700EC9A94 /* Disk+[UIImage].swift in Sources */,
 				DD73FA0F2D74F58E00D19D1E /* BackgroundTask+Helper.swift in Sources */,
@@ -5091,6 +5098,7 @@
 				3B8B5D3C2DF523C000365ED3 /* AutosensJsonTests.swift in Sources */,
 				BD8FC0662D661A0000B95AED /* GlucoseStorageTests.swift in Sources */,
 				BD8FC05B2D6618AF00B95AED /* DeterminationStorageTests.swift in Sources */,
+				3BAAE60C2DE7766C0049589B /* DynamicISFEnableTests.swift in Sources */,
 				CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */,
 				3B1C5C432D68E269004E9273 /* Extensions.swift in Sources */,
 				3BC26E552D7418830066ACD6 /* IobSuspendTests.swift in Sources */,
@@ -5201,7 +5209,7 @@
 			baseConfigurationReference = 38F3783A2613555C009DB701 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				APP_GROUP_ID = "group.$(BUNDLE_IDENTIFIER).trio-app-group";
+				APP_GROUP_ID = "$(TRIO_APP_GROUP_ID)";
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -5269,7 +5277,7 @@
 			baseConfigurationReference = 38F3783A2613555C009DB701 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				APP_GROUP_ID = "group.$(BUNDLE_IDENTIFIER).trio-app-group";
+				APP_GROUP_ID = "$(TRIO_APP_GROUP_ID)";
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -5330,7 +5338,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APP_DISPLAY_NAME = "$(APP_DISPLAY_NAME)";
-				APP_GROUP_ID = "$(APP_GROUP_ID)";
+				APP_GROUP_ID = "$(TRIO_APP_GROUP_ID)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = "$(APP_ICON)";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
@@ -5363,8 +5371,12 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -5372,7 +5384,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APP_DISPLAY_NAME = "$(APP_DISPLAY_NAME)";
-				APP_GROUP_ID = "$(APP_GROUP_ID)";
+				APP_GROUP_ID = "$(TRIO_APP_GROUP_ID)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = "$(APP_ICON)";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
@@ -5404,8 +5416,12 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

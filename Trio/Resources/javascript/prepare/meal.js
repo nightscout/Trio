@@ -23,7 +23,7 @@ function generate(pumphistory_data, profile_data, clock_data, glucose_data, basa
     , glucose: glucose_data
     };
 
-    var recentCarbs = freeaps_meal(inputs);
+    var recentCarbs = trio_meal(inputs);
 
     if (glucose_data.length < 4) {
         console.error("Not enough glucose data to calculate carb absorption; found:", glucose_data.length);

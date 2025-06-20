@@ -13,5 +13,5 @@ function generate(prepped_glucose_data,previous_autotune_data,pumpprofile_data) 
       , pumpProfile: pumpprofile_data
     };
 
-    return freeaps_autotuneCore(inputs);
+    return trio_autotuneCore(inputs);
 }

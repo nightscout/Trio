@@ -53,7 +53,7 @@ extension OpenAPS {
         static let iob = "monitor/iob.json"
         static let cgmState = "monitor/cgm-state.json"
         static let podAge = "monitor/pod-age.json"
-        static let oref2_variables = "monitor/oref2_variables.json"
+        static let trio_custom_oref_variables = "monitor/trio_custom_oref_variables.json"
         static let alertHistory = "monitor/alerthistory.json"
         static let statistics = "monitor/statistics.json"
     }

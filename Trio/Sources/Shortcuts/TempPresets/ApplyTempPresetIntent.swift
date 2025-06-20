@@ -10,7 +10,11 @@ struct ApplyTempPresetIntent: AppIntent {
     static var description = IntentDescription("Enable a Temporary Target")
 
     /// The temporary target preset to be applied.
-    @Parameter(title: "Preset") var preset: TempPreset?
+    @Parameter(
+        title: "Preset",
+        description: "the preset to apply",
+        requestValueDialog: IntentDialog(stringLiteral: String(localized: "Which preset to apply?"))
+    ) var preset: TempPreset?
 
     /// A boolean parameter that determines whether confirmation is required before applying the temporary target.
     @Parameter(
@@ -71,7 +75,11 @@ struct ApplyTempPresetIntent: AppIntent {
             // Request confirmation before applying if required
             if confirmBeforeApplying {
                 try await requestConfirmation(
-                    result: .result(dialog: "Confirm to apply Temporary Target '\(displayName)'")
+                    result: .result(
+                        dialog: IntentDialog(
+                            stringLiteral: String(localized: "Confirm to apply Temporary Target '\(displayName)'")
+                        )
+                    )
                 )
             }
 
@@ -79,7 +87,8 @@ struct ApplyTempPresetIntent: AppIntent {
             if await intentRequest.enactTempTarget(presetToApply) {
                 return .result(
                     dialog: IntentDialog(
-                        LocalizedStringResource(
+                        stringLiteral: String(
+                            localized:
                             "Temporary Target '\(presetToApply.name)' applied"
                         )
                     )
@@ -87,7 +96,8 @@ struct ApplyTempPresetIntent: AppIntent {
             } else {
                 return .result(
                     dialog: IntentDialog(
-                        LocalizedStringResource(
+                        stringLiteral: String(
+                            localized:
                             "Temporary Target '\(presetToApply.name)' failed"
                         )
                     )

@@ -21,6 +21,8 @@ extension Adjustments {
         @State var isRemoveAlertPresented = false
         @State var removeAlert: Alert?
         @State var isEditingTT = false
+        @State var showCancelOverrideConfirmDialog = false
+        @State var showCancelTempTargetConfirmDialog = false
 
         private var shouldDisplayStickyOverrideStopButton: Bool {
             state.isOverrideEnabled && state.activeOverrideName.isNotEmpty
@@ -143,6 +145,32 @@ extension Adjustments {
                         EditTempTargetForm(tempTargetToEdit: tempTarget, state: state)
                     }
                 }
+                .confirmationDialog("Override to Stop", isPresented: $showCancelOverrideConfirmDialog) {
+                    Button("Stop", role: .destructive) {
+                        Task {
+                            // Save cancelled Override in OverrideRunStored Entity
+                            // Cancel ALL active Override
+                            await state.disableAllActiveOverrides(createOverrideRunEntry: true)
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("Stop the Override \"\(state.currentActiveOverride?.name ?? "")\"?")
+                }
+                .confirmationDialog("Temp Target to Stop", isPresented: $showCancelTempTargetConfirmDialog) {
+                    Button("Stop", role: .destructive) {
+                        Task {
+                            // Save cancelled Temp Targets in TempTargetRunStored Entity
+                            // Cancel ALL active Temp Targets
+                            await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
+                            // Update View
+                            state.updateLatestTempTargetConfiguration()
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("Stop the Temp Target \"\(state.currentActiveTempTarget?.name ?? "")\"?")
+                }
             }).background(appState.trioBackgroundColor(for: colorScheme))
         }
 
@@ -224,11 +252,7 @@ extension Adjustments {
             switch state.selectedTab {
             case .overrides:
                 Button(action: {
-                    Task {
-                        // Save cancelled Override in OverrideRunStored Entity
-                        // Cancel ALL active Override
-                        await state.disableAllActiveOverrides(createOverrideRunEntry: true)
-                    }
+                    showCancelOverrideConfirmDialog = true
                 }, label: {
                     Text("Stop Override")
 
@@ -239,14 +263,7 @@ extension Adjustments {
                     .tint(.white)
             case .tempTargets:
                 Button(action: {
-                    Task {
-                        // Save cancelled Temp Targets in TempTargetRunStored Entity
-                        // Cancel ALL active Temp Targets
-                        await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
-
-                        // Update View
-                        state.updateLatestTempTargetConfiguration()
-                    }
+                    showCancelTempTargetConfirmDialog = true
                 }, label: {
                     Text("Stop Temp Target")
 

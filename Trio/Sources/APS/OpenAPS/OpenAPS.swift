@@ -98,15 +98,15 @@ final class OpenAPS {
     }
 
     // fetch glucose to pass it to the meal function and to determine basal
-    private func fetchAndProcessGlucose() async throws -> String {
+    private func fetchAndProcessGlucose(fetchLimit: Int?) async throws -> String {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: GlucoseStored.self,
             onContext: context,
             predicate: NSPredicate.predicateForOneDayAgoInMinutes,
             key: "date",
             ascending: false,
-            fetchLimit: 72,
-            batchSize: 24
+            fetchLimit: fetchLimit,
+            batchSize: 48
         )
 
         return try await context.perform {
@@ -119,7 +119,7 @@ final class OpenAPS {
         }
     }
 
-    private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil) async throws -> String {
+    private func fetchAndProcessCarbs(additionalCarbs: Decimal? = nil, carbsDate: Date? = nil) async throws -> String {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: CarbEntryStored.self,
             onContext: context,
@@ -136,13 +136,16 @@ final class OpenAPS {
             var jsonArray = self.jsonConverter.convertToJSON(carbResults)
 
             if let additionalCarbs = additionalCarbs {
+                let formattedDate = carbsDate.map { ISO8601DateFormatter().string(from: $0) } ?? ISO8601DateFormatter()
+                    .string(from: Date())
+
                 let additionalEntry = [
                     "carbs": Double(additionalCarbs),
-                    "actualDate": ISO8601DateFormatter().string(from: Date()),
+                    "actualDate": formattedDate,
                     "id": UUID().uuidString,
                     "note": NSNull(),
                     "protein": 0,
-                    "created_at": ISO8601DateFormatter().string(from: Date()),
+                    "created_at": formattedDate,
                     "isFPU": false,
                     "fat": 0,
                     "enteredBy": "Trio"
@@ -279,6 +282,7 @@ final class OpenAPS {
         useSwiftOref: Bool,
         simulatedCarbsAmount: Decimal? = nil,
         simulatedBolusAmount: Decimal? = nil,
+        simulatedCarbsDate: Date? = nil,
         simulation: Bool = false
     ) async throws -> Determination? {
         debug(.openAPS, "Start determineBasal")
@@ -288,9 +292,9 @@ final class OpenAPS {
 
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
-        async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0)
-        async let glucose = fetchAndProcessGlucose()
-        async let oref2 = oref2()
+        async let carbs = fetchAndProcessCarbs(additionalCarbs: simulatedCarbsAmount ?? 0, carbsDate: simulatedCarbsDate)
+        async let glucose = fetchAndProcessGlucose(fetchLimit: 72)
+        async let prepareTrioCustomOrefVariables = prepareTrioCustomOrefVariables()
         async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
         async let basalAsync = loadFileFromStorageAsync(name: Settings.basalProfile)
         async let autosenseAsync = loadFileFromStorageAsync(name: Settings.autosense)
@@ -303,7 +307,7 @@ final class OpenAPS {
             pumpHistoryJSON,
             carbsAsJSON,
             glucoseAsJSON,
-            oref2_variables,
+            trioCustomOrefVariables,
             profile,
             basalProfile,
             autosens,
@@ -313,7 +317,7 @@ final class OpenAPS {
             try parsePumpHistory(await pumpHistoryObjectIDs, simulatedBolusAmount: simulatedBolusAmount),
             try carbs,
             try glucose,
-            try oref2,
+            try prepareTrioCustomOrefVariables,
             profileAsync,
             basalAsync,
             autosenseAsync,
@@ -366,7 +370,7 @@ final class OpenAPS {
             pumpHistory: pumpHistoryJSON,
             preferences: preferences,
             basalProfile: basalProfile,
-            oref2_variables: oref2_variables
+            trioCustomOrefVariables: trioCustomOrefVariables
         )
 
         debug(.openAPS, "\(simulation ? "[SIMULATION]" : "") OREF DETERMINATION: \(orefDetermination)")
@@ -383,11 +387,15 @@ final class OpenAPS {
 
             return determination
         } else {
+            debug(
+                .openAPS,
+                "\(DebuggingIdentifiers.failed) No determination data. orefDetermination: \(orefDetermination), Determination(from: orefDetermination): \(String(describing: Determination(from: orefDetermination))), deliverAt: \(String(describing: Determination(from: orefDetermination)?.deliverAt))"
+            )
             throw APSError.apsError(message: "No determination data.")
         }
     }
 
-    func oref2() async throws -> RawJSON {
+    func prepareTrioCustomOrefVariables() async throws -> RawJSON {
         try await context.perform {
             // Retrieve user preferences
             let userPreferences = self.storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
@@ -423,8 +431,10 @@ final class OpenAPS {
             let averageTDDLastTenDays = totalTDD / Decimal(totalDaysCount)
             let weightedTDD = weightPercentage * averageTDDLastTwoHours + (1 - weightPercentage) * averageTDDLastTenDays
 
-            // Prepare Oref2 variables
-            let oref2Data = Oref2_variables(
+            let glucose = try self.fetchGlucose()
+
+            // Prepare Trio's custom oref variables
+            let trioCustomOrefVariablesData = TrioCustomOrefVariables(
                 average_total_data: currentTDD > 0 ? averageTDDLastTenDays : 0,
                 weightedAverage: currentTDD > 0 ? weightedTDD : 1,
                 currentTDD: currentTDD,
@@ -444,12 +454,13 @@ final class OpenAPS {
                 start: (activeOverrides.first?.start ?? 0) as Decimal,
                 end: (activeOverrides.first?.end ?? 0) as Decimal,
                 smbMinutes: activeOverrides.first?.smbMinutes?.decimalValue ?? maxSMBBasalMinutes,
-                uamMinutes: activeOverrides.first?.uamMinutes?.decimalValue ?? maxUAMBasalMinutes
+                uamMinutes: activeOverrides.first?.uamMinutes?.decimalValue ?? maxUAMBasalMinutes,
+                shouldProtectDueToHIGH: GlucoseStored.glucoseIsHIGH(glucose)
             )
 
-            // Save and return the Oref2 variables
-            self.storage.save(oref2Data, as: OpenAPS.Monitor.oref2_variables)
-            return self.loadFileFromStorage(name: Monitor.oref2_variables)
+            // Save and return contents of Trio's custom oref variables
+            self.storage.save(trioCustomOrefVariablesData, as: OpenAPS.Monitor.trio_custom_oref_variables)
+            return self.loadFileFromStorage(name: Monitor.trio_custom_oref_variables)
         }
     }
 
@@ -459,7 +470,7 @@ final class OpenAPS {
         // Perform asynchronous calls in parallel
         async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs() ?? []
         async let carbs = fetchAndProcessCarbs()
-        async let glucose = fetchAndProcessGlucose()
+        async let glucose = fetchAndProcessGlucose(fetchLimit: nil)
         async let getProfile = loadFileFromStorageAsync(name: Settings.profile)
         async let getBasalProfile = loadFileFromStorageAsync(name: Settings.basalProfile)
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
@@ -710,7 +721,7 @@ final class OpenAPS {
         pumpHistory: JSON,
         preferences: JSON,
         basalProfile: JSON,
-        oref2_variables: JSON
+        trioCustomOrefVariables: JSON
     ) async throws -> RawJSON {
         try await withCheckedThrowingContinuation { continuation in
             jsWorker.inCommonContext { worker in
@@ -739,7 +750,7 @@ final class OpenAPS {
                     pumpHistory,
                     preferences,
                     basalProfile,
-                    oref2_variables
+                    trioCustomOrefVariables
                 ])
 
                 continuation.resume(returning: result)
@@ -934,7 +945,7 @@ final class OpenAPS {
     }
 }
 
-// Non-Async fetch methods for oref2
+// Non-Async fetch methods for trio_custom_oref_variables
 extension OpenAPS {
     func fetchActiveTempTargets() throws -> [TempTargetStored] {
         try CoreDataStack.shared.fetchEntities(
@@ -967,5 +978,24 @@ extension OpenAPS {
             ascending: true,
             propertiesToFetch: ["date", "total"]
         ) as? [[String: Any]] ?? []
+    }
+
+    func fetchGlucose() throws -> [GlucoseStored] {
+        let results = try CoreDataStack.shared.fetchEntities(
+            ofType: GlucoseStored.self,
+            onContext: context,
+            predicate: NSPredicate.predicateFor30MinAgo,
+            key: "date",
+            ascending: false,
+            fetchLimit: 4
+        )
+
+        return try context.perform {
+            guard let glucoseResults = results as? [GlucoseStored] else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
+
+            return glucoseResults
+        }
     }
 }

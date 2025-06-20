@@ -1,0 +1,132 @@
+name: zzz [DO NOT RUN] Automated unit tests
+
+on:
+  pull_request:
+    branches:
+      - dev
+    types: [opened, synchronize]
+    paths-ignore:
+      - '**.md'
+      - '**/README'
+      - '**.yml'
+      - '**.txt'
+
+  push:
+    branches:
+      - dev
+    paths-ignore:
+      - '**.md'
+      - '**/README'
+      - '**.yml'
+      - '**.txt'
+
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: macos-15
+    if: github.repository_owner == 'nightscout'
+
+    steps:
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_16.3.app/Contents/Developer
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Restore cache
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            /Users/runner/Library/Developer/Xcode/DerivedData
+            .build
+          key: ${{ runner.os }}-trio-${{ hashFiles('**/*.swift', '**/*.xcodeproj', '**/*.xcworkspace') }}
+          restore-keys: |
+            ${{ runner.os }}-trio-
+
+      - name: Show cache contents before build
+        run: |
+          echo "📂 Contents of DerivedData:"
+          ls -lah /Users/runner/Library/Developer/Xcode/DerivedData || echo "Directory not found"
+          echo ""
+          echo "📂 Contents of .build:"
+          ls -lah .build || echo ".build directory not found"
+
+      - name: Build for testing
+        run: |
+          set -o pipefail && \
+          time xcodebuild build-for-testing \
+            -workspace Trio.xcworkspace \
+            -scheme "Trio Tests" \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.4' \
+
+      - name: Check for uncommitted changes
+        run: |
+          CHANGES=$(git status --porcelain)
+          if [ -n "$CHANGES" ]; then
+            echo "Uncommitted changes detected:"
+            echo "$CHANGES"
+            echo "$CHANGES" | while read -r line; do
+              FILE=$(echo $line | cut -c4-)
+              echo "::warning file=$FILE::Uncommitted change detected"
+            done
+            exit 0
+          else
+            echo "No uncommitted changes detected."
+          fi
+        shell: bash
+
+      - name: Show cache contents after build
+        run: |
+          echo "📂 Updated DerivedData contents:"
+          du -sh /Users/runner/Library/Developer/Xcode/DerivedData || echo "Directory not found"
+          ls -lah /Users/runner/Library/Developer/Xcode/DerivedData || echo "Directory not found"
+          echo ""
+          echo "📂 Updated .build contents:"
+          du -sh .build || echo ".build directory not found"
+          ls -lah .build || echo ".build directory not found"
+          
+      - name: Save cache
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            /Users/runner/Library/Developer/Xcode/DerivedData
+            .build
+          key: ${{ runner.os }}-trio-${{ hashFiles('**/*.swift', '**/*.xcodeproj', '**/*.xcworkspace') }}  
+
+      - name: Run tests
+        run: |
+          set -o pipefail
+          time xcodebuild test-without-building \
+            -workspace Trio.xcworkspace \
+            -scheme "Trio Tests" \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.4' \
+            $([ "$ENABLE_PARALLEL_TESTING" = "true" ] && echo "-parallel-testing-enabled YES") \
+            2>&1 | tee xcodebuild.log
+
+      - name: Annotate test results
+        if: always()
+        run: |
+          if [ -f xcodebuild.log ]; then
+            if grep -q "Failing tests:" xcodebuild.log; then
+              echo "::error title=Unit Tests Failed::Some tests failed"
+              echo "## ❌ Some tests failed:" >> $GITHUB_STEP_SUMMARY
+              grep -A 20 "Failing tests:" xcodebuild.log | \
+                grep -E '^\s+[A-Za-z0-9]+\..+\(\)' | \
+                sed 's/^/  - /' >> $GITHUB_STEP_SUMMARY
+              echo "::group::Failed Test List"
+              grep -A 20 "Failing tests:" xcodebuild.log | \
+                grep -E '^\s+[A-Za-z0-9]+\..+\(\)' | \
+                sed 's/^/  - /'
+              echo "::endgroup::"
+            else
+              echo "::notice title=Unit Tests Passed::✅ All tests passed"
+              echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "::warning::Test log (xcodebuild.log) not found"
+          fi

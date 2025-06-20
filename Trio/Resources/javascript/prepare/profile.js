@@ -1,7 +1,7 @@
 //для pumpprofile.json параметры: settings/settings.json settings/bg_targets.json settings/insulin_sensitivities.json settings/basal_profile.json preferences.json settings/carb_ratios.json settings/temptargets.json settings/model.json
 //для profile.json параметры: settings/settings.json settings/bg_targets.json settings/insulin_sensitivities.json settings/basal_profile.json preferences.json settings/carb_ratios.json settings/temptargets.json settings/model.json settings/autotune.json
 
-function generate(pumpsettings_data, bgtargets_data, isf_data, basalprofile_data, preferences_input = false, carbratio_input = false, temptargets_input = false, model_input = false, autotune_input = false, freeaps_data) {
+function generate(pumpsettings_data, bgtargets_data, isf_data, basalprofile_data, preferences_input = false, carbratio_input = false, temptargets_input = false, model_input = false, autotune_input = false, trio_data) {
     if (bgtargets_data.units !== 'mg/dL') {
         if (bgtargets_data.units === 'mmol/L') {
             for (var i = 0, len = bgtargets_data.targets.length; i < len; i++) {
@@ -35,9 +35,9 @@ function generate(pumpsettings_data, bgtargets_data, isf_data, basalprofile_data
         temptargets_data = temptargets_input;
     }
     
-    var freeaps = { };
-    if (freeaps_data) {
-        freeaps = freeaps_data;
+    var trioData = { };
+    if (trio_data) {
+        trioData = trio_data;
     }
 
     var model_data = { };
@@ -98,10 +98,10 @@ function generate(pumpsettings_data, bgtargets_data, isf_data, basalprofile_data
 
     if (autotune_data) {
         if (autotune_data.basalprofile) { inputs.basals = autotune_data.basalprofile; }
-        if (!freeaps.onlyAutotuneBasals) {
+        if (!trioData.onlyAutotuneBasals) {
             if (autotune_data.isfProfile) { inputs.isf = autotune_data.isfProfile; }
             if (autotune_data.carb_ratio) { inputs.carbratio.schedule[0].ratio = autotune_data.carb_ratio; }
         }
     }
-    return freeaps_profile(inputs);
+    return trio_profile(inputs);
 }

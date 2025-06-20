@@ -1,7 +1,7 @@
 import Combine
 import CoreData
 import Foundation
-import SwiftUICore
+import SwiftUI
 
 extension Adjustments.StateModel {
     // MARK: - Enact Overrides

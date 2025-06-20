@@ -1,6 +1,15 @@
-oref0 branch: tcd-fixes - git version: af8f79c
+oref0 branch: dev - git version: 37896e5
 
 Last commits:
+37896e5 Merge pull request #48 from nightscout/fix-bundle-naming
+f21a187 Rename output library to trio_[name]
+c0b46d3 Merge pull request #47 from nightscout/fix-400-guard
+1591b14 Remove leftover != 400 condition
+4204b12 Remove autoISF adjustments from glucose-get-last
+2596f3f Refactor 400 glucose guard: - Remove old 400 guard - Replace with check that only disables SMBs and keeps TBR at neutral == current basal rate, if shouldProtectDueToHIGH is not null/undefined and true - Remove all other 400 guards
+2ca5e20 Change folder name to Trio from iAPS
+6ad27e9 Merge pull request #46 from nightscout/tcd
+d98e4fc Merge pull request #45 from nightscout/tcd-fixes
 af8f79c Fix typo; remove enableDynamicCR setting from profile/index.js
 ffb9374 Always add minPredBG to rT object
 814b629 Remove dynamicCR

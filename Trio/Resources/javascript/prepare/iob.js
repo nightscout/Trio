@@ -11,5 +11,5 @@ function generate(pumphistory_data, profile_data, clock_data, autosens_data = nu
       if (autosens_data) {
         inputs.autosens = autosens_data;
       }
-      return freeaps_iob(inputs);
+      return trio_iob(inputs);
 }

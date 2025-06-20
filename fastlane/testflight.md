@@ -166,8 +166,8 @@ _Referring to the table below, tap on each **IDENTIFIER** that has a different *
 |:--|:--|:--|
 | Trio | XC org nightscout TEAMID trio | org.nightscout.TEAMID.trio |
 | Trio LiveActivity | - | org.nightscout.TEAMID.trio.LiveActivity |
-| Trio Watch | XC IDENTIFIER | org.nightscout.TEAMID.trio.watchkitapp |
-| Trio WatchKit Extension | XC IDENTIFIER | org.nightscout.TEAMID.trio.watchkitapp.watchkitextension |
+| Trio Watch App | XC IDENTIFIER | org.nightscout.TEAMID.trio.watchkitapp |
+| Trio Watch Complication | XC IDENTIFIER | org.nightscout.TEAMID.trio.watchkitapp.TrioWatchComplication |
 
 ## Add App Group to Bundle Identifiers
 

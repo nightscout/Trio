@@ -50,10 +50,16 @@ struct ForecastChart: View {
     }
 
     private var forecastChartLabels: some View {
-        HStack {
+        // Check if this is a backdated entry by comparing with the default date using a tolerance
+        let isBackdated = abs(state.date.timeIntervalSince(state.defaultDate)) > 1.0
+
+        // When backdated, display no carbs as this label is only supposed to show current entered carbs
+        let displayedCarbs = isBackdated ? 0 : state.carbs
+
+        return HStack {
             HStack {
                 Image(systemName: "fork.knife")
-                Text("\(state.carbs.description) g")
+                Text("\(displayedCarbs.description) g")
             }
             .font(.footnote)
             .foregroundStyle(.orange)
@@ -118,6 +124,11 @@ struct ForecastChart: View {
         }
     }
 
+    private var maxGlucoseMgDl: Decimal {
+        let maxGlucose = state.glucoseFromPersistence.map({ Decimal($0.glucose) }).max() ?? 300
+        return maxGlucose > 300 ? 400 : 300
+    }
+
     private var forecastChart: some View {
         Chart {
             drawGlucose()
@@ -168,7 +179,7 @@ struct ForecastChart: View {
         .chartXAxis { forecastChartXAxis }
         .chartXScale(domain: startMarker ... endMarker)
         .chartYAxis { forecastChartYAxis }
-        .chartYScale(domain: state.units == .mgdL ? 0 ... 300 : 0.asMmolL ... 300.asMmolL)
+        .chartYScale(domain: state.units == .mgdL ? 0 ... maxGlucoseMgDl : 0.asMmolL ... maxGlucoseMgDl.asMmolL)
         .chartLegend {
             if state.forecastDisplayType == ForecastDisplayType.lines {
                 HStack(spacing: 10) {

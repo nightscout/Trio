@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import SwiftUICore
+import SwiftUI
 import UIKit
 
 @Observable class AppState {
