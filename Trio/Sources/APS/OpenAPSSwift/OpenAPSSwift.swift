@@ -48,32 +48,41 @@ struct OpenAPSSwift {
         clock: JSON,
         carbs: JSON,
         glucose: JSON
-    ) async throws -> (OrefFunctionResult, MealInputs?) {
+    ) -> (OrefFunctionResult, MealInputs?) {
         var mealInputs: MealInputs?
 
         do {
             let pumpHistory = try JSONBridge.pumpHistory(from: pumphistory)
             let profile = try JSONBridge.profile(from: profile)
-            let basalprofile = try JSONBridge.basalProfile(from: basalProfile)
+            let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
             let clock = try JSONBridge.clock(from: clock)
             let carbs = try JSONBridge.carbs(from: carbs)
-            let glucose = try JSONBridge.gluc
-            
-            iobInputs = IobInputs(history: pumpHistory, profile: profile, clock: clock, autosens: autosens)
+            let glucose = try JSONBridge.glucose(from: glucose)
 
-            let iobResult = try IobGenerator.generate(
-                history: pumpHistory,
+            mealInputs = MealInputs(
+                pumpHistory: pumpHistory,
                 profile: profile,
+                basalProfile: basalProfile,
                 clock: clock,
-                autosens: autosens
+                carbs: carbs,
+                glucose: glucose
             )
 
-            return try (.success(JSONBridge.to(iobResult)), iobInputs)
+            let mealResult = try MealGenerator.generate(
+                pumpHistory: pumpHistory,
+                profile: profile,
+                basalProfile: basalProfile,
+                clock: clock,
+                carbHistory: carbs,
+                glucoseHistory: glucose
+            )
+
+            return try (.success(JSONBridge.to(mealResult)), mealInputs)
         } catch {
-            return (.failure(error), iobInputs)
+            return (.failure(error), mealInputs)
         }
     }
-    
+
     static func iob(pumphistory: JSON, profile: JSON, clock: JSON, autosens: JSON) -> (OrefFunctionResult, IobInputs?) {
         var iobInputs: IobInputs?
 

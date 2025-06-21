@@ -192,8 +192,9 @@ struct MealCob {
                 }
             } else if let carbImpactDate = carbImpactDate, carbImpactDate > glucoseTime {
                 let avgDeviation = ((avgDelta - glucoseImpact) * 1000).rounded() / 1000
+                // we remove the * 1000 because we're already using seconds, not ms
                 let deviationSlope = (avgDeviation - currentDeviation) / Decimal(glucoseTime.timeIntervalSince(carbImpactDate)) *
-                    1000 * 60 * 5
+                    60 * 5
 
                 if avgDeviation > maxDeviation {
                     slopeFromMaxDeviation = min(0, deviationSlope)

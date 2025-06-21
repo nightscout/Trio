@@ -95,7 +95,8 @@ import Testing
             swiftDuration: 0.1,
             javascript: iobResultJavascript,
             javascriptDuration: 0.1,
-            iobInputs: nil
+            iobInputs: nil,
+            mealInputs: nil
         )
 
         if comparison.resultType == .valueDifference {
@@ -131,7 +132,8 @@ import Testing
             swiftDuration: 0.1,
             javascript: iobResultJavascript,
             javascriptDuration: 0.1,
-            iobInputs: nil
+            iobInputs: nil,
+            mealInputs: nil
         )
 
         if comparison.resultType != .valueDifference {

@@ -26,7 +26,7 @@ import Testing
         jsonData = (jsonInputs["meal"] as! String).data(using: .utf8)!
         let mealResultFromJs = try decoder.decode(ComputedCarbs.self, from: jsonData)
 
-        let mealResult = try MealGeneratorError.generate(
+        let mealResult = try MealGenerator.generate(
             pumpHistory: pumpHistory,
             profile: profile,
             basalProfile: basalProfile,
@@ -42,6 +42,8 @@ import Testing
         // Ignore this check due to Issue 539
         // #expect(mealResult?.allDeviations == mealResultFromJs.allDeviations)
         #expect(mealResult?.maxDeviation == mealResultFromJs.maxDeviation)
+        #expect(mealResult?.slopeFromMaxDeviation == mealResultFromJs.slopeFromMaxDeviation)
         #expect(mealResult?.minDeviation == mealResultFromJs.minDeviation)
+        #expect(mealResult!.slopeFromMinDeviation.isWithin(0.01, of: mealResultFromJs.slopeFromMinDeviation))
     }
 }

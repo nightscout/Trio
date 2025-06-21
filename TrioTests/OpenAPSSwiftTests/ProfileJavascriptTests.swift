@@ -327,7 +327,8 @@ struct ProfileGeneratorTests {
             swiftDuration: 1.0,
             javascript: jsResult,
             javascriptDuration: 1.0,
-            iobInputs: nil
+            iobInputs: nil,
+            mealInputs: nil
         )
 
         if comparison.resultType == .valueDifference {

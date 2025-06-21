@@ -84,7 +84,8 @@ enum JSONCompare {
         swiftDuration: TimeInterval,
         javascript: OrefFunctionResult,
         javascriptDuration: TimeInterval,
-        iobInputs: IobInputs? = nil
+        iobInputs: IobInputs? = nil,
+        mealInputs: MealInputs? = nil
     ) {
         let comparison = createComparison(
             function: function,
@@ -92,7 +93,8 @@ enum JSONCompare {
             swiftDuration: swiftDuration,
             javascript: javascript,
             javascriptDuration: javascriptDuration,
-            iobInputs: iobInputs
+            iobInputs: iobInputs,
+            mealInputs: mealInputs
         )
 
         Task {
@@ -110,7 +112,8 @@ enum JSONCompare {
         swiftDuration: TimeInterval,
         javascript: OrefFunctionResult,
         javascriptDuration: TimeInterval,
-        iobInputs: IobInputs?
+        iobInputs: IobInputs?,
+        mealInputs: MealInputs?
     ) -> AlgorithmComparison {
         switch (swift, javascript) {
         case let (.success(swiftJson), .success(javascriptJson)):
@@ -123,7 +126,8 @@ enum JSONCompare {
                     jsDuration: javascriptDuration,
                     swiftDuration: swiftDuration,
                     differences: differences.isEmpty ? nil : differences,
-                    iobInputs: differences.isEmpty ? nil : iobInputs
+                    iobInputs: differences.isEmpty ? nil : iobInputs,
+                    mealInputs: differences.isEmpty ? nil : mealInputs
                 )
             } catch {
                 return AlgorithmComparison(
@@ -149,7 +153,8 @@ enum JSONCompare {
                 resultType: .swiftOnlyException,
                 jsDuration: javascriptDuration,
                 swiftException: AlgorithmException(error: swiftError),
-                iobInputs: iobInputs
+                iobInputs: iobInputs,
+                mealInputs: mealInputs
             )
 
         case let (.success, .failure(jsError)):
@@ -158,7 +163,8 @@ enum JSONCompare {
                 resultType: .jsOnlyException,
                 swiftDuration: swiftDuration,
                 jsException: AlgorithmException(error: jsError),
-                iobInputs: iobInputs
+                iobInputs: iobInputs,
+                mealInputs: mealInputs
             )
         }
     }

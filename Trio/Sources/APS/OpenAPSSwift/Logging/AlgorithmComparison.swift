@@ -106,6 +106,7 @@ struct AlgorithmComparison: Codable {
 
     // Inputs for mismatches
     let iobInput: IobInputs?
+    let mealInput: MealInputs?
 
     init(
         function: OrefFunction,
@@ -117,6 +118,7 @@ struct AlgorithmComparison: Codable {
         swiftException: AlgorithmException? = nil,
         comparisonError: AlgorithmException? = nil,
         iobInputs: IobInputs? = nil,
+        mealInputs: MealInputs? = nil,
         id: UUID = UUID(),
         createdAt: Date = Date()
     ) {
@@ -131,8 +133,9 @@ struct AlgorithmComparison: Codable {
         self.swiftException = swiftException
         self.comparisonError = comparisonError
         iobInput = iobInputs
+        mealInput = mealInputs
         timezone = TimeZone.current.identifier
-        version = "2"
+        version = "3"
 
         #if targetEnvironment(simulator)
             isSimulator = true

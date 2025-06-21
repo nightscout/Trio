@@ -165,7 +165,7 @@ enum MealTotal {
             slopeFromMaxDeviation: finalCobResult.slopeFromMaxDeviation.rounded(scale: 3),
             slopeFromMinDeviation: finalCobResult.slopeFromMinDeviation.rounded(scale: 3),
             allDeviations: finalCobResult.allDeviations,
-            lastCarbTime: lastCarbTime
+            lastCarbTime: (lastCarbTime * 1000).rounded()
         )
     }
 }

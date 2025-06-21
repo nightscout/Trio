@@ -332,7 +332,8 @@ final class OpenAPS {
             basalProfile: basalProfile,
             clock: clock,
             carbs: carbsAsJSON,
-            glucose: glucoseAsJSON
+            glucose: glucoseAsJSON,
+            useSwiftOref: useSwiftOref
         )
 
         // IOB calculation
@@ -659,11 +660,50 @@ final class OpenAPS {
         basalProfile: JSON,
         clock: JSON,
         carbs: JSON,
-        glucose: JSON
+        glucose: JSON,
+        useSwiftOref: Bool
     ) async throws -> RawJSON {
-        
+        let startJavascriptAt = Date()
+        let jsResult = await mealJavascript(
+            pumphistory: pumphistory,
+            profile: profile,
+            basalProfile: basalProfile,
+            clock: clock,
+            carbs: carbs,
+            glucose: glucose
+        )
+        let javascriptDuration = Date().timeIntervalSince(startJavascriptAt)
+
+        // Important: we want to make sure that this flag ensures that none
+        // of the native code runs
+        guard useSwiftOref else {
+            return try jsResult.returnOrThrow()
+        }
+
+        let startSwiftAt = Date()
+        let (swiftResult, mealInputs) = OpenAPSSwift
+            .meal(
+                pumphistory: pumphistory,
+                profile: profile,
+                basalProfile: basalProfile,
+                clock: clock,
+                carbs: carbs,
+                glucose: glucose
+            )
+        let swiftDuration = Date().timeIntervalSince(startSwiftAt)
+
+        JSONCompare.logDifferences(
+            function: .meal,
+            swift: swiftResult,
+            swiftDuration: swiftDuration,
+            javascript: jsResult,
+            javascriptDuration: javascriptDuration,
+            mealInputs: mealInputs
+        )
+
+        return try jsResult.returnOrThrow()
     }
-    
+
     private func mealJavascript(
         pumphistory: JSON,
         profile: JSON,
@@ -671,24 +711,29 @@ final class OpenAPS {
         clock: JSON,
         carbs: JSON,
         glucose: JSON
-    ) async throws -> RawJSON {
-        try await withCheckedThrowingContinuation { continuation in
-            jsWorker.inCommonContext { worker in
-                worker.evaluateBatch(scripts: [
-                    Script(name: Prepare.log),
-                    Script(name: Bundle.meal),
-                    Script(name: Prepare.meal)
-                ])
-                let result = worker.call(function: Function.generate, with: [
-                    pumphistory,
-                    profile,
-                    clock,
-                    glucose,
-                    basalProfile,
-                    carbs
-                ])
-                continuation.resume(returning: result)
+    ) async -> OrefFunctionResult {
+        do {
+            let result = try await withCheckedThrowingContinuation { continuation in
+                jsWorker.inCommonContext { worker in
+                    worker.evaluateBatch(scripts: [
+                        Script(name: Prepare.log),
+                        Script(name: Bundle.meal),
+                        Script(name: Prepare.meal)
+                    ])
+                    let result = worker.call(function: Function.generate, with: [
+                        pumphistory,
+                        profile,
+                        clock,
+                        glucose,
+                        basalProfile,
+                        carbs
+                    ])
+                    continuation.resume(returning: result)
+                }
             }
+            return .success(result)
+        } catch {
+            return .failure(error)
         }
     }
 
