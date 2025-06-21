@@ -71,6 +71,16 @@ struct IobInputs: Codable {
     let autosens: Autosens?
 }
 
+/// For tracking inputs to `meal` when there is a mismatch
+struct MealInputs: Codable {
+    let pumpHistory: [PumpHistoryEvent]
+    let profile: Profile
+    let basalProfile: [BasalProfileEntry]
+    let clock: Date
+    let carbs: [CarbsEntry]
+    let glucose: [BloodGlucose]
+}
+
 /// Represents a complete comparison between JS and Swift implementations
 struct AlgorithmComparison: Codable {
     let id: UUID

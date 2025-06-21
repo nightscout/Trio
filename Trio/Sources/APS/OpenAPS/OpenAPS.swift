@@ -661,6 +661,17 @@ final class OpenAPS {
         carbs: JSON,
         glucose: JSON
     ) async throws -> RawJSON {
+        
+    }
+    
+    private func mealJavascript(
+        pumphistory: JSON,
+        profile: JSON,
+        basalProfile: JSON,
+        clock: JSON,
+        carbs: JSON,
+        glucose: JSON
+    ) async throws -> RawJSON {
         try await withCheckedThrowingContinuation { continuation in
             jsWorker.inCommonContext { worker in
                 worker.evaluateBatch(scripts: [
