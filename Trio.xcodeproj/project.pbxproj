@@ -634,7 +634,8 @@
 		DD30B9CA2E062A3400DA677C /* ForecastGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9C92E062A3300DA677C /* ForecastGenerator.swift */; };
 		DD30B9CC2E062A7000DA677C /* ForecastResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9CB2E062A7000DA677C /* ForecastResult.swift */; };
 		DD30B9CE2E062AA300DA677C /* SingleForecasting.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9CD2E062AA300DA677C /* SingleForecasting.swift */; };
-		DD30B9FE2E0742E200DA677C /* SMBEnablementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9FD2E0742E200DA677C /* SMBEnablementTests.swift */; };
+		DD30B9FE2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9FD2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift */; };
+		DD30BA002E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */; };
 		DD32CF982CC82463003686D6 /* TrioRemoteControl+Bolus.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */; };
 		DD32CF9A2CC8247B003686D6 /* TrioRemoteControl+Meal.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */; };
 		DD32CF9C2CC82499003686D6 /* TrioRemoteControl+TempTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */; };
@@ -1540,7 +1541,8 @@
 		DD30B9C92E062A3300DA677C /* ForecastGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastGenerator.swift; sourceTree = "<group>"; };
 		DD30B9CB2E062A7000DA677C /* ForecastResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastResult.swift; sourceTree = "<group>"; };
 		DD30B9CD2E062AA300DA677C /* SingleForecasting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleForecasting.swift; sourceTree = "<group>"; };
-		DD30B9FD2E0742E200DA677C /* SMBEnablementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBEnablementTests.swift; sourceTree = "<group>"; };
+		DD30B9FD2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalSMBEnablementTests.swift; sourceTree = "<group>"; };
+		DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalDeltaCalculationTests.swift; sourceTree = "<group>"; };
 		DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Bolus.swift"; sourceTree = "<group>"; };
 		DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Meal.swift"; sourceTree = "<group>"; };
 		DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+TempTarget.swift"; sourceTree = "<group>"; };
@@ -2870,7 +2872,8 @@
 		3B5CD2C72D4AECD500CE213C /* OpenAPSSwiftTests */ = {
 			isa = PBXGroup;
 			children = (
-				DD30B9FD2E0742E200DA677C /* SMBEnablementTests.swift */,
+				DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */,
+				DD30B9FD2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift */,
 				3BF92F2C2D86DEE9006B545A /* javascript */,
 				3B1C5C3C2D68E269004E9273 /* json */,
 				3BFA5BF72D989F380072B082 /* mocks */,
@@ -5119,7 +5122,7 @@
 				3BF8D14B2D530397001B3F84 /* JSONCompareTests.swift in Sources */,
 				3BEF6AB32D97316F0076089D /* MealTotalTests.swift in Sources */,
 				3BF8D0C12D5175BE001B3F84 /* ProfileJsNativeCompareTests.swift in Sources */,
-				DD30B9FE2E0742E200DA677C /* SMBEnablementTests.swift in Sources */,
+				DD30B9FE2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift in Sources */,
 				3BEF6AB12D9731660076089D /* MealHistoryTests.swift in Sources */,
 				BD8FC0572D66188700B95AED /* PumpHistoryStorageTests.swift in Sources */,
 				BD8FC0642D6619EF00B95AED /* TempTargetStorageTests.swift in Sources */,
@@ -5148,6 +5151,7 @@
 				3BEF6AB72D9750780076089D /* MealJsonTests.swift in Sources */,
 				38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */,
 				BD8FC0602D6619DB00B95AED /* CarbsStorageTests.swift in Sources */,
+				DD30BA002E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift in Sources */,
 				BD8FC05E2D6618CE00B95AED /* BolusCalculatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

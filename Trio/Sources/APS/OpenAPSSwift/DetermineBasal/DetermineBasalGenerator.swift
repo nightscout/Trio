@@ -78,7 +78,7 @@ extension DeterminationGenerator {
 
         let fiveMinuteBlocks = (2 * 60) / 5
         let delta = targetGlucose - eventualGlucose
-        return glucoseImpact + Decimal(Int(delta) / fiveMinuteBlocks).rounded(toPlaces: 1)
+        return (glucoseImpact + Decimal(Int(delta) / fiveMinuteBlocks)).rounded(toPlaces: 1)
     }
 
     /// Determines whether SMBs are enabled based on profile settings,
