@@ -1,3 +1,5 @@
+import Foundation
+
 /// Common interface for a single forecast pipeline
 protocol SingleForecasting {
     /// - Parameters:
@@ -43,49 +45,72 @@ struct COBForecastGenerator: SingleForecasting {
     public func forecast(
         startingGlucose: Double,
         glucoseImpactSeries: [Double],
-        mealData _: ComputedCarbs,
+        mealData: ComputedCarbs,
         profile: Profile,
         carbImpact: Double,
         deviation: Double
     ) -> [Double] {
+        // Start with the current BG
         var result = [startingGlucose]
 
-        guard let sensitivity = profile.sens else {
-            fatalError("Profile must have a `sens` value")
+        // carb-sensitivity factor (mg/dL per gram)
+        guard let sens = profile.sens,
+              let carbRatio = profile.carbRatio
+        else {
+            fatalError("Profile must have sens and carbRatio")
         }
+        let csf = Double(sens) / Double(carbRatio)
 
-        guard let carbRatio = profile.carbRatio else {
-            fatalError("Profile must have a `carbRatio` value")
-        }
+        // Initial carb impact in mg/dL per 5m
+        let initialCI = carbImpact * csf
 
-        let carbSensivityFactor = Double(sensitivity) / Double(carbRatio)
+        // Number of 5-minute intervals over which we expect *all* carbs to absorb
+        let absorptionIntervals = Int(profile.maxMealAbsorptionTime * Decimal(60) / 5)
 
-        // FIXME: compute these
-        let carbImpactDuration = 100
-        let remainingCarbImpactPeak = 100
+        // Peak impact (mg/dL per 5m) of the *remaining* carbs
+        let remainingCarbImpactPeak = Double(mealData.mealCOB) * csf
 
-        for i in 1 ..< 48 {
-            let forecastedGlucoseImpact = glucoseImpactSeries[i]
-            // linear drop-off of carb impact over carbImpactDuration*2 intervals
+        // How many intervals we spread the initial CI decay over?
+        // We use twice the absorption window (so that by 2× the window, CI has decayed to zero).
+        let decayIntervals = max(absorptionIntervals * 2, 1)
 
-            let numerator = Double(carbImpact * (1 - Double(i)))
-            let denominator = Double(max(carbImpactDuration * 2, 1))
-            let rawDecay = numerator / denominator
-            let carbDecay = Double(max(0, rawDecay))
+        // Helper: negative deviation only (never positive)
+        let predDev = min(0, deviation)
 
-            // add the "triangle" bump up to remainingCarbImpactPeak
-            let remainingCarbImpact = i < Int(carbImpactDuration * 2)
-                ? remainingCarbImpactPeak * (Int(Double(i)) / (carbImpactDuration * 2))
-                : 0
+        // Build prediction out to glucoseImpactSeries.count (usually 48)
+        for i in 1..<glucoseImpactSeries.count {
+            let insulinEffect = glucoseImpactSeries[i]
 
-            let next = result
-                .last! + Double(carbImpactDuration) + Double(min(0, deviation)) + carbDecay + Double(remainingCarbImpact)
+            // Linearly decay the *observed* carb impact from initialCI → 0
+            let decayFactor = max(0, 1 - Double(i) / Double(decayIntervals))
+            let predCI = initialCI * decayFactor
+
+            // Add a simple triangle bump for remaining carbs:
+            // – ramp up linearly to peak over the first half of the window,
+            // – ramp down linearly over the second half,
+            // – zero afterwards.
+            let triangle: Double
+            if i <= absorptionIntervals {
+                triangle = remainingCarbImpactPeak * (Double(i) / Double(absorptionIntervals))
+            } else if i <= decayIntervals {
+                triangle = remainingCarbImpactPeak * (Double(decayIntervals - i) / Double(absorptionIntervals))
+            } else {
+                triangle = 0
+            }
+
+            let next = result.last!
+                + insulinEffect
+                + predDev
+                + predCI
+                + triangle
+
             result.append(next.clamp(lowerBound: 39, upperBound: 1500))
         }
 
-        return ForecastGenerator.trimFlatTails(result, lookback: 12) // stop at plateau
+        return ForecastGenerator.trimFlatTails(result, lookback: 12)
     }
 }
+
 
 /// Forecast sub-generator for “unannounced meal” impact (UAM)
 struct UAMForecastGenerator: SingleForecasting {
