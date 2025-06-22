@@ -176,9 +176,21 @@ extension Int {
     var formattedAsMmolL: String {
         NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
     }
+
+    func formatted(for units: GlucoseUnits) -> String {
+        units == .mgdL ? description : formattedAsMmolL
+    }
+
+    func formatted(withUnits units: GlucoseUnits) -> String {
+        formatted(for: units) + " \(units.rawValue)"
+    }
 }
 
 extension Decimal {
+    func asUnit(_ unit: GlucoseUnits) -> Decimal {
+        unit == .mgdL ? self : asMmolL
+    }
+
     var asMmolL: Decimal {
         Trio.rounded(self * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
     }
@@ -190,9 +202,21 @@ extension Decimal {
     var formattedAsMmolL: String {
         NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
     }
+
+    func formatted(for units: GlucoseUnits) -> String {
+        units == .mgdL ? description : formattedAsMmolL
+    }
+
+    func formatted(withUnits units: GlucoseUnits) -> String {
+        formatted(for: units) + " \(units.rawValue)"
+    }
 }
 
 extension Double {
+    func asUnit(_ units: GlucoseUnits) -> Double {
+        units == .mgdL ? self : Double(truncating: asMmolL as NSNumber)
+    }
+
     var asMmolL: Decimal {
         Trio.rounded(Decimal(self) * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
     }
@@ -203,6 +227,14 @@ extension Double {
 
     var formattedAsMmolL: String {
         NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
+    }
+
+    func formatted(for units: GlucoseUnits) -> String {
+        units == .mgdL ? description : formattedAsMmolL
+    }
+
+    func formatted(withUnits units: GlucoseUnits) -> String {
+        formatted(for: units) + " \(units.rawValue)"
     }
 }
 
