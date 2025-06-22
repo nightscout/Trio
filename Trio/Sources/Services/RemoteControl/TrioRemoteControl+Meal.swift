@@ -77,7 +77,7 @@ extension TrioRemoteControl {
             carbs: carbsDecimal ?? 0,
             fat: fatDecimal,
             protein: proteinDecimal,
-            note: "Remote meal command",
+            note: "📡📲",
             enteredBy: CarbsEntry.local,
             isFPU: false,
             fpuID: fatDecimal ?? 0 > 0 || proteinDecimal ?? 0 > 0 ? UUID().uuidString : nil
