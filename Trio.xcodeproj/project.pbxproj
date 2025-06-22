@@ -643,6 +643,7 @@
 		DD30BA122E07764300DA677C /* Profile+TherapySettingGetter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA112E07763E00DA677C /* Profile+TherapySettingGetter.swift */; };
 		DD30BA162E0780A500DA677C /* AdjustedGlucoseTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA152E0780A500DA677C /* AdjustedGlucoseTargets.swift */; };
 		DD30BA182E078F8900DA677C /* ComputedInsulinSensitivities+Getter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA172E078F8100DA677C /* ComputedInsulinSensitivities+Getter.swift */; };
+		DD30BA1A2E08AB9F00DA677C /* CarbImpactParams.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA192E08AB9F00DA677C /* CarbImpactParams.swift */; };
 		DD32CF982CC82463003686D6 /* TrioRemoteControl+Bolus.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */; };
 		DD32CF9A2CC8247B003686D6 /* TrioRemoteControl+Meal.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */; };
 		DD32CF9C2CC82499003686D6 /* TrioRemoteControl+TempTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */; };
@@ -1557,6 +1558,7 @@
 		DD30BA112E07763E00DA677C /* Profile+TherapySettingGetter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Profile+TherapySettingGetter.swift"; sourceTree = "<group>"; };
 		DD30BA152E0780A500DA677C /* AdjustedGlucoseTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustedGlucoseTargets.swift; sourceTree = "<group>"; };
 		DD30BA172E078F8100DA677C /* ComputedInsulinSensitivities+Getter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ComputedInsulinSensitivities+Getter.swift"; sourceTree = "<group>"; };
+		DD30BA192E08AB9F00DA677C /* CarbImpactParams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbImpactParams.swift; sourceTree = "<group>"; };
 		DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Bolus.swift"; sourceTree = "<group>"; };
 		DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Meal.swift"; sourceTree = "<group>"; };
 		DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+TempTarget.swift"; sourceTree = "<group>"; };
@@ -3712,6 +3714,7 @@
 		DD30B9C82E06295700DA677C /* Forecasts */ = {
 			isa = PBXGroup;
 			children = (
+				DD30BA192E08AB9F00DA677C /* CarbImpactParams.swift */,
 				DD30B9CD2E062AA300DA677C /* SingleForecasting.swift */,
 				DD30B9C92E062A3300DA677C /* ForecastGenerator.swift */,
 			);
@@ -4556,6 +4559,7 @@
 				38B4F3CD25E5031100E76A18 /* Broadcaster.swift in Sources */,
 				383420D925FFEB3F002D46C1 /* Popup.swift in Sources */,
 				DD4C57AA2D73B3E2001BFF2C /* RestartLiveActivityIntentRequest.swift in Sources */,
+				DD30BA1A2E08AB9F00DA677C /* CarbImpactParams.swift in Sources */,
 				DD1745402C55BFC100211FAC /* AlgorithmAdvancedSettingsRootView.swift in Sources */,
 				3BCE75B32D4B38AE009E9453 /* InsulinSensitivities+Convert.swift in Sources */,
 				58645BA52CA2D347008AFCE7 /* ForecastSetup.swift in Sources */,

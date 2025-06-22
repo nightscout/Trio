@@ -25,6 +25,8 @@ protocol SingleForecasting {
 
 /// Forecast sub-generator for insulin-only effect (IOB)
 struct IOBForecastGenerator: SingleForecasting {
+    // TODO: Dynamic ISF not yet supported
+
     public func forecast(
         startingGlucose: Decimal,
         glucoseImpactSeries: [Decimal],
@@ -48,6 +50,8 @@ struct IOBForecastGenerator: SingleForecasting {
 
 /// Forecast sub-generator for carb-only effect (COB + UAM piece)
 struct COBForecastGenerator: SingleForecasting {
+    // TODO: Dynamic ISF not yet supported
+
     public func forecast(
         startingGlucose: Decimal,
         glucoseImpactSeries: [Decimal],
@@ -62,56 +66,18 @@ struct COBForecastGenerator: SingleForecasting {
         // Start with the current BG
         var result = [startingGlucose]
 
-        let carbSensivityFactor = adjustedSensitivity / (profile.carbRatio ?? profile.carbRatioFor(time: currentTime))
-
-        // Initial carb impact in mg/dL per 5m
-        let initialCarbImpact = carbImpact * carbSensivityFactor
-        let maxCarbAbsorptionRate: Decimal = 30 // g/h
-        let maxCarbImpact = (maxCarbAbsorptionRate * carbSensivityFactor * 5 / 60).rounded(toPlaces: 1)
-        let cappedCarbImpact = min(initialCarbImpact, maxCarbImpact)
-
-        let computedRemainingCarbAbsorptionTime = Self.calculateRemainingCarbAbsorptionTime(
+        let carbImpactParams = CarbImpactParams.calculate(
+            adjustedSensitivity: adjustedSensitivity,
+            profile: profile,
+            mealData: mealData,
+            carbImpact: carbImpact,
             sensitivityRatio: sensitivityRatio,
-            maxMealAbsorptionTime: profile.maxMealAbsorptionTime,
-            mealCOB: mealData.mealCOB,
-            lastCarbTime: Date(timeIntervalSince1970: mealData.lastCarbTime),
             currentTime: currentTime
         )
-        // Clamp remainingTime for more robustness
-        let remainingCarbAbsorptionTime = min(computedRemainingCarbAbsorptionTime, profile.maxMealAbsorptionTime)
-
-        // Convert remainingCarbAbsorptionTime (hours) to intervals (each 5m):
-        let dynamicAbsorptionIntervals = Int((remainingCarbAbsorptionTime * 60) / 5)
-        // Number of 5-minute intervals over which we expect *all* carbs to absorb
-        let maxAbsorptionIntervals = Int(profile.maxMealAbsorptionTime * Decimal(60) / 5)
-        // Use smaller of both computed intervals, the dynamic and the max-clamped one as the actual # of decay triangle interval
-        let triangleIntervals = min(dynamicAbsorptionIntervals, maxAbsorptionIntervals)
-
-        // Total CI (mg/dL)
-        let totalCarbImpact = max(0, cappedCarbImpact / 5 * 60 * remainingCarbAbsorptionTime / 2)
-        // Total carbs absorbed from CI (g)
-        let totalCarbsAbsorbed: Decimal = totalCarbImpact / carbSensivityFactor
-
-        // Remaining carbs cap/fraction logic
-        let remainingCarbsCap = min(90, profile.remainingCarbsCap)
-        let remainingCarbsFraction = min(1, profile.remainingCarbsFraction)
-        let remainingCarbsIgnore = 1 - remainingCarbsFraction
-
-        var remainingCarbs = max(0, mealData.mealCOB - totalCarbsAbsorbed - mealData.carbs * remainingCarbsIgnore)
-        remainingCarbs = min(remainingCarbsCap, remainingCarbs)
-
-        // /\ triangle for remaining carbs
-        // Peak impact (mg/dL per 5m) of the *remaining* carbs
-        let remainingCarbImpactPeak: Decimal
-        if remainingCarbAbsorptionTime > 0 {
-            remainingCarbImpactPeak = (remainingCarbs * carbSensivityFactor * 5 / 60) / (remainingCarbAbsorptionTime / 2)
-        } else {
-            remainingCarbImpactPeak = 0
-        }
 
         // How many intervals we spread the initial CI decay over?
         // We use twice the absorption window (so that by 2x the window, CI has decayed to zero).
-        let decayIntervals = max(maxAbsorptionIntervals * 2, 1)
+        let decayIntervals = max(carbImpactParams.maxAbsorptionIntervals * 2, 1)
 
         // Helper: negative deviation only (never positive)
         let forecastedDeviation = min(0, deviation)
@@ -122,23 +88,23 @@ struct COBForecastGenerator: SingleForecasting {
 
             // Linearly decay the *observed* carb impact from initialCI → 0
             let decayFactor = max(0, 1 - seriesCount / decayIntervals)
-            let forecastedCarbImpact = cappedCarbImpact * Decimal(decayFactor)
+            let forecastedCarbImpact = carbImpactParams.cappedCarbImpact * Decimal(decayFactor)
 
             // Add a simple triangle bump for remaining carbs:
             // – ramp up linearly to peak over the first half of the window,
             // – ramp down linearly over the second half,
             // – zero afterwards.
             let triangle: Decimal
-            if triangleIntervals > 0, seriesCount <= triangleIntervals {
+            if carbImpactParams.triangleIntervals > 0, seriesCount <= carbImpactParams.triangleIntervals {
                 // FIXME: integer division here might be slightly off for odd number intervals.
                 // FIXME: For perfect symmetry we could use let halfTriangle = (triangleIntervals + 1) / 2 — Change this?!
-                let halfTriangle = triangleIntervals / 2
+                let halfTriangle = carbImpactParams.triangleIntervals / 2
                 if seriesCount <= halfTriangle {
                     // Ramp up
-                    triangle = remainingCarbImpactPeak * Decimal(seriesCount) / Decimal(halfTriangle)
+                    triangle = carbImpactParams.remainingCarbImpactPeak * Decimal(seriesCount) / Decimal(halfTriangle)
                 } else {
                     // Ramp down
-                    triangle = remainingCarbImpactPeak * Decimal(triangleIntervals - seriesCount) / Decimal(halfTriangle)
+                    triangle = carbImpactParams.remainingCarbImpactPeak * Decimal(carbImpactParams.triangleIntervals - seriesCount) / Decimal(halfTriangle)
                 }
             } else {
                 triangle = 0
@@ -155,40 +121,12 @@ struct COBForecastGenerator: SingleForecasting {
 
         return ForecastGenerator.trimFlatTails(result, lookback: 12)
     }
-
-    /// Calculates the dynamic remaining carb absorption time in hours, per oref0 logic.
-    /// - Parameters:
-    ///   - sensitivityRatio: ratio from autosens (usually 1.0 if not present)
-    ///   - mealCOB: unabsorbed carbs (grams)
-    ///   - lastCarbTime: timestamp of last carb entry (Date? or nil)
-    ///   - currentTime: now
-    /// - Returns: Remaining CA time in hours (Decimal)
-    private static func calculateRemainingCarbAbsorptionTime(
-        sensitivityRatio: Decimal,
-        maxMealAbsorptionTime: Decimal,
-        mealCOB: Decimal,
-        lastCarbTime: Date?,
-        currentTime: Date
-    ) -> Decimal {
-        var minRemainingCarbAbsorptionTime: Decimal = min(3, maxMealAbsorptionTime) // hours
-        if sensitivityRatio > 0 {
-            minRemainingCarbAbsorptionTime = minRemainingCarbAbsorptionTime / sensitivityRatio
-        }
-        if mealCOB > 0 {
-            let assumedCarbAbsorptionRate: Decimal = 20 // g/h
-            minRemainingCarbAbsorptionTime = max(minRemainingCarbAbsorptionTime, mealCOB / assumedCarbAbsorptionRate)
-        }
-        var remainingCarbAbsorptionTime = minRemainingCarbAbsorptionTime
-        if let lastCarbTime = lastCarbTime {
-            let lastCarbAgeMin = Decimal(currentTime.timeIntervalSince(lastCarbTime) / 60)
-            remainingCarbAbsorptionTime += 1.5 * (lastCarbAgeMin / 60)
-        }
-        return remainingCarbAbsorptionTime.rounded(toPlaces: 1)
-    }
 }
 
 /// Forecast sub-generator for “unannounced meal” impact (UAM)
 struct UAMForecastGenerator: SingleForecasting {
+    // TODO: Dynamic ISF not yet supported
+
     public func forecast(
         startingGlucose: Decimal,
         glucoseImpactSeries: [Decimal],
@@ -216,6 +154,8 @@ struct UAMForecastGenerator: SingleForecasting {
 
 /// Forecast sub-generator for “zero-temp” baseline (ZT)
 struct ZTForecastGenerator: SingleForecasting {
+    // TODO: Dynamic ISF not yet supported
+
     public func forecast(
         startingGlucose: Decimal,
         glucoseImpactSeries: [Decimal],

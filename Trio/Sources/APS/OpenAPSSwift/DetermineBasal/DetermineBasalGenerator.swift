@@ -99,19 +99,17 @@ enum DeterminationGenerator {
             )
         }
 
-        let glucoseImpactSeries = buildGlucoseImpactSeries(iobDataSeries: iobData, sensitivity: sensitivity)
-
-        let forecastGenerator = ForecastGenerator()
-        let forecastResult = forecastGenerator.generate(
-            glucose: currentGlucose,
-            glucoseImpactSeries: glucoseImpactSeries,
-            mealData: mealData,
+        let (adjustedGlucoseTargets, threshold) = adjustGlucoseTargets(
             profile: profile,
-            adjustedSensitivity: sensitivity,
-            sensitivityRatio: sensitivityRatio,
-            currentTime: currentTime
+            autosens: autosensData,
+            temptargetSet: profile.temptargetSet ?? false,
+            targetGlucose: profile.targetBg ?? 100, // TODO: grab from therapy settings
+            minGlucose: profile.minBg ?? 70, // TODO: can we force unwrap?
+            maxGlucose: profile.maxBg ?? 180,
+            noise: 1
         )
 
+        let glucoseImpactSeries = buildGlucoseImpactSeries(iobDataSeries: iobData, sensitivity: sensitivity)
         let currentGlucoseImpact = glucoseImpactSeries[0]
 
         let minDelta = min(glucoseStatus.delta, glucoseStatus.shortAvgDelta)
@@ -147,14 +145,26 @@ enum DeterminationGenerator {
             throw DeterminationError.eventualGlucoseCalculationError(sensitivity: sensitivity, deviation: deviation)
         }
 
+        let forecastGenerator = ForecastGenerator()
+        let forecastResult = forecastGenerator.generate(
+            glucose: currentGlucose,
+            glucoseImpactSeries: glucoseImpactSeries,
+            iobData: iobData,
+            mealData: mealData,
+            profile: profile,
+            adjustedSensitivity: sensitivity,
+            sensitivityRatio: sensitivityRatio,
+            naiveEventualGlucose: naiveEventualGlucose,
+            eventualGlucose: eventualGlucose,
+            threshold: threshold,
+            currentTime: currentTime
+        )
+
         let expectedDelta = calculateExpectedDelta(
             targetGlucose: profile.targetBg ?? 100,
             eventualGlucose: eventualGlucose,
             glucoseImpact: currentGlucoseImpact
         )
-
-        let minPredBG = forecastResult.iob.min()
-        let minGuardBG = minPredBG
 
         // TODO: STOPPING at LINE 734
         // L734ff handles forecasting, already handled (I hope)
