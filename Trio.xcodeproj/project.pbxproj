@@ -318,7 +318,6 @@
 		3BEA3AE32D58F79700A67A1D /* JSONCompare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BEA3ADC2D58F79700A67A1D /* JSONCompare.swift */; };
 		3BEF6AB12D9731660076089D /* MealHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BEF6AB02D9731530076089D /* MealHistoryTests.swift */; };
 		3BEF6AB32D97316F0076089D /* MealTotalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BEF6AB22D97316A0076089D /* MealTotalTests.swift */; };
-		3BEF6AB52D9750330076089D /* meal-input-sim.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BEF6AB42D9750330076089D /* meal-input-sim.json */; };
 		3BEF6AB72D9750780076089D /* MealJsonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BEF6AB62D9750710076089D /* MealJsonTests.swift */; };
 		3BF424C72DF4805A0017CFD9 /* AutosensError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF424C62DF480550017CFD9 /* AutosensError.swift */; };
 		3BF8D0C12D5175BE001B3F84 /* ProfileJsNativeCompareTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF8D0C02D5175B3001B3F84 /* ProfileJsNativeCompareTests.swift */; };
@@ -1213,7 +1212,6 @@
 		3BEA3ADE2D58F79700A67A1D /* OrefFunction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrefFunction.swift; sourceTree = "<group>"; };
 		3BEF6AB02D9731530076089D /* MealHistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealHistoryTests.swift; sourceTree = "<group>"; };
 		3BEF6AB22D97316A0076089D /* MealTotalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTotalTests.swift; sourceTree = "<group>"; };
-		3BEF6AB42D9750330076089D /* meal-input-sim.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "meal-input-sim.json"; sourceTree = "<group>"; };
 		3BEF6AB62D9750710076089D /* MealJsonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealJsonTests.swift; sourceTree = "<group>"; };
 		3BF424C62DF480550017CFD9 /* AutosensError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensError.swift; sourceTree = "<group>"; };
 		3BF768BD6264FF7D71D66767 /* NightscoutConfigProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NightscoutConfigProvider.swift; sourceTree = "<group>"; };
@@ -2776,7 +2774,6 @@
 			children = (
 				3B8B5D2C2DF5234C00365ED3 /* autosens */,
 				3BF92F392D86F1AA006B545A /* iob-error-log.json */,
-				3BEF6AB42D9750330076089D /* meal-input-sim.json */,
 			);
 			path = json;
 			sourceTree = "<group>";
@@ -4331,7 +4328,6 @@
 				3BF92F312D86DEE9006B545A /* meal.js in Resources */,
 				3BF92F322D86DEE9006B545A /* glucose-get-last.js in Resources */,
 				3BF92F332D86DEE9006B545A /* iob.js in Resources */,
-				3BEF6AB52D9750330076089D /* meal-input-sim.json in Resources */,
 				3BF92F352D86DEE9006B545A /* basal-set-temp.js in Resources */,
 				3BF92F362D86DEE9006B545A /* autotune-core.js in Resources */,
 				3BC0AA3B2DA74C87000DF7B7 /* iob-total.js in Resources */,

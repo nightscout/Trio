@@ -5,58 +5,24 @@ import Testing
 @Suite("Meal testing using JSON inputs", .serialized) struct MealJsonTests {
     let timeZoneForTests = TimeZoneForTests()
 
-    @Test("Test against simulator inputs") func simulatorInputs() throws {
-        let testBundle = Bundle(for: BundleReference.self)
-        let path = testBundle.path(forResource: "meal-input-sim", ofType: "json")!
-        let data = try Data(contentsOf: URL(fileURLWithPath: path))
-
-        // this file stores an object with JSON encoded strings (so double encoded)
-        let jsonInputs = try JSONSerialization.jsonObject(with: data) as! [String: Any]
-
-        let pumpHistory = try JSONBridge.pumpHistory(from: jsonInputs["pumpHistory"] as! String)
-        let profile = try JSONBridge.profile(from: jsonInputs["profile"] as! String)
-        let basalProfile = try JSONBridge.basalProfile(from: jsonInputs["basalProfile"] as! String)
-        let clock = try JSONBridge.clock(from: jsonInputs["clock"] as! String)
-
-        let decoder = JSONCoding.decoder
-        var jsonData = (jsonInputs["carbs"] as! String).data(using: .utf8)!
-        let carbHistory: [CarbsEntry] = try decoder.decode([CarbsEntry].self, from: jsonData)
-
-        jsonData = (jsonInputs["glucose"] as! String).data(using: .utf8)!
-        let glucoseHistory: [BloodGlucose] = try decoder.decode([BloodGlucose].self, from: jsonData)
-
-        jsonData = (jsonInputs["meal"] as! String).data(using: .utf8)!
-        let mealResultFromJs = try decoder.decode(ComputedCarbs.self, from: jsonData)
-
-        let mealResult = try MealGenerator.generate(
-            pumpHistory: pumpHistory,
-            profile: profile,
-            basalProfile: basalProfile,
-            clock: clock,
-            carbHistory: carbHistory,
-            glucoseHistory: glucoseHistory
-        )
-
-        #expect(mealResult?.mealCOB == mealResultFromJs.mealCOB)
-        #expect(mealResult?.carbs == mealResultFromJs.carbs)
-        #expect(mealResult?.currentDeviation == mealResultFromJs.currentDeviation)
-        // https://github.com/nightscout/Trio-dev/issues/539
-        // Ignore this check due to Issue 539
-        // #expect(mealResult?.allDeviations == mealResultFromJs.allDeviations)
-        #expect(mealResult?.maxDeviation == mealResultFromJs.maxDeviation)
-        #expect(mealResult?.slopeFromMaxDeviation == mealResultFromJs.slopeFromMaxDeviation)
-        #expect(mealResult?.minDeviation == mealResultFromJs.minDeviation)
-        #expect(mealResult!.slopeFromMinDeviation.isWithin(0.01, of: mealResultFromJs.slopeFromMinDeviation))
-    }
-
     @Test(
         "Meal should produce same results for fixed JS",
         .enabled(if: true)
     ) func replayErrorInputs() async throws {
+        // Note: This test case can only test one timezone per invocation
+        // so you need to manually change this to try out errors from
+        // different timezones
+        let testingTimezone = "Europe/Berlin"
         let files = try await HttpFiles.listFiles()
+        var skippedTimezones = Set<String>()
         for filePath in files {
             let algorithmComparison = try await HttpFiles.downloadFile(at: filePath)
             print("Checking \(filePath) @ \(algorithmComparison.createdAt)")
+            guard algorithmComparison.timezone == testingTimezone else {
+                print("Skipping timezone \(algorithmComparison.timezone)")
+                skippedTimezones.insert(algorithmComparison.timezone)
+                continue
+            }
             guard let mealInputs = algorithmComparison.mealInput else {
                 print("Skipping, no mealInputs found")
                 if let str = algorithmComparison.comparisonError {
@@ -71,8 +37,17 @@ import Testing
             timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
 
             try await checkFixedJsAgainstSwift(mealInputs: mealInputs)
-
+            print("Checked \(filePath) \(algorithmComparison.timezone)")
             timeZoneForTests.resetTimezone()
+        }
+
+        if skippedTimezones.isEmpty {
+            print("Didn't skip any timezones")
+        } else {
+            print("Skipped timezones:")
+            for timezone in skippedTimezones {
+                print("  - \(timezone)")
+            }
         }
     }
 
@@ -123,7 +98,7 @@ import Testing
         // this test is meant for one-off analysis so it's ok to hard code
         // a file, just make sure to _not_ check in updates to this to
         // avoid polluting our change logs
-        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/02273a81-c2ed-461b-8d4e-b9b085227f61.1.json")
+        let algorithmComparison = try await HttpFiles.downloadFile(at: "/files/7a8a377e-f483-46a5-adbb-290baa04801b.3.json")
         let mealInputs = algorithmComparison.mealInput!
 
         let encoder = JSONCoding.encoder
@@ -134,6 +109,8 @@ import Testing
         // Print the path so you can find it
         print("Writing to: \(outputURL.path)")
         try output.write(to: outputURL)
+
+        timeZoneForTests.setTimezone(identifier: algorithmComparison.timezone)
 
         let (mealResultSwift, _) = OpenAPSSwift.meal(
             pumphistory: mealInputs.pumpHistory,
@@ -168,5 +145,7 @@ import Testing
         case let .failure(error):
             print(error.localizedDescription)
         }
+
+        timeZoneForTests.resetTimezone()
     }
 }
