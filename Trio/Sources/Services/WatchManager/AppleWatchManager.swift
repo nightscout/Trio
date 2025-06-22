@@ -701,7 +701,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 carbEntry.id = UUID()
                 carbEntry.carbs = Double(truncating: amount as NSNumber)
                 carbEntry.date = date
-                carbEntry.note = String(localized: "Via Watch", comment: "Note added to carb entry when entered via watch")
+                carbEntry.note = String(localized: "⌚️", comment: "Note added to carb entry when entered via watch")
                 carbEntry.isFPU = false // set this to false to ensure watch-entered carbs are displayed in main chart
                 carbEntry.isUploadedToNS = false
 
@@ -763,7 +763,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     carbEntry.id = UUID()
                     carbEntry.carbs = NSDecimalNumber(decimal: carbsAmount).doubleValue
                     carbEntry.date = date
-                    carbEntry.note = String(localized: "Via Watch", comment: "Note added to carb entry when entered via watch")
+                    carbEntry.note = String(localized: "⌚️", comment: "Note added to carb entry when entered via watch")
                     carbEntry.isFPU = false // set this to false to ensure watch-entered carbs are displayed in main chart
                     carbEntry.isUploadedToNS = false
 
