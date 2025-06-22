@@ -140,11 +140,24 @@ struct UAMForecastGenerator: SingleForecasting {
     ) -> [Decimal] {
         var result = [startingGlucose]
 
-        let slope = min(deviation, -(mealData.slopeFromMinDeviation / 3))
-        for seriesCount in 1 ..< 48 {
-            let forecastedGlucoseImpact = glucoseImpactSeries[seriesCount]
-            let forecastedUnannouncedCarbImpact = max(0, carbImpact + slope * Decimal(seriesCount))
-            let next = result.last! + forecastedGlucoseImpact + min(0, deviation) + forecastedUnannouncedCarbImpact
+        let slopeFromDeviations = mealData.slopeFromMinDeviation
+        let ticksInThreeHours: Decimal = 36 // 3 * 60 / 5
+        
+        let unannouncedCarbImpact = carbImpact
+        
+        for glucoseImpact in 1..<glucoseImpactSeries.count {
+            let insulinEffect = glucoseImpactSeries[glucoseImpact]
+            let forecastedDeviaton = min(0, deviation)
+            
+            // In JS: predUCIslope = max(0, uci + (tick * slopeFromDeviations))
+            let forecastedUnannouncedCarbImpactSlope = max(0, unannouncedCarbImpact + Decimal(glucoseImpact) * slopeFromDeviations)
+            
+            // In JS: predUCImax = max(0, uci * (1 - tick / ticksInThreeHours))
+            let maxForecastedUnannouncedCarbImpact = max(0, unannouncedCarbImpact * (1 - Decimal(glucoseImpact) / ticksInThreeHours))
+            let forecastedUnannouncedCarbImpact = min(forecastedUnannouncedCarbImpactSlope, maxForecastedUnannouncedCarbImpact)
+
+            let next = result.last! + insulinEffect + forecastedDeviaton + forecastedUnannouncedCarbImpact
+            
             result.append(next.clamp(lowerBound: 39, upperBound: 401))
         }
 
