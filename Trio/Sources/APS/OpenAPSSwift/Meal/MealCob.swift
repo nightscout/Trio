@@ -30,6 +30,7 @@ struct MealCob {
     ///
     /// This is the main COB detection algorithm entry point
     static func detectCarbAbsorption(
+        clock: Date,
         glucose: [BloodGlucose],
         pumpHistory: [PumpHistoryEvent],
         basalProfile: [BasalProfileEntry],
@@ -40,7 +41,7 @@ struct MealCob {
         let treatments = try IobHistory.calcTempTreatments(
             history: pumpHistory.map { $0.computedEvent() },
             profile: profile,
-            clock: mealDate,
+            clock: clock,
             autosens: nil,
             zeroTempDuration: nil
         )

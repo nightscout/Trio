@@ -50,6 +50,7 @@ import Testing
 
         // Test with carbImpactTime
         var result = try MealCob.detectCarbAbsorption(
+            clock: carbImpactTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
@@ -62,6 +63,7 @@ import Testing
 
         // Test without carbImpactTime
         result = try MealCob.detectCarbAbsorption(
+            clock: carbImpactTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
@@ -86,6 +88,7 @@ import Testing
         let pumpHistory: [PumpHistoryEvent] = []
 
         let result = try MealCob.detectCarbAbsorption(
+            clock: carbImpactTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
@@ -110,6 +113,7 @@ import Testing
         let pumpHistory: [PumpHistoryEvent] = []
 
         let result = try MealCob.detectCarbAbsorption(
+            clock: carbImpactTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
@@ -150,6 +154,7 @@ import Testing
         let pumpHistory: [PumpHistoryEvent] = []
 
         let result = try MealCob.detectCarbAbsorption(
+            clock: carbImpactTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
@@ -183,6 +188,7 @@ import Testing
         let pumpHistory: [PumpHistoryEvent] = []
 
         let result = try MealCob.detectCarbAbsorption(
+            clock: carbImpactTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,
@@ -213,6 +219,7 @@ import Testing
         let pumpHistory: [PumpHistoryEvent] = []
 
         let result = try MealCob.detectCarbAbsorption(
+            clock: mealTime, // no pump events, set to whatever
             glucose: glucoseData,
             pumpHistory: pumpHistory,
             basalProfile: basalProfile,

@@ -40,18 +40,12 @@ import Testing
     // Note: This test case has a memory leak so limit your inputs
     // to about 250 files at a time
     @Test(
-        "should produce same results for fixed JS and different for bundle JS",
+        "IoB should produce same results for fixed JS and different for bundle JS",
         .enabled(if: false)
     ) func replayErrorInputs() async throws {
-        let url = URL(string: "http://localhost:8123/list")!
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let files = try JSONDecoder().decode([String].self, from: data)
-        let fileDataDecoder = JSONDecoder()
-        fileDataDecoder.dateDecodingStrategy = .secondsSince1970
+        let files = try await HttpFiles.listFiles()
         for filePath in files {
-            let dataUrl = URL(string: "http://localhost:8123\(filePath)")!
-            let (data, _) = try await URLSession.shared.data(from: dataUrl)
-            let algorithmComparison = try fileDataDecoder.decode(AlgorithmComparison.self, from: data)
+            let algorithmComparison = try await HttpFiles.downloadFile(at: filePath)
             print("Checking \(filePath) @ \(algorithmComparison.createdAt)")
             guard let iobInputs = algorithmComparison.iobInput else {
                 print("Skipping, no iobInputs found")
