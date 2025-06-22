@@ -176,7 +176,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                     newPumpEvent.isUploadedToHealth = false
                     newPumpEvent.isUploadedToTidepool = false
 
-                case .prime:
+                case .replaceComponent(componentType: .infusionSet),
+                     .replaceComponent(componentType: .pump):
                     guard existingEvents.isEmpty else {
                         // Duplicate found, do not store the event
                         debug(.coreData, "Duplicate event found with timestamp: \(event.date)")
