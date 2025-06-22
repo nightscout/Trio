@@ -23,9 +23,12 @@ struct ForecastGenerator {
         glucose: Decimal,
         glucoseImpactSeries: [Decimal],
         mealData: ComputedCarbs,
-        profile: Profile
+        profile: Profile,
+        adjustedSensitivity: Decimal,
+        sensitivityRatio: Decimal,
+        currentTime: Date
     ) -> ForecastResult {
-        let carbImpact = mealData.currentDeviation * profile.carbRatio! / profile.sens!
+        let carbImpact = mealData.currentDeviation * (profile.carbRatio ?? profile.carbRatioFor(time: currentTime)) / (profile.sens ?? profile.sensitivityFor(time: currentTime))
         let deviation = mealData.currentDeviation
 
         return ForecastResult(
@@ -35,7 +38,10 @@ struct ForecastGenerator {
                 mealData: mealData,
                 profile: profile,
                 carbImpact: carbImpact,
-                deviation: deviation
+                deviation: deviation,
+                adjustedSensitivity: adjustedSensitivity,
+                sensitivityRatio: sensitivityRatio,
+                currentTime: currentTime
             ),
             cob: cob.forecast(
                 startingGlucose: glucose,
@@ -43,7 +49,10 @@ struct ForecastGenerator {
                 mealData: mealData,
                 profile: profile,
                 carbImpact: carbImpact,
-                deviation: deviation
+                deviation: deviation,
+                adjustedSensitivity: adjustedSensitivity,
+                sensitivityRatio: sensitivityRatio,
+                currentTime: currentTime
             ),
             uam: uam.forecast(
                 startingGlucose: glucose,
@@ -51,7 +60,10 @@ struct ForecastGenerator {
                 mealData: mealData,
                 profile: profile,
                 carbImpact: carbImpact,
-                deviation: deviation
+                deviation: deviation,
+                adjustedSensitivity: adjustedSensitivity,
+                sensitivityRatio: sensitivityRatio,
+                currentTime: currentTime
             ),
             zt: zt.forecast(
                 startingGlucose: glucose,
@@ -59,7 +71,10 @@ struct ForecastGenerator {
                 mealData: mealData,
                 profile: profile,
                 carbImpact: carbImpact,
-                deviation: deviation
+                deviation: deviation,
+                adjustedSensitivity: adjustedSensitivity,
+                sensitivityRatio: sensitivityRatio,
+                currentTime: currentTime
             )
         )
     }

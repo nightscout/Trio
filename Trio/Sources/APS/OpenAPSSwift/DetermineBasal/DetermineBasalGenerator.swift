@@ -106,7 +106,10 @@ enum DeterminationGenerator {
             glucose: currentGlucose,
             glucoseImpactSeries: glucoseImpactSeries,
             mealData: mealData,
-            profile: profile
+            profile: profile,
+            adjustedSensitivity: sensitivity,
+            sensitivityRatio: sensitivityRatio,
+            currentTime: currentTime
         )
 
         let currentGlucoseImpact = glucoseImpactSeries[0]
