@@ -1,3 +1,5 @@
+import Foundation
+
 /// The top-level orchestrator
 struct ForecastGenerator {
     let iob: SingleForecasting
@@ -18,12 +20,12 @@ struct ForecastGenerator {
     }
 
     public func generate(
-        glucose: Double,
-        glucoseImpactSeries: [Double],
+        glucose: Decimal,
+        glucoseImpactSeries: [Decimal],
         mealData: ComputedCarbs,
         profile: Profile
     ) -> ForecastResult {
-        let carbImpact = Double(mealData.currentDeviation) * Double(profile.carbRatio!) / Double(profile.sens!)
+        let carbImpact = mealData.currentDeviation * profile.carbRatio! / profile.sens!
         let deviation = mealData.currentDeviation
 
         return ForecastResult(
@@ -33,7 +35,7 @@ struct ForecastGenerator {
                 mealData: mealData,
                 profile: profile,
                 carbImpact: carbImpact,
-                deviation: Double(deviation)
+                deviation: deviation
             ),
             cob: cob.forecast(
                 startingGlucose: glucose,
@@ -41,7 +43,7 @@ struct ForecastGenerator {
                 mealData: mealData,
                 profile: profile,
                 carbImpact: carbImpact,
-                deviation: Double(deviation)
+                deviation: deviation
             ),
             uam: uam.forecast(
                 startingGlucose: glucose,
@@ -49,7 +51,7 @@ struct ForecastGenerator {
                 mealData: mealData,
                 profile: profile,
                 carbImpact: carbImpact,
-                deviation: Double(deviation)
+                deviation: deviation
             ),
             zt: zt.forecast(
                 startingGlucose: glucose,
@@ -57,13 +59,13 @@ struct ForecastGenerator {
                 mealData: mealData,
                 profile: profile,
                 carbImpact: carbImpact,
-                deviation: Double(deviation)
+                deviation: deviation
             )
         )
     }
 
     /// Trims trailing flat-line points beyond a “lookback” count
-    public static func trimFlatTails(_ series: [Double], lookback: Int) -> [Double] {
+    public static func trimFlatTails(_ series: [Decimal], lookback: Int) -> [Decimal] {
         var s = series
         while s.count > lookback, s.suffix(2)[0] == s.suffix(2)[1] {
             s.removeLast()

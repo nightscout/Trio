@@ -637,6 +637,12 @@
 		DD30B9FE2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9FD2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift */; };
 		DD30BA002E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */; };
 		DD30BA022E074F0F00DA677C /* GlucoseStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA012E074F0F00DA677C /* GlucoseStatus.swift */; };
+		DD30BA062E07667000DA677C /* DetermineBasal+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA052E07667000DA677C /* DetermineBasal+Helpers.swift */; };
+		DD30BA082E076CAA00DA677C /* DeterminationError.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA072E076CAA00DA677C /* DeterminationError.swift */; };
+		DD30BA0E2E07700000DA677C /* Profile+Autosens.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA0D2E076FFC00DA677C /* Profile+Autosens.swift */; };
+		DD30BA122E07764300DA677C /* Profile+TherapySettingGetter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA112E07763E00DA677C /* Profile+TherapySettingGetter.swift */; };
+		DD30BA162E0780A500DA677C /* AdjustedGlucoseTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA152E0780A500DA677C /* AdjustedGlucoseTargets.swift */; };
+		DD30BA182E078F8900DA677C /* ComputedInsulinSensitivities+Getter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA172E078F8100DA677C /* ComputedInsulinSensitivities+Getter.swift */; };
 		DD32CF982CC82463003686D6 /* TrioRemoteControl+Bolus.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */; };
 		DD32CF9A2CC8247B003686D6 /* TrioRemoteControl+Meal.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */; };
 		DD32CF9C2CC82499003686D6 /* TrioRemoteControl+TempTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */; };
@@ -1545,6 +1551,12 @@
 		DD30B9FD2E0742E200DA677C /* DetermineBasalSMBEnablementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalSMBEnablementTests.swift; sourceTree = "<group>"; };
 		DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetermineBasalDeltaCalculationTests.swift; sourceTree = "<group>"; };
 		DD30BA012E074F0F00DA677C /* GlucoseStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseStatus.swift; sourceTree = "<group>"; };
+		DD30BA052E07667000DA677C /* DetermineBasal+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DetermineBasal+Helpers.swift"; sourceTree = "<group>"; };
+		DD30BA072E076CAA00DA677C /* DeterminationError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterminationError.swift; sourceTree = "<group>"; };
+		DD30BA0D2E076FFC00DA677C /* Profile+Autosens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Profile+Autosens.swift"; sourceTree = "<group>"; };
+		DD30BA112E07763E00DA677C /* Profile+TherapySettingGetter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Profile+TherapySettingGetter.swift"; sourceTree = "<group>"; };
+		DD30BA152E0780A500DA677C /* AdjustedGlucoseTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustedGlucoseTargets.swift; sourceTree = "<group>"; };
+		DD30BA172E078F8100DA677C /* ComputedInsulinSensitivities+Getter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ComputedInsulinSensitivities+Getter.swift"; sourceTree = "<group>"; };
 		DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Bolus.swift"; sourceTree = "<group>"; };
 		DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Meal.swift"; sourceTree = "<group>"; };
 		DD32CF9B2CC82495003686D6 /* TrioRemoteControl+TempTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+TempTarget.swift"; sourceTree = "<group>"; };
@@ -2847,6 +2859,9 @@
 		3B5CD2A42D4AEA5D00CE213C /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				DD30BA172E078F8100DA677C /* ComputedInsulinSensitivities+Getter.swift */,
+				DD30BA112E07763E00DA677C /* Profile+TherapySettingGetter.swift */,
+				DD30BA0D2E076FFC00DA677C /* Profile+Autosens.swift */,
 				3B4550522D862BF200551B0D /* PumpHistoryEvent+Duplicates.swift */,
 				3B5F45B52D6A239000F70982 /* DoubleApproximateMatching.swift */,
 				3B5CD2A32D4AEA5D00CE213C /* Date+MinutesFromMidnight.swift */,
@@ -2861,6 +2876,7 @@
 		3B5CD2B22D4AEA6600CE213C /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				DD30BA152E0780A500DA677C /* AdjustedGlucoseTargets.swift */,
 				DD30BA012E074F0F00DA677C /* GlucoseStatus.swift */,
 				DD30B9CB2E062A7000DA677C /* ForecastResult.swift */,
 				3B5CD2A72D4AEA6600CE213C /* ComputedBGTargets.swift */,
@@ -3686,6 +3702,8 @@
 		DD30B9C52E0624C600DA677C /* DetermineBasal */ = {
 			isa = PBXGroup;
 			children = (
+				DD30BA072E076CAA00DA677C /* DeterminationError.swift */,
+				DD30BA052E07667000DA677C /* DetermineBasal+Helpers.swift */,
 				DD30B9C62E06257300DA677C /* DetermineBasalGenerator.swift */,
 			);
 			path = DetermineBasal;
@@ -4654,9 +4672,11 @@
 				DD1745462C55C61500211FAC /* AutosensSettingsProvider.swift in Sources */,
 				DD6A4E802DBEC3EE008C4B26 /* StartupForceCloseWarningStepView.swift in Sources */,
 				DDA6E2852D2361F800C2988C /* LoopStatusView.swift in Sources */,
+				DD30BA122E07764300DA677C /* Profile+TherapySettingGetter.swift in Sources */,
 				DDF691012DA2CA11008BF16C /* AppDiagnosticsDataFlow.swift in Sources */,
 				DDA6E3202D258E0500C2988C /* OverrideHelpView.swift in Sources */,
 				3B5CD2982D4AEA3C00CE213C /* Carbs.swift in Sources */,
+				DD30BA182E078F8900DA677C /* ComputedInsulinSensitivities+Getter.swift in Sources */,
 				3B5CD2992D4AEA3C00CE213C /* Isf.swift in Sources */,
 				3B5CD29A2D4AEA3C00CE213C /* ProfileError.swift in Sources */,
 				3B5CD29B2D4AEA3C00CE213C /* Basal.swift in Sources */,
@@ -4880,6 +4900,7 @@
 				BDA25EFD2D261C0000035F34 /* WatchState.swift in Sources */,
 				CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */,
 				385CEA8225F23DFD002D6D5B /* NightscoutStatus.swift in Sources */,
+				DD30BA162E0780A500DA677C /* AdjustedGlucoseTargets.swift in Sources */,
 				DD17453C2C55BFAD00211FAC /* AlgorithmAdvancedSettingsProvider.swift in Sources */,
 				F90692AA274B7AAE0037068D /* HealthKitManager.swift in Sources */,
 				38887CCE25F5725200944304 /* IOBEntry.swift in Sources */,
@@ -4996,6 +5017,7 @@
 				F90692D3274B9A130037068D /* AppleHealthKitRootView.swift in Sources */,
 				3B5CD2A52D4AEA5D00CE213C /* Date+MinutesFromMidnight.swift in Sources */,
 				BDF34F852C10C62E00D51995 /* GlucoseData.swift in Sources */,
+				DD30BA082E076CAA00DA677C /* DeterminationError.swift in Sources */,
 				19E1F7EC29D082FE005C8D20 /* IconConfigStateModel.swift in Sources */,
 				711C0CB42CAABE788916BC9D /* ManualTempBasalDataFlow.swift in Sources */,
 				DD1745222C55524800211FAC /* SMBSettingsProvider.swift in Sources */,
@@ -5068,6 +5090,7 @@
 				BD4D738D2D15A4080052227B /* TDDStored+CoreDataClass.swift in Sources */,
 				BD4D738E2D15A4080052227B /* TDDStored+CoreDataProperties.swift in Sources */,
 				DDE179582C910127003CDDB7 /* ForecastValue+CoreDataClass.swift in Sources */,
+				DD30BA062E07667000DA677C /* DetermineBasal+Helpers.swift in Sources */,
 				DDE179592C910127003CDDB7 /* ForecastValue+CoreDataProperties.swift in Sources */,
 				DDE1795A2C910127003CDDB7 /* CarbEntryStored+CoreDataClass.swift in Sources */,
 				DDE1795B2C910127003CDDB7 /* CarbEntryStored+CoreDataProperties.swift in Sources */,
@@ -5076,6 +5099,7 @@
 				BDDAF9EF2D00554500B34E7A /* SelectionPopoverView.swift in Sources */,
 				DDE1795F2C910127003CDDB7 /* PumpEventStored+CoreDataProperties.swift in Sources */,
 				DDE179602C910127003CDDB7 /* StatsData+CoreDataClass.swift in Sources */,
+				DD30BA0E2E07700000DA677C /* Profile+Autosens.swift in Sources */,
 				DD3F1F852D9DD84000DCE7B3 /* DeliveryLimitsStepView.swift in Sources */,
 				DDE179612C910127003CDDB7 /* StatsData+CoreDataProperties.swift in Sources */,
 				DDE179622C910127003CDDB7 /* Forecast+CoreDataClass.swift in Sources */,

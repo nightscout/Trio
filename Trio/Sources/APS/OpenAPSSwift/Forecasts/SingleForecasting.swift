@@ -11,28 +11,28 @@ protocol SingleForecasting {
     ///   - deviation:  current deviation (mg/dL per 5m)
     /// - Returns: a capped/clamped array of future BGs, one per 5-minute interval
     func forecast(
-        startingGlucose: Double,
-        glucoseImpactSeries: [Double],
+        startingGlucose: Decimal,
+        glucoseImpactSeries: [Decimal],
         mealData: ComputedCarbs,
         profile: Profile,
-        carbImpact: Double,
-        deviation: Double
-    ) -> [Double]
+        carbImpact: Decimal,
+        deviation: Decimal
+    ) -> [Decimal]
 }
 
 /// Forecast sub-generator for insulin-only effect (IOB)
 struct IOBForecastGenerator: SingleForecasting {
     public func forecast(
-        startingGlucose: Double,
-        glucoseImpactSeries: [Double],
+        startingGlucose: Decimal,
+        glucoseImpactSeries: [Decimal],
         mealData _: ComputedCarbs,
         profile _: Profile,
-        carbImpact _: Double,
-        deviation: Double
-    ) -> [Double] {
+        carbImpact _: Decimal,
+        deviation: Decimal
+    ) -> [Decimal] {
         var result = [startingGlucose]
         for (count, glucoseImpact) in glucoseImpactSeries.enumerated() {
-            let predDev = deviation * (1 - min(1, Double(count) / (60 / 5)))
+            let predDev = deviation * (1 - min(1, Decimal(count) / (60 / 5)))
             let next = result.last! + glucoseImpact + predDev
             result.append(next.clamp(lowerBound: 39, upperBound: 401))
         }
@@ -43,13 +43,13 @@ struct IOBForecastGenerator: SingleForecasting {
 /// Forecast sub-generator for carb-only effect (COB + UAM piece)
 struct COBForecastGenerator: SingleForecasting {
     public func forecast(
-        startingGlucose: Double,
-        glucoseImpactSeries: [Double],
+        startingGlucose: Decimal,
+        glucoseImpactSeries: [Decimal],
         mealData: ComputedCarbs,
         profile: Profile,
-        carbImpact: Double,
-        deviation: Double
-    ) -> [Double] {
+        carbImpact: Decimal,
+        deviation: Decimal
+    ) -> [Decimal] {
         // Start with the current BG
         var result = [startingGlucose]
 
@@ -59,16 +59,16 @@ struct COBForecastGenerator: SingleForecasting {
         else {
             fatalError("Profile must have sens and carbRatio")
         }
-        let csf = Double(sens) / Double(carbRatio)
+        let csf = sens / carbRatio // FIXME: this needs to be the AS-adjusted sens, not profile.sens
 
         // Initial carb impact in mg/dL per 5m
-        let initialCI = carbImpact * csf
+        let initialCarbImpact = carbImpact * csf
 
         // Number of 5-minute intervals over which we expect *all* carbs to absorb
         let absorptionIntervals = Int(profile.maxMealAbsorptionTime * Decimal(60) / 5)
 
         // Peak impact (mg/dL per 5m) of the *remaining* carbs
-        let remainingCarbImpactPeak = Double(mealData.mealCOB) * csf
+        let remainingCarbImpactPeak = mealData.mealCOB * csf
 
         // How many intervals we spread the initial CI decay over?
         // We use twice the absorption window (so that by 2× the window, CI has decayed to zero).
@@ -78,22 +78,22 @@ struct COBForecastGenerator: SingleForecasting {
         let predDev = min(0, deviation)
 
         // Build prediction out to glucoseImpactSeries.count (usually 48)
-        for i in 1..<glucoseImpactSeries.count {
-            let insulinEffect = glucoseImpactSeries[i]
+        for seriesCount in 1 ..< glucoseImpactSeries.count {
+            let insulinEffect = glucoseImpactSeries[seriesCount]
 
             // Linearly decay the *observed* carb impact from initialCI → 0
-            let decayFactor = max(0, 1 - Double(i) / Double(decayIntervals))
-            let predCI = initialCI * decayFactor
+            let decayFactor = max(0, 1 - seriesCount / decayIntervals)
+            let forecastedCarbImpact = initialCarbImpact * Decimal(decayFactor)
 
             // Add a simple triangle bump for remaining carbs:
             // – ramp up linearly to peak over the first half of the window,
             // – ramp down linearly over the second half,
             // – zero afterwards.
-            let triangle: Double
-            if i <= absorptionIntervals {
-                triangle = remainingCarbImpactPeak * (Double(i) / Double(absorptionIntervals))
-            } else if i <= decayIntervals {
-                triangle = remainingCarbImpactPeak * (Double(decayIntervals - i) / Double(absorptionIntervals))
+            let triangle: Decimal
+            if seriesCount <= absorptionIntervals {
+                triangle = remainingCarbImpactPeak * (Decimal(seriesCount) / Decimal(absorptionIntervals))
+            } else if seriesCount <= decayIntervals {
+                triangle = remainingCarbImpactPeak * (Decimal(decayIntervals - seriesCount) / Decimal(absorptionIntervals))
             } else {
                 triangle = 0
             }
@@ -101,7 +101,7 @@ struct COBForecastGenerator: SingleForecasting {
             let next = result.last!
                 + insulinEffect
                 + predDev
-                + predCI
+                + forecastedCarbImpact
                 + triangle
 
             result.append(next.clamp(lowerBound: 39, upperBound: 1500))
@@ -111,23 +111,22 @@ struct COBForecastGenerator: SingleForecasting {
     }
 }
 
-
 /// Forecast sub-generator for “unannounced meal” impact (UAM)
 struct UAMForecastGenerator: SingleForecasting {
     public func forecast(
-        startingGlucose: Double,
-        glucoseImpactSeries: [Double],
+        startingGlucose: Decimal,
+        glucoseImpactSeries: [Decimal],
         mealData: ComputedCarbs,
         profile _: Profile,
-        carbImpact: Double,
-        deviation: Double
-    ) -> [Double] {
+        carbImpact: Decimal,
+        deviation: Decimal
+    ) -> [Decimal] {
         var result = [startingGlucose]
 
-        let slope = min(deviation, -(Double(mealData.slopeFromMinDeviation) / 3))
-        for i in 1 ..< 48 {
-            let forecastedGlucoseImpact = glucoseImpactSeries[i]
-            let forecastedUnannouncedCarbImpact = max(0, carbImpact + slope * Double(i))
+        let slope = min(deviation, -(mealData.slopeFromMinDeviation / 3))
+        for seriesCount in 1 ..< 48 {
+            let forecastedGlucoseImpact = glucoseImpactSeries[seriesCount]
+            let forecastedUnannouncedCarbImpact = max(0, carbImpact + slope * Decimal(seriesCount))
             let next = result.last! + forecastedGlucoseImpact + min(0, deviation) + forecastedUnannouncedCarbImpact
             result.append(next.clamp(lowerBound: 39, upperBound: 401))
         }
@@ -139,13 +138,13 @@ struct UAMForecastGenerator: SingleForecasting {
 /// Forecast sub-generator for “zero-temp” baseline (ZT)
 struct ZTForecastGenerator: SingleForecasting {
     public func forecast(
-        startingGlucose: Double,
-        glucoseImpactSeries: [Double],
+        startingGlucose: Decimal,
+        glucoseImpactSeries: [Decimal],
         mealData: ComputedCarbs,
         profile: Profile,
-        carbImpact: Double,
-        deviation: Double
-    ) -> [Double] {
+        carbImpact: Decimal,
+        deviation: Decimal
+    ) -> [Decimal] {
         // essentially insulin effect only, but with zero-temp ISF if needed
         IOBForecastGenerator().forecast(
             startingGlucose: startingGlucose,
