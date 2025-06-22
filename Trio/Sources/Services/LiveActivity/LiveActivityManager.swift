@@ -89,6 +89,7 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
         registerHandler()
         monitorForLiveActivityAuthorizationChanges()
         setupGlucoseArray()
+        setupDetermination()
         broadcaster.register(SettingsObserver.self, observer: self)
     }
 
@@ -257,6 +258,12 @@ final class LiveActivityManager: Injectable, ObservableObject, SettingsObserver 
             } catch {
                 debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch glucose with error: \(error)")
             }
+        }
+    }
+
+    private func setupDetermination() {
+        Task { @MainActor in
+            self.determination = try await fetchAndMapDetermination()
         }
     }
 
